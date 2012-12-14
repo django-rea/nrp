@@ -3,7 +3,6 @@ from decimal import *
 
 from django.test import TestCase
 from django.test import Client
-from django.contrib.auth.models import User
 
 from valuenetwork.valueaccounting.models import *
 
@@ -25,12 +24,14 @@ class CompensationTest(TestCase):
 
         self.agent_A = EconomicAgent(
             name="A",
+            nick="A",
             agent_type=self.a_type,
         )
         self.agent_A.save()
 
         self.agent_B = EconomicAgent(
             name="B",
+            nick="B",
             agent_type=self.a_type,
         )
         self.agent_B.save()
@@ -48,32 +49,18 @@ class CompensationTest(TestCase):
         )
         self.e_type.save()
 
-        self.role = Role(
-            name="Whatever",
-            rate=Decimal("11.00"),
-        )
-        self.role.save()
-
         self.p_type = ProcessType(
             name="Do Something",
         )
         self.p_type.save()
 
-        self.process = Process(
-            name="Do Something Now",
-            process_type=self.p_type,
-            start_date = datetime.date.today(),
-        )
-        self.process.save()
 
         self.event1 = EconomicEvent(
             event_type=self.e_type,
             event_date = datetime.date.today(),
             from_agent=self.agent_A,
-            from_agent_role=self.role,
             to_agent=self.agent_B,
             resource_type=self.r_type,
-            process=self.process,
             quantity=Decimal("10.00"),
             unit_of_quantity=self.unit,
             value=Decimal("10.00"),
@@ -85,10 +72,8 @@ class CompensationTest(TestCase):
             event_type=self.e_type,
             event_date = datetime.date.today(),
             from_agent=self.agent_B,
-            from_agent_role=self.role,
             to_agent=self.agent_A,
             resource_type=self.r_type,
-            process=self.process,
             quantity=Decimal("10.00"),
             unit_of_quantity=self.unit,
             value=Decimal("10.00"),
@@ -105,6 +90,7 @@ class CompensationTest(TestCase):
         self.compensation.save()
 
     def test_valid_compensation(self):
+        #import pdb; pdb.set_trace()
         compensations = self.event1.my_compensations()
         self.assertEqual(compensations.count(),1)
         self.assertEqual(self.event1.compensation(),Decimal('10.00'))
@@ -115,6 +101,7 @@ class CompensationTest(TestCase):
 
         agent_C = EconomicAgent(
             name="C",
+            nick="C",
             agent_type=self.a_type,
         )
         agent_C.save()
@@ -123,10 +110,8 @@ class CompensationTest(TestCase):
             event_type=self.e_type,
             event_date = datetime.date.today(),
             from_agent=self.agent_B,
-            from_agent_role=self.role,
             to_agent=agent_C,
             resource_type=self.r_type,
-            process=self.process,
             quantity=Decimal("10.00"),
             unit_of_quantity=self.unit,
             value=Decimal("10.00"),
@@ -158,10 +143,8 @@ class CompensationTest(TestCase):
             event_type=self.e_type,
             event_date = datetime.date.today(),
             from_agent=agent_C,
-            from_agent_role=self.role,
             to_agent=self.agent_A,
             resource_type=self.r_type,
-            process=self.process,
             quantity=Decimal("10.00"),
             unit_of_quantity=self.unit,
             value=Decimal("10.00"),

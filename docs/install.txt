@@ -1,0 +1,51 @@
+To install on Ubuntu for development:
+
+1. install pip globally:
+http://www.pip-installer.org/en/latest/installing.html#prerequisites
+
+May need to install easy_install first: 
+sudo apt-get install python-setuptools
+
+Then install pip: 
+sudo easy_install pip
+
+2. install virtualenv:
+http://www.virtualenv.org/en/latest/index.html
+
+sudo pip install virtualenv 
+
+3.  (highly recommended but not necessary):
+install virtualenvwrapper:
+http://virtualenvwrapper.readthedocs.org/en/latest/
+
+sudo pip install virtualenvwrapper 
+export WORKON_HOME=~/Envs
+mkdir -p $WORKON_HOME
+source /usr/local/bin/virtualenvwrapper.sh
+
+Step 5 assumes virtualenvwrapper
+
+4. unless you don't have it already: install git
+sudo apt-get install git
+
+5. create a virtualenv (assuming you installed virtualenvwrapper):
+mkvirtualenv vn --system-site-packages 
+workon vn
+cdvirtualenv
+
+6. clone the valuenetwork repo inside the vn virtualenv.
+git clone https://github.com/valnet/valuenetwork.git
+ 
+7. cd valuenetwork
+
+8. pip install -r requirements.txt
+
+9. create the sqlite database
+./manage.py syncdb
+
+10. crank up the django server
+./manage.py runserver
+
+11. point browser at http://127.0.0.1:8000/
+
+

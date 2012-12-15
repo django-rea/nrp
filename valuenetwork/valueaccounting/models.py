@@ -442,7 +442,7 @@ class EconomicResource(models.Model):
         verbose_name=_('unit of quantity'), related_name="resource_qty_units")
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, default=Decimal("0"))
     notes = models.TextField(_('notes'), blank=True, null=True)
-    created_date = models.DateField(_('created date'))
+    created_date = models.DateField(_('created date'), default=datetime.date.today)
 
     class Meta:
         ordering = ('resource_type', 'identifier',)
@@ -1138,7 +1138,7 @@ class Reciprocity(models.Model):
         related_name="initiated_commitments", verbose_name=_('initiating commitment'))
     reciprocal_commitment = models.ForeignKey(Commitment, 
         related_name="reciprocal_commitments", verbose_name=_('reciprocal commitment'))
-    reciprocity_date = models.DateField(_('reciprocity date'))
+    reciprocity_date = models.DateField(_('reciprocity date'), default=datetime.date.today)
 
     class Meta:
         ordering = ('reciprocity_date',)
@@ -1280,7 +1280,7 @@ class Compensation(models.Model):
         related_name="initiated_compensations", verbose_name=_('initiating event'))
     compensating_event = models.ForeignKey(EconomicEvent, 
         related_name="compensations", verbose_name=_('compensating event'))
-    compensation_date = models.DateField(_('compensation date'))
+    compensation_date = models.DateField(_('compensation date'), default=datetime.date.today)
     compensating_value = models.DecimalField(_('compensating value'), max_digits=8, decimal_places=2)
 
     class Meta:

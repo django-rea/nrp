@@ -183,7 +183,7 @@ class EconomicAgent(models.Model):
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     slug = models.SlugField(_("Page name"), editable=False)
-    created_date = models.DateField(_('created date'))
+    created_date = models.DateField(_('created date'), default=datetime.date.today)
     
     class Meta:
         ordering = ('nick',)

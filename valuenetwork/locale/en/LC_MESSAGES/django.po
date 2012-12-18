@@ -1,0 +1,1184 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-12-18 14:47-0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: templates/_footer.html:3
+msgid ""
+"\n"
+"        <a href=\"http://creativecommons.org/licenses/by/3.0/\" target="
+"\"_blank\">Creative Commons</a>\n"
+"    "
+msgstr ""
+
+#: templates/homepage.html:5
+msgid "Welcome"
+msgstr ""
+
+#: templates/homepage.html:10
+msgid "Value Accounting prototype"
+msgstr ""
+
+#: templates/homepage.html:12
+msgid ""
+"\n"
+"        This project is just getting started.\n"
+"        "
+msgstr ""
+
+#: templates/homepage.html:18
+msgid ""
+"\n"
+"        Value Accounting means accounting for <a href=\"https://docs.google."
+"com/document/d/1yjcxlN4RN0Trr1TeuG3YOuxQWgvHetxP2HzBvh9dZfo/edit\" target="
+"\"_blank\">Value Networks</a>.\n"
+"        "
+msgstr ""
+
+#: templates/homepage.html:24
+msgid ""
+"\n"
+"\t\tThe prototype is being developed as a Web app in Django.  Here is <a "
+"href=\"https://github.com/valnet/valuenetwork\" target=\"_blank\">the code</"
+"a>.\n"
+"\t\tNote the project roadmap in the README.\n"
+"        "
+msgstr ""
+
+#: templates/valueaccounting/_resource_type.html:11
+#: templates/valueaccounting/_resource_type.html:18
+#: templates/valueaccounting/edit_xbill.html:97
+#: templates/valueaccounting/edit_xbill.html:104
+#: templates/valueaccounting/edit_xbill.html:195
+#: templates/valueaccounting/edit_xbill.html:202
+#: templates/valueaccounting/edit_xbill.html:228
+#: templates/valueaccounting/edit_xbill.html:235
+#: templates/valueaccounting/edit_xbill.html:265
+#: templates/valueaccounting/edit_xbill.html:271
+#: templates/valueaccounting/edit_xbill.html:429
+msgid "Change"
+msgstr ""
+
+#: templates/valueaccounting/_resource_type.html:26
+#: templates/valueaccounting/edit_xbill.html:112
+#: templates/valueaccounting/edit_xbill.html:149
+#: templates/valueaccounting/edit_xbill.html:210
+#: templates/valueaccounting/edit_xbill.html:243
+#: templates/valueaccounting/edit_xbill.html:279
+#: templates/valueaccounting/edit_xbill.html:328
+#: templates/valueaccounting/edit_xbill.html:354
+#: templates/valueaccounting/edit_xbill.html:383
+#: templates/valueaccounting/edit_xbill.html:409
+#: templates/valueaccounting/edit_xbill.html:437
+#: templates/valueaccounting/edit_xbill.html:471
+#: templates/valueaccounting/edit_xbill.html:498
+#: templates/valueaccounting/feature_delete_confirmation.html:33
+#: templates/valueaccounting/order_delete_confirmation.html:92
+#: templates/valueaccounting/process_type_delete_confirmation.html:33
+#: templates/valueaccounting/resource_type_delete_confirmation.html:49
+#: templates/valueaccounting/resource_types.html:51
+msgid "Cancel"
+msgstr ""
+
+#: templates/valueaccounting/_resource_type.html:27
+#: templates/valueaccounting/edit_xbill.html:113
+#: templates/valueaccounting/edit_xbill.html:150
+#: templates/valueaccounting/edit_xbill.html:211
+#: templates/valueaccounting/edit_xbill.html:244
+#: templates/valueaccounting/edit_xbill.html:280
+#: templates/valueaccounting/edit_xbill.html:329
+#: templates/valueaccounting/edit_xbill.html:355
+#: templates/valueaccounting/edit_xbill.html:384
+#: templates/valueaccounting/edit_xbill.html:410
+#: templates/valueaccounting/edit_xbill.html:438
+#: templates/valueaccounting/edit_xbill.html:472
+#: templates/valueaccounting/edit_xbill.html:499
+#: templates/valueaccounting/resource_types.html:52
+msgid "Save changes"
+msgstr ""
+
+#: templates/valueaccounting/_resource_type.html:37
+#: templates/valueaccounting/demand.html:25
+#: templates/valueaccounting/edit_xbill.html:255
+#: templates/valueaccounting/edit_xbill.html:290
+#: templates/valueaccounting/edit_xbill.html:448
+#: templates/valueaccounting/feature_delete_confirmation.html:29
+#: templates/valueaccounting/order_delete_confirmation.html:89
+#: templates/valueaccounting/process_type_delete_confirmation.html:29
+#: templates/valueaccounting/resource_type_delete_confirmation.html:46
+msgid "Delete"
+msgstr ""
+
+#: templates/valueaccounting/_resource_type.html:43
+msgid "View Recipe"
+msgstr ""
+
+#: templates/valueaccounting/_resource_type.html:49
+msgid "Change Recipe"
+msgstr ""
+
+#: templates/valueaccounting/_resource_type.html:51
+msgid "Create Recipe"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:5
+#: templates/valueaccounting/agent_contributions.html:31
+msgid "Contributions from "
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:34
+#: templates/valueaccounting/project_contributions.html:34
+msgid "Date"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:35
+#: templates/valueaccounting/project_contributions.html:35
+#: templates/valueaccounting/timeline.html:48
+msgid "Type"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:36
+#: templates/valueaccounting/timeline.html:44
+#: templates/valueaccounting/value_equation.html:67
+msgid "Project"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:37
+#: templates/valueaccounting/project_contributions.html:37
+#: templates/valueaccounting/value_equation.html:68
+msgid "Resource Type"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:38
+#: templates/valueaccounting/create_order.html:78
+#: templates/valueaccounting/project_contributions.html:38
+msgid "Qty"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:39
+#: templates/valueaccounting/create_order.html:79
+#: templates/valueaccounting/project_contributions.html:39
+msgid "Unit"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:40
+#: templates/valueaccounting/project_contributions.html:40
+#: valueaccounting/forms.py:177
+msgid "URL"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:41
+#: templates/valueaccounting/project_contributions.html:41
+#: templates/valueaccounting/timeline.html:45 valueaccounting/forms.py:172
+msgid "Description"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:65
+#: templates/valueaccounting/project_contributions.html:65
+#: templates/valueaccounting/value_equation.html:95
+msgid "previous"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:69
+#: templates/valueaccounting/project_contributions.html:69
+#: templates/valueaccounting/value_equation.html:99
+msgid "Page"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:69
+#: templates/valueaccounting/project_contributions.html:69
+#: templates/valueaccounting/value_equation.html:99
+msgid "of"
+msgstr ""
+
+#: templates/valueaccounting/agent_contributions.html:73
+#: templates/valueaccounting/project_contributions.html:73
+#: templates/valueaccounting/value_equation.html:103
+msgid "next"
+msgstr ""
+
+#: templates/valueaccounting/create_order.html:6
+#: templates/valueaccounting/create_order.html:46
+#: templates/valueaccounting/demand.html:16
+msgid "Create Order"
+msgstr ""
+
+#: templates/valueaccounting/create_order.html:52
+msgid "Provider"
+msgstr ""
+
+#: templates/valueaccounting/create_order.html:56
+msgid "Receiver"
+msgstr ""
+
+#: templates/valueaccounting/create_order.html:60
+msgid "Due date"
+msgstr ""
+
+#: templates/valueaccounting/create_order.html:66
+#: templates/valueaccounting/create_order.html:80
+msgid "Notes"
+msgstr ""
+
+#: templates/valueaccounting/create_order.html:70
+#: templates/valueaccounting/create_order.html:100
+msgid "Submit Order"
+msgstr ""
+
+#: templates/valueaccounting/create_order.html:76
+msgid "Resource"
+msgstr ""
+
+#: templates/valueaccounting/create_order.html:77 valueaccounting/forms.py:47
+msgid "Options"
+msgstr ""
+
+#: templates/valueaccounting/demand.html:5
+#: templates/valueaccounting/demand.html:13
+msgid "Demand"
+msgstr ""
+
+#: templates/valueaccounting/demand.html:20
+msgid "Open Orders"
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:8
+msgid " Edit Recipe for "
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:84
+msgid "Edit Recipe for "
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:130
+#, python-format
+msgid "Add another process type to create %(resource_type)s"
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:132
+#: templates/valueaccounting/edit_xbill.html:141
+#, python-format
+msgid "Add a process type to create %(resource_type)s"
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:309
+#, python-format
+msgid "Add another process type to produce %(xbill_object)s"
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:311
+#: templates/valueaccounting/edit_xbill.html:320
+#, python-format
+msgid "Add a process type to produce %(xbill_object)s"
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:346
+#, python-format
+msgid "Add a source for %(xbill_object)s"
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:368
+#: templates/valueaccounting/edit_xbill.html:375
+#, python-format
+msgid "Add an input to %(xbill_object)s"
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:394
+#: templates/valueaccounting/edit_xbill.html:401
+#, python-format
+msgid "Add a feature to %(xbill_object)s"
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:456
+#: templates/valueaccounting/edit_xbill.html:463
+#, python-format
+msgid "Change options for %(xbill_object)s"
+msgstr ""
+
+#: templates/valueaccounting/edit_xbill.html:483
+#: templates/valueaccounting/edit_xbill.html:490
+#, python-format
+msgid "Select options for %(xbill_object)s"
+msgstr ""
+
+#: templates/valueaccounting/extended_bill.html:6
+#: templates/valueaccounting/extended_bill.html:88
+msgid "Recipe for "
+msgstr ""
+
+#: templates/valueaccounting/extended_bill.html:150
+#: templates/valueaccounting/resource_types.html:82
+msgid "Filter"
+msgstr ""
+
+#: templates/valueaccounting/extended_bill.html:154
+msgid "Depth"
+msgstr ""
+
+#: templates/valueaccounting/extended_bill.html:156
+msgid "All Types"
+msgstr ""
+
+#: templates/valueaccounting/extended_bill.html:157
+msgid "Process Types"
+msgstr ""
+
+#: templates/valueaccounting/extended_bill.html:161
+msgid "Features"
+msgstr ""
+
+#: templates/valueaccounting/extended_bill.html:162
+msgid "Input Categories"
+msgstr ""
+
+#: templates/valueaccounting/feature_delete_confirmation.html:5
+#: templates/valueaccounting/order_delete_confirmation.html:5
+#: templates/valueaccounting/process_type_delete_confirmation.html:5
+#: templates/valueaccounting/resource_type_delete_confirmation.html:5
+msgid "Confirm deletion of "
+msgstr ""
+
+#: templates/valueaccounting/feature_delete_confirmation.html:13
+#: templates/valueaccounting/order_delete_confirmation.html:13
+#: templates/valueaccounting/process_type_delete_confirmation.html:13
+#: templates/valueaccounting/resource_type_delete_confirmation.html:13
+msgid "Are you sure you want to delete "
+msgstr ""
+
+#: templates/valueaccounting/feature_delete_confirmation.html:16
+#: templates/valueaccounting/order_delete_confirmation.html:15
+#: templates/valueaccounting/process_type_delete_confirmation.html:16
+#: templates/valueaccounting/resource_type_delete_confirmation.html:16
+msgid "The following objects will be also deleted"
+msgstr ""
+
+#: templates/valueaccounting/log_time.html:8
+msgid "Log Your Time Contributions"
+msgstr ""
+
+#: templates/valueaccounting/log_time.html:37
+msgid "Log Time Contributions for "
+msgstr ""
+
+#: templates/valueaccounting/log_time.html:39
+msgid "Contribution history for "
+msgstr ""
+
+#: templates/valueaccounting/network.html:6
+#: templates/valueaccounting/network.html:18
+msgid "Value Network for "
+msgstr ""
+
+#: templates/valueaccounting/network.html:25
+msgid "redraw"
+msgstr ""
+
+#: templates/valueaccounting/network.html:25
+msgid "or just drag stuff around..."
+msgstr ""
+
+#: templates/valueaccounting/network.html:28
+msgid "Blue oval = Process"
+msgstr ""
+
+#: templates/valueaccounting/network.html:29
+msgid "Red rectangle = Resource"
+msgstr ""
+
+#: templates/valueaccounting/network.html:30
+msgid "Green rectange = Agent"
+msgstr ""
+
+#: templates/valueaccounting/order_delete_confirmation.html:17
+#: templates/valueaccounting/order_schedule.html:15
+msgid "Order Items"
+msgstr ""
+
+#: templates/valueaccounting/order_delete_confirmation.html:27
+#: templates/valueaccounting/order_schedule.html:25
+msgid "Production Schedule"
+msgstr ""
+
+#: templates/valueaccounting/order_delete_confirmation.html:37
+#: templates/valueaccounting/order_schedule.html:35
+#: templates/valueaccounting/supply.html:16
+msgid "Material Requirements"
+msgstr ""
+
+#: templates/valueaccounting/order_delete_confirmation.html:40
+#: templates/valueaccounting/order_delete_confirmation.html:55
+#: templates/valueaccounting/order_delete_confirmation.html:70
+#: templates/valueaccounting/order_schedule.html:38
+#: templates/valueaccounting/order_schedule.html:53
+#: templates/valueaccounting/order_schedule.html:68
+#: templates/valueaccounting/supply.html:20
+#: templates/valueaccounting/work.html:26
+msgid "due"
+msgstr ""
+
+#: templates/valueaccounting/order_delete_confirmation.html:43
+#: templates/valueaccounting/order_delete_confirmation.html:58
+#: templates/valueaccounting/order_delete_confirmation.html:73
+#: templates/valueaccounting/order_schedule.html:41
+#: templates/valueaccounting/order_schedule.html:56
+#: templates/valueaccounting/order_schedule.html:71
+#: templates/valueaccounting/supply.html:23
+#: templates/valueaccounting/work.html:29
+msgid "for process"
+msgstr ""
+
+#: templates/valueaccounting/order_delete_confirmation.html:47
+#: templates/valueaccounting/order_delete_confirmation.html:62
+#: templates/valueaccounting/order_delete_confirmation.html:77
+#: templates/valueaccounting/order_schedule.html:45
+#: templates/valueaccounting/order_schedule.html:60
+#: templates/valueaccounting/order_schedule.html:75
+msgid "Source"
+msgstr ""
+
+#: templates/valueaccounting/order_delete_confirmation.html:47
+#: templates/valueaccounting/order_delete_confirmation.html:77
+#: templates/valueaccounting/order_schedule.html:45
+#: templates/valueaccounting/order_schedule.html:75
+#: templates/valueaccounting/supply.html:31
+msgid "Lead time"
+msgstr ""
+
+#: templates/valueaccounting/order_delete_confirmation.html:47
+#: templates/valueaccounting/order_delete_confirmation.html:77
+#: templates/valueaccounting/order_schedule.html:45
+#: templates/valueaccounting/order_schedule.html:75
+#: templates/valueaccounting/supply.html:31
+msgid "days"
+msgstr ""
+
+#: templates/valueaccounting/order_delete_confirmation.html:52
+#: templates/valueaccounting/order_schedule.html:50
+#: templates/valueaccounting/work.html:22
+msgid "Work Requirements"
+msgstr ""
+
+#: templates/valueaccounting/order_delete_confirmation.html:67
+#: templates/valueaccounting/order_schedule.html:65
+msgid "Tool Requirements"
+msgstr ""
+
+#: templates/valueaccounting/order_schedule.html:5
+#: templates/valueaccounting/order_schedule.html:13
+msgid "Schedule for "
+msgstr ""
+
+#: templates/valueaccounting/project_contributions.html:5
+#: templates/valueaccounting/project_contributions.html:31
+msgid "Project Contributions for "
+msgstr ""
+
+#: templates/valueaccounting/project_contributions.html:36
+msgid "From"
+msgstr ""
+
+#: templates/valueaccounting/projects.html:5
+msgid "Projects"
+msgstr ""
+
+#: templates/valueaccounting/projects.html:18
+#: templates/valueaccounting/projects.html:25
+#: templates/valueaccounting/projects.html:32
+msgid "Contributions"
+msgstr ""
+
+#: templates/valueaccounting/resource_type_delete_confirmation.html:21
+#, python-format
+msgid ""
+"\n"
+"\t\t\t\t\t\t<b>%(resource_type)s</b> will be removed as an input to the "
+"Process Type <b>%(proc_type)s</b>\n"
+"\t\t\t\t\t\t"
+msgstr ""
+
+#: templates/valueaccounting/resource_type_delete_confirmation.html:27
+#, python-format
+msgid ""
+"The Process Type <b>%(pt)s</b> for making <b>%(resource_type)s</b> will also "
+"be deleted"
+msgstr ""
+
+#: templates/valueaccounting/resource_type_delete_confirmation.html:29
+msgid "along with all of its input and output relationships"
+msgstr ""
+
+#: templates/valueaccounting/resource_types.html:6
+#: templates/valueaccounting/resource_types.html:32
+msgid "Resource Types"
+msgstr ""
+
+#: templates/valueaccounting/resource_types.html:36
+msgid "Create new Resource Type"
+msgstr ""
+
+#: templates/valueaccounting/resource_types.html:43
+msgid "Create a new Resource Type"
+msgstr ""
+
+#: templates/valueaccounting/resource_types.html:74
+msgid "Filter by Category"
+msgstr ""
+
+#: templates/valueaccounting/resource_types.html:77
+msgid "All"
+msgstr ""
+
+#: templates/valueaccounting/supply.html:5
+#: templates/valueaccounting/supply.html:13
+msgid "Supply"
+msgstr ""
+
+#: templates/valueaccounting/supply.html:26
+#: templates/valueaccounting/work.html:32
+msgid "for order"
+msgstr ""
+
+#: templates/valueaccounting/supply.html:31
+#: templates/valueaccounting/work.html:37
+msgid "Possible source"
+msgstr ""
+
+#: templates/valueaccounting/timeline.html:6
+#: templates/valueaccounting/timeline.html:33
+#: templates/valueaccounting/work.html:17
+msgid "Timeline"
+msgstr ""
+
+#: templates/valueaccounting/timeline.html:34
+msgid ""
+"Double-click on months to slide days. Click on event in day to show details."
+msgstr ""
+
+#: templates/valueaccounting/timeline.html:39
+msgid "Unassigned Tasks"
+msgstr ""
+
+#: templates/valueaccounting/timeline.html:42
+msgid "Due Date"
+msgstr ""
+
+#: templates/valueaccounting/timeline.html:43
+msgid "Process"
+msgstr ""
+
+#: templates/valueaccounting/timeline.html:46
+msgid "Url"
+msgstr ""
+
+#: templates/valueaccounting/timeline.html:47
+msgid "Role"
+msgstr ""
+
+#: templates/valueaccounting/timeline.html:55
+msgid "Click to locate on Timeline"
+msgstr ""
+
+#: templates/valueaccounting/timeline.html:69
+#: templates/valueaccounting/timeline.html:71
+msgid "Open"
+msgstr ""
+
+#: templates/valueaccounting/timeline.html:77
+msgid "Take it!"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:7
+#: templates/valueaccounting/value_equation.html:37
+msgid "Value Time Contributions for "
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:40
+msgid ""
+"Enter an equation using the parameters hours, rate, reputation, seniority, "
+"and importance."
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:41
+msgid "The result will be the value of the time contribution."
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:42
+msgid "Please leave a space between each element of the equation."
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:46
+msgid ""
+"Your equation will be saved along with its results, so that the community "
+"can decide on which equation to use."
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:57
+msgid "Compute"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:66
+#: templates/valueaccounting/value_equation.html:112
+msgid "Member"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:69
+msgid "Rate"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:70
+msgid "Hours"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:71
+msgid "Reputation"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:72
+msgid "Seniority"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:73
+msgid "Importance"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:74
+msgid "Value"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:113
+msgid "Total Value"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:114
+msgid "Percentage"
+msgstr ""
+
+#: templates/valueaccounting/value_equation.html:115
+msgid "Amount Distributed"
+msgstr ""
+
+#: templates/valueaccounting/work.html:5
+#: templates/valueaccounting/work.html:13
+msgid "Work"
+msgstr ""
+
+#: valueaccounting/forms.py:186
+msgid "Equation"
+msgstr ""
+
+#: valueaccounting/forms.py:192
+msgid "Amount to distribute"
+msgstr ""
+
+#: valueaccounting/models.py:87
+msgid "Anything"
+msgstr ""
+
+#: valueaccounting/models.py:88
+msgid "EconomicResourceType"
+msgstr ""
+
+#: valueaccounting/models.py:93 valueaccounting/models.py:121
+#: valueaccounting/models.py:153 valueaccounting/models.py:171
+#: valueaccounting/models.py:230 valueaccounting/models.py:251
+#: valueaccounting/models.py:288 valueaccounting/models.py:467
+#: valueaccounting/models.py:571 valueaccounting/models.py:614
+#: valueaccounting/models.py:775 valueaccounting/models.py:838
+msgid "name"
+msgstr ""
+
+#: valueaccounting/models.py:94
+msgid "applies to"
+msgstr ""
+
+#: valueaccounting/models.py:96 valueaccounting/models.py:176
+#: valueaccounting/models.py:240 valueaccounting/models.py:302
+#: valueaccounting/models.py:620 valueaccounting/models.py:960
+#: valueaccounting/models.py:1018 valueaccounting/models.py:1198
+msgid "description"
+msgstr ""
+
+#: valueaccounting/models.py:97
+msgid "orderable"
+msgstr ""
+
+#: valueaccounting/models.py:98
+msgid "Should appear in Order form?"
+msgstr ""
+
+#: valueaccounting/models.py:101
+msgid "categories"
+msgstr ""
+
+#: valueaccounting/models.py:109
+msgid "length"
+msgstr ""
+
+#: valueaccounting/models.py:110 valueaccounting/models.py:439
+#: valueaccounting/models.py:698 valueaccounting/models.py:852
+#: valueaccounting/models.py:1020 valueaccounting/models.py:1199
+#: valueaccounting/models.py:1341
+msgid "quantity"
+msgstr ""
+
+#: valueaccounting/models.py:111
+msgid "time"
+msgstr ""
+
+#: valueaccounting/models.py:112 valueaccounting/models.py:512
+#: valueaccounting/models.py:1024 valueaccounting/models.py:1203
+#: valueaccounting/models.py:1343
+msgid "value"
+msgstr ""
+
+#: valueaccounting/models.py:113
+msgid "volume"
+msgstr ""
+
+#: valueaccounting/models.py:114
+msgid "weight"
+msgstr ""
+
+#: valueaccounting/models.py:115
+msgid "ip"
+msgstr ""
+
+#: valueaccounting/models.py:119 valueaccounting/models.py:254
+msgid "unit type"
+msgstr ""
+
+#: valueaccounting/models.py:120
+msgid "abbreviation"
+msgstr ""
+
+#: valueaccounting/models.py:122
+msgid "symbol"
+msgstr ""
+
+#: valueaccounting/models.py:136
+msgid "active contributor"
+msgstr ""
+
+#: valueaccounting/models.py:137
+msgid "close affiliate"
+msgstr ""
+
+#: valueaccounting/models.py:138
+msgid "inactive contributor"
+msgstr ""
+
+#: valueaccounting/models.py:139
+msgid "active agent"
+msgstr ""
+
+#: valueaccounting/models.py:140
+msgid "passive agent"
+msgstr ""
+
+#: valueaccounting/models.py:141
+msgid "external agent"
+msgstr ""
+
+#: valueaccounting/models.py:145
+msgid "individual"
+msgstr ""
+
+#: valueaccounting/models.py:146
+msgid "organization"
+msgstr ""
+
+#: valueaccounting/models.py:147
+msgid "network"
+msgstr ""
+
+#: valueaccounting/models.py:148 valueaccounting/models.py:576
+msgid "project team"
+msgstr ""
+
+#: valueaccounting/models.py:149
+msgid "community"
+msgstr ""
+
+#: valueaccounting/models.py:155 valueaccounting/models.py:290
+#: valueaccounting/models.py:573 valueaccounting/models.py:616
+#: valueaccounting/models.py:777
+msgid "parent"
+msgstr ""
+
+#: valueaccounting/models.py:156
+msgid "member type"
+msgstr ""
+
+#: valueaccounting/models.py:159
+msgid "party type"
+msgstr ""
+
+#: valueaccounting/models.py:172
+msgid "ID"
+msgstr ""
+
+#: valueaccounting/models.py:173 valueaccounting/models.py:301
+#: valueaccounting/models.py:434 valueaccounting/models.py:621
+#: valueaccounting/models.py:784 valueaccounting/models.py:1019
+#: valueaccounting/models.py:1197
+msgid "url"
+msgstr ""
+
+#: valueaccounting/models.py:175
+msgid "agent type"
+msgstr ""
+
+#: valueaccounting/models.py:177
+msgid "address"
+msgstr ""
+
+#: valueaccounting/models.py:178
+msgid "email address"
+msgstr ""
+
+#: valueaccounting/models.py:179
+msgid "latitude"
+msgstr ""
+
+#: valueaccounting/models.py:180
+msgid "longitude"
+msgstr ""
+
+#: valueaccounting/models.py:181 valueaccounting/models.py:1339
+msgid "reputation"
+msgstr ""
+
+#: valueaccounting/models.py:183 valueaccounting/models.py:299
+msgid "photo"
+msgstr ""
+
+#: valueaccounting/models.py:185 valueaccounting/models.py:255
+#: valueaccounting/models.py:308 valueaccounting/models.py:578
+#: valueaccounting/models.py:625 valueaccounting/models.py:792
+#: valueaccounting/models.py:1032 valueaccounting/models.py:1213
+msgid "Page name"
+msgstr ""
+
+#: valueaccounting/models.py:186 valueaccounting/models.py:445
+msgid "created date"
+msgstr ""
+
+#: valueaccounting/models.py:235 valueaccounting/models.py:1002
+#: valueaccounting/models.py:1182
+msgid "from"
+msgstr ""
+
+#: valueaccounting/models.py:237 valueaccounting/models.py:1005
+#: valueaccounting/models.py:1185
+msgid "to"
+msgstr ""
+
+#: valueaccounting/models.py:239
+msgid "association type"
+msgstr ""
+
+#: valueaccounting/models.py:244
+msgid "increase"
+msgstr ""
+
+#: valueaccounting/models.py:245
+msgid "decrease"
+msgstr ""
+
+#: valueaccounting/models.py:246
+msgid "transfer"
+msgstr ""
+
+#: valueaccounting/models.py:247
+msgid "no effect"
+msgstr ""
+
+#: valueaccounting/models.py:252
+msgid "resource effect"
+msgstr ""
+
+#: valueaccounting/models.py:274
+msgid "material"
+msgstr ""
+
+#: valueaccounting/models.py:275
+msgid "intellectual"
+msgstr ""
+
+#: valueaccounting/models.py:276
+msgid "work"
+msgstr ""
+
+#: valueaccounting/models.py:277
+msgid "tool"
+msgstr ""
+
+#: valueaccounting/models.py:292
+msgid "category"
+msgstr ""
+
+#: valueaccounting/models.py:294
+msgid "materiality"
+msgstr ""
+
+#: valueaccounting/models.py:298 valueaccounting/models.py:700
+#: valueaccounting/models.py:854 valueaccounting/models.py:1022
+#: valueaccounting/models.py:1201
+msgid "unit"
+msgstr ""
+
+#: valueaccounting/models.py:303
+msgid "rate"
+msgstr ""
+
+#: valueaccounting/models.py:304 valueaccounting/models.py:1028
+#: valueaccounting/models.py:1209
+msgid "created by"
+msgstr ""
+
+#: valueaccounting/models.py:306 valueaccounting/models.py:1030
+#: valueaccounting/models.py:1211
+msgid "changed by"
+msgstr ""
+
+#: valueaccounting/models.py:432 valueaccounting/models.py:503
+#: valueaccounting/models.py:694 valueaccounting/models.py:1008
+#: valueaccounting/models.py:1187 valueaccounting/models.py:1336
+msgid "resource type"
+msgstr ""
+
+#: valueaccounting/models.py:433
+msgid "identifier"
+msgstr ""
+
+#: valueaccounting/models.py:436 valueaccounting/models.py:790
+msgid "owner"
+msgstr ""
+
+#: valueaccounting/models.py:438
+msgid "custodian"
+msgstr ""
+
+#: valueaccounting/models.py:442
+msgid "unit of quantity"
+msgstr ""
+
+#: valueaccounting/models.py:443 valueaccounting/models.py:1023
+#: valueaccounting/models.py:1202
+msgid "quality"
+msgstr ""
+
+#: valueaccounting/models.py:444 valueaccounting/models.py:791
+msgid "notes"
+msgstr ""
+
+#: valueaccounting/models.py:462
+msgid "input"
+msgstr ""
+
+#: valueaccounting/models.py:463
+msgid "output"
+msgstr ""
+
+#: valueaccounting/models.py:468
+msgid "inverse name"
+msgstr ""
+
+#: valueaccounting/models.py:469
+msgid "direction"
+msgstr ""
+
+#: valueaccounting/models.py:473 valueaccounting/models.py:991
+#: valueaccounting/models.py:1178
+msgid "event type"
+msgstr ""
+
+#: valueaccounting/models.py:501 valueaccounting/models.py:1330
+msgid "agent"
+msgstr ""
+
+#: valueaccounting/models.py:504
+msgid "score"
+msgstr ""
+
+#: valueaccounting/models.py:506
+msgid "the quantity of contributions of this resource type from this agent"
+msgstr ""
+
+#: valueaccounting/models.py:509 valueaccounting/models.py:697
+#: valueaccounting/models.py:851 valueaccounting/models.py:994
+msgid "relationship"
+msgstr ""
+
+#: valueaccounting/models.py:510
+msgid "lead time"
+msgstr ""
+
+#: valueaccounting/models.py:511
+msgid "in days"
+msgstr ""
+
+#: valueaccounting/models.py:516 valueaccounting/models.py:1027
+#: valueaccounting/models.py:1206
+msgid "unit of value"
+msgstr ""
+
+#: valueaccounting/models.py:577 valueaccounting/models.py:1338
+msgid "importance"
+msgstr ""
+
+#: valueaccounting/models.py:619 valueaccounting/models.py:783
+#: valueaccounting/models.py:1017 valueaccounting/models.py:1196
+#: valueaccounting/models.py:1333
+msgid "project"
+msgstr ""
+
+#: valueaccounting/models.py:622
+msgid "estimated duration"
+msgstr ""
+
+#: valueaccounting/models.py:624
+msgid "in minutes, e.g. 3 hours = 180"
+msgstr ""
+
+#: valueaccounting/models.py:692 valueaccounting/models.py:780
+#: valueaccounting/models.py:848
+msgid "process type"
+msgstr ""
+
+#: valueaccounting/models.py:785
+msgid "start date"
+msgstr ""
+
+#: valueaccounting/models.py:786
+msgid "end date"
+msgstr ""
+
+#: valueaccounting/models.py:788
+msgid "managed by"
+msgstr ""
+
+#: valueaccounting/models.py:796
+msgid "processes"
+msgstr ""
+
+#: valueaccounting/models.py:840
+msgid "option category"
+msgstr ""
+
+#: valueaccounting/models.py:842
+msgid "option selections will be limited to this category"
+msgstr ""
+
+#: valueaccounting/models.py:845
+msgid "product"
+msgstr ""
+
+#: valueaccounting/models.py:913
+msgid "feature"
+msgstr ""
+
+#: valueaccounting/models.py:915
+msgid "component"
+msgstr ""
+
+#: valueaccounting/models.py:954
+msgid "receiver"
+msgstr ""
+
+#: valueaccounting/models.py:957
+msgid "provider"
+msgstr ""
+
+#: valueaccounting/models.py:958
+msgid "order date"
+msgstr ""
+
+#: valueaccounting/models.py:959 valueaccounting/models.py:996
+msgid "due date"
+msgstr ""
+
+#: valueaccounting/models.py:986
+msgid "order"
+msgstr ""
+
+#: valueaccounting/models.py:989
+msgid "independent_demand"
+msgstr ""
+
+#: valueaccounting/models.py:995
+msgid "commitment date"
+msgstr ""
+
+#: valueaccounting/models.py:999
+msgid "from agent type"
+msgstr ""
+
+#: valueaccounting/models.py:1011 valueaccounting/models.py:1190
+msgid "resource"
+msgstr ""
+
+#: valueaccounting/models.py:1014 valueaccounting/models.py:1193
+msgid "process"
+msgstr ""
+
+#: valueaccounting/models.py:1138
+msgid "initiating commitment"
+msgstr ""
+
+#: valueaccounting/models.py:1140
+msgid "reciprocal commitment"
+msgstr ""
+
+#: valueaccounting/models.py:1141
+msgid "reciprocity date"
+msgstr ""
+
+#: valueaccounting/models.py:1165
+msgid "commitment"
+msgstr ""
+
+#: valueaccounting/models.py:1167
+msgid "option"
+msgstr ""
+
+#: valueaccounting/models.py:1179
+msgid "event date"
+msgstr ""
+
+#: valueaccounting/models.py:1208
+msgid "fulfills commitment"
+msgstr ""
+
+#: valueaccounting/models.py:1280
+msgid "initiating event"
+msgstr ""
+
+#: valueaccounting/models.py:1282
+msgid "compensating event"
+msgstr ""
+
+#: valueaccounting/models.py:1283
+msgid "compensation date"
+msgstr ""
+
+#: valueaccounting/models.py:1284
+msgid "compensating value"
+msgstr ""
+
+#: valueaccounting/models.py:1337
+msgid "resource type rate"
+msgstr ""

@@ -13,22 +13,22 @@
 		<legend>{% trans "Supply" %}</legend>
 
 			{% if reqs %}
-		        <h3 style="margin-bottom: 4px;" >Material Requirements:</h3>
+		        <h3 style="margin-bottom: 4px;" >{% trans "Material Requirements" %}:</h3>
 					<ul>
 						{% for item in reqs %}
 							<li>
-								<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} due {{ item.due_date }}
+								<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 							</li>
 							<p style="margin-left: 1em; margin-bottom: 0;">
-								for process: {{ item.process }}
+								{% trans "for process" %}: {{ item.process }}
 							</p>
 							<p style="margin-left: 1em; margin-bottom: 0;">
-								for order: {{ item.independent_demand }}
+								{% trans "for order" %}: {{ item.independent_demand }}
 							</p>
                             <ul>
 								{% for source in item.resource_type.producing_agent_relationships %}
 									<li>
-										<b>Possible source:</b> {{ source.agent.name }} Lead time: {{ source.lead_time }} days
+										<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
 									</li>
 								{% endfor %}
 							</ul>

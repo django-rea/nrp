@@ -12,29 +12,29 @@
 	<div>
 		<legend>{% trans "Work" %}</legend>
 
-{% comment %}
+
 			<p>
-				<a href="{% url timeline %}">Timeline</a>
+				<a href="{% url timeline %}">{% trans "Timeline" %}</a>
 			</p>
-{% endcomment %}
+
 
 			{% if work %}
-		        <h3 style="margin-bottom: 4px;" >Work Requirements:</h3>
+		        <h3 style="margin-bottom: 4px;" >{% trans "Work Requirements" %}:</h3>
 					<ul>
 						{% for item in work %}
 							<li>
-								<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} due {{ item.due_date }}
+								<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 							</li>
 							<p style="margin-left: 1em; margin-bottom: 0;">
-								for process: {{ item.process }}
+								{% trans "for process" %}: {{ item.process }}
 							</p>
 							<p style="margin-left: 1em; margin-bottom: 0;">
-								for order: {{ item.independent_demand }}
+								{% trans "for order" %}: {{ item.independent_demand }}
 							</p>
                             <ul>
 								{% for source in item.resource_type.producing_agent_relationships %}
 									<li>
-										<b>Possible source:</b> {{ source.agent.name }}
+										<b>{% trans "Possible source" %}:</b> {{ source.agent.name }}
 									</li>
 								{% endfor %}
 							</ul>

@@ -36,23 +36,23 @@
 
 		{% if unassigned %}
 			<div style="margin-top: 1em;" >
-				<h4>Unassigned Tasks</h4>
+				<h4>{% trans "Unassigned Tasks" %}</h4>
 				<table class="table table-bordered table-hover table-condensed" >
 					<thead>
-						<th>Due Date</th>
-						<th>Process</th>
-						<th>Project</th>
-						<th>Description</th>
-						<th>Url</th>
-						<th>Role</th>
-						<th>Type</th>
+						<th>{% trans "Due Date" %}</th>
+						<th>{% trans "Process" %}</th>
+						<th>{% trans "Project" %}</th>
+						<th>{% trans "Description" %}</th>
+						<th>{% trans "Url" %}</th>
+						<th>{% trans "Role" %}</th>
+						<th>{% trans "Type" %}</th>
                         <th>&nbsp;</th>
 					</thead>
 					<tbody>
 						{% for c in unassigned %}
 							<tr class="{% cycle 'odd' 'even' %}">
 								<td>
-									<a href="#" class="duedate" title="Click to locate on Timeline">
+									<a href="#" class="duedate" title="{% trans 'Click to locate on Timeline' %}">
 										{{ c.due_date }}
 									</a>
 								</td>
@@ -66,15 +66,15 @@
 									<td>&nbsp;</td>
 								{% endif %}
 								{% if c.url %}
-									<td><a href="{{ c.url }}">Open</a></td>
+									<td><a href="{{ c.url }}">{% trans "Open" %}</a></td>
 								{% elif c.process.url %}
-									<td><a href="{{ c.process.url }}">Open</a></td>
+									<td><a href="{{ c.process.url }}">{% trans "Open" %}</a></td>
 								{% else %}
 									<td>&nbsp;</td>
 								{% endif %}
 								<td>{{ c.from_agent_role }}</td>
 								<td>{{ c.resource_type }}</td>
-								<td><button>Take it!</button></td>
+								<td><button>{% trans "Take it!" %}</button></td>
 							</tr>
 						{% endfor %}
 					</tbody>

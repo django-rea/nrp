@@ -17,12 +17,16 @@
 
 			<ul>
 				{% for ptrt in resource_type.consuming_process_type_relationships %}
-					<li><b>{{ resource_type }}</b> will be removed as an input to the Process Type <b>{{ ptrt.process_type }}</b></li>
+					<li>
+						{% blocktrans with proc_type=ptrt.process_type %}
+						<b>{{ resource_type }}</b> will be removed as an input to the Process Type <b>{{ proc_type }}</b>
+						{% endblocktrans %}
+					</li>
 				{% endfor %}
 				{% for pt in resource_type.producing_process_types %}
-					<li>The Process Type <b>{{ pt }}</b> for making <b>{{ resource_type }}</b> will also be deleted
+					<li>{% blocktrans %}The Process Type <b>{{ pt }}</b> for making <b>{{ resource_type }}</b> will also be deleted{% endblocktrans %}
 					{% if pt.resource_types.all %}
-						along with all of its input and output relationships:</li>
+						{% trans "along with all of its input and output relationships" %}:</li>
 						<ul>
 							{% for rt in pt.resource_types.all %}
 								<li>{{ rt }}</li>

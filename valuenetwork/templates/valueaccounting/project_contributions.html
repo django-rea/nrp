@@ -31,14 +31,14 @@
 		<h1>{% trans "Project Contributions for " %} {{ project }}</h1>
 		<table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
 			<thead>
-				<th>Date</th>
-				<th>Type</th>
-				<th>From</th>
-				<th>Resource Type</th>
-				<th>Qty</th>
-				<th>Unit</th>
-				<th>URL</th>
-				<th>Description</th>
+				<th>{% trans "Date" %}</th>
+				<th>{% trans "Type" %}</th>
+				<th>{% trans "From" %}</th>
+				<th>{% trans "Resource Type" %}</th>
+				<th>{% trans "Qty" %}</th>
+				<th>{% trans "Unit" %}</th>
+				<th>{% trans "URL" %}</th>
+				<th>{% trans "Description" %}</th>
 			</thead>
 			<tbody>	
 				{% for event in events %}
@@ -62,15 +62,15 @@
 <div class="pagination">
     <span class="step-links">
         {% if events.has_previous %}
-            <a href="?page={{ events.previous_page_number }}">previous</a>
+            <a href="?page={{ events.previous_page_number }}">{% trans "previous" %}</a>
         {% endif %}
 
         <span class="current">
-            Page {{ events.number }} of {{ events.paginator.num_pages }}.
+            {% trans "Page" %} {{ events.number }} {% trans "of" %} {{ events.paginator.num_pages }}.
         </span>
 
         {% if events.has_next %}
-            <a href="?page={{ events.next_page_number }}">next</a>
+            <a href="?page={{ events.next_page_number }}">{% trans "next" %}</a>
         {% endif %}
     </span>
 </div>

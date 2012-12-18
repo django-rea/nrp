@@ -14,7 +14,7 @@
 		
 		<h3>{% trans "The following objects will be also deleted" %}:</h3>
 
-            <h3 style="margin-top: 1em;" >Order Items:</h3>
+            <h3 style="margin-top: 1em;" >{% trans "Order Items" %}:</h3>
 			<ul>
 		        {% for item in order.producing_commitments %}
 					<li>{{ item.quantity }} {{ item.unit_of_quantity }} {{ item.resource_type }} {{ item.feature_label }}</li>
@@ -24,7 +24,7 @@
 			<div class="row-fluid">
 
 				<div class="span6">
-					<h3 style="margin-bottom: 4px;" >Production Schedule:</h3>
+					<h3 style="margin-bottom: 4px;" >{% trans "Production Schedule" %}:</h3>
 					{% for item in sked %}
 						<p style="margin-left:{{ item.depth }}em" >
 							<b>{{ item.label }}:</b> {{ item }} 
@@ -34,47 +34,47 @@
 
 				<div class="span6">
 
-					<h3 style="margin-bottom: 4px;" >Material Requirements:</h3>
+					<h3 style="margin-bottom: 4px;" >{% trans "Material Requirements" %}:</h3>
 					{% for item in reqs %}
 						<p>
-							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} due {{ item.due_date }}
+							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 						</p>
 						<p style="margin-left: 2em;">
-							for process: {{ item.process }}
+							{% trans "for process" %}: {{ item.process }}
 						</p>
 						{% for source in item.resource_type.producing_agent_relationships %}
 							<p style="margin-left: 2em;">
-								<b>Source:</b> {{ source.agent.name }} Lead time: {{ source.lead_time }} days
+								<b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
 							</p>
 						{% endfor %}
 					{% endfor %}
 
-					<h3 style="margin-bottom: 4px;" >Work Requirements:</h3>
+					<h3 style="margin-bottom: 4px;" >{% trans "Work Requirements" %}:</h3>
 					{% for item in work %}
 						<p>
-							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} due {{ item.due_date }}
+							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 						</p>
 						<p style="margin-left: 2em;">
-							for process: {{ item.process }}
+							{% trans "for process" %}: {{ item.process }}
 						</p>
 						{% for source in item.resource_type.producing_agent_relationships %}
 							<p style="margin-left: 2em;">
-								<b>Source:</b> {{ source.agent.name }}
+								<b>{% trans "Source" %}:</b> {{ source.agent.name }}
 							</p>
 						{% endfor %}
 					{% endfor %}
 
-					<h3 style="margin-bottom: 4px;" >Tool Requirements:</h3>
+					<h3 style="margin-bottom: 4px;" >{% trans "Tool Requirements" %}:</h3>
 					{% for item in tools %}
 						<p>
-							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} due {{ item.due_date }}
+							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 						</p>
 						<p style="margin-left: 2em;">
-							for process: {{ item.process }}
+							{% trans "for process" %}: {{ item.process }}
 						</p>
 						{% for source in item.resource_type.producing_agent_relationships %}
 							<p style="margin-left: 2em;">
-								<b>Source:</b> {{ source.agent.name }} Lead time: {{ source.lead_time }} days
+								<b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
 							</p>
 						{% endfor %}
 					{% endfor %}

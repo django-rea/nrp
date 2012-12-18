@@ -49,35 +49,35 @@
 			{% csrf_token %}
 			<div class="row-fluid">
 				<div class="span3 control-group">
-					<b>Provider:</b></br>
+					<b>{% trans "Provider" %}:</b></br>
 					{{ order_form.provider }}
 				</div>
 				<div class="span3 control-group">
-					<b>Receiver:</b></br>
+					<b>{% trans "Receiver" %}:</b></br>
 					{{ order_form.receiver }}
 				</div>
 				<div class="span2 control-group">
-					<b>Due date:</b></br>
+					<b>{% trans "Due date" %}:</b></br>
 					{{ order_form.due_date }}
 				</div>
 			</div>
 			<div class="row-fluid">
 				<div class="span8 control-group">
-						<b>Notes:</b></br>
+						<b>{% trans "Notes" %}:</b></br>
 						{{ order_form.description }}
 				</div>
 				<div class="form-actions span2">
-		        	<button class="btn btn-primary" type="submit">Submit</button>
+		        	<button class="btn btn-primary" type="submit">{% trans "Submit Order" %}</button>
 		    	</div>
 			</div>
 
 			<table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
 				<thead>
-					<th>Resource</th>
-					<th>Options</th>
-					<th>Qty</th>
-					<th>Unit</th>
-					<th>Notes</th>
+					<th>{% trans "Resource" %}</th>
+					<th>{% trans "Options" %}</th>
+					<th>{% trans "Qty" %}</th>
+					<th>{% trans "Unit" %}</th>
+					<th>{% trans "Notes" %}</th>
 				</thead>
 				<tbody>	
 					{% for form in item_forms %}
@@ -97,7 +97,7 @@
 				<tbody>	
 			</table>
 			<div class="form-actions">
-		       	<button class="btn btn-primary" type="submit">Submit</button>
+		       	<button class="btn btn-primary" type="submit">{% trans "Submit Order" %}</button>
 		   	</div>
 
 		</form>

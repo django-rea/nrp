@@ -147,19 +147,19 @@ ul {
 		</div>
 
 		<div class="span2 filter">
-			<h4 style="margin-bottom: 0;" >Filter</h4>
+			<h4 style="margin-bottom: 0;" >{% trans "Filter" %}</h4>
 			<form id="category-form" action="." method="POST">
 				{% csrf_token %}
 				<p>
-					<input id="spinner" name="depth" value="{{ depth }}" /> Depth
+					<input id="spinner" name="depth" value="{{ depth }}" /> {% trans "Depth" %}
 				</p>
-				<p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> All Types</p>
-				<p><input type="checkbox" class="category" id="processes" name="processes" value="processes" /> Process Types</p>
+				<p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All Types" %}</p>
+				<p><input type="checkbox" class="category" id="processes" name="processes" value="processes" /> {% trans "Process Types" %}</p>
 {% comment %}
-				<p><input type="checkbox" class="category" id="inputs" name="inputs" value="inputs" /> Inputs</p>
+				<p><input type="checkbox" class="category" id="inputs" name="inputs" value="inputs" /> {% trans "Inputs" %}</p>
 {% endcomment %}
-				<p><input type="checkbox" class="category" id="features" name="features" value="features" /> Features</p>
-				<p><b>Input Categories:</b></p>
+				<p><input type="checkbox" class="category" id="features" name="features" value="features" /> {% trans "Features" %}</p>
+				<p><b>{% trans "Input Categories" %}:</b></p>
 				{% for cat in categories %}
 				<p style="margin-left: 1em;" ><input type="checkbox" class="category" id="{{ cat }}" name="{{ cat }}" value="{{ cat }}" /> {{ cat }}</p>
 				{% endfor %}

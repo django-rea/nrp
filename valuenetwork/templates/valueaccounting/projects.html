@@ -15,21 +15,21 @@
 			{% for root in roots %}
 				<li>
 					<b>{{ root }}</b> 
-					<a href="{% url contributions project_id=root.id %}">Contributions: {{ root.contributions_count }}</a>
+					<a href="{% url contributions project_id=root.id %}">{% trans "Contributions" %}: {{ root.contributions_count }}</a>
 				</li>
 				{% if root.sub_projects.all %}
 					<ul>
 						{% for kid in root.sub_projects.all %}
 							<li>
 								<b>{{ kid }}</b> 
-								<a href="{% url contributions project_id=kid.id %}">Contributions: {{ kid.contributions_count }}</a>
+								<a href="{% url contributions project_id=kid.id %}">{% trans "Contributions" %}: {{ kid.contributions_count }}</a>
 							</li>
 							{% if kid.sub_projects.all %}
 								<ul>
 									{% for grandkid in kid.sub_projects.all %}
 										<li>
 											<b>{{ grandkid }}</b> 
-											<a href="{% url contributions project_id=grandkid.id %}">Contributions: {{ grandkid.contributions_count }}</a>
+											<a href="{% url contributions project_id=grandkid.id %}">{% trans "Contributions" %}: {{ grandkid.contributions_count }}</a>
 										</li>
 									{% endfor %}
 								</ul>

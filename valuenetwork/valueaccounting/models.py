@@ -98,7 +98,7 @@ class Category(models.Model):
         help_text=_('Should appear in Order form?'))
 
     class Meta:
-        verbose_name_plural = 'categories'
+        verbose_name_plural = _('categories')
         ordering = ('name',)
      
     def __unicode__(self):
@@ -793,7 +793,7 @@ class Process(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name_plural = "processes"
+        verbose_name_plural = _("processes")
 
     def __unicode__(self):
         return " ".join([

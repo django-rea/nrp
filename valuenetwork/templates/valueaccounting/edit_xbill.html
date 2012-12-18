@@ -94,14 +94,14 @@ ul {
 			{% endif %}
 
 			<div style="display: inline;" >
-				<a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">Change</a>
+				<a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
 			</div>
 
 
 			<div class="modal hide fade" id="resourceChangeForm" tabindex="-1" role="dialog" aria-labelledby="resource-change-label" aria-hidden="true">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-					<h3 id="resource-change-label">Change {{ resource_type }}</h3>
+					<h3 id="resource-change-label">{% trans "Change" %} {{ resource_type }}</h3>
 				</div>
 				<div class="modal-body">
 					<form class="resource-change-form" enctype="multipart/form-data" action="{% url change_resource_type resource_type_id=resource_type.id %}" method="POST" >
@@ -109,8 +109,8 @@ ul {
 						{{ resource_type_form|as_bootstrap }}
 						<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 					  <div class="modal-footer">
-						<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-						<button class="btn btn-primary">Save changes</button>
+						<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						<button class="btn btn-primary">{% trans "Save changes" %}</button>
 					  </div>
 
 
@@ -127,9 +127,9 @@ ul {
 		<div style="margin-bottom: 2px;" >
 			<a href="#processForm{{ resource_type.id }}" role="button" class="btn btn-info" data-toggle="modal">
 				{% if resource_type.producing_process_type_relationships %}
-					Add another process type to create {{ resource_type }}
+					{% blocktrans %}Add another process type to create {{ resource_type }}{% endblocktrans %}
 				{% else %}
-					Add a process type to create {{ resource_type }}
+					{% blocktrans %}Add a process type to create {{ resource_type }}{% endblocktrans %}
 				{% endif %}
 			</a>
 		</div>
@@ -138,7 +138,7 @@ ul {
 		<div class="modal hide fade" id="processForm{{ resource_type.id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
 		  <div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-			<h3 id="process-label">Add a process type to create {{ resource_type }}</h3>
+			<h3 id="process-label">{% blocktrans %}Add a process type to create {{ resource_type }}{% endblocktrans %}</h3>
 		  </div>
 		  <div class="modal-body">
 				<form class="process-form" action="{% url create_process_type_for_resource_type resource_type_id=resource_type.id %}" method="POST">
@@ -146,8 +146,8 @@ ul {
 					{{ process_form|as_bootstrap }}
 					<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 				  <div class="modal-footer">
-					<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-					<button class="btn btn-primary">Save changes</button>
+					<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+					<button class="btn btn-primary">{% trans "Save changes" %}</button>
 				  </div>
 
 
@@ -192,14 +192,14 @@ ul {
 
 					{% if xb_type == "process-type" %}
 						<div style="display: inline;" >
-							<a href="#processChangeForm{{ xbill_object.node_id }}" role="button" class="btn btn-primary" data-toggle="modal">Change</a>
+							<a href="#processChangeForm{{ xbill_object.node_id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
 						</div>
 
 
 						<div class="modal hide fade" id="processChangeForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="process-change-label" aria-hidden="true">
 						  <div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h3 id="process-change-label">Change {{ xbill_object }}</h3>
+							<h3 id="process-change-label">{% trans "Change" %} {{ xbill_object }}</h3>
 						  </div>
 						  <div class="modal-body">
 								<form class="process-change-form" action="{% url change_process_type process_type_id=xbill_object.id %}" method="POST" >
@@ -207,8 +207,8 @@ ul {
 									{{ xbill_object.xbill_change_form|as_bootstrap }}
 									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
-									<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-									<button class="btn btn-primary">Save changes</button>
+									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									<button class="btn btn-primary">{% trans "Save changes" %}</button>
 								  </div>
 
 
@@ -225,14 +225,14 @@ ul {
 
 					{% if xb_type == "economic-resource-type" %}
 						<div style="display: inline;">
-							<a href="#changeInputForm{{ xbill_node.node_id }}" role="button" class="btn btn-primary" data-toggle="modal">Change</a>
+							<a href="#changeInputForm{{ xbill_node.node_id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
 						</div>
 
 
 						<div class="modal hide fade" id="changeInputForm{{ xbill_node.node_id }}" tabindex="-1" role="dialog" aria-labelledby="change-input-label" aria-hidden="true">
 						  <div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h3 id="change-input-label">Change {{ xbill_node }}</h3>
+							<h3 id="change-input-label">{% trans "Change" %} {{ xbill_node }}</h3>
 						  </div>
 						  <div class="modal-body">
 								<form class="change-input-form" action="{% url change_process_type_input input_id=xbill_node.id %}" method="POST" >
@@ -240,8 +240,8 @@ ul {
 									{{ xbill_node.xbill_change_form|as_bootstrap }}
 									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
-									<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-									<button class="btn btn-primary">Save changes</button>
+									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									<button class="btn btn-primary">{% trans "Save changes" %}</button>
 								  </div>
 
 
@@ -251,7 +251,9 @@ ul {
 						</div>
 
 						<div style="display: inline;" >
-							<a href="{% url delete_process_input process_input_id=xbill_node.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >Delete</a>
+							<a href="{% url delete_process_input process_input_id=xbill_node.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
+								{% trans "Delete" %}
+							</a>
 						</div>
 
 					{% endif %}
@@ -260,13 +262,13 @@ ul {
 					{% if xb_type == "economic-agent" %}
 
 						<div style="display: inline;" >
-							<a href="#changeSourceForm{{ xbill_node.node_id }}" role="button" class="btn btn-primary" data-toggle="modal">Change</a>							
+							<a href="#changeSourceForm{{ xbill_node.node_id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>							
 						</div>
 
 						<div class="modal hide fade" id="changeSourceForm{{ xbill_node.node_id }}" tabindex="-1" role="dialog" aria-labelledby="change-source-label" aria-hidden="true">
 						  <div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h3 id="change-source-label">Change {{ xbill_node }}</h3>
+							<h3 id="change-source-label">{% trans "Change" %} {{ xbill_node }}</h3>
 						  </div>
 						  <div class="modal-body">
 								<form class="change-source-form" action="{% url change_agent_resource_type agent_resource_type_id=xbill_node.id %}" method="POST" >
@@ -274,8 +276,8 @@ ul {
 									{{ xbill_node.xbill_change_form|as_bootstrap }}
 									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
-									<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-									<button class="btn btn-primary">Save changes</button>
+									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									<button class="btn btn-primary">{% trans "Save changes" %}</button>
 								  </div>
 
 								</form>
@@ -284,7 +286,9 @@ ul {
 						</div>
 
 						<div style="display: inline;" >
-							<a href="{% url delete_source source_id=xbill_node.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >Delete</a>
+							<a href="{% url delete_source source_id=xbill_node.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
+								{% trans "Delete" %}
+							</a>
 						</div>
 
 					{% endif %}
@@ -301,9 +305,9 @@ ul {
 							<div style="display: inline;" >
 								<a href="#processForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
 									{% if xbill_object.producing_process_type_relationships %}
-										Add another process type to create {{ xbill_object }}
+										{% blocktrans %}Add another process type to produce {{ xbill_object }}{% endblocktrans %}
 									{% else %}
-										Add a process type to create {{ xbill_object }}
+										{% blocktrans %}Add a process type to produce {{ xbill_object }}{% endblocktrans %}
 									{% endif %}
 								</a>
 							</div>
@@ -312,7 +316,7 @@ ul {
 							<div class="modal hide fade" id="processForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
 							  <div class="modal-header">
 								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-								<h3 id="process-label">Add a process type to create {{ xbill_object }}</h3>
+								<h3 id="process-label">{% blocktrans %}Add a process type to produce {{ xbill_object }}{% endblocktrans %}</h3>
 							  </div>
 							  <div class="modal-body">
 									<form class="process-form" action="{% url create_process_type_for_resource_type resource_type_id=xbill_object.id %}" method="POST" >
@@ -320,8 +324,8 @@ ul {
 										{{ process_form|as_bootstrap }}
 										<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 									  <div class="modal-footer">
-										<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-										<button class="btn btn-primary">Save changes</button>
+										<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+										<button class="btn btn-primary">{% trans "Save changes" %}</button>
 									  </div>
 
 
@@ -338,7 +342,7 @@ ul {
 						<div class="modal hide fade" id="sourceForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="source-label" aria-hidden="true">
 						  <div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h3 id="source-label">Add a source for {{ xbill_object }}</h3>
+							<h3 id="source-label">{% blocktrans %}Add a source for {{ xbill_object }}{% endblocktrans %}</h3>
 						  </div>
 						  <div class="modal-body">
 								<form class="source-form" action="{% url create_agent_resource_type resource_type_id=xbill_object.id %}" method="POST" >
@@ -346,8 +350,8 @@ ul {
 									{{ source_form|as_bootstrap }}
 									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
-									<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-									<button class="btn btn-primary">Save changes</button>
+									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									<button class="btn btn-primary">{% trans "Save changes" %}</button>
 								  </div>
 
 								</form>
@@ -359,13 +363,15 @@ ul {
 
 						{% if xb_type == "process-type" %}
 						<div style="display: inline;" >
-							<a href="#inputForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">Add an input to {{ xbill_object }}</a>
+							<a href="#inputForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+								{% blocktrans %}Add an input to {{ xbill_object }}{% endblocktrans %}
+							</a>
 						</div>
 
 						<div class="modal hide fade" id="inputForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="input-label" aria-hidden="true">
 						  <div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h3 id="input-label">Add an input to {{ xbill_object }}</h3>
+							<h3 id="input-label">{% blocktrans %}Add an input to {{ xbill_object }}{% endblocktrans %}</h3>
 						  </div>
 						  <div class="modal-body">
 								<form class="input-form" action="{% url create_process_type_input process_type_id=xbill_object.id %}" method="POST" >
@@ -373,8 +379,8 @@ ul {
 									{{ xbill_object.xbill_input_form|as_bootstrap }}
 									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
-									<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-									<button class="btn btn-primary">Save changes</button>
+									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									<button class="btn btn-primary">{% trans "Save changes" %}</button>
 								  </div>
 
 								</form>
@@ -383,13 +389,15 @@ ul {
 						</div>
 
 						<div style="display: inline;" >
-							<a href="#featureForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">Add a feature to {{ xbill_object }}</a>
+							<a href="#featureForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+								{% blocktrans %}Add a feature to {{ xbill_object }}{% endblocktrans %}
+							</a>
 						</div>
 
 						<div class="modal hide fade" id="featureForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="feature-label" aria-hidden="true">
 						  <div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h3 id="feature-label">Add a feature to {{ xbill_object }}</h3>
+							<h3 id="feature-label">{% blocktrans %}Add a feature to {{ xbill_object }}{% endblocktrans %}</h3>
 						  </div>
 						  <div class="modal-body">
 								<form class="feature-form" action="{% url create_process_type_feature process_type_id=xbill_object.id %}" method="POST" >
@@ -397,8 +405,8 @@ ul {
 									{{ feature_form|as_bootstrap }}
 									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
-									<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-									<button class="btn btn-primary">Save changes</button>
+									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									<button class="btn btn-primary">{% trans "Save changes" %}</button>
 								  </div>
 
 								</form>
@@ -417,7 +425,7 @@ ul {
 						<div class="modal hide fade" id="changeFeatureForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="change-feature-label" aria-hidden="true">
 						  <div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h3 id="change-feature-label">Change {{ xbill_object }}</h3>
+							<h3 id="change-feature-label">{% trans "Change" %} {{ xbill_object }}</h3>
 						  </div>
 						  <div class="modal-body">
 								<form class="change-feature-form" action="{% url change_feature feature_id=xbill_object.id %}" method="POST" >
@@ -425,8 +433,8 @@ ul {
 									{{ xbill_object.xbill_change_form|as_bootstrap }}
 									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
-									<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-									<button class="btn btn-primary">Save changes</button>
+									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									<button class="btn btn-primary">{% trans "Save changes" %}</button>
 								  </div>
 
 								</form>
@@ -435,19 +443,23 @@ ul {
 						</div>
 
 						<div style="display: inline;" >
-							<a href="{% url delete_feature_confirmation feature_id=xbill_object.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >Delete</a>
+							<a href="{% url delete_feature_confirmation feature_id=xbill_object.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
+								{% trans "Delete" %}
+							</a>
 						</div>
 
 
 							{% if xbill_object.options.all %}
 								<div>
-									<a href="#optionChangeForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">Change options for {{ xbill_object }}</a>
+									<a href="#optionChangeForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+										{% blocktrans %}Change options for {{ xbill_object }}{% endblocktrans %}
+									</a>
 								</div>
 
 								<div class="modal hide fade" id="optionChangeForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="options-change-label" aria-hidden="true">
 								  <div class="modal-header">
 									<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-									<h3 id="options-change-label">Change options for {{ xbill_object }}</h3>
+									<h3 id="options-change-label">{% blocktrans %}Change options for {{ xbill_object }}{% endblocktrans %}</h3>
 								  </div>
 								  <div class="modal-body">
 										<form class="options-change-form" action="{% url change_options_for_feature feature_id=xbill_object.id %}" method="POST" >
@@ -455,8 +467,8 @@ ul {
 											{{ xbill_object.options_change_form|as_bootstrap }}
 											<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 										  <div class="modal-footer">
-											<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-											<button class="btn btn-primary">Save changes</button>
+											<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+											<button class="btn btn-primary">{% trans "Save changes" %}</button>
 										  </div>
 
 										</form>
@@ -466,13 +478,15 @@ ul {
 
 							{% else %}
 								<div>
-									<a href="#optionsForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">Select options for {{ xbill_object }}</a>
+									<a href="#optionsForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+										{% blocktrans %}Select options for {{ xbill_object }}{% endblocktrans %}
+									</a>
 								</div>
 
 								<div class="modal hide fade" id="optionsForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="options-label" aria-hidden="true">
 								  <div class="modal-header">
 									<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-									<h3 id="options-label">Selection options for {{ xbill_object }}</h3>
+									<h3 id="options-label">{% blocktrans %}Select options for {{ xbill_object }}{% endblocktrans %}</h3>
 								  </div>
 								  <div class="modal-body">
 										<form class="options-form" action="{% url create_options_for_feature feature_id=xbill_object.id %}" method="POST" >
@@ -480,8 +494,8 @@ ul {
 											{{ xbill_object.options_form|as_bootstrap }}
 											<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 										  <div class="modal-footer">
-											<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-											<button class="btn btn-primary">Save changes</button>
+											<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+											<button class="btn btn-primary">{% trans "Save changes" %}</button>
 										  </div>
 
 										</form>

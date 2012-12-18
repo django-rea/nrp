@@ -13,16 +13,16 @@
 		<legend>{% trans "Demand" %}</legend>
 			{% if user.is_authenticated %}
 				<p>
-					<a class="btn" href="{% url create_order %}">Create Order</a>
+					<a class="btn" href="{% url create_order %}">{% trans "Create Order" %}</a>
 				</p>
 			{% endif %}
 			{% if orders %}
-		        <h3 style="margin-bottom: 4px;" >Open Orders:</h3>
+		        <h3 style="margin-bottom: 4px;" >{% trans "Open Orders" %}:</h3>
 				<ul>
 				    {% for order in orders %}
 						<li>
                             <a href="{% url order_schedule order_id=order.id %}">{{ order }}</a> 
-                            <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=order.id %}">Delete</a>
+                            <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=order.id %}">{% trans "Delete" %}</a>
                         </li>
 					{% endfor %}
 				</ul>

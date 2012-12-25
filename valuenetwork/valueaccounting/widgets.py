@@ -23,7 +23,7 @@ class DurationWidget(MultiWidget):
         return u''.join(rendered_widgets)
 
     def value_from_datadict(self, data, files, name):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         dlist = [
             widget.value_from_datadict(data, files, name + '_%s' % i)
             for i, widget in enumerate(self.widgets)]

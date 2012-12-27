@@ -505,7 +505,6 @@ class AgentResourceType(models.Model):
         default=Decimal("0.0"),
         help_text=_("the quantity of contributions of this resource type from this agent"))
     relationship = models.ForeignKey(ResourceRelationship,
-        blank=True, null=True,
         verbose_name=_('relationship'), related_name='agent_resource_types')
     lead_time = models.IntegerField(_('lead time'), 
         default=0, help_text=_("in days"))
@@ -693,7 +692,6 @@ class ProcessTypeResourceType(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='process_types')
     relationship = models.ForeignKey(ResourceRelationship,
-        blank=True, null=True,
         verbose_name=_('relationship'), related_name='process_resource_types')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
@@ -847,7 +845,6 @@ class Feature(models.Model):
         blank=True, null=True,
         verbose_name=_('process type'), related_name='features')
     relationship = models.ForeignKey(ResourceRelationship,
-        blank=True, null=True,
         verbose_name=_('relationship'), related_name='features')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
@@ -990,7 +987,6 @@ class Commitment(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="commitments", verbose_name=_('event type'))
     relationship = models.ForeignKey(ResourceRelationship,
-        blank=True, null=True,
         verbose_name=_('relationship'), related_name='commitments')
     commitment_date = models.DateField(_('commitment date'), default=datetime.date.today)
     due_date = models.DateField(_('due date'))

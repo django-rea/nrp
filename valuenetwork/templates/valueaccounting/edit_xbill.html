@@ -538,13 +538,15 @@ ul {
 	$(document).ready(function(){
 
 		$.validator.addClassRules("quantity", { required: true, number: true });
-		$.validator.addClassRules("days", { number: true });
+		$.validator.addClassRules("days", { required: true, number: true });
 		$.validator.addClassRules("hours", { 
+			required: true,
 			number: true,
 			min: 0,
 			max: 24
 		});
 		$.validator.addClassRules("minutes", { 
+			required: true,
 			number: true,
 			min: 0,
 			max: 60

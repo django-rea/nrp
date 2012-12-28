@@ -33,10 +33,12 @@
 	<div>
 		<legend>{% trans "Work" %}</legend>
 
-
+{% comment %}
 			<p>
 				<a href="{% url timeline %}">{% trans "Timeline" %}</a>
 			</p>
+{% endcomment %}
+
 		<div class="row-fluid">
 			<div class="span6">
 
@@ -95,7 +97,7 @@
 															<input type="hidden" name="next" value="{% url work %}" />
 														  <div class="modal-footer">
 															<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-															<button class="btn btn-primary">{% trans "Save changes" %}</button>
+															<button class="btn btn-primary">{% trans "Commit" %}</button>
 														  </div>
 														</form>
 													</div>
@@ -224,11 +226,17 @@
     <script type="text/javascript">
 
 	$(document).ready(function(){
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+/*
+		$('input').filter('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
 		$(function() {
-        	$( ".date-entry" ).datepicker({ dateFormat: "yy-mm-dd" });
+        	$( ".date-entry" ).each( function(){
+				$(this).datepicker({ dateFormat: "yy-mm-dd" });
+			});
     	});
-
+*/
 	}); // end document.ready
     </script>
 

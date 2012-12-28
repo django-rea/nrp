@@ -926,19 +926,24 @@ def supply(request):
     }, context_instance=RequestContext(request))
 
 def work(request):
-    work = []
+    my_work = []
+    my_skillz = []
     agent = get_agent(request)
-    my_work = Commitment.objects.filter(
-        resource_type__materiality="work",
-        from_agent=agent)
-    skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
-    my_skillz = Commitment.objects.filter(
-        from_agent=None, 
-        resource_type__materiality="work",
-        resource_type__id__in=skill_ids)
+    if not agent == "Unregistered":
+        my_work = Commitment.objects.filter(
+            resource_type__materiality="work",
+            from_agent=agent)
+        skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
+        my_skillz = Commitment.objects.filter(
+            from_agent=None, 
+            resource_type__materiality="work",
+            resource_type__id__in=skill_ids)
+        other_unassigned = Commitment.objects.filter(
+            from_agent=None, 
+            resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
     other_unassigned = Commitment.objects.filter(
         from_agent=None, 
-        resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
+        resource_type__materiality="work")
     #for commitment in commitments:
     #    if not commitment.resource_type.producing_commitments():
     #        work.append(commitment)
@@ -950,6 +955,29 @@ def work(request):
 
 
 def commit_to_task(request, commitment_id):
-
-    next = request.POST.get("next")
-    return HttpResponseRedirect(next)
+    if request.method == "POST":
+        ct = get_object_or_404(Commitment, id=commitment_id)
+        process = ct.process
+        agent = get_agent(request)
+        prefix = ct.form_prefix()
+        form = CommitmentForm(data=request.POST, prefix=prefix)
+        import pdb; pdb.set_trace()
+        if form.is_valid():
+            data = form.cleaned_data
+            #todo: next line did not work, don't want to take time to figure out why right now
+            #ct = form.save(commit=False)
+            start_date = data["start_date"]
+            description = data["description"]
+            quantity = data["quantity"]
+            unit_of_quantity = data["unit_of_quantity"]
+            ct.start_date=start_date
+            ct.quantity=quantity
+            ct.unit_of_quantity=unit_of_quantity
+            ct.description=description
+            ct.from_agent = agent
+            ct.save()
+            if start_date != process.start_date:
+                process.start_date = start_date
+                process.save()
+        next = request.POST.get("next")
+        return HttpResponseRedirect(next)

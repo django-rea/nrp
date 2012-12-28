@@ -22,6 +22,8 @@
 		background-color:#C8D6E8;
 	}
 
+/*#my-timeline { overflow-x:hidden; overflow-y:scroll;}*/
+
 </style>
 {% endblock %}
 
@@ -32,7 +34,7 @@
         {% include "_messages.html" %}
 		<h1>{% trans "Timeline" %}</h1>
 		<p>{% trans "Double-click on months to slide days. Click on event in day to show details." %}</p>	
-		<div id="my-timeline" style="height: 500px; border: 1px solid #aaa"></div>
+		<div id="my-timeline" style="height: 600px; border: 1px solid #aaa"></div>
 
 		{% if unassigned %}
 			<div style="margin-top: 1em;" >
@@ -134,7 +136,7 @@ $(window).resize(function() {
          resizeTimerID = window.setTimeout(function() {
              resizeTimerID = null;
              tl.layout();
-         }, 500);
+         }, 600);
      }
  });
 </script>

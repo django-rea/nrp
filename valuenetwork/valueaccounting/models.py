@@ -1130,9 +1130,13 @@ class Commitment(models.Model):
             process,
         ])
 
+    def form_prefix(self):
+        return "-".join(["CT", str(self.id)])
+
     def commitment_form(self):
         from valuenetwork.valueaccounting.forms import CommitmentForm
-        return CommitmentForm(instance=self)
+        prefix=self.form_prefix()
+        return CommitmentForm(instance=self, prefix=prefix)
 
 
 

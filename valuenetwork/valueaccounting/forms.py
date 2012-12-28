@@ -18,7 +18,7 @@ class OrderForm(forms.ModelForm):
 
 
 class CommitmentForm(forms.ModelForm):
-    start_date = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'input-small',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
 

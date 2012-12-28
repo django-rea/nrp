@@ -26,6 +26,17 @@ from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.forms import *
 from valuenetwork.valueaccounting.utils import *
 
+def get_agent(request):
+    nick = request.user.username
+    if nick:
+        try:
+            agent = EconomicAgent.objects.get(nick=nick.capitalize)
+        except EconomicAgent.DoesNotExist:
+            agent = get_object_or_404(EconomicAgent, nick=nick)
+    else:
+        agent = "Unregistered"
+    return agent
+
 def projects(request):
     roots = Project.objects.filter(parent=None)
     
@@ -103,14 +114,7 @@ def contribution_history(request, agent_id):
 
 
 def log_time(request):
-    nick = request.user.username
-    if nick:
-        try:
-            member = EconomicAgent.objects.get(nick=nick.capitalize)
-        except EconomicAgent.DoesNotExist:
-            member = get_object_or_404(EconomicAgent, nick=nick)
-    else:
-        member = "Unregistered"
+    member = get_agent(request)
     form = TimeForm()
     roots = Project.objects.filter(parent=None)
     resource_types = EconomicResourceType.objects.filter(materiality="work")
@@ -923,12 +927,29 @@ def supply(request):
 
 def work(request):
     work = []
-    commitments = Commitment.objects.filter(resource_type__materiality="work")
-    for commitment in commitments:
-        if not commitment.resource_type.producing_commitments():
-            work.append(commitment)
+    agent = get_agent(request)
+    my_work = Commitment.objects.filter(
+        resource_type__materiality="work",
+        from_agent=agent)
+    skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
+    my_skillz = Commitment.objects.filter(
+        from_agent=None, 
+        resource_type__materiality="work",
+        resource_type__id__in=skill_ids)
+    other_unassigned = Commitment.objects.filter(
+        from_agent=None, 
+        resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
+    #for commitment in commitments:
+    #    if not commitment.resource_type.producing_commitments():
+    #        work.append(commitment)
     return render_to_response("valueaccounting/work.html", {
-        "work": work,
+        "my_work": my_work,
+        "my_skillz": my_skillz,
+        "other_unassigned": other_unassigned,
     }, context_instance=RequestContext(request))
 
 
+def commit_to_task(request, commitment_id):
+
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)

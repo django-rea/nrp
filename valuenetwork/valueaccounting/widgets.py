@@ -27,6 +27,7 @@ class DurationWidget(MultiWidget):
         dlist = [
             widget.value_from_datadict(data, files, name + '_%s' % i)
             for i, widget in enumerate(self.widgets)]
+        #todo: make more forgiving: change '' to 0
         try:
             duration = (int(dlist[0]) * 1440) + (int(dlist[1]) * 60) + int(dlist[2])
         except ValueError:

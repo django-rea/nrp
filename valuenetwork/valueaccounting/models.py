@@ -831,6 +831,17 @@ class Process(models.Model):
         else:
             return None
 
+    def material_requirements(self):
+        return self.commitments.filter(
+            relationship__direction='in',
+            resource_type__materiality="material",
+        )
+
+    def tool_requirements(self):
+        return self.commitments.filter(
+            relationship__direction='in',
+            resource_type__materiality="tool",
+        )
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -1118,6 +1129,12 @@ class Commitment(models.Model):
             'to',
             process,
         ])
+
+    def commitment_form(self):
+        from valuenetwork.valueaccounting.forms import CommitmentForm
+        return CommitmentForm(instance=self)
+
+
 
 class Reciprocity(models.Model):
     """One Commitment reciprocating another.

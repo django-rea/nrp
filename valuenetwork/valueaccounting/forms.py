@@ -17,6 +17,16 @@ class OrderForm(forms.ModelForm):
         exclude = ('order_date',)
 
 
+class CommitmentForm(forms.ModelForm):
+    start_date = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'input-small',}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('start_date', 'quantity', 'unit_of_quantity', 'description')
+
+
 class OrderItemForm(forms.ModelForm):
     resource_type_id = forms.CharField(widget=forms.HiddenInput)
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'input-small',}))

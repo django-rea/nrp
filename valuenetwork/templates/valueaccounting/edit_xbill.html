@@ -72,6 +72,23 @@ ul {
 	width: 24px;
 }
 
+
+.processForm .modal-body {
+	max-height: 800px;
+}
+
+.processForm {
+	margin: -400px 0 0 -280px;
+}
+
+.sourceForm .modal-body {
+	max-height: 800px;
+}
+
+.sourceForm {
+	margin: -400px 0 0 -280px;
+}
+
 </style>
 {% endblock %}
 
@@ -135,7 +152,7 @@ ul {
 		</div>
 
 
-		<div class="modal hide fade" id="processForm{{ resource_type.id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
+		<div class="modal hide fade processForm" id="processForm{{ resource_type.id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
 		  <div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 			<h3 id="process-label">{% blocktrans %}Add a process type to create {{ resource_type }}{% endblocktrans %}</h3>
@@ -196,7 +213,7 @@ ul {
 						</div>
 
 
-						<div class="modal hide fade" id="processChangeForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="process-change-label" aria-hidden="true">
+						<div class="modal hide fade processForm" id="processChangeForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="process-change-label" aria-hidden="true">
 						  <div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 							<h3 id="process-change-label">{% trans "Change" %} {{ xbill_object }}</h3>
@@ -265,7 +282,7 @@ ul {
 							<a href="#changeSourceForm{{ xbill_node.node_id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>							
 						</div>
 
-						<div class="modal hide fade" id="changeSourceForm{{ xbill_node.node_id }}" tabindex="-1" role="dialog" aria-labelledby="change-source-label" aria-hidden="true">
+						<div class="modal hide fade sourceForm" id="changeSourceForm{{ xbill_node.node_id }}" tabindex="-1" role="dialog" aria-labelledby="change-source-label" aria-hidden="true">
 						  <div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 							<h3 id="change-source-label">{% trans "Change" %} {{ xbill_node }}</h3>
@@ -313,7 +330,7 @@ ul {
 							</div>
 
 
-							<div class="modal hide fade" id="processForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
+							<div class="modal hide fade processForm" id="processForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
 							  <div class="modal-header">
 								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 								<h3 id="process-label">{% blocktrans %}Add a process type to produce {{ xbill_object }}{% endblocktrans %}</h3>
@@ -339,7 +356,7 @@ ul {
 							<a href="#sourceForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">Add a source for {{ xbill_object }}</a>							
 						</div>
 
-						<div class="modal hide fade" id="sourceForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="source-label" aria-hidden="true">
+						<div class="modal hide fade sourceForm" id="sourceForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="source-label" aria-hidden="true">
 						  <div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 							<h3 id="source-label">{% blocktrans %}Add a source for {{ xbill_object }}{% endblocktrans %}</h3>

@@ -989,6 +989,7 @@ class Commitment(models.Model):
     relationship = models.ForeignKey(ResourceRelationship,
         verbose_name=_('relationship'), related_name='commitments')
     commitment_date = models.DateField(_('commitment date'), default=datetime.date.today)
+    start_date = models.DateField(_('start date'), blank=True, null=True)
     due_date = models.DateField(_('due date'))
     from_agent_type = models.ForeignKey(AgentType,
         blank=True, null=True,

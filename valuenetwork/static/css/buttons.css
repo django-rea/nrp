@@ -87,3 +87,7 @@ a:hover {
 .filter p {
   margin: 0 0 .2em 0;
 }
+
+.modal-footer {
+  background-color: white;
+}

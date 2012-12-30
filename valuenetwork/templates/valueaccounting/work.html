@@ -13,12 +13,16 @@
 <style>
 
 .commitmentForm .modal-body {
-	max-height: 500px;
+	max-height: 800px;
 }
 
 .commitmentForm {
-	width: 800px;
-	/* margin: -250px 0 0 -300px; */
+	width: 900px;
+	/*margin: -250px 0 0 -450px; */
+        /*margin-left: -450px;*/
+}
+.btn {
+	margin-right: 2em;
 }
 
 
@@ -69,7 +73,7 @@
 
 			<div class="span6">
 
-				<h3 style="margin-bottom: 4px;" >{% trans "Unassigned tasks using my skillz" %}:</h3>
+				<h3 style="margin-bottom: 4px;" >{% trans "Unassigned tasks using my skills" %}:</h3>
 
 				{% if my_skillz %}
 						<ul>
@@ -86,7 +90,7 @@
 										<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
 											<div class="modal-header">
 												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item }}</h3>
+												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
 											</div>
 											<div class="modal-body">
 

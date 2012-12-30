@@ -1146,8 +1146,9 @@ class Commitment(models.Model):
 
     def commitment_form(self):
         from valuenetwork.valueaccounting.forms import CommitmentForm
-        prefix=self.form_prefix()
-        return CommitmentForm(instance=self, prefix=prefix)
+        #prefix=self.form_prefix()
+        #return CommitmentForm(instance=self, prefix=prefix)
+        return CommitmentForm(instance=self)
 
 
 

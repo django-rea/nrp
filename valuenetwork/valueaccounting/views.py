@@ -960,9 +960,10 @@ def commit_to_task(request, commitment_id):
         ct = get_object_or_404(Commitment, id=commitment_id)
         process = ct.process
         agent = get_agent(request)
-        prefix = ct.form_prefix()
-        form = CommitmentForm(data=request.POST, prefix=prefix)
-        import pdb; pdb.set_trace()
+        #prefix = ct.form_prefix()
+        #form = CommitmentForm(data=request.POST, prefix=prefix)
+        form = CommitmentForm(data=request.POST)
+        #import pdb; pdb.set_trace()
         if form.is_valid():
             data = form.cleaned_data
             #todo: next line did not work, don't want to take time to figure out why right now

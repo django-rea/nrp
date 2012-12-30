@@ -49,6 +49,7 @@
 							{% for item in my_work %}
 								<li>
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+									<a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info" >{% trans "Work this task" %}</a>
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
 									{% trans "for process" %}: {{ item.process }}
@@ -113,7 +114,9 @@
 														</p>
 														<h4>{% trans "Material requirements" %}:</h4>
 														{% for reqmt in item.process.material_requirements %}	
-															<p style="margin-left: 1em;">{{ reqmt }}</p>
+															<p style="margin-left: 1em;">
+																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
+															</p>
 															<ul>
 																{% for source in reqmt.resource_type.producing_agent_relationships %}
 																	<p style="margin-left: 2em;">
@@ -125,7 +128,10 @@
 														{% endfor %}
 														<h4>{% trans "Tool Requirements" %}:</h4>
 														{% for reqmt in item.process.tool_requirements %}	
-															<p style="margin-left: 1em;">{{ reqmt }}</p>
+															<p style="margin-left: 1em;">
+
+																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}
+															</p>
 															<ul>
 																{% for source in reqmt.resource_type.producing_agent_relationships %}
 																	<li>

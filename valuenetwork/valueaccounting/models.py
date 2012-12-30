@@ -843,6 +843,12 @@ class Process(models.Model):
             resource_type__materiality="tool",
         )
 
+    def work_requirements(self):
+        return self.commitments.filter(
+            relationship__direction='in',
+            resource_type__materiality="work",
+        )
+
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
     option_category = models.ForeignKey(Category,
@@ -1045,6 +1051,9 @@ class Commitment(models.Model):
     def __unicode__(self):
         quantity_string = str(self.quantity)
         resource_name = ""
+        abbrev = ""
+        if self.unit_of_quantity:
+           abbrev = self.unit_of_quantity.abbrev
         if self.resource_type:
             resource_name = self.resource_type.name
         if self.order:
@@ -1066,6 +1075,7 @@ class Commitment(models.Model):
                 name1,
                 self.relationship.name,
                 quantity_string,
+                abbrev,
                 resource_name,
                 self.due_date.strftime('%Y-%m-%d'),          
                 prep,
@@ -1076,6 +1086,7 @@ class Commitment(models.Model):
                 self.process.name,
                 self.relationship.name,
                 quantity_string,
+                abbrev,
                 resource_name,
                 self.due_date.strftime('%Y-%m-%d'),          
         ])

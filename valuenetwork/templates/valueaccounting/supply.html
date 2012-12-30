@@ -28,7 +28,8 @@
                             <ul>
 								{% for source in item.resource_type.producing_agent_relationships %}
 									<li>
-										<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+										<a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
+										{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
 									</li>
 								{% endfor %}
 							</ul>

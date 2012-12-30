@@ -941,9 +941,10 @@ def work(request):
         other_unassigned = Commitment.objects.filter(
             from_agent=None, 
             resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
-    other_unassigned = Commitment.objects.filter(
-        from_agent=None, 
-        resource_type__materiality="work")
+    else:
+        other_unassigned = Commitment.objects.filter(
+            from_agent=None, 
+            resource_type__materiality="work")
     #for commitment in commitments:
     #    if not commitment.resource_type.producing_commitments():
     #        work.append(commitment)
@@ -981,3 +982,21 @@ def commit_to_task(request, commitment_id):
                 process.save()
         next = request.POST.get("next")
         return HttpResponseRedirect(next)
+
+def work_commitment(request, commitment_id):
+    ct = get_object_or_404(Commitment, id=commitment_id)
+    wb_form = WorkbookForm(instance=ct)
+    others_working = []
+    wrqs = ct.process.work_requirements()
+    if wrqs.count() > 1:
+        for wrq in wrqs:
+            if not wrq.from_agent is ct.from_agent:
+                others_working.append(wrq)
+    today = datetime.date.today()
+    return render_to_response("valueaccounting/workbook.html", {
+        "commitment": ct,
+        "wb_form": wb_form,
+        "others_working": others_working,
+        "today": today,
+    }, context_instance=RequestContext(request))
+    

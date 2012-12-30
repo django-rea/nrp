@@ -1,0 +1,154 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Labnotes for " %} {{ commitment.process.name }}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+textarea {
+  width: 100%;
+  height: 600px;
+}
+
+.days, .hours, .minutes {
+	width: 24px;
+}
+
+
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>
+			{% trans "Labnotes for " %} {{ commitment.process.name }} {% trans "due " %}  {{ commitment.process.end_date }}
+			<span style="font-size: 60%;" > 
+				{% trans "Contributor" %}: {{ commitment.from_agent.nick }} {% trans "Date" %}: {{ today }} 
+				{% trans "Estimated duration" %}: {{ commitment.quantity }} {{ commitment.unit_of_quantity.abbrev }}
+			</span>
+		</legend>
+
+		<div class="row-fluid">
+			<div class="span8">
+
+			<form method="POST" action="">
+				{% csrf_token %}
+				<div class="control-group">
+					<label><b>{% trans "Description of work done" %}:</b></label>
+					{{ wb_form.description }}
+				</div>
+			</form>
+			</div>
+			<div class="span4">
+				<a href="" role="button" class="btn btn-info" >{% trans "Start" %}</a>
+				<a href="" role="button" class="btn btn-info" >{% trans "Stop" %}</a>
+				<div class="control-group">
+					<label><b>{% trans "Time spent so far" %}:</b></label>
+					{{ wb_form.time_spent }}
+					<span class="help-block">{{ wb_form.time_spent.help_text }}</span>
+				</div>
+				<div>
+					<h4>{% trans "Output" %}:</h4>
+					<ul>
+						{% for item in commitment.process.outgoing_commitments %}
+							<li>
+								<b>{{ item.resource_type.name }}:</b> {% trans "Planned" %}: {{ item.quantity }} {{ item.unit_of_quantity }}</br>
+								{% trans "Actual" %}: <input class="input-mini quantity" id="{{ item.resource_type.id }}" type="text" size="6" value="0" /></br>
+								<a href="" role="button" class="btn btn-warning" >{% trans "Failed" %}</a>
+							</li>
+						{% endfor %}
+					</ul>
+
+				<div>
+					<h4>{% trans "Material requirements" %}:</h4>
+					<p style="margin-left: 1em;" >{% trans "Onhand" %}:</p>
+					<p style="margin-left: 2em;" >{% trans "Used in this process" %}:</p>
+					<p style="margin-left: 1em;" >{% trans "Scheduled for production" %}:</p>
+					<p style="margin-left: 1em;" >{% trans "On order" %}:</p>
+					<p style="margin-left: 1em;" >{% trans "Not purchased yet" %}:</p>
+					<ul>
+						{% for item in commitment.process.material_requirements %}
+							<li>
+								<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
+							</li>
+                            <ul>
+								{% for source in item.resource_type.producing_agent_relationships %}
+									<li>
+										<a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
+										{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+									</li>
+								{% endfor %}
+							</ul>
+						{% endfor %}
+					</ul>
+						
+				</div>
+				<div>
+					<h4>{% trans "Tool requirements" %}:</h4>
+					<p style="margin-left: 1em;" >{% trans "Onhand" %}:</p>
+					<p style="margin-left: 2em;" >{% trans "Used in this process" %}:</p>
+					<p style="margin-left: 1em;" >{% trans "Scheduled for production" %}:</p>
+					<p style="margin-left: 1em;" >{% trans "On order" %}:</p>
+					<p style="margin-left: 1em;" >{% trans "Not purchased yet" %}:</p>
+					<ul>
+						{% for item in commitment.process.tool_requirements %}
+							<li>
+								<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
+							</li>
+                            <ul>
+								{% for source in item.resource_type.producing_agent_relationships %}
+									<li>
+										<a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
+										{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+									</li>
+								{% endfor %}
+							</ul>
+						{% endfor %}
+					</ul>
+				</div>
+				{% if others_working %}
+					<p style="margin-left: 1em;" >{% trans "Others working on this process" %}:</p>
+					<ul>
+						{% for item in others_working %}
+							<li>
+								<b>{{ item }}
+							</li>
+
+						{% endfor %}
+					</ul>
+
+				{% endif %}
+			</div>
+		</div>
+
+
+	</div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+	}); // end document.ready
+    </script>
+
+{% endblock %}

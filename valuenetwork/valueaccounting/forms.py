@@ -6,7 +6,9 @@ from django.utils.translation import ugettext_lazy as _
 from valuenetwork.tekextensions.widgets import SelectWithPopUp
 
 from valuenetwork.valueaccounting.models import *
-from valuenetwork.valueaccounting.widgets import DurationWidget
+
+from valuenetwork.valueaccounting.widgets import DurationWidget, DecimalDurationWidget
+
 
 
 class OrderForm(forms.ModelForm):
@@ -26,6 +28,20 @@ class CommitmentForm(forms.ModelForm):
         model = Commitment
         fields = ('start_date', 'quantity', 'unit_of_quantity', 'description')
 
+
+class WorkbookForm(forms.ModelForm):
+    start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
+    #todo: this is in decimal hours, not minutes, so needs a different DurationWidget, or a parm
+    #and it goes into the quantity field of an EconomicEvent, not a Commitment
+    time_spent = forms.DecimalField(required=False,
+        widget=DecimalDurationWidget,
+        help_text="days, hours, minutes")
+    #time_spent = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'input-small',}))
+	
+    class Meta:
+        model = Commitment
+        fields = ('start_date', 'description')
 
 class OrderItemForm(forms.ModelForm):
     resource_type_id = forms.CharField(widget=forms.HiddenInput)

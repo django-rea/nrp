@@ -51,8 +51,8 @@ textarea {
 			</form>
 			</div>
 			<div class="span4">
-				<a href="" role="button" class="btn btn-info" >{% trans "Start" %}</a>
-				<a href="" role="button" class="btn btn-info" >{% trans "Stop" %}</a>
+				<button role="button" id="start" name="start" class="btn btn-info" >{% trans "Start" %}</button>
+				<button role="button" id="stop" name="stop"  class="btn btn-info" disabled="disabled" >{% trans "Stop" %}</button>
 				<div class="control-group">
 					<label><b>{% trans "Time spent so far" %}:</b></label>
 					{{ wb_form.time_spent }}
@@ -145,8 +145,31 @@ textarea {
 
     <script type="text/javascript">
 
+	var start = new Date();
+    var duration = 0;
+
 	$(document).ready(function(){
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+		$("#start").click(function() {
+			$("#start").attr("disabled", "disabled");
+			$("#stop").removeAttr("disabled");  
+            start = new Date();
+		});
+
+		$("#stop").click(function() {
+			$("#stop").attr("disabled", "disabled");
+			$("#start").removeAttr("disabled"); 
+            var stop = new Date();
+			duration += Math.round((stop - start) / 60000);
+        	var days = Math.floor(duration / 1440);
+        	var hours = Math.floor((duration - (days * 1440)) / 60);
+            var mins = Math.round(duration - (days * 1440) - (hours * 60));
+			$("#id_time_spent_0").val(days);
+			$("#id_time_spent_1").val(hours);
+			$("#id_time_spent_2").val(mins);
+			//alert("duration = " + duration);
+		});
 
 	}); // end document.ready
     </script>

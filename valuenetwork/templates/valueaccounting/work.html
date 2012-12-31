@@ -53,7 +53,7 @@
 							{% for item in my_work %}
 								<li>
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-									<a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info" >{% trans "Work this task" %}</a>
+									<a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info" >{% trans "Labnotes for this task" %}</a>
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
 									{% trans "for process" %}: {{ item.process }}

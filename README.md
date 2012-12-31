@@ -22,6 +22,9 @@ Roadmap:
 * Create interfaces for members to enter contributions. [mockup, awaiting feedback]
 * Create an interface for members to experiment with value equations and income distributions. [mockup, awaiting feedback]
 * Add Features and Options for configured products [done]
+* Add Orders [done]
+* Generate dependent demands from orders [done]
+* Manage processes, material, tool and work requirements to fulfill orders [started]
 * Create a Lab Notes app for research and development work
 * Add a Wiki
 * Create a pluggable English vocabulary.

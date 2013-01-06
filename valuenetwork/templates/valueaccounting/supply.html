@@ -20,7 +20,7 @@
 								<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 							</li>
 							<p style="margin-left: 1em; margin-bottom: 0;">
-								{% trans "for process" %}: {{ item.process }}
+								{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
 							</p>
 							<p style="margin-left: 1em; margin-bottom: 0;">
 								{% trans "for order" %}: {{ item.independent_demand }}

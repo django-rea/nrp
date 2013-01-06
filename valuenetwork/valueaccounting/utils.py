@@ -1,6 +1,7 @@
 import datetime
 from itertools import chain, imap
 from django.contrib.contenttypes.models import ContentType
+from django.utils.html import linebreaks
 
 from valuenetwork.valueaccounting.models import Commitment, Process
 
@@ -75,7 +76,7 @@ class TimelineEvent(object):
         d = {
             "start": self.start.strftime("%b %e %Y 00:00:00 GMT-0600"),
             "title": self.title,
-            "description": self.description,
+            "description": linebreaks(self.description),
         }
         if self.end:
             d["end"] = self.end.strftime("%b %e %Y 00:00:00 GMT-0600")
@@ -84,7 +85,65 @@ class TimelineEvent(object):
             d["durationEvent"] = False
         if self.link:
             d["link"] = self.link
+        mrq = []
+        for mreq in self.node.material_requirements():
+            abbrev = mreq.unit_of_quantity.abbrev or ""
+            label = " ".join([
+                str(mreq.quantity),
+                abbrev,
+                mreq.resource_type.name])
+            mrq.append(label)
+        d["materialReqmts"] = mrq
+        trq = []
+        for treq in self.node.tool_requirements():
+            abbrev = treq.unit_of_quantity.abbrev or ""
+            label = " ".join([
+                str(treq.quantity),
+                abbrev,
+                treq.resource_type.name])
+            trq.append(label)
+        d["toolReqmts"] = trq
+        wrq = []
+        for wreq in self.node.work_requirements():
+            abbrev = wreq.unit_of_quantity.abbrev or ""
+            label = " ".join([
+                str(wreq.quantity),
+                abbrev,
+                wreq.resource_type.name])
+            wrq.append(label)
+        d["workReqmts"] = wrq
+        items = []
+        for item in self.node.order_items():
+            abbrev = item.unit_of_quantity.abbrev or ""
+            label = " ".join([
+                str(item.quantity),
+                abbrev,
+                item.resource_type.name])
+            items.append(label)
+        d["orderItems"] = items
         return d
+
+def create_events(orders, processes, events):
+    for order in orders:
+        te = TimelineEvent(
+            order,
+            order.due_date,
+            "",
+            order.timeline_title(),
+            order.get_absolute_url(),
+            order.timeline_description(),
+        )
+        events['events'].append(te.dictify())
+    for process in processes:
+        te = TimelineEvent(
+            process,
+            process.start_date,
+            process.end_date,
+            process.timeline_title(),
+            process.get_absolute_url(),
+            process.timeline_description(),
+        )
+        events['events'].append(te.dictify())
 
 def explode_events(resource_type, backsked_date, events):
     for art in resource_type.producing_agent_relationships():

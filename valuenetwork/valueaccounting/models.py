@@ -802,6 +802,11 @@ class Process(models.Model):
             self.start_date.strftime('%Y-%m-%d'),
             ])
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('process_details', (),
+            { 'process_id': str(self.id),})
+
     def save(self, *args, **kwargs):
         slug = "-".join([
             self.process_type.name,
@@ -814,9 +819,15 @@ class Process(models.Model):
     def label(self):
         return "process"
 
+    def independent_demand(self):
+        return self.main_outgoing_commitment().independent_demand
+
     def timeline_title(self):
         #return " ".join([self.name, "Process"])
         return self.name
+
+    def timeline_description(self):
+        return self.process_type.description
 
     def incoming_commitments(self):
         return self.commitments.filter(relationship__direction='in')
@@ -830,6 +841,22 @@ class Process(models.Model):
             return cts[0]
         else:
             return None
+
+    def previous_processes(self):
+        answer = []
+        for ic in self.incoming_commitments():
+            rt = ic.resource_type
+            for pc in rt.producing_commitments():
+                answer.append(pc.process)
+        return answer
+
+    def next_processes(self):
+        answer = []
+        for oc in self.outgoing_commitments():
+            rt = oc.resource_type
+            for cc in rt.consuming_commitments():
+                answer.append(cc.process)
+        return answer
 
     def material_requirements(self):
         return self.commitments.filter(
@@ -848,6 +875,10 @@ class Process(models.Model):
             relationship__direction='in',
             resource_type__materiality="work",
         )
+
+    def order_items(self):
+        return []
+
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -988,11 +1019,33 @@ class Order(models.Model):
             self.due_date.strftime('%Y-%m-%d'),
             ])
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('order_schedule', (),
+            { 'order_id': str(self.id),})
+
     def timeline_title(self):
         return self.__unicode__()
 
+    def timeline_description(self):
+        return self.description
+
     def producing_commitments(self):
         return self.commitments.all()
+
+    def order_items(self):
+        return self.commitments.all()
+
+    def material_requirements(self):
+        return []
+
+    def tool_requirements(self):
+        return []
+
+    def work_requirements(self):
+        return []
+
+
 
 class Commitment(models.Model):
     order = models.ForeignKey(Order,

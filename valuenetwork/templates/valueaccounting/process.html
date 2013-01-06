@@ -1,0 +1,86 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Process" %}: {{ process }}{% endblock %}
+
+{% block body_class %}process{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>{% trans "Process" %}: {{ process }}</legend>
+
+		<p>
+			<b>{% trans "for order" %}:</b> {{ process.independent_demand }}
+		</p>
+
+		<div class="row-fluid">
+
+				<div class="span6">
+				
+					<h4>{% trans "Previous processes" %}</h4>
+					{% for proc in process.previous_processes %}
+						<p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
+					{% endfor %}
+
+				</div>
+
+				<div class="span6">
+
+					<h4>{% trans "Next processes" %}</h4>
+					{% for proc in process.next_processes %}
+						<p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
+					{% endfor %}
+
+				</div>
+		</div>
+
+
+		<h3 style="margin-bottom: 4px;" >{% trans "Material Requirements" %}:</h3>
+		{% for item in process.material_requirements %}
+			<p>
+				<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+			</p>
+			{% for source in item.resource_type.producing_agent_relationships %}
+				<p style="margin-left: 2em;">
+					<b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+				</p>
+			{% endfor %}
+		{% endfor %}
+
+		<h3 style="margin-bottom: 4px;" >{% trans "Work Requirements" %}:</h3>
+		{% for item in process.work_requirements %}
+			<p>
+				<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+
+            {% if item.from_agent %}
+					{% trans "Taken by" %} {{ item.from_agent.nick }}
+				</p>
+			{% else %}
+					{% trans "Unassigned" %} 
+				</p>
+				{% for source in item.resource_type.producing_agent_relationships %}
+					<p style="margin-left: 2em;">
+						<b>{% trans "Source" %}:</b> {{ source.agent.name }}
+					</p>
+				{% endfor %}
+			{% endif %}
+		{% endfor %}
+
+		<h3 style="margin-bottom: 4px;" >{% trans "Tool Requirements" %}:</h3>
+		{% for item in process.tool_requirements %}
+			<p>
+				<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+			</p>
+			{% for source in item.resource_type.producing_agent_relationships %}
+				<p style="margin-left: 2em;">
+					<b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+				</p>
+			{% endfor %}
+		{% endfor %}
+
+	</div>
+    </div>
+{% endblock %}

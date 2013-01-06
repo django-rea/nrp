@@ -720,7 +720,7 @@ def timeline(request):
 def json_timeline(request):
     #data = "{ 'wiki-url':'http://simile.mit.edu/shelf/', 'wiki-section':'Simile JFK Timeline', 'dateTimeFormat': 'Gregorian','events': [{'start':'May 28 2006 09:00:00 GMT-0600','title': 'Writing Timeline documentation','link':'http://google.com','description':'Write some doc already','durationEvent':false }, {'start': 'Jun 16 2006 00:00:00 GMT-0600' ,'end':  'Jun 26 2006 00:00:00 GMT-0600' ,'durationEvent':true,'title':'Friends wedding'}]}"
     #import pdb; pdb.set_trace()
-    orders = Order.objects.all()
+    #orders = Order.objects.all()
     #processes = []
     #for order in orders:
     #    for commitment in order.producing_commitments():
@@ -728,8 +728,11 @@ def json_timeline(request):
     events = {'dateTimeFormat': 'Gregorian','events':[]}
     #for process in processes:
     #    backschedule_events(process, events)
-    for order in orders:
-        backschedule_order(order, events)
+    #for order in orders:
+    #    backschedule_order(order, events)
+    orders = Order.objects.all()
+    processes = Process.objects.all()
+    create_events(orders, processes, events)
     data = simplejson.dumps(events, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
@@ -1000,4 +1003,11 @@ def work_commitment(request, commitment_id):
         "others_working": others_working,
         "today": today,
     }, context_instance=RequestContext(request))
+
+def process_details(request, process_id):
+    process = get_object_or_404(Process, id=process_id)
+    return render_to_response("valueaccounting/process.html", {
+        "process": process,
+    }, context_instance=RequestContext(request))
+
     

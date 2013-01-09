@@ -430,7 +430,7 @@ class EconomicResourceType(models.Model):
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='resources')
-    identifier = models.CharField(_('identifier'), max_length=128)
+    identifier = models.CharField(_('identifier'), blank=True, max_length=128)
     url = models.CharField(_('url'), max_length=255, blank=True)
     owner = models.ForeignKey(EconomicAgent, related_name="owned_resources",
         verbose_name=_('owner'), blank=True, null=True)
@@ -448,14 +448,12 @@ class EconomicResource(models.Model):
         ordering = ('resource_type', 'identifier',)
     
     def __unicode__(self):
+        id_str = self.identifier or str(self.id)
         return " ".join([
             self.resource_type.name,
-            self.identifier,
+            id_str,
         ])
     
-    def save(self, *args, **kwargs):
-        unique_slugify(self, self.name)
-        super(EconomicResourceType, self).save(*args, **kwargs)
 
 
 DIRECTION_CHOICES = (
@@ -782,6 +780,7 @@ class Process(models.Model):
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
     end_date = models.DateField(_('end date'), blank=True, null=True)
+    started = models.DateField(_('started'), blank=True, null=True)
     managed_by = models.ForeignKey(EconomicAgent, related_name="managed_processes",
         verbose_name=_('managed by'), blank=True, null=True)
     owner = models.ForeignKey(EconomicAgent, related_name="owned_processes",
@@ -1199,10 +1198,15 @@ class Commitment(models.Model):
 
     def commitment_form(self):
         from valuenetwork.valueaccounting.forms import CommitmentForm
-        #prefix=self.form_prefix()
-        #return CommitmentForm(instance=self, prefix=prefix)
+        prefix=self.form_prefix()
+        return CommitmentForm(instance=self, prefix=prefix)
         return CommitmentForm(instance=self)
 
+    def fulfilling_events(self):
+        return self.fulfillment_events.all()
+
+    def fulfilled_quantity(self):
+        return sum(evt.quantity for evt in self.fulfilling_events())
 
 
 class Reciprocity(models.Model):
@@ -1318,9 +1322,12 @@ class EconomicEvent(models.Model):
         ])
 
     def save(self, *args, **kwargs):
+        from_agt = 'Unassigned'
+        if self.from_agent:
+            from_agt = self.from_agent.name        
         slug = "-".join([
-            str(self.event_type.id),
-            str(self.from_agent.id),
+            str(self.event_type.name),
+            str(from_agt),
             self.event_date.strftime('%Y-%m-%d'),
         ])
         unique_slugify(self, slug)

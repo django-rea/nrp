@@ -55,6 +55,7 @@
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
 									{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+									{% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %}
 								</p>
 								<p style="margin-left: 1em; margin-bottom: 0;">
 									{% trans "for order" %}: {{ item.independent_demand }}
@@ -119,14 +120,20 @@
 															<p style="margin-left: 1em;">
 																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
 															</p>
-															<ul>
+															{% if reqmt.resource_type.resources.all %}
+																{% for resource in reqmt.resource_type.resources.all %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+																	</p>
+																{% endfor %}
+															{% else %}
 																{% for source in reqmt.resource_type.producing_agent_relationships %}
 																	<p style="margin-left: 2em;">
 																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} 
 																		{% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
 																	</p>
 																{% endfor %}
-															</ul>
+															{% endif %}
 														{% endfor %}
 														<h4>{% trans "Tool Requirements" %}:</h4>
 														{% for reqmt in item.process.tool_requirements %}	
@@ -235,18 +242,16 @@
     <script type="text/javascript">
 
 	$(document).ready(function(){
+
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
-		//$.validator.addClassRules("quantity", { required: true, number: true });
+
+		$.validator.addClassRules("quantity", { required: true, number: true });
+
 
 		$('.commitmentForm').each( function(){
 			var form = $(this);
+
 			form.validate({
-				rules: {
-					quantity: {
-						number: true,
-						required: true
-					},
-				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
 				},

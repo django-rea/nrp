@@ -65,7 +65,8 @@ class ProcessTypeResourceTypeInline(admin.TabularInline):
 
 
 class ProcessTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', )
+    list_display = ('name', 'project' )
+    list_filter = ['project',]
     search_fields = ['name',]
     inlines = [ ProcessTypeResourceTypeInline, ]
 
@@ -79,8 +80,8 @@ admin.site.register(EventType, EventTypeAdmin)
 
 
 class EconomicResourceAdmin(admin.ModelAdmin):
-    list_display = ('identifier', 'resource_type', 'owner', 'custodian')
-    list_filter = ['owner', 'custodian']
+    list_display = ('id', 'identifier', 'resource_type', 'quantity', 'unit_of_quantity', 'quality', 'notes', 'owner', 'custodian')
+    list_filter = ['resource_type', 'owner', 'custodian']
     search_fields = ['identifier', 'resource_type__name']
     
 admin.site.register(EconomicResource, EconomicResourceAdmin)

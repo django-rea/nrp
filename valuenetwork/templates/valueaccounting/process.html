@@ -37,17 +37,36 @@
 				</div>
 		</div>
 
+		<h3 style="margin-bottom: 4px;" >{% trans "Outputs" %}:</h3>
+		{% for item in process.outgoing_commitments %}
+			<p>
+				<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+			</p>
+			{% for event in item.fulfilling_events %}
+				<p style="margin-left: 2em;">
+					<b>{% trans "Completed" %}:</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+				</p>
+			{% endfor %}
+		{% endfor %}
 
 		<h3 style="margin-bottom: 4px;" >{% trans "Material Requirements" %}:</h3>
 		{% for item in process.material_requirements %}
 			<p>
 				<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 			</p>
-			{% for source in item.resource_type.producing_agent_relationships %}
-				<p style="margin-left: 2em;">
-					<b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-				</p>
-			{% endfor %}
+            {% if item.resource_type.resources.all %}
+            	{% for resource in item.resource_type.resources.all %}
+					<p style="margin-left: 2em;">
+						<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+					</p>
+				{% endfor %}
+			{% else %}
+				{% for source in item.resource_type.producing_agent_relationships %}
+					<p style="margin-left: 2em;">
+						<b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+					</p>
+				{% endfor %}
+			{% endif %}
 		{% endfor %}
 
 		<h3 style="margin-bottom: 4px;" >{% trans "Work Requirements" %}:</h3>

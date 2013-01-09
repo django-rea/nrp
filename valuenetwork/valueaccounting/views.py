@@ -963,9 +963,9 @@ def commit_to_task(request, commitment_id):
         ct = get_object_or_404(Commitment, id=commitment_id)
         process = ct.process
         agent = get_agent(request)
-        #prefix = ct.form_prefix()
-        #form = CommitmentForm(data=request.POST, prefix=prefix)
-        form = CommitmentForm(data=request.POST)
+        prefix = ct.form_prefix()
+        form = CommitmentForm(data=request.POST, prefix=prefix)
+        #form = CommitmentForm(data=request.POST)
         #import pdb; pdb.set_trace()
         if form.is_valid():
             data = form.cleaned_data
@@ -989,7 +989,13 @@ def commit_to_task(request, commitment_id):
 
 def work_commitment(request, commitment_id):
     ct = get_object_or_404(Commitment, id=commitment_id)
-    wb_form = WorkbookForm(instance=ct)
+    event = None
+    events = ct.fulfillment_events.all()
+    if events:
+        event = events[events.count() - 1]
+        wb_form = WorkbookForm(instance=event, data=request.POST or None)
+    else:
+        wb_form = WorkbookForm(data=request.POST or None)
     others_working = []
     wrqs = ct.process.work_requirements()
     if wrqs.count() > 1:
@@ -997,6 +1003,34 @@ def work_commitment(request, commitment_id):
             if not wrq.from_agent is ct.from_agent:
                 others_working.append(wrq)
     today = datetime.date.today()
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if wb_form.is_valid():
+            if event:
+                wb_form.save(commit=False)
+                event.event_date = today
+                event.changed_by = request.user
+            else:
+                data = wb_form.cleaned_data
+                process = ct.process
+                if not process.started:
+                    process.started = today
+                    process.save()
+                event = wb_form.save(commit=False)
+                event.commitment = ct
+                event.event_date = today
+                event.event_type = ct.event_type
+                event.from_agent = ct.from_agent
+                event.resource_type = ct.resource_type
+                event.process = process
+                event.project = ct.project
+                event.unit_of_quantity = ct.unit_of_quantity
+                event.created_by = request.user
+                event.changed_by = request.user
+                
+            event.save()
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/work'))
     return render_to_response("valueaccounting/workbook.html", {
         "commitment": ct,
         "wb_form": wb_form,
@@ -1010,4 +1044,48 @@ def process_details(request, process_id):
         "process": process,
     }, context_instance=RequestContext(request))
 
-    
+def production_event_for_commitment(request):
+    id = request.POST.get("id")
+    quantity = request.POST.get("quantity")
+    ct = get_object_or_404(Commitment, pk=id)
+    import pdb; pdb.set_trace()
+    quantity = Decimal(quantity)
+    event = None
+    events = ct.fulfillment_events.all()
+    today = datetime.date.today()
+    if events:
+        event = events[events.count() - 1]
+    if event:
+        if event.quantity != quantity:
+            event.quantity = quantity
+            event.changed_by = request.user
+            event.save()
+            resource = event.resource
+            resource.quantity = quantity
+            resource.save()
+    else:
+        resource = EconomicResource(
+            resource_type = ct.resource_type,
+            created_date = today,
+            quantity = quantity,
+            unit_of_quantity = ct.unit_of_quantity,
+        )
+        resource.save()
+        event = EconomicEvent(
+            resource = resource,
+            commitment = ct,
+            event_date = today,
+            event_type = ct.event_type,
+            from_agent = ct.from_agent,
+            resource_type = ct.resource_type,
+            process = ct.process,
+            project = ct.project,
+            quantity = quantity,
+            unit_of_quantity = ct.unit_of_quantity,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+
+    data = "ok"
+    return HttpResponse(data, mimetype="text/plain")

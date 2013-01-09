@@ -70,5 +70,7 @@ urlpatterns = patterns("",
     url(r"^work-commitment/(?P<commitment_id>\d+)/$", 'valuenetwork.valueaccounting.views.work_commitment', 
         name="work_commitment"),
     url(r"^process/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.process_details', name="process_details"),
+    url(r'^production-event/$', 'valuenetwork.valueaccounting.views.production_event_for_commitment', 
+        name="production_event_for_commitment"),
 
 )

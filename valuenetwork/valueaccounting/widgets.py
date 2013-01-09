@@ -38,6 +38,10 @@ class DurationWidget(MultiWidget):
 
 
 class DecimalDurationWidget(MultiWidget):
+    #todo: this widget assumes decimal hours
+    # but that assumes too much
+    # unit_of_quantity cd be any unit of time
+    # how to resolve?
     def __init__(self, attrs=None):
         _widgets = (
             TextInput(attrs={"class": "days",}),
@@ -50,8 +54,10 @@ class DecimalDurationWidget(MultiWidget):
         #import pdb; pdb.set_trace()
         if value:
             duration = int(value)
-            days = duration / 1440
-            hours = duration - (days * 1440)
+            #days = duration / 1440
+            #hours = duration - (days * 1440)
+            days = duration / 24
+            hours = duration - (days * 24)
             mins = value - duration
             minutes = int((60 * mins).quantize(Decimal('1'), rounding=ROUND_UP))
             return [days, hours, minutes]
@@ -67,7 +73,8 @@ class DecimalDurationWidget(MultiWidget):
             for i, widget in enumerate(self.widgets)]
         #todo: make more forgiving: change '' to 0
         try:
-            duration = Decimal((int(dlist[0]) * 1440) + (int(dlist[1]) * 60))
+            #duration = Decimal((int(dlist[0]) * 1440) + (int(dlist[1]) * 60))
+            duration = Decimal((int(dlist[0]) * 24) + int(dlist[1]))
             duration += Decimal(dlist[2]) / 60
         except ValueError:
             return ''

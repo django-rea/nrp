@@ -30,18 +30,15 @@ class CommitmentForm(forms.ModelForm):
 
 
 class WorkbookForm(forms.ModelForm):
-    start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
-    #todo: this is in decimal hours, not minutes, so needs a different DurationWidget, or a parm
-    #and it goes into the quantity field of an EconomicEvent, not a Commitment
-    time_spent = forms.DecimalField(required=False,
+    quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
         help_text="days, hours, minutes")
-    #time_spent = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'input-small',}))
 	
     class Meta:
-        model = Commitment
-        fields = ('start_date', 'description')
+        model = EconomicEvent
+        fields = ('event_date', 'quantity', 'description')
 
 class OrderItemForm(forms.ModelForm):
     resource_type_id = forms.CharField(widget=forms.HiddenInput)

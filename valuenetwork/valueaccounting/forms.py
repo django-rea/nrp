@@ -9,7 +9,16 @@ from valuenetwork.valueaccounting.models import *
 
 from valuenetwork.valueaccounting.widgets import DurationWidget, DecimalDurationWidget
 
+class FailedOutputForm(forms.ModelForm):
+    quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'failed-quantity input-small',}))
+    description = forms.CharField(
+        label="Why failed",
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
 
+    class Meta:
+        model = EconomicEvent
+        fields = ('quantity', 'description')
 
 class OrderForm(forms.ModelForm):
     due_date = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-small',}))

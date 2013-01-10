@@ -245,6 +245,7 @@ RESOURCE_EFFECT_CHOICES = (
     ('-', _('decrease')),
     ('x', _('transfer')), #means - for from_agent, + for to_agent
     ('=', _('no effect')),
+    ('?', _('failure')),
 )
 
 class EventType(models.Model):
@@ -426,6 +427,14 @@ class EconomicResourceType(models.Model):
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
         return EconomicResourceTypeForm(instance=self)
 
+class GoodResourceManager(models.Manager):
+    def get_query_set(self):
+        return super(GoodResourceManager, self).get_query_set().filter(quality__gte=0)
+
+class FailedResourceManager(models.Manager):
+    def get_query_set(self):
+        return super(FailedResourceManager, self).get_query_set().filter(quality__lt=0)
+
 
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
@@ -443,6 +452,10 @@ class EconomicResource(models.Model):
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, default=Decimal("0"))
     notes = models.TextField(_('notes'), blank=True, null=True)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
+
+    objects = models.Manager()
+    goods = GoodResourceManager()
+    failures = FailedResourceManager()
 
     class Meta:
         ordering = ('resource_type', 'identifier',)
@@ -874,6 +887,9 @@ class Process(models.Model):
             relationship__direction='in',
             resource_type__materiality="work",
         )
+
+    def failed_outputs(self):
+        return sum(evt.quantity for evt in self.events.filter(quality__lt=0))
 
     def order_items(self):
         return []

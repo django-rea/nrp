@@ -1003,6 +1003,7 @@ def work_commitment(request, commitment_id):
             if not wrq.from_agent is ct.from_agent:
                 others_working.append(wrq)
     today = datetime.date.today()
+    failure_form = FailedOutputForm()
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if wb_form.is_valid():
@@ -1033,9 +1034,11 @@ def work_commitment(request, commitment_id):
                 % ('accounting/work'))
     return render_to_response("valueaccounting/workbook.html", {
         "commitment": ct,
+        "process": ct.process,
         "wb_form": wb_form,
         "others_working": others_working,
         "today": today,
+        "failure_form": failure_form,
     }, context_instance=RequestContext(request))
 
 def process_details(request, process_id):
@@ -1048,7 +1051,7 @@ def production_event_for_commitment(request):
     id = request.POST.get("id")
     quantity = request.POST.get("quantity")
     ct = get_object_or_404(Commitment, pk=id)
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
     event = None
     events = ct.fulfillment_events.all()
@@ -1089,3 +1092,53 @@ def production_event_for_commitment(request):
 
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
+
+def failed_outputs(request, commitment_id):
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        failure_form = FailedOutputForm(data=request.POST)
+        if failure_form.is_valid():
+            today = datetime.date.today()
+            ct = get_object_or_404(Commitment, id=commitment_id)
+            resource_type = ct.resource_type
+            event = failure_form.save(commit=False)
+            data = failure_form.cleaned_data
+            quantity = data["quantity"]
+            description = data["description"]
+            unit_type = resource_type.unit.unit_type
+            ets = EventType.objects.filter(
+                resource_effect="?",
+                unit_type=unit_type)
+            if ets:
+                event_type = ets[0]
+            else:
+                et_name = " ".join(["Failed", unit_type])
+                event_type = EventType(
+                    name=et_name,
+                    resource_effect="?",
+                    unit_type=unit_type)
+                event_type.save()
+            resource = EconomicResource(
+                resource_type = ct.resource_type,
+                created_date = today,
+                quantity = quantity,
+                quality = Decimal("-1"),
+                unit_of_quantity = ct.unit_of_quantity,
+                notes = description,
+            )
+            resource.save() 
+            event.resource = resource              
+            event.event_date = today
+            event.event_type = event_type
+            event.from_agent = ct.from_agent
+            event.resource_type = ct.resource_type
+            event.process = ct.process
+            event.project = ct.project
+            event.unit_of_quantity = ct.unit_of_quantity
+            event.quality = Decimal("-1")
+            event.created_by = request.user
+            event.changed_by = request.user
+            event.save()
+        next = request.POST.get("next")
+        return HttpResponseRedirect(next)
+

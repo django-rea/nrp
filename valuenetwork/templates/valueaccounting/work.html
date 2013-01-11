@@ -120,10 +120,16 @@
 															<p style="margin-left: 1em;">
 																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
 															</p>
-															{% if reqmt.resource_type.resources.all %}
-																{% for resource in reqmt.resource_type.resources.all %}
+															{% if reqmt.resource_type.onhand %}
+																{% for resource in reqmt.resource_type.onhand %}
 																	<p style="margin-left: 2em;">
 																		<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+																	</p>
+																{% endfor %}
+															{% elif reqmt.resource_type.producing_commitments %}
+																{% for ct in reqmt.resource_type.producing_commitments %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Scheduled" %}:</b> {{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}
 																	</p>
 																{% endfor %}
 															{% else %}

@@ -22,7 +22,7 @@
 }
 
 #failureForm .modal-body {
-	max-height: 700px;
+	max-height: 400px;
 }
 
 #failureForm {
@@ -31,7 +31,7 @@
 
 #failureForm textarea {
   width: 100%;
-  height: 400px;
+  height: 200px;
 }
 
 </style>
@@ -83,9 +83,11 @@
 									<a href="#failureForm" role="button" class="btn btn-warning" data-toggle="modal">{% trans "Failed" %}</a>
 								</div>
 								{% if process.failed_outputs %}
-									<p style="margin-left: 1em;" >{% trans "Failures" %}: {{ process.failed_outputs }}</p>
-								
+									<div id="failDiv" style="margin-left: 1em;" >
+								{% else %}
+									<div id="failDiv" style="margin-left: 1em; display: none;" >
 								{% endif %}
+								{% trans "Failures" %}: <span id="failures">{{ process.failed_outputs }}</span></div>
 								<div class="modal hide fade" id="failureForm" tabindex="-1" role="dialog" aria-labelledby="failure-label" aria-hidden="true">
 									<div class="modal-header">
 										<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -123,10 +125,23 @@
 						<p style="margin-left: 1em;" >{% trans "Not purchased yet" %}:</p>
 	{% endcomment %}
 						<ul>
-							{% if item.resource_type.resources.all %}
-								{% for resource in item.resource_type.resources.all %}
+							{% if item.resource_type.onhand %}
+								{% for resource in item.resource_type.onhand %}
 									<li>
-										<b>{% trans "Onhand" %}: {{ item.resource_type.name }}</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+										<b>{% trans "Onhand" %}: {{ item.resource_type.name }}</b> <span id="onhand-{{item.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
+										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" /></br>
+									</li>
+								{% endfor %}
+                            {% elif item.fulfilled_quantity %}
+									<li>
+										<b>{% trans "Onhand" %}: {{ item.resource_type.name }}</b> <span id="onhand-{{item.id}}">0</span> {{ item.unit_of_quantity }}</br>
+										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" /></br>
+									</li>
+							{% elif item.resource_type.producing_commitments %}
+								{% for ct in item.resource_type.producing_commitments %}
+									<li>
+										<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b>
+										<a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}</a>
 									</li>
 								{% endfor %}
 							{% else %}
@@ -208,8 +223,15 @@
 
 	var start = new Date();
     var duration = 0;
+	var used = {};
 
 	$(document).ready(function(){
+
+		$(".used-quantity").each( function(){
+			var id = this.id;
+			var qty = this.value;
+            used[id] = qty;
+		});
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
@@ -232,6 +254,26 @@
 					.text('OK!').addClass('valid')
 					.closest('.control-group').addClass('success');
 			}
+
+		});
+
+		$("#failForm").submit(function(event) {
+ 
+			event.preventDefault();
+
+			var $form = $( this ),
+				qty = $form.find( 'input[name="quantity"]' ).val(),
+				url = $form.attr( 'action' );
+
+			var formData = $form.serialize();
+
+			$.post( url, formData,
+				function( data ) {
+					$('#failDiv').show();
+					$('#failures').empty().append( data );
+					$('#failureForm').modal('hide');
+				}
+			);
 
 		});
 
@@ -275,6 +317,60 @@
 				{
 					var id = this.id;
 					$.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity });
+				}
+				else
+				{
+					alert(quantity + " can only have 8 overall digits with 2 decimal places.");
+					this.value = quantity;
+				}
+			}
+			else
+			{
+				alert(quantity + " is not a number");
+				this.value = quantity;
+			}
+		});
+
+		$(".used-quantity").blur(function() 
+		{
+			var quantity = this.value;
+            var id = this.id;
+            var prev = parseFloat(used[id]);
+            var onhandId = "#onhand-" + id;
+            var onhand = parseFloat($(onhandId).text());
+            var avail = prev + onhand;
+			var wholeNbrs = quantity;
+			var decimals = "";
+			if (quantity.indexOf(".") > -1)
+			{
+				var qtySplit = quantity.split(".");
+				wholeNbrs = qtySplit[0];
+				decimals = qtySplit[1];
+			}
+			
+			if ($.isNumeric(quantity))
+			{
+				var combined = wholeNbrs.length + decimals.length;
+				if (combined<=8 && decimals.length<=2)
+				{
+					if (quantity > avail)
+					{
+						alert(quantity + " is more than available quantity: " + avail);
+						this.value = quantity;
+					}
+					else
+					{
+						var id = this.id;
+						var newOnhand = avail - quantity;
+                        used[id] = quantity;			
+						$.post("{% url consumption_event_for_commitment %}",  { id: id, quantity: quantity },
+							function( data ) 
+							{
+								$(onhandId).text(newOnhand);
+							}
+						);
+
+					}
 				}
 				else
 				{

@@ -54,10 +54,29 @@
 			<p>
 				<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 			</p>
-            {% if item.resource_type.resources.all %}
-            	{% for resource in item.resource_type.resources.all %}
+            {% if item.resource_type.onhand %}
+            	{% for resource in item.resource_type.onhand %}
 					<p style="margin-left: 2em;">
 						<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+                        {% if item.fulfilled_quantity %}
+							<p style="margin-left: 4em;">
+								<b>{% trans "Used" %}:</b> {{ item.fulfilled_quantity }}
+							</p>
+						{% endif %}
+					</p>
+				{% endfor %}
+            {% elif item.fulfilled_quantity %}
+				<p style="margin-left: 2em;">
+					<b>{% trans "Onhand" %}:</b> 0 {{ item.unit_of_quantity }}
+					<p style="margin-left: 4em;">
+						<b>{% trans "Used" %}:</b> {{ item.fulfilled_quantity }}
+					</p>
+				</p>
+			{% elif item.resource_type.producing_commitments %}
+            	{% for ct in item.resource_type.producing_commitments %}
+					<p style="margin-left: 2em;">
+						<b>{% trans "Scheduled" %}:</b> 
+						<a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a>
 					</p>
 				{% endfor %}
 			{% else %}

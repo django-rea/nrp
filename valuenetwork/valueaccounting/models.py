@@ -334,6 +334,11 @@ class EconomicResourceType(models.Model):
     def color(self):
         return "red"
 
+    def onhand(self):
+        return EconomicResource.goods.filter(
+            resource_type=self,
+            quantity__gt=0)
+
     def producing_process_type_relationships(self):
         return self.process_types.filter(relationship__direction='out')
 

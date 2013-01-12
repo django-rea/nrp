@@ -1348,7 +1348,7 @@ class EconomicEvent(models.Model):
             from_agt = self.from_agent.name
             if self.commitment:
                 relationship = self.commitment.relationship 
-                art, created = AgentResourceType(
+                art, created = AgentResourceType.objects.get_or_create(
                     agent=self.from_agent,
                     resource_type=self.resource_type,
                     relationship=relationship)

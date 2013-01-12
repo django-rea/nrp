@@ -205,6 +205,90 @@
 							{% for item in other_unassigned %}
 								<li>
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+									{% if user.is_authenticated %}
+										<div style="display: inline;" >
+											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+												{% trans "Take this task" %}
+											</a>
+										</div>
+
+										<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+											<div class="modal-header">
+												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
+											</div>
+											<div class="modal-body">
+
+												<div class="row-fluid">
+													<div class="span5">
+														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+															{% csrf_token %}
+															{{ item.commitment_form|as_bootstrap }}
+															<input type="hidden" name="next" value="{% url work %}" />
+														  <div class="modal-footer">
+															<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+															<button class="btn btn-primary">{% trans "Commit" %}</button>
+														  </div>
+														</form>
+													</div>
+													<div class="span7">
+														<h4>
+															{{ item.resource_type.name }}: {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+														</h4>
+														<p style="margin-left: 1em; margin-bottom: 0;">
+															{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+														</p>
+														<p style="margin-left: 1em;">
+															{% trans "for order" %}: {{ item.independent_demand }}
+														</p>
+														<h4>{% trans "Material requirements" %}:</h4>
+														{% for reqmt in item.process.material_requirements %}	
+															<p style="margin-left: 1em;">
+																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
+															</p>
+															{% if reqmt.resource_type.onhand %}
+																{% for resource in reqmt.resource_type.onhand %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+																	</p>
+																{% endfor %}
+															{% elif reqmt.resource_type.producing_commitments %}
+																{% for ct in reqmt.resource_type.producing_commitments %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Scheduled" %}:</b> {{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}
+																	</p>
+																{% endfor %}
+															{% else %}
+																{% for source in reqmt.resource_type.producing_agent_relationships %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} 
+																		{% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+																	</p>
+																{% endfor %}
+															{% endif %}
+														{% endfor %}
+														<h4>{% trans "Tool Requirements" %}:</h4>
+														{% for reqmt in item.process.tool_requirements %}	
+															<p style="margin-left: 1em;">
+
+																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}
+															</p>
+															<ul>
+																{% for source in reqmt.resource_type.producing_agent_relationships %}
+																	<li>
+																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+																	</li>
+																{% endfor %}
+															</ul>
+														{% endfor %}
+													</div>
+												</div>
+										  </div>
+
+										</div>
+
+									{% endif %}
+
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
 									{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
@@ -229,7 +313,27 @@
 			<div class="span6">
 
 				<h3 style="margin-bottom: 4px;" >{% trans "Other work in process" %}:</h3>
+				{% if other_wip %}
+						<ul>
+							{% for item in other_wip %}
+								<li>
+									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+									{% trans "Taken by" %} {{ item.from_agent.nick }}
+								</li>
+								<p style="margin-left: 1em; margin-bottom: 0;">
+									{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+									{% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %}
+								</p>
+								<p style="margin-left: 1em; margin-bottom: 0;">
+									{% trans "for order" %}: {{ item.independent_demand }}
+								</p>
 
+
+							{% endfor %}
+						</ul>
+				{% else %}
+				None
+				{% endif %}
 			</div>
 		</div>
 

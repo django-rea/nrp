@@ -931,6 +931,7 @@ def supply(request):
 def work(request):
     my_work = []
     my_skillz = []
+    other_wip = []
     agent = get_agent(request)
     if not agent == "Unregistered":
         my_work = Commitment.objects.filter(
@@ -944,10 +945,13 @@ def work(request):
         other_unassigned = Commitment.objects.filter(
             from_agent=None, 
             resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
+        other_wip = Commitment.objects.filter(
+            resource_type__materiality="work").exclude(from_agent=None).exclude(from_agent=agent)
     else:
         other_unassigned = Commitment.objects.filter(
             from_agent=None, 
             resource_type__materiality="work")
+
     #for commitment in commitments:
     #    if not commitment.resource_type.producing_commitments():
     #        work.append(commitment)
@@ -955,6 +959,7 @@ def work(request):
         "my_work": my_work,
         "my_skillz": my_skillz,
         "other_unassigned": other_unassigned,
+        "other_wip": other_wip,
     }, context_instance=RequestContext(request))
 
 

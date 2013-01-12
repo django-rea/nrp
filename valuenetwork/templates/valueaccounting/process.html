@@ -10,7 +10,9 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Process" %}: {{ process }}</legend>
+		<legend>
+			{% trans "Process" %}: {{ process }} {% if process.started %} - {% trans "Started" %} {{ process.started }}{% endif %}
+		</legend>
 
 		<p>
 			<b>{% trans "for order" %}:</b> {{ process.independent_demand }}

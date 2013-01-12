@@ -1345,7 +1345,15 @@ class EconomicEvent(models.Model):
     def save(self, *args, **kwargs):
         from_agt = 'Unassigned'
         if self.from_agent:
-            from_agt = self.from_agent.name        
+            from_agt = self.from_agent.name
+            if self.commitment:
+                relationship = self.commitment.relationship 
+                art, created = AgentResourceType(
+                    agent=self.from_agent,
+                    resource_type=self.resource_type,
+                    relationship=relationship)
+                art.score += self.quantity
+                art.save()
         slug = "-".join([
             str(self.event_type.name),
             str(from_agt),
@@ -1353,6 +1361,7 @@ class EconomicEvent(models.Model):
         ])
         unique_slugify(self, slug)
         super(EconomicEvent, self).save(*args, **kwargs)
+
 
     def my_compensations(self):
         return self.initiated_compensations.all()

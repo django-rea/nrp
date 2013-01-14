@@ -995,10 +995,12 @@ def commit_to_task(request, commitment_id):
 def work_commitment(request, commitment_id):
     ct = get_object_or_404(Commitment, id=commitment_id)
     event = None
+    duration = 0
     events = ct.fulfillment_events.all()
     if events:
         event = events[events.count() - 1]
         wb_form = WorkbookForm(instance=event, data=request.POST or None)
+        duration = event.quantity * 60
     else:
         wb_form = WorkbookForm(data=request.POST or None)
     others_working = []
@@ -1044,6 +1046,7 @@ def work_commitment(request, commitment_id):
         "others_working": others_working,
         "today": today,
         "failure_form": failure_form,
+        "duration": duration,
     }, context_instance=RequestContext(request))
 
 def process_details(request, process_id):

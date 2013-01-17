@@ -457,6 +457,10 @@ class EconomicResource(models.Model):
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, default=Decimal("0"))
     notes = models.TextField(_('notes'), blank=True, null=True)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='resources_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='resources_changed', blank=True, null=True, editable=False)
 
     objects = models.Manager()
     goods = GoodResourceManager()
@@ -529,6 +533,10 @@ class AgentResourceType(models.Model):
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         limit_choices_to={'unit_type': 'value'},
         verbose_name=_('unit of value'), related_name="agent_resource_value_units")
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='arts_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='arts_changed', blank=True, null=True, editable=False)
 
     def __unicode__(self):
         return ' '.join([
@@ -590,6 +598,10 @@ class Project(models.Model):
         blank=True, null=True,
         related_name="project_team", verbose_name=_('project team'))
     importance = models.DecimalField(_('importance'), max_digits=3, decimal_places=0, default=Decimal("0"))
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='projects_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='projects_changed', blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
     
     class Meta:
@@ -637,6 +649,10 @@ class ProcessType(models.Model):
     estimated_duration = models.IntegerField(_('estimated duration'), 
         default=0, 
         help_text=_("in minutes, e.g. 3 hours = 180"))
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='process_types_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='process_types_changed', blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
@@ -712,6 +728,10 @@ class ProcessTypeResourceType(models.Model):
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="process_resource_qty_units")
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='ptrts_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='ptrts_changed', blank=True, null=True, editable=False)
 
     class Meta:
         ordering = ('resource_type',)
@@ -804,6 +824,10 @@ class Process(models.Model):
     owner = models.ForeignKey(EconomicAgent, related_name="owned_processes",
         verbose_name=_('owner'), blank=True, null=True)
     notes = models.TextField(_('notes'), blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='processes_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='processes_changed', blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
@@ -825,8 +849,11 @@ class Process(models.Model):
             { 'process_id': str(self.id),})
 
     def save(self, *args, **kwargs):
+        pt_name = ""
+        if self.process_type:
+            pt_name = self.process_type.name
         slug = "-".join([
-            self.process_type.name,
+            pt_name,
             self.name,
             self.start_date.strftime('%Y-%m-%d'),
         ])
@@ -844,7 +871,12 @@ class Process(models.Model):
         return self.name
 
     def timeline_description(self):
-        return self.process_type.description
+        if self.notes:
+            return self.notes
+        elif self.process_type:
+            return self.process_type.description
+        else:
+            return ""
 
     def incoming_commitments(self):
         return self.commitments.filter(relationship__direction='in')
@@ -859,20 +891,41 @@ class Process(models.Model):
         else:
             return None
 
+    #todo: both prev and next processes need more testing
     def previous_processes(self):
         answer = []
+        dmnd = self.main_outgoing_commitment().independent_demand
         for ic in self.incoming_commitments():
             rt = ic.resource_type
             for pc in rt.producing_commitments():
-                answer.append(pc.process)
+                if dmnd:
+                    if pc.independent_demand == dmnd:
+                        answer.append(pc.process)
+                else:
+                    if not pc.independent_demand:
+                        if pc.quantity >= ic.quantity:
+                            if pc.due_date >= self.start_date:
+                                answer.append(pc.process)
         return answer
 
     def next_processes(self):
         answer = []
+        #import pdb; pdb.set_trace()
         for oc in self.outgoing_commitments():
+            dmnd = oc.independent_demand
             rt = oc.resource_type
             for cc in rt.consuming_commitments():
-                answer.append(cc.process)
+                if dmnd:
+                    if cc.independent_demand == dmnd:
+                        answer.append(cc.process)
+                else:
+                    if not cc.independent_demand:
+                        if cc.quantity >= oc.quantity:
+                            compare_date = self.end_date
+                            if not compare_date:
+                                compare_date = self.start_date
+                            if cc.due_date >= compare_date:
+                                answer.append(cc.process)
         return answer
 
     def material_requirements(self):
@@ -917,6 +970,10 @@ class Feature(models.Model):
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="feature_units")
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='features_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='features_changed', blank=True, null=True, editable=False)
 
     class Meta:
         ordering = ('name',)
@@ -978,6 +1035,10 @@ class Option(models.Model):
         related_name="options", verbose_name=_('feature'))
     component = models.ForeignKey(EconomicResourceType, 
         related_name="options", verbose_name=_('component'))
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='options_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='options_changed', blank=True, null=True, editable=False)
 
     class Meta:
         ordering = ('component',)
@@ -1013,7 +1074,14 @@ class Option(models.Model):
         return [self.feature, self]
 
 
+ORDER_TYPE_CHOICES = (
+    ('customer', _('customer order')),
+    ('rand', _('R&D project')),
+)
+
 class Order(models.Model):
+    order_type = models.CharField(_('order type'), max_length=12, 
+        choices=ORDER_TYPE_CHOICES, default='customer')
     receiver = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         related_name="purchase_orders", verbose_name=_('receiver'))
@@ -1023,6 +1091,10 @@ class Order(models.Model):
     order_date = models.DateField(_('order date'), default=datetime.date.today)
     due_date = models.DateField(_('due date'))
     description = models.TextField(_('description'), null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='orders_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='orders_changed', blank=True, null=True, editable=False)
 
     class Meta:
         ordering = ('due_date',)

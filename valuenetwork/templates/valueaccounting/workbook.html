@@ -151,7 +151,6 @@
 		                        <ul>
 									{% for source in item.resource_type.producing_agent_relationships %}
 										<li>
-											<a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
 											{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
 										</li>
 									{% endfor %}
@@ -182,7 +181,6 @@
 		                        <ul>
 									{% for source in item.resource_type.producing_agent_relationships %}
 										<li>
-											<a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
 											{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
 										</li>
 									{% endfor %}

@@ -27,6 +27,79 @@ class OrderForm(forms.ModelForm):
         model = Order
         exclude = ('order_date',)
 
+class RandOrderForm(forms.ModelForm):
+
+    class Meta:
+        model = Order
+        fields = ('receiver', 'provider')
+
+
+class ProcessForm(forms.ModelForm):
+    start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+
+    class Meta:
+        model = Process
+        fields = ('name', 'project', 'url', 'start_date', 'end_date', 'notes' )
+
+
+class ProcessInputForm(forms.ModelForm):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        empty_label=None, 
+        widget=SelectWithPopUp(
+            model=EconomicResourceType,
+            attrs={'class': 'resource-type-selector'}))
+    event_type = forms.ModelChoiceField(
+        queryset=EventType.objects.exclude(resource_effect='+'), 
+        empty_label=None)
+    relationship = forms.ModelChoiceField(
+        queryset=ResourceRelationship.objects.exclude(direction='out'), 
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'input-small',}))
+    quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity input-small'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        queryset=Unit.objects.exclude(unit_type='value'), 
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'input-small',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('resource_type', 'event_type', 'relationship', 'quantity', 'unit_of_quantity', 'description')
+
+
+class ProcessOutputForm(forms.ModelForm):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        empty_label=None, 
+        widget=SelectWithPopUp(
+            model=EconomicResourceType,
+            attrs={'class': 'resource-type-selector'}))
+    event_type = forms.ModelChoiceField(
+        queryset=EventType.objects.filter(resource_effect='+'), 
+        empty_label=None)
+    relationship = forms.ModelChoiceField(
+        queryset=ResourceRelationship.objects.exclude(direction='in'), 
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'input-small',}))
+    quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity  input-small'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'), 
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'input-small',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('resource_type', 'event_type', 'relationship', 'quantity', 'unit_of_quantity', 'description')
+
 
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -52,6 +125,7 @@ class WorkbookForm(forms.ModelForm):
 class OrderItemForm(forms.ModelForm):
     resource_type_id = forms.CharField(widget=forms.HiddenInput)
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'input-small',}))
+    url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
 
     def __init__(self, resource_type, *args, **kwargs):

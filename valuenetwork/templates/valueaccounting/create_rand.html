@@ -1,0 +1,174 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Create R&amp;D Project" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+#id_notes
+{
+  width: 32em;
+}
+
+#id_url
+{
+  width: 32em;
+}
+
+.item-description
+{
+	width: 32em;
+    height: 40px;
+}
+
+.formset-top
+{
+	padding-top: 1em;
+}
+
+.formset-bottom
+{
+	border-bottom-style:solid;
+	border-width:1px;
+	border-color:lightgrey;
+}
+
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>{% trans "Create R&amp;D Project" %}</legend>
+		<form id="processForm" method="POST" action="">
+			{% csrf_token %}
+		<div class="row-fluid">
+			<div class="span6">
+				{{ rand_form|as_bootstrap }}
+
+				{{ process_form|as_bootstrap }}
+				<div class="form-actions">
+
+
+
+					<input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
+					<input type="submit" name="keep-going" value="{% trans 'Save and continue editing' %}" class="btn btn-primary" />
+			   	</div>
+			</div>
+			<div class="span6">
+				<legend>{% trans "Outputs" %}:</legend>
+				{{ output_formset.management_form }}
+				{% for form in output_formset %}
+					<div class="row-fluid formset-top">
+						{% trans "Resource Type" %}: {{ form.resource_type }} 
+					</div>
+					<div class="row-fluid">
+						{% trans "Event Type" %}: {{ form.event_type }} {% trans "Relationship" %}: {{ form.relationship }} 
+					</div>
+					<div class="row-fluid">
+						{% trans "Quantity" %}: {{ form.quantity }} {% trans "Unit" %}: {{ form.unit_of_quantity }} 
+					</div>
+					<div class="row-fluid formset-bottom">
+						{% trans "Description" %}: {{ form.description }} 
+					</div>
+				{% endfor %}
+				<legend style="margin-top: 1em;" >{% trans "Inputs" %}:</legend>
+				{{ input_formset.management_form }}
+				{% for form in input_formset %}
+					<div class="row-fluid formset-top">
+						{% trans "Resource Type" %}: {{ form.resource_type }} 
+					</div>
+					<div class="row-fluid">
+						{% trans "Event Type" %}: {{ form.event_type }} {% trans "Relationship" %}: {{ form.relationship }} 
+					</div>
+					<div class="row-fluid">
+						{% trans "Quantity" %}: {{ form.quantity }} {% trans "Unit" %}: {{ form.unit_of_quantity }} 
+					</div>
+					<div class="row-fluid formset-bottom">
+						{% trans "Description" %}: {{ form.description }} 
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+		</form>
+    </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+        $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+        $( "#id_end_date" ).datepicker({ 
+			dateFormat: "yy-mm-dd",
+    		onClose: function() {
+      			$( this ).valid();
+			}
+		 });
+
+
+		jQuery.validator.addMethod("equalToOrGreaterThan", 
+		function(value, element, params) {
+
+			if (!/Invalid|NaN/.test(new Date(value))) {
+				return new Date(value) >= new Date($(params).val());
+			}
+
+			return isNaN(value) && isNaN($(params).val()) 
+				|| (Number(value) >= Number($(params).val())); 
+		},'Must be equal to or greater than start date.');
+
+		$( "#processForm" ).validate({
+			rules: {
+				name: {
+					required: true
+				},
+				url: {
+					url: true
+				},
+				project: {
+					required: true
+				},
+				start_date: {
+					required: true,
+					date: true
+				},
+				end_date: {
+					date: true,
+					equalToOrGreaterThan: '#id_start_date'
+				},
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+			success: function(label) {
+				label
+					.text('OK!').addClass('valid')
+					.closest('.control-group').addClass('success');
+			}
+		});
+
+	}); // end document.ready
+    </script>
+
+{% endblock %}

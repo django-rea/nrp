@@ -512,12 +512,12 @@ def create_process_type_input(request, process_type_id):
         if form.is_valid():
             ptrt = form.save(commit=False)
             ptrt.process_type=pt
+            ptrt.created_by=request.user
             ptrt.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
-
 
 @login_required
 def create_process_type_feature(request, process_type_id):
@@ -533,6 +533,7 @@ def create_process_type_feature(request, process_type_id):
             # produced_resource_type
             if rts:
                 feature.product=rts[0]
+            feature.created_by=request.user
             feature.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
@@ -552,6 +553,7 @@ def create_options_for_feature(request, feature_id):
                 opt = Option(
                     feature=ft,
                     component=rt)
+                opt.created_by=request.user
                 opt.save()
                 
             next = request.POST.get("next")
@@ -582,6 +584,7 @@ def change_options_for_feature(request, feature_id):
                     opt = Option(
                         feature=ft,
                         component=rt)
+                    opt.created_by=request.user
                     opt.save()
                 
             next = request.POST.get("next")
@@ -603,7 +606,9 @@ def change_process_type_input(request, input_id):
         #    data=request.POST, 
         #    instance=ptrt)
         if form.is_valid():
-            form.save()
+            inp = form.save(commit=False)
+            inp.changed_by=request.user
+            inp.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
@@ -618,7 +623,9 @@ def change_agent_resource_type(request, agent_resource_type_id):
         #form = AgentResourceTypeForm(data=request.POST, instance=art, prefix=prefix)
         form = AgentResourceTypeForm(data=request.POST, instance=art)
         if form.is_valid():
-            form.save()
+            art = form.save(commit=False)
+            art.changed_by=request.user
+            art.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
@@ -632,7 +639,9 @@ def change_feature(request, feature_id):
         #form = FeatureForm(data=request.POST, instance=ft, prefix=prefix)
         form = FeatureForm(data=request.POST, instance=ft)
         if form.is_valid():
-            form.save()
+            feature = form.save(commit=False)
+            feature.changed_by=request.user
+            feature.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
@@ -648,6 +657,7 @@ def create_agent_resource_type(request, resource_type_id):
         if form.is_valid():
             art = form.save(commit=False)
             art.resource_type=rt
+            art.created_by=request.user
             art.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
@@ -663,7 +673,9 @@ def change_process_type(request, process_type_id):
         #form = ChangeProcessTypeForm(request.POST, instance=pt, prefix=prefix)
         form = ChangeProcessTypeForm(request.POST, instance=pt)
         if form.is_valid():
-            form.save()
+            pt = form.save(commit=False)
+            pt.changed_by=request.user
+            pt.save()
             next = request.POST.get("next")
             return HttpResponseRedirect(next)
         else:
@@ -677,7 +689,9 @@ def create_process_type_for_resource_type(request, resource_type_id):
         form = XbillProcessTypeForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            pt = form.save()
+            pt = form.save(commit=False)
+            pt.changed_by=request.user
+            pt.save()
             quantity = data["quantity"]
             #todo: hack based on rel name, which is user changeable
             rel = ResourceRelationship.objects.get(name="produces")
@@ -689,6 +703,7 @@ def create_process_type_for_resource_type(request, resource_type_id):
                 relationship=rel,
                 unit_of_quantity=unit,
                 quantity=quantity,
+                created_by=request.user,
             )
             ptrt.save()
             next = request.POST.get("next")
@@ -758,7 +773,9 @@ def create_order(request):
         item_forms.append(form)
     if request.method == "POST":
         if order_form.is_valid():
-            order = order_form.save()
+            order = order_form.save(commit=False)
+            order.created_by=request.user
+            order.save()
             #import pdb; pdb.set_trace()
             for form in item_forms:
                 if form.is_valid():
@@ -780,6 +797,7 @@ def create_order(request):
                             start_date=start_date,
                             owner=order.provider,
                             managed_by=order.provider,
+                            created_by=request.user,
                         )
                         process.save()
                         commitment = Commitment(
@@ -835,6 +853,7 @@ def create_order(request):
                                         url=next_pt.url,
                                         end_date=process.start_date,
                                         start_date=start_date,
+                                        created_by=request.user,
                                     )
                                     next_process.save()
                                     next_commitment = Commitment(
@@ -985,9 +1004,11 @@ def commit_to_task(request, commitment_id):
             ct.unit_of_quantity=unit_of_quantity
             ct.description=description
             ct.from_agent = agent
+            ct.created_by=request.user
             ct.save()
             if start_date != process.start_date:
                 process.start_date = start_date
+                process.changed_by=request.user
                 process.save()
         next = request.POST.get("next")
         return HttpResponseRedirect(next)
@@ -1023,6 +1044,7 @@ def work_commitment(request, commitment_id):
                 process = ct.process
                 if not process.started:
                     process.started = today
+                    process.changed_by=request.user
                     process.save()
                 event = wb_form.save(commit=False)
                 event.commitment = ct
@@ -1073,6 +1095,7 @@ def production_event_for_commitment(request):
             event.save()
             resource = event.resource
             resource.quantity = quantity
+            resource.changed_by=request.user
             resource.save()
     else:
         resource = EconomicResource(
@@ -1080,6 +1103,7 @@ def production_event_for_commitment(request):
             created_date = today,
             quantity = quantity,
             unit_of_quantity = ct.unit_of_quantity,
+            created_by=request.user,
         )
         resource.save()
         event = EconomicEvent(
@@ -1121,6 +1145,7 @@ def consumption_event_for_commitment(request):
             event.save()
             resource = event.resource
             resource.quantity += delta
+            resource.changed_by=request.user
             resource.save()
     else:
         resources = ct.resource_type.onhand()
@@ -1130,6 +1155,7 @@ def consumption_event_for_commitment(request):
             #what if resource.quantity < quantity?
             # = handled in template
             resource.quantity -= quantity
+            resource.changed_by=request.user
             resource.save()
             event = EconomicEvent(
                 resource = resource,
@@ -1183,6 +1209,7 @@ def failed_outputs(request, commitment_id):
                 quality = Decimal("-1"),
                 unit_of_quantity = ct.unit_of_quantity,
                 notes = description,
+                created_by=request.user,
             )
             resource.save() 
             event.resource = resource              
@@ -1199,4 +1226,290 @@ def failed_outputs(request, commitment_id):
             event.save()
             data = unicode(process.failed_outputs())
             return HttpResponse(data, mimetype="text/plain")
+
+@login_required
+def create_process(request):
+    #import pdb; pdb.set_trace()
+    process_form = ProcessForm(data=request.POST or None)
+    OutputFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessOutputForm,
+        can_delete=True,
+        extra=2,
+        )
+    output_formset = OutputFormSet(
+        queryset=Commitment.objects.none(),
+        data=request.POST or None,
+        prefix='output')
+    InputFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessInputForm,
+        can_delete=True,
+        extra=4,
+        )
+    input_formset = InputFormSet(
+        queryset=Commitment.objects.none(),
+        data=request.POST or None,
+        prefix='input')
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        keep_going = request.POST.get("keep-going")
+        just_save = request.POST.get("save")
+        if process_form.is_valid():
+            process_data = process_form.cleaned_data
+            process = process_form.save(commit=False)
+            process.created_by=request.user
+            process.save()
+            for form in output_formset.forms:
+                if form.is_valid():
+                    output_data = form.cleaned_data
+                    qty = output_data["quantity"]
+                    if qty:
+                        ct = form.save(commit=False)
+                        ct.process = process
+                        ct.due_date = process.end_date
+                        ct.created_by = request.user
+                        ct.save()
+            for form in input_formset.forms:
+                if form.is_valid():
+                    input_data = form.cleaned_data
+                    qty = input_data["quantity"]
+                    if qty:
+                        ct = form.save(commit=False)
+                        ct.process = process
+                        ct.due_date = process.start_date
+                        ct.created_by = request.user
+                        ct.save()
+                        rt = ct.resource_type
+                        ptrt = rt.main_producing_process_type_relationship()
+                        if ptrt:
+                            pt = ptrt.process_type
+                            start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
+                            feeder_process = Process(
+                                name=pt.name,
+                                process_type=pt,
+                                project=pt.project,
+                                url=pt.url,
+                                end_date=process.start_date,
+                                start_date=start_date,
+                                created_by=request.user,
+                            )
+                            feeder_process.save()
+                            output_commitment = Commitment(
+                                #independent_demand=what?
+                                event_type=ptrt.relationship.event_type,
+                                relationship=ptrt.relationship,
+                                due_date=process.start_date,
+                                resource_type=rt,
+                                process=feeder_process,
+                                project=pt.project,
+                                quantity=qty,
+                                unit_of_quantity=rt.unit,
+                                created_by=request.user,
+                            )
+                            output_commitment.save()
+                            generate_schedule(feeder_process, None, request.user)
+            next = request.POST.get("next")
+            if next:
+                return HttpResponseRedirect(next)
+            else:
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/work'))
+    return render_to_response("valueaccounting/create_process.html", {
+        "process_form": process_form,
+        "output_formset": output_formset,
+        "input_formset": input_formset,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def change_process(request, process_id):
+    #import pdb; pdb.set_trace()
+    process = get_object_or_404(Process, id=process_id)
+    process_form = ProcessForm(instance=process, data=request.POST or None)
+    OutputFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessOutputForm,
+        can_delete=True,
+        extra=2,
+        )
+    output_formset = OutputFormSet(
+        queryset=process.outgoing_commitments(),
+        data=request.POST or None,
+        prefix='output')
+    InputFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessInputForm,
+        can_delete=True,
+        extra=4,
+        )
+    input_formset = InputFormSet(
+        queryset=process.incoming_commitments(),
+        data=request.POST or None,
+        prefix='input')
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        keep_going = request.POST.get("keep-going")
+        just_save = request.POST.get("save")
+        if process_form.is_valid():
+            process_data = process_form.cleaned_data
+            process = process_form.save(commit=False)
+            process.changed_by=request.user
+            process.save()
+            for form in output_formset.forms:
+                if form.is_valid():
+                    output_data = form.cleaned_data
+                    qty = output_data["quantity"]
+                    if qty:
+                        ct = form.save(commit=False)
+                        ct.process = process
+                        ct.due_date = process.end_date
+                        ct.created_by = request.user
+                        ct.save()
+            for form in input_formset.forms:
+                if form.is_valid():
+                    input_data = form.cleaned_data
+                    qty = input_data["quantity"]
+                    if qty:
+                        ct = form.save(commit=False)
+                        ct.process = process
+                        ct.due_date = process.start_date
+                        ct.created_by = request.user
+                        ct.save()
+                        rt = ct.resource_type
+                        ptrt = rt.main_producing_process_type_relationship()
+                        if ptrt:
+                            pt = ptrt.process_type
+                            start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
+                            feeder_process = Process(
+                                name=pt.name,
+                                process_type=pt,
+                                project=pt.project,
+                                url=pt.url,
+                                end_date=process.start_date,
+                                start_date=start_date,
+                                created_by=request.user,
+                            )
+                            feeder_process.save()
+                            output_commitment = Commitment(
+                                #independent_demand=what?
+                                event_type=ptrt.relationship.event_type,
+                                relationship=ptrt.relationship,
+                                due_date=process.start_date,
+                                resource_type=rt,
+                                process=feeder_process,
+                                project=pt.project,
+                                quantity=qty,
+                                unit_of_quantity=rt.unit,
+                                created_by=request.user,
+                            )
+                            output_commitment.save()
+                            generate_schedule(feeder_process, None, request.user)
+            next = request.POST.get("next")
+            if next:
+                return HttpResponseRedirect(next)
+            else:
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/work'))
+    return render_to_response("valueaccounting/change_process.html", {
+        "process": process,
+        "process_form": process_form,
+        "output_formset": output_formset,
+        "input_formset": input_formset,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def create_rand(request):
+    #import pdb; pdb.set_trace()
+    rand_form = RandOrderForm(data=request.POST or None)
+    process_form = ProcessForm(data=request.POST or None)
+    OutputFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessOutputForm,
+        can_delete=True,
+        extra=2,
+        )
+    output_formset = OutputFormSet(
+        queryset=Commitment.objects.none(),
+        data=request.POST or None,
+        prefix='output')
+    InputFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessInputForm,
+        can_delete=True,
+        extra=4,
+        )
+    input_formset = InputFormSet(
+        queryset=Commitment.objects.none(),
+        data=request.POST or None,
+        prefix='input')
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        keep_going = request.POST.get("keep-going")
+        just_save = request.POST.get("save")
+        if process_form.is_valid():
+            process_data = process_form.cleaned_data
+            process = process_form.save(commit=False)
+            process.created_by=request.user
+            process.save()
+            for form in output_formset.forms:
+                if form.is_valid():
+                    output_data = form.cleaned_data
+                    qty = output_data["quantity"]
+                    if qty:
+                        ct = form.save(commit=False)
+                        ct.process = process
+                        ct.due_date = process.end_date
+                        ct.created_by = request.user
+                        ct.save()
+            for form in input_formset.forms:
+                if form.is_valid():
+                    input_data = form.cleaned_data
+                    qty = input_data["quantity"]
+                    if qty:
+                        ct = form.save(commit=False)
+                        ct.process = process
+                        ct.due_date = process.start_date
+                        ct.created_by = request.user
+                        ct.save()
+                        rt = ct.resource_type
+                        ptrt = rt.main_producing_process_type_relationship()
+                        if ptrt:
+                            pt = ptrt.process_type
+                            start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
+                            feeder_process = Process(
+                                name=pt.name,
+                                process_type=pt,
+                                project=pt.project,
+                                url=pt.url,
+                                end_date=process.start_date,
+                                start_date=start_date,
+                                created_by=request.user,
+                            )
+                            feeder_process.save()
+                            output_commitment = Commitment(
+                                #independent_demand=what?
+                                event_type=ptrt.relationship.event_type,
+                                relationship=ptrt.relationship,
+                                due_date=process.start_date,
+                                resource_type=rt,
+                                process=feeder_process,
+                                project=pt.project,
+                                quantity=qty,
+                                unit_of_quantity=rt.unit,
+                                created_by=request.user,
+                            )
+                            output_commitment.save()
+                            generate_schedule(feeder_process, None, request.user)
+            next = request.POST.get("next")
+            if next:
+                return HttpResponseRedirect(next)
+            else:
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/work'))
+    return render_to_response("valueaccounting/create_process.html", {
+        "rand_form": rand_form,
+        "process_form": process_form,
+        "output_formset": output_formset,
+        "input_formset": input_formset,
+    }, context_instance=RequestContext(request))
 

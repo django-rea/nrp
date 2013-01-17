@@ -76,5 +76,11 @@ urlpatterns = patterns("",
         name="consumption_event_for_commitment"),
     url(r"^failed-outputs/(?P<commitment_id>\d+)/$", 'valuenetwork.valueaccounting.views.failed_outputs', 
         name="failed_outputs"),
+    url(r"^create-process/$", 'valuenetwork.valueaccounting.views.create_process', 
+        name="create_process"),
+    url(r"^change-process/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_process', 
+        name="change_process"),
+    url(r"^create-rand/$", 'valuenetwork.valueaccounting.views.create_rand', 
+        name="create_rand"),
 
 )

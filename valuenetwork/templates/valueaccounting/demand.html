@@ -23,7 +23,9 @@
 				    {% for order in orders %}
 						<li>
                             <a href="{% url order_schedule order_id=order.id %}">{{ order }}</a> 
-                            <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=order.id %}">{% trans "Delete" %}</a>
+							{% if user.is_authenticated %}
+                            	<a class="btn btn-warning" href="{% url delete_order_confirmation order_id=order.id %}">{% trans "Delete" %}</a>
+							{% endif %}
                         </li>
 					{% endfor %}
 				</ul>
@@ -34,7 +36,9 @@
 				    {% for rand in rands %}
 						<li>
                             <a href="{% url order_schedule order_id=rand.id %}">{{ rand }}</a> 
-                            <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
+							{% if user.is_authenticated %}
+                            	<a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
+							{% endif %}
                         </li>
 					{% endfor %}
 				</ul>

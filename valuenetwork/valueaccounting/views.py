@@ -1255,7 +1255,7 @@ def create_process(request):
         data=request.POST or None,
         prefix='input')
     if request.method == "POST":
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         keep_going = request.POST.get("keep-going")
         just_save = request.POST.get("save")
         if process_form.is_valid():
@@ -1482,8 +1482,8 @@ def create_rand(request):
                             ct.independent_demand = rand
                             ct.process = process
                             ct.from_agent_type=agent_type
-                            ct.from_agent=rand.provider,
-                            ct.to_agent=rand.receiver,
+                            ct.from_agent=rand.provider
+                            ct.to_agent=rand.receiver
                             ct.due_date = process.end_date
                             ct.created_by = request.user
                             ct.save()

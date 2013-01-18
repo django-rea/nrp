@@ -395,7 +395,7 @@ class EconomicResourceType(models.Model):
         return self.commitments.filter(relationship__event_type__resource_effect='+')
 
     def consuming_commitments(self):
-        return self.commitments.filter(relationship__event_type__resource_effect='-')
+        return self.commitments.exclude(relationship__event_type__resource_effect='+')
 
     def xbill_parents(self):
         answer = list(self.consuming_process_type_relationships())
@@ -929,10 +929,15 @@ class Process(models.Model):
         return answer
 
     def material_requirements(self):
-        return self.commitments.filter(
+        answer = list(self.commitments.filter(
             relationship__direction='in',
             resource_type__materiality="material",
-        )
+        ))
+        answer.extend(list(self.commitments.filter(
+            relationship__direction='in',
+            resource_type__materiality="intellectual",
+        )))
+        return answer
 
     def tool_requirements(self):
         return self.commitments.filter(

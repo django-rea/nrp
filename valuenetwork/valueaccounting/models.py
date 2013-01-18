@@ -1075,7 +1075,7 @@ class Option(models.Model):
 
 
 ORDER_TYPE_CHOICES = (
-    ('customer', _('customer order')),
+    ('customer', _('Customer order')),
     ('rand', _('R&D project')),
 )
 
@@ -1101,7 +1101,7 @@ class Order(models.Model):
 
     def __unicode__(self):
         return " ".join(
-            ["Order", 
+            [self.get_order_type_display(), 
             str(self.id), 
             ", provider:", 
             self.provider.name, 

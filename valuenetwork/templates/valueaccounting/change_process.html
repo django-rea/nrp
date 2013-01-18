@@ -50,7 +50,10 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Change Process" %}: {{ process }}</legend>
+		<legend>
+			{% trans "Change Process" %}: {{ process }}</br>
+			{% trans "for" %}: {{ process.independent_demand }}
+		</legend>
 		<form id="processForm" method="POST" action="">
 			{% csrf_token %}
 		<div class="row-fluid">
@@ -68,6 +71,7 @@
 				<legend>{% trans "Outputs" %}:</legend>
 				{{ output_formset.management_form }}
 				{% for form in output_formset %}
+					{{ form.id }}
 					<div class="row-fluid formset-top">
 						{% trans "Resource Type" %}: {{ form.resource_type }} 
 					</div>
@@ -84,6 +88,7 @@
 				<legend style="margin-top: 1em;" >{% trans "Inputs" %}:</legend>
 				{{ input_formset.management_form }}
 				{% for form in input_formset %}
+					{{ form.id }}
 					<div class="row-fluid formset-top">
 						{% trans "Resource Type" %}: {{ form.resource_type }} 
 					</div>

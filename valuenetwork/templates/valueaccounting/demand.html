@@ -14,6 +14,7 @@
 			{% if user.is_authenticated %}
 				<p>
 					<a class="btn" href="{% url create_order %}">{% trans "Create Order" %}</a>
+					<a class="btn" href="{% url create_rand %}">{% trans "Create R&amp;D Project" %}</a>
 				</p>
 			{% endif %}
 			{% if orders %}
@@ -23,6 +24,17 @@
 						<li>
                             <a href="{% url order_schedule order_id=order.id %}">{{ order }}</a> 
                             <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=order.id %}">{% trans "Delete" %}</a>
+                        </li>
+					{% endfor %}
+				</ul>
+			{% endif %}
+			{% if rands %}
+		        <h3 style="margin-bottom: 4px;" >{% trans "Open R&amp;D Projects" %}:</h3>
+				<ul>
+				    {% for rand in rands %}
+						<li>
+                            <a href="{% url order_schedule order_id=rand.id %}">{{ rand }}</a> 
+                            <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
                         </li>
 					{% endfor %}
 				</ul>

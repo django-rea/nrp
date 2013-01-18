@@ -20,6 +20,13 @@ class FailedOutputForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('quantity', 'description')
 
+class DemandSelectionForm(forms.Form):
+    demand = forms.ModelChoiceField(
+        queryset=Order.objects.all(), 
+        label="For customer order or R&D project (optional)",
+        required=False)
+
+
 class OrderForm(forms.ModelForm):
     due_date = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-small',}))
 
@@ -28,6 +35,12 @@ class OrderForm(forms.ModelForm):
         exclude = ('order_date',)
 
 class RandOrderForm(forms.ModelForm):
+    receiver = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.exclude(agent_type__member_type='inactive'), 
+        required=False)
+    provider = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.exclude(agent_type__member_type='inactive'), 
+        required=False)
 
     class Meta:
         model = Order
@@ -46,7 +59,7 @@ class ProcessForm(forms.ModelForm):
 class ProcessInputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
-        empty_label=None, 
+        #empty_label=None, 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector'}))
@@ -75,7 +88,7 @@ class ProcessInputForm(forms.ModelForm):
 class ProcessOutputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
-        empty_label=None, 
+        #empty_label=None, 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector'}))

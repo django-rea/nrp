@@ -55,6 +55,7 @@
 			{% csrf_token %}
 		<div class="row-fluid">
 			<div class="span6">
+				{{ demand_form|as_bootstrap }}
 				{{ process_form|as_bootstrap }}
 				<div class="form-actions">
 

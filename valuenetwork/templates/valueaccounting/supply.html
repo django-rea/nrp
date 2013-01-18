@@ -4,7 +4,7 @@
 
 {% block head_title %}{% trans "Supply" %}{% endblock %}
 
-{% block body_class %}projects{% endblock %}
+{% block body_class %}supply{% endblock %}
 
 {% block body_base %}
     <div class="container">
@@ -41,3 +41,21 @@
 	</div>
     </div>
 {% endblock %}
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#supply').addClass('active');
+
+	}); // end document.ready
+    </script>
+
+{% endblock %}
+

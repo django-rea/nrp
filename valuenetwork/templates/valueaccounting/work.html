@@ -354,6 +354,8 @@
 
 	$(document).ready(function(){
 
+		$('#work').addClass('active');
+
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
 		$.validator.addClassRules("quantity", { required: true, number: true });

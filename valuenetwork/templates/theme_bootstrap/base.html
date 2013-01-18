@@ -42,13 +42,13 @@
                             {% block site_brand %}<a class="brand" href="{% url "home" %}">{{ SITE_NAME }}</a>{% endblock %}
                             <div class="nav-collapse">
                                 {% block nav %}
-                                    {% comment %}
                                         <ul class="nav">
-                                            <li><a href="#tab_one">One</a></li>
-                                            <li><a href="#tab_two">Two</a></li>
+                                            <li id="demand" ><a href="{% url 'demand' %}">Demand</a></li>
+                                            <li id="supply" ><a href="{% url 'supply' %}">Supply</a></li>
+                                            <li id="work" ><a href="{% url 'work' %}">Work</a></li>
+                                            <li id="resource-types" ><a href="{% url 'resource_types' %}">Resource Types</a></li>
                                         </ul>
-                                    {% endcomment %}
-                                {% endblock %}
+                                 {% endblock %}
                                 {% block account_bar %}{% include "_account_bar.html" %}{% endblock %}
                             </div>
                         {% endblock %}

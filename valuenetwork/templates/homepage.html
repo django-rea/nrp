@@ -39,3 +39,16 @@
     {% endif %}
 {% endcomment %}
 {% endblock %}
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#home').addClass('active');
+
+	}); // end document.ready
+    </script>
+
+{% endblock %}

@@ -12,7 +12,9 @@
 	<div>
 		<legend>
 			{% trans "Process" %}: {{ process }} {% if process.started %} - {% trans "Started" %} {{ process.started }}{% endif %} 
-            <a class="btn btn-info" href="{% url change_process process_id=process.id %}">{% trans "Change" %}</a>
+			{% if user.is_authenticated %}
+	            <a class="btn btn-info" href="{% url change_process process_id=process.id %}">{% trans "Change" %}</a>
+			{% endif %}
 		</legend>
 
 		<p>

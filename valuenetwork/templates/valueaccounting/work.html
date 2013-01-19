@@ -39,7 +39,9 @@
 
 			<h3>
 				<a href="{% url timeline %}">{% trans "Timeline" %}</a>
-				<a href="{% url create_process %}" role="button" class="btn btn-primary" >{% trans "Create a new process" %}</a>
+				{% if user.is_authenticated %}
+					<a href="{% url create_process %}" role="button" class="btn btn-primary" >{% trans "Create a new process" %}</a>
+				{% endif %}
 			</h3>
 
 		<div class="row-fluid">

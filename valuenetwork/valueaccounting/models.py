@@ -1097,9 +1097,9 @@ class Order(models.Model):
     due_date = models.DateField(_('due date'))
     description = models.TextField(_('description'), null=True, blank=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='orders_created', blank=True, null=True, editable=False)
+        related_name='orders_created', blank=True, null=True)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='orders_changed', blank=True, null=True, editable=False)
+        related_name='orders_changed', blank=True, null=True)
 
     class Meta:
         ordering = ('due_date',)

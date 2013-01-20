@@ -32,7 +32,7 @@ class OrderForm(forms.ModelForm):
 
     class Meta:
         model = Order
-        exclude = ('order_date',)
+        exclude = ('order_date', 'order_type')
 
 class RandOrderForm(forms.ModelForm):
     receiver = forms.ModelChoiceField(

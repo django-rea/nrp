@@ -1,0 +1,55 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Labnotes for Process" %}: {{ process }}{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>
+			{% trans "Labnotes for Process" %}: {{ process }} {% if process.started %} - {% trans "Started" %} {{ process.started }}{% endif %} 
+		</legend>
+
+		<p>
+			<b>{% trans "for" %}:</b> {{ process.independent_demand }}
+		</p>
+
+		<div class="row-fluid">
+
+				<div class="span6">
+				
+					<h4>{% trans "Previous processes" %}</h4>
+					{% for proc in process.previous_processes %}
+						<p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
+					{% endfor %}
+
+				</div>
+
+				<div class="span6">
+
+					<h4>{% trans "Next processes" %}</h4>
+					{% for proc in process.next_processes %}
+						<p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
+					{% endfor %}
+
+				</div>
+		</div>
+
+		<h3 style="margin-bottom: 4px;" >{% trans "Labnotes" %}:</h3>
+		{% for event in events %}
+			<p>
+				<b>{% trans "From" %}: {{ event.from_agent }}</b> {{ event.event_date }}
+			</p>
+			<p style="margin-left: 2em;">
+				{{ event.description|urlize|linebreaks }}
+			</p>
+		{% endfor %}
+
+
+	</div>
+    </div>
+{% endblock %}

@@ -864,7 +864,14 @@ class Process(models.Model):
         return "process"
 
     def independent_demand(self):
-        return self.main_outgoing_commitment().independent_demand
+        moc = self.main_outgoing_commitment()
+        if moc:
+            return moc.independent_demand
+        else:
+            ics = self.incoming_commitments()
+            if ics:
+                return ics[0].independent_demand
+        return None
 
     def timeline_title(self):
         #return " ".join([self.name, "Process"])
@@ -894,7 +901,10 @@ class Process(models.Model):
     #todo: both prev and next processes need more testing
     def previous_processes(self):
         answer = []
-        dmnd = self.main_outgoing_commitment().independent_demand
+        dmnd = None
+        moc = self.main_outgoing_commitment()
+        if moc:
+            dmnd = moc.independent_demand
         for ic in self.incoming_commitments():
             rt = ic.resource_type
             for pc in rt.producing_commitments():

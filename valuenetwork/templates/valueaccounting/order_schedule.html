@@ -12,13 +12,16 @@
 	<div>
 		<legend>{% trans "Schedule for " %}{{ order }}</legend>
 
-            <h3>{% trans "Order Items" %}:</h3>
-			<ul>
-		        {% for item in order.producing_commitments %}
-					<li>{{ item.quantity }} {{ item.unit_of_quantity }} {{ item.resource_type }} {{ item.feature_label }}</li>
-				{% endfor %}
-			</ul>
-
+			{% with order_type=order.order_type %}
+			{% if order_type == "customer" %}
+		        <h3>{% trans "Order Items" %}:</h3>
+				<ul>
+				    {% for item in order.producing_commitments %}
+						<li>{{ item.quantity }} {{ item.unit_of_quantity }} {{ item.resource_type }} {{ item.feature_label }}</li>
+					{% endfor %}
+				</ul>
+			{% endif %}	
+			{% endwith %}
 			<div class="row-fluid">
 
 				<div class="span6">

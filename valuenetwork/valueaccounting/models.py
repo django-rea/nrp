@@ -961,6 +961,13 @@ class Process(models.Model):
             resource_type__materiality="work",
         )
 
+    def work_events(self):
+        reqs = self.work_requirements()
+        events = []
+        for req in reqs:
+            events.extend(req.fulfillment_events.all())
+        return events
+
     def failed_outputs(self):
         return sum(evt.quantity for evt in self.events.filter(quality__lt=0))
 

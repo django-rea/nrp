@@ -722,6 +722,15 @@ def network(request, resource_type_id):
         "edges": edges,
     }, context_instance=RequestContext(request))
 
+def project_network(request):
+    producers = [p for p in ProcessType.objects.all() if p.produced_resource_types()]
+    nodes, edges = project_graph(producers)
+    return render_to_response("valueaccounting/network.html", {
+        "photo_size": (128, 128),
+        "nodes": nodes,
+        "edges": edges,
+    }, context_instance=RequestContext(request))
+
 def timeline(request):
     timeline_date = datetime.date.today().strftime("%b %e %Y 00:00:00 GMT-0600")
     unassigned = Commitment.objects.filter(
@@ -1077,8 +1086,20 @@ def work_commitment(request, commitment_id):
 
 def process_details(request, process_id):
     process = get_object_or_404(Process, id=process_id)
+    labnotes = False
+    if process.work_events():
+        labnotes = True
     return render_to_response("valueaccounting/process.html", {
         "process": process,
+        "labnotes": labnotes,
+    }, context_instance=RequestContext(request))
+
+def labnotes(request, process_id):
+    process = get_object_or_404(Process, id=process_id)
+    events = process.work_events()
+    return render_to_response("valueaccounting/labnotes.html", {
+        "process": process,
+        "events": events,
     }, context_instance=RequestContext(request))
 
 def production_event_for_commitment(request):

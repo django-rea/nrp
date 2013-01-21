@@ -112,6 +112,12 @@
 			{% endif %}
 		{% endfor %}
 
+		{% if labnotes %}
+			<p>
+				<a href="{% url labnotes process_id=process.id %}">Labnotes for this process</a>
+			</p>
+		{% endif %}
+
 		<h3 style="margin-bottom: 4px;" >{% trans "Tool Requirements" %}:</h3>
 		{% for item in process.tool_requirements %}
 			<p>

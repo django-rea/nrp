@@ -1388,32 +1388,64 @@ def change_process(request, process_id):
                 if form.is_valid():
                     output_data = form.cleaned_data
                     qty = output_data["quantity"]
-                    ct_id = output_data["id"]
+                    ct_from_id = output_data["id"]
                     if qty:
                         ct = form.save(commit=False)
-                        if ct_id:
+                        if ct_from_id:
                             ct.changed_by = request.user
                         else:
                             ct.process = process
                             ct.due_date = process.end_date
                             ct.created_by = request.user
                         ct.save()
+                    elif ct_from_id:
+                        ct = form.save()
+                        ct.delete()
             for form in input_formset.forms:
+                #import pdb; pdb.set_trace()
                 if form.is_valid():
+                    explode = False
                     input_data = form.cleaned_data
                     qty = input_data["quantity"]
-                    ct_id = input_data["id"]
-                    if qty:
+                    ct_from_id = input_data["id"]
+                    if not qty:
+                        if ct_from_id:
+                            trash = []
+                            collect_trash(ct, trash)
+                            for process in trash:
+                                if process.outgoing_commitments().count() <= 1:
+                                    process.delete()
+                    else:
                         ct = form.save(commit=False)
-                        if ct_id:
+                        if ct_from_id:
+                            old_ct = Commitment.objects.get(id=ct_from_id.id)
+                            old_rt = old_ct.resource_type
+                            if ct.resource_type != old_rt:
+                                for ex_ct in old_rt.producing_commitments():
+                                    if demand == ex_ct.independent_demand:
+                                        trash = []
+                                        collect_trash(ex_ct, trash)
+                                        for process in trash:
+                                            #todo: feeder process with >1 outputs 
+                                            # shd find the correct output to delete
+                                            # and keep the others
+                                            if process.outgoing_commitments().count() <= 1:
+                                                process.delete()
+                                explode = True                                 
+                            elif qty != old_ct.quantity:
+                                delta = qty - old_ct.quantity
+                                for pc in ct.resource_type.producing_commitments():
+                                    if pc.independent_demand == demand:
+                                        propagate_qty_change(pc, delta)                                
                             ct.changed_by = request.user
                         else:
+                            explode = True
                             ct.process = process
                             ct.independent_demand = demand
                             ct.due_date = process.start_date
                             ct.created_by = request.user
                         ct.save()
-                        if not ct_id:
+                        if explode:
                             rt = ct.resource_type
                             ptrt = rt.main_producing_process_type_relationship()
                             if ptrt:
@@ -1451,6 +1483,22 @@ def change_process(request, process_id):
         "output_formset": output_formset,
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
+
+def propagate_qty_change(commitment, delta):
+    #import pdb; pdb.set_trace()
+    process = commitment.process
+    for ic in process.incoming_commitments():
+        ratio = ic.quantity / commitment.quantity 
+        new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
+        ic.quantity += new_delta
+        ic.save()
+        rt = ic.resource_type
+        demand = ic.independent_demand
+        for pc in rt.producing_commitments():
+            if pc.independent_demand == demand:
+                propagate_qty_change(pc, new_delta)
+    commitment.quantity += delta
+    commitment.save()     
 
 @login_required
 def create_rand(request):

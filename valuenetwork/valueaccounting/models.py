@@ -1160,7 +1160,6 @@ class Order(models.Model):
         return []
 
 
-
 class Commitment(models.Model):
     order = models.ForeignKey(Order,
         blank=True, null=True,
@@ -1219,10 +1218,13 @@ class Commitment(models.Model):
         quantity_string = str(self.quantity)
         resource_name = ""
         abbrev = ""
+        process_name = ""
         if self.unit_of_quantity:
            abbrev = self.unit_of_quantity.abbrev
         if self.resource_type:
             resource_name = self.resource_type.name
+        if self.process:
+            process_name = self.process.name
         if self.order:
             from_agt = 'Unassigned'
             if self.from_agent:
@@ -1250,13 +1252,25 @@ class Commitment(models.Model):
             ])
         else:
             return ' '.join([
-                self.process.name,
+                process_name,
                 self.relationship.name,
                 quantity_string,
                 abbrev,
                 resource_name,
                 self.due_date.strftime('%Y-%m-%d'),          
         ])
+
+    def save(self, *args, **kwargs):
+        from_id = "Unassigned"
+        if self.from_agent:
+            from_id = str(self.from_agent.id)
+        slug = "-".join([
+            str(self.event_type.id),
+            from_id,
+            self.due_date.strftime('%Y-%m-%d'),
+        ])
+        unique_slugify(self, slug)
+        super(Commitment, self).save(*args, **kwargs)
 
     def label(self):
         return self.relationship.get_direction_display()
@@ -1279,18 +1293,6 @@ class Commitment(models.Model):
         if len(selected_options) > 1:
               prefix = "with options"
         return " ".join([prefix, names])    
-
-    def save(self, *args, **kwargs):
-        from_id = "Unassigned"
-        if self.from_agent:
-            from_id = str(self.from_agent.id)
-        slug = "-".join([
-            str(self.event_type.id),
-            from_id,
-            self.due_date.strftime('%Y-%m-%d'),
-        ])
-        unique_slugify(self, slug)
-        super(Commitment, self).save(*args, **kwargs)
 
     def timeline_title(self):
         quantity_string = str(self.quantity)
@@ -1392,10 +1394,12 @@ class EconomicEvent(models.Model):
         verbose_name=_('resource'), related_name='events')
     process = models.ForeignKey(Process,
         blank=True, null=True,
-        verbose_name=_('process'), related_name='events')
+        verbose_name=_('process'), related_name='events',
+        on_delete=models.SET_NULL)
     project = models.ForeignKey(Project,
         blank=True, null=True,
-        verbose_name=_('project'), related_name='events')
+        verbose_name=_('project'), related_name='events',
+        on_delete=models.SET_NULL)
     url = models.CharField(_('url'), max_length=255, blank=True)
     description = models.TextField(_('description'), null=True, blank=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2)
@@ -1407,7 +1411,8 @@ class EconomicEvent(models.Model):
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of value'), related_name="event_value_units")
     commitment = models.ForeignKey(Commitment, blank=True, null=True,
-        verbose_name=_('fulfills commitment'), related_name="fulfillment_events")
+        verbose_name=_('fulfills commitment'), related_name="fulfillment_events",
+        on_delete=models.SET_NULL)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='events_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

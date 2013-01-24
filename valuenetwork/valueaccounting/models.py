@@ -796,7 +796,6 @@ class ProcessTypeResourceType(models.Model):
 
     def xbill_change_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeResourceTypeForm, LaborInputForm
-        #todo: hack based on user-changeable string
         if self.resource_type.materiality == "work":
             return LaborInputForm(instance=self, prefix=self.xbill_change_prefix())
             #return LaborInputForm(instance=self)

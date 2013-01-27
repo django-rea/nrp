@@ -764,6 +764,15 @@ def json_resource_type_unit(request, resource_type_id):
     data = serializers.serialize("json", EconomicResourceType.objects.filter(id=resource_type_id), fields=('unit',))
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
+def json_resource_type_defaults(request, resource_type_id):
+    ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    defaults = {
+        "unit": ert.unit.id,
+    }
+    #import pdb; pdb.set_trace()
+    data = simplejson.dumps(defaults, ensure_ascii=False)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+
 @login_required
 def create_order(request):
     cats = Category.objects.filter(orderable=True)
@@ -1030,20 +1039,30 @@ def work_commitment(request, commitment_id):
     ct = get_object_or_404(Commitment, id=commitment_id)
     event = None
     duration = 0
-    events = ct.fulfillment_events.all()
+    description = ""
+    prev = ""
+    today = datetime.date.today()
+    events = ct.fulfillment_events.filter(event_date=today)
     if events:
         event = events[events.count() - 1]
         wb_form = WorkbookForm(instance=event, data=request.POST or None)
         duration = event.quantity * 60
+        prev_events = ct.fulfillment_events.filter(event_date__lt=today)
+        if prev_events:
+            prev_dur = sum(prev.quantity for prev in prev_events)
+            unit = ""
+            if ct.unit_of_quantity:
+                unit = ct.unit_of_quantity.name
+            prev = " ".join([str(prev_dur), unit])
     else:
-        wb_form = WorkbookForm(data=request.POST or None)
+        init = {"description": ct.description,}
+        wb_form = WorkbookForm(initial=init, data=request.POST or None)
     others_working = []
     wrqs = ct.process.work_requirements()
     if wrqs.count() > 1:
         for wrq in wrqs:
             if not wrq.from_agent is ct.from_agent:
                 others_working.append(wrq)
-    today = datetime.date.today()
     failure_form = FailedOutputForm()
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -1072,6 +1091,10 @@ def work_commitment(request, commitment_id):
                 event.changed_by = request.user
                 
             event.save()
+            description = data["description"]
+            if description != ct.description:
+                ct.description = description
+                ct.save()
             return HttpResponseRedirect('/%s/'
                 % ('accounting/work'))
     return render_to_response("valueaccounting/workbook.html", {
@@ -1082,7 +1105,57 @@ def work_commitment(request, commitment_id):
         "today": today,
         "failure_form": failure_form,
         "duration": duration,
+        "prev": prev,
+        #"description": description,
     }, context_instance=RequestContext(request))
+
+
+@login_required
+def save_labnotes(request, commitment_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        ct = get_object_or_404(Commitment, id=commitment_id)
+        event = None
+        today = datetime.date.today()
+        events = ct.fulfillment_events.filter(event_date=today)
+        if events:
+            event = events[events.count() - 1]
+            form = WorkbookForm(instance=event, data=request.POST)
+        else:
+            form = WorkbookForm(data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            if event:
+                event = form.save(commit=False)
+                event.changed_by = request.user
+            else:
+                event = form.save(commit=False)
+                event.event_date = today
+                event.commitment = ct
+                event.process = ct.process
+                event.project = ct.project
+                event.event_type = ct.event_type
+                event.resource_type = ct.resource_type
+                event.from_agent = ct.from_agent
+                event.to_agent = ct.to_agent
+                event.unit_of_quantity = ct.unit_of_quantity
+                event.created_by = request.user
+                event.changed_by = request.user
+                process = ct.process
+                if not process.started:
+                    process.started = today
+                    process.changed_by=request.user
+                    process.save()
+            event.save()
+            description = data["description"]
+            if description != ct.description:
+                ct.description = description
+                ct.save()
+
+            data = "ok"
+        else:
+            data = form.errors
+        return HttpResponse(data, mimetype="text/plain")
 
 def process_details(request, process_id):
     process = get_object_or_404(Process, id=process_id)
@@ -1123,6 +1196,8 @@ def production_event_for_commitment(request):
             resource.changed_by=request.user
             resource.save()
     else:
+        #todo: resource creation shd depend on event_type and maybe rt
+        #design docs will need special handling (url)
         resource = EconomicResource(
             resource_type = ct.resource_type,
             created_date = today,

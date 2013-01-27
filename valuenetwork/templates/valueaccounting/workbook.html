@@ -34,6 +34,10 @@
   height: 200px;
 }
 
+#saving {
+	color: green;
+}
+
 </style>
 {% endblock %}
 
@@ -49,13 +53,15 @@
 				{% trans "Contributor" %}: {{ commitment.from_agent.nick }} {% trans "Date" %}: {{ today }} 
 				{% trans "Estimated duration" %}: {{ commitment.quantity }} {{ commitment.unit_of_quantity.abbrev }}
 				{% trans "Project" %}: {{ process.project }}
+                &nbsp;&nbsp;&nbsp;&nbsp;
+				<span id="saving"></span>
 			</span>
 		</legend>
 
 		<div class="row-fluid">
 			<div class="span8">
 
-			<form id="labnotesForm" method="POST" action=".">
+			<form id="labnotesForm" method="POST" action="">
 				{% csrf_token %}
 				<div class="control-group">
 					<label><b>{% trans "Description of work done" %}:</b></label>
@@ -66,11 +72,14 @@
 				<button role="button" id="start" name="start" class="btn btn-info" >{% trans "Start" %}</button>
 				<button role="button" id="stop" name="stop"  class="btn btn-info" disabled="disabled" >{% trans "Stop" %}</button>
 				<div class="control-group">
-					<label><b>{% trans "Time spent so far" %}:</b></label>
-					{{ wb_form.quantity }}
+					<label><b>{% trans "Time spent today" %}:</b></label>
+					{{ wb_form.quantity }}&nbsp;&nbsp;&nbsp;&nbsp;
+					{% if prev %}Previously: {{ prev }}{% endif %}
 					<span class="help-block">{{ wb_form.quantity.help_text }}</span>
 				</div>
-				<button class="btn btn-primary" type="submit">{% trans "Submit Time Contribution" %}</button>
+{% comment %}
+				<button class="btn btn-primary" type="submit">{% trans "Close" %}</button>
+{% endcomment %}
 			</form>
 				<div>
 					<h4>{% trans "Output" %}:</h4>
@@ -221,9 +230,91 @@
 
 	var start = new Date();
     var duration = {{ duration }};
+    var description = "";
+    var daysValue = 0;
+    var hoursValue = 0;
+    var minutesValue = 0;
 	var used = {};
+	var running = false;
+    var runTimer = null;
 
 	$(document).ready(function(){
+
+		description = $("#id_description").val();
+		daysValue = parseInt($("#id_quantity_0").val());
+		hoursValue = parseInt($("#id_quantity_1").val());
+		minutesValue = parseInt($("#id_quantity_2").val());
+
+		$("#id_description").blur(function() 
+		{
+			var newDescription = this.value;
+            
+            if (description != newDescription)
+			{
+                description = newDescription;
+				saveContribution();
+			}
+		});
+
+		$("#id_quantity_0").blur(function() 
+		{
+            var newDays = parseInt(this.value);
+            if (daysValue != newDays)
+			{
+				daysValue = newDays;
+				recomputeDuration();
+				saveContribution();
+			}
+		});
+
+		$("#id_quantity_1").blur(function() 
+		{
+            var newHours = parseInt(this.value);
+            if (hoursValue != newHours)
+			{
+				hoursValue = newHours;
+				recomputeDuration();
+				saveContribution();
+			}
+		});
+
+		$("#id_quantity_2").blur(function() 
+		{
+            var newMinutes = parseInt(this.value);
+            if (minutesValue != newMinutes)
+			{
+				minutesValue = newMinutes;
+				recomputeDuration();
+				saveContribution();
+			}
+		});
+
+
+		function recomputeDuration()
+		{
+			duration = (daysValue * 1440) + (hoursValue * 60) + minutesValue;
+		}
+
+
+		function saveContribution()
+		{
+
+			var $form = $("#labnotesForm");
+
+			var formData = $form.serialize();
+
+			var url = "{%url save_labnotes commitment_id=commitment.id %}";
+            $("#saving").text("Saving...");
+
+			var jqxhr = $.post( url, formData,
+				function( data ) {
+					$("#saving").text("Saved");
+				})
+				.fail(function() { $("#saving").text("Problem saving"); }
+			);
+
+		}
+
 
 		$(".used-quantity").each( function(){
 			var id = this.id;
@@ -264,12 +355,13 @@
 				url = $form.attr( 'action' );
 
 			var formData = $form.serialize();
-
+			$("#saving").text("Saving...");
 			$.post( url, formData,
 				function( data ) {
 					$('#failDiv').show();
 					$('#failures').empty().append( data );
 					$('#failureForm').modal('hide');
+					$("#saving").text("Saved");
 				}
 			);
 
@@ -277,24 +369,43 @@
 
 
 		$("#start").click(function() {
+            start = new Date();
+			running = true;
+			// updateTime every minute
+            runTimer = setInterval(updateTime, 60 * 1000);
 			$("#start").attr("disabled", "disabled");
 			$("#stop").removeAttr("disabled");  
-            start = new Date();
 		});
 
 		$("#stop").click(function() {
-			$("#stop").attr("disabled", "disabled");
-			$("#start").removeAttr("disabled"); 
             var stop = new Date();
 			duration += Math.round((stop - start) / 60000);
+            running = false;
+			clearInterval(runTimer);
         	var days = Math.floor(duration / 1440);
         	var hours = Math.floor((duration - (days * 1440)) / 60);
             var mins = Math.round(duration - (days * 1440) - (hours * 60));
 			$("#id_quantity_0").val(days);
 			$("#id_quantity_1").val(hours);
 			$("#id_quantity_2").val(mins);
-			//alert("duration = " + duration);
+			$("#stop").attr("disabled", "disabled");
+			$("#start").removeAttr("disabled"); 
+			saveContribution();
 		});
+
+		function updateTime()
+		{
+            var stop = new Date();
+			duration += Math.round((stop - start) / 60000);
+            start = stop;
+        	var days = Math.floor(duration / 1440);
+        	var hours = Math.floor((duration - (days * 1440)) / 60);
+            var mins = Math.round(duration - (days * 1440) - (hours * 60));
+			$("#id_quantity_0").val(days);
+			$("#id_quantity_1").val(hours);
+			$("#id_quantity_2").val(mins);
+			saveContribution();			
+		}
 
 		$(".quantity").blur(function() 
 		{
@@ -314,7 +425,13 @@
 				if (combined<=8 && decimals.length<=2)
 				{
 					var id = this.id;
-					$.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity });
+					$("#saving").text("Saving...");
+					$.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity },
+						function( data ) 
+						{
+							$("#saving").text("Saved");
+						}
+					);
 				}
 				else
 				{
@@ -360,11 +477,13 @@
 					{
 						var id = this.id;
 						var newOnhand = avail - quantity;
-                        used[id] = quantity;			
+                        used[id] = quantity;
+						$("#saving").text("Saving...");		
 						$.post("{% url consumption_event_for_commitment %}",  { id: id, quantity: quantity },
 							function( data ) 
 							{
 								$(onhandId).text(newOnhand);
+								$("#saving").text("Saved");
 							}
 						);
 

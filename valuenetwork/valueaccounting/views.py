@@ -1067,12 +1067,12 @@ def work_commitment(request, commitment_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if wb_form.is_valid():
+            data = wb_form.cleaned_data
             if event:
                 wb_form.save(commit=False)
                 event.event_date = today
                 event.changed_by = request.user
             else:
-                data = wb_form.cleaned_data
                 process = ct.process
                 if not process.started:
                     process.started = today

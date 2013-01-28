@@ -304,13 +304,20 @@
 			var formData = $form.serialize();
 
 			var url = "{%url save_labnotes commitment_id=commitment.id %}";
+
+			$("#saving").css("color","green"); 
             $("#saving").text("Saving...");
 
 			var jqxhr = $.post( url, formData,
 				function( data ) {
+					$("#saving").css("color","green"); 
 					$("#saving").text("Saved");
 				})
-				.fail(function() { $("#saving").text("Problem saving"); }
+				.fail(function() 
+				{ 
+					$("#saving").css("color","red"); 
+					$("#saving").text("Problem saving"); 
+				}
 			);
 
 		}
@@ -355,13 +362,22 @@
 				url = $form.attr( 'action' );
 
 			var formData = $form.serialize();
+			$("#saving").css("color","green"); 
 			$("#saving").text("Saving...");
-			$.post( url, formData,
+
+			var jqxhr = $.post( url, formData,
 				function( data ) {
 					$('#failDiv').show();
 					$('#failures').empty().append( data );
 					$('#failureForm').modal('hide');
+					$("#saving").css("color","green"); 
 					$("#saving").text("Saved");
+				})
+				.fail(function() 
+				{ 
+					$('#failureForm').modal('hide');
+					$("#saving").css("color","red"); 
+					$("#saving").text("Problem saving"); 
 				}
 			);
 
@@ -425,11 +441,18 @@
 				if (combined<=8 && decimals.length<=2)
 				{
 					var id = this.id;
+					$("#saving").css("color","green"); 
 					$("#saving").text("Saving...");
-					$.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity },
+					var jqxhr = $.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity },
 						function( data ) 
 						{
+							$("#saving").css("color","green"); 
 							$("#saving").text("Saved");
+						})
+						.fail(function() 
+						{ 
+							$("#saving").css("color","red"); 
+							$("#saving").text("Problem saving"); 
 						}
 					);
 				}
@@ -476,14 +499,23 @@
 					else
 					{
 						var id = this.id;
-						var newOnhand = avail - quantity;
-                        used[id] = quantity;
-						$("#saving").text("Saving...");		
-						$.post("{% url consumption_event_for_commitment %}",  { id: id, quantity: quantity },
+
+						$("#saving").css("color","green"); 
+						$("#saving").text("Saving...");	
+
+						var jqxhr = $.post("{% url consumption_event_for_commitment %}",  { id: id, quantity: quantity },
 							function( data ) 
 							{
+								var newOnhand = avail - quantity;
+				                used[id] = quantity;
 								$(onhandId).text(newOnhand);
+								$("#saving").css("color","green"); 
 								$("#saving").text("Saved");
+							})
+							.fail(function() 
+							{ 
+								$("#saving").css("color","red"); 
+								$("#saving").text("Problem saving"); 
 							}
 						);
 

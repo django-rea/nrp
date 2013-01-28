@@ -544,7 +544,7 @@
 		{
 			$(".quantity").each( function(){
 				var id = this.id;
-				var qty = this.value;
+				var quantity = this.value;
 				saveOutput(id, quantity);
 			});
 		}
@@ -553,7 +553,7 @@
 		{
 			$(".used-quantity").each( function(){
 				var id = this.id;
-				var qty = this.value;
+				var quantity = this.value;
 			    saveInput(id, quantity);
 			});
 		}
@@ -618,6 +618,13 @@
 			{
 				notifySaved();
 				inputsSaved = true;
+		        var prev = parseFloat(used[id]);
+				var onhandId = "#onhand-" + id;
+		        var onhand = parseFloat($(onhandId).text());
+		        var avail = prev + onhand;
+				var newOnhand = avail - quantity;
+				used[id] = quantity;
+				$(onhandId).text(newOnhand);
 			})
 			.fail(function() 
 			{ 

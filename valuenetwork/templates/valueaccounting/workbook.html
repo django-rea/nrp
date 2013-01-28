@@ -237,6 +237,12 @@
 	var used = {};
 	var running = false;
     var runTimer = null;
+	var retrying = false;
+    var retryTimer = null;
+    var contributionSaved = true;
+    var outputsSaved = true;
+    var inputsSaved = true;
+    var failSaved = true;
 
 	$(document).ready(function(){
 
@@ -290,39 +296,6 @@
 		});
 
 
-		function recomputeDuration()
-		{
-			duration = (daysValue * 1440) + (hoursValue * 60) + minutesValue;
-		}
-
-
-		function saveContribution()
-		{
-
-			var $form = $("#labnotesForm");
-
-			var formData = $form.serialize();
-
-			var url = "{%url save_labnotes commitment_id=commitment.id %}";
-
-			$("#saving").css("color","green"); 
-            $("#saving").text("Saving...");
-
-			var jqxhr = $.post( url, formData,
-				function( data ) {
-					$("#saving").css("color","green"); 
-					$("#saving").text("Saved");
-				})
-				.fail(function() 
-				{ 
-					$("#saving").css("color","red"); 
-					$("#saving").text("Problem saving"); 
-				}
-			);
-
-		}
-
-
 		$(".used-quantity").each( function(){
 			var id = this.id;
 			var qty = this.value;
@@ -372,19 +345,24 @@
 					$('#failureForm').modal('hide');
 					$("#saving").css("color","green"); 
 					$("#saving").text("Saved");
+                    $form.trigger( "reset" );
+					failSaved = true;
 				})
 				.fail(function() 
 				{ 
 					$('#failureForm').modal('hide');
 					$("#saving").css("color","red"); 
 					$("#saving").text("Problem saving"); 
+					failSaved = false;
+					startRetrying();
 				}
 			);
 
 		});
 
 
-		$("#start").click(function() {
+		$("#start").click(function(event) {
+            event.preventDefault();
             start = new Date();
 			running = true;
 			// updateTime every minute
@@ -393,7 +371,8 @@
 			$("#stop").removeAttr("disabled");  
 		});
 
-		$("#stop").click(function() {
+		$("#stop").click(function(event) {
+            event.preventDefault();
             var stop = new Date();
 			duration += Math.round((stop - start) / 60000);
             running = false;
@@ -409,19 +388,6 @@
 			saveContribution();
 		});
 
-		function updateTime()
-		{
-            var stop = new Date();
-			duration += Math.round((stop - start) / 60000);
-            start = stop;
-        	var days = Math.floor(duration / 1440);
-        	var hours = Math.floor((duration - (days * 1440)) / 60);
-            var mins = Math.round(duration - (days * 1440) - (hours * 60));
-			$("#id_quantity_0").val(days);
-			$("#id_quantity_1").val(hours);
-			$("#id_quantity_2").val(mins);
-			saveContribution();			
-		}
 
 		$(".quantity").blur(function() 
 		{
@@ -441,20 +407,7 @@
 				if (combined<=8 && decimals.length<=2)
 				{
 					var id = this.id;
-					$("#saving").css("color","green"); 
-					$("#saving").text("Saving...");
-					var jqxhr = $.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity },
-						function( data ) 
-						{
-							$("#saving").css("color","green"); 
-							$("#saving").text("Saved");
-						})
-						.fail(function() 
-						{ 
-							$("#saving").css("color","red"); 
-							$("#saving").text("Problem saving"); 
-						}
-					);
+					saveOutput(id, quantity);
 				}
 				else
 				{
@@ -499,26 +452,7 @@
 					else
 					{
 						var id = this.id;
-
-						$("#saving").css("color","green"); 
-						$("#saving").text("Saving...");	
-
-						var jqxhr = $.post("{% url consumption_event_for_commitment %}",  { id: id, quantity: quantity },
-							function( data ) 
-							{
-								var newOnhand = avail - quantity;
-				                used[id] = quantity;
-								$(onhandId).text(newOnhand);
-								$("#saving").css("color","green"); 
-								$("#saving").text("Saved");
-							})
-							.fail(function() 
-							{ 
-								$("#saving").css("color","red"); 
-								$("#saving").text("Problem saving"); 
-							}
-						);
-
+						saveInput(id, quantity);
 					}
 				}
 				else
@@ -535,6 +469,164 @@
 		});
 
 	}); // end document.ready
+
+
+	function recomputeDuration()
+	{
+		duration = (daysValue * 1440) + (hoursValue * 60) + minutesValue;
+	}
+
+
+	function saveContribution()
+	{
+
+		var $form = $("#labnotesForm");
+
+		var formData = $form.serialize();
+
+		var url = "{%url save_labnotes commitment_id=commitment.id %}";
+
+		$("#saving").css("color","green"); 
+        $("#saving").text("Saving...");
+
+		var jqxhr = $.post( url, formData,
+			function( data ) {
+				$("#saving").css("color","green"); 
+				$("#saving").text("Saved");
+				contributionSaved = true;
+			})
+			.fail(function() 
+			{ 
+				$("#saving").css("color","red"); 
+				$("#saving").text("Problem saving"); 
+				contributionSaved = false;
+				startRetrying();
+			}
+		);
+
+	}
+
+	function updateTime()
+	{
+        var stop = new Date();
+		duration += Math.round((stop - start) / 60000);
+        start = stop;
+    	var days = Math.floor(duration / 1440);
+    	var hours = Math.floor((duration - (days * 1440)) / 60);
+        var mins = Math.round(duration - (days * 1440) - (hours * 60));
+		$("#id_quantity_0").val(days);
+		$("#id_quantity_1").val(hours);
+		$("#id_quantity_2").val(mins);
+		saveContribution();	
+		retrySaving();		
+	}
+
+	function startRetrying()
+	{
+        if (!running)
+		{
+			if (!retrying)
+			{
+				retryTimer = setInterval(retrySaving, 30 * 1000);
+                retrying = true;
+			}
+		}
+	}
+
+	function retrySaving()
+	{
+		if (!contributionSaved)
+		{
+			saveContribution();
+		}
+
+		if (!outputsSaved)
+		{
+			$(".quantity").each( function(){
+				var id = this.id;
+				var qty = this.value;
+				saveOutput(id, quantity);
+			});
+		}
+
+		if (!inputsSaved)
+		{
+			$(".used-quantity").each( function(){
+				var id = this.id;
+				var qty = this.value;
+			    saveInput(id, quantity);
+			});
+		}
+
+		if (!failSaved)
+		{
+			failSaved = true;
+
+		}
+
+		if (contributionSaved && outputsSaved && inputsSaved && failSaved)
+		{
+			if (retrying)
+			{
+				clearInterval(retryTimer);
+		    	retrying = false;
+			}
+		}
+	}
+
+	function notifySaving()
+	{
+		$("#saving").css("color","green"); 
+		$("#saving").text("Saving...");
+	}
+
+	function notifySaved()
+	{
+		$("#saving").css("color","green"); 
+		$("#saving").text("Saved");
+	}
+
+	function notifyProblem()
+	{
+		$("#saving").css("color","red"); 
+		$("#saving").text("Problem saving");
+	}
+
+	function saveOutput(id, quantity)
+	{
+		notifySaving();
+		var jqxhr = $.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity },
+			function( data ) 
+			{
+				notifySaved();
+				outputsSaved = true;
+			})
+			.fail(function() 
+			{ 
+				notifyProblem(); 
+				outputsSaved = false;
+				startRetrying();
+			}
+		);
+	}
+
+	function saveInput(id, quantity)
+	{
+		notifySaving();
+		var jqxhr = $.post("{% url consumption_event_for_commitment  %}",  { id: id, quantity: quantity },
+			function( data ) 
+			{
+				notifySaved();
+				inputsSaved = true;
+			})
+			.fail(function() 
+			{ 
+				notifyProblem(); 
+				inputsSaved = false;
+				startRetrying();
+			}
+		);
+	}
 
 	$(document).ajaxSend(function(event, xhr, settings) 
 	{

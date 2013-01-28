@@ -17,6 +17,16 @@ def export_as_csv(modeladmin, request, queryset):
     writer.writerow(field_names)
     # Write data rows
     for obj in queryset:
-        writer.writerow([getattr(obj, field) for field in field_names])
+        #writer.writerow([str(getattr(obj, field)).encode('latin-1', 'replace') for field in field_names])
+        row = []
+        for field in field_names:
+            x = getattr(obj, field)
+            try:
+                x = x.encode('latin-1', 'replace')
+            except AttributeError:
+                pass
+            row.append(x)
+        writer.writerow(row)
+                
     return response
 export_as_csv.short_description = "Export selected objects as csv file"

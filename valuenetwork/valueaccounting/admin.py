@@ -14,12 +14,6 @@ class CategoryAdmin(admin.ModelAdmin):
 admin.site.register(Category, CategoryAdmin)
 
 
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ('provider', 'receiver', 'description','due_date' )
-
-admin.site.register(Order, OrderAdmin)
-
-
 class ResourceRelationshipAdmin(admin.ModelAdmin):
     list_display = ('name', 'inverse_name', 'direction', 'event_type' )
     list_editable = ['event_type',]
@@ -89,6 +83,19 @@ admin.site.register(EconomicResource, EconomicResourceAdmin)
 
 class CommitmentInline(admin.TabularInline):
     model = Commitment
+
+
+class OrderItemInline(admin.TabularInline):
+    model = Commitment
+    fk_name = 'order'
+    fields = ('event_type', 'relationship', 'due_date', 'resource_type', 'quantity', 'unit_of_quantity', 'process')
+
+
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('provider', 'receiver', 'description','due_date' )
+    inlines = [ OrderItemInline, ]
+
+admin.site.register(Order, OrderAdmin)
 
 
 class ProcessAdmin(admin.ModelAdmin):

@@ -40,13 +40,20 @@
 		</div>
 
 		<h3 style="margin-bottom: 4px;" >{% trans "Labnotes" %}:</h3>
-		{% for event in events %}
+		{% for commitment in process.work_requirements %}
 			<p>
-				<b>{% trans "From" %}: {{ event.from_agent }}</b> {{ event.event_date }}
+				<b>{% trans "From" %}: {{ commitment.from_agent }}</b> {{ commitment.resource_type }}
 			</p>
 			<p style="margin-left: 2em;">
-				{{ event.description|urlize|linebreaks }}
+				{{ commitment.description|urlize|linebreaks }}
 			</p>
+
+			<h4>{% trans "Time contributions" %}:</h4>		
+			{% for event in commitment.fulfillment_events.all %}
+				<p style="margin-left: 2em;">
+					{{ event.event_date }}: {{ event.quantity }} {{ event.unit_of_quantity }} 
+				</p>
+			{% endfor %}
 		{% endfor %}
 
 

@@ -335,28 +335,7 @@
 				url = $form.attr( 'action' );
 
 			var formData = $form.serialize();
-			$("#saving").css("color","green"); 
-			$("#saving").text("Saving...");
-
-			var jqxhr = $.post( url, formData,
-				function( data ) {
-					$('#failDiv').show();
-					$('#failures').empty().append( data );
-					$('#failureForm').modal('hide');
-					$("#saving").css("color","green"); 
-					$("#saving").text("Saved");
-                    $form.trigger( "reset" );
-					failSaved = true;
-				})
-				.fail(function() 
-				{ 
-					$('#failureForm').modal('hide');
-					$("#saving").css("color","red"); 
-					$("#saving").text("Problem saving"); 
-					failSaved = false;
-					startRetrying();
-				}
-			);
+			saveFail(qty, url, formData);
 
 		});
 
@@ -560,7 +539,11 @@
 
 		if (!failSaved)
 		{
-			failSaved = true;
+			var $form = $("#failForm");
+			var qty = $form.find( 'input[name="quantity"]' ).val();
+			var url = $form.attr( 'action' );
+			var formData = $form.serialize();
+			saveFail(qty, url, formData);
 
 		}
 
@@ -590,6 +573,29 @@
 	{
 		$("#saving").css("color","red"); 
 		$("#saving").text("Problem saving");
+	}
+
+	function saveFail(qty, url, formData)
+	{
+		notifySaving();
+		var jqxhr = $.post( url, formData,
+			function( data ) {
+				$('#failDiv').show();
+				$('#failures').empty().append( data );
+				$('#failureForm').modal('hide');
+				notifySaved();
+                $("#failForm").trigger( "reset" );
+				failSaved = true;
+			})
+			.fail(function() 
+			{ 
+				$('#failureForm').modal('hide');
+				notifyProblem(); 
+				failSaved = false;
+				startRetrying();
+			}
+		);
+
 	}
 
 	function saveOutput(id, quantity)

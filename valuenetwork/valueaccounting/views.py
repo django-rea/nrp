@@ -1169,10 +1169,8 @@ def process_details(request, process_id):
 
 def labnotes(request, process_id):
     process = get_object_or_404(Process, id=process_id)
-    events = process.work_events()
     return render_to_response("valueaccounting/labnotes.html", {
         "process": process,
-        "events": events,
     }, context_instance=RequestContext(request))
 
 def production_event_for_commitment(request):

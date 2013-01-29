@@ -465,19 +465,16 @@
 
 		var url = "{%url save_labnotes commitment_id=commitment.id %}";
 
-		$("#saving").css("color","green"); 
-        $("#saving").text("Saving...");
+		notifySaving();
 
 		var jqxhr = $.post( url, formData,
 			function( data ) {
-				$("#saving").css("color","green"); 
-				$("#saving").text("Saved");
+				notifySaved();
 				contributionSaved = true;
 			})
 			.fail(function() 
 			{ 
-				$("#saving").css("color","red"); 
-				$("#saving").text("Problem saving"); 
+				notifyProblem(); 
 				contributionSaved = false;
 				startRetrying();
 			}

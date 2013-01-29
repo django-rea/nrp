@@ -59,7 +59,8 @@
 
 				{{ process_form|as_bootstrap }}
 				<div class="form-actions">
-					<input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
+					<input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" />  
+					<span id="outputError" style="color: red;"> </span> 
 {% comment %}
 					<input type="submit" name="keep-going" value="{% trans 'Save and continue editing' %}" class="btn btn-primary" />
 {% endcomment %}
@@ -183,6 +184,52 @@
 					.closest('.control-group').addClass('success');
 			}
 		});
+
+		$("#processForm").submit(function(event) {
+ 
+			event.preventDefault();
+            var hasOutput = false;
+			$("#outputError").text("");
+			var errorMessage = "Must have at least one output";
+
+			$(".quantity").each(function() 
+			{
+				var id = this.id;
+
+                var isOutput = (id.search("output") >= 0);
+                if (isOutput)
+				{
+					var quantity = parseFloat(this.value);
+					if (quantity)
+					{
+						var rtId = "#" + id.replace("quantity", "resource_type");
+						var rtField = $(rtId)[0];
+		                var rt = rtField.value;
+                        if (rt)
+						{
+							hasOutput = true;
+						}
+						else
+						{
+							errorMessage = "Must have at least one output quantity with a Resource Type";
+						}
+					}
+				}
+
+			});
+
+			if (hasOutput)
+			{
+				this.submit();
+			}
+			else
+			{
+				$("#outputError").text(errorMessage);
+			}
+
+
+		});
+
 
 	}); // end document.ready
     </script>

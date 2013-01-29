@@ -1121,13 +1121,19 @@ class Order(models.Model):
         ordering = ('due_date',)
 
     def __unicode__(self):
+        provider_name = "Unknown"
+        if self.provider:
+            provider_name = self.provider.name
+        receiver_name = "Unknown"
+        if self.receiver:
+            receiver_name = self.receiver.name
         return " ".join(
             [self.get_order_type_display(), 
             str(self.id), 
             ", provider:", 
-            self.provider.name, 
+            provider_name, 
             "receiver:", 
-            self.receiver.name, 
+            receiver_name, 
             "due:",
             self.due_date.strftime('%Y-%m-%d'),
             ])

@@ -1622,6 +1622,13 @@ def create_rand(request):
                             agent_type = rand.provider.agent_type
                         if qty:
                             ct = form.save(commit=False)
+                            rt = output_data["resource_type"]
+                            rel = ResourceRelationship.objects.get(
+                                materiality=rt.materiality,
+                                related_to="process",
+                                direction="out")
+                            ct.relationship = rel
+                            ct.event_type = rel.event_type
                             ct.order = rand
                             ct.independent_demand = rand
                             ct.process = process
@@ -1637,6 +1644,13 @@ def create_rand(request):
                         qty = input_data["quantity"]
                         if qty:
                             ct = form.save(commit=False)
+                            rt = input_data["resource_type"]
+                            rel = ResourceRelationship.objects.get(
+                                materiality=rt.materiality,
+                                related_to="process",
+                                direction="in")
+                            ct.relationship = rel
+                            ct.event_type = rel.event_type
                             ct.independent_demand = rand
                             ct.process = process
                             ct.due_date = process.start_date

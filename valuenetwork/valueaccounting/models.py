@@ -480,11 +480,18 @@ DIRECTION_CHOICES = (
     ('out', _('output')),
 )
 
+RELATED_CHOICES = (
+    ('process', _('process')),
+    ('agent', _('agent')),
+)
+
 class ResourceRelationship(models.Model):
     name = models.CharField(_('name'), max_length=32)
     inverse_name = models.CharField(_('inverse name'), max_length=40, blank=True)
-    direction = models.CharField(_('process direction'), 
+    direction = models.CharField(_('direction'), 
         max_length=12, choices=DIRECTION_CHOICES, default='in')
+    related_to = models.CharField(_('related to'), 
+        max_length=12, choices=RELATED_CHOICES, default='process')
     materiality = models.CharField(_('materiality'), 
         max_length=12, choices=MATERIALITY_CHOICES,
         default='material',
@@ -494,6 +501,7 @@ class ResourceRelationship(models.Model):
         verbose_name=_('event type'), related_name='resource_relationships')
 
     class Meta:
+        unique_together = ('related_to', 'direction', 'materiality')
         ordering = ('name', )
 
     def __unicode__(self):

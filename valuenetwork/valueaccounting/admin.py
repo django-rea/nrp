@@ -15,7 +15,7 @@ admin.site.register(Category, CategoryAdmin)
 
 
 class ResourceRelationshipAdmin(admin.ModelAdmin):
-    list_display = ('name', 'inverse_name', 'direction', 'materiality', 'event_type' )
+    list_display = ('name', 'inverse_name', 'related_to', 'direction', 'materiality', 'event_type' )
     list_editable = ['event_type',]
 
 admin.site.register(ResourceRelationship, ResourceRelationshipAdmin)

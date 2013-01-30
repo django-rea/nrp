@@ -266,16 +266,13 @@ class EventType(models.Model):
         super(EventType, self).save(*args, **kwargs)
 
 
-""" design_issue:
-    Materiality is probably part of a Category model.
-
-"""
-
 MATERIALITY_CHOICES = (
     ('material', _('material')),
     ('intellectual', _('intellectual')),
     ('work', _('work')),
     ('tool', _('tool')),
+    ('space', _('space')),
+    ('value', _('value')),
 )
 
 class EconomicResourceTypeManager(models.Manager):
@@ -486,8 +483,12 @@ DIRECTION_CHOICES = (
 class ResourceRelationship(models.Model):
     name = models.CharField(_('name'), max_length=32)
     inverse_name = models.CharField(_('inverse name'), max_length=40, blank=True)
-    direction = models.CharField(_('direction'), 
+    direction = models.CharField(_('process direction'), 
         max_length=12, choices=DIRECTION_CHOICES, default='in')
+    materiality = models.CharField(_('materiality'), 
+        max_length=12, choices=MATERIALITY_CHOICES,
+        default='material',
+        help_text=_('this links Economic Resource Types to Resource Relationships'))
     event_type = models.ForeignKey(EventType,
         blank=True, null=True,
         verbose_name=_('event type'), related_name='resource_relationships')

@@ -499,6 +499,9 @@ class ResourceRelationship(models.Model):
     event_type = models.ForeignKey(EventType,
         blank=True, null=True,
         verbose_name=_('event type'), related_name='resource_relationships')
+    unit = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit'), related_name="relationship_units",
+        help_text=_('optional - overriding the Resource Type unit'))
 
     class Meta:
         unique_together = ('related_to', 'direction', 'materiality')

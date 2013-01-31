@@ -75,7 +75,7 @@ class ProcessInputForm(forms.ModelForm):
     unit_of_quantity = forms.ModelChoiceField(
         queryset=Unit.objects.exclude(unit_type='value'), 
         empty_label=None,
-        widget=forms.Select(attrs={'class': 'input-small',}))
+        widget=forms.Select(attrs={'class': 'input-medium',}))
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
@@ -105,7 +105,7 @@ class ProcessOutputForm(forms.ModelForm):
     unit_of_quantity = forms.ModelChoiceField(
         queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'), 
         empty_label=None,
-        widget=forms.Select(attrs={'class': 'input-small',}))
+        widget=forms.Select(attrs={'class': 'input-medium',}))
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'item-description',}))

@@ -1368,6 +1368,13 @@ def create_process(request):
                     qty = output_data["quantity"]
                     if qty:
                         ct = form.save(commit=False)
+                        rt = output_data["resource_type"]
+                        rel = ResourceRelationship.objects.get(
+                            materiality=rt.materiality,
+                            related_to="process",
+                            direction="out")
+                        ct.relationship = rel
+                        ct.event_type = rel.event_type
                         ct.process = process
                         ct.independent_demand = demand
                         ct.due_date = process.end_date
@@ -1379,6 +1386,13 @@ def create_process(request):
                     qty = input_data["quantity"]
                     if qty:
                         ct = form.save(commit=False)
+                        rt = input_data["resource_type"]
+                        rel = ResourceRelationship.objects.get(
+                            materiality=rt.materiality,
+                            related_to="process",
+                            direction="in")
+                        ct.relationship = rel
+                        ct.event_type = rel.event_type
                         ct.process = process
                         ct.independent_demand = demand
                         ct.due_date = process.start_date
@@ -1470,6 +1484,13 @@ def change_process(request, process_id):
                             ct.process = process
                             ct.due_date = process.end_date
                             ct.created_by = request.user
+                            rt = output_data["resource_type"]
+                            rel = ResourceRelationship.objects.get(
+                                materiality=rt.materiality,
+                                related_to="process",
+                                direction="out")
+                            ct.relationship = rel
+                            ct.event_type = rel.event_type
                         ct.save()
                     elif ct_from_id:
                         ct = form.save()
@@ -1511,8 +1532,22 @@ def change_process(request, process_id):
                                     if pc.independent_demand == demand:
                                         propagate_qty_change(pc, delta)                                
                             ct.changed_by = request.user
+                            rt = input_data["resource_type"]
+                            rel = ResourceRelationship.objects.get(
+                                materiality=rt.materiality,
+                                related_to="process",
+                                direction="in")
+                            ct.relationship = rel
+                            ct.event_type = rel.event_type
                         else:
                             explode = True
+                            rt = input_data["resource_type"]
+                            rel = ResourceRelationship.objects.get(
+                                materiality=rt.materiality,
+                                related_to="process",
+                                direction="in")
+                            ct.relationship = rel
+                            ct.event_type = rel.event_type
                             ct.process = process
                             ct.independent_demand = demand
                             ct.due_date = process.start_date

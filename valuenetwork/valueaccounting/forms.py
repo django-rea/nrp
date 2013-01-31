@@ -206,13 +206,13 @@ class AgentResourceTypeForm(forms.ModelForm):
         self.fields["agent"].choices = [
             (agt.id, agt.name) for agt in EconomicAgent.objects.all()
         ]
-        self.fields["relationship"].choices = [
-            (rel.id, rel.name) for rel in ResourceRelationship.objects.filter(direction='out')
-        ]
+        #self.fields["relationship"].choices = [
+        #    (rel.id, rel.name) for rel in ResourceRelationship.objects.filter(direction='out')
+        #]
 
     class Meta:
         model = AgentResourceType
-        exclude = ('resource_type',)
+        exclude = ('resource_type', 'relationship')
 
 
 class XbillProcessTypeForm(forms.ModelForm):
@@ -249,10 +249,10 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
         widget=SelectWithPopUp(
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector'}))
-    relationship = forms.ModelChoiceField(
-        queryset=ResourceRelationship.objects.exclude(direction='out'), 
-        empty_label=None, 
-        widget=SelectWithPopUp(model=ResourceRelationship))
+    #relationship = forms.ModelChoiceField(
+    #    queryset=ResourceRelationship.objects.exclude(direction='out'), 
+    #    empty_label=None, 
+    #    widget=SelectWithPopUp(model=ResourceRelationship))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -262,7 +262,7 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
 
     class Meta:
         model = ProcessTypeResourceType
-        exclude = ('process_type',)
+        exclude = ('process_type', 'relationship')
 
 
 class LaborInputForm(forms.ModelForm):

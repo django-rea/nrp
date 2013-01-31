@@ -503,7 +503,7 @@ def create_resource_type(request):
 
 @login_required
 def create_process_type_input(request, process_type_id):
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         prefix = pt.xbill_input_prefix()
@@ -511,7 +511,17 @@ def create_process_type_input(request, process_type_id):
         #form = ProcessTypeResourceTypeForm(request.POST)
         if form.is_valid():
             ptrt = form.save(commit=False)
+            rt = form.cleaned_data["resource_type"]
             ptrt.process_type=pt
+            rel = None
+            try:
+                rel = ResourceRelationship.objects.get(
+                    materiality=rt.materiality,
+                    related_to="process",
+                    direction="in")
+            except ResourceRelationship.DoesNotExist:
+                pass
+            ptrt.relationship = rel
             ptrt.created_by=request.user
             ptrt.save()
             next = request.POST.get("next")
@@ -657,6 +667,15 @@ def create_agent_resource_type(request, resource_type_id):
         if form.is_valid():
             art = form.save(commit=False)
             art.resource_type=rt
+            rel = None
+            try:
+                rel = ResourceRelationship.objects.get(
+                    materiality=rt.materiality,
+                    related_to="agent",
+                    direction="out")
+            except ResourceRelationship.DoesNotExist:
+                pass
+            art.relationship = rel
             art.created_by=request.user
             art.save()
             next = request.POST.get("next")
@@ -693,8 +712,10 @@ def create_process_type_for_resource_type(request, resource_type_id):
             pt.changed_by=request.user
             pt.save()
             quantity = data["quantity"]
-            #todo: hack based on rel name, which is user changeable
-            rel = ResourceRelationship.objects.get(name="produces")
+            rel = ResourceRelationship.objects.get(
+                materiality=rt.materiality,
+                related_to="process",
+                direction="out")
             unit = rt.unit
             quantity = Decimal(quantity)
             ptrt = ProcessTypeResourceType(

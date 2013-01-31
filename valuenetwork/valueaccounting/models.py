@@ -430,14 +430,17 @@ class EconomicResourceType(models.Model):
         return EconomicResourceTypeForm(instance=self)
 
     def directional_unit(self, direction):
-        rel = ResourceRelationship.objects.get(
-            materiality=self.materiality,
-            related_to='process',
-            direction=direction)
-        if rel.unit:
-            return rel.unit
-        else:
-            return self.unit
+        answer = self.unit
+        try:
+            rel = ResourceRelationship.objects.get(
+                materiality=self.materiality,
+                related_to='process',
+                direction=direction)
+            if rel.unit:
+                answer = rel.unit
+        except ResourceRelationship.DoesNotExist:
+            pass
+        return answer
 
 
 class GoodResourceManager(models.Manager):

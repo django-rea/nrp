@@ -127,13 +127,21 @@
 		function getUnit(event)
 		{
             var targetId = event.target.id;
+			if (targetId.search("output") >= 0)
+			{
+				direction = "out";
+			}
+			else
+			{
+				direction = "in";
+			}
 			var prefix = targetId.split('-')[0] + '-' + targetId.split('-')[1];
 			var resourceId = event.target.value;
 			var unitName = "#" + prefix + "-unit_of_quantity";
-			var jsonUrl = encodeURI("/accounting/json-resourcetype-unit/" + resourceId + "/");
+			var jsonUrl = encodeURI("/accounting/json-directional-unit/" + resourceId + "/" + direction + "/");
 			$.get(jsonUrl,
 				function(data){
-					var unit = eval(data)[0].fields.unit;
+					var unit = data["unit"];
                     $(unitName).val(unit);
 				});
 		}

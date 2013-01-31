@@ -429,6 +429,17 @@ class EconomicResourceType(models.Model):
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
         return EconomicResourceTypeForm(instance=self)
 
+    def directional_unit(self, direction):
+        rel = ResourceRelationship.objects.get(
+            materiality=self.materiality,
+            related_to='process',
+            direction=direction)
+        if rel.unit:
+            return rel.unit
+        else:
+            return self.unit
+
+
 class GoodResourceManager(models.Manager):
     def get_query_set(self):
         return super(GoodResourceManager, self).get_query_set().filter(quality__gte=0)

@@ -129,19 +129,24 @@
 		function getUnit(event)
 		{
             var targetId = event.target.id;
+			if (targetId.search("output") >= 0)
+			{
+				direction = "out";
+			}
+			else
+			{
+				direction = "in";
+			}
 			var prefix = targetId.split('-')[0] + '-' + targetId.split('-')[1];
 			var resourceId = event.target.value;
 			var unitName = "#" + prefix + "-unit_of_quantity";
-			var jsonUrl = encodeURI("/accounting/json-resourcetype-defaults/" + resourceId + "/");
+			var jsonUrl = encodeURI("/accounting/json-directional-unit/" + resourceId + "/" + direction + "/");
 			$.get(jsonUrl,
 				function(data){
-                    var d = data;
 					var unit = data["unit"];
                     $(unitName).val(unit);
 				});
 		}
-
-
 
         $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
         $( "#id_end_date" ).datepicker({ 

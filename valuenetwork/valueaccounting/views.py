@@ -764,6 +764,15 @@ def json_resource_type_unit(request, resource_type_id):
     data = serializers.serialize("json", EconomicResourceType.objects.filter(id=resource_type_id), fields=('unit',))
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
+def json_directional_unit(request, resource_type_id, direction):
+    #import pdb; pdb.set_trace()
+    ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    defaults = {
+        "unit": ert.directional_unit(direction).id,
+    }
+    data = simplejson.dumps(defaults, ensure_ascii=False)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+
 def json_resource_type_defaults(request, resource_type_id):
     ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     defaults = {

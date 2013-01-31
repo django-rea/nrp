@@ -280,6 +280,22 @@ class EconomicResourceTypeManager(models.Manager):
     def types_of_work(self):
         return EconomicResourceType.objects.filter(materiality="work")
 
+    def process_inputs(self):
+        ert_ids = [ert.id for ert in EconomicResourceType.objects.all() if ert.is_process_input()]
+        return EconomicResourceType.objects.filter(id__in=ert_ids)
+
+    def process_outputs(self):
+        ert_ids = [ert.id for ert in EconomicResourceType.objects.all() if ert.is_process_output()]
+        return EconomicResourceType.objects.filter(id__in=ert_ids)
+
+    def agent_outputs(self):
+        ert_ids = [ert.id for ert in EconomicResourceType.objects.all() if ert.is_agent_output()]
+        return EconomicResourceType.objects.filter(id__in=ert_ids)
+
+    def agent_inputs(self):
+        ert_ids = [ert.id for ert in EconomicResourceType.objects.all() if ert.is_agent_input()]
+        return EconomicResourceType.objects.filter(id__in=ert_ids)
+
 
 
 class EconomicResourceType(models.Model):
@@ -355,6 +371,34 @@ class EconomicResourceType(models.Model):
             return pts[0]
         else:
             return None
+
+    def is_process_output(self):
+        rels = ResourceRelationship.objects.filter(
+            materiality=self.materiality,
+            direction="out",
+            related_to="process")
+        return (rels.count() > 0)
+
+    def is_process_input(self):
+        rels = ResourceRelationship.objects.filter(
+            materiality=self.materiality,
+            direction="in",
+            related_to="process")
+        return (rels.count() > 0)
+
+    def is_agent_output(self):
+        rels = ResourceRelationship.objects.filter(
+            materiality=self.materiality,
+            direction="out",
+            related_to="agent")
+        return (rels.count() > 0)
+
+    def is_agent_input(self):
+        rels = ResourceRelationship.objects.filter(
+            materiality=self.materiality,
+            direction="in",
+            related_to="agent")
+        return (rels.count() > 0)
 
     def consuming_process_type_relationships(self):
         return self.process_types.filter(relationship__direction='in')

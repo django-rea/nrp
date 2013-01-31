@@ -1759,3 +1759,134 @@ def create_rand(request):
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
 
+@login_required
+def change_rand(request, rand_id):
+    #import pdb; pdb.set_trace()
+    rand = get_object_or_404(Order, id=rand_id)
+    rand_form = RandOrderForm(instance=rand,data=request.POST or None)
+    process = None
+    for item in rand.producing_commitments():
+        if item.process:
+            process = item.process
+            break
+    if process:
+        process_form = ProcessForm(instance=process, data=request.POST or None)
+    else:
+        process_form = ProcessForm(data=request.POST or None)
+    OutputFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessOutputForm,
+        can_delete=True,
+        extra=2,
+        )
+    output_formset = OutputFormSet(
+        queryset=Commitment.objects.none(),
+        data=request.POST or None,
+        prefix='output')
+    InputFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessInputForm,
+        can_delete=True,
+        extra=4,
+        )
+    input_formset = InputFormSet(
+        queryset=Commitment.objects.none(),
+        data=request.POST or None,
+        prefix='input')
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        keep_going = request.POST.get("keep-going")
+        just_save = request.POST.get("save")
+        if rand_form.is_valid():
+            rand = rand_form.save(commit=False)
+            rand.created_by = request.user
+            rand.order_type = 'rand'
+            if process_form.is_valid():
+                process_data = process_form.cleaned_data
+                process = process_form.save(commit=False)
+                process.created_by=request.user
+                process.save()
+                rand.due_date = process.end_date
+                rand.save()
+                for form in output_formset.forms:
+                    if form.is_valid():
+                        output_data = form.cleaned_data
+                        qty = output_data["quantity"]
+                        agent_type = None
+                        if rand.provider:
+                            agent_type = rand.provider.agent_type
+                        if qty:
+                            ct = form.save(commit=False)
+                            rt = output_data["resource_type"]
+                            rel = ResourceRelationship.objects.get(
+                                materiality=rt.materiality,
+                                related_to="process",
+                                direction="out")
+                            ct.relationship = rel
+                            ct.event_type = rel.event_type
+                            ct.order = rand
+                            ct.independent_demand = rand
+                            ct.process = process
+                            ct.from_agent_type=agent_type
+                            ct.from_agent=rand.provider
+                            ct.to_agent=rand.receiver
+                            ct.due_date = process.end_date
+                            ct.created_by = request.user
+                            ct.save()
+                for form in input_formset.forms:
+                    if form.is_valid():
+                        input_data = form.cleaned_data
+                        qty = input_data["quantity"]
+                        if qty:
+                            ct = form.save(commit=False)
+                            rt = input_data["resource_type"]
+                            rel = ResourceRelationship.objects.get(
+                                materiality=rt.materiality,
+                                related_to="process",
+                                direction="in")
+                            ct.relationship = rel
+                            ct.event_type = rel.event_type
+                            ct.independent_demand = rand
+                            ct.process = process
+                            ct.due_date = process.start_date
+                            ct.created_by = request.user
+                            ct.save()
+                            rt = ct.resource_type
+                            ptrt = rt.main_producing_process_type_relationship()
+                            if ptrt:
+                                pt = ptrt.process_type
+                                start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
+                                feeder_process = Process(
+                                    name=pt.name,
+                                    process_type=pt,
+                                    project=pt.project,
+                                    url=pt.url,
+                                    end_date=process.start_date,
+                                    start_date=start_date,
+                                    created_by=request.user,
+                                )
+                                feeder_process.save()
+                                output_commitment = Commitment(
+                                    independent_demand=rand,
+                                    event_type=ptrt.relationship.event_type,
+                                    relationship=ptrt.relationship,
+                                    due_date=process.start_date,
+                                    resource_type=rt,
+                                    process=feeder_process,
+                                    project=pt.project,
+                                    quantity=qty,
+                                    unit_of_quantity=rt.unit,
+                                    created_by=request.user,
+                                )
+                                output_commitment.save()
+                                generate_schedule(feeder_process, rand, request.user)
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/order-schedule', rand.id))
+    return render_to_response("valueaccounting/change_rand.html", {
+        "rand": rand,
+        "rand_form": rand_form,
+        "process_form": process_form,
+        "output_formset": output_formset,
+        "input_formset": input_formset,
+    }, context_instance=RequestContext(request))
+

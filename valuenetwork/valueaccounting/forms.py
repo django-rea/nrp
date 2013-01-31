@@ -58,7 +58,7 @@ class ProcessForm(forms.ModelForm):
 
 class ProcessInputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.all(), 
+        queryset=EconomicResourceType.objects.process_inputs(), 
         #empty_label=None, 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
@@ -88,7 +88,7 @@ class ProcessInputForm(forms.ModelForm):
 
 class ProcessOutputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.all(), 
+        queryset=EconomicResourceType.objects.process_outputs(), 
         #empty_label=None, 
         widget=SelectWithPopUp(
             model=EconomicResourceType,

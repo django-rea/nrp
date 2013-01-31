@@ -88,6 +88,8 @@ urlpatterns = patterns("",
         name="change_process"),
     url(r"^create-rand/$", 'valuenetwork.valueaccounting.views.create_rand', 
         name="create_rand"),
+    url(r"^change-rand/(?P<rand_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_rand', 
+        name="change_rand"),
     url(r"^labnotes/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.labnotes', 
         name="labnotes"),
 )

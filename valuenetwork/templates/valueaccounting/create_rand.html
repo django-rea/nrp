@@ -112,7 +112,11 @@
 {% block extra_script %}
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% comment %}
 	<script src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
+{% endcomment %}
+
+	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
 {% endblock %}
 
 {% block extra_body %}

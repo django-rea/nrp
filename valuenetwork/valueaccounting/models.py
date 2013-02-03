@@ -106,6 +106,7 @@ class Category(models.Model):
 
 
 UNIT_TYPE_CHOICES = (
+    ('area', _('area')),
     ('length', _('length')),
     ('quantity', _('quantity')),
     ('time', _('time')),
@@ -501,6 +502,8 @@ class EconomicResource(models.Model):
         verbose_name=_('resource type'), related_name='resources')
     identifier = models.CharField(_('identifier'), blank=True, max_length=128)
     url = models.CharField(_('url'), max_length=255, blank=True)
+    author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
+        verbose_name=_('author'), blank=True, null=True)
     owner = models.ForeignKey(EconomicAgent, related_name="owned_resources",
         verbose_name=_('owner'), blank=True, null=True)
     custodian = models.ForeignKey(EconomicAgent, related_name="custody_resources",

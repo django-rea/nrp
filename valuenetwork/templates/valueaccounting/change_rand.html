@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Change R&amp;D Project" %}{{ rand }}{% endblock %}
+{% block head_title %}{% trans "Change R&amp;D Project" %}: {{ rand }}{% endblock %}
 
 {% block extra_head %}
 
@@ -50,7 +50,7 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Change R&amp;D Project" %}{{ rand }}</legend>
+		<legend>{% trans "Change R&amp;D Project" %}: {{ rand }}</legend>
 		<form id="processForm" method="POST" action="">
 			{% csrf_token %}
 		<div class="row-fluid">
@@ -70,6 +70,7 @@
 				<legend>{% trans "Outputs" %}:</legend>
 				{{ output_formset.management_form }}
 				{% for form in output_formset %}
+					{{ form.id }}
 					<div class="row-fluid formset-top">
 						{% trans "Resource Type" %}: {{ form.resource_type }} 
 					</div>
@@ -88,6 +89,7 @@
 				<legend style="margin-top: 1em;" >{% trans "Inputs" %}:</legend>
 				{{ input_formset.management_form }}
 				{% for form in input_formset %}
+					{{ form.id }}
 					<div class="row-fluid formset-top">
 						{% trans "Resource Type" %}: {{ form.resource_type }} 
 					</div>

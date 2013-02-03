@@ -87,7 +87,11 @@
 						{% for item in process.outgoing_commitments %}
 							<li>
 								<b>{{ item.resource_type.name }}:</b> {% trans "Planned" %}: {{ item.quantity }} {{ item.unit_of_quantity }}</br>
-								{% trans "Actual" %}: <input class="input-mini quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" /></br>
+								{% trans "Actual" %}: <input class="input-mini quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" />
+								<div style="display: inline;" >
+									&nbsp;&nbsp; 
+									<a href="#detailForm" role="button" class="btn btn-info" data-toggle="modal">{% trans "Details" %}</a>
+								</div>
 								<div style="" >
 									<a href="#failureForm" role="button" class="btn btn-warning" data-toggle="modal">{% trans "Failed" %}</a>
 								</div>

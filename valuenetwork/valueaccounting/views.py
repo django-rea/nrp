@@ -406,6 +406,16 @@ def collect_trash(commitment, trash):
                     collect_trash(pc, trash)
     return trash
 
+def collect_lower_trash(commitment, trash):
+    order = commitment.independent_demand
+    resource_type = commitment.resource_type
+    pcs = resource_type.producing_commitments()
+    if pcs:
+        for pc in pcs:
+            if pc.independent_demand == order:
+                collect_trash(pc, trash)
+    return trash
+
 @login_required
 def delete_process_input(request, 
         process_input_id, resource_type_id):
@@ -503,7 +513,7 @@ def create_resource_type(request):
 
 @login_required
 def create_process_type_input(request, process_type_id):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         prefix = pt.xbill_input_prefix()
@@ -1406,6 +1416,7 @@ def create_process(request):
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
+                        ct.project = process.project
                         ct.independent_demand = demand
                         ct.due_date = process.end_date
                         ct.created_by = request.user
@@ -1427,9 +1438,11 @@ def create_process(request):
                         ct.independent_demand = demand
                         ct.due_date = process.start_date
                         ct.created_by = request.user
-                        ct.save()
                         rt = ct.resource_type
                         ptrt = rt.main_producing_process_type_relationship()
+                        ct.save()
+
+
                         if ptrt:
                             pt = ptrt.process_type
                             start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
@@ -1468,6 +1481,7 @@ def create_process(request):
 
 @login_required
 def change_process(request, process_id):
+    #todo: needs to be able add independent demand
     #import pdb; pdb.set_trace()
     process = get_object_or_404(Process, id=process_id)
     process_form = ProcessForm(instance=process, data=request.POST or None)
@@ -1509,9 +1523,11 @@ def change_process(request, process_id):
                     if qty:
                         ct = form.save(commit=False)
                         if ct_from_id:
+                            ct.project = process.project
                             ct.changed_by = request.user
                         else:
                             ct.process = process
+                            ct.project = process.project
                             ct.due_date = process.end_date
                             ct.created_by = request.user
                             rt = output_data["resource_type"]
@@ -1534,17 +1550,20 @@ def change_process(request, process_id):
                     ct_from_id = input_data["id"]
                     if not qty:
                         if ct_from_id:
+                            ct = form.save()
                             trash = []
-                            collect_trash(ct, trash)
+                            collect_lower_trash(ct, trash)
                             for process in trash:
                                 if process.outgoing_commitments().count() <= 1:
                                     process.delete()
+                            ct.delete()
                     else:
                         ct = form.save(commit=False)
                         if ct_from_id:
                             old_ct = Commitment.objects.get(id=ct_from_id.id)
                             old_rt = old_ct.resource_type
                             if ct.resource_type != old_rt:
+                                old_ct.delete()
                                 for ex_ct in old_rt.producing_commitments():
                                     if demand == ex_ct.independent_demand:
                                         trash = []
@@ -1582,6 +1601,9 @@ def change_process(request, process_id):
                             ct.independent_demand = demand
                             ct.due_date = process.start_date
                             ct.created_by = request.user
+                            ptrt = ct.resource_type.main_producing_process_type_relationship()
+                            if ptrt:
+                                ct.project = ptrt.process_type.project
                         ct.save()
                         if explode:
                             rt = ct.resource_type
@@ -1697,6 +1719,7 @@ def create_rand(request):
                             ct.order = rand
                             ct.independent_demand = rand
                             ct.process = process
+                            ct.project = process.project
                             ct.from_agent_type=agent_type
                             ct.from_agent=rand.provider
                             ct.to_agent=rand.receiver
@@ -1720,9 +1743,11 @@ def create_rand(request):
                             ct.process = process
                             ct.due_date = process.start_date
                             ct.created_by = request.user
-                            ct.save()
                             rt = ct.resource_type
                             ptrt = rt.main_producing_process_type_relationship()
+                            if ptrt:
+                                ct.project = ptrt.process_type.project
+                            ct.save()
                             if ptrt:
                                 pt = ptrt.process_type
                                 start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
@@ -1769,42 +1794,67 @@ def change_rand(request, rand_id):
         if item.process:
             process = item.process
             break
-    if process:
-        process_form = ProcessForm(instance=process, data=request.POST or None)
-    else:
-        process_form = ProcessForm(data=request.POST or None)
     OutputFormSet = modelformset_factory(
         Commitment,
         form=ProcessOutputForm,
         can_delete=True,
         extra=2,
         )
-    output_formset = OutputFormSet(
-        queryset=Commitment.objects.none(),
-        data=request.POST or None,
-        prefix='output')
     InputFormSet = modelformset_factory(
         Commitment,
         form=ProcessInputForm,
         can_delete=True,
         extra=4,
         )
-    input_formset = InputFormSet(
-        queryset=Commitment.objects.none(),
-        data=request.POST or None,
-        prefix='input')
+    if process:
+        had_process = True
+        process_form = ProcessForm(instance=process, data=request.POST or None)
+        #output_queryset = process.outgoing_commitments()
+        #input_queryset = process.incoming_commitments()
+        output_formset = OutputFormSet(
+            queryset=process.outgoing_commitments(),
+            data=request.POST or None,
+            prefix='output')
+        input_formset = InputFormSet(
+            queryset=process.incoming_commitments(),
+            data=request.POST or None,
+            prefix='input')
+    else:
+        had_process = False
+        process_form = ProcessForm(data=request.POST or None)
+        #output_queryset = Commitment.objects.none()
+        #input_queryset = Commitment.objects.none()
+        output_formset = OutputFormSet(
+            queryset=Commitment.objects.none(),
+            data=request.POST or None,
+            prefix='output')
+        input_formset = InputFormSet(
+            queryset=Commitment.objects.none(),
+            data=request.POST or None,
+            prefix='input')
+
+    #output_formset = OutputFormSet(
+    #    queryset=output_queryset,
+    #    data=request.POST or None,
+    #    prefix='output')
+    #input_formset = InputFormSet(
+    #    queryset=input_queryset,
+    #    data=request.POST or None,
+    #    prefix='input')
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         keep_going = request.POST.get("keep-going")
         just_save = request.POST.get("save")
         if rand_form.is_valid():
             rand = rand_form.save(commit=False)
-            rand.created_by = request.user
-            rand.order_type = 'rand'
+            rand.changed_by = request.user
             if process_form.is_valid():
                 process_data = process_form.cleaned_data
                 process = process_form.save(commit=False)
-                process.created_by=request.user
+                if had_process:
+                    process.changed_by=request.user
+                else:
+                    process.created_by=request.user
                 process.save()
                 rand.due_date = process.end_date
                 rand.save()
@@ -1812,74 +1862,136 @@ def change_rand(request, rand_id):
                     if form.is_valid():
                         output_data = form.cleaned_data
                         qty = output_data["quantity"]
+                        ct_from_id = output_data["id"]
                         agent_type = None
                         if rand.provider:
                             agent_type = rand.provider.agent_type
                         if qty:
                             ct = form.save(commit=False)
-                            rt = output_data["resource_type"]
-                            rel = ResourceRelationship.objects.get(
-                                materiality=rt.materiality,
-                                related_to="process",
-                                direction="out")
-                            ct.relationship = rel
-                            ct.event_type = rel.event_type
-                            ct.order = rand
-                            ct.independent_demand = rand
-                            ct.process = process
-                            ct.from_agent_type=agent_type
-                            ct.from_agent=rand.provider
-                            ct.to_agent=rand.receiver
+                            if ct_from_id:
+                                ct.changed_by = request.user
+                                ct.project = process.project
+                            else:
+                                ct.process = process
+                                ct.due_date = process.end_date
+                                ct.created_by = request.user
+                                rt = output_data["resource_type"]
+                                rel = ResourceRelationship.objects.get(
+                                    materiality=rt.materiality,
+                                    related_to="process",
+                                    direction="out")
+                                ct.relationship = rel
+                                ct.event_type = rel.event_type
+                                ct.order = rand
+                                ct.independent_demand = rand
+                                ct.project = process.project
+                                ct.from_agent_type=agent_type
+                                ct.from_agent=rand.provider
+                                ct.to_agent=rand.receiver
+                                ct.created_by = request.user
                             ct.due_date = process.end_date
-                            ct.created_by = request.user
                             ct.save()
+                        elif ct_from_id:
+                            ct = form.save()
+                            ct.delete()
                 for form in input_formset.forms:
+                    #import pdb; pdb.set_trace()
                     if form.is_valid():
+                        explode = False
                         input_data = form.cleaned_data
                         qty = input_data["quantity"]
-                        if qty:
+                        ct_from_id = input_data["id"]
+                        if not qty:
+                            if ct_from_id:
+                                ct = form.save()
+                                trash = []
+                                collect_lower_trash(ct, trash)
+                                for process in trash:
+                                    if process.outgoing_commitments().count() <= 1:
+                                        process.delete()
+                                ct.delete()
+                        else:
                             ct = form.save(commit=False)
-                            rt = input_data["resource_type"]
-                            rel = ResourceRelationship.objects.get(
-                                materiality=rt.materiality,
-                                related_to="process",
-                                direction="in")
-                            ct.relationship = rel
-                            ct.event_type = rel.event_type
-                            ct.independent_demand = rand
-                            ct.process = process
-                            ct.due_date = process.start_date
-                            ct.created_by = request.user
+                            if ct_from_id:
+                                old_ct = Commitment.objects.get(id=ct_from_id.id)
+                                old_rt = old_ct.resource_type
+                                if ct.resource_type != old_rt:
+                                    #import pdb; pdb.set_trace()
+                                    old_ct.delete()
+                                    for ex_ct in old_rt.producing_commitments():
+                                        if rand == ex_ct.independent_demand:
+                                            trash = []
+                                            collect_trash(ex_ct, trash)
+                                            for process in trash:
+                                                #todo: feeder process with >1 outputs 
+                                                # shd find the correct output to delete
+                                                # and keep the others
+                                                if process.outgoing_commitments().count() <= 1:
+                                                    process.delete()
+                                    ptrt = ct.resource_type.main_producing_process_type_relationship()
+                                    if ptrt:
+                                        ct.project = ptrt.process_type.project
+                                    explode = True                                 
+                                elif qty != old_ct.quantity:
+                                    delta = qty - old_ct.quantity
+                                    for pc in ct.resource_type.producing_commitments():
+                                        if pc.independent_demand == demand:
+                                            propagate_qty_change(pc, delta)                                
+                                ct.changed_by = request.user
+                                rt = input_data["resource_type"]
+                                rel = ResourceRelationship.objects.get(
+                                    materiality=rt.materiality,
+                                    related_to="process",
+                                    direction="in")
+                                ct.relationship = rel
+                                ct.event_type = rel.event_type
+                            else:
+                                explode = True
+                                rt = input_data["resource_type"]
+                                rel = ResourceRelationship.objects.get(
+                                    materiality=rt.materiality,
+                                    related_to="process",
+                                    direction="in")
+                                ct.relationship = rel
+                                ct.event_type = rel.event_type
+                                ct.independent_demand = rand
+                                ct.process = process
+                                ct.due_date = process.start_date
+                                ct.created_by = request.user
+                                ptrt = ct.resource_type.main_producing_process_type_relationship()
+                                if ptrt:
+                                    ct.project = ptrt.process_type.project
                             ct.save()
-                            rt = ct.resource_type
-                            ptrt = rt.main_producing_process_type_relationship()
-                            if ptrt:
-                                pt = ptrt.process_type
-                                start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
-                                feeder_process = Process(
-                                    name=pt.name,
-                                    process_type=pt,
-                                    project=pt.project,
-                                    url=pt.url,
-                                    end_date=process.start_date,
-                                    start_date=start_date,
-                                    created_by=request.user,
-                                )
-                                feeder_process.save()
-                                output_commitment = Commitment(
-                                    independent_demand=rand,
-                                    event_type=ptrt.relationship.event_type,
-                                    relationship=ptrt.relationship,
-                                    due_date=process.start_date,
-                                    resource_type=rt,
-                                    process=feeder_process,
-                                    project=pt.project,
-                                    quantity=qty,
-                                    unit_of_quantity=rt.unit,
-                                    created_by=request.user,
-                                )
-                                output_commitment.save()
-                                generate_schedule(feeder_process, rand, request.user)
+                            if explode:
+                                rt = ct.resource_type
+                                ptrt = rt.main_producing_process_type_relationship()
+                                if ptrt:
+                                    pt = ptrt.process_type
+                                    start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
+                                    feeder_process = Process(
+                                        name=pt.name,
+                                        process_type=pt,
+                                        project=pt.project,
+                                        url=pt.url,
+                                        end_date=process.start_date,
+                                        start_date=start_date,
+                                        created_by=request.user,
+                                    )
+                                    feeder_process.save()
+                                    output_commitment = Commitment(
+                                        independent_demand=rand,
+                                        event_type=ptrt.relationship.event_type,
+                                        relationship=ptrt.relationship,
+                                        due_date=process.start_date,
+                                        resource_type=rt,
+                                        process=feeder_process,
+                                        project=pt.project,
+                                        quantity=qty,
+                                        unit_of_quantity=rt.unit,
+                                        created_by=request.user,
+                                    )
+                                    output_commitment.save()
+                                    generate_schedule(feeder_process, rand, request.user)
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/order-schedule', rand.id))
     return render_to_response("valueaccounting/change_rand.html", {

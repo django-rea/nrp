@@ -117,9 +117,9 @@ admin.site.register(Project, ProjectAdmin)
 
 class CommitmentAdmin(admin.ModelAdmin):
     date_hierarchy = 'due_date'
-    list_display = ('event_type', 'order', 'independent_demand', 'due_date', 'from_agent', 'process', 'project', 
-        'resource_type', 'quantity', 'unit_of_quantity', 'description', 'quality')
-    list_filter = ['event_type', 'resource_type', 'from_agent', 'project' ]
+    list_display = ('resource_type', 'quantity', 'unit_of_quantity', 'event_type', 'due_date', 'from_agent', 'process', 'project', 'order', 'independent_demand',  
+        'description', 'quality')
+    list_filter = ['independent_demand', 'event_type', 'resource_type', 'from_agent', 'project']
     search_fields = ['name', 'event_type__name', 'from_agent__name', 'to_agent__name', 'resource_type__name']
     
 admin.site.register(Commitment, CommitmentAdmin)

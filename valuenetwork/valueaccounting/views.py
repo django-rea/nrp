@@ -1553,9 +1553,9 @@ def change_process(request, process_id):
                             ct = form.save()
                             trash = []
                             collect_lower_trash(ct, trash)
-                            for process in trash:
-                                if process.outgoing_commitments().count() <= 1:
-                                    process.delete()
+                            for proc in trash:
+                                if proc.outgoing_commitments().count() <= 1:
+                                    proc.delete()
                             ct.delete()
                     else:
                         ct = form.save(commit=False)
@@ -1568,12 +1568,12 @@ def change_process(request, process_id):
                                     if demand == ex_ct.independent_demand:
                                         trash = []
                                         collect_trash(ex_ct, trash)
-                                        for process in trash:
+                                        for proc in trash:
                                             #todo: feeder process with >1 outputs 
                                             # shd find the correct output to delete
                                             # and keep the others
-                                            if process.outgoing_commitments().count() <= 1:
-                                                process.delete()
+                                            if proc.outgoing_commitments().count() <= 1:
+                                                proc.delete()
                                 explode = True                                 
                             elif qty != old_ct.quantity:
                                 delta = qty - old_ct.quantity
@@ -1906,9 +1906,9 @@ def change_rand(request, rand_id):
                                 ct = form.save()
                                 trash = []
                                 collect_lower_trash(ct, trash)
-                                for process in trash:
-                                    if process.outgoing_commitments().count() <= 1:
-                                        process.delete()
+                                for proc in trash:
+                                    if proc.outgoing_commitments().count() <= 1:
+                                        proc.delete()
                                 ct.delete()
                         else:
                             ct = form.save(commit=False)
@@ -1922,12 +1922,12 @@ def change_rand(request, rand_id):
                                         if rand == ex_ct.independent_demand:
                                             trash = []
                                             collect_trash(ex_ct, trash)
-                                            for process in trash:
+                                            for proc in trash:
                                                 #todo: feeder process with >1 outputs 
                                                 # shd find the correct output to delete
                                                 # and keep the others
-                                                if process.outgoing_commitments().count() <= 1:
-                                                    process.delete()
+                                                if proc.outgoing_commitments().count() <= 1:
+                                                    proc.delete()
                                     ptrt = ct.resource_type.main_producing_process_type_relationship()
                                     if ptrt:
                                         ct.project = ptrt.process_type.project

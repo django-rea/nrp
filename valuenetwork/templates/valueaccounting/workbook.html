@@ -209,6 +209,9 @@
 						{% for item in others_working %}
 							<li>
 								<b>{{ item }}
+                                {% if item.has_labnotes %}
+									<a href="">Labnotes</a>
+								{% endif %}
 							</li>
 
 						{% endfor %}

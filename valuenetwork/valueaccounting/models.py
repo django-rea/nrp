@@ -1195,6 +1195,10 @@ class Order(models.Model):
 
     def __unicode__(self):
         provider_name = "Unknown"
+        process_name = ""
+        process = self.process()
+        if process:
+            process_name = ", " + process.name
         if self.provider:
             provider_name = self.provider.name
         receiver_name = "Unknown"
@@ -1203,6 +1207,7 @@ class Order(models.Model):
         return " ".join(
             [self.get_order_type_display(), 
             str(self.id), 
+            process_name,
             ", provider:", 
             provider_name, 
             "receiver:", 
@@ -1236,6 +1241,16 @@ class Order(models.Model):
 
     def work_requirements(self):
         return []
+
+    def process(self):
+        answer = None
+        if self.order_type == 'rand':
+            process = None
+            for item in self.producing_commitments():
+                if item.process:
+                    answer = item.process
+                    break
+        return answer
 
 
 class Commitment(models.Model):
@@ -1399,6 +1414,15 @@ class Commitment(models.Model):
 
     def fulfilling_events(self):
         return self.fulfillment_events.all()
+
+    def fulfilling_events_from_agent(self, agent):
+        return self.fulfillment_events.filter(from_agent=agent)
+
+    def agent_has_labnotes(self, agent):
+        if self.fulfillment_events.filter(from_agent=agent):
+            return True
+        else:
+            return False
 
     def fulfilled_quantity(self):
         return sum(evt.quantity for evt in self.fulfilling_events())

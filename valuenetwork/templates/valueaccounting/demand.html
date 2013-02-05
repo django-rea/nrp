@@ -40,6 +40,8 @@
                             	<a class="btn btn-info" href="{% url change_rand rand_id=rand.id %}">{% trans "Change" %}</a> 
                             	<a class="btn btn-info" href="{% url copy_rand rand_id=rand.id %}">{% trans "Copy" %}</a> 
                             	<a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
+							{% else %}
+                            	<a class="btn btn-info" href="{% url copy_rand rand_id=rand.id %}">{% trans "Copy" %}</a>
 							{% endif %}
                         </li>
 					{% endfor %}

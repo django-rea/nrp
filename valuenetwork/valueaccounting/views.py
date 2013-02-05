@@ -1952,29 +1952,30 @@ def copy_rand(request, rand_id):
             process = item.process
             break
     process_init = {}
+    output_init = []
+    input_init = []
     if process:
         process_init = {
             "project": process.project,
             "url": process.url,
             "notes": process.notes,
         }      
+        for op in process.outgoing_commitments():
+            output_init.append({
+                'resource_type': op.resource_type, 
+                'quantity': op.quantity, 
+                'description': op.description, 
+                'unit_of_quantity': op.unit_of_quantity,
+            })
+
+        for ip in process.incoming_commitments():
+            input_init.append({
+                'resource_type': ip.resource_type, 
+                'quantity': ip.quantity, 
+                'description': ip.description, 
+                'unit_of_quantity': ip.unit_of_quantity,
+            })
     process_form = ProcessForm(initial=process_init, data=request.POST or None)
-    output_init = []
-    for op in process.outgoing_commitments():
-        output_init.append({
-            'resource_type': op.resource_type, 
-            'quantity': op.quantity, 
-            'description': op.description, 
-            'unit_of_quantity': op.unit_of_quantity,
-        })
-    input_init = []
-    for ip in process.incoming_commitments():
-        input_init.append({
-            'resource_type': ip.resource_type, 
-            'quantity': ip.quantity, 
-            'description': ip.description, 
-            'unit_of_quantity': ip.unit_of_quantity,
-        })
     OutputFormSet = modelformset_factory(
         Commitment,
         form=ProcessOutputForm,

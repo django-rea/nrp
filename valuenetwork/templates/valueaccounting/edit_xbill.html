@@ -541,7 +541,11 @@ ul {
 
 {% block extra_script %}
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-<script src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
+{% comment %}
+	<script src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
+{% endcomment %}
+
+	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
 
 {% endblock %}
 
@@ -573,10 +577,11 @@ ul {
 			var prefix = event.target.id.split('-')[0];
 			var resourceId = event.target.value;
 			var unitName = "#" + prefix + "-unit_of_quantity";
-			var jsonUrl = encodeURI("/accounting/json-resourcetype-unit/" + resourceId + "/");
+			var direction = "in";
+			var jsonUrl = encodeURI("/accounting/json-directional-unit/" + resourceId + "/" + direction + "/");
 			$.get(jsonUrl,
 				function(data){
-					var unit = eval(data)[0].fields.unit;
+					var unit = data["unit"];
                     $(unitName).val(unit);
 				});
 		}

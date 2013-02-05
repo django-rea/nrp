@@ -1470,8 +1470,12 @@ def create_process(request):
                             )
                             output_commitment.save()
                             generate_schedule(feeder_process, demand, request.user)
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process', process.id))
+            if just_save:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/process', process.id))
+            elif keep_going:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/change-process', process.id))
     return render_to_response("valueaccounting/create_process.html", {
         "demand_form": demand_form,
         "process_form": process_form,
@@ -1635,8 +1639,12 @@ def change_process(request, process_id):
                                 )
                                 output_commitment.save()
                                 generate_schedule(feeder_process, demand, request.user)
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process', process.id))
+            if just_save:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/process', process.id))
+            elif keep_going:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/change-process', process.id))
     return render_to_response("valueaccounting/change_process.html", {
         "process": process,
         "process_form": process_form,
@@ -1775,8 +1783,12 @@ def create_rand(request):
                                 )
                                 output_commitment.save()
                                 generate_schedule(feeder_process, rand, request.user)
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/order-schedule', rand.id))
+                if just_save:
+                    return HttpResponseRedirect('/%s/%s/'
+                        % ('accounting/order-schedule', rand.id))
+                elif keep_going:
+                    return HttpResponseRedirect('/%s/%s/'
+                        % ('accounting/change-rand', rand.id))
     return render_to_response("valueaccounting/create_rand.html", {
         "rand_form": rand_form,
         "process_form": process_form,
@@ -1992,8 +2004,12 @@ def change_rand(request, rand_id):
                                     )
                                     output_commitment.save()
                                     generate_schedule(feeder_process, rand, request.user)
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/order-schedule', rand.id))
+                if just_save:
+                    return HttpResponseRedirect('/%s/%s/'
+                        % ('accounting/order-schedule', rand.id))
+                elif keep_going:
+                    return HttpResponseRedirect('/%s/%s/'
+                        % ('accounting/change-rand', rand.id))
     return render_to_response("valueaccounting/change_rand.html", {
         "rand": rand,
         "rand_form": rand_form,

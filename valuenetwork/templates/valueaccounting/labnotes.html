@@ -48,12 +48,16 @@
 				{{ commitment.description|urlize|linebreaks }}
 			</p>
 
-			<h4>{% trans "Time contributions" %}:</h4>		
-			{% for event in commitment.fulfillment_events.all %}
-				<p style="margin-left: 2em;">
-					{{ event.event_date }}: {{ event.quantity }} {{ event.unit_of_quantity }} 
-				</p>
-			{% endfor %}
+			{% with commitment.fulfilling_events as events %}
+				{% if events %}
+					<h4>{% trans "Time contributions" %}:</h4>		
+					{% for event in commitment.fulfillment_events.all %}
+						<p style="margin-left: 2em;">
+							{{ event.event_date }}: {{ event.quantity }} {{ event.unit_of_quantity }} 
+						</p>
+					{% endfor %}
+				{% endif %}
+			{% endwith %}
 		{% endfor %}
 
 

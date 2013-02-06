@@ -246,7 +246,7 @@ RESOURCE_EFFECT_CHOICES = (
     ('-', _('decrease')),
     ('x', _('transfer')), #means - for from_agent, + for to_agent
     ('=', _('no effect')),
-    ('?', _('failure')),
+    ('+', _('failure')),
 )
 
 class EventType(models.Model):
@@ -481,6 +481,32 @@ class EconomicResourceType(models.Model):
                 materiality=self.materiality,
                 related_to='process',
                 direction=direction)
+            if rel.unit:
+                answer = rel.unit
+        except ResourceRelationship.DoesNotExist:
+            pass
+        return answer
+
+    def process_input_unit(self):
+        answer = self.unit
+        try:
+            rel = ResourceRelationship.objects.get(
+                materiality=self.materiality,
+                related_to='process',
+                direction='in')
+            if rel.unit:
+                answer = rel.unit
+        except ResourceRelationship.DoesNotExist:
+            pass
+        return answer
+
+    def process_output_unit(self):
+        answer = self.unit
+        try:
+            rel = ResourceRelationship.objects.get(
+                materiality=self.materiality,
+                related_to='process',
+                direction='out')
             if rel.unit:
                 answer = rel.unit
         except ResourceRelationship.DoesNotExist:
@@ -1024,13 +1050,13 @@ class Process(models.Model):
     def tool_requirements(self):
         return self.commitments.filter(
             relationship__direction='in',
-            resource_type__materiality="tool",
+            resource_type__materiality='tool',
         )
 
     def work_requirements(self):
         return self.commitments.filter(
             relationship__direction='in',
-            resource_type__materiality="work",
+            resource_type__materiality='work',
         )
 
     def work_events(self):
@@ -1040,8 +1066,65 @@ class Process(models.Model):
             events.extend(req.fulfillment_events.all())
         return events
 
+    def outputs(self):
+        answer = []
+        events = self.events.filter(quality__gte=0)
+        for event in events:
+            rels = ResourceRelationship.objects.filter(
+                direction='out',
+                related_to='process',
+                event_type=event.event_type)
+            if rels:
+                answer.append(event)
+        return answer
+
     def failed_outputs(self):
+        answer = []
+        events = self.events.filter(quality__lt=0)
+        for event in events:
+            rels = ResourceRelationship.objects.filter(
+                direction='out',
+                related_to='process')
+            if rels:
+                answer.append(event)
+        return answer
+
+    def inputs(self):
+        answer = []
+        events = self.events.all()
+        for event in events:
+            rels = ResourceRelationship.objects.filter(
+                direction='in',
+                related_to='process',
+                event_type=event.event_type)
+            if rels:
+                answer.append(event)
+        return answer
+
+    def outputs_from_agent(self, agent):
+        answer = []
+        for event in self.outputs():
+            if event.from_agent == agent:
+                answer.append(event)
+        return answer
+
+    def inputs_used_by_agent(self, agent):
+        answer = []
+        for event in self.inputs():
+            if event.to_agent == agent:
+                if event.resource_type.materiality != 'work':
+                    answer.append(event)
+        return answer
+
+    def failed_output_qty(self):
         return sum(evt.quantity for evt in self.events.filter(quality__lt=0))
+
+    def failures_from_agent(self, agent):
+        answer = []
+        for event in self.failed_outputs():
+            if event.from_agent == agent:
+                answer.append(event)
+        return answer
 
     def order_items(self):
         return []
@@ -1419,6 +1502,7 @@ class Commitment(models.Model):
         return self.fulfillment_events.filter(from_agent=agent)
 
     def agent_has_labnotes(self, agent):
+        #import pdb; pdb.set_trace()
         if self.fulfillment_events.filter(from_agent=agent):
             return True
         else:

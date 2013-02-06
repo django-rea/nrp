@@ -96,4 +96,6 @@ urlpatterns = patterns("",
         name="copy_rand"),
     url(r"^labnotes/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.labnotes', 
         name="labnotes"),
+    url(r"^labnote/(?P<commitment_id>\d+)/$", 'valuenetwork.valueaccounting.views.labnote', 
+        name="labnote"),
 )

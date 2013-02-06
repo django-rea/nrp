@@ -1098,11 +1098,12 @@ def work_commitment(request, commitment_id):
         init = {"description": ct.description,}
         wb_form = WorkbookForm(initial=init, data=request.POST or None)
     others_working = []
+    #import pdb; pdb.set_trace()
     wrqs = ct.process.work_requirements()
     if wrqs.count() > 1:
         for wrq in wrqs:
-            if not wrq.from_agent is ct.from_agent:
-                wrq.has_labnotes = ct.agent_has_labnotes(wrq.from_agent)
+            if wrq.from_agent != ct.from_agent:
+                wrq.has_labnotes = wrq.agent_has_labnotes(wrq.from_agent)
                 others_working.append(wrq)
     failure_form = FailedOutputForm()
     if request.method == "POST":
@@ -1214,10 +1215,29 @@ def labnotes(request, process_id):
         "process": process,
     }, context_instance=RequestContext(request))
 
+def labnote(request, commitment_id):
+    ct = get_object_or_404(Commitment, id=commitment_id)
+    process = ct.process
+    agent = ct.from_agent
+    work_events = ct.fulfilling_events()
+    outputs = process.outputs_from_agent(agent)
+    #import pdb; pdb.set_trace()
+    failures = process.failures_from_agent(agent)
+    inputs = process.inputs_used_by_agent(agent)
+    return render_to_response("valueaccounting/labnote.html", {
+        "commitment": ct,
+        "process": process,
+        "work_events": work_events,
+        "outputs": outputs,
+        "failures": failures,
+        "inputs": inputs,
+    }, context_instance=RequestContext(request))
+
 def production_event_for_commitment(request):
     id = request.POST.get("id")
     quantity = request.POST.get("quantity")
     ct = get_object_or_404(Commitment, pk=id)
+    agent = get_agent(request)
     #import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
     event = None
@@ -1250,7 +1270,7 @@ def production_event_for_commitment(request):
             commitment = ct,
             event_date = today,
             event_type = ct.event_type,
-            from_agent = ct.from_agent,
+            from_agent = agent,
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,
@@ -1269,6 +1289,7 @@ def consumption_event_for_commitment(request):
     id = request.POST.get("id")
     quantity = request.POST.get("quantity")
     ct = get_object_or_404(Commitment, pk=id)
+    agent = get_agent(request)
     #import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
     event = None
@@ -1287,30 +1308,32 @@ def consumption_event_for_commitment(request):
             resource.changed_by=request.user
             resource.save()
     else:
-        resources = ct.resource_type.onhand()
-        if resources:
-            #todo: what if > 1? what if none?
-            resource = resources[0]
-            #what if resource.quantity < quantity?
-            # = handled in template
-            resource.quantity -= quantity
-            resource.changed_by=request.user
-            resource.save()
-            event = EconomicEvent(
-                resource = resource,
-                commitment = ct,
-                event_date = today,
-                event_type = ct.event_type,
-                from_agent = ct.from_agent,
-                resource_type = ct.resource_type,
-                process = ct.process,
-                project = ct.project,
-                quantity = quantity,
-                unit_of_quantity = ct.unit_of_quantity,
-                created_by = request.user,
-                changed_by = request.user,
-            )
-            event.save()
+        resource = None
+        if ct.event_type.resource_effect == "-":    
+            resources = ct.resource_type.onhand()
+            if resources:
+                #todo: what if > 1? what if none?
+                resource = resources[0]
+                #what if resource.quantity < quantity?
+                # = handled in template
+                resource.quantity -= quantity
+                resource.changed_by=request.user
+                resource.save()
+        event = EconomicEvent(
+            resource = resource,
+            commitment = ct,
+            event_date = today,
+            event_type = ct.event_type,
+            to_agent = agent,
+            resource_type = ct.resource_type,
+            process = ct.process,
+            project = ct.project,
+            quantity = quantity,
+            unit_of_quantity = ct.unit_of_quantity,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
 
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
@@ -1322,6 +1345,7 @@ def failed_outputs(request, commitment_id):
         if failure_form.is_valid():
             today = datetime.date.today()
             ct = get_object_or_404(Commitment, id=commitment_id)
+            agent = get_agent(request)
             resource_type = ct.resource_type
             process = ct.process
             event = failure_form.save(commit=False)
@@ -1354,7 +1378,7 @@ def failed_outputs(request, commitment_id):
             event.resource = resource              
             event.event_date = today
             event.event_type = event_type
-            event.from_agent = ct.from_agent
+            event.from_agent = agent
             event.resource_type = ct.resource_type
             event.process = process
             event.project = ct.project
@@ -1363,7 +1387,7 @@ def failed_outputs(request, commitment_id):
             event.created_by = request.user
             event.changed_by = request.user
             event.save()
-            data = unicode(process.failed_outputs())
+            data = unicode(process.failed_output_qty())
             return HttpResponse(data, mimetype="text/plain")
 
 @login_required

@@ -100,7 +100,7 @@
 								{% else %}
 									<div id="failDiv" style="margin-left: 1em; display: none;" >
 								{% endif %}
-								{% trans "Failures" %}: <span id="failures">{{ process.failed_outputs }}</span></div>
+								{% trans "Failures" %}: <span id="failures">{{ process.failed_output_qty }}</span></div>
 								<div class="modal hide fade" id="failureForm" tabindex="-1" role="dialog" aria-labelledby="failure-label" aria-hidden="true">
 									<div class="modal-header">
 										<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -130,13 +130,6 @@
 					<div>
 						<h4>{% trans "Material requirements" %}:</h4>
 						{% for item in process.material_requirements %}
-	{% comment %}
-						<p style="margin-left: 1em;" >{% trans "Onhand" %}:</p>
-						<p style="margin-left: 2em;" >{% trans "Used in this process" %}:</p>
-						<p style="margin-left: 1em;" >{% trans "Scheduled for production" %}:</p>
-						<p style="margin-left: 1em;" >{% trans "On order" %}:</p>
-						<p style="margin-left: 1em;" >{% trans "Not purchased yet" %}:</p>
-	{% endcomment %}
 						<ul>
 							{% if item.resource_type.onhand %}
 								{% for resource in item.resource_type.onhand %}
@@ -179,38 +172,56 @@
 				{% if process.tool_requirements %}
 					<div>
 						<h4>{% trans "Tool requirements" %}:</h4>
-	{% comment %}
-						<p style="margin-left: 1em;" >{% trans "Onhand" %}:</p>
-						<p style="margin-left: 2em;" >{% trans "Used in this process" %}:</p>
-						<p style="margin-left: 1em;" >{% trans "Scheduled for production" %}:</p>
-						<p style="margin-left: 1em;" >{% trans "On order" %}:</p>
-	{% endcomment %}
-						<p style="margin-left: 1em;" >{% trans "Not purchased yet" %}:</p>
-						<ul>
-							{% for item in process.tool_requirements %}
-								<li>
-									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
-								</li>
-		                        <ul>
-									{% for source in item.resource_type.producing_agent_relationships %}
+						{% for item in process.tool_requirements %}
+		                    <ul>
+				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
+								<ul>
+									{% if item.resource_type.onhand %}
+										{% for resource in item.resource_type.onhand %}
+											<li>
+												<b>{% trans "Onhand" %}: {{ resource.identifier }}</b></br>
+												{% trans "Used" %}: <input class="input-mini tool-used-quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" /></br>
+											</li>
+										{% endfor %}
+				                    {% elif item.fulfilled_quantity %}
+											<li>
+												<b>{% trans "Onhand" %}: {{ item.resource_type.name }}</b></br>
+												{% trans "Used" %}: <input class="input-mini tool-used-quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" /></br>
+											</li>
+									{% elif item.resource_type.producing_commitments %}
+										{% for ct in item.resource_type.producing_commitments %}
+											<li>
+												<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b>
+												<a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}</a>
+											</li>
+										{% endfor %}
+									{% else %}
 										<li>
-											{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+											<b>{% trans "Not purchased yet" %}: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
 										</li>
-									{% endfor %}
+						                <ul>
+											{% for source in item.resource_type.producing_agent_relationships %}
+												<li>
+													{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+												</li>
+											{% endfor %}
+										</ul>
+									{% endif %}
+
 								</ul>
-							{% endfor %}
-						</ul>
+							</ul>
+						{% endfor %}
 					</div>
 				{% endif %}
 
 				{% if others_working %}
-					<p style="margin-left: 1em;" >{% trans "Others working on this process" %}:</p>
+					<h4 style="margin-left: 1em; margin-bottom: 2px;" >{% trans "Others working on this process" %}:</h4>
 					<ul>
 						{% for item in others_working %}
 							<li>
-								<b>{{ item }}
+								<b>{{ item.from_agent }}</b> {% trans "doing" %} {{ item.resource_type }}
                                 {% if item.has_labnotes %}
-									<a href="">Labnotes</a>
+									<a href="{% url labnote commitment_id=item.id %}" target="_blank">Labnotes</a>
 								{% endif %}
 							</li>
 

@@ -131,18 +131,13 @@
 						<h4>{% trans "Material requirements" %}:</h4>
 						{% for item in process.material_requirements %}
 						<ul>
-							{% if item.resource_type.onhand %}
-								{% for resource in item.resource_type.onhand %}
+							{% if item.onhand %}
+								{% for resource in item.onhand_with_fulfilled_quantity %}
 									<li>
-										<b>{% trans "Onhand" %}: {{ item.resource_type.name }}</b> <span id="onhand-{{item.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
-										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" /></br>
+										<b>{% trans "Onhand" %}: {{ item.resource_type.name }}</b> <span id="onhand-{{resource.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
+										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
 									</li>
 								{% endfor %}
-                            {% elif item.fulfilled_quantity %}
-									<li>
-										<b>{% trans "Onhand" %}: {{ item.resource_type.name }}</b> <span id="onhand-{{item.id}}">0</span> {{ item.unit_of_quantity }}</br>
-										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" /></br>
-									</li>
 							{% elif item.resource_type.producing_commitments %}
 								{% for ct in item.resource_type.producing_commitments %}
 									<li>
@@ -354,8 +349,9 @@
 
 		$(".used-quantity").each( function(){
 			var id = this.id;
+			var resourceId = this.name;
 			var qty = this.value;
-            used[id] = qty;
+            used[resourceId] = qty;
 		});
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
@@ -461,8 +457,9 @@
 		{
 			var quantity = this.value;
             var id = this.id;
-            var prev = parseFloat(used[id]);
-            var onhandId = "#onhand-" + id;
+            var resourceId = this.name;
+            var prev = parseFloat(used[resourceId]);
+            var onhandId = "#onhand-" + resourceId;
             var onhand = parseFloat($(onhandId).text());
             var avail = prev + onhand;
 			var wholeNbrs = quantity;
@@ -487,7 +484,7 @@
 					else
 					{
 						var id = this.id;
-						saveInput(id, quantity);
+						saveInput(id, resourceId, quantity);
 					}
 				}
 				else
@@ -620,8 +617,9 @@
 		{
 			$(".used-quantity").each( function(){
 				var id = this.id;
+				var resourceId = this.name;
 				var quantity = this.value;
-			    saveInput(id, quantity);
+			    saveInput(id, resourceId, quantity);
 			});
 		}
 
@@ -714,20 +712,20 @@
 		);
 	}
 
-	function saveInput(id, quantity)
+	function saveInput(id, resourceId, quantity)
 	{
 		notifySaving();
-		var jqxhr = $.post("{% url consumption_event_for_commitment  %}",  { id: id, quantity: quantity },
+		var jqxhr = $.post("{% url consumption_event_for_commitment  %}",  { id: id, resourceId: resourceId, quantity: quantity },
 			function( data ) 
 			{
 				notifySaved();
 				inputsSaved = true;
-		        var prev = parseFloat(used[id]);
-				var onhandId = "#onhand-" + id;
+		        var prev = parseFloat(used[resourceId]);
+				var onhandId = "#onhand-" + resourceId;
 		        var onhand = parseFloat($(onhandId).text());
 		        var avail = prev + onhand;
 				var newOnhand = avail - quantity;
-				used[id] = quantity;
+				used[resourceId] = quantity;
 				$(onhandId).text(newOnhand);
 			})
 			.fail(function() 

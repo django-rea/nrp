@@ -1518,7 +1518,15 @@ class Commitment(models.Model):
         return sum(evt.quantity for evt in self.fulfilling_events())
 
     def onhand(self):
-        return self.resource_type.onhand()
+        answer = []
+        resources = EconomicResource.goods.filter(resource_type=self.resource_type)
+        for resource in resources:
+            if resource.quantity > 0:
+                answer.append(resource)
+            else:
+                if self.fulfillment_events.filter(resource=resource):
+                    answer.append(resource)
+        return answer
 
     def onhand_with_fulfilled_quantity(self):
         #import pdb; pdb.set_trace()

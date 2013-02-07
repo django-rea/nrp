@@ -1287,15 +1287,15 @@ def production_event_for_commitment(request):
 #todo: how to handle splits?
 def consumption_event_for_commitment(request):
     id = request.POST.get("id")
-    #resource_id = request.POST.get("resourceId")
+    resource_id = request.POST.get("resourceId")
     quantity = request.POST.get("quantity")
     ct = get_object_or_404(Commitment, pk=id)
-    #resource = get_object_or_404(EconomicResource, pk=resource_id)
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
     agent = get_agent(request)
     #import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
     event = None
-    events = ct.fulfillment_events.all()
+    events = ct.fulfillment_events.filter(resource=resource)
     today = datetime.date.today()
     if events:
         event = events[events.count() - 1]
@@ -1311,17 +1311,10 @@ def consumption_event_for_commitment(request):
                 resource.changed_by=request.user
                 resource.save()
     else:
-        resource = None
         if ct.event_type.resource_effect == "-":    
-            resources = ct.resource_type.onhand()
-            if resources:
-                #todo: what if > 1? what if none?
-                resource = resources[0]
-                #what if resource.quantity < quantity?
-                # = handled in template
-                resource.quantity -= quantity
-                resource.changed_by=request.user
-                resource.save()
+            resource.quantity -= quantity
+            resource.changed_by=request.user
+            resource.save()
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
@@ -1351,7 +1344,7 @@ def time_use_event_for_commitment(request):
     #import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
     event = None
-    events = ct.fulfillment_events.all()
+    events = ct.fulfillment_events.filter(resource=resource)
     today = datetime.date.today()
     if events:
         event = events[events.count() - 1]

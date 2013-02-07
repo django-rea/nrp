@@ -1053,6 +1053,12 @@ class Process(models.Model):
             resource_type__materiality='tool',
         )
 
+    def space_requirements(self):
+        return self.commitments.filter(
+            relationship__direction='in',
+            resource_type__materiality='space',
+        )
+
     def work_requirements(self):
         return self.commitments.filter(
             relationship__direction='in',
@@ -1510,6 +1516,17 @@ class Commitment(models.Model):
 
     def fulfilled_quantity(self):
         return sum(evt.quantity for evt in self.fulfilling_events())
+
+    def onhand(self):
+        return self.resource_type.onhand()
+
+    def onhand_with_fulfilled_quantity(self):
+        #import pdb; pdb.set_trace()
+        resources = self.onhand()
+        for resource in resources:
+            events = self.fulfillment_events.filter(resource=resource)
+            resource.fulfilled_quantity = sum(evt.quantity for evt in events)
+        return resources
 
 
 class Reciprocity(models.Model):

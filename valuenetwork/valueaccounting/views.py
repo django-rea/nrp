@@ -1287,8 +1287,10 @@ def production_event_for_commitment(request):
 #todo: how to handle splits?
 def consumption_event_for_commitment(request):
     id = request.POST.get("id")
+    #resource_id = request.POST.get("resourceId")
     quantity = request.POST.get("quantity")
     ct = get_object_or_404(Commitment, pk=id)
+    #resource = get_object_or_404(EconomicResource, pk=resource_id)
     agent = get_agent(request)
     #import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
@@ -1303,10 +1305,11 @@ def consumption_event_for_commitment(request):
             event.quantity = quantity
             event.changed_by = request.user
             event.save()
-            resource = event.resource
-            resource.quantity += delta
-            resource.changed_by=request.user
-            resource.save()
+            if event.resource:
+                resource = event.resource
+                resource.quantity += delta
+                resource.changed_by=request.user
+                resource.save()
     else:
         resource = None
         if ct.event_type.resource_effect == "-":    
@@ -1319,6 +1322,55 @@ def consumption_event_for_commitment(request):
                 resource.quantity -= quantity
                 resource.changed_by=request.user
                 resource.save()
+        event = EconomicEvent(
+            resource = resource,
+            commitment = ct,
+            event_date = today,
+            event_type = ct.event_type,
+            to_agent = agent,
+            resource_type = ct.resource_type,
+            process = ct.process,
+            project = ct.project,
+            quantity = quantity,
+            unit_of_quantity = ct.unit_of_quantity,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+
+    data = "ok"
+    return HttpResponse(data, mimetype="text/plain")
+
+def time_use_event_for_commitment(request):
+    id = request.POST.get("id")
+    resource_id = request.POST.get("resourceId")
+    quantity = request.POST.get("quantity")
+    ct = get_object_or_404(Commitment, pk=id)
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    agent = get_agent(request)
+    #import pdb; pdb.set_trace()
+    quantity = Decimal(quantity)
+    event = None
+    events = ct.fulfillment_events.all()
+    today = datetime.date.today()
+    if events:
+        event = events[events.count() - 1]
+    if event:
+        if event.quantity != quantity:
+            delta = event.quantity - quantity
+            event.quantity = quantity
+            event.changed_by = request.user
+            event.save()
+            if event.resource:
+                resource = event.resource
+                resource.quantity += delta
+                resource.changed_by=request.user
+                resource.save()
+    else:
+        if ct.event_type.resource_effect == "-":    
+            resource.quantity -= quantity
+            resource.changed_by=request.user
+            resource.save()
         event = EconomicEvent(
             resource = resource,
             commitment = ct,

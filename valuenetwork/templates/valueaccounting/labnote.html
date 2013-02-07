@@ -1,0 +1,62 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Labnotes for " %} {{ process.name }} {% trans "from " %} {{ commitment.from_agent.name }}{% endblock %}
+
+{% block extra_head %}
+
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>
+			{% trans "Labnotes for " %} {{ process.name }}  {% trans "from " %} {{ commitment.from_agent.name }}
+		</legend>
+
+		<div class="row-fluid">
+			<div class="span8">
+				{{ commitment.description|urlize|linebreaks }}
+			</div>
+			<div class="span4">
+
+				<h3>{% trans "Time contributions" %}:</h3>
+				{% for event in work_events %}
+					<p>{{ event.event_date }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
+				{% endfor %}
+
+				{% if outputs %}
+					<h3>{% trans "Outputs created by " %} {{ commitment.from_agent.name }}:</h3>
+					{% for event in outputs %}
+						<p>{{ event.event_date }} {{ event.resource_type }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
+					{% endfor %}
+				{% endif %}
+
+				{% if inputs %}
+					<h3>{% trans "Inputs used by " %} {{ commitment.from_agent.name }}:</h3>
+					{% for event in inputs %}
+						<p>{{ event.event_date }} {{ event.resource_type }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
+					{% endfor %}
+				{% endif %}
+
+				{% if failures %}
+					<h3>{% trans "Failed outputs posted by " %} {{ commitment.from_agent.name }}:</h3>                 
+					{% for event in failures %}
+						<p>{{ event.event_date }} {{ event.resource_type }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
+						<p><b>{% trans "Reason" %}:</b></p>
+						<p>{{ event.description|urlize|linebreaks }}</p>					
+					{% endfor %}
+				{% endif %}
+
+			</div>
+		</div>
+
+
+	</div>
+    </div>
+{% endblock %}

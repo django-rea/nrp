@@ -176,18 +176,55 @@
 		                    <ul>
 				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
 								<ul>
-									{% if item.resource_type.onhand %}
-										{% for resource in item.resource_type.onhand %}
+									{% if item.onhand %}
+										{% for resource in item.onhand_with_fulfilled_quantity %}
 											<li>
 												<b>{% trans "Onhand" %}: {{ resource.identifier }}</b></br>
-												{% trans "Used" %}: <input class="input-mini tool-used-quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" /></br>
+												{% trans "Used" %}: <input class="input-mini time-used" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
 											</li>
 										{% endfor %}
-				                    {% elif item.fulfilled_quantity %}
+
+									{% elif item.resource_type.producing_commitments %}
+										{% for ct in item.resource_type.producing_commitments %}
 											<li>
-												<b>{% trans "Onhand" %}: {{ item.resource_type.name }}</b></br>
-												{% trans "Used" %}: <input class="input-mini tool-used-quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" /></br>
+												<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b>
+												<a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}</a>
 											</li>
+										{% endfor %}
+									{% else %}
+										<li>
+											<b>{% trans "Not purchased yet" %}: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
+										</li>
+						                <ul>
+											{% for source in item.resource_type.producing_agent_relationships %}
+												<li>
+													{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+												</li>
+											{% endfor %}
+										</ul>
+									{% endif %}
+
+								</ul>
+							</ul>
+						{% endfor %}
+					</div>
+				{% endif %}
+
+				{% if process.space_requirements %}
+					<div>
+						<h4>{% trans "Space requirements" %}:</h4>
+						{% for item in process.space_requirements %}
+		                    <ul>
+				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
+								<ul>
+									{% if item.onhand %}
+										{% for resource in item.onhand_with_fulfilled_quantity %}
+											<li>
+												<b>{% trans "Onhand" %}: {{ resource.identifier }}</b></br>
+												{% trans "Used" %}: <input class="input-mini time-used" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
+											</li>
+										{% endfor %}
+
 									{% elif item.resource_type.producing_commitments %}
 										{% for ct in item.resource_type.producing_commitments %}
 											<li>
@@ -260,6 +297,7 @@
     var contributionSaved = true;
     var outputsSaved = true;
     var inputsSaved = true;
+    var timeInputsSaved = true;
     var failSaved = true;
 
 	$(document).ready(function(){
@@ -465,6 +503,41 @@
 			}
 		});
 
+
+		$(".time-used").blur(function() 
+		{
+			var quantity = this.value;
+			var wholeNbrs = quantity;
+			var decimals = "";
+			if (quantity.indexOf(".") > -1)
+			{
+				var qtySplit = quantity.split(".");
+				wholeNbrs = qtySplit[0];
+				decimals = qtySplit[1];
+			}
+			
+			if ($.isNumeric(quantity))
+			{
+				var combined = wholeNbrs.length + decimals.length;
+				if (combined<=8 && decimals.length<=2)
+				{
+					var id = this.id;
+					var resourceId = this.name;
+					saveTimeInput(id, resourceId, quantity);
+				}
+				else
+				{
+					alert(quantity + " can only have 8 overall digits with 2 decimal places.");
+					this.value = quantity;
+				}
+			}
+			else
+			{
+				alert(quantity + " is not a number");
+				this.value = quantity;
+			}
+		});
+
 	}); // end document.ready
 
 
@@ -549,6 +622,16 @@
 				var id = this.id;
 				var quantity = this.value;
 			    saveInput(id, quantity);
+			});
+		}
+
+		if (!timeInputsSaved)
+		{
+			$(".time-used").each( function(){
+				var id = this.id;
+				var resourceId = this.name;
+				var quantity = this.value;
+			    saveTimeInput(id, resourceId, quantity);
 			});
 		}
 
@@ -651,6 +734,24 @@
 			{ 
 				notifyProblem(); 
 				inputsSaved = false;
+				startRetrying();
+			}
+		);
+	}
+
+	function saveTimeInput(id, resourceId, quantity)
+	{
+		notifySaving();
+		var jqxhr = $.post("{% url time_use_event_for_commitment  %}",  { id: id, resourceId: resourceId, quantity: quantity },
+			function( data ) 
+			{
+				notifySaved();
+				timeInputsSaved = true;
+			})
+			.fail(function() 
+			{ 
+				notifyProblem(); 
+				timeInputsSaved = false;
 				startRetrying();
 			}
 		);

@@ -226,6 +226,9 @@ class EconomicAgent(models.Model):
     def xbill_class(self):
         return "economic-agent"  
 
+    def score(self):
+        return sum(art.score for art in self.resource_types.all())
+
 
 class AssociationType(models.Model):
     name = models.CharField(_('name'), max_length=128)

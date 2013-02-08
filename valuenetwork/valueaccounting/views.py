@@ -1000,13 +1000,31 @@ def demand(request):
     }, context_instance=RequestContext(request))
 
 def supply(request):
-    reqs = []
-    commitments = Commitment.objects.filter(resource_type__materiality="material")
-    for commitment in commitments:
+    mreqs = []
+    mrqs = Commitment.objects.filter(resource_type__materiality="material")
+    suppliers = {}
+    for commitment in mrqs:
         if not commitment.resource_type.producing_commitments():
-            reqs.append(commitment)
+            if not commitment.fulfilling_events():    
+                mreqs.append(commitment)
+                for source in commitment.resource_type.producing_agent_relationships():
+                    if source not in suppliers:
+                        suppliers[source] = []
+                    suppliers[source].append(commitment) 
+    treqs = []
+    trqs = Commitment.objects.filter(resource_type__materiality="tool")
+    for commitment in trqs:
+        if not commitment.resource_type.producing_commitments():
+            if not commitment.fulfilling_events():    
+                treqs.append(commitment)
+                for source in commitment.resource_type.producing_agent_relationships():
+                    if source not in suppliers:
+                        suppliers[source] = []
+                    suppliers[source].append(commitment) 
     return render_to_response("valueaccounting/supply.html", {
-        "reqs": reqs,
+        "mreqs": mreqs,
+        "treqs": treqs,
+        "suppliers": suppliers,
     }, context_instance=RequestContext(request))
 
 def work(request):

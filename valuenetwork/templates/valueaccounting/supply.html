@@ -12,30 +12,85 @@
 	<div>
 		<legend>{% trans "Supply" %}</legend>
 
-			{% if reqs %}
-		        <h3 style="margin-bottom: 4px;" >{% trans "Material Requirements" %}:</h3>
-					<ul>
-						{% for item in reqs %}
-							<li>
-								<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-							</li>
-							<p style="margin-left: 1em; margin-bottom: 0;">
-								{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
-							</p>
-							<p style="margin-left: 1em; margin-bottom: 0;">
-								{% trans "for order" %}: {{ item.independent_demand }}
-							</p>
-                            <ul>
-								{% for source in item.resource_type.producing_agent_relationships %}
-									<li>
-										<a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
-										{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-									</li>
-								{% endfor %}
-							</ul>
-						{% endfor %}
-					</ul>
+		<h3 style="margin-bottom: 4px;" >{% trans "Requirements by Supplier" %}:</h3>
+
+        <ul>
+            {% for source, requirements in suppliers.items %}
+                <li><a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
+                    <b>{{ source.agent.name }}</b> {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %} {% trans "Score" %}: {{ source.score }}
+                </li>
+                <ul>
+                    {% for item in requirements %}
+                        <li>
+						    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
+						    {% trans "for demand" %}: {{ item.independent_demand }}
+					    </li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        </ul>
+		
+
+		<div class="row-fluid">
+
+			{% if mreqs %}
+			    <div class="span6">
+		            <h3 style="margin-bottom: 4px;" >{% trans "Open Material Requirements" %}:</h3>
+					    <ul>
+						    {% for item in mreqs %}
+							    <li>
+								    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+							    </li>
+							    <p style="margin-left: 1em; margin-bottom: 0;">
+								    {% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+							    </p>
+							    <p style="margin-left: 1em; margin-bottom: 0;">
+								    {% trans "for demand" %}: {{ item.independent_demand }}
+							    </p>
+                                <ul>
+								    {% for source in item.resource_type.producing_agent_relationships %}
+									    <li>
+										    <a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
+										    {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %} {% trans "Score" %}: {{ source.score }}
+									    </li>
+								    {% endfor %}
+							    </ul>
+						    {% endfor %}
+					    </ul>
+				    </div>
 			{% endif %}
+			
+    	    <div class="span6">
+	    		{% if treqs %}
+
+		            <h3 style="margin-bottom: 4px;" >{% trans "Open Tool Requirements" %}:</h3>
+					    <ul>
+						    {% for item in treqs %}
+							    <li>
+								    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+							    </li>
+							    <p style="margin-left: 1em; margin-bottom: 0;">
+								    {% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+							    </p>
+							    <p style="margin-left: 1em; margin-bottom: 0;">
+								    {% trans "for demand" %}: {{ item.independent_demand }}
+							    </p>
+                                <ul>
+								    {% for source in item.resource_type.producing_agent_relationships %}
+									    <li>
+										    <a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
+										    {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %} {% trans "Score" %}: {{ source.score }}
+									    </li>
+								    {% endfor %}
+							        </ul>
+						        {% endfor %}
+					        </ul>
+
+			    {% endif %}
+
+			    
+	        </div>
+		</div>
 
 
 	</div>

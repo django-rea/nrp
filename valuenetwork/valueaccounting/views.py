@@ -20,6 +20,7 @@ from django.utils import simplejson
 from django.forms.models import formset_factory, modelformset_factory
 from django.forms import ValidationError
 from django.utils import simplejson
+from django.utils.datastructures import SortedDict
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
@@ -1001,26 +1002,34 @@ def demand(request):
 
 def supply(request):
     mreqs = []
-    mrqs = Commitment.objects.filter(resource_type__materiality="material")
-    suppliers = {}
+    mrqs = Commitment.objects.filter(resource_type__materiality="material").order_by("resource_type__name")
+    suppliers = SortedDict()
     for commitment in mrqs:
         if not commitment.resource_type.producing_commitments():
             if not commitment.fulfilling_events():    
                 mreqs.append(commitment)
-                for source in commitment.resource_type.producing_agent_relationships():
-                    if source not in suppliers:
-                        suppliers[source] = []
-                    suppliers[source].append(commitment) 
+                sources = commitment.resource_type.producing_agent_relationships().order_by("resource_type__name")
+                for source in sources:
+                    agent = source.agent
+                    if agent not in suppliers:
+                        suppliers[agent] = SortedDict()
+                    if source not in suppliers[agent]:
+                        suppliers[agent][source] = []
+                    suppliers[agent][source].append(commitment) 
     treqs = []
     trqs = Commitment.objects.filter(resource_type__materiality="tool")
     for commitment in trqs:
         if not commitment.resource_type.producing_commitments():
             if not commitment.fulfilling_events():    
                 treqs.append(commitment)
-                for source in commitment.resource_type.producing_agent_relationships():
-                    if source not in suppliers:
-                        suppliers[source] = []
-                    suppliers[source].append(commitment) 
+                sources = commitment.resource_type.producing_agent_relationships().order_by("resource_type__name")
+                for source in sources:
+                    agent = source.agent
+                    if agent not in suppliers:
+                        suppliers[agent] = SortedDict()
+                    if source not in suppliers[agent]:
+                        suppliers[agent][source] = []
+                    suppliers[agent][source].append(commitment)  
     return render_to_response("valueaccounting/supply.html", {
         "mreqs": mreqs,
         "treqs": treqs,

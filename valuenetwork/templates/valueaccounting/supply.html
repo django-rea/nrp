@@ -15,16 +15,24 @@
 		<h3 style="margin-bottom: 4px;" >{% trans "Requirements by Supplier" %}:</h3>
 
         <ul>
-            {% for source, requirements in suppliers.items %}
+            {% for agent, sources in suppliers.items %}
                 <li><a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
-                    <b>{{ source.agent.name }}</b> {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %} {% trans "Score" %}: {{ source.score }}
+                    <b>{{ agent.name }}</b> {% trans "Combined Score" %}: {{ agent.score }}
                 </li>
                 <ul>
-                    {% for item in requirements %}
+                    {% for source, requirements in sources.items %}
                         <li>
-						    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
-						    {% trans "for demand" %}: {{ item.independent_demand }}
-					    </li>
+                            <b>{{ source.resource_type.name }}</b>  {% trans "Total required" %} {{ source.total_required }} 
+                            {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %} {% trans "Score" %}: {{ source.score }}
+                        </li>
+                        <ul>
+                            {% for item in requirements %}
+                                <li>
+						            <b>{{ item.resource_type.name }}:</b> {{ item.unfilled_quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
+						            {% trans "for demand" %}: {{ item.independent_demand }}
+					            </li>
+                            {% endfor %}
+                        </ul>
                     {% endfor %}
                 </ul>
             {% endfor %}
@@ -39,7 +47,7 @@
 					    <ul>
 						    {% for item in mreqs %}
 							    <li>
-								    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+								    <b>{{ item.resource_type.name }}:</b> {{ item.unfilled_quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 							    </li>
 							    <p style="margin-left: 1em; margin-bottom: 0;">
 								    {% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
@@ -67,7 +75,7 @@
 					    <ul>
 						    {% for item in treqs %}
 							    <li>
-								    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+								    <b>{{ item.resource_type.name }}:</b> {{ item.unfilled_quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 							    </li>
 							    <p style="margin-left: 1em; margin-bottom: 0;">
 								    {% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>

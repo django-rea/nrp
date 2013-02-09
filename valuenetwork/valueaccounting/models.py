@@ -691,6 +691,14 @@ class AgentResourceType(models.Model):
         #return AgentResourceTypeForm(instance=self, prefix=self.xbill_change_prefix())
         return AgentResourceTypeForm(instance=self)
 
+    def total_required(self):
+        #todo: shameless hack for tool requirements
+        if self.resource_type.materiality == "material":
+            commitments = Commitment.objects.filter(resource_type=self.resource_type)
+            return sum(req.unfilled_quantity() for req in commitments)
+        else:
+            return Decimal("1")
+
 
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=128) 
@@ -1519,6 +1527,9 @@ class Commitment(models.Model):
 
     def fulfilled_quantity(self):
         return sum(evt.quantity for evt in self.fulfilling_events())
+
+    def unfilled_quantity(self):
+        return self.quantity - self.fulfilled_quantity()
 
     def onhand(self):
         answer = []

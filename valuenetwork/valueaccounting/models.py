@@ -543,6 +543,8 @@ class EconomicResource(models.Model):
         verbose_name=_('unit of quantity'), related_name="resource_qty_units")
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, default=Decimal("0"))
     notes = models.TextField(_('notes'), blank=True, null=True)
+    photo = ThumbnailerImageField(_("photo"),
+        upload_to='photos', blank=True, null=True)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='resources_created', blank=True, null=True, editable=False)
@@ -692,12 +694,8 @@ class AgentResourceType(models.Model):
         return AgentResourceTypeForm(instance=self)
 
     def total_required(self):
-        #todo: shameless hack for tool requirements
-        if self.resource_type.materiality == "material":
-            commitments = Commitment.objects.filter(resource_type=self.resource_type)
-            return sum(req.unfilled_quantity() for req in commitments)
-        else:
-            return Decimal("1")
+        commitments = Commitment.objects.filter(resource_type=self.resource_type)
+        return sum(req.unfilled_quantity() for req in commitments)
 
 
 class Project(models.Model):

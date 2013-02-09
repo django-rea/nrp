@@ -71,6 +71,29 @@ def resource_types(request):
         "photo_size": (128, 128),
     }, context_instance=RequestContext(request))
 
+def inventory(request):
+    #TODO: resource types don't have to have categories, for now assuming they all will
+    resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type__category', 'resource_type')
+    categories = Category.objects.all()
+    select_all = True
+    selected_cats = "all"
+    if request.method == "POST":
+        selected_cats = request.POST["categories"]
+        cats = selected_cats.split(",")
+        if cats[0] == "all":
+            select_all = True
+            resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type__category', 'resource_type')
+        else:
+            select_all = False
+            resources = EconomicResource.objects.select_related().filter(quantity__gt=0, resource_type__category__name__in=cats).order_by('resource_type__category', 'resource_type')
+    return render_to_response("valueaccounting/inventory.html", {
+        "resources": resources,
+        "categories": categories,
+        "select_all": select_all,
+        "selected_cats": selected_cats,
+        "photo_size": (128, 128),
+    }, context_instance=RequestContext(request))
+
 def contributions(request, project_id):
     #import pdb; pdb.set_trace()
     project = get_object_or_404(Project, pk=project_id)

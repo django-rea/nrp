@@ -5,7 +5,7 @@
 <html lang="{{ LANGUAGE_CODE }}">
     <head>
         <meta charset="utf-8" />
-        <title>{% block head_title_base %}{% if SITE_NAME %}{{ SITE_NAME }} | {% endif %}{% block head_title %}{% endblock %}{% endblock %}</title>
+        <title>{% block head_title_base %}{% if SITE_NAME %}{{ SITE_NAME }} | {% endif %}{% block head_title %}{% endblock %}{% endblock %} </title>
         {% block viewport %}
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
         {% endblock %}
@@ -46,6 +46,7 @@
                                             <li id="home" ><a href="{% url 'home' %}">Home</a></li>
                                             <li id="demand" ><a href="{% url 'demand' %}">Demand</a></li>
                                             <li id="supply" ><a href="{% url 'supply' %}">Supply</a></li>
+                                            <li id="inventory" ><a href="{% url 'inventory' %}">Inventory</a></li>
                                             <li id="work" ><a href="{% url 'work' %}">Work</a></li>
                                             <li id="resource-types" ><a href="{% url 'resource_types' %}">Resource Types</a></li>
                                         </ul>

@@ -1,0 +1,150 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "Inventory" %}{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+.cat {
+	font-size: 1.3em;
+	font-weight: bold;
+    margin-top: .3em;
+    color: brown;
+}
+.rtype {
+    font-size: 1.1em;
+    margin-left: 2em;
+    color: firebrick;
+}
+.res {
+    margin-left: 4em;
+}
+.info {
+    margin-left: 6em;
+}
+ul {
+    list-style-type: none;
+}
+li {
+	padding: 4px;
+}
+
+
+</style>
+{% endblock %}
+
+{% block body_class %}inventory{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div class="row-fluid">
+		<div class="span10">
+		    <legend>
+			    {% trans "Inventory" %}
+		    </legend>
+            {% for resource in resources.all %}
+                {% ifchanged resource.resource_type.category.name %}
+                    <div class="cat">  {{ resource.resource_type.category.name }} </div>
+                {% endifchanged %}
+                {% ifchanged resource.resource_type.name %}
+                    <div class="rtype">  {{ resource.resource_type.name }} 
+			        {% if resource.resource_type.photo %}
+			        	<img src="{% thumbnail resource.resource_type.photo photo_size %}" />
+			        {% endif %}
+                    </div>
+                {% endifchanged %}
+                <div class="res">
+                    {% if resource.identifier %}
+                       {{ resource.identifier }} 
+                    {% else %}
+                       {{ resource.id }} 
+                    {% endif %} 
+		        {% if resource.photo %}
+		        	<img src="{% thumbnail resource.photo photo_size %}" />
+		        {% endif %}
+                </div>
+                <div class="info"> {{ resource.quantity }} {{ resource.unit_of_quantity }} </div>
+                <div class="info">Quality: {{ resource.quality }} </div>
+                {% url 'path.to.view' as resource.url %}
+                {% if resource.url %}
+                    <div class="info"><a href="{{ resource.url }}">Documentation</a></div>
+                {% endif %} 
+
+            {% endfor %}
+		</div>
+		<div class="span2 filter">
+			<h4>{% trans "Filter by Category" %}</h4>
+			<form id="category-form" action="." method="POST">
+				{% csrf_token %}
+				<p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All" %}</p>
+				{% for cat in categories %}
+				<p><input type="checkbox" class="category" id="{{ cat }}" name="{{ cat }}" value="{{ cat }}" /> {{ cat }}</p>
+				{% endfor %}
+				<input type='hidden' id='categories' name='categories' value='' />
+				<input type="submit" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
+			</form>
+		</div>
+	</div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+{% endblock %}
+{% block extra_body %}
+	{{ block.super }}
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#inventory').addClass('active');
+
+		var selectedCats = "{{ selected_cats }}";
+
+		$('.category').each(function()
+		{
+			var cat = $(this)[0];
+            if (selectedCats.indexOf(cat.name) > -1)
+			{
+				$(this).prop('checked', true);
+			}
+		});
+
+		$('.category').click(function() 
+		{
+			var checkedCats = [];
+			var checkedBox = $(this)[0];
+			var allBox = $('#all')[0];
+			if (checkedBox == allBox)
+			{
+				$('.category').each(function()
+				{
+		            $(this).prop('checked', false);
+				});
+				$('#all').prop('checked', true);
+				checkedCats.push('all');
+			}
+			else
+			{
+				$('#all').prop('checked', false);
+				$('.category').each(function()
+				{
+					var cat = $(this)[0];
+		            if (cat.checked)
+					{
+						checkedCats.push(cat.value);
+					}
+				});
+			}
+			$('#categories').prop('value', checkedCats);
+		});
+
+	}); // end document.ready
+
+    </script>
+{% endblock %}

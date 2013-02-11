@@ -183,6 +183,7 @@ class EconomicAgent(models.Model):
         default=Decimal("0.00"))
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
+    photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     slug = models.SlugField(_("Page name"), editable=False)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     
@@ -316,6 +317,7 @@ class EconomicResourceType(models.Model):
         verbose_name=_('unit'), related_name="resource_units")
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
+    photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     description = models.TextField(_('description'), blank=True, null=True)
     rate = models.DecimalField(_('rate'), max_digits=6, decimal_places=2, default=Decimal("0.00"))
@@ -477,6 +479,11 @@ class EconomicResourceType(models.Model):
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
         return EconomicResourceTypeForm(instance=self)
 
+    def resource_create_form(self):
+        from valuenetwork.valueaccounting.forms import EconomicResourceForm
+        init = {"unit_of_quantity": self.unit,}
+        return EconomicResourceForm(initial=init)
+
     def directional_unit(self, direction):
         answer = self.unit
         try:
@@ -545,7 +552,8 @@ class EconomicResource(models.Model):
     notes = models.TextField(_('notes'), blank=True, null=True)
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
-    created_date = models.DateField(_('created date'), default=datetime.date.today)
+    photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
+    created_date = models.DateField(_('created date'), auto_now_add=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='resources_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
@@ -564,7 +572,10 @@ class EconomicResource(models.Model):
             self.resource_type.name,
             id_str,
         ])
-    
+
+    def change_form(self):
+        from valuenetwork.valueaccounting.forms import EconomicResourceForm
+        return EconomicResourceForm(instance=self)
 
 
 DIRECTION_CHOICES = (
@@ -1547,6 +1558,19 @@ class Commitment(models.Model):
             events = self.fulfillment_events.filter(resource=resource)
             resource.fulfilled_quantity = sum(evt.quantity for evt in events)
         return resources
+
+    def is_resourceful(self):
+        return self.event_type.resource_effect == "+"
+
+    def output_resource(self):
+        #todo: this is a hack, cd be several resources
+        answer = None
+        if self.relationship.direction == "out":
+            events = self.fulfilling_events()
+            if events:
+                event = events[0]
+                answer = event.resource
+        return answer
 
 
 class Reciprocity(models.Model):

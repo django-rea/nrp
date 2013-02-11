@@ -9,6 +9,18 @@ from valuenetwork.valueaccounting.models import *
 
 from valuenetwork.valueaccounting.widgets import DurationWidget, DecimalDurationWidget
 
+
+class EconomicResourceForm(forms.ModelForm):
+    url = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    photo_url = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    quantity = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-small',}))
+    quality = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-small',}))
+
+    class Meta:
+        model = EconomicResource
+        exclude = ('resource_type', 'author', 'owner', 'custodian', 'photo')
+
+
 class FailedOutputForm(forms.ModelForm):
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'failed-quantity input-small',}))
     description = forms.CharField(

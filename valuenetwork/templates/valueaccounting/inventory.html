@@ -56,6 +56,8 @@ li {
                     <div class="rtype">  {{ resource.resource_type.name }} 
 			        {% if resource.resource_type.photo %}
 			        	<img src="{% thumbnail resource.resource_type.photo photo_size %}" />
+		        	{% elif resource.resource_type.photo_url %}
+		        	    <img src="{{ resource.resource_type.photo_url }}" width="128" height="96" />
 			        {% endif %}
                     </div>
                 {% endifchanged %}
@@ -67,6 +69,8 @@ li {
                     {% endif %} 
 		        {% if resource.photo %}
 		        	<img src="{% thumbnail resource.photo photo_size %}" />
+	        	{% elif resource.photo_url %}
+		        	<img src="{{ resource.photo_url }}" width="128" height="96" />
 		        {% endif %}
                 </div>
                 <div class="info"> {{ resource.quantity }} {{ resource.unit_of_quantity }} </div>

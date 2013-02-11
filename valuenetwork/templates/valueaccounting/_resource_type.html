@@ -4,6 +4,8 @@
 
 		{% if resource_type.photo %}
 			<img src="{% thumbnail resource_type.photo photo_size %}" />
+		{% elif resource_type.photo_url %}
+    	    <img src="{{ resource_type.photo_url }}" width="128" height="96" />
 		{% endif %}
 
 		{% if user.is_authenticated %}

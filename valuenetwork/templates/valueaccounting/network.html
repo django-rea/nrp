@@ -17,7 +17,9 @@
 	<div>
 		<h1>{% trans "Value Network for " %} {{ resource_type }}
 			{% if resource_type.photo %}
-			<img src="{% thumbnail resource_type.photo photo_size %}" />
+			    <img src="{% thumbnail resource_type.photo photo_size %}" />
+		    {% elif resource_type.photo_url %}
+        	    <img src="{{ resource_type.photo_url }}" width="128" height="96" />
 			{% endif %}
 		</h1>
 		<div>

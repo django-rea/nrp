@@ -28,6 +28,7 @@ from valuenetwork.valueaccounting.forms import *
 from valuenetwork.valueaccounting.utils import *
 
 def get_agent(request):
+    #import pdb; pdb.set_trace()
     nick = request.user.username
     if nick:
         try:
@@ -328,7 +329,7 @@ def edit_extended_bill(request, resource_type_id):
 
 @login_required
 def change_resource_type(request, resource_type_id):
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
         form = EconomicResourceTypeForm(request.POST, request.FILES, instance=rt)
@@ -1333,6 +1334,54 @@ def production_event_for_commitment(request):
 
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
+
+def resource_event_for_commitment(request, commitment_id):
+    #import pdb; pdb.set_trace()
+    id = request.POST.get("itemId")
+    ct = get_object_or_404(Commitment, pk=id)
+    event = None
+    events = ct.fulfillment_events.all()
+    if events:
+        event = events[events.count() - 1]
+        form = EconomicResourceForm(request.POST, instance=event.resource)
+    else:
+        form = EconomicResourceForm(request.POST)
+    if form.is_valid():
+        today = datetime.date.today()
+        resource_data = form.cleaned_data
+        agent = get_agent(request)
+        if event:
+            resource = form.save(commit=False)
+            if event.quantity != resource.quantity:
+                event.quantity = resource.quantity
+                event.changed_by = request.user
+                event.save()
+            resource.changed_by=request.user
+            resource.save()
+        else:
+            resource = form.save(commit=False)
+            resource_type = ct.resource_type
+            created_date = today
+            created_by=request.user
+            resource.save()
+            event = EconomicEvent(
+                resource = resource,
+                commitment = ct,
+                event_date = today,
+                event_type = ct.event_type,
+                from_agent = agent,
+                resource_type = ct.resource_type,
+                process = ct.process,
+                project = ct.project,
+                quantity = quantity,
+                unit_of_quantity = ct.unit_of_quantity,
+                created_by = request.user,
+                changed_by = request.user,
+            )
+            event.save()
+        data = unicode(resource.quantity)
+        return HttpResponse(data, mimetype="text/plain")
+
 
 #todo: how to handle splits?
 def consumption_event_for_commitment(request):

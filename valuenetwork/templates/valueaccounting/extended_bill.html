@@ -95,6 +95,8 @@ ul {
 				{% endif %}
 				{% if resource_type.photo %}
 					<img src="{% thumbnail resource_type.photo big_photo_size %}" />
+				{% elif resource_type.photo_url %}
+	        	    <img src="{{ resource_type.photo_url }}" width="200" height="128" />
 				{% endif %}
 			</h4>
 			{% if resource_type.description %}
@@ -128,6 +130,8 @@ ul {
 
 					{% if node.xbill_object.photo %}
 						<img src="{% thumbnail node.xbill_object.photo photo_size %}" />
+					{% elif node.xbill_object.photo_url %}
+		        	    <img src="{{ node.xbill_object.photo_url }}" width="128" height="96" />
 					{% endif %}
 
 					{% if node.xbill_object.description %}

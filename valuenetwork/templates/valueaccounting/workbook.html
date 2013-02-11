@@ -34,6 +34,21 @@
   height: 200px;
 }
 
+#detailModal .modal-body {
+    width: 600px;
+	max-height: 400px;
+}
+
+#detailModal {
+    width: 600px;
+	margin: -400px 0 0 -280px;
+}
+
+#detailModal textarea {
+  width: 90%;
+  height: 200px;
+}
+
 #saving {
 	color: green;
 }
@@ -88,49 +103,91 @@
 							<li>
 								<b>{{ item.resource_type.name }}:</b> {% trans "Planned" %}: {{ item.quantity }} {{ item.unit_of_quantity }}</br>
 								{% trans "Actual" %}: <input class="input-mini quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" />
-								<div style="display: inline;" >
-									&nbsp;&nbsp; 
-									<a href="#detailForm" role="button" class="btn btn-info" data-toggle="modal">{% trans "Details" %}</a>
-								</div>
+								{% if item.is_resourceful %}
+								    <div style="display: inline;" >
+									    &nbsp;&nbsp; 
+									    <a href="#detailModal" role="button" class="btn btn-info" data-toggle="modal">{% trans "Details" %}</a>
+								    </div>
+								{% endif %}
 								<div style="" >
 									<a href="#failureForm" role="button" class="btn btn-warning" data-toggle="modal">{% trans "Failed" %}</a>
 								</div>
+								
 								{% if process.failed_outputs %}
 									<div id="failDiv" style="margin-left: 1em;" >
 								{% else %}
 									<div id="failDiv" style="margin-left: 1em; display: none;" >
 								{% endif %}
 								{% trans "Failures" %}: <span id="failures">{{ process.failed_output_qty }}</span></div>
-								<div class="modal hide fade" id="failureForm" tabindex="-1" role="dialog" aria-labelledby="failure-label" aria-hidden="true">
-									<div class="modal-header">
-										<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-										<h3 id="failure-label">{% trans "Failed" %} {{ item.resource_type.name }}</h3>
-									</div>
-									<div class="modal-body">
-										<form class="failure-form" id="failForm" action="{% url failed_outputs commitment_id=item.id %}" method="POST" >
-											{% csrf_token %}
-											{{ failure_form|as_bootstrap }}
-											<input type="hidden" name="next" value="{% url work_commitment commitment_id=commitment.id %}" />
-										  <div class="modal-footer">
-											<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-											<button class="btn btn-primary">{% trans "Save changes" %}</button>
-										  </div>
-
-
-										</form>
-								  </div>
-
-
-
+								
 
 							</li>
+
+							{% with item.output_resource as resource %}
+							    <div class="modal hide fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detail-label" aria-hidden="true">
+						            <div class="modal-header">
+							            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+							            {% if resource %}
+							                <h3 id="detail-label">{% trans "Change details for" %} {{ resource }}</h3>
+						                {% else %}
+							                <h3 id="detail-label">{% trans "Create new " %} {{ item.resource_type.name }}</h3>
+						                {% endif %}
+						                
+						            </div>
+						            <div class="modal-body">
+							            <form class="detail-form" enctype="multipart/form-data" id="detailForm" action="{% url resource_event_for_commitment commitment_id=item.id %}" method="POST" >
+								            {% csrf_token %}
+
+								            {% if resource %}
+							                    {{ resource.change_form|as_bootstrap }}
+						                    {% else %}
+							                    {{ item.resource_type.resource_create_form|as_bootstrap }}
+						                    {% endif %}
+
+                                        	<input type="hidden" name="itemId" value="{{ item.id }}" />					            
+								            <input type="hidden" name="next" value="{% url work_commitment commitment_id=commitment.id %}" />
+							              <div class="modal-footer">
+								            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+								            <button class="btn btn-primary">{% trans "Save changes" %}</button>
+							              </div>
+
+
+							            </form>
+                                    </div>
+                                </div>
+                            {% endwith %}
+
+                            <div class="modal hide fade" id="failureForm" tabindex="-1" role="dialog" aria-labelledby="failure-label" aria-hidden="true">
+						        <div class="modal-header">
+							        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							        <h3 id="failure-label">{% trans "Failed" %} {{ item.resource_type.name }}</h3>
+						        </div>
+						        <div class="modal-body">
+							        <form class="failure-form" id="failForm" action="{% url failed_outputs commitment_id=item.id %}" method="POST" >
+								        {% csrf_token %}
+								        {{ failure_form|as_bootstrap }}
+								        <input type="hidden" name="next" value="{% url work_commitment commitment_id=commitment.id %}" />
+							          <div class="modal-footer">
+								        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+								        <button class="btn btn-primary">{% trans "Save changes" %}</button>
+							          </div>
+
+
+							        </form>
+                                </div>
+                            </div>
+                    
 						{% endfor %}
 					</ul>
+							  
 				{% if process.material_requirements %}
 					<div>
 						<h4>{% trans "Material requirements" %}:</h4>
 						{% for item in process.material_requirements %}
 						<ul>
+						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
+							<ul>
 							{% if item.onhand %}
 								{% for resource in item.onhand_with_fulfilled_quantity %}
 									<li>
@@ -157,7 +214,8 @@
 									{% endfor %}
 								</ul>
 							{% endif %}
-
+							
+							</ul>
 						</ul>
 						{% endfor %}
 						
@@ -294,6 +352,7 @@
     var inputsSaved = true;
     var timeInputsSaved = true;
     var failSaved = true;
+    var resourceSaved = true;
 
 	$(document).ready(function(){
 
@@ -388,6 +447,19 @@
 
 			var formData = $form.serialize();
 			saveFail(qty, url, formData);
+
+		});
+
+		$("#detailForm").submit(function(event) {
+		
+		    event.preventDefault();
+
+			var $form = $( this ),
+			    qtyInputId = $form.find( 'input[name="itemId"]' ).val(),
+				url = $form.attr( 'action' );
+
+			var formData = $form.serialize();
+			saveResource(url, qtyInputId, formData); 
 
 		});
 
@@ -643,7 +715,16 @@
 
 		}
 
-		if (contributionSaved && outputsSaved && inputsSaved && failSaved)
+		if (!resourceSaved)
+		{
+			var $form = $("#detailForm");
+			var qtyInputId = $form.find( 'input[name="itemId"]' ).val();
+			var url = $form.attr( 'action' );
+			var formData = $form.serialize();
+			saveResource(url, qtyInputId, formData);
+		}
+
+		if (contributionSaved && outputsSaved && inputsSaved && failSaved && resourceSaved)
 		{
 			if (retrying)
 			{
@@ -688,6 +769,28 @@
 				$('#failureForm').modal('hide');
 				notifyProblem(); 
 				failSaved = false;
+				startRetrying();
+			}
+		);
+
+	}
+
+	function saveResource(url, qtyInputId, formData)
+	{
+		notifySaving();
+		var qtyInputId = "#" + qtyInputId;
+		var jqxhr = $.post( url, formData,
+			function( data ) {
+				$('#detailModal').modal('hide');
+				notifySaved();
+				resourceSaved = true;
+				$(qtyInputId)[0].value = data;
+			})
+			.fail(function() 
+			{ 
+				$('#detailModal').modal('hide');
+				notifyProblem(); 
+				resourceSaved = false;
 				startRetrying();
 			}
 		);

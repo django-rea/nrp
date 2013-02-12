@@ -128,11 +128,7 @@
 						            <div class="modal-header">
 							            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 
-							            {% if resource %}
-							                <h3 id="detail-label">{% trans "Change details for" %} {{ resource }}</h3>
-						                {% else %}
-							                <h3 id="detail-label">{% trans "Create new " %} {{ item.resource_type.name }}</h3>
-						                {% endif %}
+						                <h3 id="detail-label">{% trans "Details for " %} {{ item.resource_type.name }}</h3>
 						                
 						            </div>
 						            <div class="modal-body">
@@ -791,7 +787,7 @@
 				$('#detailModal').modal('hide');
 				notifyProblem(); 
 				resourceSaved = false;
-				startRetrying();
+				//startRetrying();
 			}
 		);
 
@@ -800,11 +796,14 @@
 	function saveOutput(id, quantity)
 	{
 		notifySaving();
+		var $form = $("#detailForm");
+		var detailQtyId = "#" + $form.find( 'input[name="quantity"]' ).attr('id');
 		var jqxhr = $.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity },
 			function( data ) 
 			{
 				notifySaved();
 				outputsSaved = true;
+				$(detailQtyId)[0].value = quantity;
 			})
 			.fail(function() 
 			{ 

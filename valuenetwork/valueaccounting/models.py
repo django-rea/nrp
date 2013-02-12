@@ -548,7 +548,8 @@ class EconomicResource(models.Model):
         default=Decimal("1.00"))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of quantity'), related_name="resource_qty_units")
-    quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, default=Decimal("0"))
+    quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, 
+        default=Decimal("0"), blank=True, null=True)
     notes = models.TextField(_('notes'), blank=True, null=True)
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)

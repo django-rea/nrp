@@ -1126,38 +1126,51 @@ def commit_to_task(request, commitment_id):
         next = request.POST.get("next")
         return HttpResponseRedirect(next)
 
-def work_commitment(request, commitment_id):
-    ct = get_object_or_404(Commitment, id=commitment_id)
-    #import pdb; pdb.set_trace()
+def create_labnotes_context(request, commitment, was_running=False):
     event = None
     duration = 0
     description = ""
     prev = ""
     today = datetime.date.today()
-    events = ct.fulfillment_events.filter(event_date=today)
+    events = commitment.fulfillment_events.filter(event_date=today)
     if events:
         event = events[events.count() - 1]
         wb_form = WorkbookForm(instance=event, data=request.POST or None)
         duration = event.quantity * 60
-        prev_events = ct.fulfillment_events.filter(event_date__lt=today)
+        prev_events = commitment.fulfillment_events.filter(event_date__lt=today)
         if prev_events:
             prev_dur = sum(prev.quantity for prev in prev_events)
             unit = ""
-            if ct.unit_of_quantity:
-                unit = ct.unit_of_quantity.name
+            if commitment.unit_of_quantity:
+                unit = commitment.unit_of_quantity.name
             prev = " ".join([str(prev_dur), unit])
     else:
-        init = {"description": ct.description,}
+        init = {"description": commitment.description,}
         wb_form = WorkbookForm(initial=init, data=request.POST or None)
     others_working = []
     #import pdb; pdb.set_trace()
-    wrqs = ct.process.work_requirements()
+    wrqs = commitment.process.work_requirements()
     if wrqs.count() > 1:
         for wrq in wrqs:
-            if wrq.from_agent != ct.from_agent:
+            if wrq.from_agent != commitment.from_agent:
                 wrq.has_labnotes = wrq.agent_has_labnotes(wrq.from_agent)
                 others_working.append(wrq)
     failure_form = FailedOutputForm()
+    return {
+        "commitment": commitment,
+        "process": commitment.process,
+        "wb_form": wb_form,
+        "others_working": others_working,
+        "today": today,
+        "failure_form": failure_form,
+        "duration": duration,
+        "prev": prev,
+    }
+
+
+def work_commitment(request, commitment_id):
+    ct = get_object_or_404(Commitment, id=commitment_id)
+    template_params = create_labnotes_context(request, ct)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if wb_form.is_valid():
@@ -1191,17 +1204,9 @@ def work_commitment(request, commitment_id):
                 ct.save()
             return HttpResponseRedirect('/%s/'
                 % ('accounting/work'))
-    return render_to_response("valueaccounting/workbook.html", {
-        "commitment": ct,
-        "process": ct.process,
-        "wb_form": wb_form,
-        "others_working": others_working,
-        "today": today,
-        "failure_form": failure_form,
-        "duration": duration,
-        "prev": prev,
-        #"description": description,
-    }, context_instance=RequestContext(request))
+    return render_to_response("valueaccounting/workbook.html",
+        template_params,
+        context_instance=RequestContext(request))
 
 
 @login_required

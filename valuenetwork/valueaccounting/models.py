@@ -285,13 +285,21 @@ class EconomicResourceTypeManager(models.Manager):
     def types_of_work(self):
         return EconomicResourceType.objects.filter(materiality="work")
 
+    def output_choices(self):
+        rels = ResourceRelationship.objects.filter(direction="out", related_to="process")
+        return [rel.materiality for rel in rels]
+
+    def input_choices(self):
+        rels = ResourceRelationship.objects.filter(direction="in", related_to="process")
+        return [rel.materiality for rel in rels]
+
     def process_inputs(self):
-        ert_ids = [ert.id for ert in EconomicResourceType.objects.all() if ert.is_process_input()]
-        return EconomicResourceType.objects.filter(id__in=ert_ids)
+        choices = self.input_choices()
+        return EconomicResourceType.objects.filter(materiality__in=choices)
 
     def process_outputs(self):
-        ert_ids = [ert.id for ert in EconomicResourceType.objects.all() if ert.is_process_output()]
-        return EconomicResourceType.objects.filter(id__in=ert_ids)
+        choices = self.output_choices()
+        return EconomicResourceType.objects.filter(materiality__in=choices)
 
     def agent_outputs(self):
         ert_ids = [ert.id for ert in EconomicResourceType.objects.all() if ert.is_agent_output()]

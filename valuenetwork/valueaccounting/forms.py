@@ -71,17 +71,9 @@ class ProcessForm(forms.ModelForm):
 class ProcessInputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.process_inputs(), 
-        #empty_label=None, 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector'}))
-    #event_type = forms.ModelChoiceField(
-    #    queryset=EventType.objects.exclude(resource_effect='+'), 
-    #    empty_label=None)
-    #relationship = forms.ModelChoiceField(
-    #    queryset=ResourceRelationship.objects.exclude(direction='out'), 
-    #    empty_label=None,
-    #    widget=forms.Select(attrs={'class': 'input-small',}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -94,25 +86,15 @@ class ProcessInputForm(forms.ModelForm):
 
     class Meta:
         model = Commitment
-        #fields = ('resource_type', 'event_type', 'relationship', 'quantity', 'unit_of_quantity', 'description')
         fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
 
 
 class ProcessOutputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.all(),
-        #queryset=EconomicResourceType.objects.process_outputs(), 
-        #empty_label=None, 
+        queryset=EconomicResourceType.objects.process_outputs(), 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector'}))
-    #event_type = forms.ModelChoiceField(
-    #    queryset=EventType.objects.filter(resource_effect='+'), 
-    #    empty_label=None)
-    #relationship = forms.ModelChoiceField(
-    #    queryset=ResourceRelationship.objects.exclude(direction='in'), 
-    #    empty_label=None,
-    #    widget=forms.Select(attrs={'class': 'input-small',}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity  input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -125,7 +107,6 @@ class ProcessOutputForm(forms.ModelForm):
 
     class Meta:
         model = Commitment
-        #fields = ('resource_type', 'event_type', 'relationship', 'quantity', 'unit_of_quantity', 'description')
         fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
 
 
@@ -219,9 +200,7 @@ class AgentResourceTypeForm(forms.ModelForm):
         self.fields["agent"].choices = [
             (agt.id, agt.name) for agt in EconomicAgent.objects.all()
         ]
-        #self.fields["relationship"].choices = [
-        #    (rel.id, rel.name) for rel in ResourceRelationship.objects.filter(direction='out')
-        #]
+
 
     class Meta:
         model = AgentResourceType
@@ -262,10 +241,6 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
         widget=SelectWithPopUp(
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector'}))
-    #relationship = forms.ModelChoiceField(
-    #    queryset=ResourceRelationship.objects.exclude(direction='out'), 
-    #    empty_label=None, 
-    #    widget=SelectWithPopUp(model=ResourceRelationship))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     unit_of_quantity = forms.ModelChoiceField(

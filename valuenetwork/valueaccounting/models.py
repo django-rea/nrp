@@ -487,10 +487,10 @@ class EconomicResourceType(models.Model):
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
         return EconomicResourceTypeForm(instance=self)
 
-    def resource_create_form(self):
+    def resource_create_form(self, prefix):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
         init = {"unit_of_quantity": self.unit,}
-        return EconomicResourceForm(initial=init)
+        return EconomicResourceForm(prefix=prefix, initial=init)
 
     def directional_unit(self, direction):
         answer = self.unit
@@ -582,9 +582,9 @@ class EconomicResource(models.Model):
             id_str,
         ])
 
-    def change_form(self):
+    def change_form(self, prefix):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
-        return EconomicResourceForm(instance=self)
+        return EconomicResourceForm(prefix=prefix, instance=self)
 
 
 DIRECTION_CHOICES = (
@@ -1530,6 +1530,17 @@ class Commitment(models.Model):
         return CommitmentForm(instance=self, prefix=prefix)
         return CommitmentForm(instance=self)
 
+    def resource_create_form(self):
+        return self.resource_type.resource_create_form(self.form_prefix)
+
+    def resource_change_form(self):
+        resource = self.output_resource()
+        if resource:
+            return resource.change_form(self.form_prefix())
+        else:
+            return self.resource_type.resource_create_form(self.form_prefix())
+        
+
     def fulfilling_events(self):
         return self.fulfillment_events.all()
 
@@ -1568,7 +1579,7 @@ class Commitment(models.Model):
             resource.fulfilled_quantity = sum(evt.quantity for evt in events)
         return resources
 
-    def is_resourceful(self):
+    def creates_resources(self):
         return self.event_type.resource_effect == "+"
 
     def output_resource(self):

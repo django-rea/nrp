@@ -1,5 +1,6 @@
 {% extends "site_base.html" %}
 
+{% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
 
@@ -29,22 +30,26 @@
 	margin: -400px 0 0 -280px;
 }
 
+#addOutputModal {
+	margin: -400px 0 0 -280px;
+}
+
 #failureForm textarea {
   width: 100%;
   height: 200px;
 }
 
-#detailModal .modal-body {
+.detailModal .modal-body {
     width: 95%;
 	max-height: 400px;
 }
 
-#detailModal {
+.detailModal {
     width: 600px;
 	margin: -400px 0 0 -280px;
 }
 
-#detailModal textarea {
+.detailModal textarea {
   width: 90%;
   height: 200px;
 }
@@ -84,29 +89,68 @@
 				</div>
 			</div>
 			<div class="span4">
-				<button role="button" id="start" name="start" class="btn btn-info" >{% trans "Start" %}</button>
-				<button role="button" id="stop" name="stop"  class="btn btn-info" disabled="disabled" >{% trans "Stop" %}</button>
-				<div class="control-group">
-					<label><b>{% trans "Time spent today" %}:</b></label>
-					{{ wb_form.quantity }}&nbsp;&nbsp;&nbsp;&nbsp;
-					{% if prev %}Previously: {{ prev }}{% endif %}
-					<span class="help-block">{{ wb_form.quantity.help_text }}</span>
+			    <div class="row-fluid">
+			        <div class="span12">
+				        <button role="button" id="start" name="start" class="btn btn-info" >{% trans "Start" %}</button>
+				        <button role="button" id="stop" name="stop"  class="btn btn-info" disabled="disabled" >{% trans "Stop" %}</button>
+				        <div class="control-group">
+					        <label><b>{% trans "Time spent today" %}:</b></label>
+					        {{ wb_form.quantity }}&nbsp;&nbsp;&nbsp;&nbsp;
+					        {% if prev %}Previously: {{ prev }}{% endif %}
+					        <span class="help-block">{{ wb_form.quantity.help_text }}</span>
+				        </div>
+				        {% comment %}
+				        <button class="btn btn-primary" type="submit">{% trans "Close" %}</button>
+                        {% endcomment %}
+
+				    </div>
+			    </div>
+            </form>
+                <div class="row-fluid">
+			        <div class="span12">
+			            <a href="#addOutputModal" role="button" class="btn" data-toggle="modal">{% trans "Add an output" %}</a>
+			            <a href="" role="button" class="btn" data-toggle="modal">{% trans "Add an input" %}</a>
+			            
+			            <div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
+				            <div class="modal-header">
+					            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+				                <h3 id="output-label">{% trans "Details for " %} {{ item.resource_type.name }}</h3>
+				                
+				            </div>
+				            <div class="modal-body">
+					            <form class="output-form" enctype="multipart/form-data" id="addOutputForm" action="{% url new_process_output commitment_id=commitment.id %}" method="POST" >
+						            {% csrf_token %}
+
+					                    {{ add_output_form|as_bootstrap }}
+
+                                	<input type='hidden' id='outputRunning' name='wasRunning' value='' />
+			                        <input type='hidden' id='outputRetrying' name='wasRetrying' value='' />
+					              <div class="modal-footer">
+						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						            <button class="btn btn-primary">{% trans "Add output" %}</button>
+					              </div>
+
+
+					            </form>
+                            </div>
+                        </div>
+
+				    </div>
 				</div>
-{% comment %}
-				<button class="btn btn-primary" type="submit">{% trans "Close" %}</button>
-{% endcomment %}
-			</form>
+
 				<div>
 					<h4>{% trans "Output" %}:</h4>
 					<ul>
 						{% for item in process.outgoing_commitments %}
+						    {% with item.output_resource as resource %}
 							<li>
 								<b>{{ item.resource_type.name }}:</b> {% trans "Planned" %}: {{ item.quantity }} {{ item.unit_of_quantity }}</br>
-								{% trans "Actual" %}: <input class="input-mini quantity" id="{{ item.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" />
-								{% if item.is_resourceful %}
+								{% trans "Actual" %}: <input class="input-mini output-quantity" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" />
+								{% if item.creates_resources %}
 								    <div style="display: inline;" >
 									    &nbsp;&nbsp; 
-									    <a href="#detailModal" role="button" class="btn btn-info" data-toggle="modal">{% trans "Details" %}</a>
+									    <a href="#detailModal{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">{% trans "Details" %}</a>
 								    </div>
 								{% endif %}
 								<div style="" >
@@ -123,8 +167,8 @@
 
 							</li>
 
-							{% with item.output_resource as resource %}
-							    <div class="modal hide fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detail-label" aria-hidden="true">
+							
+							    <div class="modal hide fade detailModal" id="detailModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="detail-label" aria-hidden="true">
 						            <div class="modal-header">
 							            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 
@@ -132,15 +176,22 @@
 						                
 						            </div>
 						            <div class="modal-body">
-							            <form class="detail-form" enctype="multipart/form-data" id="detailForm" action="{% url resource_event_for_commitment commitment_id=item.id %}" method="POST" >
+							            <form class="detail-form" enctype="multipart/form-data" id="detailForm{{ item.id }}" action="{% url resource_event_for_commitment commitment_id=item.id %}" method="POST" >
 								            {% csrf_token %}
-
+{% comment %}
 								            {% if resource %}
 							                    {{ resource.change_form|as_bootstrap }}
 						                    {% else %}
 							                    {{ item.resource_type.resource_create_form|as_bootstrap }}
 						                    {% endif %}
+{% endcomment %}
 
+								            {% if resource %}
+							                    {{ item.resource_change_form|as_bootstrap }}
+						                    {% else %}
+							                    {{ item.resource_create_form|as_bootstrap }}
+						                    {% endif %}
+						                    
                                         	<input type="hidden" name="itemId" value="{{ item.id }}" />					            
 								            <input type="hidden" name="next" value="{% url work_commitment commitment_id=commitment.id %}" />
 							              <div class="modal-footer">
@@ -152,7 +203,7 @@
 							            </form>
                                     </div>
                                 </div>
-                            {% endwith %}
+                            
 
                             <div class="modal hide fade" id="failureForm" tabindex="-1" role="dialog" aria-labelledby="failure-label" aria-hidden="true">
 						        <div class="modal-header">
@@ -173,6 +224,7 @@
 							        </form>
                                 </div>
                             </div>
+                            {% endwith %}
                     
 						{% endfor %}
 					</ul>
@@ -325,6 +377,7 @@
 {% block extra_script %}
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -332,6 +385,8 @@
 
     <script type="text/javascript">
 
+    var commitment_id = {{ commitment.id }};
+    var returnUrl = "{% url work_commitment commitment_id=commitment.id %}";
 	var start = new Date();
     var duration = {{ duration }};
     var description = "";
@@ -349,13 +404,47 @@
     var timeInputsSaved = true;
     var failSaved = true;
     var resourceSaved = true;
+    var wasRunning = {{ was_running }};
+    var wasRetrying = {{ was_retrying }};
+
 
 	$(document).ready(function(){
+
+
+	    $(".resource-type-selector").change(getUnit);
+
+		function getUnit(event)
+		{
+            var targetId = event.target.id;
+			if (targetId.search("output") >= 0)
+			{
+				direction = "out";
+			}
+			else
+			{
+				direction = "in";
+			}
+			//var prefix = targetId.split('-')[0] + '-' + targetId.split('-')[1];
+			var prefix = targetId.split('-')[0];
+			var resourceId = event.target.value;
+			var unitName = "#" + prefix + "-unit_of_quantity";
+			var jsonUrl = encodeURI("/accounting/json-directional-unit/" + resourceId + "/" + direction + "/");
+			$.get(jsonUrl,
+				function(data){
+					var unit = data["unit"];
+                    $(unitName).val(unit);
+				});
+		}
 
 		description = $("#id_description").val();
 		daysValue = parseInt($("#id_quantity_0").val());
 		hoursValue = parseInt($("#id_quantity_1").val());
 		minutesValue = parseInt($("#id_quantity_2").val());
+
+	    if (wasRunning)
+        {
+            startTimer();
+        }
 
 		$("#id_description").blur(function() 
 		{
@@ -446,28 +535,23 @@
 
 		});
 
-		$("#detailForm").submit(function(event) {
+        {% for item in process.outgoing_commitments %}
+		    $("#detailForm{{ item.id }}").submit(function(event) {
 		
-		    event.preventDefault();
+		        event.preventDefault();
+                var itemId = {{ item.id }};
+			    var $form = $( this ),
+			        qtyInputId = $form.find( 'input[name="itemId"]' ).val(),
+				    url = $form.attr( 'action' );
 
-			var $form = $( this ),
-			    qtyInputId = $form.find( 'input[name="itemId"]' ).val(),
-				url = $form.attr( 'action' );
+			    var formData = $form.serialize();
+			    saveResource(url, itemId, qtyInputId, formData); 
 
-			var formData = $form.serialize();
-			saveResource(url, qtyInputId, formData); 
-
-		});
-
+		    });
+        {% endfor %}
 
 		$("#start").click(function(event) {
-            event.preventDefault();
-            start = new Date();
-			running = true;
-			// updateTime every minute
-            runTimer = setInterval(updateTime, 60 * 1000);
-			$("#start").attr("disabled", "disabled");
-			$("#stop").removeAttr("disabled");  
+            startTimer();  
 		});
 
 		$("#stop").click(function(event) {
@@ -487,10 +571,35 @@
 			saveContribution();
 		});
 
+        $("#addOutputForm").submit(function(event) {
+            //event.preventDefault();
+            if(running)
+            {
+                $('#outputRunning').prop('value', 1);
+            }
+            else
+            {
+                $('#outputRunning').prop('value', 0);
+            }
+            if (retrying)
+            {
+                $('#outputRetrying').prop('value', 1);
+            }
+            {
+                $('#outputRetrying').prop('value', 0);
+            }
+            return true;
+		});
 
-		$(".quantity").blur(function() 
+        $("#addInput").click(function(event) {
+            event.preventDefault();
+		});
+
+		$(".output-quantity").blur(function() 
 		{
 			var quantity = this.value;
+			var id = this.id;
+			var resourceId = this.name;
 			var wholeNbrs = quantity;
 			var decimals = "";
 			if (quantity.indexOf(".") > -1)
@@ -506,7 +615,7 @@
 				if (combined<=8 && decimals.length<=2)
 				{
 					var id = this.id;
-					saveOutput(id, quantity);
+					saveOutput(id, resourceId, quantity);
 				}
 				else
 				{
@@ -603,7 +712,18 @@
 			}
 		});
 
+	    function startTimer()
+        {
+            start = new Date();
+		    running = true;
+		    // updateTime every minute
+            runTimer = setInterval(updateTime, 60 * 1000);
+		    $("#start").attr("disabled", "disabled");
+		    $("#stop").removeAttr("disabled");
+        }
+
 	}); // end document.ready
+
 
 
 	function recomputeDuration()
@@ -674,10 +794,11 @@
 
 		if (!outputsSaved)
 		{
-			$(".quantity").each( function(){
+			$(".output-quantity").each( function(){
 				var id = this.id;
+				var resourceId = this.name;
 				var quantity = this.value;
-				saveOutput(id, quantity);
+				saveOutput(id, resourceId, quantity);
 			});
 		}
 
@@ -713,14 +834,23 @@
 
 		if (!resourceSaved)
 		{
-			var $form = $("#detailForm");
-			var qtyInputId = $form.find( 'input[name="itemId"]' ).val();
-			var url = $form.attr( 'action' );
-			var formData = $form.serialize();
-			saveResource(url, qtyInputId, formData);
+		    {% for item in process.outgoing_commitments %}	
+	            var $form = $("#detailForm{{ item.id }}");
+                var itemId = {{ item.id }};
+		        var qtyInputId = $form.find( 'input[name="itemId"]' ).val();
+			    var url = $form.attr( 'action' );
+
+		        var formData = $form.serialize();
+		        saveResource(url, itemId, qtyInputId, formData); 
+            {% endfor %}
 		}
 
-		if (contributionSaved && outputsSaved && inputsSaved && failSaved && resourceSaved)
+		if (contributionSaved 
+		        && outputsSaved 
+	            && inputsSaved 
+	            && failSaved 
+	            && resourceSaved
+	        )
 		{
 			if (retrying)
 			{
@@ -771,20 +901,21 @@
 
 	}
 
-	function saveResource(url, qtyInputId, formData)
+	function saveResource(url, itemId, qtyInputId, formData)
 	{
 		notifySaving();
 		var qtyInputId = "#" + qtyInputId;
+		var modalID = "#detailModal" + itemId;
 		var jqxhr = $.post( url, formData,
 			function( data ) {
-				$('#detailModal').modal('hide');
+				$(modalID).modal('hide');
 				notifySaved();
 				resourceSaved = true;
 				$(qtyInputId)[0].value = data;
 			})
 			.fail(function() 
 			{ 
-				$('#detailModal').modal('hide');
+				$(modalID).modal('hide');
 				notifyProblem(); 
 				resourceSaved = false;
 				startRetrying();
@@ -793,11 +924,13 @@
 
 	}
 
-	function saveOutput(id, quantity)
+	function saveOutput(id, resourceId, quantity)
 	{
 		notifySaving();
-		var $form = $("#detailForm");
-		var detailQtyId = "#" + $form.find( 'input[name="quantity"]' ).attr('id');
+		var formId = "#detailForm" + id;
+		var $form = $(formId);
+		var detailQtyId = $form.find( 'input[name*="quantity"]' ).attr('id');
+		detailQtyId = "#" + detailQtyId;
 		var jqxhr = $.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity },
 			function( data ) 
 			{

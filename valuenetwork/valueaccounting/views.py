@@ -1126,7 +1126,11 @@ def commit_to_task(request, commitment_id):
         next = request.POST.get("next")
         return HttpResponseRedirect(next)
 
-def create_labnotes_context(request, commitment, was_running=False):
+def create_labnotes_context(
+        request, 
+        commitment, 
+        was_running=0,
+        was_retrying=0):
     event = None
     duration = 0
     description = ""
@@ -1135,7 +1139,7 @@ def create_labnotes_context(request, commitment, was_running=False):
     events = commitment.fulfillment_events.filter(event_date=today)
     if events:
         event = events[events.count() - 1]
-        wb_form = WorkbookForm(instance=event, data=request.POST or None)
+        wb_form = WorkbookForm(instance=event)
         duration = event.quantity * 60
         prev_events = commitment.fulfillment_events.filter(event_date__lt=today)
         if prev_events:
@@ -1146,7 +1150,7 @@ def create_labnotes_context(request, commitment, was_running=False):
             prev = " ".join([str(prev_dur), unit])
     else:
         init = {"description": commitment.description,}
-        wb_form = WorkbookForm(initial=init, data=request.POST or None)
+        wb_form = WorkbookForm(initial=init)
     others_working = []
     #import pdb; pdb.set_trace()
     wrqs = commitment.process.work_requirements()
@@ -1156,6 +1160,7 @@ def create_labnotes_context(request, commitment, was_running=False):
                 wrq.has_labnotes = wrq.agent_has_labnotes(wrq.from_agent)
                 others_working.append(wrq)
     failure_form = FailedOutputForm()
+    add_output_form = ProcessOutputForm(prefix='output')
     return {
         "commitment": commitment,
         "process": commitment.process,
@@ -1163,16 +1168,75 @@ def create_labnotes_context(request, commitment, was_running=False):
         "others_working": others_working,
         "today": today,
         "failure_form": failure_form,
+        "add_output_form": add_output_form,
         "duration": duration,
         "prev": prev,
+        "was_running": was_running,
+        "was_retrying": was_retrying,
+        "event": event,
     }
 
+def new_process_output(request, commitment_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    process = commitment.process
+    was_running = request.POST["wasRunning"]
+    was_retrying = request.POST["wasRetrying"]
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        form = ProcessOutputForm(request.POST)
+        if form.is_valid():
+            output_data = form.cleaned_data
+            qty = output_data["quantity"]
+            if qty:
+                ct = form.save(commit=False)
+                rt = output_data["resource_type"]
+                rel = ResourceRelationship.objects.get(
+                    materiality=rt.materiality,
+                    related_to="process",
+                    direction="out")
+                ct.relationship = rel
+                ct.event_type = rel.event_type
+                ct.process = process
+                ct.project = process.project
+                ct.independent_demand = commitment.independent_demand
+                ct.due_date = process.end_date
+                ct.created_by = request.user
+                ct.save()
+    return HttpResponseRedirect('/%s/%s/%s/%s/'
+        % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
-def work_commitment(request, commitment_id):
+
+def labnotes_reload(
+        request, 
+        commitment_id, 
+        was_running=0,
+        was_retrying=0):
     ct = get_object_or_404(Commitment, id=commitment_id)
-    template_params = create_labnotes_context(request, ct)
+    #import pdb; pdb.set_trace()
+    template_params = create_labnotes_context(
+        request, 
+        ct, 
+        was_running,
+        was_retrying,
+    )
+    return render_to_response("valueaccounting/workbook.html",
+        template_params,
+        context_instance=RequestContext(request))
+
+def work_commitment(
+        request, 
+        commitment_id):
+    ct = get_object_or_404(Commitment, id=commitment_id)
+    #import pdb; pdb.set_trace()
+    template_params = create_labnotes_context(
+        request, 
+        ct, 
+    )
+    event = template_params["event"]
     if request.method == "POST":
         #import pdb; pdb.set_trace()
+        today = datetime.date.today()
+        wb_form = WorkbookForm(request.POST)
         if wb_form.is_valid():
             data = wb_form.cleaned_data
             if event:
@@ -1292,6 +1356,7 @@ def labnote(request, commitment_id):
 
 def production_event_for_commitment(request):
     id = request.POST.get("id")
+    #import pdb; pdb.set_trace()
     quantity = request.POST.get("quantity")
     ct = get_object_or_404(Commitment, pk=id)
     agent = get_agent(request)
@@ -1341,22 +1406,19 @@ def production_event_for_commitment(request):
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
 
-#import sys
-
 def resource_event_for_commitment(request, commitment_id):
-    #import pdb; pdb.set_trace()
     id = request.POST.get("itemId")
-    ct = get_object_or_404(Commitment, pk=id)
     #import pdb; pdb.set_trace()
+    ct = get_object_or_404(Commitment, pk=id)
     event = None
     events = ct.fulfillment_events.all()
+    prefix = ct.form_prefix()
     if events:
         event = events[events.count() - 1]
-        form = EconomicResourceForm(request.POST, instance=event.resource)
+        form = EconomicResourceForm(prefix=prefix, data=request.POST, instance=event.resource)
     else:
-        form = EconomicResourceForm(request.POST)
+        form = EconomicResourceForm(prefix=prefix, data=request.POST)
     if form.is_valid():
-        #import pdb; pdb.set_trace()
         today = datetime.date.today()
         resource_data = form.cleaned_data
         agent = get_agent(request)
@@ -1397,6 +1459,7 @@ def consumption_event_for_commitment(request):
     id = request.POST.get("id")
     resource_id = request.POST.get("resourceId")
     quantity = request.POST.get("quantity")
+    #import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     agent = get_agent(request)
@@ -1446,6 +1509,7 @@ def time_use_event_for_commitment(request):
     id = request.POST.get("id")
     resource_id = request.POST.get("resourceId")
     quantity = request.POST.get("quantity")
+    #import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     agent = get_agent(request)

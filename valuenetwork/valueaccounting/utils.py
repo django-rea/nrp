@@ -87,10 +87,13 @@ class TimelineEvent(object):
          self.description = description
 
     def dictify(self):
+        descrip = ""
+        if self.description:
+            descrip = self.description
         d = {
             "start": self.start.strftime("%b %e %Y 00:00:00 GMT-0600"),
             "title": self.title,
-            "description": linebreaks(self.description),
+            "description": linebreaks(descrip),
         }
         if self.end:
             d["end"] = self.end.strftime("%b %e %Y 00:00:00 GMT-0600")

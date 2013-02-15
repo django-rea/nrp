@@ -34,6 +34,10 @@
 	margin: -400px 0 0 -280px;
 }
 
+#addInputModal {
+	margin: -400px 0 0 -280px;
+}
+
 #failureForm textarea {
   width: 100%;
   height: 200px;
@@ -109,13 +113,13 @@
                 <div class="row-fluid">
 			        <div class="span12">
 			            <a href="#addOutputModal" role="button" class="btn" data-toggle="modal">{% trans "Add an output" %}</a>
-			            <a href="" role="button" class="btn" data-toggle="modal">{% trans "Add an input" %}</a>
+			            <a href="#addInputModal" role="button" class="btn" data-toggle="modal">{% trans "Add an input" %}</a>
 			            
 			            <div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
 				            <div class="modal-header">
 					            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 
-				                <h3 id="output-label">{% trans "Details for " %} {{ item.resource_type.name }}</h3>
+				                <h3 id="output-label">{% trans "Add an output" %}</h3>
 				                
 				            </div>
 				            <div class="modal-body">
@@ -129,6 +133,31 @@
 					              <div class="modal-footer">
 						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						            <button class="btn btn-primary">{% trans "Add output" %}</button>
+					              </div>
+
+
+					            </form>
+                            </div>
+                        </div>
+
+                        <div class="modal hide fade" id="addInputModal" tabindex="-1" role="dialog" aria-labelledby="input-label" aria-hidden="true">
+				            <div class="modal-header">
+					            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+				                <h3 id="output-label">{% trans "Add an input" %}</h3>
+				                
+				            </div>
+				            <div class="modal-body">
+					            <form class="input-form" enctype="multipart/form-data" id="addInputForm" action="{% url new_process_input commitment_id=commitment.id %}" method="POST" >
+						            {% csrf_token %}
+
+					                    {{ add_input_form|as_bootstrap }}
+
+                                	<input type='hidden' id='inputRunning' name='wasRunning' value='' />
+			                        <input type='hidden' id='inputRetrying' name='wasRetrying' value='' />
+					              <div class="modal-footer">
+						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						            <button class="btn btn-primary">{% trans "Add input" %}</button>
 					              </div>
 
 
@@ -424,7 +453,6 @@
 			{
 				direction = "in";
 			}
-			//var prefix = targetId.split('-')[0] + '-' + targetId.split('-')[1];
 			var prefix = targetId.split('-')[0];
 			var resourceId = event.target.value;
 			var unitName = "#" + prefix + "-unit_of_quantity";
@@ -572,7 +600,6 @@
 		});
 
         $("#addOutputForm").submit(function(event) {
-            //event.preventDefault();
             if(running)
             {
                 $('#outputRunning').prop('value', 1);
@@ -587,6 +614,25 @@
             }
             {
                 $('#outputRetrying').prop('value', 0);
+            }
+            return true;
+		});
+
+		$("#addInputForm").submit(function(event) {
+            if(running)
+            {
+                $('#inputRunning').prop('value', 1);
+            }
+            else
+            {
+                $('#inputRunning').prop('value', 0);
+            }
+            if (retrying)
+            {
+                $('#inputRetrying').prop('value', 1);
+            }
+            {
+                $('#inputRetrying').prop('value', 0);
             }
             return true;
 		});

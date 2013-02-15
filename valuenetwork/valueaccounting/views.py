@@ -1161,6 +1161,7 @@ def create_labnotes_context(
                 others_working.append(wrq)
     failure_form = FailedOutputForm()
     add_output_form = ProcessOutputForm(prefix='output')
+    add_input_form = ProcessInputForm(prefix='input')
     return {
         "commitment": commitment,
         "process": commitment.process,
@@ -1169,6 +1170,7 @@ def create_labnotes_context(
         "today": today,
         "failure_form": failure_form,
         "add_output_form": add_output_form,
+        "add_input_form": add_input_form,
         "duration": duration,
         "prev": prev,
         "was_running": was_running,
@@ -1183,7 +1185,7 @@ def new_process_output(request, commitment_id):
     was_retrying = request.POST["wasRetrying"]
     #import pdb; pdb.set_trace()
     if request.method == "POST":
-        form = ProcessOutputForm(request.POST)
+        form = ProcessOutputForm(data=request.POST, prefix='output')
         if form.is_valid():
             output_data = form.cleaned_data
             qty = output_data["quantity"]
@@ -1202,6 +1204,68 @@ def new_process_output(request, commitment_id):
                 ct.due_date = process.end_date
                 ct.created_by = request.user
                 ct.save()
+    return HttpResponseRedirect('/%s/%s/%s/%s/'
+        % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
+
+def new_process_input(request, commitment_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    was_running = request.POST["wasRunning"]
+    was_retrying = request.POST["wasRetrying"]
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        form = ProcessInputForm(data=request.POST, prefix='input')
+        if form.is_valid():
+            input_data = form.cleaned_data
+            qty = input_data["quantity"]
+            if qty:
+                process = commitment.process
+                demand = process.independent_demand()
+                ct = form.save(commit=False)
+                rt = input_data["resource_type"]
+                rel = ResourceRelationship.objects.get(
+                    materiality=rt.materiality,
+                    related_to="process",
+                    direction="in")
+                ct.relationship = rel
+                ct.event_type = rel.event_type
+                ct.process = process
+                ct.independent_demand = demand
+                ct.due_date = process.start_date
+                ct.created_by = request.user
+                ptrt = ct.resource_type.main_producing_process_type_relationship()
+                if ptrt:
+                    ct.project = ptrt.process_type.project
+                ct.save()
+                rt = ct.resource_type
+                ptrt = rt.main_producing_process_type_relationship()
+                if ptrt:
+                    pt = ptrt.process_type
+                    start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
+                    feeder_process = Process(
+                        name=pt.name,
+                        process_type=pt,
+                        project=pt.project,
+                        url=pt.url,
+                        end_date=process.start_date,
+                        start_date=start_date,
+                        created_by=request.user,
+                    )
+                    feeder_process.save()
+                    output_commitment = Commitment(
+                        independent_demand = demand,
+                        event_type=ptrt.relationship.event_type,
+                        relationship=ptrt.relationship,
+                        due_date=process.start_date,
+                        resource_type=rt,
+                        process=feeder_process,
+                        project=pt.project,
+                        quantity=qty,
+                        unit_of_quantity=rt.unit,
+                        created_by=request.user,
+                    )
+                    output_commitment.save()
+                    generate_schedule(feeder_process, demand, request.user)
+                
     return HttpResponseRedirect('/%s/%s/%s/%s/'
         % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 

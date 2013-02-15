@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Labnotes for " %} {{ process.name }}{% endblock %}
+{% block head_title %}{% trans "Labnotes for " %} {{ commitment.from_agent.name }} doing {{ commitment.resource_type.name }} on {{ process.name }}{% endblock %}
 
 {% block extra_head %}
 
@@ -72,11 +72,11 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>
-			{% trans "Labnotes for " %} {{ process.name }} {% trans "due " %}  {{ process.end_date }}
+			{% trans "Labnotes for " %} <i>{{ commitment.from_agent.name }}</i>
 			<span style="font-size: 60%;" > 
-				{% trans "Contributor" %}: {{ commitment.from_agent.nick }} {% trans "Date" %}: {{ today }} 
-				{% trans "Estimated duration" %}: {{ commitment.quantity }} {{ commitment.unit_of_quantity.abbrev }}
-				{% trans "Project" %}: {{ process.project }}
+			    {% trans "doing" %}: <i>{{ commitment.resource_type.name }}</i> {% trans "on Process" %}:  <i>{{ process.name }}</i> {% trans "due" %}:  <i>{{ process.end_date }}</i> 
+				{% trans "Estimated duration" %}: <i>{{ commitment.quantity }} {{ commitment.unit_of_quantity.abbrev }}</i>
+				{% trans "Project" %}: <i>{{ process.project }}</i>
                 &nbsp;&nbsp;&nbsp;&nbsp;
 				<span id="saving"></span>
 			</span>
@@ -390,6 +390,19 @@
                                 {% if item.has_labnotes %}
 									<a href="{% url labnote commitment_id=item.id %}" target="_blank">Labnotes</a>
 								{% endif %}
+							</li>
+
+						{% endfor %}
+					</ul>
+
+				{% endif %}
+
+				{% if other_work_reqs %}
+					<h4 style="margin-left: 1em; margin-bottom: 2px;" >{% trans "Other work requirements" %}:</h4>
+					<ul>
+						{% for item in other_work_reqs %}
+							<li>
+								<b>{{ item.resource_type }}</b> {{ item.quantity }} {{ item.unit_of_quantity.abbrev }}
 							</li>
 
 						{% endfor %}

@@ -1152,13 +1152,17 @@ def create_labnotes_context(
         init = {"description": commitment.description,}
         wb_form = WorkbookForm(initial=init)
     others_working = []
+    other_work_reqs = []
     #import pdb; pdb.set_trace()
     wrqs = commitment.process.work_requirements()
     if wrqs.count() > 1:
         for wrq in wrqs:
             if wrq.from_agent != commitment.from_agent:
-                wrq.has_labnotes = wrq.agent_has_labnotes(wrq.from_agent)
-                others_working.append(wrq)
+                if wrq.from_agent:
+                    wrq.has_labnotes = wrq.agent_has_labnotes(wrq.from_agent)
+                    others_working.append(wrq)
+                else:
+                    other_work_reqs.append(wrq)
     failure_form = FailedOutputForm()
     add_output_form = ProcessOutputForm(prefix='output')
     add_input_form = ProcessInputForm(prefix='input')
@@ -1167,6 +1171,7 @@ def create_labnotes_context(
         "process": commitment.process,
         "wb_form": wb_form,
         "others_working": others_working,
+        "other_work_reqs": other_work_reqs,
         "today": today,
         "failure_form": failure_form,
         "add_output_form": add_output_form,

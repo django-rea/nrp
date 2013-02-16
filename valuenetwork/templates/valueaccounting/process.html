@@ -70,7 +70,7 @@
             {% if item.resource_type.onhand %}
             	{% for resource in item.resource_type.onhand %}
 					<p style="margin-left: 2em;">
-						<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+						<b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }}
                         {% if item.fulfilled_quantity %}
 							<p style="margin-left: 4em;">
 								<b>{% trans "Used" %}:</b> {{ item.fulfilled_quantity }}

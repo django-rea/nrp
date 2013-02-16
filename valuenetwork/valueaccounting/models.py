@@ -582,6 +582,9 @@ class EconomicResource(models.Model):
             id_str,
         ])
 
+    def label(self):
+        return self.identifier or str(self.id)
+
     def change_form(self, prefix):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
         return EconomicResourceForm(prefix=prefix, instance=self)
@@ -1531,7 +1534,7 @@ class Commitment(models.Model):
         return CommitmentForm(instance=self)
 
     def resource_create_form(self):
-        return self.resource_type.resource_create_form(self.form_prefix)
+        return self.resource_type.resource_create_form(self.form_prefix())
 
     def resource_change_form(self):
         resource = self.output_resource()

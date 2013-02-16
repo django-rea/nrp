@@ -1477,7 +1477,7 @@ def production_event_for_commitment(request):
 
 def resource_event_for_commitment(request, commitment_id):
     id = request.POST.get("itemId")
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     event = None
     events = ct.fulfillment_events.all()

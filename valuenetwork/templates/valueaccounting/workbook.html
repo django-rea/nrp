@@ -584,7 +584,7 @@
                 var itemId = {{ item.id }};
 			    var $form = $( this ),
 			        qtyInputId = $form.find( 'input[name="itemId"]' ).val(),
-			        identifier = $form.find( 'input[name="identifier"]' ).val(),
+			        identifier = $form.find( 'input[name*="identifier"]' ).val(),
 				    url = $form.attr( 'action' );
 
 			    var formData = $form.serialize();
@@ -899,7 +899,7 @@
 	            var $form = $("#detailForm{{ item.id }}");
                 var itemId = {{ item.id }};
 		        var qtyInputId = $form.find( 'input[name="itemId"]' ).val();
-		        var identifier = $form.find( 'input[name="identifier"]' ).val();
+		        var identifier = $form.find( 'input[name*="identifier"]' ).val();
 			    var url = $form.attr( 'action' );
 
 		        var formData = $form.serialize();
@@ -975,7 +975,7 @@
 				notifySaved();
 				resourceSaved = true;
 				$(qtyInputId)[0].value = data;
-				$(labelID).text = identifier;
+				$(labelID).text(identifier);
 			})
 			.fail(function() 
 			{ 

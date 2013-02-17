@@ -16,6 +16,7 @@ admin.site.register(Category, CategoryAdmin)
 
 class ResourceRelationshipAdmin(admin.ModelAdmin):
     list_display = ('name', 'inverse_name', 'related_to', 'direction', 'materiality', 'event_type', 'unit')
+    list_filter = ['materiality', 'related_to', 'direction']
     list_editable = ['event_type',]
 
 admin.site.register(ResourceRelationship, ResourceRelationshipAdmin)
@@ -69,6 +70,7 @@ admin.site.register(ProcessType, ProcessTypeAdmin)
 
 class EventTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'resource_effect', 'unit_type' )
+    list_filter = ['resource_effect', 'unit_type']
 
 admin.site.register(EventType, EventTypeAdmin)
 

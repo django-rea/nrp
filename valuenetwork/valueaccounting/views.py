@@ -1477,7 +1477,7 @@ def production_event_for_commitment(request):
 
 def resource_event_for_commitment(request, commitment_id):
     id = request.POST.get("itemId")
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     event = None
     events = ct.fulfillment_events.all()
@@ -1490,6 +1490,7 @@ def resource_event_for_commitment(request, commitment_id):
     if form.is_valid():
         today = datetime.date.today()
         resource_data = form.cleaned_data
+        quality = resource_data["quality"] or Decimal("0")
         agent = get_agent(request)
         if event:
             resource = form.save(commit=False)
@@ -1501,6 +1502,7 @@ def resource_event_for_commitment(request, commitment_id):
             resource.save()
         else:
             resource = form.save(commit=False)
+            resource.quality = quality
             resource.resource_type = ct.resource_type
             resource.created_by=request.user
             resource.save()
@@ -1515,6 +1517,7 @@ def resource_event_for_commitment(request, commitment_id):
                 project = ct.project,
                 quantity = resource.quantity,
                 unit_of_quantity = ct.unit_of_quantity,
+                quality = resource.quality,
                 created_by = request.user,
                 changed_by = request.user,
             )
@@ -1546,12 +1549,13 @@ def consumption_event_for_commitment(request):
             event.changed_by = request.user
             event.save()
             if event.resource:
-                resource = event.resource
-                resource.quantity += delta
-                resource.changed_by=request.user
-                resource.save()
+                if ct.consumes_resources():
+                    resource = event.resource
+                    resource.quantity += delta
+                    resource.changed_by=request.user
+                    resource.save()
     else:
-        if ct.event_type.resource_effect == "-":    
+        if ct.consumes_resources():    
             resource.quantity -= quantity
             resource.changed_by=request.user
             resource.save()
@@ -1596,12 +1600,13 @@ def time_use_event_for_commitment(request):
             event.changed_by = request.user
             event.save()
             if event.resource:
-                resource = event.resource
-                resource.quantity += delta
-                resource.changed_by=request.user
-                resource.save()
+                if ct.consumes_resources():
+                    resource = event.resource
+                    resource.quantity += delta
+                    resource.changed_by=request.user
+                    resource.save()
     else:
-        if ct.event_type.resource_effect == "-":    
+        if ct.consumes_resources():    
             resource.quantity -= quantity
             resource.changed_by=request.user
             resource.save()

@@ -250,13 +250,14 @@ RESOURCE_EFFECT_CHOICES = (
     ('-', _('decrease')),
     ('x', _('transfer')), #means - for from_agent, + for to_agent
     ('=', _('no effect')),
-    ('+', _('failure')),
+    ('>', _('failure')),
 )
 
 class EventType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     resource_effect = models.CharField(_('resource effect'), 
         max_length=12, choices=RESOURCE_EFFECT_CHOICES)
+    #todo: EventType.unit_type is not used anywhere
     unit_type = models.CharField(_('unit type'), max_length=12, choices=UNIT_TYPE_CHOICES)
     slug = models.SlugField(_("Page name"), editable=False)
 
@@ -269,6 +270,12 @@ class EventType(models.Model):
     def save(self, *args, **kwargs):
         unique_slugify(self, self.name)
         super(EventType, self).save(*args, **kwargs)
+
+    def creates_resources(self):
+        return self.resource_effect == "+"
+
+    def consumes_resources(self):
+        return self.resource_effect == "-"
 
 
 MATERIALITY_CHOICES = (
@@ -446,6 +453,7 @@ class EconomicResourceType(models.Model):
         arts = self.producer_relationships()
         return [art.agent for art in arts]
 
+    #todo: failures do not have commitments. If and when they do, the next two methods must change.
     def producing_commitments(self):
         return self.commitments.filter(relationship__event_type__resource_effect='+')
 
@@ -751,6 +759,9 @@ class Project(models.Model):
         return sum(event.quantity for event in self.events.filter(
             event_type=et))
 
+    #todo: these resource_effects are wrong
+    #time contributions resource_effect == '=' (no effect)
+    #need to figure out how to find events that are contributions
     def contributions(self):
         return sum(event.quantity for event in self.events.filter(
             event_type__resource_effect='-'))
@@ -1581,9 +1592,12 @@ class Commitment(models.Model):
             events = self.fulfillment_events.filter(resource=resource)
             resource.fulfilled_quantity = sum(evt.quantity for evt in events)
         return resources
-
+  
     def creates_resources(self):
-        return self.event_type.resource_effect == "+"
+        return self.event_type.creates_resources()
+
+    def consumes_resources(self):
+        return self.event_type.consumes_resources()
 
     def output_resource(self):
         #todo: this is a hack, cd be several resources

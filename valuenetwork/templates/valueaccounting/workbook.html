@@ -178,6 +178,7 @@
 								{% trans "Actual" %}: <input class="input-mini output-quantity" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" />
 								{% if item.creates_resources %}
 								    <div style="display: inline;" >
+								        <span id="label{{ item.id }}">{{ resource.label }}</span>
 									    &nbsp;&nbsp; 
 									    <a href="#detailModal{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">{% trans "Details" %}</a>
 								    </div>
@@ -268,7 +269,7 @@
 							{% if item.onhand %}
 								{% for resource in item.onhand_with_fulfilled_quantity %}
 									<li>
-										<b>{% trans "Onhand" %}: {{ item.resource_type.name }}</b> <span id="onhand-{{resource.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
+										<b>{% trans "Onhand" %}: {{ resource.label }}</b> <span id="onhand-{{resource.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
 										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
 									</li>
 								{% endfor %}
@@ -309,7 +310,7 @@
 									{% if item.onhand %}
 										{% for resource in item.onhand_with_fulfilled_quantity %}
 											<li>
-												<b>{% trans "Onhand" %}: {{ resource.identifier }}</b></br>
+												<b>{% trans "Onhand" %}: {{ resource.label }}</b></br>
 												{% trans "Used" %}: <input class="input-mini time-used" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
 											</li>
 										{% endfor %}
@@ -350,7 +351,7 @@
 									{% if item.onhand %}
 										{% for resource in item.onhand_with_fulfilled_quantity %}
 											<li>
-												<b>{% trans "Onhand" %}: {{ resource.identifier }}</b></br>
+												<b>{% trans "Onhand" %}: {{ resource.label }}</b></br>
 												{% trans "Used" %}: <input class="input-mini time-used" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
 											</li>
 										{% endfor %}
@@ -583,10 +584,11 @@
                 var itemId = {{ item.id }};
 			    var $form = $( this ),
 			        qtyInputId = $form.find( 'input[name="itemId"]' ).val(),
+			        identifier = $form.find( 'input[name="identifier"]' ).val(),
 				    url = $form.attr( 'action' );
 
 			    var formData = $form.serialize();
-			    saveResource(url, itemId, qtyInputId, formData); 
+			    saveResource(url, itemId, qtyInputId, identifier, formData); 
 
 		    });
         {% endfor %}
@@ -838,7 +840,7 @@
 		{
 			if (!retrying)
 			{
-				//retryTimer = setInterval(retrySaving, 30 * 1000);
+				retryTimer = setInterval(retrySaving, 30 * 1000);
                 retrying = true;
 			}
 		}
@@ -897,10 +899,11 @@
 	            var $form = $("#detailForm{{ item.id }}");
                 var itemId = {{ item.id }};
 		        var qtyInputId = $form.find( 'input[name="itemId"]' ).val();
+		        var identifier = $form.find( 'input[name="identifier"]' ).val();
 			    var url = $form.attr( 'action' );
 
 		        var formData = $form.serialize();
-		        saveResource(url, itemId, qtyInputId, formData); 
+		        saveResource(url, itemId, qtyInputId, identifier, formData); 
             {% endfor %}
 		}
 
@@ -960,17 +963,19 @@
 
 	}
 
-	function saveResource(url, itemId, qtyInputId, formData)
+	function saveResource(url, itemId, qtyInputId, identifier, formData)
 	{
 		notifySaving();
 		var qtyInputId = "#" + qtyInputId;
 		var modalID = "#detailModal" + itemId;
+		var labelID = "#label" + itemId;
 		var jqxhr = $.post( url, formData,
 			function( data ) {
 				$(modalID).modal('hide');
 				notifySaved();
 				resourceSaved = true;
 				$(qtyInputId)[0].value = data;
+				$(labelID).text = identifier;
 			})
 			.fail(function() 
 			{ 

@@ -1090,15 +1090,16 @@ class Process(models.Model):
         return answer
 
     def material_requirements(self):
-        answer = list(self.commitments.filter(
+        return self.commitments.filter(
             relationship__direction='in',
             resource_type__materiality="material",
-        ))
-        answer.extend(list(self.commitments.filter(
+        )
+
+    def intellectual_requirements(self):
+        return self.commitments.filter(
             relationship__direction='in',
             resource_type__materiality="intellectual",
-        )))
-        return answer
+        )
 
     def tool_requirements(self):
         return self.commitments.filter(

@@ -110,4 +110,6 @@ urlpatterns = patterns("",
         name="labnotes"),
     url(r"^labnote/(?P<commitment_id>\d+)/$", 'valuenetwork.valueaccounting.views.labnote', 
         name="labnote"),
+    url(r"^resource/(?P<resource_id>\d+)/$", 'valuenetwork.valueaccounting.views.resource', 
+        name="resource"),
 )

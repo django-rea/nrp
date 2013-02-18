@@ -1412,6 +1412,7 @@ def resource(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     return render_to_response("valueaccounting/resource.html", {
         "resource": resource,
+        "photo_size": (128, 128),
     }, context_instance=RequestContext(request))
 
 def labnotes(request, process_id):

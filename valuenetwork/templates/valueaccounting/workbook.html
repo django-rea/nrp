@@ -258,10 +258,51 @@
                     
 						{% endfor %}
 					</ul>
+
+				{% if process.intellectual_requirements %}
+					<div>
+						<h4>{% trans "Design inputs" %}:</h4>
+						{% for item in process.intellectual_requirements %}
+						<ul>
+						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
+							<ul>
+							{% if item.onhand %}
+								{% for resource in item.onhand_with_fulfilled_quantity %}
+									<li>
+										<b>{% trans "Available" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b> <span id="onhand-{{resource.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
+										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
+									</li>
+								{% endfor %}
+							{% elif item.resource_type.producing_commitments %}
+								{% for ct in item.resource_type.producing_commitments %}
+									<li>
+										<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b>
+										<a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}</a>
+									</li>
+								{% endfor %}
+							{% else %}
+								<li>
+									<b>{% trans "Not purchased yet" %}: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
+								</li>
+		                        <ul>
+									{% for source in item.resource_type.producing_agent_relationships %}
+										<li>
+											{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+										</li>
+									{% endfor %}
+								</ul>
+							{% endif %}
+							
+							</ul>
+						</ul>
+						{% endfor %}
+						
+					</div>
+				{% endif %}
 							  
 				{% if process.material_requirements %}
 					<div>
-						<h4>{% trans "Material requirements" %}:</h4>
+						<h4>{% trans "Material inputs" %}:</h4>
 						{% for item in process.material_requirements %}
 						<ul>
 						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
@@ -269,7 +310,8 @@
 							{% if item.onhand %}
 								{% for resource in item.onhand_with_fulfilled_quantity %}
 									<li>
-										<b>{% trans "Onhand" %}: {{ resource.label }}</b> <span id="onhand-{{resource.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
+										<b>{% trans "Onhand" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b> 
+										<span id="onhand-{{resource.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
 										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
 									</li>
 								{% endfor %}
@@ -302,7 +344,7 @@
 
 				{% if process.tool_requirements %}
 					<div>
-						<h4>{% trans "Tool requirements" %}:</h4>
+						<h4>{% trans "Tool inputs" %}:</h4>
 						{% for item in process.tool_requirements %}
 		                    <ul>
 				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
@@ -310,7 +352,7 @@
 									{% if item.onhand %}
 										{% for resource in item.onhand_with_fulfilled_quantity %}
 											<li>
-												<b>{% trans "Onhand" %}: {{ resource.label }}</b></br>
+												<b>{% trans "Onhand" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b></br>
 												{% trans "Used" %}: <input class="input-mini time-used" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
 											</li>
 										{% endfor %}
@@ -343,7 +385,7 @@
 
 				{% if process.space_requirements %}
 					<div>
-						<h4>{% trans "Space requirements" %}:</h4>
+						<h4>{% trans "Space inputs" %}:</h4>
 						{% for item in process.space_requirements %}
 		                    <ul>
 				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
@@ -351,7 +393,7 @@
 									{% if item.onhand %}
 										{% for resource in item.onhand_with_fulfilled_quantity %}
 											<li>
-												<b>{% trans "Onhand" %}: {{ resource.label }}</b></br>
+												<b>{% trans "Available" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b></br>
 												{% trans "Used" %}: <input class="input-mini time-used" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
 											</li>
 										{% endfor %}

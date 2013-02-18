@@ -1,0 +1,89 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "Resource" %}: {{ resource }}{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>
+			{% trans "Resource" %}: {{ resource }} 
+		</legend>
+
+		<div>
+		    <table class="table table-bordered" style="width: 50%;" >
+		        <tr>
+		            <th style="text-align: right;">{% trans "URL" %}</th>
+		            <td>{{ resource.url|urlize }}</td>
+                </tr>
+                <tr>
+		            <th style="text-align: right; vertical-align: top; ">{% trans "Notes" %}</th>
+		            <td>{{ resource.notes|urlize|linebreaks }}</td>
+                </tr>
+                {% if resource.photo %}
+		        	<tr>
+		                <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
+		                <td><img src="{% thumbnail resource.photo photo_size %}" /></td>
+                    </tr>
+	        	{% elif resource.photo_url %}
+                    <tr>
+		                <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
+		                <td><img src="{{ resource.photo_url }}" width="128" height="96" /></td>
+                    </tr>
+		        {% endif %}
+
+		    </table>
+
+		</div>
+        {% if resource.producing_events %}
+		    <div style="margin-top: 1em;" >
+		        <h4>{% trans "History" %}:</h4>
+		        <ul>
+		            {% for event in resource.producing_events %}
+		            <li><b>{% trans "Event" %}:</b> {{ event.event_type }} {{ event.event_date }}</li>
+		            <ul>
+		                <li><b>{% trans "Process" %}:</b> {{ event.process.name }}</li>
+		                <ul>
+		                    {% for inp in event.process.inputs %}
+		                        {% if inp.resource %}
+		                        <li><b>{% trans "Event" %}:</b> {{ inp.event_type }} {{ event.event_date }}</li>
+		                            <ul>
+		                                <li><b>{% trans "Resource" %}:</b> {{ inp.resource }}</li>
+		                                <ul>
+		                                    {% for pe in inp.resource.producing_events %}
+		                                        <li><b>{% trans "Event" %}:</b> {{ pe.event_type }} {{ event.event_date }}</li>
+		                                        <ul>
+		                                            <li><b>{% trans "Process" %}:</b> {{ pe.process.name }}</li>
+		                                            <ul>
+		                                                {% for i in pe.process.inputs %}
+		                                                    {% if i.resource %}
+		                                                    <li><b>{% trans "Event" %}:</b> {{ i.event_type }} {{ event.event_date }}</li>
+		                                                        <ul>
+		                                                            <li><b>{% trans "Resource" %}:</b> {{ i.resource }}</li>
+		                                                        </ul>
+		                                                    
+		                                                    {% endif %}
+		                                                {% endfor %}
+		                                            </ul>
+		                                        </ul>
+		                                    {% endfor %}
+		                                </ul> 
+		                            </ul>
+		                        {% endif %}
+		                    {% endfor %}
+		                </ul>
+		            </ul>
+		            {% endfor %}
+		        </ul>	
+		    </div> 
+	    {% endif %}
+	    
+	</div>
+    </div>
+{% endblock %}

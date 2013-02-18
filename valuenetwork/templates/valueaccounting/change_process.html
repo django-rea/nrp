@@ -146,13 +146,16 @@
 			}
 			var prefix = targetId.split('-')[0] + '-' + targetId.split('-')[1];
 			var resourceId = event.target.value;
-			var unitName = "#" + prefix + "-unit_of_quantity";
-			var jsonUrl = encodeURI("/accounting/json-directional-unit/" + resourceId + "/" + direction + "/");
-			$.get(jsonUrl,
-				function(data){
-					var unit = data["unit"];
-                    $(unitName).val(unit);
-				});
+			if (resourceId)
+			{
+			    var unitName = "#" + prefix + "-unit_of_quantity";
+			    var jsonUrl = encodeURI("/accounting/json-directional-unit/" + resourceId + "/" + direction + "/");
+			    $.get(jsonUrl,
+				    function(data){
+					    var unit = data["unit"];
+                        $(unitName).val(unit);
+				    });
+		    }
 		}
 
         $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });

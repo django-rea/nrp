@@ -386,8 +386,9 @@ def delete_order_confirmation(request, order_id):
         reqs = []
         work = []
         tools = []
+        visited_resources = []
         for ct in order.producing_commitments():
-            schedule_commitment(ct, sked, reqs, work, tools, 0)
+            schedule_commitment(ct, sked, reqs, work, tools, visited_resources, 0)
             return render_to_response('valueaccounting/order_delete_confirmation.html', {
                 "order": order,
                 "sked": sked,
@@ -970,7 +971,9 @@ def schedule_commitment(
         reqs, 
         work, 
         tools, 
+        visited_resources,
         depth):
+    #import pdb; pdb.set_trace()
     order = commitment.independent_demand
     commitment.depth = depth * 2
     schedule.append(commitment)
@@ -982,11 +985,13 @@ def schedule_commitment(
         inp.depth = depth * 2
         schedule.append(inp)
         resource_type = inp.resource_type
-        pcs = resource_type.producing_commitments()
-        if pcs:
-            for pc in pcs:
-                if pc.independent_demand == order:
-                    schedule_commitment(pc, schedule, reqs, work, tools, depth+1)
+        if resource_type not in visited_resources:
+            visited_resources.append(resource_type)
+            pcs = resource_type.producing_commitments()
+            if pcs:
+                for pc in pcs:
+                    if pc.independent_demand == order:
+                        schedule_commitment(pc, schedule, reqs, work, tools, visited_resources, depth+1)
         elif inp.independent_demand == order:
             if resource_type.materiality == 'material':
                 reqs.append(inp)
@@ -1006,8 +1011,10 @@ def order_schedule(request, order_id):
     reqs = []
     work = []
     tools = []
+    visited_resources = []
+    #import pdb; pdb.set_trace()
     for ct in order.producing_commitments():
-        schedule_commitment(ct, sked, reqs, work, tools, 0)
+        schedule_commitment(ct, sked, reqs, work, visited_resources, tools, 0)
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
         "sked": sked,
@@ -1397,6 +1404,12 @@ def process_details(request, process_id):
     return render_to_response("valueaccounting/process.html", {
         "process": process,
         "labnotes": labnotes,
+    }, context_instance=RequestContext(request))
+
+def resource(request, resource_id):
+    resource = get_object_or_404(EconomicResource, id=resource_id)
+    return render_to_response("valueaccounting/resource.html", {
+        "resource": resource,
     }, context_instance=RequestContext(request))
 
 def labnotes(request, process_id):

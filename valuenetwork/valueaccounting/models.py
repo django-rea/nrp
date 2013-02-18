@@ -597,6 +597,12 @@ class EconomicResource(models.Model):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
         return EconomicResourceForm(prefix=prefix, instance=self)
 
+    def producing_events(self):
+        return self.events.filter(event_type__resource_effect='+')
+
+    def using_events(self):
+        return []
+
 
 DIRECTION_CHOICES = (
     ('in', _('input')),
@@ -1046,37 +1052,41 @@ class Process(models.Model):
         moc = self.main_outgoing_commitment()
         if moc:
             dmnd = moc.independent_demand
+        output_rts = [oc.resource_type for oc in self.outgoing_commitments()]
         for ic in self.incoming_commitments():
             rt = ic.resource_type
-            for pc in rt.producing_commitments():
-                if dmnd:
-                    if pc.independent_demand == dmnd:
-                        answer.append(pc.process)
-                else:
-                    if not pc.independent_demand:
-                        if pc.quantity >= ic.quantity:
-                            if pc.due_date >= self.start_date:
-                                answer.append(pc.process)
+            if rt not in output_rts:
+                for pc in rt.producing_commitments():
+                    if dmnd:
+                        if pc.independent_demand == dmnd:
+                            answer.append(pc.process)
+                    else:
+                        if not pc.independent_demand:
+                            if pc.quantity >= ic.quantity:
+                                if pc.due_date >= self.start_date:
+                                    answer.append(pc.process)
         return answer
 
     def next_processes(self):
         answer = []
         #import pdb; pdb.set_trace()
+        input_rts = [ic.resource_type for ic in self.incoming_commitments()]
         for oc in self.outgoing_commitments():
             dmnd = oc.independent_demand
             rt = oc.resource_type
-            for cc in rt.consuming_commitments():
-                if dmnd:
-                    if cc.independent_demand == dmnd:
-                        answer.append(cc.process)
-                else:
-                    if not cc.independent_demand:
-                        if cc.quantity >= oc.quantity:
-                            compare_date = self.end_date
-                            if not compare_date:
-                                compare_date = self.start_date
-                            if cc.due_date >= compare_date:
-                                answer.append(cc.process)
+            if rt not in input_rts:
+                for cc in rt.consuming_commitments():
+                    if dmnd:
+                        if cc.independent_demand == dmnd:
+                            answer.append(cc.process)
+                    else:
+                        if not cc.independent_demand:
+                            if cc.quantity >= oc.quantity:
+                                compare_date = self.end_date
+                                if not compare_date:
+                                    compare_date = self.start_date
+                                if cc.due_date >= compare_date:
+                                    answer.append(cc.process)
         return answer
 
     def material_requirements(self):

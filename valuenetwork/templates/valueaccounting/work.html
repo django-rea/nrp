@@ -231,8 +231,9 @@
 															{{ item.commitment_form|as_bootstrap }}
 															<input type="hidden" name="next" value="{% url work %}" />
 														  <div class="modal-footer">
-															<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-															<button class="btn btn-primary">{% trans "Commit" %}</button>
+															<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+															<input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
 														  </div>
 														</form>
 													</div>

@@ -1128,7 +1128,7 @@ def commit_to_task(request, commitment_id):
         agent = get_agent(request)
         prefix = ct.form_prefix()
         form = CommitmentForm(data=request.POST, prefix=prefix)
-        #form = CommitmentForm(data=request.POST)
+        next = request.POST.get("next")
         #import pdb; pdb.set_trace()
         if form.is_valid():
             data = form.cleaned_data
@@ -1149,7 +1149,10 @@ def commit_to_task(request, commitment_id):
                 process.start_date = start_date
                 process.changed_by=request.user
                 process.save()
-        next = request.POST.get("next")
+            if request.POST.get("start"):
+                return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/work-commitment', ct.id))
+        
         return HttpResponseRedirect(next)
 
 def create_labnotes_context(

@@ -131,6 +131,24 @@ class WorkbookForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('quantity', 'description')
 
+
+class CasualTimeContributionForm(forms.ModelForm):
+    event_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
+    quantity = forms.DecimalField(
+        widget=DecimalDurationWidget,
+        help_text="days, hours, minutes")
+	
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'resource_type', 'project', 'quantity', 'description')
+
+    def __init__(self, *args, **kwargs):
+        super(CasualTimeContributionForm, self).__init__(*args, **kwargs)
+        self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in EconomicResourceType.objects.types_of_work()]
+        self.fields["project"].choices = [(p.id, p.name) for p in Project.objects.all()]
+
+
 class OrderItemForm(forms.ModelForm):
     resource_type_id = forms.CharField(widget=forms.HiddenInput)
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'input-small',}))

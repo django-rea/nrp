@@ -112,4 +112,7 @@ urlpatterns = patterns("",
         name="labnote"),
     url(r"^resource/(?P<resource_id>\d+)/$", 'valuenetwork.valueaccounting.views.resource', 
         name="resource"),
+    url(r"^unscheduled-time/$", 'valuenetwork.valueaccounting.views.unscheduled_time_contributions', 
+        name="unscheduled_time"),
+        
 )

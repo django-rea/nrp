@@ -151,6 +151,23 @@ def log_time(request):
         "resource_types": resource_types,
     }, context_instance=RequestContext(request))
 
+@login_required
+def unscheduled_time_contributions(request):
+    member = get_agent(request)
+    TimeFormSet = modelformset_factory(
+        EconomicEvent,
+        form=CasualTimeContributionForm,
+        can_delete=False,
+        extra=10,
+        )
+    time_formset = TimeFormSet(
+        queryset=EconomicEvent.objects.none(),
+        data=request.POST or None)
+    return render_to_response("valueaccounting/unscheduled_time_contributions.html", {
+        "member": member,
+        "time_formset": time_formset,
+    }, context_instance=RequestContext(request))
+
 
 class EventSummary(object):
     def __init__(self, agent, role, quantity, value=Decimal('0.0')):

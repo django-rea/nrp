@@ -40,7 +40,8 @@
 			<h3>
 				<a href="{% url timeline %}">{% trans "Timeline" %}</a>
 				{% if user.is_authenticated %}
-					<a href="{% url create_process %}" role="button" class="btn btn-primary" >{% trans "Create a new process" %}</a>
+					<a href="{% url create_process %}" role="button" class="btn btn-primary" >{% trans "Create a new process" %}</a> 
+					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" >{% trans "Log unscheduled time" %}</a>
 				{% endif %}
 			</h3>
 

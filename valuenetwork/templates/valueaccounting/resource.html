@@ -18,14 +18,18 @@
 
 		<div>
 		    <table class="table table-bordered" style="width: 50%;" >
-		        <tr>
-		            <th style="text-align: right;">{% trans "URL" %}</th>
-		            <td>{{ resource.url|urlize }}</td>
-                </tr>
-                <tr>
-		            <th style="text-align: right; vertical-align: top; ">{% trans "Notes" %}</th>
-		            <td>{{ resource.notes|urlize|linebreaks }}</td>
-                </tr>
+		        {% if resource.url %}
+		            <tr>
+		                <th style="text-align: right;">{% trans "URL" %}</th>
+		                <td>{{ resource.url|urlize }}</td>
+                    </tr>
+                {% endif %}
+                {% if resource.notes %}
+                    <tr>
+		                <th style="text-align: right; vertical-align: top; ">{% trans "Notes" %}</th>
+		                <td>{{ resource.notes|urlize|linebreaks }}</td>
+                    </tr>
+                {% endif %}
                 {% if resource.photo %}
 		        	<tr>
 		                <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
@@ -48,7 +52,7 @@
 		            {% for event in resource.producing_events %}
 		            <li><b>{% trans "Event" %}:</b> {{ event.event_type }} {{ event.event_date }}</li>
 		            <ul>
-		                <li><b>{% trans "Process" %}:</b> {{ event.process.name }}</li>
+		                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a></li>
 		                <ul>
 		                    {% for inp in event.process.inputs %}
 		                        {% if inp.resource %}
@@ -59,7 +63,7 @@
 		                                    {% for pe in inp.resource.producing_events %}
 		                                        <li><b>{% trans "Event" %}:</b> {{ pe.event_type }} {{ event.event_date }}</li>
 		                                        <ul>
-		                                            <li><b>{% trans "Process" %}:</b> {{ pe.process.name }}</li>
+		                                            <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=pe.process.id %}">{{ pe.process.name }}</a></li>
 		                                            <ul>
 		                                                {% for i in pe.process.inputs %}
 		                                                    {% if i.resource %}

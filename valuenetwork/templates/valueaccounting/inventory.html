@@ -62,11 +62,7 @@ li {
                     </div>
                 {% endifchanged %}
                 <div class="res">
-                    {% if resource.identifier %}
-                       {{ resource.identifier }} 
-                    {% else %}
-                       {{ resource.id }} 
-                    {% endif %} 
+                 <a href="{% url resource resource_id=resource.id %}">{{ resource.label }}</a>
 		        {% if resource.photo %}
 		        	<img src="{% thumbnail resource.photo photo_size %}" />
 	        	{% elif resource.photo_url %}

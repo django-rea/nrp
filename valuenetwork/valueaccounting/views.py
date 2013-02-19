@@ -1301,11 +1301,15 @@ def labnotes_reload(
         template_params,
         context_instance=RequestContext(request))
 
+@login_required
 def work_commitment(
         request, 
         commitment_id):
     ct = get_object_or_404(Commitment, id=commitment_id)
     #import pdb; pdb.set_trace()
+    agent = get_agent(request)
+    if agent != ct.from_agent:
+        return render_to_response('valueaccounting/no_permission.html')
     template_params = create_labnotes_context(
         request, 
         ct, 

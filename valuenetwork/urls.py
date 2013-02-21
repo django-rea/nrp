@@ -33,7 +33,8 @@ databrowse.site.register(
 )
 
 urlpatterns = patterns("",
-    url(r"^$", direct_to_template, {"template": "homepage.html"}, name="home"),
+    #url(r"^$", direct_to_template, {"template": "homepage.html"}, name="home"),
+    url(r"^$", 'valuenetwork.valueaccounting.views.home', name="home"),
     url(r"^admin/", include(admin.site.urls)),
 
     url(r"^account/", include("account.urls")),

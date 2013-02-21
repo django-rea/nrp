@@ -12,6 +12,7 @@ from django.template.defaultfilters import slugify
 
 from easy_thumbnails.fields import ThumbnailerImageField
 
+#todo: add when_created and when_changed fields where they fit
 
 """Models based on REA
 
@@ -91,6 +92,7 @@ CATEGORIZATION_CHOICES = (
 
 class Category(models.Model):
     name = models.CharField(_('name'), max_length=128)
+    #todo: should applies_to go away?
     applies_to = models.CharField(_('applies to'), max_length=128, 
         choices=CATEGORIZATION_CHOICES)
     description = models.TextField(_('description'), blank=True, null=True)
@@ -132,7 +134,7 @@ class Unit(models.Model):
     def add_new_form(cls):
         return None
 
-
+#todo: rethink?
 ACTIVITY_CHOICES = (
     ('active', _('active contributor')),
     ('affiliate', _('close affiliate')),
@@ -250,7 +252,7 @@ RESOURCE_EFFECT_CHOICES = (
     ('-', _('decrease')),
     ('x', _('transfer')), #means - for from_agent, + for to_agent
     ('=', _('no effect')),
-    ('>', _('failure')),
+    ('<', _('failure')),
 )
 
 class EventType(models.Model):
@@ -325,6 +327,7 @@ class EconomicResourceType(models.Model):
     category = models.ForeignKey(Category, blank=True, null=True, 
         verbose_name=_('category'), related_name='resource_types',
         limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
+    #todo: needs better name.  Technically, is supertype.
     materiality = models.CharField(_('materiality'), 
         max_length=12, choices=MATERIALITY_CHOICES,
         default='material')
@@ -768,6 +771,7 @@ class Project(models.Model):
     #todo: these resource_effects are wrong
     #time contributions resource_effect == '=' (no effect)
     #need to figure out how to find events that are contributions
+    #(add is_contribution field to EconomicEvent)
     def contributions(self):
         return sum(event.quantity for event in self.events.filter(
             event_type__resource_effect='-'))
@@ -865,7 +869,7 @@ class ProcessType(models.Model):
     def xbill_class(self):
         return "process-type"
 
-
+#todo: better name?  Maybe ProcessTypeInputOutput?
 class ProcessTypeResourceType(models.Model):
     process_type = models.ForeignKey(ProcessType,
         verbose_name=_('process type'), related_name='resource_types')
@@ -946,10 +950,8 @@ class ProcessTypeResourceType(models.Model):
         from valuenetwork.valueaccounting.forms import ProcessTypeResourceTypeForm, LaborInputForm
         if self.resource_type.materiality == "work":
             return LaborInputForm(instance=self, prefix=self.xbill_change_prefix())
-            #return LaborInputForm(instance=self)
         else:
             return ProcessTypeResourceTypeForm(instance=self, prefix=self.xbill_change_prefix())
-            #return ProcessTypeResourceTypeForm(instance=self)
 
 
 class Process(models.Model):
@@ -1316,6 +1318,8 @@ ORDER_TYPE_CHOICES = (
     ('rand', _('R&D project')),
 )
 
+#todo: Order is used for both of the above types.
+#maybe shd be renamed?
 class Order(models.Model):
     order_type = models.CharField(_('order type'), max_length=12, 
         choices=ORDER_TYPE_CHOICES, default='customer')
@@ -1603,6 +1607,19 @@ class Commitment(models.Model):
             events = self.fulfillment_events.filter(resource=resource)
             resource.fulfilled_quantity = sum(evt.quantity for evt in events)
         return resources
+
+    def quantity_to_buy(self):
+        onhand = self.onhand()       
+        if self.resource_type.materiality == "material":
+            if not self.resource_type.producing_commitments():
+                qty =  self.unfilled_quantity() - sum(oh.quantity for oh in self.onhand())
+                if qty > Decimal("0"):
+                    return qty
+        else:
+            if not onhand:
+                if not self.resource_type.producing_commitments():
+                    return Decimal("1")
+        return Decimal("0")
   
     def creates_resources(self):
         return self.event_type.creates_resources()
@@ -1621,6 +1638,7 @@ class Commitment(models.Model):
         return answer
 
 
+#todo: not used.
 class Reciprocity(models.Model):
     """One Commitment reciprocating another.
 
@@ -1671,7 +1689,7 @@ class SelectedOption(models.Model):
     def __unicode__(self):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
 
-
+#todo: add is_contribution field
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="events", verbose_name=_('event type'))
@@ -1775,6 +1793,7 @@ class EconomicEvent(models.Model):
         return self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)
 
 
+#todo: not used
 class Compensation(models.Model):
     """One EconomicEvent compensating another.
 

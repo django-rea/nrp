@@ -39,6 +39,35 @@ def get_agent(request):
         agent = "Unregistered"
     return agent
 
+def home(request):
+    work_to_do = Commitment.objects.filter(
+            from_agent=None, 
+            resource_type__materiality="work")
+    reqs = Commitment.objects.filter(
+        resource_type__materiality="material",
+        relationship__direction="in").order_by("resource_type__name")
+    stuff = SortedDict()
+    for req in reqs:
+        if req.quantity_to_buy():
+            if req.resource_type not in stuff:
+                stuff[req.resource_type] = Decimal("0")
+            stuff[req.resource_type] += req.quantity_to_buy()
+    treqs = Commitment.objects.filter(
+        resource_type__materiality="tool",
+        relationship__direction="in").order_by("resource_type__name")
+    for req in treqs:
+        if req.quantity_to_buy():
+            if req.resource_type not in stuff:
+                stuff[req.resource_type] = req.quantity_to_buy()
+    value_creations = Commitment.objects.filter(
+        relationship__direction="out")
+    return render_to_response("homepage.html", {
+        "work_to_do": work_to_do,
+        "stuff_to_buy": stuff,
+        "value_creations": value_creations,
+        "photo_size": (128, 128),
+    }, context_instance=RequestContext(request))
+
 def projects(request):
     roots = Project.objects.filter(parent=None)
     
@@ -1052,7 +1081,9 @@ def demand(request):
 
 def supply(request):
     mreqs = []
-    mrqs = Commitment.objects.filter(resource_type__materiality="material").order_by("resource_type__name")
+    mrqs = Commitment.objects.filter(
+        resource_type__materiality="material",
+        relationship__direction="in").order_by("resource_type__name")
     suppliers = SortedDict()
     for commitment in mrqs:
         if not commitment.resource_type.producing_commitments():
@@ -1067,7 +1098,9 @@ def supply(request):
                         suppliers[agent][source] = []
                     suppliers[agent][source].append(commitment) 
     treqs = []
-    trqs = Commitment.objects.filter(resource_type__materiality="tool")
+    trqs = Commitment.objects.filter(
+        resource_type__materiality="tool",
+        relationship__direction="in").order_by("resource_type__name")
     for commitment in trqs:
         if not commitment.resource_type.producing_commitments():
             if not commitment.fulfilling_events():    

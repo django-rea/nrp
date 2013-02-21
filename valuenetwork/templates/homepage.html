@@ -7,38 +7,18 @@
 {% block body_class %}home{% endblock %}
 
 {% block banner %}
-    <h1>{% trans "Value Accounting prototype" %}</h1>
+    <h1>{% trans "A Value Network..." %}</h1>
     <p>
-        {% blocktrans %}
-        This project is just getting started.
-        {% endblocktrans %}
+        {% trans "is people creating value together, by contributing work, money and goods, and sharing the income." %} 
+        <a href="">{% trans "Learn more" %}</a>
     </p>
-    
-    <p>
-        {% blocktrans %}
-        Value Accounting means accounting for <a href="https://docs.google.com/document/d/1yjcxlN4RN0Trr1TeuG3YOuxQWgvHetxP2HzBvh9dZfo/edit" target="_blank">Value Networks</a>.
-        {% endblocktrans %}
+    <p style="margin-top: 1em;">
+        {% trans "The information below is now test data. Will soon be real opportunities to join the network." %}
     </p>
 
-    <p>
-        {% blocktrans %}
-		The prototype is being developed as a Web app in Django.  Here is <a href="https://github.com/valnet/valuenetwork" target="_blank">the code</a>.
-		Note the project roadmap in the README.
-        {% endblocktrans %}
-    </p>
 
-{% comment %}    
-    {% if user.is_authenticated %}
-        {% url what_next as what_next_url %}
-        <p class="what_next">{% blocktrans %}Wondering <a href="{{ what_next_url }}" class="btn primary large">What Next</a>?{% endblocktrans %}</p>
-    {% else %}
-        {% url account_login as login_url %}
-        {% url account_signup as signup_url %}
-        <p>{% blocktrans %}You can <a href="{{ login_url }}" class="btn">Log In</a> or <a href="{{ signup_url }}" class="btn primary">Sign Up</a> to try out the site.{% endblocktrans %}</p>
-
-    {% endif %}
-{% endcomment %}
 {% endblock %}
+
 {% block extra_body %}
 	{{ block.super }}
 

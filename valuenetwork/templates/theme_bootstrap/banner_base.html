@@ -1,64 +1,87 @@
 {% extends "site_base.html" %}
 
 {% load i18n %}
+{% load thumbnail %}
 
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
+       
         <div class="hero-unit well">
-        {% block banner %}
-            <h1>Hello, world!</h1>
-            <p>Vestibulum id ligula porta felis euismod semper. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
-            <p><a class="btn btn-primary btn-large">Learn more &raquo;</a></p>
-        {% endblock %}
-        </div>
-        
-        <div class="row">
-            <div class="span4">
-            {% block column-1 %}
-                <h2>Demand</h2>
-                <p>Orders, Customers, Marketing</p>
-                <p><a class="btn" href="{% url demand %}">View details &raquo;</a></p>
+            {% block banner %}
             {% endblock %}
-            </div>
-            <div class="span4">
-            {% block column-2 %}
-                <h2>Supply</h2>
-                <p>Material Requirements, Purchasing, Suppliers, Financial and Material Contributions</p>
-                <p><a class="btn" href="{% url supply %}">View details &raquo;</a></p>
-            {% endblock %}
-            </div>
-            <div class="span4">
-            {% block column-3 %}
-                <h2>Work</h2>
-                <p>Schedules, Assignments, LabNotes, Time Contributions</p>
-                <p><a class="btn" href="{% url work %}">View details &raquo;</a></p>
-            {% endblock %}
-            </div>
         </div>
 
-		<div class="row">
-            <div class="span4">
-            {% block column-21 %}
-                <h2>Resource Types</h2>
-                <p>SENSORICA Resource Types with links to Recipes</p>
-                <p><a class="btn" href="{% url resource_types %}">View details &raquo;</a></p>
-            {% endblock %}
-            </div>
-            <div class="span4">
-            {% block column-22 %}
-                <h2>Value Network</h2>
-				<p>Value network diagram for a SENSORICA scientific instrument system.</p>
-                <p><a class="btn" href="{% url network resource_type_id=24 %}">View details &raquo;</a></p>
-            {% endblock %}
-            </div>
-            <div class="span4">
-            {% block column-23 %}
-                <h2>Value Equation</h2>
-                <p>Collaborate on figuring out the value equation formula for time contributions</p>
-                <p><a class="btn" href="{% url value_equation project_id=2 %}">View details &raquo;</a></p>
-            {% endblock %}
-            </div>
+        <div class="row-fluid">
+	        <div class="span4">
+	            {% block column-1 %}
+                    <legend>Work to do</legend>
+
+                    <ul>
+						{% for item in work_to_do %}
+							<li>
+								<b>{{ item.resource_type.name }}:</b> {% trans "due" %} {{ item.due_date }}
+								
+									<div style="display: inline;" >
+									    <a href="" role="button" class="btn btn-info">
+											{% trans "do this work" %}
+										</a>
+									</div>
+									<p style="margin-left: 1em; margin-bottom: 0; font-size: 90%;">
+								        {% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process.name }}</a>
+							        </p>
+							</li>
+						{% endfor %}
+					</ul>
+                    
+                {% endblock %}
+	        </div>
+	        <div class="span4">
+	            {% block column-2 %}
+                    <legend>Resources we need</legend>
+
+                    <ul>
+						{% for resource_type, qty in stuff_to_buy.items %}
+							<li>
+								<b>{{ resource_type.name }}:</b> {{ qty}} {{ resource_type.unit_of_quantity }}
+								
+									<div style="display: inline;" >
+									    <a href="" role="button" class="btn btn-info">
+											{% trans "get this for us" %}
+										</a>
+									</div>
+							</li>
+						{% endfor %}
+					</ul>
+					
+                {% endblock %}
+	        </div>
+	        <div class="span4">
+	            {% block column-3 %}
+                    <legend>Value being created</legend>
+
+                    <ul>
+						{% for item in value_creations %}
+							<li>
+								<b>{{ item.resource_type.name }}:</b> {% trans "created" %} {{ item.due_date }}
+								{% if item.resource_type.photo %}
+		                        	<img src="{% thumbnail item.resource_type.photo photo_size %}" />
+	                        	{% elif item.resource_type.photo_url %}
+	                        	    <img src="{{ item.resource_type.photo_url }}" width="128" height="96" />
+		                        {% endif %}
+		                        <div style="display: inline;" >
+								    <a href="" role="button" class="btn btn-info">
+										{% trans "use this" %}
+									</a>
+								</div>
+								
+							</li>
+						{% endfor %}
+					</ul>
+                    
+                {% endblock %}
+	        </div>
         </div>
+        
     </div>
 {% endblock %}

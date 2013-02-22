@@ -12,7 +12,6 @@ from django.template.defaultfilters import slugify
 
 from easy_thumbnails.fields import ThumbnailerImageField
 
-#todo: add when_created and when_changed fields where they fit
 
 """Models based on REA
 
@@ -188,6 +187,11 @@ class EconomicAgent(models.Model):
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     slug = models.SlugField(_("Page name"), editable=False)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='agents_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='agents_changed', blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     
     class Meta:
         ordering = ('nick',)
@@ -343,6 +347,8 @@ class EconomicResourceType(models.Model):
         related_name='resource_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='resource_types_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
     
     objects = EconomicResourceTypeManager()
@@ -573,11 +579,12 @@ class EconomicResource(models.Model):
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
-    created_date = models.DateField(_('created date'), auto_now_add=True)
+    created_date = models.DateField(_('created date'), auto_now_add=True, blank=True, editable=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='resources_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='resources_changed', blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
     objects = models.Manager()
     goods = GoodResourceManager()
@@ -681,6 +688,8 @@ class AgentResourceType(models.Model):
         related_name='arts_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='arts_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
     def __unicode__(self):
         return ' '.join([
@@ -750,6 +759,8 @@ class Project(models.Model):
         related_name='projects_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='projects_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
     
     class Meta:
@@ -805,6 +816,8 @@ class ProcessType(models.Model):
         related_name='process_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='process_types_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
@@ -884,6 +897,8 @@ class ProcessTypeResourceType(models.Model):
         related_name='ptrts_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='ptrts_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
     class Meta:
         ordering = ('resource_type',)
@@ -977,6 +992,8 @@ class Process(models.Model):
         related_name='processes_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='processes_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
@@ -1213,6 +1230,8 @@ class Feature(models.Model):
         related_name='features_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='features_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
     class Meta:
         ordering = ('name',)
@@ -1278,6 +1297,8 @@ class Option(models.Model):
         related_name='options_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='options_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
     class Meta:
         ordering = ('component',)
@@ -1336,6 +1357,8 @@ class Order(models.Model):
         related_name='orders_created', blank=True, null=True)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='orders_changed', blank=True, null=True)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
     class Meta:
         ordering = ('due_date',)
@@ -1449,6 +1472,8 @@ class Commitment(models.Model):
         related_name='commitments_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='commitments_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
@@ -1730,6 +1755,7 @@ class EconomicEvent(models.Model):
         related_name='events_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='events_changed', blank=True, null=True, editable=False)
+    
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:

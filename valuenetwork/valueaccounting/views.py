@@ -1386,6 +1386,7 @@ def work_commitment(
                     process.save()
                 event = wb_form.save(commit=False)
                 event.commitment = ct
+                event.is_contribution = True
                 event.event_date = today
                 event.event_type = ct.event_type
                 event.from_agent = ct.from_agent
@@ -1430,6 +1431,7 @@ def save_labnotes(request, commitment_id):
                 event = form.save(commit=False)
                 event.event_date = today
                 event.commitment = ct
+                event.is_contribution = True
                 event.process = ct.process
                 event.project = ct.project
                 event.event_type = ct.event_type
@@ -1718,7 +1720,7 @@ def failed_outputs(request, commitment_id):
             description = data["description"]
             unit_type = resource_type.unit.unit_type
             ets = EventType.objects.filter(
-                resource_effect="?",
+                resource_effect="<",
                 unit_type=unit_type)
             if ets:
                 event_type = ets[0]
@@ -1726,7 +1728,7 @@ def failed_outputs(request, commitment_id):
                 et_name = " ".join(["Failed", unit_type])
                 event_type = EventType(
                     name=et_name,
-                    resource_effect="?",
+                    resource_effect="<",
                     unit_type=unit_type)
                 event_type.save()
             resource = EconomicResource(

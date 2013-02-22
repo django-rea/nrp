@@ -263,7 +263,6 @@ class EventType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     resource_effect = models.CharField(_('resource effect'), 
         max_length=12, choices=RESOURCE_EFFECT_CHOICES)
-    #todo: EventType.unit_type is not used anywhere
     unit_type = models.CharField(_('unit type'), max_length=12, choices=UNIT_TYPE_CHOICES)
     slug = models.SlugField(_("Page name"), editable=False)
 
@@ -774,24 +773,18 @@ class Project(models.Model):
         super(Project, self).save(*args, **kwargs)
 
     def time_contributions(self):
-        #todo: hack
-        et = EventType.objects.get(name='Time Contribution')
         return sum(event.quantity for event in self.events.filter(
-            event_type=et))
+            resource_type__materiality="work"))
 
-    #todo: these resource_effects are wrong
-    #time contributions resource_effect == '=' (no effect)
-    #need to figure out how to find events that are contributions
-    #(add is_contribution field to EconomicEvent)
     def contributions(self):
         return sum(event.quantity for event in self.events.filter(
-            event_type__resource_effect='-'))
+            is_contribution=True))
 
     def contributions_count(self):
-        return self.events.filter(event_type__resource_effect='-').count()
+        return self.events.filter(is_contribution=True).count()
 
     def contributors(self):
-        ids = self.events.filter(event_type__resource_effect='-').values_list('from_agent').order_by('from_agent').distinct()
+        ids = self.events.filter(is_contribution=True).values_list('from_agent').order_by('from_agent').distinct()
         id_list = [id[0] for id in ids]
         return EconomicAgent.objects.filter(id__in=id_list)
 
@@ -1714,7 +1707,7 @@ class SelectedOption(models.Model):
     def __unicode__(self):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
 
-#todo: add is_contribution field
+
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="events", verbose_name=_('event type'))
@@ -1751,6 +1744,7 @@ class EconomicEvent(models.Model):
     commitment = models.ForeignKey(Commitment, blank=True, null=True,
         verbose_name=_('fulfills commitment'), related_name="fulfillment_events",
         on_delete=models.SET_NULL)
+    is_contribution = models.BooleanField(_('is contribution'), default=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='events_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

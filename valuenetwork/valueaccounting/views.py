@@ -195,6 +195,8 @@ def unscheduled_time_contributions(request):
         data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
+        keep_going = request.POST.get("keep-going")
+        just_save = request.POST.get("save")
         if time_formset.is_valid():
             events = time_formset.save(commit=False)
             rel = ResourceRelationship.objects.get(
@@ -213,8 +215,12 @@ def unscheduled_time_contributions(request):
                     event.unit_of_quantity=unit
                     event.created_by=request.user
                     event.save()
-            return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/contributionhistory', member.id))
+            if keep_going:
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/unscheduled-time'))
+            else:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/contributionhistory', member.id))
     
     return render_to_response("valueaccounting/unscheduled_time_contributions.html", {
         "member": member,

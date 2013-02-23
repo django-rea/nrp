@@ -1177,6 +1177,7 @@ def work(request):
     #    if not commitment.resource_type.producing_commitments():
     #        work.append(commitment)
     return render_to_response("valueaccounting/work.html", {
+        "agent": agent,
         "my_work": my_work,
         "my_skillz": my_skillz,
         "other_unassigned": other_unassigned,

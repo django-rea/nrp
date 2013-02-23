@@ -148,7 +148,7 @@ def contributions(request, project_id):
 def contribution_history(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, pk=agent_id)
-    event_list = agent.given_events.all()
+    event_list = agent.contributions()
     paginator = Paginator(event_list, 25)
 
     page = request.GET.get('page')
@@ -187,11 +187,35 @@ def unscheduled_time_contributions(request):
         EconomicEvent,
         form=CasualTimeContributionForm,
         can_delete=False,
-        extra=10,
+        extra=8,
+        max_num=8,
         )
     time_formset = TimeFormSet(
         queryset=EconomicEvent.objects.none(),
         data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if time_formset.is_valid():
+            events = time_formset.save(commit=False)
+            rel = ResourceRelationship.objects.get(
+                materiality="work",
+                related_to="process",
+                direction="in")
+            event_type=rel.event_type
+            unit = Unit.objects.filter(
+                unit_type="time",
+                name__icontains="Hours")[0]
+            for event in events:
+                if event.event_date and event.quantity:
+                    event.from_agent=member
+                    event.is_contribution=True
+                    event.event_type=event_type
+                    event.unit_of_quantity=unit
+                    event.created_by=request.user
+                    event.save()
+            return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/contributionhistory', member.id))
+    
     return render_to_response("valueaccounting/unscheduled_time_contributions.html", {
         "member": member,
         "time_formset": time_formset,

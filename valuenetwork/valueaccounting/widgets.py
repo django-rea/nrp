@@ -80,3 +80,16 @@ class DecimalDurationWidget(MultiWidget):
             return ''
         else:
             return duration
+
+    def _has_changed(self, initial, data):
+        #import pdb; pdb.set_trace()
+        if initial is None:
+            initial = [u'' for x in range(0, 3)]
+        else:
+            if not isinstance(initial, list):
+                initial = self.decompress(initial)
+        dlist = self.decompress(data)
+        for widget, initial, data in zip(self.widgets, initial, dlist):
+            if widget._has_changed(initial, data):
+                return True
+        return False

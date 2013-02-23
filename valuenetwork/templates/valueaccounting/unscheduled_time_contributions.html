@@ -40,7 +40,7 @@
 	<legend>{% trans "Log Unscheduled Time Contributions for " %} {{ member.name }}</legend>
 
 
-    <form method="POST" action="">
+    <form method="POST" action=".">
 	    {% csrf_token %}
 	    {{ time_formset.management_form }}
 	    <table class="table table-bordered table-condensed table-hover">
@@ -68,7 +68,13 @@
             {% endfor %}
             </tbody>
         </table>
-
+        <div class="row-fluid">
+            <div class="span9"></div>
+            <div class="span3" >
+			    <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
+			    <input type="submit" name="keep-going" value="{% trans 'Save and add more' %}" class="btn btn-primary" />
+			</div>
+	   	</div>
 
     </form>
 

@@ -133,9 +133,9 @@ class WorkbookForm(forms.ModelForm):
 
 
 class CasualTimeContributionForm(forms.ModelForm):
-    event_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
-    quantity = forms.DecimalField(
+    quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
         help_text="days, hours, minutes")
 	

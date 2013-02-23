@@ -236,6 +236,9 @@ class EconomicAgent(models.Model):
     def score(self):
         return sum(art.score for art in self.resource_types.all())
 
+    def contributions(self):
+        return self.given_events.filter(is_contribution=True)
+
 
 class AssociationType(models.Model):
     name = models.CharField(_('name'), max_length=128)

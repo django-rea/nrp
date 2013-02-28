@@ -22,8 +22,8 @@
 				<ul>
 				    {% for order in orders %}
 						<li>
-                            <a href="{% url order_schedule order_id=order.id %}">{{ order }}</a> 
-							{% if user = order.created_by %}
+                            <a href="{% url order_schedule order_id=order.id %}">{{ order }}</a> {% trans "created by" %} {{ order.created_by }}
+							{% if user = order.created_by or user.is_superuser %}
                             	<a class="btn btn-warning" href="{% url delete_order_confirmation order_id=order.id %}">{% trans "Delete" %}</a>
 							{% endif %}
                         </li>
@@ -35,13 +35,16 @@
 				<ul>
 				    {% for rand in rands %}
 						<li>
-                            <a href="{% url order_schedule order_id=rand.id %}">{{ rand }}</a> 
+                            <a href="{% url order_schedule order_id=rand.id %}">{{ rand }}</a>  {% trans "created by" %} {{ rand.created_by }}
 							{% if user = rand.created_by %}
                             	<a class="btn btn-info" href="{% url change_rand rand_id=rand.id %}">{% trans "Change" %}</a> 
                             	<a class="btn btn-info" href="{% url copy_rand rand_id=rand.id %}">{% trans "Copy" %}</a> 
                             	<a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
 							{% else %}
 							    {% if user.is_authenticated %}
+							        {% if user.is_superuser %}
+							            <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
+							        {% endif %}
                             	    <a class="btn btn-info" href="{% url copy_rand rand_id=rand.id %}">{% trans "Copy" %}</a>
                         	    {% endif %}
 							{% endif %}

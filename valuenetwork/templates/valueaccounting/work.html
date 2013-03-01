@@ -39,7 +39,7 @@
 
 			<h3>
 				<a href="{% url timeline %}">{% trans "Timeline" %}</a> 
-				{% if user.is_authenticated %}
+				{% if agent %}
 				    &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a> 
 					&nbsp;&nbsp;&nbsp;<a href="{% url create_process %}" role="button" class="btn btn-primary" >{% trans "Create a new process" %}</a> 
 					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" >{% trans "Log unscheduled time" %}</a>
@@ -84,7 +84,7 @@
 							{% for item in my_skillz %}
 								<li>
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-									{% if user.is_authenticated %}
+									{% if agent %}
 										<div style="display: inline;" >
 											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
 												{% trans "Take this task" %}
@@ -197,7 +197,7 @@
 							{% for item in other_unassigned %}
 								<li>
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-									{% if user.is_authenticated %}
+									{% if agent %}
 										<div style="display: inline;" >
 											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
 												{% trans "Take this task" %}

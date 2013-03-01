@@ -1,8 +1,13 @@
 {% extends "site_base.html" %}
 
 {% load i18n %}
+{% load bootstrap_tags %}
 
 {% block head_title %}{% trans "Process" %}: {{ process }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+{% endblock %}
 
 {% block body_class %}work{% endblock %}
 
@@ -111,6 +116,33 @@
 				</p>
 			{% else %}
 					{% trans "Unassigned" %} 
+					{% if user.is_authenticated %}
+						<div style="display: inline;" >
+							<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+								{% trans "Take this task" %}
+							</a>
+						</div>
+
+						<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+								<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
+							</div>
+							<div class="modal-body">
+
+								<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+									{% csrf_token %}
+									{{ item.commitment_form|as_bootstrap }}
+									<input type="hidden" name="next" value="{% url work %}" />
+								  <div class="modal-footer">
+									<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+									<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+									<input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+								  </div>
+								</form>
+							</div>
+						</div>
+					{% endif %}
 				</p>
 				{% for source in item.resource_type.producing_agent_relationships %}
 					<p style="margin-left: 2em;">
@@ -140,4 +172,43 @@
 
 	</div>
     </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#work').addClass('active');
+
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+		$.validator.addClassRules("quantity", { required: true, number: true });
+
+
+		$('.commitmentForm').each( function(){
+			var form = $(this);
+
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				},
+				success: function(label) {
+					label
+						.text('OK!').addClass('valid')
+						.closest('.control-group').addClass('success');
+				}
+			});
+		});
+
+
+	}); // end document.ready
+    </script>
+
 {% endblock %}

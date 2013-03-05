@@ -6,7 +6,7 @@ admin.site.add_action(export_as_csv, 'export_selected objects')
 
 admin.site.register(Unit)
 admin.site.register(AgentType)
-
+#admin.site.register(Stage)
 
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'applies_to', 'description','orderable' )
@@ -31,7 +31,7 @@ admin.site.register(EconomicAgent, EconomicAgentAdmin)
 
 
 class EconomicResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'rate', 'materiality', 'unit')
+    list_display = ('label', 'name', 'category', 'rate', 'materiality', 'unit')
     list_filter = ['category', 'materiality',]
     search_fields = ['name',]
     list_editable = ['category', 'materiality',]

@@ -35,8 +35,16 @@ class FailedOutputForm(forms.ModelForm):
 class DemandSelectionForm(forms.Form):
     demand = forms.ModelChoiceField(
         queryset=Order.objects.all(), 
-        label="For customer order or R&D project (optional)",
+        label="For customer or R&D order (optional)",
         required=False)
+
+class OutputResourceTypeSelectionForm(forms.Form):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.process_outputs(), 
+        label="Output Resource Type", 
+        widget=SelectWithPopUp(
+            model=EconomicResourceType,
+            attrs={'class': 'resource-type-selector'}))
 
 
 class OrderForm(forms.ModelForm):
@@ -48,10 +56,12 @@ class OrderForm(forms.ModelForm):
 
 class RandOrderForm(forms.ModelForm):
     receiver = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.exclude(agent_type__member_type='inactive'), 
+        queryset=EconomicAgent.objects.exclude(agent_type__member_type='inactive'),
+        label="Receiver (optional)", 
         required=False)
     provider = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.exclude(agent_type__member_type='inactive'), 
+        label="Provider (optional)", 
         required=False)
 
     class Meta:
@@ -60,12 +70,22 @@ class RandOrderForm(forms.ModelForm):
 
 
 class ProcessForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
 
     class Meta:
         model = Process
-        fields = ('name', 'project', 'url', 'start_date', 'end_date', 'notes' )
+        fields = ('name', 'project', 'start_date', 'end_date', 'notes' )
+
+
+class NamelessProcessForm(forms.ModelForm):
+    start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+
+    class Meta:
+        model = Process
+        fields = ('project', 'start_date', 'end_date', 'notes' )
 
 
 class ProcessInputForm(forms.ModelForm):
@@ -73,7 +93,7 @@ class ProcessInputForm(forms.ModelForm):
         queryset=EconomicResourceType.objects.process_inputs(), 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
-            attrs={'class': 'resource-type-selector'}))
+            attrs={'class': 'resource-type-selector input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -94,7 +114,7 @@ class ProcessOutputForm(forms.ModelForm):
         queryset=EconomicResourceType.objects.process_outputs(), 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
-            attrs={'class': 'resource-type-selector'}))
+            attrs={'class': 'resource-type-selector input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity  input-small'}))
     unit_of_quantity = forms.ModelChoiceField(

@@ -35,16 +35,34 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Work" %}</legend>
+		<legend>
+		    {% trans "Work" %} &nbsp;&nbsp;&nbsp;<a href="{% url timeline %}">{% trans "Timeline" %}</a> 
+		    {% if agent %}
+		        &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a>
+	        {% endif %}
+	    </legend>
 
-			<h3>
-				<a href="{% url timeline %}">{% trans "Timeline" %}</a> 
+			<p>
 				{% if agent %}
-				    &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a> 
-					&nbsp;&nbsp;&nbsp;<a href="{% url create_process %}" role="button" class="btn btn-primary" >{% trans "Create a new process" %}</a> 
-					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" >{% trans "Log unscheduled time" %}</a>
+				    <a href="{% url process_selections %}" role="button" class="btn btn-primary" 
+				        title="Schedule a process to log time and create resources. Can use existing recipes for outputs." >
+				        {% trans "Create resources of known types" %}
+			        </a>
+					&nbsp;&nbsp;&nbsp;
+					<a href="{% url create_process %}" role="button" class="btn btn-primary" 
+					    title="Schedule a process to log time and create resources. Does not use existing recipes for outputs." >
+					    {% trans "Create new types of resources" %}
+				    </a> 
+				    &nbsp;&nbsp;&nbsp;
+					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" 
+					    title="When you are not creating resources." >
+					    {% trans "Log unscheduled time" %}
+				    </a>
+					 
 				{% endif %}
-			</h3>
+				
+				
+			</p>
 
 		<div class="row-fluid">
 			<div class="span6">

@@ -52,7 +52,9 @@
 	<div>
 		<legend>
 			{% trans "Change Process" %}: {{ process }}</br>
-			{% trans "for" %}: {{ process.independent_demand }}
+			{% if process.independent_demand %}
+			    </br>{% trans "for" %}: {{ process.independent_demand }}
+		    {% endif %}
 		</legend>
 		<form id="processForm" method="POST" action="">
 			{% csrf_token %}

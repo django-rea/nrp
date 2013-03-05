@@ -13,8 +13,8 @@
 		<legend>{% trans "Demand" %}</legend>
 			{% if user.is_authenticated %}
 				<p>
-					<a class="btn btn-primary" href="{% url create_order %}">{% trans "Create Order" %}</a>
-					<a class="btn btn-primary" href="{% url create_rand %}">{% trans "Create R&amp;D Project" %}</a>
+					<a class="btn btn-primary" href="{% url create_order %}">{% trans "Create Customer Order" %}</a>
+					<a class="btn btn-primary" href="{% url create_rand %}">{% trans "Create R&amp;D Order" %}</a>
 				</p>
 			{% endif %}
 			{% if orders %}

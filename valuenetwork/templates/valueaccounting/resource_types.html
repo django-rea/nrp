@@ -28,8 +28,8 @@ li {
         {% include "_messages.html" %}
 	<div class="row-fluid">
 		<div class="span10">
-		<h1>
-			{% trans "Resource Types" %}
+		
+			<legend>{% trans "Resource Types" %}</legend>
 
 			{% if user.is_authenticated %}
 				<div style="display: inline;" >
@@ -54,21 +54,22 @@ li {
 
 
 						</form>
-				  </div>
+				    </div>
+                </div>
 			{% endif %}
 
-		</h1>
-		<ul>
-			{% for resource_type in roots %}
-				<li>
-					<span class="name">{{ resource_type }}</span> {{ resource_type.category.name }}
+	
+		    <ul>
+			    {% for resource_type in roots %}
+				    <li>
+					    <span class="name">{{ resource_type }}</span> {{ resource_type.category.name }}
 
-					{% include  "valueaccounting/_resource_type.html" %}
+					    {% include  "valueaccounting/_resource_type.html" %}
 
-			</li>
+			    </li>
 
-			{% endfor %}
-		</ul>
+			    {% endfor %}
+		    </ul>
 		</div>
 		<div class="span2 filter">
 			<h4>{% trans "Filter by Category" %}</h4>

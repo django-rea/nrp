@@ -344,7 +344,7 @@ class EconomicResourceType(models.Model):
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     description = models.TextField(_('description'), blank=True, null=True)
-    rate = models.DecimalField(_('rate'), max_digits=6, decimal_places=2, default=Decimal("0.00"))
+    rate = models.DecimalField(_('rate'), max_digits=6, decimal_places=2, default=Decimal("0.00"), editable=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='resource_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

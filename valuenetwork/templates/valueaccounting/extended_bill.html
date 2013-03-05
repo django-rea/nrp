@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load thumbnail %}
 
-{% block head_title %}{% trans "Recipe for " %} {{ resource_type }}{% endblock %}
+{% block head_title %}<legend>{% trans "Recipe for " %} {{ resource_type }}</legend>{% endblock %}
 
 {% block extra_head %}
  <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
@@ -85,7 +85,7 @@ ul {
         {% include "_messages.html" %}
 	<div class="row-fluid">
 		<div class="span10">
-			<h1>{% trans "Recipe for " %} {{ resource_type }}</h1>
+			<legend>{% trans "Recipe for " %} {{ resource_type }}</legend>
 
 		    <h4>
 				{% if resource_type.url %}

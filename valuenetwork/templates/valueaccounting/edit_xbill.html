@@ -98,7 +98,7 @@ ul {
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<h1>{% trans "Edit Recipe for " %} {{ resource_type }}</h1>
+		<legend>{% trans "Edit Recipe for " %} {{ resource_type }}</legend>
 
         <h4>
 			{% if resource_type.url %}
@@ -109,7 +109,7 @@ ul {
 			{% if resource_type.photo %}
 				<img src="{% thumbnail resource_type.photo big_photo_size %}" />
 			{% elif resource_type.photo_url %}
-        	    <img src="{{ resource_type.photo_url }}" width="200" height="128" />
+        	    		<img src="{{ resource_type.photo_url }}" width="200" height="128" />
 			{% endif %}
 
 			<div style="display: inline;" >
@@ -142,17 +142,13 @@ ul {
 		{% if resource_type.description %}
 			<div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
 		{% endif %}
-
-		<div style="margin-bottom: 2px;" >
-			<a href="#processForm{{ resource_type.id }}" role="button" class="btn btn-info" data-toggle="modal">
-				{% if resource_type.producing_process_type_relationships %}
-					{% blocktrans %}Add another process type to create {{ resource_type }}{% endblocktrans %}
-				{% else %}
-					{% blocktrans %}Add a process type to create {{ resource_type }}{% endblocktrans %}
-				{% endif %}
-			</a>
-		</div>
-
+        {% if not resource_type.producing_process_type_relationships %}
+		    <div style="margin-bottom: 2px;" >
+			    <a href="#processForm{{ resource_type.id }}" role="button" class="btn btn-info" data-toggle="modal">
+					    {% blocktrans %}Add a process type to create {{ resource_type }}{% endblocktrans %}
+			    </a>
+		    </div>
+        {% endif %}
 
 		<div class="modal hide fade processForm" id="processForm{{ resource_type.id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
 		  <div class="modal-header">
@@ -322,17 +318,14 @@ ul {
 					{% if xb_type == "economic-resource-type" %}
 						<div>
 						{% comment %} todo: type of work is a hack based on a user-defined name {% endcomment %}
-						{% if not xbill_object.category.name = "Type of work" %}
-							<div style="display: inline;" >
-								<a href="#processForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
-									{% if xbill_object.producing_process_type_relationships %}
-										{% blocktrans %}Add another process type to produce {{ xbill_object }}{% endblocktrans %}
-									{% else %}
-										{% blocktrans %}Add a process type to produce {{ xbill_object }}{% endblocktrans %}
-									{% endif %}
-								</a>
-							</div>
-
+						{% if not xbill_object.category.materiality = "work" %}
+                            {% if not xbill_object.producing_process_type_relationships %}
+							    <div style="display: inline;" >
+								    <a href="#processForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+									    {% blocktrans %}Add a process type to produce {{ xbill_object }}{% endblocktrans %}
+								    </a>
+							    </div>
+                            {% endif %}
 
 							<div class="modal hide fade processForm" id="processForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
 							  <div class="modal-header">

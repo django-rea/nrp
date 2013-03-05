@@ -2786,3 +2786,149 @@ def change_rand(request, rand_id):
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
 
+@login_required
+def process_selections(request):
+    #import pdb; pdb.set_trace()
+    resource_names = [res.name for res in EconomicResourceType.objects.process_outputs()]
+    #resource_names = [res.label() for res in EconomicResourceType.objects.process_outputs()]
+    related_outputs = []
+    related_inputs = []
+    related_recipes = []
+    selected_name = ""
+    #import pdb; pdb.set_trace()
+    use_radio = True
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        next_step = request.POST.get("next-step")
+        get_related = request.POST.get("get-related")
+        if get_related:
+            selected_name = request.POST.get("resourceName")
+            related_outputs = EconomicResourceType.objects.process_outputs().filter(name__contains=selected_name)
+            related_inputs = EconomicResourceType.objects.process_inputs().filter(name__contains=selected_name)
+            related_recipes = []
+            for output in related_outputs:
+                related_recipes.extend(output.producing_process_types())
+            if len(related_recipes) == 1:
+                use_radio = False
+        if next_step:
+            rp = request.POST
+            #import pdb; pdb.set_trace()
+            output_rts = []
+            input_rts = []
+            pts = []
+            for key, value in dict(rp).iteritems():
+                if "input" in key:
+                    input_id = int(value[0])
+                    input_rt = EconomicResourceType.objects.get(id=input_id)
+                    input_rts.append(input_rt)
+                if "output" in key:
+                    output_id = int(value[0])
+                    output_rt = EconomicResourceType.objects.get(id=output_id)
+                    output_rts.append(output_rt)
+                if "recipe" in key:
+                    recipe_id = int(value[0])
+                    pt = ProcessType.objects.get(id=recipe_id)
+                    pts.append(pt)
+            today = datetime.date.today()
+            if len(pts) == 1:
+                pt = pts[0]
+                process = Process(
+                    name=pt.name,
+                    process_type=pt,
+                    project=pt.project,
+                    url=pt.url,
+                    end_date=today,
+                    start_date=today,
+                    created_by=request.user,
+                )
+                process.save()
+            else:
+                for ptx in pts:
+                    for rt in ptx.produced_resource_types():
+                        if rt in output_rts:
+                            pt = ptx
+                if pt:
+                    process = Process(
+                        name=pt.name,
+                        process_type=pt,
+                        project=pt.project,
+                        url=pt.url,
+                        end_date=today,
+                        start_date=today,
+                        created_by=request.user,
+                    )
+                    process.save()
+                else:
+                    name = "Make something"
+                    if output_rts:
+                        name = " ".join([
+                            "Make",
+                            output_rts[0].name,
+                        ])
+                    process = Process(
+                        name=name,
+                        end_date=today,
+                        start_date=today,
+                        created_by=request.user,
+                    )
+                    process.save()
+            if pt:
+                for ptrt in pt.consumed_resource_type_relationships():
+                    rel = ptrt.relationship
+                    commitment = Commitment(
+                        process=process,
+                        event_type=rel.event_type,
+                        relationship=rel,
+                        due_date=today,
+                        resource_type=ptrt.resource_type,
+                        quantity=ptrt.quantity,
+                        unit_of_quantity=ptrt.unit_of_quantity,
+                        created_by=request.user,
+                    )
+                    commitment.save()                    
+            for rt in output_rts:
+                rel = ResourceRelationship.objects.get(
+                    materiality=rt.materiality,
+                    related_to="process",
+                    direction="out")
+                if rel:
+                    commitment = Commitment(
+                        process=process,
+                        event_type=rel.event_type,
+                        relationship=rel,
+                        due_date=today,
+                        resource_type=rt,
+                        quantity=Decimal("1"),
+                        unit_of_quantity=rt.unit,
+                        created_by=request.user,
+                    )
+                    commitment.save()
+            for rt in input_rts:
+                rel = ResourceRelationship.objects.get(
+                    materiality=rt.materiality,
+                    related_to="process",
+                    direction="in")
+                if rel:
+                    commitment = Commitment(
+                        process=process,
+                        event_type=rel.event_type,
+                        relationship=rel,
+                        due_date=today,
+                        resource_type=rt,
+                        quantity=Decimal("1"),
+                        unit_of_quantity=rt.unit,
+                        created_by=request.user,
+                    )
+                    commitment.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/change-process', process.id))               
+                            
+    return render_to_response("valueaccounting/process_selections.html", {
+        "resource_names": resource_names,
+        "related_outputs": related_outputs,
+        "related_inputs": related_inputs,
+        "related_recipes": related_recipes,
+        "selected_name": selected_name,
+        "use_radio": use_radio,
+    }, context_instance=RequestContext(request))
+

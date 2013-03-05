@@ -22,10 +22,11 @@
 	            <a class="btn btn-info" href="{% url copy_process process_id=process.id %}">{% trans "Copy" %}</a>
 			{% endif %}
 		</legend>
-
-		<p>
-			<b>{% trans "for" %}:</b> {{ process.independent_demand }}
-		</p>
+        {% if process.independent_demand %}
+		    <p>
+			    <b>{% trans "for" %}:</b> {{ process.independent_demand }}
+		    </p>
+	    {% endif %}
 
 		{% if process.notes %}
 		<h4>{% trans "Notes" %}:</h4>

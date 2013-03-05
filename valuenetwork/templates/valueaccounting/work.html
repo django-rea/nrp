@@ -41,7 +41,7 @@
 				<a href="{% url timeline %}">{% trans "Timeline" %}</a> 
 				{% if agent %}
 				    &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a> 
-					&nbsp;&nbsp;&nbsp;<a href="{% url create_process %}" role="button" class="btn btn-primary" >{% trans "Create a new process" %}</a> 
+					&nbsp;&nbsp;&nbsp;<a href="{% url create_process %}" role="button" class="btn btn-primary" >{% trans "Schedule a new process" %}</a> 
 					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" >{% trans "Log unscheduled time" %}</a>
 				{% endif %}
 			</h3>

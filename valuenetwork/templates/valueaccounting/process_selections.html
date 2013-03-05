@@ -1,0 +1,148 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Create Process" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+
+<style>
+
+#id_notes
+{
+  width: 28em;
+}
+
+#id_url
+{
+  width: 28em;
+}
+
+.item-description
+{
+	width: 32em;
+    height: 40px;
+}
+
+.formset-top
+{
+	padding-top: 1em;
+}
+
+.formset-bottom
+{
+	border-bottom-style:solid;
+	border-width:1px;
+	border-color:lightgrey;
+}
+
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>{% trans "Create Process" %}</legend>
+		<form class="form-horizontal" id="processForm" method="POST" action=".">
+			{% csrf_token %}
+		<div class="row-fluid">
+			<div class="span10 offset2">
+			    Resource Type Name <input type="text" id="resourceName" name="resourceName" value="{{ selected_name }}" 
+			        {% if  selected_name %} disabled="disabled" {% endif %} /> 
+			    {% if selected_name %} 
+
+			        {% if related_outputs %}
+
+			            <legend>{% trans "Related Outputs" %}:</legend>
+
+			            {% for output in related_outputs %}
+
+    		                <p>
+    		                    <input type="checkbox" class="output" id="output-{{ output.id }}" name="output-{{ output.name }}" value="{{ output.id }}" /> 
+			                    {{ output.label }}
+		                    </p>
+
+			            {% endfor %}
+
+		            {% endif %}
+
+			        {% if related_inputs %}
+			        
+				        <legend>{% trans "Related Inputs" %}:</legend>
+
+				        {% for inp in related_inputs %}
+
+				            <p>
+    		                    <input type="checkbox" class="input" id="input-{{ inp.id }}" name="input-{{ inp.name }}" value="{{ inp.id }}" /> 
+			                    {{ inp.label }}
+		                    </p>
+
+				        {% endfor %}
+
+			        {% endif %}
+
+			        {% if related_recipes %}
+				
+				        <legend>{% trans "Related Recipes" %}:</legend>
+
+				        {% for recipe in related_recipes %}
+
+				            <p>
+				                {% if use_radio %}
+        		                    <input type="radio" class="recipe" id="recipe-{{ recipe.id }}" name="recipe-{{ recipe.name }}" value="{{ recipe.id }}" /> 
+			                        {{ recipe.name }}
+			                    {% else %}
+			                        <input type="checkbox" class="recipe" id="recipe-{{ recipe.id }}" name="recipe-{{ recipe.name }}" value="{{ recipe.id }}" /> 
+			                        {{ recipe.name }}
+			                    {% endif %}
+		                    </p>
+				            
+
+				        {% endfor %}
+
+			        {% endif %}
+
+			        <input type="submit" name="next-step" value="{% trans 'Next step...' %}" class="btn btn-primary" />
+
+				    
+			    {% else %}
+
+				    <input type="submit" name="get-related" value="{% trans 'Get relatives' %}" class="btn btn-primary" />
+			    {% endif %}
+
+			</div>
+		</div>
+		</form>
+    </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+	
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+	    var resourceNames = []
+	    {% for rname in resource_names %}
+            resourceNames.push("{{ rname }}");
+	    {% endfor %}
+	    $( "#resourceName" ).autocomplete({source: resourceNames});
+
+	}); // end document.ready
+    </script>
+
+{% endblock %}

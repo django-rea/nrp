@@ -83,6 +83,19 @@ def _slug_strip(value, separator=None):
         value = re.sub('%s+' % re_sep, separator, value)
     return re.sub(r'^%s+|%s+$' % (re_sep, re_sep), '', value)
 
+
+#class Stage(models.Model):
+#    name = models.CharField(_('name'), max_length=32)
+#    sequence = models.IntegerField(_('sequence'), default=0)
+    
+
+#    class Meta:
+#        ordering = ('sequence',)
+     
+#    def __unicode__(self):
+#        return self.name
+        
+
 CATEGORIZATION_CHOICES = (
     ('Anything', _('Anything')),
     ('EconomicResourceType', _('EconomicResourceType')),
@@ -327,14 +340,17 @@ class EconomicResourceTypeManager(models.Manager):
 
 
 class EconomicResourceType(models.Model):
-    name = models.CharField(_('name'), max_length=128)    
+    name = models.CharField(_('name'), max_length=128)
+    #version = models.CharField(_('version'), max_length=32, blank=True)    
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='children', editable=False)
-    category = models.ForeignKey(Category, blank=True, null=True, 
+    #stage = models.ForeignKey(Stage, blank=True, null=True, 
+    #    verbose_name=_('stage'), related_name='resource_types')
+    category = models.ForeignKey(Category, 
         verbose_name=_('category'), related_name='resource_types',
         limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
     #todo: needs better name.  Technically, is supertype.
-    materiality = models.CharField(_('materiality'), 
+    materiality = models.CharField(_('behavior'), 
         max_length=12, choices=MATERIALITY_CHOICES,
         default='material')
     unit = models.ForeignKey(Unit, blank=True, null=True,
@@ -356,10 +372,20 @@ class EconomicResourceType(models.Model):
     objects = EconomicResourceTypeManager()
 
     class Meta:
-        ordering = ('name',)
+        #ordering = ('category', 'name', 'stage')
+        #unique_together = ('name', 'version', 'stage')
+        ordering = ('category', 'name')
+        unique_together = ('name', 'category')
     
     def __unicode__(self):
-        return self.name
+        #stage_name = ""
+        #if self.stage:
+        #    stage_name = self.stage.name
+        #return " ".join([self.category.name, self.name, self.version, stage_name])
+        return " - ".join([self.category.name, self.name])
+
+    def label(self):
+        return self.__unicode__()
     
     @classmethod
     def add_new_form(cls):
@@ -633,7 +659,7 @@ class ResourceRelationship(models.Model):
         max_length=12, choices=DIRECTION_CHOICES, default='in')
     related_to = models.CharField(_('related to'), 
         max_length=12, choices=RELATED_CHOICES, default='process')
-    materiality = models.CharField(_('materiality'), 
+    materiality = models.CharField(_('behavior'), 
         max_length=12, choices=MATERIALITY_CHOICES,
         default='material',
         help_text=_('this links Economic Resource Types to Resource Relationships'))
@@ -1332,7 +1358,7 @@ class Option(models.Model):
 
 ORDER_TYPE_CHOICES = (
     ('customer', _('Customer order')),
-    ('rand', _('R&D project')),
+    ('rand', _('R&D order')),
 )
 
 #todo: Order is used for both of the above types.

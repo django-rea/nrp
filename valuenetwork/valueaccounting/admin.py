@@ -79,6 +79,7 @@ class EconomicResourceAdmin(admin.ModelAdmin):
     list_display = ('id', 'identifier', 'resource_type', 'quantity', 'unit_of_quantity', 'quality', 'notes', 'owner', 'custodian')
     list_filter = ['resource_type', 'author', 'owner']
     search_fields = ['identifier', 'resource_type__name']
+    date_hierarchy = 'created_date'
     
 admin.site.register(EconomicResource, EconomicResourceAdmin)
 

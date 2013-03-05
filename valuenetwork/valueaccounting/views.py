@@ -2170,6 +2170,21 @@ def change_process(request, process_id):
                     else:
                         ct = form.save(commit=False)
                         if ct_from_id:
+                            producers = ct.resource_type.producing_commitments()
+                            propagators = []
+                            explode = True
+                            #todo: this logic needs work
+                            #best to create independent demands always
+                            for pc in producers:
+                                if demand:
+                                    if pc.independent_demand == demand:
+                                        propagators.append(pc) 
+                                        explode = False
+                                else:
+                                    if pc.due_date == process.start_date:
+                                        if pc.quantity == old_ct.quantity:
+                                            propagators.append(pc)
+                                            explode = False 
                             old_ct = Commitment.objects.get(id=ct_from_id.id)
                             old_rt = old_ct.resource_type
                             if ct.resource_type != old_rt:
@@ -2187,9 +2202,8 @@ def change_process(request, process_id):
                                 explode = True                                 
                             elif qty != old_ct.quantity:
                                 delta = qty - old_ct.quantity
-                                for pc in ct.resource_type.producing_commitments():
-                                    if pc.independent_demand == demand:
-                                        propagate_qty_change(pc, delta)                                
+                                for pc in propagators:
+                                    propagate_qty_change(pc, delta)                     
                             ct.changed_by = request.user
                             rt = input_data["resource_type"]
                             rel = ResourceRelationship.objects.get(

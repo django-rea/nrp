@@ -153,12 +153,11 @@ class WorkbookForm(forms.ModelForm):
 
 
 class CasualTimeContributionForm(forms.ModelForm):
-    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
-    #url = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-url',}))
     quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
-        help_text="days, hours, minutes")
+        help_text="days, hrs, mins")
 	
     class Meta:
         model = EconomicEvent

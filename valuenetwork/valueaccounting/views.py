@@ -185,7 +185,7 @@ def log_time(request):
 @login_required
 def unscheduled_time_contributions(request):
     member = get_agent(request)
-    if not agent:
+    if not member:
         return HttpResponseRedirect('/%s/'
             % ('accounting/work'))
     TimeFormSet = modelformset_factory(
@@ -2092,6 +2092,8 @@ def copy_process(request, process_id):
 @login_required
 def change_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
+    demand_form = DemandSelectionForm(data=request.POST or None)
+    rand_form = RandOrderForm(data=request.POST or None)
     process_form = ProcessForm(instance=process, data=request.POST or None)
     OutputFormSet = modelformset_factory(
         Commitment,
@@ -2251,6 +2253,8 @@ def change_process(request, process_id):
                     % ('accounting/change-process', process.id))
     return render_to_response("valueaccounting/change_process.html", {
         "process": process,
+        "rand_form": rand_form,
+        "demand_form": demand_form,
         "process_form": process_form,
         "output_formset": output_formset,
         "input_formset": input_formset,

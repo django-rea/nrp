@@ -2834,6 +2834,7 @@ def process_selections(request):
                     pt = ProcessType.objects.get(id=recipe_id)
                     pts.append(pt)
             today = datetime.date.today()
+            pt = None
             if len(pts) == 1:
                 pt = pts[0]
                 process = Process(

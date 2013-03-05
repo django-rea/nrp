@@ -15,13 +15,17 @@
 
 .days, .hours, .minutes 
 {
-	width: 24px;
+	width: 18px;
 }
 
 .item-description
 {
-	width: 24em;
+	width: 20em;
     height: 40px;
+}
+.item-date
+{
+	width: 70px;
 }
 
 .headings
@@ -39,7 +43,6 @@
 <div class="container">
 	<legend>{% trans "Log Unscheduled Time Contributions for " %} {{ member.name }}</legend>
 
-
     <form method="POST" action=".">
 	    {% csrf_token %}
 	    {{ time_formset.management_form }}
@@ -50,6 +53,7 @@
 	                <th>{% trans "Type of work" %}</th>
 	                <th>{% trans "Project" %}</th>
 	                <th>{% trans "Time spent" %}</th>
+	                <th>{% trans "URL" %}</th>
 	                <th>{% trans "Description" %}</th>
 	            </tr>
 	        </thead>
@@ -63,9 +67,10 @@
 	                    {{ form.quantity }}</br>
 	                    {{ form.quantity.help_text }}
                     </td>
+                	<td>{{ form.url }}</td>
 	                <td>{{ form.description }}</td>
 	            </tr>
-            {% endfor %}
+           	{% endfor %}
             </tbody>
         </table>
         <div class="row-fluid">

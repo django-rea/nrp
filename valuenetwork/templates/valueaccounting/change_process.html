@@ -51,20 +51,21 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>
-			{% trans "Change Process" %}: {{ process }}</br>
+		<legend>{% trans "Change Process" %}: {{ process }}</legend>
 			{% if process.independent_demand %}
-			    </br>{% trans "for" %}: {{ process.independent_demand }}
+			    <p>{% trans "for" %}: {{ process.independent_demand }}</p>
 		    {% endif %}
-		</legend>
+		
 		<form class="form-horizontal" id="processForm" method="POST" action="">
 			{% csrf_token %}
 		<div class="row-fluid">
 			<div class="span6">
 			    <legend>{% trans "Order" %}:</legend>
 				{{ rand_form|as_bootstrap }}
-				<p style="margin-left: 14em;">Or</p>
-				{{ demand_form|as_bootstrap }}
+				{% if demand_form %}
+				    <p style="margin-left: 14em;">Or</p>
+				    {{ demand_form|as_bootstrap }}
+			    {% endif %}
 				<legend>{% trans "Process" %}:</legend>
 				{{ process_form|as_bootstrap }}
 				<div class="form-actions">

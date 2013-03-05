@@ -95,7 +95,7 @@ class OrderItemInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('provider', 'receiver', 'description','due_date' )
+    list_display = ('id', 'provider', 'receiver', 'description','due_date' )
     inlines = [ OrderItemInline, ]
 
 admin.site.register(Order, OrderAdmin)

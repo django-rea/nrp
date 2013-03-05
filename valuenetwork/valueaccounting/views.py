@@ -2083,6 +2083,7 @@ def copy_process(request, process_id):
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/change-process', process.id))
     return render_to_response("valueaccounting/create_process.html", {
+        "demand": demand,
         "demand_form": demand_form,
         "process_form": process_form,
         "output_formset": output_formset,
@@ -2092,8 +2093,13 @@ def copy_process(request, process_id):
 @login_required
 def change_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
-    demand_form = DemandSelectionForm(data=request.POST or None)
-    rand_form = RandOrderForm(data=request.POST or None)
+    demand = process.independent_demand()
+    if demand:
+        rand_form = RandOrderForm(instance=demand,data=request.POST or None)
+        demand_form = None
+    else:
+        demand_form = DemandSelectionForm(data=request.POST or None)    
+        rand_form = RandOrderForm(data=request.POST or None)
     process_form = ProcessForm(instance=process, data=request.POST or None)
     OutputFormSet = modelformset_factory(
         Commitment,
@@ -2124,7 +2130,22 @@ def change_process(request, process_id):
             process = process_form.save(commit=False)
             process.changed_by=request.user
             process.save()
-            demand = process.independent_demand()
+            #import pdb; pdb.set_trace()
+            if rand_form.is_valid():
+                existing_demand = demand
+                demand = rand_form.save(commit=False)
+                demand.order_type = 'rand'
+                if existing_demand:
+                    demand.changed_by = request.user
+                else:
+                    demand.created_by = request.user
+                demand.due_date = process.end_date
+                demand.save()
+            if demand_form:
+                if demand_form.is_valid():
+                    selected_demand = demand_form.cleaned_data["demand"]
+                    if selected_demand:
+                        demand = selected_demand             
             for form in output_formset.forms:
                 if form.is_valid():
                     output_data = form.cleaned_data
@@ -2132,13 +2153,13 @@ def change_process(request, process_id):
                     ct_from_id = output_data["id"]
                     if qty:
                         ct = form.save(commit=False)
+                        ct.independent_demand = demand
+                        ct.project = process.project
+                        ct.due_date = process.end_date
                         if ct_from_id:
-                            ct.project = process.project
                             ct.changed_by = request.user
                         else:
                             ct.process = process
-                            ct.project = process.project
-                            ct.due_date = process.end_date
                             ct.created_by = request.user
                             rt = output_data["resource_type"]
                             rel = ResourceRelationship.objects.get(
@@ -2169,9 +2190,12 @@ def change_process(request, process_id):
                             ct.delete()
                     else:
                         ct = form.save(commit=False)
+                        ct.independent_demand = demand
                         if ct_from_id:
                             producers = ct.resource_type.producing_commitments()
                             propagators = []
+                            old_ct = Commitment.objects.get(id=ct_from_id.id)
+                            old_rt = old_ct.resource_type
                             explode = True
                             #todo: this logic needs work
                             #best to create independent demands always
@@ -2185,8 +2209,6 @@ def change_process(request, process_id):
                                         if pc.quantity == old_ct.quantity:
                                             propagators.append(pc)
                                             explode = False 
-                            old_ct = Commitment.objects.get(id=ct_from_id.id)
-                            old_rt = old_ct.resource_type
                             if ct.resource_type != old_rt:
                                 old_ct.delete()
                                 for ex_ct in old_rt.producing_commitments():
@@ -2203,7 +2225,15 @@ def change_process(request, process_id):
                             elif qty != old_ct.quantity:
                                 delta = qty - old_ct.quantity
                                 for pc in propagators:
-                                    propagate_qty_change(pc, delta)                     
+                                    if demand != existing_demand:
+                                        propagate_changes(pc, delta, existing_demand, demand)
+                                    else:
+                                        propagate_qty_change(pc, delta) 
+                            else:
+                                if demand != existing_demand:
+                                    delta = Decimal("0")
+                                    for pc in propagators:
+                                        propagate_changes(pc, delta, existing_demand, demand)                    
                             ct.changed_by = request.user
                             rt = input_data["resource_type"]
                             rel = ResourceRelationship.objects.get(
@@ -2288,7 +2318,25 @@ def propagate_qty_change(commitment, delta):
             if pc.independent_demand == demand:
                 propagate_qty_change(pc, new_delta)
     commitment.quantity += delta
-    commitment.save()     
+    commitment.save()  
+
+def propagate_changes(commitment, delta, old_demand, new_demand):
+    #import pdb; pdb.set_trace()
+    process = commitment.process
+    for ic in process.incoming_commitments():
+        ratio = ic.quantity / commitment.quantity 
+        new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
+        ic.quantity += new_delta
+        ic.independent_demand = new_demand
+        ic.save()
+        rt = ic.resource_type
+        demand = ic.independent_demand
+        for pc in rt.producing_commitments():
+            if pc.independent_demand == old_demand:
+                propagate_changes(pc, new_delta, old_demand, new_demand)
+    commitment.quantity += delta
+    commitment.independent_demand = new_demand
+    commitment.save()    
 
 @login_required
 def create_rand(request):

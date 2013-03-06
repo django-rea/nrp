@@ -1548,14 +1548,20 @@ def resource(request, resource_id):
 
 def labnotes(request, process_id):
     process = get_object_or_404(Process, id=process_id)
+    agent = get_agent(request)
     return render_to_response("valueaccounting/labnotes.html", {
         "process": process,
+        "agent": agent,
     }, context_instance=RequestContext(request))
 
 def labnote(request, commitment_id):
     ct = get_object_or_404(Commitment, id=commitment_id)
     process = ct.process
     agent = ct.from_agent
+    request_agent = get_agent(request)
+    author = False
+    if request_agent == agent:
+        author = True
     work_events = ct.fulfilling_events()
     outputs = process.outputs_from_agent(agent)
     #import pdb; pdb.set_trace()
@@ -1563,6 +1569,7 @@ def labnote(request, commitment_id):
     inputs = process.inputs_used_by_agent(agent)
     return render_to_response("valueaccounting/labnote.html", {
         "commitment": ct,
+        "author": author,
         "process": process,
         "work_events": work_events,
         "outputs": outputs,

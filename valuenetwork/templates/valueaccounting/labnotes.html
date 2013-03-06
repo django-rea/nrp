@@ -42,7 +42,12 @@
 		<h3 style="margin-bottom: 4px;" >{% trans "Labnotes" %}:</h3>
 		{% for commitment in process.work_requirements %}
 			<p>
-				<b>{% trans "From" %}: {{ commitment.from_agent }}</b> {{ commitment.resource_type }}
+				<a href="{% url labnote commitment_id=commitment.id %}">
+				    <b>{% trans "From" %}: {{ commitment.from_agent }}</b> {{ commitment.resource_type }}
+			    </a>
+			    {% if commitment.from_agent = agent %}
+			    <a href="{% url work_commitment commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Open" %}</a>
+			    {% endif %}
 			</p>
 			<p style="margin-left: 2em;">
 				{{ commitment.description|urlize|linebreaks }}

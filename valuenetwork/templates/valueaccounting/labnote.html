@@ -17,6 +17,9 @@
 	<div>
 		<legend>
 			{% trans "Labnotes for " %} {{ process.name }}  {% trans "from " %} {{ commitment.from_agent.name }}
+			{% if author %}
+			<a href="{% url work_commitment commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Open" %}</a>
+			{% endif %}
 		</legend>
 
 		<div class="row-fluid">

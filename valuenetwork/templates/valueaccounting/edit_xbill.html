@@ -73,27 +73,7 @@ ul {
 }
 
 
-.processForm .modal-body {
-	max-height: 800px;
-}
 
-.processForm {
-	margin: -400px 0 0 -280px;
-}
-
-.sourceForm .modal-body {
-	max-height: 800px;
-}
-
-.sourceForm {
-	margin: -400px 0 0 -280px;
-}
-
-.processForm {
-    overflow-y:auto;
-    max-height:90%;
-    margin-top:-35%;
-}
 
 </style>
 {% endblock %}
@@ -294,7 +274,7 @@ ul {
 							<h3 id="change-source-label">{% trans "Change" %} {{ xbill_node }}</h3>
 						  </div>
 						  <div class="modal-body">
-								<form class="change-source-form" action="{% url change_agent_resource_type agent_resource_type_id=xbill_node.id %}" method="POST" >
+								<form class="change-source-form form-horizontal" action="{% url change_agent_resource_type agent_resource_type_id=xbill_node.id %}" method="POST" >
 									{% csrf_token %}
 									{{ xbill_node.xbill_change_form|as_bootstrap }}
 									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
@@ -339,7 +319,7 @@ ul {
 								<h3 id="process-label">{% blocktrans %}Add a process type to produce {{ xbill_object }}{% endblocktrans %}</h3>
 							  </div>
 							  <div class="modal-body">
-									<form class="process-form" action="{% url create_process_type_for_resource_type resource_type_id=xbill_object.id %}" method="POST" >
+									<form class="process-form form-horizontal" action="{% url create_process_type_for_resource_type resource_type_id=xbill_object.id %}" method="POST" >
 										{% csrf_token %}
 										{{ process_form|as_bootstrap }}
 										<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
@@ -365,7 +345,7 @@ ul {
 							<h3 id="source-label">{% blocktrans %}Add a source for {{ xbill_object }}{% endblocktrans %}</h3>
 						  </div>
 						  <div class="modal-body">
-								<form class="source-form" action="{% url create_agent_resource_type resource_type_id=xbill_object.id %}" method="POST" >
+								<form class="source-form form-horizontal" action="{% url create_agent_resource_type resource_type_id=xbill_object.id %}" method="POST" >
 									{% csrf_token %}
 									{{ source_form|as_bootstrap }}
 									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />

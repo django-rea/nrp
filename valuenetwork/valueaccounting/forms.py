@@ -269,7 +269,7 @@ class FeatureForm(forms.ModelForm):
 
     class Meta:
         model = Feature
-        exclude = ('product', 'process_type')
+        exclude = ('product', 'relationship', 'process_type')
 
 
 class ProcessTypeResourceTypeForm(forms.ModelForm):

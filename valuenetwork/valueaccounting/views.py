@@ -660,7 +660,20 @@ def create_process_type_feature(request, process_type_id):
             #todo: assuming the feature applies to the first
             # produced_resource_type
             if rts:
-                feature.product=rts[0]
+                rt = rts[0]
+                feature.product=rt
+                rel = ResourceRelationship.objects.get(
+                    materiality=rt.materiality,
+                    related_to="process",
+                    direction="in")
+                feature.relationship = rel
+            else:
+                #todo: when will we get here? It's a hack.
+                rel = ResourceRelationship.objects.get(
+                    materiality="material",
+                    related_to="process",
+                    direction="in")
+                feature.relationship = rel
             feature.created_by=request.user
             feature.save()
             next = request.POST.get("next")

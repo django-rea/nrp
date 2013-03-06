@@ -583,6 +583,16 @@ ul {
 				});
 		}
 
+        jQuery.validator.setDefaults({ 
+            onfocusout: true,
+            onkeyup: false,
+            success: function(label) {
+				label
+					.text('').addClass('valid')
+					.closest('.control-group').addClass('success');
+			}
+        });
+
 		$('.resource-change-form').each( function(){
 			var form = $(this);
 			form.validate({
@@ -599,11 +609,6 @@ ul {
 				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
-				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
 				}
 			});
 		});
@@ -621,11 +626,6 @@ ul {
 				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
-				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
 				}
 			});
 		});
@@ -643,11 +643,6 @@ ul {
 				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
-				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
 				}
 			});
 		});
@@ -671,11 +666,6 @@ ul {
 				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
-				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
 				}
 			});
 		});
@@ -696,11 +686,6 @@ ul {
 				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
-				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
 				}
 			});
 		});
@@ -725,11 +710,6 @@ ul {
 				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
-				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
 				}
 			});
 		});
@@ -750,11 +730,6 @@ ul {
 				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
-				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
 				}
 			});
 		});
@@ -765,11 +740,6 @@ ul {
 			form.validate({
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
-				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
 				}
 			});
 
@@ -785,11 +755,6 @@ ul {
 				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
-				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
 				}
 			});
 		});

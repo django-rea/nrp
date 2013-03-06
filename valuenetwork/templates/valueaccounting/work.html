@@ -368,6 +368,17 @@
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
+		jQuery.validator.setDefaults({ 
+		    onfocusout: true,
+		    onkeyup: false,
+		    success: function(label) {
+					label
+						.text('').addClass('valid')
+						.closest('.control-group').addClass('success');
+				}
+		});
+
+
 		$.validator.addClassRules("quantity", { required: true, number: true });
 
 
@@ -378,11 +389,7 @@
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
 				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
-				}
+
 			});
 		});
 

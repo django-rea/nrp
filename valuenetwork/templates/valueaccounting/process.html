@@ -192,6 +192,17 @@
 
 		$.validator.addClassRules("quantity", { required: true, number: true });
 
+                jQuery.validator.setDefaults({ 
+                    onfocusout: true,
+                    onkeyup: false,
+                    success: function(label) {
+				        label
+					        .text('').addClass('valid')
+					        .closest('.control-group').addClass('success');
+			        }
+                });
+
+
 
 		$('.commitmentForm').each( function(){
 			var form = $(this);
@@ -200,11 +211,6 @@
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
 				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
-				}
 			});
 		});
 

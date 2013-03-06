@@ -504,7 +504,7 @@
 
 		function getUnit(event)
 		{
-            var targetId = event.target.id;
+                        var targetId = event.target.id;
 			if (targetId.search("output") >= 0)
 			{
 				direction = "out";
@@ -523,6 +523,17 @@
                     $(unitName).val(unit);
 				});
 		}
+
+                jQuery.validator.setDefaults({ 
+                    onfocusout: true,
+                    onkeyup: false,
+                    success: function(label) {
+				        label
+					        .text('').addClass('valid')
+					        .closest('.control-group').addClass('success');
+			        }
+                });
+
 
 		description = $("#id_description").val();
 		daysValue = parseInt($("#id_quantity_0").val());
@@ -592,22 +603,16 @@
 		{
 			rules: {
 				quantity: {
-                    required: true, 
+                                        required: true, 
 					number: true
 				},
 				description: {
-                    required: true
+                                        required: true
 				}
 			},
 			highlight: function(label) {
 				$(label).closest('.control-group').addClass('error');
-			},
-			success: function(label) {
-				label
-					.text('OK!').addClass('valid')
-					.closest('.control-group').addClass('success');
 			}
-
 		});
 
 		$("#failForm").submit(function(event) {

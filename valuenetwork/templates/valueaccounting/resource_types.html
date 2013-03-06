@@ -108,6 +108,16 @@ li {
 			}
 		});
 
+                jQuery.validator.setDefaults({ 
+                    onfocusout: true,
+                    onkeyup: false,
+                    success: function(label) {
+				        label
+					        .text('').addClass('valid')
+					        .closest('.control-group').addClass('success');
+			        }
+                });
+
 		$('.category').click(function() 
 		{
 			var checkedCats = [];
@@ -152,11 +162,6 @@ li {
 			},
 			highlight: function(label) {
 				$(label).closest('.control-group').addClass('error');
-			},
-			success: function(label) {
-				label
-					.text('OK!').addClass('valid')
-					.closest('.control-group').addClass('success');
 			}
 
 		});
@@ -177,12 +182,8 @@ li {
 				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
-				},
-				success: function(label) {
-					label
-						.text('OK!').addClass('valid')
-						.closest('.control-group').addClass('success');
 				}
+
 			});
 		});
 

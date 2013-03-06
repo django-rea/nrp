@@ -10,7 +10,7 @@ a:hover {
     font-weight: bold;
 }
 .btn-primary {
-  background-color: 8A8A5C;
+  background-color: #8A8A5C;
   background-image: -ms-linear-gradient(top, #ADAD85, #8A8A5C);
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ADAD85), to(#8A8A5C));
   background-image: -webkit-linear-gradient(top, #ADAD85, #8A8A5C);
@@ -55,7 +55,7 @@ a:hover {
 }
 
 .btn-warning {
-  background-color: BE6F54;
+  background-color: #BE6F54;
   background-image: -ms-linear-gradient(top, #D6A594, #BE6F54);
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#D6A594), to(#BE6F54));
   background-image: -webkit-linear-gradient(top, #D6A594, #BE6F54);

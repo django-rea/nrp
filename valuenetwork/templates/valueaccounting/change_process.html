@@ -130,7 +130,7 @@
 
 		function getUnit(event)
 		{
-            var targetId = event.target.id;
+                        var targetId = event.target.id;
 			if (targetId.search("output") >= 0)
 			{
 				direction = "out";
@@ -152,6 +152,17 @@
 				    });
 		    }
 		}
+
+                jQuery.validator.setDefaults({ 
+                    onfocusout: true,
+                    onkeyup: false,
+                    success: function(label) {
+				        label
+					        .text('').addClass('valid')
+					        .closest('.control-group').addClass('success');
+			        }
+                });
+
 
         $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
         $( "#id_end_date" ).datepicker({ 
@@ -196,11 +207,6 @@
 			highlight: function(label) {
 				$(label).closest('.control-group').addClass('error');
 			},
-			success: function(label) {
-				label
-					.text('OK!').addClass('valid')
-					.closest('.control-group').addClass('success');
-			}
 		});
 
 	}); // end document.ready

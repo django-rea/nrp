@@ -24,7 +24,24 @@
 .btn {
 	margin-right: 2em;
 }
+.my-work {
+    background-color: lightyellow;
 
+}
+.my-skills {
+    background-color: beige;
+}
+.other-unassigned {
+    background-color: whitesmoke;
+}
+.other-work {
+    background-color: whitesmoke;
+}
+.my-work, .my-skills, .other-unassigned, .other-work {
+    padding: 2px 6px 3px 6px;
+    margin-bottom: 12px;
+    border: 1px solid gainsboro;
+}
 
 </style>
 {% endblock %}
@@ -65,7 +82,7 @@
 			</p>
 
 		<div class="row-fluid">
-			<div class="span6">
+			<div class="span6 my-work">
 
 				<h3 style="margin-bottom: 4px;" >{% trans "My work in process" %}:</h3>
 
@@ -93,7 +110,7 @@
 
 			</div>
 
-			<div class="span6">
+			<div class="span6 my-skills">
 
 				<h3 style="margin-bottom: 4px;" >{% trans "Unassigned tasks using my skills" %}:</h3>
 
@@ -206,7 +223,7 @@
 		</div>
 
 		<div class="row-fluid">
-			<div class="span6">
+			<div class="span6 other-unassigned">
 
 				<h3 style="margin-bottom: 4px;" >{% trans "Other unassigned tasks" %}:</h3>
 
@@ -321,7 +338,7 @@
 				{% endif %}
 
 			</div>
-			<div class="span6">
+			<div class="span6 other-work">
 
 				<h3 style="margin-bottom: 4px;" >{% trans "Other work in process" %}:</h3>
 				{% if other_wip %}

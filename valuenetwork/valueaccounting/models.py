@@ -867,6 +867,12 @@ class ProcessType(models.Model):
     def produced_resource_types(self):
         return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
 
+    def main_produced_resource_type(self):
+        prts = self.produced_resource_types()
+        if prts:
+            return prts[0]
+        else:
+            return None
 
     def consumed_resource_type_relationships(self):
         return self.resource_types.filter(relationship__direction='in')

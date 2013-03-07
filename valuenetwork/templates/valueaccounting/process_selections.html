@@ -104,10 +104,10 @@
 				            <p>
 				                {% if use_radio %}
         		                    <input type="radio" class="recipe" id="recipe-{{ recipe.id }}" name="recipe-{{ recipe.name }}" value="{{ recipe.id }}" /> 
-			                        {{ recipe.name }}
+			                        {{ recipe.name }} - {% trans "makes" %} {{ recipe.main_produced_resource_type }}
 			                    {% else %}
 			                        <input type="checkbox" class="recipe" id="recipe-{{ recipe.id }}" name="recipe-{{ recipe.name }}" value="{{ recipe.id }}" /> 
-			                        {{ recipe.name }}
+			                        {{ recipe.name }} - {% trans "makes" %} {{ recipe.main_produced_resource_type }}
 			                    {% endif %}
 		                    </p>
 				            

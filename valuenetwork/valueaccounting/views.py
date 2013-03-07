@@ -2894,8 +2894,12 @@ def process_selections(request):
             related_outputs = EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name)
             related_inputs = EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name)
             related_recipes = []
+            #import pdb; pdb.set_trace()
             for output in related_outputs:
-                related_recipes.extend(output.producing_process_types())
+                ppt = output.main_producing_process_type()
+                if ppt:
+                    if ppt not in related_recipes:
+                        related_recipes.append(ppt)
             if len(related_recipes) == 1:
                 use_radio = False
             work_form = WorkSelectionForm()

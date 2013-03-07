@@ -62,18 +62,20 @@
 			<p>
 				{% if agent %}
 				    <a href="{% url process_selections %}" role="button" class="btn btn-primary" 
-				        title="Schedule a process to log time and create resources. Can use existing recipes for outputs." >
-				        {% trans "Create resources of known types" %}
+				        title="Log time and create resources." >
+				        {% trans "Log resource production" %}
 			        </a>
+{% comment %}
 					&nbsp;&nbsp;&nbsp;
 					<a href="{% url create_process %}" role="button" class="btn btn-primary" 
 					    title="Schedule a process to log time and create resources. Does not use existing recipes for outputs." >
 					    {% trans "Create new types of resources" %}
 				    </a> 
+{% endcomment %}
 				    &nbsp;&nbsp;&nbsp;
 					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" 
 					    title="When you are not creating resources." >
-					    {% trans "Log unscheduled time" %}
+					    {% trans "Log non-production time" %}
 				    </a>
 					 
 				{% endif %}

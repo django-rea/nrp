@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Create Process" %}{% endblock %}
+{% block head_title %}{% trans "Log resource production" %}{% endblock %}
 
 {% block extra_head %}
 
@@ -50,7 +50,7 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Create Process" %}</legend>
+		<legend>{% trans "Log resource production" %}</legend>
 		<form class="form-horizontal" id="processForm" method="POST" action=".">
 			{% csrf_token %}
 		<div class="row-fluid">
@@ -89,6 +89,12 @@
 
 			        {% endif %}
 
+			        {% if work_form %}
+			            <div style="margin-top: 2em; margin-bottom: 2em;" >
+    			            {% trans "My type of work" %} {{ work_form.type_of_work }}
+			            </div>
+			        {% endif %}
+
 			        {% if related_recipes %}
 				
 				        <legend>{% trans "Related Recipes" %}:</legend>
@@ -109,8 +115,38 @@
 				        {% endfor %}
 
 			        {% endif %}
+			        <div class="row-fluid">
+			            <div class="span8">
+			                <div class="form-actions">
 
-			        <input type="submit" name="next-step" value="{% trans 'Next step...' %}" class="btn btn-primary" />
+                            <table class="table" >
+                                <tr>
+                                    <td>
+			                            <input type="submit" name="edit-process" value="{% trans 'Edit process' %}" class="btn btn-primary" />
+		                            </td>
+		                            <td>
+			                            <input type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" />
+		                            </td>
+		                            <td>
+			                            <input type="submit" name="past" value="{% trans 'Log past work' %}" 
+			                            class="btn btn-primary disabled" disabled="disabled" />
+		                            </td>
+			                    </tr>
+			                    <tr>
+                                    <td>
+			                            Create new resource types or change process info.
+		                            </td>
+		                            <td>
+			                            Go to Labnotes for working now.
+		                            </td>
+		                            <td>
+			                            Go to Labnotes for past work. (Not ready yet)
+		                            </td>
+			                    </tr>
+			                </table>
+			                </div>
+		                </div>
+	                </div>
 
 				    
 			    {% else %}

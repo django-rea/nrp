@@ -2883,21 +2883,25 @@ def process_selections(request):
     selected_name = ""
     #import pdb; pdb.set_trace()
     use_radio = True
+    work_form = None
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        next_step = request.POST.get("next-step")
+        edit_process = request.POST.get("edit-process")
+        labnotes = request.POST.get("labnotes")
         get_related = request.POST.get("get-related")
         if get_related:
             selected_name = request.POST.get("resourceName")
-            related_outputs = EconomicResourceType.objects.process_outputs().filter(name__contains=selected_name)
-            related_inputs = EconomicResourceType.objects.process_inputs().filter(name__contains=selected_name)
+            related_outputs = EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name)
+            related_inputs = EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name)
             related_recipes = []
             for output in related_outputs:
                 related_recipes.extend(output.producing_process_types())
             if len(related_recipes) == 1:
                 use_radio = False
-        if next_step:
+            work_form = WorkSelectionForm()
+        else:
             rp = request.POST
+            work_form = WorkSelectionForm(data=rp)
             #import pdb; pdb.set_trace()
             output_rts = []
             input_rts = []
@@ -3007,8 +3011,35 @@ def process_selections(request):
                         created_by=request.user,
                     )
                     commitment.save()
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/change-process', process.id))               
+            if work_form.is_valid():
+                #import pdb; pdb.set_trace()
+                agent = get_agent(request)
+                if agent:
+                    rt_id = work_form.cleaned_data["type_of_work"]
+                    rt = EconomicResourceType.objects.get(id=rt_id)
+                    rel = ResourceRelationship.objects.get(
+                        materiality=rt.materiality,
+                        related_to="process",
+                        direction="in")
+                    if rel:
+                        work_commitment = Commitment(
+                            process=process,
+                            event_type=rel.event_type,
+                            from_agent=agent,
+                            relationship=rel,
+                            due_date=today,
+                            resource_type=rt,
+                            quantity=Decimal("1"),
+                            unit_of_quantity=rt.unit,
+                            created_by=request.user,
+                        )
+                        work_commitment.save()
+            if edit_process:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/change-process', process.id))  
+            if labnotes:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/work-commitment', work_commitment.id))             
                             
     return render_to_response("valueaccounting/process_selections.html", {
         "resource_names": resource_names,
@@ -3017,5 +3048,6 @@ def process_selections(request):
         "related_recipes": related_recipes,
         "selected_name": selected_name,
         "use_radio": use_radio,
+        "work_form": work_form,
     }, context_instance=RequestContext(request))
 

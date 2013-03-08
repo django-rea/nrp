@@ -14,6 +14,10 @@
 	font-weight: bold;
 }
 
+.description {
+    font-style: italic;
+}
+
 container li {
 	padding: 3px;
 }
@@ -34,6 +38,7 @@ container li {
 			{% if user.is_authenticated %}
 				<div style="display: inline;" >
 					<a href="#createResourceForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create new Resource Type" %}</a>
+					<br />
 				</div>
 
 
@@ -62,7 +67,7 @@ container li {
 		    <ul>
 			    {% for resource_type in roots %}
 				    <li>
-					    <span class="name">{{ resource_type }}</span> {{ resource_type.category.name }}
+					    <span class="name">{{ resource_type }}</span> 
 
 					    {% include  "valueaccounting/_resource_type.html" %}
 

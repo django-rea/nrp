@@ -4,6 +4,29 @@
 
 {% block head_title %}{% trans "Supply" %}{% endblock %}
 
+{% block extra_head %}
+
+<style>
+
+.reqs-supplier {
+    background-color: lightyellow;
+}
+.matl-reqx {
+    background-color: beige;
+}
+.tool-reqs {
+    background-color: whitesmoke;
+}
+.reqs-supplier, .matl-reqs, .tool-reqs {
+    padding: 2px 6px 3px 6px;
+    margin-bottom: 12px;
+    border: 1px solid gainsboro;
+}
+
+</style>
+
+{% endblock %}
+
 {% block body_class %}supply{% endblock %}
 
 {% block body_base %}
@@ -11,38 +34,39 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>{% trans "Supply" %}</legend>
+        <div class="reqs-supplier">
+		    <h3 style="margin-bottom: 4px;" >{% trans "Requirements by Supplier" %}:</h3>
 
-		<h3 style="margin-bottom: 4px;" >{% trans "Requirements by Supplier" %}:</h3>
-
-        <ul>
-            {% for agent, sources in suppliers.items %}
-                <li><a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
-                    <b>{{ agent.name }}</b> {% trans "Combined Score" %}: {{ agent.score }}
-                </li>
-                <ul>
-                    {% for source, requirements in sources.items %}
-                        <li>
-                            <b>{{ source.resource_type.name }}</b>  {% trans "Total required" %} {{ source.total_required }} 
-                            {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %} {% trans "Score" %}: {{ source.score }}
-                        </li>
-                        <ul>
-                            {% for item in requirements %}
-                                <li>
-						            <b>{{ item.resource_type.name }}:</b> {{ item.unfilled_quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
-						            {% trans "for demand" %}: {{ item.independent_demand }}
-					            </li>
-                            {% endfor %}
-                        </ul>
-                    {% endfor %}
-                </ul>
-            {% endfor %}
-        </ul>
+            <ul>
+                {% for agent, sources in suppliers.items %}
+                    <li><a href="" role="button" class="btn btn-info" >{% trans "Buy from" %}</a>
+                        <b>{{ agent.name }}</b> {% trans "Combined Score" %}: {{ agent.score }}
+                    </li>
+                    <ul>
+                        {% for source, requirements in sources.items %}
+                            <li>
+                                <b>{{ source.resource_type.name }}</b>  {% trans "Total required" %} {{ source.total_required }} 
+                                {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %} {% trans "Score" %}: {{ source.score }}
+                            </li>
+                            <ul>
+                                {% for item in requirements %}
+                                    <li>
+						                <b>{{ item.resource_type.name }}:</b> {{ item.unfilled_quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
+						                {% trans "for demand" %}: {{ item.independent_demand }}
+					                </li>
+                                {% endfor %}
+                            </ul>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </ul>
+        </div>
 		
 
 		<div class="row-fluid">
 
 			{% if mreqs %}
-			    <div class="span6">
+			    <div class="span6 matl-reqs">
 		            <h3 style="margin-bottom: 4px;" >{% trans "Open Material Requirements" %}:</h3>
 					    <ul>
 						    {% for item in mreqs %}
@@ -68,8 +92,8 @@
 				    </div>
 			{% endif %}
 			
-    	    <div class="span6">
-	    		{% if treqs %}
+	    	{% if treqs %}
+    	        <div class="span6 tool-reqs">
 
 		            <h3 style="margin-bottom: 4px;" >{% trans "Open Tool Requirements" %}:</h3>
 					    <ul>
@@ -93,13 +117,10 @@
 							        </ul>
 						        {% endfor %}
 					        </ul>
-
+	                 </div>
 			    {% endif %}
-
-			    
-	        </div>
+ 
 		</div>
-
 
 	</div>
     </div>

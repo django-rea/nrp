@@ -124,6 +124,12 @@ a:hover {
 .navbar .brand {
   color: #E0C2B2;
   font-weight: bold;
+  padding-top: 9px;
+  padding-bottom: 7px;
+}
+
+.form-actions {
+  background-color: white;
 }
 
 

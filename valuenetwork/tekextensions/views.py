@@ -3,13 +3,16 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse
 from django.utils.html import escape
-from valuenetwork.tekextensions.forms import get_model_form, normalize_model_name
+from valuenetwork.tekextensions.forms import get_model_form, normalize_model_name, get_model
 
 def add_new_model(request, model_name, form=None):
     normal_model_name = normalize_model_name(model_name)
 
     if not form:
         form = get_model_form(normal_model_name)
+
+    model = get_model(model_name)
+    verbose_name = model._meta.verbose_name.title()
 
     #import pdb; pdb.set_trace()
     try:
@@ -35,6 +38,6 @@ def add_new_model(request, model_name, form=None):
     else:
         form = form()
 
-    page_context = {'form': form, 'field': normal_model_name, 'multipart': multipart}
+    page_context = {'form': form, 'field': normal_model_name, 'multipart': multipart, 'verbose_name': verbose_name,}
     return render_to_response('tekextensions/popup.html', page_context, context_instance=RequestContext(request))
 

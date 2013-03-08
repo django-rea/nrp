@@ -1277,7 +1277,8 @@ def create_labnotes_context(
         request, 
         commitment, 
         was_running=0,
-        was_retrying=0):
+        was_retrying=0,
+        form=WorkbookForm):
     event = None
     duration = 0
     description = ""
@@ -1286,18 +1287,19 @@ def create_labnotes_context(
     events = commitment.fulfillment_events.filter(event_date=today)
     if events:
         event = events[events.count() - 1]
-        wb_form = WorkbookForm(instance=event)
-        duration = event.quantity * 60
-        prev_events = commitment.fulfillment_events.filter(event_date__lt=today)
-        if prev_events:
-            prev_dur = sum(prev.quantity for prev in prev_events)
-            unit = ""
-            if commitment.unit_of_quantity:
-                unit = commitment.unit_of_quantity.name
-            prev = " ".join([str(prev_dur), unit])
+        wb_form = form(instance=event)
+        duration = event.quantity * 60     
     else:
         init = {"description": commitment.description,}
-        wb_form = WorkbookForm(initial=init)
+        wb_form = form(initial=init)
+    prev_events = commitment.fulfillment_events.filter(event_date__lt=today)
+    #import pdb; pdb.set_trace()
+    if prev_events:
+        prev_dur = sum(prev.quantity for prev in prev_events)
+        unit = ""
+        if commitment.unit_of_quantity:
+            unit = commitment.unit_of_quantity.name
+        prev = " ".join([str(prev_dur), unit])
     others_working = []
     other_work_reqs = []
     #import pdb; pdb.set_trace()
@@ -1493,6 +1495,59 @@ def work_commitment(
         template_params,
         context_instance=RequestContext(request))
 
+@login_required
+def log_past_work(
+        request, 
+        commitment_id):
+    ct = get_object_or_404(Commitment, id=commitment_id)
+    #import pdb; pdb.set_trace()
+    agent = get_agent(request)
+    if agent != ct.from_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    template_params = create_labnotes_context(
+        request, 
+        ct,
+        form=PastWorkForm,
+    )
+    event = template_params["event"]
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        today = datetime.date.today()
+        wb_form = PastWorkForm(request.POST)
+        if wb_form.is_valid():
+            data = wb_form.cleaned_data
+            event_date = data["event_date"]
+            if event:
+                wb_form.save(commit=False)
+                event.changed_by = request.user
+            else:
+                process = ct.process
+                if not process.started:
+                    process.started = event_date
+                    process.changed_by=request.user
+                    process.save()
+                event = wb_form.save(commit=False)
+                event.commitment = ct
+                event.is_contribution = True
+                event.event_type = ct.event_type
+                event.from_agent = ct.from_agent
+                event.resource_type = ct.resource_type
+                event.process = process
+                event.project = ct.project
+                event.unit_of_quantity = ct.unit_of_quantity
+                event.created_by = request.user
+                event.changed_by = request.user
+                
+            event.save()
+            description = data["description"]
+            if description != ct.description:
+                ct.description = description
+                ct.save()
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/work'))
+    return render_to_response("valueaccounting/log_past_work.html",
+        template_params,
+        context_instance=RequestContext(request))
 
 @login_required
 def save_labnotes(request, commitment_id):

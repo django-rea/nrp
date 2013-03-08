@@ -151,6 +151,19 @@ class WorkbookForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('quantity', 'description')
 
+
+class PastWorkForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
+    quantity = forms.DecimalField(required=False,
+        widget=DecimalDurationWidget,
+        help_text="days, hours, minutes")
+	
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'quantity', 'description')
+
+
 class WorkSelectionForm(forms.Form):
     type_of_work = forms.ChoiceField()
 

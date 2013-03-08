@@ -376,6 +376,7 @@ class EconomicResourceType(models.Model):
         #unique_together = ('name', 'version', 'stage')
         ordering = ('category', 'name')
         unique_together = ('name', 'category')
+        verbose_name = _('resource type')
     
     def __unicode__(self):
         #stage_name = ""

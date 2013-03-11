@@ -3127,7 +3127,7 @@ def process_selections(request):
                     )
                     commitment.save()
             if work_form.is_valid():
-                import pdb; pdb.set_trace()
+                #import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 if agent:
                     rt_id = work_form.cleaned_data["type_of_work"]

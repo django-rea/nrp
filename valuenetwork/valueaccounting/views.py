@@ -1277,8 +1277,7 @@ def create_labnotes_context(
         request, 
         commitment, 
         was_running=0,
-        was_retrying=0,
-        form=WorkbookForm):
+        was_retrying=0):
     event = None
     duration = 0
     description = ""
@@ -1287,11 +1286,11 @@ def create_labnotes_context(
     events = commitment.fulfillment_events.filter(event_date=today)
     if events:
         event = events[events.count() - 1]
-        wb_form = form(instance=event)
+        wb_form = WorkbookForm(instance=event)
         duration = event.quantity * 60     
     else:
         init = {"description": commitment.description,}
-        wb_form = form(initial=init)
+        wb_form = WorkbookForm(initial=init)
     prev_events = commitment.fulfillment_events.filter(event_date__lt=today)
     #import pdb; pdb.set_trace()
     if prev_events:
@@ -1495,6 +1494,64 @@ def work_commitment(
         template_params,
         context_instance=RequestContext(request))
 
+def create_past_work_context(
+        request, 
+        commitment, 
+        was_running=0,
+        was_retrying=0):
+    event = None
+    duration = 0
+    description = ""
+    prev = ""
+    today = datetime.date.today()
+    events = commitment.fulfillment_events.filter(event_date=today)
+    if events:
+        event = events[events.count() - 1]
+        wb_form = PastWorkForm(instance=event)
+        duration = event.quantity * 60     
+    else:
+        init = {"description": commitment.description,}
+        wb_form = PastWorkForm(initial=init)
+    prev_events = commitment.fulfillment_events.filter(event_date__lt=today)
+    #import pdb; pdb.set_trace()
+    if prev_events:
+        prev_dur = sum(prev.quantity for prev in prev_events)
+        unit = ""
+        if commitment.unit_of_quantity:
+            unit = commitment.unit_of_quantity.name
+        prev = " ".join([str(prev_dur), unit])
+    others_working = []
+    other_work_reqs = []
+    #import pdb; pdb.set_trace()
+    wrqs = commitment.process.work_requirements()
+    if wrqs.count() > 1:
+        for wrq in wrqs:
+            if wrq.from_agent != commitment.from_agent:
+                if wrq.from_agent:
+                    wrq.has_labnotes = wrq.agent_has_labnotes(wrq.from_agent)
+                    others_working.append(wrq)
+                else:
+                    other_work_reqs.append(wrq)
+    failure_form = FailedOutputForm()
+    add_output_form = ProcessOutputForm(prefix='output')
+    add_input_form = ProcessInputForm(prefix='input')
+    return {
+        "commitment": commitment,
+        "process": commitment.process,
+        "wb_form": wb_form,
+        "others_working": others_working,
+        "other_work_reqs": other_work_reqs,
+        "today": today,
+        "failure_form": failure_form,
+        "add_output_form": add_output_form,
+        "add_input_form": add_input_form,
+        "duration": duration,
+        "prev": prev,
+        "was_running": was_running,
+        "was_retrying": was_retrying,
+        "event": event,
+    }
+
 @login_required
 def log_past_work(
         request, 
@@ -1504,10 +1561,9 @@ def log_past_work(
     agent = get_agent(request)
     if agent != ct.from_agent:
         return render_to_response('valueaccounting/no_permission.html')
-    template_params = create_labnotes_context(
+    template_params = create_past_work_context(
         request, 
         ct,
-        form=PastWorkForm,
     )
     event = template_params["event"]
     if request.method == "POST":
@@ -3071,7 +3127,7 @@ def process_selections(request):
                     )
                     commitment.save()
             if work_form.is_valid():
-                #import pdb; pdb.set_trace()
+                import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 if agent:
                     rt_id = work_form.cleaned_data["type_of_work"]

@@ -123,26 +123,19 @@
                                 <tr>
                                     <td>
 			                            <input type="submit" name="edit-process" value="{% trans 'Edit process' %}" class="btn btn-primary" />
+			                            </br>Create new resource types or change process info.
 		                            </td>
-		                            <td>
+		                            <td id="startNow" >
 			                            <input type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" />
+			                            </br>Go to Labnotes for working now.
 		                            </td>
-		                            <td>
+		                            <td id="pastWork" >
 			                            <input type="submit" name="past" value="{% trans 'Log past work' %}" 
 			                            class="btn btn-primary disabled" disabled="disabled" />
+			                            </br>Go to Labnotes for past work. (Not ready yet)
 		                            </td>
 			                    </tr>
-			                    <tr>
-                                    <td>
-			                            Create new resource types or change process info.
-		                            </td>
-		                            <td>
-			                            Go to Labnotes for working now.
-		                            </td>
-		                            <td>
-			                            Go to Labnotes for past work. (Not ready yet)
-		                            </td>
-			                    </tr>
+
 			                </table>
 			                </div>
 		                </div>
@@ -178,7 +171,31 @@
 	    {% endfor %}
 	    $( "#resourceName" ).autocomplete({source: resourceNames});
 
+	    $('#startNow').hide();
+	    $('#pastWork').hide();
+
+	    $("#id_type_of_work").change(resetButtons);
+
+	    function resetButtons(event)
+		{
+            var typeOfWork = event.target.value;
+            if (typeOfWork)
+            {
+	            $('#startNow').show();
+	            $('#pastWork').show();                
+            }
+            else
+            {
+	            $('#startNow').hide();
+	            $('#pastWork').hide(); 
+            }
+
+        }
+
 	}); // end document.ready
+
+
+	
     </script>
 
 {% endblock %}

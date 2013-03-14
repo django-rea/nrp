@@ -77,6 +77,33 @@ def projects(request):
         "roots": roots,
     }, context_instance=RequestContext(request))
 
+@login_required
+def sessions(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    from django.contrib.sessions.models import Session
+    sessions = Session.objects.all().order_by('-expire_date')[0:20]
+    for session in sessions:
+        data = session.get_decoded()
+        session.user = User.objects.get(id=data['_auth_user_id'])
+    selected_session = None
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        spk = request.POST.get("session")
+        if spk:
+            try:
+                ss = Session.objects.get(pk=spk)
+                selected_session = ss
+                data = selected_session.get_decoded()
+                selected_session.user = User.objects.get(id=data['_auth_user_id'])
+            except Session.DoesNotExist:
+                pass
+            
+    return render_to_response("valueaccounting/sessions.html", {
+        "sessions": sessions,
+        "selected_session": selected_session,
+    }, context_instance=RequestContext(request))
+
 def resource_types(request):
     roots = EconomicResourceType.objects.exclude(materiality="work")
     #roots = EconomicResourceType.objects.all()
@@ -957,7 +984,7 @@ def create_order(request):
             order.created_by=request.user
             order.order_type = "customer"
             order.save()
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             for form in item_forms:
                 if form.is_valid():
                     data = form.cleaned_data
@@ -1336,7 +1363,18 @@ def new_process_output(request, commitment_id):
     process = commitment.process
     was_running = request.POST["wasRunning"]
     was_retrying = request.POST["wasRetrying"]
+    event_date = request.POST.get("outputDate")
     #import pdb; pdb.set_trace()
+    event = None
+    events = None
+    event_id=0
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+        events = commitment.fulfillment_events.filter(event_date=event_date)
+    if events:
+        event = events[events.count() - 1]
+        event_id = event.id
+    reload = request.POST["reload"]
     if request.method == "POST":
         form = ProcessOutputForm(data=request.POST, prefix='output')
         if form.is_valid():
@@ -1357,14 +1395,29 @@ def new_process_output(request, commitment_id):
                 ct.due_date = process.end_date
                 ct.created_by = request.user
                 ct.save()
-    return HttpResponseRedirect('/%s/%s/%s/%s/'
-        % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
+    if reload == 'pastwork':
+        return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+            % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
+    else:
+        return HttpResponseRedirect('/%s/%s/%s/%s/'
+            % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
 def new_process_input(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     was_running = request.POST["wasRunning"]
     was_retrying = request.POST["wasRetrying"]
     #import pdb; pdb.set_trace()
+    event_date = request.POST.get("inputDate")
+    event = None
+    events = None
+    event_id=0
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+        events = commitment.fulfillment_events.filter(event_date=event_date)
+    if events:
+        event = events[events.count() - 1]
+        event_id = event.id
+    reload = request.POST["reload"]
     if request.method == "POST":
         form = ProcessInputForm(data=request.POST, prefix='input')
         if form.is_valid():
@@ -1419,8 +1472,12 @@ def new_process_input(request, commitment_id):
                     output_commitment.save()
                     generate_schedule(feeder_process, demand, request.user)
                 
-    return HttpResponseRedirect('/%s/%s/%s/%s/'
-        % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
+    if reload == 'pastwork':
+        return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+            % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
+    else:
+        return HttpResponseRedirect('/%s/%s/%s/%s/'
+            % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
 
 def labnotes_reload(
@@ -1498,22 +1555,26 @@ def create_past_work_context(
         request, 
         commitment, 
         was_running=0,
-        was_retrying=0):
-    event = None
+        was_retrying=0,
+        event=None):
     duration = 0
     description = ""
     prev = ""
-    today = datetime.date.today()
-    events = commitment.fulfillment_events.filter(event_date=today)
-    if events:
-        event = events[events.count() - 1]
-        wb_form = PastWorkForm(instance=event)
-        duration = event.quantity * 60     
-    else:
-        init = {"description": commitment.description,}
-        wb_form = PastWorkForm(initial=init)
-    prev_events = commitment.fulfillment_events.filter(event_date__lt=today)
+    event_date=None
     #import pdb; pdb.set_trace()
+    if event:
+        wb_form = PastWorkForm(instance=event)
+        duration = event.quantity * 60 
+        event_date=event.event_date
+    else:
+        init = {
+            "description": commitment.description,
+        }
+        wb_form = PastWorkForm(initial=init)
+    if event_date:
+        prev_events = commitment.fulfillment_events.filter(event_date__lt=event_date)
+    else:
+        prev_events = commitment.fulfillment_events.all()
     if prev_events:
         prev_dur = sum(prev.quantity for prev in prev_events)
         unit = ""
@@ -1541,7 +1602,6 @@ def create_past_work_context(
         "wb_form": wb_form,
         "others_working": others_working,
         "other_work_reqs": other_work_reqs,
-        "today": today,
         "failure_form": failure_form,
         "add_output_form": add_output_form,
         "add_input_form": add_input_form,
@@ -1550,7 +1610,36 @@ def create_past_work_context(
         "was_running": was_running,
         "was_retrying": was_retrying,
         "event": event,
+        "event_date": event_date,
     }
+
+@login_required
+def pastwork_reload(
+        request, 
+        commitment_id, 
+        event_id,
+        was_running=0,
+        was_retrying=0,
+        ):
+    ct = get_object_or_404(Commitment, id=commitment_id)
+    agent = get_agent(request)
+    if agent != ct.from_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    #import pdb; pdb.set_trace()
+    event=None
+    event_id = int(event_id)
+    if event_id:
+        event = get_object_or_404(EconomicEvent, id=event_id)
+    template_params = create_past_work_context(
+        request, 
+        ct, 
+        was_running,
+        was_retrying,
+        event,
+    )
+    return render_to_response("valueaccounting/log_past_work.html",
+        template_params,
+        context_instance=RequestContext(request))
 
 @login_required
 def log_past_work(
@@ -1567,40 +1656,8 @@ def log_past_work(
     )
     event = template_params["event"]
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        today = datetime.date.today()
-        wb_form = PastWorkForm(request.POST)
-        if wb_form.is_valid():
-            data = wb_form.cleaned_data
-            event_date = data["event_date"]
-            if event:
-                wb_form.save(commit=False)
-                event.changed_by = request.user
-            else:
-                process = ct.process
-                if not process.started:
-                    process.started = event_date
-                    process.changed_by=request.user
-                    process.save()
-                event = wb_form.save(commit=False)
-                event.commitment = ct
-                event.is_contribution = True
-                event.event_type = ct.event_type
-                event.from_agent = ct.from_agent
-                event.resource_type = ct.resource_type
-                event.process = process
-                event.project = ct.project
-                event.unit_of_quantity = ct.unit_of_quantity
-                event.created_by = request.user
-                event.changed_by = request.user
-                
-            event.save()
-            description = data["description"]
-            if description != ct.description:
-                ct.description = description
-                ct.save()
-            return HttpResponseRedirect('/%s/'
-                % ('accounting/work'))
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/labnote', ct.id))
     return render_to_response("valueaccounting/log_past_work.html",
         template_params,
         context_instance=RequestContext(request))
@@ -1611,8 +1668,12 @@ def save_labnotes(request, commitment_id):
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)
         event = None
-        today = datetime.date.today()
-        events = ct.fulfillment_events.filter(event_date=today)
+        event_date = request.POST.get("event_date")
+        if event_date:
+            event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+        else:
+            event_date = datetime.date.today()
+        events = ct.fulfillment_events.filter(event_date=event_date)
         if events:
             event = events[events.count() - 1]
             form = WorkbookForm(instance=event, data=request.POST)
@@ -1625,7 +1686,8 @@ def save_labnotes(request, commitment_id):
                 event.changed_by = request.user
             else:
                 event = form.save(commit=False)
-                event.event_date = today
+                if not event.event_date:
+                    event.event_date = event_date
                 event.commitment = ct
                 event.is_contribution = True
                 event.process = ct.process
@@ -1639,7 +1701,7 @@ def save_labnotes(request, commitment_id):
                 event.changed_by = request.user
                 process = ct.process
                 if not process.started:
-                    process.started = today
+                    process.started = event_date
                     process.changed_by=request.user
                     process.save()
             event.save()
@@ -1652,6 +1714,52 @@ def save_labnotes(request, commitment_id):
         else:
             data = form.errors
         return HttpResponse(data, mimetype="text/plain")
+
+@login_required
+def save_past_work(request, commitment_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        form = PastWorkForm(data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            ct = get_object_or_404(Commitment, id=commitment_id)
+            event_id = data.get("id")
+            event_date = request.POST.get("eventDate")
+            if event_date:
+                event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+                if event_id:
+                    event = form.save(commit=False)
+                    event.changed_by = request.user
+                else:
+                    event = form.save(commit=False)
+                    event.event_date = event_date
+                    event.commitment = ct
+                    event.is_contribution = True
+                    event.process = ct.process
+                    event.project = ct.project
+                    event.event_type = ct.event_type
+                    event.resource_type = ct.resource_type
+                    event.from_agent = ct.from_agent
+                    event.to_agent = ct.to_agent
+                    event.unit_of_quantity = ct.unit_of_quantity
+                    event.created_by = request.user
+                    event.changed_by = request.user
+                    process = ct.process
+                    if not process.started:
+                        process.started = event_date
+                        process.changed_by=request.user
+                        process.save()
+                event.save()
+                description = data["description"]
+                if description != ct.description:
+                    ct.description = description
+                    ct.save()
+
+            data = "ok"
+        else:
+            data = form.errors
+        return HttpResponse(data, mimetype="text/plain")
+
 
 def process_details(request, process_id):
     process = get_object_or_404(Process, id=process_id)
@@ -1703,15 +1811,19 @@ def labnote(request, commitment_id):
 
 def production_event_for_commitment(request):
     id = request.POST.get("id")
-    #import pdb; pdb.set_trace()
     quantity = request.POST.get("quantity")
+    event_date = request.POST.get("eventDate")
+    #import pdb; pdb.set_trace()
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+    else:
+        event_date = datetime.date.today()
     ct = get_object_or_404(Commitment, pk=id)
     agent = get_agent(request)
     #import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
     event = None
     events = ct.fulfillment_events.all()
-    today = datetime.date.today()
     if events:
         event = events[events.count() - 1]
     if event:
@@ -1728,7 +1840,7 @@ def production_event_for_commitment(request):
         #design docs will need special handling (url)
         resource = EconomicResource(
             resource_type = ct.resource_type,
-            created_date = today,
+            created_date = event_date,
             quantity = quantity,
             unit_of_quantity = ct.unit_of_quantity,
             created_by=request.user,
@@ -1737,7 +1849,7 @@ def production_event_for_commitment(request):
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
-            event_date = today,
+            event_date = event_date,
             event_type = ct.event_type,
             from_agent = agent,
             resource_type = ct.resource_type,
@@ -1756,6 +1868,12 @@ def production_event_for_commitment(request):
 def resource_event_for_commitment(request, commitment_id):
     #todo: bug: resource_event_for_commitment didn't return an HttpResponse object.
     id = request.POST.get("itemId")
+    event_date = request.POST.get("eventDate")
+    #import pdb; pdb.set_trace()
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+    else:
+        event_date = datetime.date.today()
     #import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     event = None
@@ -1767,7 +1885,6 @@ def resource_event_for_commitment(request, commitment_id):
     else:
         form = EconomicResourceForm(prefix=prefix, data=request.POST)
     if form.is_valid():
-        today = datetime.date.today()
         resource_data = form.cleaned_data
         quality = resource_data["quality"] or Decimal("0")
         agent = get_agent(request)
@@ -1788,7 +1905,7 @@ def resource_event_for_commitment(request, commitment_id):
             event = EconomicEvent(
                 resource = resource,
                 commitment = ct,
-                event_date = today,
+                event_date = event_date,
                 event_type = ct.event_type,
                 from_agent = agent,
                 resource_type = ct.resource_type,
@@ -1810,6 +1927,11 @@ def consumption_event_for_commitment(request):
     id = request.POST.get("id")
     resource_id = request.POST.get("resourceId")
     quantity = request.POST.get("quantity")
+    event_date = request.POST.get("eventDate")
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+    else:
+        event_date = datetime.date.today()
     #import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
@@ -1818,7 +1940,6 @@ def consumption_event_for_commitment(request):
     quantity = Decimal(quantity)
     event = None
     events = ct.fulfillment_events.filter(resource=resource)
-    today = datetime.date.today()
     if events:
         event = events[events.count() - 1]
     if event:
@@ -1841,7 +1962,7 @@ def consumption_event_for_commitment(request):
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
-            event_date = today,
+            event_date = event_date,
             event_type = ct.event_type,
             to_agent = agent,
             resource_type = ct.resource_type,
@@ -1861,6 +1982,9 @@ def time_use_event_for_commitment(request):
     id = request.POST.get("id")
     resource_id = request.POST.get("resourceId")
     quantity = request.POST.get("quantity")
+    event_date = request.POST.get("eventDate")
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
     #import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
@@ -1869,7 +1993,8 @@ def time_use_event_for_commitment(request):
     quantity = Decimal(quantity)
     event = None
     events = ct.fulfillment_events.filter(resource=resource)
-    today = datetime.date.today()
+    if not event_date:
+        event_date = datetime.date.today()
     if events:
         event = events[events.count() - 1]
     if event:
@@ -1892,7 +2017,7 @@ def time_use_event_for_commitment(request):
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
-            event_date = today,
+            event_date = event_date,
             event_type = ct.event_type,
             to_agent = agent,
             resource_type = ct.resource_type,
@@ -1909,11 +2034,16 @@ def time_use_event_for_commitment(request):
     return HttpResponse(data, mimetype="text/plain")
 
 def failed_outputs(request, commitment_id):
+    event_date = request.POST.get("eventDate")
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+    else:
+        event_date = datetime.date.today()
+    #import pdb; pdb.set_trace()
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         failure_form = FailedOutputForm(data=request.POST)
         if failure_form.is_valid():
-            today = datetime.date.today()
             ct = get_object_or_404(Commitment, id=commitment_id)
             agent = get_agent(request)
             resource_type = ct.resource_type
@@ -1937,7 +2067,7 @@ def failed_outputs(request, commitment_id):
                 event_type.save()
             resource = EconomicResource(
                 resource_type = ct.resource_type,
-                created_date = today,
+                created_date = event_date,
                 quantity = quantity,
                 quality = Decimal("-1"),
                 unit_of_quantity = ct.unit_of_quantity,
@@ -1946,7 +2076,7 @@ def failed_outputs(request, commitment_id):
             )
             resource.save() 
             event.resource = resource              
-            event.event_date = today
+            event.event_date = event_date
             event.event_type = event_type
             event.from_agent = agent
             event.resource_type = ct.resource_type
@@ -1957,7 +2087,7 @@ def failed_outputs(request, commitment_id):
             event.created_by = request.user
             event.changed_by = request.user
             event.save()
-            data = unicode(process.failed_output_qty())
+            data = unicode(ct.failed_output_qty())
             return HttpResponse(data, mimetype="text/plain")
 
 @login_required

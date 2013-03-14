@@ -46,13 +46,15 @@
 		{% endif %}
 
 		{% if user.is_authenticated %}
-			<a href="{% url edit_extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
-				{% if resource_type.producing_process_type_relationships %}
-					{% trans "Change Recipe" %}
-				{% else %}
-					{% trans "Create Recipe" %}
-				{% endif %}
-			</a>
+		    {% if resource_type.is_process_output %}
+			    <a href="{% url edit_extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+				    {% if resource_type.producing_process_type_relationships %}
+					    {% trans "Change Recipe" %}
+				    {% else %}
+					    {% trans "Create Recipe" %}
+				    {% endif %}
+			    </a>
+		    {% endif %}
 		{% endif %}
 
 		{% if resource_type.description %}

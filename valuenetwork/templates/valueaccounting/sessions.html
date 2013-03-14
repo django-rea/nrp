@@ -1,0 +1,32 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Sessions" %}{% endblock %}
+
+{% block body_class %}sessions{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>{% trans "Sessions" %}</legend>
+		<form class="form-horizontal" id="sessionForm" method="POST" action=".">
+		    {% csrf_token %}
+		    <input type="text" id="session" name="session" />
+		    <input type="submit" name="submit" value="{% trans 'Get session' %}" class="btn btn-primary" />
+		</form>
+		{% if selected_session %}
+		    <p>
+		        Selected: <b>{{ selected_session.pk }} {{ selected_session.user }} {{ selected_session.expire_date }}</b>
+		    </p>
+		{% endif %}
+		<h3>Recent sessions:</h3>
+		{% for session in sessions %}
+		<p>
+		    {{ session.pk }} {{ session.user }} {{ session.expire_date }}
+		</p>
+		{% endfor %}
+	</div>
+    </div>
+{% endblock %}

@@ -36,21 +36,21 @@
 				{% if outputs %}
 					<h3>{% trans "Outputs created by " %} {{ commitment.from_agent.name }}:</h3>
 					{% for event in outputs %}
-						<p>{{ event.event_date }} {{ event.resource_type }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
+						<p>{{ event.event_date }} {{ event.resource }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
 					{% endfor %}
 				{% endif %}
 
 				{% if inputs %}
 					<h3>{% trans "Inputs used by " %} {{ commitment.from_agent.name }}:</h3>
 					{% for event in inputs %}
-						<p>{{ event.event_date }} {{ event.resource_type }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
+						<p>{{ event.event_date }} {{ event.resource }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
 					{% endfor %}
 				{% endif %}
 
 				{% if failures %}
 					<h3>{% trans "Failed outputs posted by " %} {{ commitment.from_agent.name }}:</h3>                 
 					{% for event in failures %}
-						<p>{{ event.event_date }} {{ event.resource_type }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
+						<p>{{ event.event_date }} {{ event.resource }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
 						<p><b>{% trans "Reason" %}:</b></p>
 						<p>{{ event.description|urlize|linebreaks }}</p>					
 					{% endfor %}

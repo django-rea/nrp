@@ -22,13 +22,8 @@
 	width: 24px;
 }
 
-.failureModal .modal-body {
-	max-height: 400px;
-}
 
-
-
-.failureModal textarea {
+#failureForm textarea {
   width: 100%;
   height: 200px;
 }
@@ -40,7 +35,6 @@
 
 .detailModal {
     width: 600px;
-
 }
 
 .detailModal textarea {
@@ -77,6 +71,7 @@
 
 			<form id="labnotesForm" method="POST" action="">
 				{% csrf_token %}
+				{{ wb_form.id }}
 				<div class="control-group">
 					<label><b>{% trans "Description of work done" %}:</b></label>
 					{{ wb_form.description }}
@@ -85,17 +80,21 @@
 			<div class="span4">
 			    <div class="row-fluid">
 			        <div class="span12">
-				        <button role="button" id="start" name="start" class="btn btn-info" >{% trans "Start" %}</button>
-				        <button role="button" id="stop" name="stop"  class="btn btn-info" disabled="disabled" >{% trans "Stop" %}</button>
+			            <div class="control-group">
+					        <b>{% trans "Event date" %}:</b> 
+					        {{ wb_form.event_date }}
+				        </div>
+
 				        <div class="control-group">
-					        <label><b>{% trans "Time spent today" %}:</b></label>
+					        <label><b>{% trans "Time spent" %}:</b></label>
 					        {{ wb_form.quantity }}&nbsp;&nbsp;&nbsp;&nbsp;
 					        {% if prev %}Previously: {{ prev }}{% endif %}
 					        <span class="help-block">{{ wb_form.quantity.help_text }}</span>
 				        </div>
-				        {% comment %}
-				        <button class="btn btn-primary" type="submit">{% trans "Close" %}</button>
-                        {% endcomment %}
+
+				        <div style="margin-bottom: 1em;">
+				            <button class="btn btn-primary" type="submit">{% trans "Close" %}</button>
+				        </div>
 
 				    </div>
 			    </div>
@@ -124,7 +123,8 @@
 
                                 	<input type='hidden' id='outputRunning' name='wasRunning' value='' />
 			                        <input type='hidden' id='outputRetrying' name='wasRetrying' value='' />
-			                        <input type="hidden" name="reload" value="labnotes" />
+			                        <input type="hidden" name="reload" value="pastwork" />
+			                        <input type="hidden" id="outputDate" name="outputDate" value="{{ event_date|date:'Y-m-d' }}" />
 					              <div class="modal-footer">
 						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						            <button class="btn btn-primary">{% trans "Add output" %}</button>
@@ -150,7 +150,8 @@
 
                                 	<input type='hidden' id='inputRunning' name='wasRunning' value='' />
 			                        <input type='hidden' id='inputRetrying' name='wasRetrying' value='' />
-			                        <input type="hidden" name="reload" value="labnotes" />
+			                        <input type="hidden" name="reload" value="pastwork" />
+			                        <input type="hidden" id="inputDate" name="inputDate" value="{{ event_date|date:'Y-m-d' }}" />
 					              <div class="modal-footer">
 						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						            <button class="btn btn-primary">{% trans "Add input" %}</button>
@@ -180,15 +181,15 @@
 								    </div>
 								{% endif %}
 								<div style="" >
-									<a href="#failureForm{{ item.id }}" role="button" class="btn btn-warning" data-toggle="modal">{% trans "Failed" %}</a>
+									<a href="#failureForm" role="button" class="btn btn-warning" data-toggle="modal">{% trans "Failed" %}</a>
 								</div>
 								
-								{% if item.failed_outputs %}
-									<div id="failDiv{{ item.id }}" style="margin-left: 1em;" >
+								{% if process.failed_outputs %}
+									<div id="failDiv" style="margin-left: 1em;" >
 								{% else %}
-									<div id="failDiv{{ item.id }}" style="margin-left: 1em; display: none;" >
+									<div id="failDiv" style="margin-left: 1em; display: none;" >
 								{% endif %}
-								{% trans "Failures" %}: <span id="failures{{ item.id }}">{{ item.failed_output_qty }}</span></div>
+								{% trans "Failures" %}: <span id="failures">{{ process.failed_output_qty }}</span></div>
 								
 
 							</li>
@@ -231,13 +232,13 @@
                                 </div>
                             
 
-                            <div class="modal hide fade failureModal" id="failureForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="failure-label" aria-hidden="true">
+                            <div class="modal hide fade" id="failureForm" tabindex="-1" role="dialog" aria-labelledby="failure-label" aria-hidden="true">
 						        <div class="modal-header">
 							        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 							        <h3 id="failure-label">{% trans "Failed" %} {{ item.resource_type.name }}</h3>
 						        </div>
 						        <div class="modal-body">
-							        <form class="failure-form" id="failForm{{ item.id }}" action="{% url failed_outputs commitment_id=item.id %}" method="POST" >
+							        <form class="failure-form" id="failForm" action="{% url failed_outputs commitment_id=item.id %}" method="POST" >
 								        {% csrf_token %}
 								        {{ failure_form|as_bootstrap }}
 								        <input type="hidden" name="next" value="{% url work_commitment commitment_id=commitment.id %}" />
@@ -487,10 +488,65 @@
     var resourceSaved = true;
     var wasRunning = {{ was_running }};
     var wasRetrying = {{ was_retrying }};
+    {% if event_date %}
+        var eventDate = "{{ event_date|date:'Y-m-d' }}"
+    {% else %}
+        var eventDate = ""
+    {% endif %}
 
 
 	$(document).ready(function(){
+	
+        {% if not event_date %}
+	        $("input").attr('disabled', 'disabled');
+	        $("button").attr('disabled', 'disabled');
+	        $("textarea").attr('disabled', 'disabled');
+	        $("a").attr('disabled', 'disabled');
 
+            $("#id_event_date").removeAttr('disabled');
+            
+	        $("#id_event_date").change(gotDate);
+
+	        function gotDate(event)
+	        {
+	            eventDate = event.target.value;
+                $("input").removeAttr('disabled');
+	            $("button").removeAttr('disabled');
+	            $("textarea").removeAttr('disabled');
+	            $("a").removeAttr('disabled');
+	            $("#id_event_date").attr('disabled', 'disabled');
+	            saveContribution();
+	            
+	        }
+	        
+        {% endif %}
+
+
+        $('#labnotesForm').validate(
+		{
+			rules: {
+			    quantity_0: {
+                    required: true, 
+					number: true
+				},
+				quantity_1: {
+                    required: true, 
+					number: true
+				},
+				quantity_2: {
+                    required: true, 
+					number: true
+				},
+				event_date: {
+                    required: true, 
+					date: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			}
+		});
+		
 
 	    $(".resource-type-selector").change(getUnit);
 
@@ -516,15 +572,15 @@
 				});
 		}
 
-                jQuery.validator.setDefaults({ 
-                    onfocusout: true,
-                    onkeyup: false,
-                    success: function(label) {
-				        label
-					        .text('').addClass('valid')
-					        .closest('.control-group').addClass('success');
-			        }
-                });
+        jQuery.validator.setDefaults({ 
+            onfocusout: true,
+            onkeyup: false,
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
 
 
 		description = $("#id_description").val();
@@ -595,18 +651,18 @@
 		{
 			rules: {
 				quantity: {
-                                        required: true, 
+                    required: true, 
 					number: true
 				},
 				description: {
-                                        required: true
+                    required: true
 				}
 			},
 			highlight: function(label) {
 				$(label).closest('.control-group').addClass('error');
 			}
 		});
-/*
+
 		$("#failForm").submit(function(event) {
  
 			event.preventDefault();
@@ -619,7 +675,7 @@
 			saveFail(qty, url, formData);
 
 		});
-*/
+
         {% for item in process.outgoing_commitments %}
 		    $("#detailForm{{ item.id }}").submit(function(event) {
 		
@@ -633,17 +689,6 @@
 			    var formData = $form.serialize();
 			    saveResource(url, itemId, qtyInputId, identifier, formData); 
 
-		    });
-		    $("#failForm{{ item.id }}").submit(function(event) {
-		
-		        event.preventDefault();
-                var itemId = {{ item.id }};
-			    var $form = $( this ),
-				    qty = $form.find( 'input[name="quantity"]' ).val(),
-				    url = $form.attr( 'action' );
-
-			    var formData = $form.serialize();
-			    saveFail(qty, itemId, url, formData);
 		    });
         {% endfor %}
 
@@ -669,6 +714,7 @@
 		});
 
         $("#addOutputForm").submit(function(event) {
+            $('#outputDate').prop('value', eventDate);
             if(running)
             {
                 $('#outputRunning').prop('value', 1);
@@ -688,6 +734,7 @@
 		});
 
 		$("#addInputForm").submit(function(event) {
+		    $('#inputDate').prop('value', eventDate);
             if(running)
             {
                 $('#inputRunning').prop('value', 1);
@@ -853,8 +900,10 @@
 		var $form = $("#labnotesForm");
 
 		var formData = $form.serialize();
+		var ed = "&eventDate=" + eventDate;
+		formData += ed;
 
-		var url = "{%url save_labnotes commitment_id=commitment.id %}";
+		var url = "{%url save_past_work commitment_id=commitment.id %}";
 
 		notifySaving();
 
@@ -939,14 +988,11 @@
 
 		if (!failSaved)
 		{
-		    {% for item in process.outgoing_commitments %}
-		        var itemId = {{ item.id }};	
-			    var $form = $("#failForm{{ item.id }}");
-			    var qty = $form.find( 'input[name="quantity"]' ).val();
-			    var url = $form.attr( 'action' );
-			    var formData = $form.serialize();
-			    saveFail(qty, itemId, url, formData);
-			{% endfor %}
+			var $form = $("#failForm");
+			var qty = $form.find( 'input[name="quantity"]' ).val();
+			var url = $form.attr( 'action' );
+			var formData = $form.serialize();
+			saveFail(qty, url, formData);
 
 		}
 
@@ -997,25 +1043,23 @@
 		$("#saving").text("Problem saving");
 	}
 
-	function saveFail(qty, itemId, url, formData)
+	function saveFail(qty, url, formData)
 	{
 		notifySaving();
-		var modalID = "#failureForm" + itemId;
-		var formID = "#failForm" + itemId;
-		var divID = "#failDiv" + itemId;
-		var failuresId = "#failures" + itemId;
+		var ed = "&eventDate=" + eventDate;
+		formData += ed;
 		var jqxhr = $.post( url, formData,
 			function( data ) {
-				$(divID).show();
-				$(failuresId).empty().append( data );
-				$(modalID).modal('hide');
+				$('#failDiv').show();
+				$('#failures').empty().append( data );
+				$('#failureForm').modal('hide');
 				notifySaved();
-                $(formID).trigger( "reset" );
+                $("#failForm").trigger( "reset" );
 				failSaved = true;
 			})
 			.fail(function() 
 			{ 
-				$(modalID).modal('hide');
+				$('#failureForm').modal('hide');
 				notifyProblem(); 
 				failSaved = false;
 				startRetrying();
@@ -1027,6 +1071,8 @@
 	function saveResource(url, itemId, qtyInputId, identifier, formData)
 	{
 		notifySaving();
+		var ed = "&eventDate=" + eventDate;
+		formData += ed;
 		var qtyInputId = "#" + qtyInputId;
 		var modalID = "#detailModal" + itemId;
 		var labelID = "#label" + itemId;
@@ -1056,7 +1102,11 @@
 		var $form = $(formId);
 		var detailQtyId = $form.find( 'input[name*="quantity"]' ).attr('id');
 		detailQtyId = "#" + detailQtyId;
-		var jqxhr = $.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity },
+		var jqxhr = $.post("{% url production_event_for_commitment %}",  
+		    { id: id, 
+		    quantity: quantity, 
+		    eventDate: eventDate
+		    },
 			function( data ) 
 			{
 				notifySaved();
@@ -1075,7 +1125,12 @@
 	function saveInput(id, resourceId, quantity)
 	{
 		notifySaving();
-		var jqxhr = $.post("{% url consumption_event_for_commitment  %}",  { id: id, resourceId: resourceId, quantity: quantity },
+		var jqxhr = $.post("{% url consumption_event_for_commitment  %}",  
+		    { id: id, 
+		    resourceId: resourceId, 
+		    quantity: quantity,
+		    eventDate: eventDate 
+		    },
 			function( data ) 
 			{
 				notifySaved();
@@ -1100,7 +1155,12 @@
 	function saveTimeInput(id, resourceId, quantity)
 	{
 		notifySaving();
-		var jqxhr = $.post("{% url time_use_event_for_commitment  %}",  { id: id, resourceId: resourceId, quantity: quantity },
+		var jqxhr = $.post("{% url time_use_event_for_commitment  %}",  
+		    { id: id, 
+		    resourceId: resourceId, 
+		    quantity: quantity, 
+		    eventDate: eventDate 
+		    },
 			function( data ) 
 			{
 				notifySaved();

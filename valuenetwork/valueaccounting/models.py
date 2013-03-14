@@ -608,7 +608,7 @@ class EconomicResource(models.Model):
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
-    created_date = models.DateField(_('created date'), auto_now_add=True, blank=True, editable=False)
+    created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='resources_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
@@ -1629,6 +1629,17 @@ class Commitment(models.Model):
 
     def fulfilling_events_from_agent(self, agent):
         return self.fulfillment_events.filter(from_agent=agent)
+
+    def failed_outputs(self):
+        answer = []
+        events = self.process.failed_outputs()
+        for event in events:
+            if event.resource_type == self.resource_type:
+                answer.append(event)
+        return answer
+
+    def failed_output_qty(self):
+        return sum(evt.quantity for evt in self.failed_outputs())
 
     def agent_has_labnotes(self, agent):
         #import pdb; pdb.set_trace()

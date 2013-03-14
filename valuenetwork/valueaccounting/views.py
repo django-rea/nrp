@@ -1719,36 +1719,42 @@ def save_labnotes(request, commitment_id):
 def save_past_work(request, commitment_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
-        form = PastWorkForm(data=request.POST)
+        ct = get_object_or_404(Commitment, id=commitment_id)
+        event_date = request.POST.get("eventDate")
+        if event_date:
+            event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+        events = ct.fulfillment_events.filter(event_date=event_date)
+        if events:
+            event = events[events.count() - 1]
+            form = PastWorkForm(instance=event, data=request.POST)
+        else:
+            form = PastWorkForm(data=request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            ct = get_object_or_404(Commitment, id=commitment_id)
             event_id = data.get("id")
-            event_date = request.POST.get("eventDate")
-            if event_date:
-                event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
-                if event_id:
-                    event = form.save(commit=False)
-                    event.changed_by = request.user
-                else:
-                    event = form.save(commit=False)
-                    event.event_date = event_date
-                    event.commitment = ct
-                    event.is_contribution = True
-                    event.process = ct.process
-                    event.project = ct.project
-                    event.event_type = ct.event_type
-                    event.resource_type = ct.resource_type
-                    event.from_agent = ct.from_agent
-                    event.to_agent = ct.to_agent
-                    event.unit_of_quantity = ct.unit_of_quantity
-                    event.created_by = request.user
-                    event.changed_by = request.user
-                    process = ct.process
-                    if not process.started:
-                        process.started = event_date
-                        process.changed_by=request.user
-                        process.save()
+            if event_id:
+                event = form.save(commit=False)
+                event.event_date = event_date
+                event.changed_by = request.user
+            else:
+                event = form.save(commit=False)
+                event.event_date = event_date
+                event.commitment = ct
+                event.is_contribution = True
+                event.process = ct.process
+                event.project = ct.project
+                event.event_type = ct.event_type
+                event.resource_type = ct.resource_type
+                event.from_agent = ct.from_agent
+                event.to_agent = ct.to_agent
+                event.unit_of_quantity = ct.unit_of_quantity
+                event.created_by = request.user
+                event.changed_by = request.user
+                process = ct.process
+                if not process.started:
+                    process.started = event_date
+                    process.changed_by=request.user
+                    process.save()
                 event.save()
                 description = data["description"]
                 if description != ct.description:
@@ -3129,6 +3135,7 @@ def process_selections(request):
         #import pdb; pdb.set_trace()
         edit_process = request.POST.get("edit-process")
         labnotes = request.POST.get("labnotes")
+        past = request.POST.get("past")
         get_related = request.POST.get("get-related")
         if get_related:
             selected_name = request.POST.get("resourceName")
@@ -3284,7 +3291,10 @@ def process_selections(request):
                     % ('accounting/change-process', process.id))  
             if labnotes:
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/work-commitment', work_commitment.id))             
+                    % ('accounting/work-commitment', work_commitment.id)) 
+            if past:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/past-work', work_commitment.id))            
                             
     return render_to_response("valueaccounting/process_selections.html", {
         "resource_names": resource_names,

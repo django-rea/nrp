@@ -85,7 +85,10 @@ def sessions(request):
     sessions = Session.objects.all().order_by('-expire_date')[0:20]
     for session in sessions:
         data = session.get_decoded()
-        session.user = User.objects.get(id=data['_auth_user_id'])
+        try:
+            session.user = User.objects.get(id=data['_auth_user_id'])
+        except:
+            session.user = "guest"
     selected_session = None
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -95,7 +98,10 @@ def sessions(request):
                 ss = Session.objects.get(pk=spk)
                 selected_session = ss
                 data = selected_session.get_decoded()
-                selected_session.user = User.objects.get(id=data['_auth_user_id'])
+                try:
+                    selected_session.user = User.objects.get(id=data['_auth_user_id'])
+                except:
+                    selected_session.user = "guest"
             except Session.DoesNotExist:
                 pass
             

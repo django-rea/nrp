@@ -55,8 +55,11 @@
 			{% csrf_token %}
 		<div class="row-fluid">
 			<div class="span10 offset2">
-			    {% trans "Resource Family Name" %} <input type="text" id="resourceName" name="resourceName" value="{{ selected_name }}" 
+			    {% trans "Resource Family Names" %} <input type="text" id="resourceName" name="resourceName" value="{{ selected_name }}" 
+			        {% if  selected_name %} disabled="disabled" {% endif %} /> &nbsp;&nbsp;&nbsp;
+		        <input type="text" id="resourceName2" name="resourceName2" value="{{ selected_name2 }}" 
 			        {% if  selected_name %} disabled="disabled" {% endif %} /> 
+			        
 			    {% if selected_name %} 
 
 			        {% if related_outputs %}
@@ -170,6 +173,7 @@
             resourceNames.push("{{ rname }}");
 	    {% endfor %}
 	    $( "#resourceName" ).autocomplete({source: resourceNames});
+	    $( "#resourceName2" ).autocomplete({source: resourceNames});
 
 	    $('#startNow').hide();
 	    $('#pastWork').hide();

@@ -3132,11 +3132,11 @@ def change_rand(request, rand_id):
 def process_selections(request):
     #import pdb; pdb.set_trace()
     resource_names = [res.name for res in EconomicResourceType.objects.process_outputs()]
-    #resource_names = [res.label() for res in EconomicResourceType.objects.process_outputs()]
     related_outputs = []
     related_inputs = []
     related_recipes = []
     selected_name = ""
+    selected_name2 = ""
     #import pdb; pdb.set_trace()
     use_radio = True
     work_form = None
@@ -3148,15 +3148,27 @@ def process_selections(request):
         get_related = request.POST.get("get-related")
         if get_related:
             selected_name = request.POST.get("resourceName")
-            related_outputs = EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name)
-            related_inputs = EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name)
-            related_recipes = []
-            #import pdb; pdb.set_trace()
-            for output in related_outputs:
-                ppt = output.main_producing_process_type()
-                if ppt:
-                    if ppt not in related_recipes:
-                        related_recipes.append(ppt)
+            if selected_name:
+                related_outputs = list(EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name))
+                related_inputs = list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name))
+                related_recipes = []
+                for output in related_outputs:
+                    ppt = output.main_producing_process_type()
+                    if ppt:
+                        if ppt not in related_recipes:
+                            related_recipes.append(ppt)
+
+            selected_name2 = request.POST.get("resourceName2")
+            if selected_name2:
+                #import pdb; pdb.set_trace()
+                new_outputs = list(EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name2))
+                related_outputs.extend(new_outputs)
+                related_inputs.extend(list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name2)))
+                for output in new_outputs:
+                    ppt = output.main_producing_process_type()
+                    if ppt:
+                        if ppt not in related_recipes:
+                            related_recipes.append(ppt)
             if len(related_recipes) == 1:
                 use_radio = False
             work_form = WorkSelectionForm()
@@ -3311,6 +3323,7 @@ def process_selections(request):
         "related_inputs": related_inputs,
         "related_recipes": related_recipes,
         "selected_name": selected_name,
+        "selected_name2": selected_name2,
         "use_radio": use_radio,
         "work_form": work_form,
     }, context_instance=RequestContext(request))

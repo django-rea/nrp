@@ -41,28 +41,30 @@
 
 		<h3 style="margin-bottom: 4px;" >{% trans "Labnotes" %}:</h3>
 		{% for commitment in process.work_requirements %}
-			<p>
-				<a href="{% url labnote commitment_id=commitment.id %}">
-				    <b>{% trans "From" %}: {{ commitment.from_agent }}</b> {{ commitment.resource_type }}
-			    </a>
-			    {% if commitment.from_agent = agent %}
-			    <a href="{% url work_commitment commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Open" %}</a>
-			    {% endif %}
-			</p>
-			<p style="margin-left: 2em;">
-				{{ commitment.description|urlize|linebreaks }}
-			</p>
+		    {% if commitment.fulfilling_events %}
+			    <p>
+				    <a href="{% url labnote commitment_id=commitment.id %}">
+				        <b>{% trans "From" %}: {{ commitment.from_agent }}</b> {{ commitment.resource_type }}
+			        </a>
+			        {% if commitment.from_agent = agent %}
+			        <a href="{% url work_commitment commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Open" %}</a>
+			        {% endif %}
+			    </p>
+			    <p style="margin-left: 2em;">
+				    {{ commitment.description|urlize|linebreaks }}
+			    </p>
 
-			{% with commitment.fulfilling_events as events %}
-				{% if events %}
-					<h4>{% trans "Time contributions" %}:</h4>		
-					{% for event in commitment.fulfillment_events.all %}
-						<p style="margin-left: 2em;">
-							{{ event.event_date }}: {{ event.quantity }} {{ event.unit_of_quantity }} 
-						</p>
-					{% endfor %}
-				{% endif %}
-			{% endwith %}
+			    {% with commitment.fulfilling_events as events %}
+				    {% if events %}
+					    <h4>{% trans "Time contributions" %}:</h4>		
+					    {% for event in commitment.fulfillment_events.all %}
+						    <p style="margin-left: 2em;">
+							    {{ event.event_date }}: {{ event.quantity }} {{ event.unit_of_quantity }} 
+						    </p>
+					    {% endfor %}
+				    {% endif %}
+			    {% endwith %}
+		    {% endif %}
 		{% endfor %}
 
 

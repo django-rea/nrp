@@ -500,7 +500,9 @@
 
 	$(document).ready(function(){
 	
-        {% if not event_date %}
+        {% if event_date %}
+            $("#id_event_date").attr('disabled', 'disabled');
+        {% else %}
 	        $("input").attr('disabled', 'disabled');
 	        $("button").attr('disabled', 'disabled');
 	        $("textarea").attr('disabled', 'disabled');

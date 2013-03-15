@@ -802,6 +802,12 @@ class Project(models.Model):
         unique_slugify(self, self.name)
         super(Project, self).save(*args, **kwargs)
 
+    def node_id(self):
+        return "-".join(["Project", str(self.id)])
+
+    def color(self):
+        return "blue"
+
     def time_contributions(self):
         return sum(event.quantity for event in self.events.filter(
             resource_type__materiality="work"))

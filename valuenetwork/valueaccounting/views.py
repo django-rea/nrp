@@ -908,6 +908,7 @@ def network(request, resource_type_id):
     }, context_instance=RequestContext(request))
 
 def project_network(request):
+    #import pdb; pdb.set_trace()
     producers = [p for p in ProcessType.objects.all() if p.produced_resource_types()]
     nodes, edges = project_graph(producers)
     return render_to_response("valueaccounting/network.html", {

@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load thumbnail %}
 
-{% block head_title %}{% trans "Value Network for " %} {{ resource_type }}{% endblock %}
+{% block head_title %}{% trans "Project-level Value Network" %}{% endblock %}
 
 {% block extra_head %}
 
@@ -15,21 +15,26 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<h1>{% trans "Value Network for " %} {{ resource_type }}
+		<h1>{% trans "Project-level Value Network" %}
+{% comment %}
 			{% if resource_type.photo %}
 			    <img src="{% thumbnail resource_type.photo photo_size %}" />
 		    {% elif resource_type.photo_url %}
         	    <img src="{{ resource_type.photo_url }}" width="128" height="96" />
 			{% endif %}
+{% endcomment %}
 		</h1>
 		<div>
 			<div style="float: left;">
 				<button id="redraw" onclick="redraw();">{% trans "redraw" %}</button> {% trans "or just drag stuff around..." %}
 			</div>
 			<div style="float: right;">
-				<span style="color:blue;">{% trans "Blue oval = Process" %}</span></br>
-				<span style="color:red;">{% trans "Red rectangle = Resource" %}</span></br>
-				<span style="color:green;">{% trans "Green rectange = Agent" %}</span>
+				<span style="color:blue;">{% trans "Blue oval = Project" %}</span></br>
+				<span style="color:red;">{% trans "Red rectangle = Resource" %}</span>
+{% comment %}
+				</br>
+				<span style="color:green;">{% trans "Green rectangle = Agent" %}</span>
+{% endcomment %}
 			</div>
 			<div style="clear:both;"></div>
 		</div>

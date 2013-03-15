@@ -184,12 +184,12 @@
 									<a href="#failureForm" role="button" class="btn btn-warning" data-toggle="modal">{% trans "Failed" %}</a>
 								</div>
 								
-								{% if process.failed_outputs %}
+								{% if item.failed_outputs %}
 									<div id="failDiv" style="margin-left: 1em;" >
 								{% else %}
 									<div id="failDiv" style="margin-left: 1em; display: none;" >
 								{% endif %}
-								{% trans "Failures" %}: <span id="failures">{{ process.failed_output_qty }}</span></div>
+								{% trans "Failures" %}: <span id="failures">{{ item.failed_output_qty }}</span></div>
 								
 
 							</li>

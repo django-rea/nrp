@@ -1637,6 +1637,9 @@ def pastwork_reload(
         was_retrying,
         event,
     )
+    if request.method == "POST":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/labnote', ct.id))
     return render_to_response("valueaccounting/log_past_work.html",
         template_params,
         context_instance=RequestContext(request))

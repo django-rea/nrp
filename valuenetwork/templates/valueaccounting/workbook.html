@@ -606,20 +606,7 @@
 				$(label).closest('.control-group').addClass('error');
 			}
 		});
-/*
-		$("#failForm").submit(function(event) {
- 
-			event.preventDefault();
 
-			var $form = $( this ),
-				qty = $form.find( 'input[name="quantity"]' ).val(),
-				url = $form.attr( 'action' );
-
-			var formData = $form.serialize();
-			saveFail(qty, url, formData);
-
-		});
-*/
         {% for item in process.outgoing_commitments %}
 		    $("#detailForm{{ item.id }}").submit(function(event) {
 		

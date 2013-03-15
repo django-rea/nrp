@@ -22,8 +22,11 @@
 	width: 24px;
 }
 
+.failureModal .modal-body {
+	max-height: 400px;
+}
 
-#failureForm textarea {
+.failureModal textarea {
   width: 100%;
   height: 200px;
 }
@@ -181,15 +184,15 @@
 								    </div>
 								{% endif %}
 								<div style="" >
-									<a href="#failureForm" role="button" class="btn btn-warning" data-toggle="modal">{% trans "Failed" %}</a>
+									<a href="#failureForm{{ item.id }}" role="button" class="btn btn-warning" data-toggle="modal">{% trans "Failed" %}</a>
 								</div>
 								
 								{% if item.failed_outputs %}
-									<div id="failDiv" style="margin-left: 1em;" >
+									<div id="failDiv{{ item.id }}" style="margin-left: 1em;" >
 								{% else %}
-									<div id="failDiv" style="margin-left: 1em; display: none;" >
+									<div id="failDiv{{ item.id }}" style="margin-left: 1em; display: none;" >
 								{% endif %}
-								{% trans "Failures" %}: <span id="failures">{{ item.failed_output_qty }}</span></div>
+								{% trans "Failures" %}: <span id="failures{{ item.id }}">{{ item.failed_output_qty }}</span></div>
 								
 
 							</li>
@@ -232,13 +235,13 @@
                                 </div>
                             
 
-                            <div class="modal hide fade" id="failureForm" tabindex="-1" role="dialog" aria-labelledby="failure-label" aria-hidden="true">
+                            <div class="modal hide fade failureModal" id="failureForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="failure-label" aria-hidden="true">
 						        <div class="modal-header">
 							        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 							        <h3 id="failure-label">{% trans "Failed" %} {{ item.resource_type.name }}</h3>
 						        </div>
 						        <div class="modal-body">
-							        <form class="failure-form" id="failForm" action="{% url failed_outputs commitment_id=item.id %}" method="POST" >
+							        <form class="failure-form" id="failForm{{ item.id }}" action="{% url failed_outputs commitment_id=item.id %}" method="POST" >
 								        {% csrf_token %}
 								        {{ failure_form|as_bootstrap }}
 								        <input type="hidden" name="next" value="{% url work_commitment commitment_id=commitment.id %}" />
@@ -663,19 +666,6 @@
 			}
 		});
 
-		$("#failForm").submit(function(event) {
- 
-			event.preventDefault();
-
-			var $form = $( this ),
-				qty = $form.find( 'input[name="quantity"]' ).val(),
-				url = $form.attr( 'action' );
-
-			var formData = $form.serialize();
-			saveFail(qty, url, formData);
-
-		});
-
         {% for item in process.outgoing_commitments %}
 		    $("#detailForm{{ item.id }}").submit(function(event) {
 		
@@ -689,6 +679,17 @@
 			    var formData = $form.serialize();
 			    saveResource(url, itemId, qtyInputId, identifier, formData); 
 
+		    });
+		    $("#failForm{{ item.id }}").submit(function(event) {
+		
+		        event.preventDefault();
+                var itemId = {{ item.id }};
+			    var $form = $( this ),
+				    qty = $form.find( 'input[name="quantity"]' ).val(),
+				    url = $form.attr( 'action' );
+
+			    var formData = $form.serialize();
+			    saveFail(qty, itemId, url, formData);
 		    });
         {% endfor %}
 
@@ -988,11 +989,14 @@
 
 		if (!failSaved)
 		{
-			var $form = $("#failForm");
-			var qty = $form.find( 'input[name="quantity"]' ).val();
-			var url = $form.attr( 'action' );
-			var formData = $form.serialize();
-			saveFail(qty, url, formData);
+		    {% for item in process.outgoing_commitments %}
+		        var itemId = {{ item.id }};	
+			    var $form = $("#failForm{{ item.id }}");
+			    var qty = $form.find( 'input[name="quantity"]' ).val();
+			    var url = $form.attr( 'action' );
+			    var formData = $form.serialize();
+			    saveFail(qty, itemId, url, formData);
+			{% endfor %}
 
 		}
 
@@ -1043,23 +1047,25 @@
 		$("#saving").text("Problem saving");
 	}
 
-	function saveFail(qty, url, formData)
+	function saveFail(qty, itemId, url, formData)
 	{
 		notifySaving();
-		var ed = "&eventDate=" + eventDate;
-		formData += ed;
+		var modalID = "#failureForm" + itemId;
+		var formID = "#failForm" + itemId;
+		var divID = "#failDiv" + itemId;
+		var failuresId = "#failures" + itemId;
 		var jqxhr = $.post( url, formData,
 			function( data ) {
-				$('#failDiv').show();
-				$('#failures').empty().append( data );
-				$('#failureForm').modal('hide');
+				$(divID).show();
+				$(failuresId).empty().append( data );
+				$(modalID).modal('hide');
 				notifySaved();
-                $("#failForm").trigger( "reset" );
+                $(formID).trigger( "reset" );
 				failSaved = true;
 			})
 			.fail(function() 
 			{ 
-				$('#failureForm').modal('hide');
+				$(modalID).modal('hide');
 				notifyProblem(); 
 				failSaved = false;
 				startRetrying();

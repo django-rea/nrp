@@ -42,10 +42,11 @@ def project_graph(producers):
     for p in producers:
         for rt in p.produced_resource_type_relationships():
             for pt in rt.resource_type.consuming_process_type_relationships():
-                if p.project != pt.process_type.project:
-                    nodes.extend([p.project, pt.process_type.project, rt.resource_type])
-                    edges.append(Edge(p.project, rt.resource_type, rt.relationship.name))
-                    edges.append(Edge(rt.resource_type, pt.process_type.project, pt.inverse_label()))
+                if p.project and pt.process_type.project:
+                    if p.project != pt.process_type.project:
+                        nodes.extend([p.project, pt.process_type.project, rt.resource_type])
+                        edges.append(Edge(p.project, rt.resource_type, rt.relationship.name))
+                        edges.append(Edge(rt.resource_type, pt.process_type.project, pt.inverse_label()))
     return [nodes, edges]
 
 def explode(process_type_relationship, nodes, edges, depth, depth_limit):

@@ -31,7 +31,7 @@ admin.site.register(EconomicAgent, EconomicAgentAdmin)
 
 
 class EconomicResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('label', 'name', 'category', 'rate', 'materiality', 'unit')
+    list_display = ('label', 'name', 'category', 'rate', 'materiality', 'unit', 'description')
     list_filter = ['category', 'materiality',]
     search_fields = ['name',]
     list_editable = ['category', 'materiality',]

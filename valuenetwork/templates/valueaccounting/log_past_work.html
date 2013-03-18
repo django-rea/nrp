@@ -174,7 +174,22 @@
 						{% for item in process.outgoing_commitments %}
 						    {% with item.output_resource as resource %}
 							<li>
-								<b>{{ item.resource_type.name }}:</b> {% trans "Planned" %}: {{ item.quantity }} {{ item.unit_of_quantity }}</br>
+								<b>{{ item.resource_type.name }}:</b> {% trans "Planned" %}: {{ item.quantity }} {{ item.unit_of_quantity }}
+								{% if item.is_deletable %}
+								    <form style="display: inline;" 
+								        class="delete-form" 
+								        id="deleteForm{{ item.id }}" 
+								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								        method="POST" >
+					                    {% csrf_token %}
+                                    	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
+		                                <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
+		                                <input type="hidden" id="eventDate{{ item.id }}" name="eventDate" value="{{ event_date|date:'Y-m-d' }}" />
+		                                <input type="hidden" name="reload" value="pastwork" />
+					                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
+				                    </form>
+								{% endif %}
+								</br>
 								{% trans "Actual" %}: <input class="input-mini output-quantity" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ item.fulfilled_quantity }}" />
 								{% if item.creates_resources %}
 								    <div style="display: inline;" >
@@ -264,7 +279,22 @@
 						<h4>{% trans "Design inputs" %}:</h4>
 						{% for item in process.intellectual_requirements %}
 						<ul>
-						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
+						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}
+						        {% if item.is_deletable %}
+								    <form style="display: inline;" 
+								        class="delete-form" 
+								        id="deleteForm{{ item.id }}" 
+								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								        method="POST" >
+					                    {% csrf_token %}
+                                    	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
+		                                <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
+		                                <input type="hidden" id="eventDate{{ item.id }}" name="eventDate" value="{{ event_date|date:'Y-m-d' }}" />
+		                                <input type="hidden" name="reload" value="pastwork" />
+					                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
+				                    </form>
+								{% endif %}
+						    </li>
 							<ul>
 							{% if item.onhand %}
 								{% for resource in item.onhand_with_fulfilled_quantity %}
@@ -305,7 +335,22 @@
 						<h4>{% trans "Material inputs" %}:</h4>
 						{% for item in process.material_requirements %}
 						<ul>
-						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
+						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}
+						        {% if item.is_deletable %}
+								    <form style="display: inline;" 
+								        class="delete-form" 
+								        id="deleteForm{{ item.id }}" 
+								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								        method="POST" >
+					                    {% csrf_token %}
+                                    	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
+		                                <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
+		                                <input type="hidden" id="eventDate{{ item.id }}" name="eventDate" value="{{ event_date|date:'Y-m-d' }}" />
+		                                <input type="hidden" name="reload" value="pastwork" />
+					                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
+				                    </form>
+								{% endif %}
+						    </li>
 							<ul>
 							{% if item.onhand %}
 								{% for resource in item.onhand_with_fulfilled_quantity %}
@@ -347,7 +392,22 @@
 						<h4>{% trans "Tool inputs" %}:</h4>
 						{% for item in process.tool_requirements %}
 		                    <ul>
-				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
+				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}
+				                    {% if item.is_deletable %}
+								        <form style="display: inline;" 
+								            class="delete-form" 
+								            id="deleteForm{{ item.id }}" 
+								            action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								            method="POST" >
+					                        {% csrf_token %}
+                                        	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
+		                                    <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
+		                                    <input type="hidden" id="eventDate{{ item.id }}" name="eventDate" value="{{ event_date|date:'Y-m-d' }}" />
+		                                    <input type="hidden" name="reload" value="pastwork" />
+					                        <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
+				                        </form>
+								{% endif %}
+				                </li>
 								<ul>
 									{% if item.onhand %}
 										{% for resource in item.onhand_with_fulfilled_quantity %}
@@ -388,7 +448,22 @@
 						<h4>{% trans "Space inputs" %}:</h4>
 						{% for item in process.space_requirements %}
 		                    <ul>
-				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}</li>
+				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}
+				                    {% if item.is_deletable %}
+								        <form style="display: inline;" 
+								            class="delete-form" 
+								            id="deleteForm{{ item.id }}" 
+								            action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								            method="POST" >
+					                        {% csrf_token %}
+                                        	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
+		                                    <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
+		                                    <input type="hidden" id="eventDate{{ item.id }}" name="eventDate" value="{{ event_date|date:'Y-m-d' }}" />
+		                                    <input type="hidden" name="reload" value="pastwork" />
+					                        <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
+				                        </form>
+								    {% endif %}
+				                </li>
 								<ul>
 									{% if item.onhand %}
 										{% for resource in item.onhand_with_fulfilled_quantity %}
@@ -446,6 +521,20 @@
 						{% for item in other_work_reqs %}
 							<li>
 								<b>{{ item.resource_type }}</b> {{ item.quantity }} {{ item.unit_of_quantity.abbrev }}
+								{% if item.is_deletable %}
+								    <form style="display: inline;" 
+								        class="delete-form" 
+								        id="deleteForm{{ item.id }}" 
+								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								        method="POST" >
+					                    {% csrf_token %}
+                                    	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
+		                                <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
+		                                <input type="hidden" id="eventDate{{ item.id }}" name="eventDate" value="{{ event_date|date:'Y-m-d' }}" />
+		                                <input type="hidden" name="reload" value="pastwork" />
+					                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
+				                    </form>
+								{% endif %}
 							</li>
 
 						{% endfor %}
@@ -755,6 +844,28 @@
             }
             return true;
 		});
+
+		{% for item in process.non_work_requirements %}
+		    $("#deleteForm{{ item.id }}").submit(function(event) {
+		        $('#eventDate{{ item.id }}').prop('value', eventDate);
+                if(running)
+                {
+                    $('#deleteRunning{{ item.id }}').prop('value', 1);
+                }
+                else
+                {
+                    $('#deleteRunning{{ item.id }}').prop('value', 0);
+                }
+                if (retrying)
+                {
+                    $('#deleteRetrying{{ item.id }}').prop('value', 1);
+                }
+                {
+                    $('#deleteRetrying{{ item.id }}').prop('value', 0);
+                }
+                return true;
+		    });
+		{% endfor %}
 
         $("#addInput").click(function(event) {
             event.preventDefault();

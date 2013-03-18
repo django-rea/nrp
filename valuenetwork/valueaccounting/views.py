@@ -1492,6 +1492,31 @@ def new_process_input(request, commitment_id):
         return HttpResponseRedirect('/%s/%s/%s/%s/'
             % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
+def delete_commitment(request, commitment_id, labnotes_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    ct = get_object_or_404(Commitment, pk=labnotes_id)
+    #import pdb; pdb.set_trace()
+    commitment.delete()
+    was_running = request.POST["wasRunning"]
+    was_retrying = request.POST["wasRetrying"]
+    reload = request.POST["reload"]
+    event_date = request.POST.get("eventDate")
+    event = None
+    events = None
+    event_id=0
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+        events = ct.fulfillment_events.filter(event_date=event_date)
+    if events:
+        event = events[events.count() - 1]
+        event_id = event.id
+    if reload == 'pastwork':
+        return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+            % ('accounting/pastwork-reload', labnotes_id, event_id, was_running, was_retrying))
+    else:
+        return HttpResponseRedirect('/%s/%s/%s/%s/'
+            % ('accounting/labnotes-reload', labnotes_id, was_running, was_retrying))
+
 
 def labnotes_reload(
         request, 

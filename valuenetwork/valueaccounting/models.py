@@ -1173,6 +1173,12 @@ class Process(models.Model):
             resource_type__materiality='work',
         )
 
+    def non_work_requirements(self):
+        return self.commitments.exclude(
+            relationship__direction='in',
+            resource_type__materiality='work',
+        )
+
     def work_events(self):
         reqs = self.work_requirements()
         events = []
@@ -1632,6 +1638,12 @@ class Commitment(models.Model):
 
     def fulfilling_events(self):
         return self.fulfillment_events.all()
+
+    def is_deletable(self):
+        if self.fulfilling_events():
+            return False
+        else:
+            return True
 
     def fulfilling_events_from_agent(self, agent):
         return self.fulfillment_events.filter(from_agent=agent)

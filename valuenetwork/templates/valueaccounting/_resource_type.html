@@ -34,10 +34,12 @@
 			  </div>
 
 			</div>
-
+			
+            {% if resource_type.is_deletable %}
 			<div style="display: inline;" >
 				<a href="{% url delete_resource_type_confirmation resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >{% trans "Delete" %}</a>
 			</div>
+			{% endif %}
 
 		{% endif %}
 

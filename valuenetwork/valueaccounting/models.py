@@ -577,6 +577,16 @@ class EconomicResourceType(models.Model):
             pass
         return answer
 
+    def is_deletable(self):
+        answer = True
+        if self.events.all():
+            answer = False
+        elif self.resources.all():
+            answer = False
+        elif self.commitments.all():
+            answer = False
+        return answer
+
 
 class GoodResourceManager(models.Manager):
     def get_query_set(self):

@@ -102,12 +102,12 @@
             </form>
                 <div class="row-fluid">
 			        <div class="span12">
-			            <a href="#addOutputModal" role="button" class="btn" data-toggle="modal">{% trans "Add an output" %}</a>
+			            <a href="#addOutputModal" role="button" class="btn" data-toggle="modal">{% trans "+ output" %}</a>
 
 			            {% comment %}
                             Todo: request to create a work input addition function called "invite a friend" - see issue #6
 			            {% endcomment %}
-			            <a href="#addInputModal" role="button" class="btn" data-toggle="modal">{% trans "Add an input" %}</a>
+			            <a href="#addInputModal" role="button" class="btn" data-toggle="modal">{% trans "+ input" %}</a>
 			            
 			            <div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
 				            <div class="modal-header">
@@ -599,9 +599,8 @@
 				});
 		}
 
+
                 jQuery.validator.setDefaults({ 
-                    onfocusout: true,
-                    onkeyup: false,
                     success: function(label) {
 				        label
 					        .text('').addClass('valid')
@@ -674,20 +673,37 @@
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
-		$('#failForm').validate(
-		{
+
+		$( "#addOutputForm" ).validate({
 			rules: {
-				quantity: {
-                                        required: true, 
-					number: true
+			    'output-resource_type': {
+                    required: true
 				},
-				description: {
-                                        required: true
+				'output-quantity': {
+                    required: true,
+					number: true,
+					min: .01
 				}
 			},
 			highlight: function(label) {
 				$(label).closest('.control-group').addClass('error');
-			}
+			},
+		});
+
+		$( "#addInputForm" ).validate({
+			rules: {
+			    'input-resource_type': {
+                    required: true
+				},
+				'input-quantity': {
+                    required: true,
+					number: true,
+					min: .01
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
 		});
 
         {% for item in process.outgoing_commitments %}
@@ -715,9 +731,27 @@
 			    var formData = $form.serialize();
 			    saveFail(qty, itemId, url, formData);
 		    });
+		    
+		    $('#failForm{{ item.id }}').validate(
+		    {
+			    rules: {
+				    quantity: {
+                        required: true, 
+					    number: true
+				    },
+				    description: {
+                        required: true
+				    }
+			    },
+			    highlight: function(label) {
+				    $(label).closest('.control-group').addClass('error');
+			    }
+		    });
+		    
         {% endfor %}
 
 		$("#start").click(function(event) {
+		    event.preventDefault();
             startTimer();  
 		});
 

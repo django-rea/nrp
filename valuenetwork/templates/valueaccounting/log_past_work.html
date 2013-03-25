@@ -85,7 +85,7 @@
 			        <div class="span12">
 			            <div class="control-group">
 					        <b>{% trans "Event date" %}:</b> 
-					        {{ wb_form.event_date }}
+					        {{ wb_form.event_date }} <span id="date-required" style="color: red;" >Required</span>
 				        </div>
 
 				        <div class="control-group">
@@ -587,6 +587,7 @@
 	
         {% if event_date %}
             $("#id_event_date").attr('disabled', 'disabled');
+             $("#date-required").text("");
         {% else %}
 	        $("input").attr('disabled', 'disabled');
 	        $("button").attr('disabled', 'disabled');
@@ -599,6 +600,7 @@
 
 	        function gotDate(event)
 	        {
+	            $("#date-required").text("");
 	            eventDate = event.target.value;
                 $("input").removeAttr('disabled');
 	            $("button").removeAttr('disabled');
@@ -610,6 +612,10 @@
 	        }
 	        
         {% endif %}
+
+        $("a").click(function(event) {
+            if ($(this).attr('disabled')) return false;         
+        });
 
 
         $('#labnotesForm').validate(

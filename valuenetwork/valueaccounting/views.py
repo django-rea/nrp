@@ -1845,36 +1845,51 @@ def resource(request, resource_id):
         "photo_size": (128, 128),
     }, context_instance=RequestContext(request))
 
-def labnotes(request, process_id):
-    process = get_object_or_404(Process, id=process_id)
-    agent = get_agent(request)
-    return render_to_response("valueaccounting/labnotes.html", {
-        "process": process,
-        "agent": agent,
-    }, context_instance=RequestContext(request))
-
-def labnote(request, commitment_id):
-    ct = get_object_or_404(Commitment, id=commitment_id)
-    process = ct.process
-    agent = ct.from_agent
-    request_agent = get_agent(request)
+def get_labnote_context(commitment, request_agent):
     author = False
+    agent = commitment.from_agent
+    process = commitment.process
     if request_agent == agent:
         author = True
-    work_events = ct.fulfilling_events()
+    work_events = commitment.fulfilling_events()
     outputs = process.outputs_from_agent(agent)
-    #import pdb; pdb.set_trace()
     failures = process.failures_from_agent(agent)
     inputs = process.inputs_used_by_agent(agent)
-    return render_to_response("valueaccounting/labnote.html", {
-        "commitment": ct,
+    return {
+        "commitment": commitment,
         "author": author,
         "process": process,
         "work_events": work_events,
         "outputs": outputs,
         "failures": failures,
         "inputs": inputs,
-    }, context_instance=RequestContext(request))
+    }
+    
+
+def labnotes(request, process_id):
+    process = get_object_or_404(Process, id=process_id)
+    agent = get_agent(request)
+    work_commitments = process.work_requirements()
+    #import pdb; pdb.set_trace()
+    if work_commitments.count() == 1:
+        ct = work_commitments[0]
+        template_params = get_labnote_context(ct, agent)
+        return render_to_response("valueaccounting/labnote.html",
+            template_params,
+            context_instance=RequestContext(request))
+    else:
+        return render_to_response("valueaccounting/labnotes.html", {
+            "process": process,
+            "agent": agent,
+        }, context_instance=RequestContext(request))
+
+def labnote(request, commitment_id):
+    ct = get_object_or_404(Commitment, id=commitment_id)
+    request_agent = get_agent(request)
+    template_params = get_labnote_context(ct, request_agent)
+    return render_to_response("valueaccounting/labnote.html",
+        template_params,
+        context_instance=RequestContext(request))
 
 def production_event_for_commitment(request):
     id = request.POST.get("id")

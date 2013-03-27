@@ -832,6 +832,9 @@ class Project(models.Model):
     def contributions_count(self):
         return self.events.filter(is_contribution=True).count()
 
+    def contribution_events(self):
+        return self.events.filter(is_contribution=True)
+
     def contributors(self):
         ids = self.events.filter(is_contribution=True).values_list('from_agent').order_by('from_agent').distinct()
         id_list = [id[0] for id in ids]

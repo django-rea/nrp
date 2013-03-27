@@ -182,7 +182,7 @@ def all_contributions(request):
 def contributions(request, project_id):
     #import pdb; pdb.set_trace()
     project = get_object_or_404(Project, pk=project_id)
-    event_list = project.events.all()
+    event_list = project.contribution_events()
     paginator = Paginator(event_list, 25)
 
     page = request.GET.get('page')

@@ -36,9 +36,10 @@
 				<th>{% trans "Project" %}</th>
 				<th>{% trans "Resource Type" %}</th>
 				<th>{% trans "Qty" %}</th>
-				<th>{% trans "Unit" %}</th>
 				<th>{% trans "URL" %}</th>
 				<th>{% trans "Description" %}</th>
+				<th>{% trans "Process" %}</th>
+				<th>{% trans "Deliverables" %}</th>
 			</thead>
 			<tbody>	
 				{% for event in events %}
@@ -48,13 +49,22 @@
 						<td>{{ event.project }}</td>
 						<td>{{ event.resource_type }}</td>
 						<td style="text-align: right;" >{{ event.quantity_formatted }}</td>
-						<td>{{ event.unit_of_quantity }}</td>
 						<td>
 							{% if event.url %}
 								<a href="{{ event.url }}" target="_blank">Open</a>
 							{% endif %}
 						</td>
 						<td>{{ event.description|urlize }}</td>
+						<td>
+							{% if event.process %}
+								<a href="{{ event.process.get_absolute_url }}" target="_blank">{{ event.process.name }}</a>
+							{% endif %}
+						</td>
+						<td>
+						    {% for d in event.process.deliverables %}
+						        <a href="{% url resource resource_id=d.id %}">{{ d }}</a></br >
+					        {% endfor %}
+					    </td>
 					</tr>
 				{% endfor %}
 			<tbody>	

@@ -106,7 +106,8 @@ class Category(models.Model):
     name = models.CharField(_('name'), max_length=128)
     #todo: should applies_to go away?
     applies_to = models.CharField(_('applies to'), max_length=128, 
-        choices=CATEGORIZATION_CHOICES)
+        choices=CATEGORIZATION_CHOICES,
+        default='EconomicResourceType')
     description = models.TextField(_('description'), blank=True, null=True)
     orderable = models.BooleanField(_('orderable'), default=False,
         help_text=_('Should appear in Order form?'))
@@ -301,9 +302,11 @@ class EventType(models.Model):
 
 MATERIALITY_CHOICES = (
     ('material', _('material')),
+    ('purchmatl', _('purchased material')),
     ('intellectual', _('intellectual')),
     ('work', _('work')),
     ('tool', _('tool')),
+    ('purchtool', _('purchased tool')),
     ('space', _('space')),
     ('value', _('value')),
 )
@@ -1154,10 +1157,16 @@ class Process(models.Model):
         return answer
 
     def material_requirements(self):
-        return self.commitments.filter(
+        answer = list(self.commitments.filter(
             relationship__direction='in',
             resource_type__materiality="material",
-        )
+        ))
+        answer.extend(self.commitments.filter(
+            relationship__direction='in',
+            resource_type__materiality="purchmatl",
+        ))
+        return answer
+
 
     def intellectual_requirements(self):
         return self.commitments.filter(
@@ -1207,6 +1216,9 @@ class Process(models.Model):
             if rels:
                 answer.append(event)
         return answer
+
+    def deliverables(self):
+        return [output.resource for output in self.outputs() if output.resource]
 
     def failed_outputs(self):
         answer = []
@@ -1884,8 +1896,17 @@ class EconomicEvent(models.Model):
             return False
         return True
 
+    def unit(self):
+        if self.unit_of_quantity:
+            return self.unit_of_quantity.abbrev
+        else:
+            return self.resource_type.unit_of_quantity.abbrev
+
     def quantity_formatted(self):
-        return self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)
+        return " ".join([
+            str(self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)),
+            self.unit(),
+            ])
 
 
 #todo: not used

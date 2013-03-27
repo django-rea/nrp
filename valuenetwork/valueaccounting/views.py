@@ -72,9 +72,11 @@ def home(request):
 
 def projects(request):
     roots = Project.objects.filter(parent=None)
+    agent = get_agent(request)
     
     return render_to_response("valueaccounting/projects.html", {
         "roots": roots,
+        "agent": agent,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -157,6 +159,24 @@ def inventory(request):
         "select_all": select_all,
         "selected_cats": selected_cats,
         "photo_size": (128, 128),
+    }, context_instance=RequestContext(request))
+
+def all_contributions(request):
+    event_list = EconomicEvent.objects.filter(is_contribution=True)
+    paginator = Paginator(event_list, 25)
+
+    page = request.GET.get('page')
+    try:
+        events = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        events = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        events = paginator.page(paginator.num_pages)
+    
+    return render_to_response("valueaccounting/all_contributions.html", {
+        "events": events,
     }, context_instance=RequestContext(request))
 
 def contributions(request, project_id):

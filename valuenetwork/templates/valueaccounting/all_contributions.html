@@ -2,7 +2,7 @@
 
 {% load i18n %}
 
-{% block head_title %}{% trans "Project Contributions for " %} {{ project }}{% endblock %}
+{% block head_title %}{% trans "All Contributions" %}{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -28,7 +28,7 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Contributions for Project" %} {{ project }}</legend>
+		<legend>{% trans "All Contributions" %}</legend>
 		<table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
 			<thead>
 				<th>{% trans "Date" %}</th>

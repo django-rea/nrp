@@ -2,7 +2,7 @@
 
 {% load i18n %}
 
-{% block head_title %}{% trans "Projects" %}{% endblock %}
+{% block head_title %}{% trans "Contributions" %}{% endblock %}
 
 {% block body_class %}projects{% endblock %}
 
@@ -10,7 +10,15 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<h1>Projects</h1>
+	    <legend>
+	        {% trans "Contributions" %}
+	        {% if agent %}
+		        &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a>
+	        {% endif %}
+	        &nbsp;&nbsp;&nbsp;<a href="{% url all_contributions %}">{% trans "All contributions" %}</a>
+        </legend>
+        
+		<h2>Projects</h2>
 		<ul>
 			{% for root in roots %}
 				<li>
@@ -43,3 +51,16 @@
 	</div>
     </div>
 {% endblock %}
+{% block extra_body %}
+	{{ block.super }}
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#contributions').addClass('active');
+
+	}); // end document.ready
+
+    </script>
+{% endblock %}
+

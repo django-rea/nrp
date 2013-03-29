@@ -1517,8 +1517,8 @@ def delete_commitment(request, commitment_id, labnotes_id):
     ct = get_object_or_404(Commitment, pk=labnotes_id)
     #import pdb; pdb.set_trace()
     commitment.delete()
-    was_running = request.POST["wasRunning"]
-    was_retrying = request.POST["wasRetrying"]
+    was_running = request.POST["wasRunning"] or 0
+    was_retrying = request.POST["wasRetrying"] or 0
     reload = request.POST["reload"]
     event_date = request.POST.get("eventDate")
     event = None

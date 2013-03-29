@@ -593,7 +593,7 @@ class EconomicResourceType(models.Model):
 
 class GoodResourceManager(models.Manager):
     def get_query_set(self):
-        return super(GoodResourceManager, self).get_query_set().filter(quality__gte=0)
+        return super(GoodResourceManager, self).get_query_set().exclude(quality__lt=0)
 
 class FailedResourceManager(models.Manager):
     def get_query_set(self):

@@ -280,7 +280,9 @@ class EventType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     resource_effect = models.CharField(_('resource effect'), 
         max_length=12, choices=RESOURCE_EFFECT_CHOICES)
-    unit_type = models.CharField(_('unit type'), max_length=12, choices=UNIT_TYPE_CHOICES)
+    unit_type = models.CharField(_('unit type'), 
+        max_length=12, choices=UNIT_TYPE_CHOICES,
+        blank=True)
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
@@ -324,12 +326,20 @@ class EconomicResourceTypeManager(models.Manager):
         rels = ResourceRelationship.objects.filter(direction="in", related_to="process")
         return [rel.materiality for rel in rels]
 
+    def citable_choices(self):
+        rels = ResourceRelationship.objects.filter(direction="cite", related_to="process")
+        return [rel.materiality for rel in rels]
+
     def process_inputs(self):
         choices = self.input_choices()
         return EconomicResourceType.objects.filter(materiality__in=choices)
 
     def process_outputs(self):
         choices = self.output_choices()
+        return EconomicResourceType.objects.filter(materiality__in=choices)
+
+    def process_citables(self):
+        choices = self.citable_choices()
         return EconomicResourceType.objects.filter(materiality__in=choices)
 
     def agent_outputs(self):
@@ -655,10 +665,23 @@ class EconomicResource(models.Model):
     def using_events(self):
         return []
 
+    def is_cited(self):
+        #import pdb; pdb.set_trace()
+        answer = False
+        rel = ResourceRelationship.objects.get(
+            materiality=self.resource_type.materiality,
+            direction='cite')
+        for event in self.events.all():
+            if event.event_type == rel.event_type:
+                answer = True
+        return answer
+        
+
 
 DIRECTION_CHOICES = (
     ('in', _('input')),
     ('out', _('output')),
+    ('cite', _('citation')),
 )
 
 RELATED_CHOICES = (
@@ -1175,6 +1198,11 @@ class Process(models.Model):
         return self.commitments.filter(
             relationship__direction='in',
             resource_type__materiality="intellectual",
+        )
+
+    def citation_requirements(self):
+        return self.commitments.filter(
+            relationship__direction='cite',
         )
 
     def tool_requirements(self):

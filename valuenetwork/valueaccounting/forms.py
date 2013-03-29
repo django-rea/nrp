@@ -130,6 +130,23 @@ class ProcessOutputForm(forms.ModelForm):
         fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
 
 
+class ProcessCitationForm(forms.ModelForm):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.process_citables(), 
+        widget=SelectWithPopUp(
+            model=EconomicResourceType,
+            attrs={'class': 'input-xlarge'}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('resource_type', 'description')
+
+
+
+
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'quantity input-small',}))

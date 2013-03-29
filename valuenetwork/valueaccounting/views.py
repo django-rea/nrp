@@ -1367,6 +1367,7 @@ def create_labnotes_context(
                     other_work_reqs.append(wrq)
     failure_form = FailedOutputForm()
     add_output_form = ProcessOutputForm(prefix='output')
+    add_citation_form = ProcessCitationForm(prefix='citation')
     add_input_form = ProcessInputForm(prefix='input')
     return {
         "commitment": commitment,
@@ -1377,6 +1378,7 @@ def create_labnotes_context(
         "today": today,
         "failure_form": failure_form,
         "add_output_form": add_output_form,
+        "add_citation_form": add_citation_form,
         "add_input_form": add_input_form,
         "duration": duration,
         "prev": prev,
@@ -1437,8 +1439,8 @@ def new_process_output(request, commitment_id):
 
 def new_process_input(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
-    was_running = request.POST["wasRunning"]
-    was_retrying = request.POST["wasRetrying"]
+    was_running = request.POST["wasRunning"] or 0
+    was_retrying = request.POST["wasRetrying"] or 0
     #import pdb; pdb.set_trace()
     event_date = request.POST.get("inputDate")
     event = None
@@ -1504,6 +1506,52 @@ def new_process_input(request, commitment_id):
                     )
                     output_commitment.save()
                     generate_schedule(feeder_process, demand, request.user)
+                
+    if reload == 'pastwork':
+        return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+            % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
+    else:
+        return HttpResponseRedirect('/%s/%s/%s/%s/'
+            % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
+
+def new_process_citation(request, commitment_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    was_running = request.POST["wasRunning"] or 0
+    was_retrying = request.POST["wasRetrying"] or 0
+    #import pdb; pdb.set_trace()
+    event_date = request.POST.get("citationDate")
+    event = None
+    events = None
+    event_id=0
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+        events = commitment.fulfillment_events.filter(event_date=event_date)
+    if events:
+        event = events[events.count() - 1]
+        event_id = event.id
+    reload = request.POST["reload"]
+    if request.method == "POST":
+        form = ProcessCitationForm(data=request.POST, prefix='citation')
+        if form.is_valid():
+            input_data = form.cleaned_data
+            process = commitment.process
+            demand = process.independent_demand()
+            ct = form.save(commit=False)
+            ct.quantity = Decimal("1")
+            rt = input_data["resource_type"]
+            ct.unit_of_quantity = rt.unit
+            rel = ResourceRelationship.objects.get(
+                materiality=rt.materiality,
+                related_to="process",
+                direction="cite")
+            ct.relationship = rel
+            ct.event_type = rel.event_type
+            ct.process = process
+            ct.project = process.project
+            ct.independent_demand = demand
+            ct.due_date = process.start_date
+            ct.created_by = request.user
+            ct.save()
                 
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
@@ -1653,6 +1701,7 @@ def create_past_work_context(
                     other_work_reqs.append(wrq)
     failure_form = FailedOutputForm()
     add_output_form = ProcessOutputForm(prefix='output')
+    add_citation_form = ProcessCitationForm(prefix='citation')
     add_input_form = ProcessInputForm(prefix='input')
     return {
         "commitment": commitment,
@@ -1662,6 +1711,7 @@ def create_past_work_context(
         "other_work_reqs": other_work_reqs,
         "failure_form": failure_form,
         "add_output_form": add_output_form,
+        "add_citation_form": add_citation_form,
         "add_input_form": add_input_form,
         "duration": duration,
         "prev": prev,
@@ -2047,6 +2097,48 @@ def consumption_event_for_commitment(request):
             event_date = event_date,
             event_type = ct.event_type,
             to_agent = agent,
+            resource_type = ct.resource_type,
+            process = ct.process,
+            project = ct.project,
+            quantity = quantity,
+            unit_of_quantity = ct.unit_of_quantity,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+
+    data = "ok"
+    return HttpResponse(data, mimetype="text/plain")
+
+def citation_event_for_commitment(request):
+    id = request.POST.get("id")
+    resource_id = request.POST.get("resourceId")
+    cited = int(request.POST.get("cited"))
+    event_date = request.POST.get("eventDate")
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+    else:
+        event_date = datetime.date.today()
+    #import pdb; pdb.set_trace()
+    ct = get_object_or_404(Commitment, pk=id)
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    agent = get_agent(request)
+    #import pdb; pdb.set_trace()
+    quantity = Decimal("1")
+    event = None
+    events = ct.fulfillment_events.filter(resource=resource)
+    if events:
+        event = events[events.count() - 1]
+    if event:
+        if not cited:
+            event.delete()
+    else:
+        event = EconomicEvent(
+            resource = resource,
+            commitment = ct,
+            event_date = event_date,
+            event_type = ct.event_type,
+            from_agent = agent,
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,
@@ -3200,6 +3292,7 @@ def process_selections(request):
     #import pdb; pdb.set_trace()
     resource_names = [res.name for res in EconomicResourceType.objects.process_outputs()]
     related_outputs = []
+    related_citables = []
     related_inputs = []
     related_recipes = []
     selected_name = ""
@@ -3217,6 +3310,7 @@ def process_selections(request):
             selected_name = request.POST.get("resourceName")
             if selected_name:
                 related_outputs = list(EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name))
+                related_citables = list(EconomicResourceType.objects.process_citables().filter(name__icontains=selected_name))
                 related_inputs = list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name))
                 related_recipes = []
                 for output in related_outputs:
@@ -3244,6 +3338,7 @@ def process_selections(request):
             work_form = WorkSelectionForm(data=rp)
             #import pdb; pdb.set_trace()
             output_rts = []
+            citable_rts = []
             input_rts = []
             pts = []
             for key, value in dict(rp).iteritems():
@@ -3251,6 +3346,10 @@ def process_selections(request):
                     input_id = int(value[0])
                     input_rt = EconomicResourceType.objects.get(id=input_id)
                     input_rts.append(input_rt)
+                if "citable" in key:
+                    citable_id = int(value[0])
+                    citable_rt = EconomicResourceType.objects.get(id=citable_id)
+                    citable_rts.append(citable_rt)
                 if "output" in key:
                     output_id = int(value[0])
                     output_rt = EconomicResourceType.objects.get(id=output_id)
@@ -3334,6 +3433,22 @@ def process_selections(request):
                         created_by=request.user,
                     )
                     commitment.save()
+            for rt in citable_rts:
+                rel = ResourceRelationship.objects.get(
+                    materiality=rt.materiality,
+                    direction="cite")
+                if rel:
+                    commitment = Commitment(
+                        process=process,
+                        event_type=rel.event_type,
+                        relationship=rel,
+                        due_date=today,
+                        resource_type=rt,
+                        quantity=Decimal("1"),
+                        unit_of_quantity=rt.unit,
+                        created_by=request.user,
+                    )
+                    commitment.save()
             for rt in input_rts:
                 rel = ResourceRelationship.objects.get(
                     materiality=rt.materiality,
@@ -3387,6 +3502,7 @@ def process_selections(request):
     return render_to_response("valueaccounting/process_selections.html", {
         "resource_names": resource_names,
         "related_outputs": related_outputs,
+        "related_citables": related_citables,
         "related_inputs": related_inputs,
         "related_recipes": related_recipes,
         "selected_name": selected_name,

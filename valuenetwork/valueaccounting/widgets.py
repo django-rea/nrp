@@ -28,11 +28,23 @@ class DurationWidget(MultiWidget):
         dlist = [
             widget.value_from_datadict(data, files, name + '_%s' % i)
             for i, widget in enumerate(self.widgets)]
-        #todo: make more forgiving: change '' to 0
+        #make more forgiving: change '' to 0
         try:
-            duration = (int(dlist[0]) * 1440) + (int(dlist[1]) * 60) + int(dlist[2])
+            days = int(dlist[0])
         except ValueError:
-            return ''
+            days = 0
+        try:
+            hours = int(dlist[1])
+        except ValueError:
+            hours = 0
+        try:
+            mins = int(dlist[2])
+        except ValueError:
+            mins = 0
+        try:
+            duration = ((days * 1440) + (hours * 60) + mins)
+        except ValueError:
+            return 0
         else:
             return duration
 
@@ -71,13 +83,25 @@ class DecimalDurationWidget(MultiWidget):
         dlist = [
             widget.value_from_datadict(data, files, name + '_%s' % i)
             for i, widget in enumerate(self.widgets)]
-        #todo: make more forgiving: change '' to 0
+        #make more forgiving: change '' to 0
         try:
-            #duration = Decimal((int(dlist[0]) * 1440) + (int(dlist[1]) * 60))
-            duration = Decimal((int(dlist[0]) * 24) + int(dlist[1]))
-            duration += Decimal(dlist[2]) / 60
+            days = int(dlist[0])
         except ValueError:
-            return ''
+            days = 0
+        try:
+            hours = int(dlist[1])
+        except ValueError:
+            hours = 0
+        try:
+            mins = int(dlist[2])
+        except ValueError:
+            mins = 0
+        #import pdb; pdb.set_trace()
+        try:
+            duration = Decimal((days * 24) + hours)
+            duration += Decimal(mins) / 60
+        except ValueError:
+            return Decimal("0")
         else:
             return duration
 

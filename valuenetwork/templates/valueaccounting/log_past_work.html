@@ -105,6 +105,7 @@
                 <div class="row-fluid">
 			        <div class="span12">
 			            <a href="#addOutputModal" role="button" class="btn" data-toggle="modal">{% trans "+ output" %}</a>
+			            <a href="#addCiteModal" role="button" class="btn" data-toggle="modal">{% trans "+ cite" %}</a>
 			            <a href="#addInputModal" role="button" class="btn" data-toggle="modal">{% trans "+ input" %}</a>
 			            
 			            <div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
@@ -154,6 +155,33 @@
 					              <div class="modal-footer">
 						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						            <button class="btn btn-primary">{% trans "Add input" %}</button>
+					              </div>
+
+
+					            </form>
+                            </div>
+                        </div>
+
+                        <div class="modal hide fade" id="addCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+				            <div class="modal-header">
+					            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+				                <h3 id="cite-label">{% trans "Add a citation" %}</h3>
+				                
+				            </div>
+				            <div class="modal-body">
+					            <form class="cite-form" enctype="multipart/form-data" id="addCitationForm" action="{% url new_process_citation commitment_id=commitment.id %}" method="POST" >
+						            {% csrf_token %}
+
+					                    {{ add_citation_form|as_bootstrap }}
+
+                                	<input type='hidden' id='citeRunning' name='wasRunning' value='' />
+			                        <input type='hidden' id='citeRetrying' name='wasRetrying' value='' />
+			                        <input type="hidden" name="reload" value="pastwork" />
+			                        <input type="hidden" id="citationDate" name="citationDate" value="{{ event_date|date:'Y-m-d' }}" />
+					              <div class="modal-footer">
+						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						            <button class="btn btn-primary">{% trans "Add citation" %}</button>
 					              </div>
 
 
@@ -317,6 +345,52 @@
 										</li>
 									{% endfor %}
 								</ul>
+							{% endif %}
+							
+							</ul>
+						</ul>
+						{% endfor %}
+						
+					</div>
+				{% endif %}
+
+				{% if process.citation_requirements %}
+					<div>
+						<h4>{% trans "Citations" %}:</h4>
+						{% for item in process.citation_requirements %}
+						<ul>
+						    <li><b>{{ item.resource_type }}</b>
+								{% if item.is_deletable %}
+							        <form style="display: inline;" 
+								        class="delete-form" 
+								        id="deleteForm{{ item.id }}" 
+								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								        method="POST" >
+					                    {% csrf_token %}
+                                    	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
+		                                <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
+		                                <input type="hidden" id="eventDate{{ item.id }}" name="eventDate" value="{{ event_date|date:'Y-m-d' }}" />
+		                                <input type="hidden" name="reload" value="pastwork" />
+					                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
+				                    </form>
+								{% endif %}
+					        </li>
+							<ul>
+							{% if item.onhand %}
+								{% for resource in item.onhand %}
+									<li>
+										<b>{% trans "Onhand" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b> 
+										{% trans "Cite" %}: <input class="input-mini cited" id="{{ resource.id }}" name="{{ item.id }}" type="checkbox" 
+										    {% if resource.is_cited %} checked="checked" {% endif %} /></br>
+									</li>
+								{% endfor %}
+							{% elif item.resource_type.producing_commitments %}
+								{% for ct in item.resource_type.producing_commitments %}
+									<li>
+										<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b>
+										<a href="{{ ct.process.get_absolute_url }}" target="_blank" > {{ ct.due_date }}</a>
+									</li>
+								{% endfor %}
 							{% endif %}
 							
 							</ul>
@@ -574,8 +648,16 @@
     var timeInputsSaved = true;
     var failSaved = true;
     var resourceSaved = true;
-    var wasRunning = {{ was_running }};
-    var wasRetrying = {{ was_retrying }};
+    var wasRunning = false;
+    var wasRetrying = false;
+    if ({{ was_running }})
+    {
+        wasRunning = {{ was_running }};
+    }
+    if ({{ was_retrying }})
+    {
+        wasRetrying = {{ was_retrying }};
+    }
     {% if event_date %}
         var eventDate = "{{ event_date|date:'Y-m-d' }}"
     {% else %}
@@ -731,6 +813,27 @@
 			}
 		});
 
+		$(".cited").click(function(event) 
+		{
+            var resourceId = this.id;
+            var id = this.name;
+            var cb = event.target
+            var cb = $('#' + cb.id)
+            setTimeout(function() {
+                var cited = cb.prop('checked');
+                if (cited) 
+                { 
+                    cited = 1;
+                }
+                else
+                { 
+                    cited = 0;
+                }
+                saveCitation(id, resourceId, cited);
+              }, 0);
+
+        });
+
 
 		$(".used-quantity").each( function(){
 			var id = this.id;
@@ -738,6 +841,7 @@
 			var qty = this.value;
             used[resourceId] = qty;
 		});
+		
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
@@ -856,6 +960,26 @@
             }
             {
                 $('#outputRetrying').prop('value', 0);
+            }
+            return true;
+		});
+
+		$("#addCitationForm").submit(function(event) {
+		    $('#citationDate').prop('value', eventDate);
+            if(running)
+            {
+                $('#citeRunning').prop('value', 1);
+            }
+            else
+            {
+                $('#citeRunning').prop('value', 0);
+            }
+            if (retrying)
+            {
+                $('#citeRetrying').prop('value', 1);
+            }
+            {
+                $('#citeRetrying').prop('value', 0);
             }
             return true;
 		});
@@ -1125,6 +1249,26 @@
 			});
 		}
 
+		if (!citationsSaved)
+		{
+			$(".cited").each( function(){
+				var resourceId = this.id;
+                var id = this.name;
+				var cb = event.target
+                var cb = $('#' + cb.id)
+                var cited = cb.prop('checked');
+                if (cited) 
+                { 
+                    cited = 1;
+                }
+                else
+                { 
+                    cited = 0;
+                }
+			    saveCitation(id, resourceId, cited);
+			});
+		}
+
 		if (!timeInputsSaved)
 		{
 			$(".time-used").each( function(){
@@ -1301,6 +1445,24 @@
 			{ 
 				notifyProblem(); 
 				inputsSaved = false;
+				startRetrying();
+			}
+		);
+	}
+
+	function saveCitation(id, resourceId, cited)
+	{
+		notifySaving();
+		var jqxhr = $.post("{% url citation_event_for_commitment  %}",  { id: id, resourceId: resourceId, cited: cited },
+			function( data ) 
+			{
+				notifySaved();
+				citationsSaved = true;
+			})
+			.fail(function() 
+			{ 
+				notifyProblem(); 
+				citationsSaved = false;
 				startRetrying();
 			}
 		);

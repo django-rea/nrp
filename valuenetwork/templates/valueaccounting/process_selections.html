@@ -77,6 +77,21 @@
 
 		            {% endif %}
 
+		            {% if related_citables %}
+			        
+				        <legend>{% trans "Related Citables" %}:</legend>
+
+				        {% for citable in related_citables %}
+
+				            <p>
+    		                    <input type="checkbox" class="citable" id="citable-{{ citable.id }}" name="citable-{{ citable.name }}" value="{{ citable.id }}" /> 
+			                    {{ citable.label }}
+		                    </p>
+
+				        {% endfor %}
+
+			        {% endif %}
+
 			        {% if related_inputs %}
 			        
 				        <legend>{% trans "Related Inputs" %}:</legend>

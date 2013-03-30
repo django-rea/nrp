@@ -1166,7 +1166,7 @@ def schedule_commitment(
         process.depth = depth * 2
         schedule.append(process)
         #import pdb; pdb.set_trace()
-        for inp in process.incoming_commitments():
+        for inp in process.schedule_requirements():
             inp.depth = depth * 2
             schedule.append(inp)
             resource_type = inp.resource_type
@@ -1177,16 +1177,17 @@ def schedule_commitment(
                     for pc in pcs:
                         if pc.independent_demand == order:
                             schedule_commitment(pc, schedule, reqs, work, tools, visited_resources, depth+1)
-            elif inp.independent_demand == order:
-                if resource_type.materiality == 'material':
+                elif inp.independent_demand == order:
+                    #if resource_type.materiality == 'material':
+                    #    reqs.append(inp)
+                    #elif resource_type.materiality == 'work':
+                    #    work.append(inp)
+                    #elif resource_type.materiality == 'tool':
+                    #    tools.append(inp)
                     reqs.append(inp)
-                elif resource_type.materiality == 'work':
-                    work.append(inp)
-                elif resource_type.materiality == 'tool':
-                    tools.append(inp)
-                for art in resource_type.producing_agent_relationships():
-                    art.depth = (depth + 1) * 2
-                    schedule.append(art)
+                    for art in resource_type.producing_agent_relationships():
+                        art.depth = (depth + 1) * 2
+                        schedule.append(art)
 
     return schedule
 
@@ -2388,6 +2389,7 @@ def create_process(request):
 def copy_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     #import pdb; pdb.set_trace()
+    demand = process.independent_demand()
     demand_form = DemandSelectionForm(data=request.POST or None)
     process_init = {
         "project": process.project,
@@ -2442,7 +2444,6 @@ def copy_process(request, process_id):
             process = process_form.save(commit=False)
             process.created_by=request.user
             process.save()
-            demand = None
             if demand_form.is_valid():
                 demand = demand_form.cleaned_data["demand"]
             for form in output_formset.forms:
@@ -3401,7 +3402,8 @@ def process_selections(request):
             today = datetime.date.today()
             demand = Order(
                 order_type="rand",
-                due_date=today)
+                due_date=today,
+                created_by=request.user)
             demand.save()
             output_rts = []
             citable_rts = []
@@ -3473,7 +3475,6 @@ def process_selections(request):
                     rel = ptrt.relationship
                     commitment = Commitment(
                         process=process,
-                        order=demand,
                         independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
@@ -3512,7 +3513,6 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
-                        order=demand,
                         independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
@@ -3532,7 +3532,6 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
-                        order=demand,
                         independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
@@ -3557,7 +3556,6 @@ def process_selections(request):
                     if rel:
                         work_commitment = Commitment(
                             process=process,
-                            order=demand,
                             independent_demand=demand,
                             project=process.project,
                             event_type=rel.event_type,

@@ -1128,6 +1128,9 @@ class Process(models.Model):
     def incoming_commitments(self):
         return self.commitments.filter(relationship__direction='in')
 
+    def schedule_requirements(self):
+        return self.commitments.exclude(relationship__direction='out')
+
     def outgoing_commitments(self):
         return self.commitments.filter(relationship__direction='out')
 

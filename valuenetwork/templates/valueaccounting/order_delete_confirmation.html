@@ -37,13 +37,13 @@
 
 				<div class="span6">
 
-					<h3 style="margin-bottom: 4px;" >{% trans "Material Requirements" %}:</h3>
+					<h3 style="margin-bottom: 4px;" >{% trans "Requirements" %}:</h3>
 					{% for item in reqs %}
 						<p>
-							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+							<b>{{ item.label }}:</b> <b>{{ item.resource_type }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 						</p>
 						<p style="margin-left: 2em;">
-							{% trans "for process" %}: {{ item.process }}
+							{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
 						</p>
 						{% for source in item.resource_type.producing_agent_relationships %}
 							<p style="margin-left: 2em;">
@@ -51,14 +51,14 @@
 							</p>
 						{% endfor %}
 					{% endfor %}
-
+{% comment %}
 					<h3 style="margin-bottom: 4px;" >{% trans "Work Requirements" %}:</h3>
 					{% for item in work %}
 						<p>
 							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 						</p>
 						<p style="margin-left: 2em;">
-							{% trans "for process" %}: {{ item.process }}
+							{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
 						</p>
 						{% for source in item.resource_type.producing_agent_relationships %}
 							<p style="margin-left: 2em;">
@@ -73,7 +73,7 @@
 							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 						</p>
 						<p style="margin-left: 2em;">
-							{% trans "for process" %}: {{ item.process }}
+							{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
 						</p>
 						{% for source in item.resource_type.producing_agent_relationships %}
 							<p style="margin-left: 2em;">
@@ -81,6 +81,7 @@
 							</p>
 						{% endfor %}
 					{% endfor %}
+{% endcomment %}
 
 				</div>
 

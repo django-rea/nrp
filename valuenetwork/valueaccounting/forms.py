@@ -143,6 +143,25 @@ class ProcessCitationForm(forms.ModelForm):
     class Meta:
         model = Commitment
         fields = ('resource_type', 'description')
+        
+
+class ProcessCitationCommitmentForm(forms.ModelForm):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.process_citables(), 
+        widget=SelectWithPopUp(
+            model=EconomicResourceType,
+            attrs={'class': 'input-xlarge'}))
+    quantity = forms.BooleanField(
+        required=False, 
+        widget=forms.CheckboxInput())
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('resource_type', 'description', 'quantity')
+
 
 
 

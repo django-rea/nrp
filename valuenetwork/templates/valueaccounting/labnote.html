@@ -40,6 +40,13 @@
 					{% endfor %}
 				{% endif %}
 
+				{% if citations %}
+					<h3>{% trans "Citations by " %} {{ commitment.from_agent.name }}:</h3>
+					{% for event in citations %}
+						<p>{{ event.event_date }} {{ event.resource }}</p>
+					{% endfor %}
+				{% endif %}
+
 				{% if inputs %}
 					<h3>{% trans "Inputs used by " %} {{ commitment.from_agent.name }}:</h3>
 					{% for event in inputs %}

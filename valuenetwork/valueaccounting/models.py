@@ -1274,9 +1274,27 @@ class Process(models.Model):
                 answer.append(event)
         return answer
 
+    def citations(self):
+        answer = []
+        events = self.events.all()
+        for event in events:
+            rels = ResourceRelationship.objects.filter(
+                direction='cite',
+                event_type=event.event_type)
+            if rels:
+                answer.append(event)
+        return answer
+
     def outputs_from_agent(self, agent):
         answer = []
         for event in self.outputs():
+            if event.from_agent == agent:
+                answer.append(event)
+        return answer
+
+    def citations_by_agent(self, agent):
+        answer = []
+        for event in self.citations():
             if event.from_agent == agent:
                 answer.append(event)
         return answer

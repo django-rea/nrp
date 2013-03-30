@@ -1905,6 +1905,7 @@ def get_labnote_context(commitment, request_agent):
     outputs = process.outputs_from_agent(agent)
     failures = process.failures_from_agent(agent)
     inputs = process.inputs_used_by_agent(agent)
+    citations = process.citations_by_agent(agent)
     return {
         "commitment": commitment,
         "author": author,
@@ -1913,6 +1914,7 @@ def get_labnote_context(commitment, request_agent):
         "outputs": outputs,
         "failures": failures,
         "inputs": inputs,
+        "citations": citations,
     }
     
 
@@ -2540,12 +2542,22 @@ def change_process(request, process_id):
         Commitment,
         form=ProcessOutputForm,
         can_delete=True,
-        extra=2,
+        extra=1,
         )
     output_formset = OutputFormSet(
         queryset=process.outgoing_commitments(),
         data=request.POST or None,
         prefix='output')
+    CitationFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessCitationCommitmentForm,
+        can_delete=True,
+        extra=2,
+        )
+    citation_formset = CitationFormSet(
+        queryset=process.citation_requirements(),
+        data=request.POST or None,
+        prefix='citation')
     InputFormSet = modelformset_factory(
         Commitment,
         form=ProcessInputForm,
@@ -2607,6 +2619,48 @@ def change_process(request, process_id):
                     elif ct_from_id:
                         ct = form.save()
                         ct.delete()
+            for form in citation_formset.forms:
+                if form.is_valid():
+                    citation_data = form.cleaned_data
+                    if citation_data:
+                        cited = citation_data["quantity"]
+                        ct_from_id = citation_data["id"]
+                        if cited:
+                            rt = citation_data["resource_type"]
+                            if rt:
+                                ct = form.save(commit=False)
+                                ct.independent_demand = demand
+                                ct.project = process.project
+                                ct.due_date = process.end_date
+                                ct.quantity = Decimal("1")
+                                if ct_from_id:
+                                    old_ct = Commitment.objects.get(id=ct_from_id.id)
+                                    old_rt = old_ct.resource_type
+                                    if not old_rt == rt:
+                                        rel = ResourceRelationship.objects.get(
+                                            materiality=rt.materiality,
+                                            direction="cite")
+                                        ct.relationship = rel
+                                        ct.event_type = rel.event_type
+                                        unit = rel.unit or rt.unit
+                                        ct.unit_of_quantity = unit
+                                        ct.changed_by = request.user
+                                else:
+                                    ct.process = process
+                                    ct.created_by = request.user
+                                    rel = ResourceRelationship.objects.get(
+                                        materiality=rt.materiality,
+                                        direction="cite")
+                                    ct.relationship = rel
+                                    ct.event_type = rel.event_type
+                                    unit = rel.unit or rt.unit
+                                    ct.unit_of_quantity = unit
+                                ct.save()
+                        elif ct_from_id:
+                            ct = form.save()
+                            ct.delete() 
+                        
+
             for form in input_formset.forms:
                 #import pdb; pdb.set_trace()
                 if form.is_valid():
@@ -2736,6 +2790,7 @@ def change_process(request, process_id):
         "demand_form": demand_form,
         "process_form": process_form,
         "output_formset": output_formset,
+        "citation_formset": citation_formset,
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
 

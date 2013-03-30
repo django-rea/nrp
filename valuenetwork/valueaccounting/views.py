@@ -3358,7 +3358,7 @@ def change_rand(request, rand_id):
     }, context_instance=RequestContext(request))
 
 @login_required
-def process_selections(request):
+def process_selections(request, rand=0):
     #import pdb; pdb.set_trace()
     resource_names = [res.name for res in EconomicResourceType.objects.process_outputs()]
     related_outputs = []
@@ -3414,12 +3414,13 @@ def process_selections(request):
                 project = project_form.cleaned_data["project"]
             #import pdb; pdb.set_trace()
             today = datetime.date.today()
-            #todo: maybe not a rand?
-            #demand = Order(
-            #    order_type="rand",
-            #    due_date=today,
-            #    created_by=request.user)
-            #demand.save()
+            demand = None
+            if rand:
+                demand = Order(
+                    order_type="rand",
+                    due_date=today,
+                    created_by=request.user)
+                demand.save()
             output_rts = []
             citable_rts = []
             input_rts = []
@@ -3490,7 +3491,7 @@ def process_selections(request):
                     rel = ptrt.relationship
                     commitment = Commitment(
                         process=process,
-                        #independent_demand=demand,
+                        independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
@@ -3509,8 +3510,8 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
-                        #order=demand,
-                        #independent_demand=demand,
+                        order=demand,
+                        independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
@@ -3528,7 +3529,7 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
-                        #independent_demand=demand,
+                        independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
@@ -3547,7 +3548,7 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
-                        #independent_demand=demand,
+                        independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
@@ -3571,7 +3572,7 @@ def process_selections(request):
                     if rel:
                         work_commitment = Commitment(
                             process=process,
-                            #independent_demand=demand,
+                            independent_demand=demand,
                             project=process.project,
                             event_type=rel.event_type,
                             from_agent=agent,

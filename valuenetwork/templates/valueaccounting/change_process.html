@@ -141,6 +141,17 @@
 
 
 		$(".resource-type-selector").change(getUnit);
+		$("#id_receiver").change(receiverChanged);
+
+		function receiverChanged(event)
+		{
+            var receiver = event.target.value;
+            if (receiver)
+            {
+                $("#id_create_order").prop('checked', false);
+            }
+
+		}
 
 		function getUnit(event)
 		{

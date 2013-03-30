@@ -63,6 +63,10 @@ class RandOrderForm(forms.ModelForm):
         queryset=EconomicAgent.objects.exclude(agent_type__member_type='inactive'), 
         label="Provider (optional)", 
         required=False)
+    create_order = forms.BooleanField(
+        label="R&D Order without receiver",
+        required=False, 
+        widget=forms.CheckboxInput())
 
     class Meta:
         model = Order

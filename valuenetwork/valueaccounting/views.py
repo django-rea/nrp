@@ -2389,6 +2389,7 @@ def create_process(request):
 def copy_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     #import pdb; pdb.set_trace()
+    #todo: is this correct? maybe not.
     demand = process.independent_demand()
     demand_form = DemandSelectionForm(data=request.POST or None)
     process_init = {
@@ -2532,8 +2533,15 @@ def copy_process(request, process_id):
 def change_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     demand = process.independent_demand()
+    existing_demand = demand
     if demand:
-        rand_form = RandOrderForm(instance=demand,data=request.POST or None)
+        init = {}
+        if not demand.receiver:
+            init = {'create_order': True,}
+        rand_form = RandOrderForm(
+            instance=demand,
+            data=request.POST or None,
+            initial=init)
         demand_form = None
     else:
         demand_form = DemandSelectionForm(data=request.POST or None)    
@@ -2579,16 +2587,21 @@ def change_process(request, process_id):
             process.changed_by=request.user
             process.save()
             #import pdb; pdb.set_trace()
+            #todo: always creates a rand. the form is always valid.
             if rand_form.is_valid():
-                existing_demand = demand
-                demand = rand_form.save(commit=False)
-                demand.order_type = 'rand'
-                if existing_demand:
-                    demand.changed_by = request.user
-                else:
-                    demand.created_by = request.user
-                demand.due_date = process.end_date
-                demand.save()
+                rand_data = rand_form.cleaned_data
+                receiver = rand_data['receiver']
+                provider = rand_data['provider']
+                create_order = rand_data['create_order']
+                if create_order or demand or receiver or provider:
+                    demand = rand_form.save(commit=False)
+                    demand.order_type = 'rand'
+                    if existing_demand:
+                        demand.changed_by = request.user
+                    else:
+                        demand.created_by = request.user
+                    demand.due_date = process.end_date
+                    demand.save()
             if demand_form:
                 if demand_form.is_valid():
                     selected_demand = demand_form.cleaned_data["demand"]
@@ -2601,6 +2614,7 @@ def change_process(request, process_id):
                     ct_from_id = output_data["id"]
                     if qty:
                         ct = form.save(commit=False)
+                        ct.order = demand
                         ct.independent_demand = demand
                         ct.project = process.project
                         ct.due_date = process.end_date
@@ -3400,11 +3414,12 @@ def process_selections(request):
                 project = project_form.cleaned_data["project"]
             #import pdb; pdb.set_trace()
             today = datetime.date.today()
-            demand = Order(
-                order_type="rand",
-                due_date=today,
-                created_by=request.user)
-            demand.save()
+            #todo: maybe not a rand?
+            #demand = Order(
+            #    order_type="rand",
+            #    due_date=today,
+            #    created_by=request.user)
+            #demand.save()
             output_rts = []
             citable_rts = []
             input_rts = []
@@ -3475,7 +3490,7 @@ def process_selections(request):
                     rel = ptrt.relationship
                     commitment = Commitment(
                         process=process,
-                        independent_demand=demand,
+                        #independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
@@ -3494,8 +3509,8 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
-                        order=demand,
-                        independent_demand=demand,
+                        #order=demand,
+                        #independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
@@ -3513,7 +3528,7 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
-                        independent_demand=demand,
+                        #independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
@@ -3532,7 +3547,7 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
-                        independent_demand=demand,
+                        #independent_demand=demand,
                         project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
@@ -3556,7 +3571,7 @@ def process_selections(request):
                     if rel:
                         work_commitment = Commitment(
                             process=process,
-                            independent_demand=demand,
+                            #independent_demand=demand,
                             project=process.project,
                             event_type=rel.event_type,
                             from_agent=agent,

@@ -109,7 +109,7 @@
 
 			        {% if work_form %}
 			            <div style="margin-top: 2em; margin-bottom: 2em;" >
-    			            {% trans "My type of work" %} {{ work_form.type_of_work }}
+    			            {% trans "My type of work" %} {{ work_form.type_of_work }} {% trans "Project" %} {{ project_form.project }}
 			            </div>
 			        {% endif %}
 
@@ -142,6 +142,12 @@
                                     <td>
 			                            <input type="submit" name="edit-process" value="{% trans 'Edit process' %}" class="btn btn-primary" />
 			                            </br>Create new resource types or change process info.
+		                            </td>
+		                            <td id="fastpath">
+		                                <span style="color: red;">
+		                                    To access the fast path buttons, you must select a type of work, <br/>
+		                                    and either a recipe or a project.
+		                                </span>
 		                            </td>
 		                            <td id="startNow" >
 			                            <input type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" />
@@ -181,6 +187,10 @@
 
     <script type="text/javascript">
 
+    var gotWork = false;
+    var gotRecipe = false;
+    var gotProject = false;
+
 	$(document).ready(function(){
 
 	    var resourceNames = []
@@ -193,27 +203,66 @@
 	    $('#startNow').hide();
 	    $('#pastWork').hide();
 
-	    $("#id_type_of_work").change(resetButtons);
+	    $("#id_type_of_work").change(workChanged);
 
-	    function resetButtons(event)
+	    function workChanged(event)
 		{
             var typeOfWork = event.target.value;
             if (typeOfWork)
             {
-	            $('#startNow').show();
-	            $('#pastWork').show();                
+	            gotWork = true;                
             }
             else
             {
-	            $('#startNow').hide();
-	            $('#pastWork').hide(); 
+	            gotWork = false;
             }
-
+            resetButtons();
         }
+
+        $("#id_project").change(projectChanged);
+
+	    function projectChanged(event)
+		{
+            var project = event.target.value;
+            if (project)
+            {
+	            gotProject = true;                
+            }
+            else
+            {
+	            gotProject = false;
+            }
+            resetButtons();
+        }
+
+        {% for recipe in related_recipes %}
+            $("#recipe-{{ recipe.id }}").click(function() {
+                gotRecipe = true;
+                resetButtons();
+            });
+        {% endfor %}
+
+
 
 	}); // end document.ready
 
+    function resetButtons()
+	{
+	    var fastPath = (gotWork && (gotRecipe || gotProject))
+        if (fastPath)
+        {
+            $('#startNow').show();
+            $('#pastWork').show();
+            $('#fastpath').hide();               
+        }
+        else
+        {
+            $('#startNow').hide();
+            $('#pastWork').hide(); 
+            $('#fastpath').show(); 
+        }
 
+    }
 	
     </script>
 

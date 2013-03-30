@@ -3355,6 +3355,7 @@ def process_selections(request):
     #import pdb; pdb.set_trace()
     use_radio = True
     work_form = None
+    project_form = None
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         edit_process = request.POST.get("edit-process")
@@ -3388,10 +3389,20 @@ def process_selections(request):
             if len(related_recipes) == 1:
                 use_radio = False
             work_form = WorkSelectionForm()
+            project_form = ProjectSelectionForm()
         else:
             rp = request.POST
             work_form = WorkSelectionForm(data=rp)
+            project = None
+            project_form = ProjectSelectionForm(data=rp)
+            if project_form.is_valid():
+                project = project_form.cleaned_data["project"]
             #import pdb; pdb.set_trace()
+            today = datetime.date.today()
+            demand = Order(
+                order_type="rand",
+                due_date=today)
+            demand.save()
             output_rts = []
             citable_rts = []
             input_rts = []
@@ -3413,7 +3424,6 @@ def process_selections(request):
                     recipe_id = int(value[0])
                     pt = ProcessType.objects.get(id=recipe_id)
                     pts.append(pt)
-            today = datetime.date.today()
             pt = None
             if len(pts) == 1:
                 pt = pts[0]
@@ -3455,6 +3465,7 @@ def process_selections(request):
                         end_date=today,
                         start_date=today,
                         created_by=request.user,
+                        project=project,
                     )
                     process.save()
             if pt:
@@ -3462,6 +3473,9 @@ def process_selections(request):
                     rel = ptrt.relationship
                     commitment = Commitment(
                         process=process,
+                        order=demand,
+                        independent_demand=demand,
+                        project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
                         due_date=today,
@@ -3479,6 +3493,9 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
+                        order=demand,
+                        independent_demand=demand,
+                        project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
                         due_date=today,
@@ -3495,6 +3512,9 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
+                        order=demand,
+                        independent_demand=demand,
+                        project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
                         due_date=today,
@@ -3512,6 +3532,9 @@ def process_selections(request):
                 if rel:
                     commitment = Commitment(
                         process=process,
+                        order=demand,
+                        independent_demand=demand,
+                        project=process.project,
                         event_type=rel.event_type,
                         relationship=rel,
                         due_date=today,
@@ -3534,6 +3557,9 @@ def process_selections(request):
                     if rel:
                         work_commitment = Commitment(
                             process=process,
+                            order=demand,
+                            independent_demand=demand,
+                            project=process.project,
                             event_type=rel.event_type,
                             from_agent=agent,
                             relationship=rel,
@@ -3564,5 +3590,6 @@ def process_selections(request):
         "selected_name2": selected_name2,
         "use_radio": use_radio,
         "work_form": work_form,
+        "project_form": project_form,
     }, context_instance=RequestContext(request))
 

@@ -207,7 +207,11 @@ class WorkSelectionForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(WorkSelectionForm, self).__init__(*args, **kwargs)
         self.fields["type_of_work"].choices = [('', '----------')] + [(rt.id, rt.name) for rt in EconomicResourceType.objects.types_of_work()]
-        
+
+
+class ProjectSelectionForm(forms.Form):
+    project = forms.ModelChoiceField(queryset=Project.objects.all())
+
 
 class CasualTimeContributionForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))

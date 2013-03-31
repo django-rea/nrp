@@ -338,6 +338,11 @@ class EconomicResourceTypeManager(models.Manager):
         choices = self.output_choices()
         return EconomicResourceType.objects.filter(materiality__in=choices)
 
+    def process_citables_with_resources(self):
+        choices = self.citable_choices()
+        return [rt for rt in EconomicResourceType.objects.filter(materiality__in=choices) if rt.onhand()]
+
+
     def process_citables(self):
         choices = self.citable_choices()
         return EconomicResourceType.objects.filter(materiality__in=choices)

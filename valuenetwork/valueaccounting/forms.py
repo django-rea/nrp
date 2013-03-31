@@ -134,27 +134,22 @@ class ProcessOutputForm(forms.ModelForm):
         fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
 
 
-class ProcessCitationForm(forms.ModelForm):
-    resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.process_citables(), 
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
-            attrs={'class': 'input-xlarge'}))
+class ProcessCitationForm(forms.Form):
+    resource_type = forms.ChoiceField( 
+        widget=forms.Select(attrs={'class': 'input-xlarge'}))
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
 
-    class Meta:
-        model = Commitment
-        fields = ('resource_type', 'description')
+    def __init__(self, *args, **kwargs):
+        super(ProcessCitationForm, self).__init__(*args, **kwargs)
+        self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt.name) for rt in EconomicResourceType.objects.process_citables_with_resources()]
         
 
 class ProcessCitationCommitmentForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.process_citables(), 
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
-            attrs={'class': 'input-xlarge'}))
+        queryset=EconomicResourceType.objects.process_citables(),
+        widget=forms.Select(attrs={'class': 'input-xlarge'}))
     quantity = forms.BooleanField(
         required=False, 
         widget=forms.CheckboxInput())
@@ -165,8 +160,6 @@ class ProcessCitationCommitmentForm(forms.ModelForm):
     class Meta:
         model = Commitment
         fields = ('resource_type', 'description', 'quantity')
-
-
 
 
 

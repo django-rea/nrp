@@ -1532,26 +1532,33 @@ def new_process_citation(request, commitment_id):
         event_id = event.id
     reload = request.POST["reload"]
     if request.method == "POST":
+        import pdb; pdb.set_trace()
         form = ProcessCitationForm(data=request.POST, prefix='citation')
         if form.is_valid():
             input_data = form.cleaned_data
             process = commitment.process
             demand = process.independent_demand()
-            ct = form.save(commit=False)
-            ct.quantity = Decimal("1")
-            rt = input_data["resource_type"]
-            ct.unit_of_quantity = rt.unit
+            quantity = Decimal("1")
+            rt_id = input_data["resource_type"]
+            rt = EconomicResourceType.objects.get(id=rt_id)
             rel = ResourceRelationship.objects.get(
                 materiality=rt.materiality,
                 related_to="process",
                 direction="cite")
-            ct.relationship = rel
-            ct.event_type = rel.event_type
-            ct.process = process
-            ct.project = process.project
-            ct.independent_demand = demand
-            ct.due_date = process.start_date
-            ct.created_by = request.user
+            agent = get_agent(request)
+            ct = Commitment(
+                process=process,
+                from_agent=agent,
+                independent_demand=demand,
+                event_type=rel.event_type,
+                relationship=rel,
+                due_date=process.start_date,
+                resource_type=rt,
+                project=process.project,
+                quantity=quantity,
+                unit_of_quantity=rt.unit,
+                created_by=request.user,
+            )
             ct.save()
                 
     if reload == 'pastwork':
@@ -3381,7 +3388,13 @@ def process_selections(request, rand=0):
             selected_name = request.POST.get("resourceName")
             if selected_name:
                 related_outputs = list(EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name))
-                related_citables = list(EconomicResourceType.objects.process_citables().filter(name__icontains=selected_name))
+                related_citables = []
+                citables = EconomicResourceType.objects.process_citables_with_resources()
+                for c in citables:
+                    name = c.name.lower()
+                    sname = selected_name.lower()
+                    if name.find(sname) >= 0:
+                        related_citables.append(c)
                 related_inputs = list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name))
                 related_recipes = []
                 for output in related_outputs:

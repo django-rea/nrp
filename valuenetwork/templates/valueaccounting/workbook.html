@@ -378,7 +378,7 @@
 									<li>
 										<b>{% trans "Onhand" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b> 
 										{% trans "Cite" %}: <input class="input-mini cited" id="{{ resource.id }}" name="{{ item.id }}" type="checkbox" 
-										    {% if resource.is_cited %} checked="checked" {% endif %} /></br>
+										    {% if resource.id in cited_ids %} checked="checked" {% endif %} /></br>
 									</li>
 								{% endfor %}
 							{% elif item.resource_type.producing_commitments %}

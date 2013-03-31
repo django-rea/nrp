@@ -1357,7 +1357,8 @@ def create_labnotes_context(
     others_working = []
     other_work_reqs = []
     #import pdb; pdb.set_trace()
-    wrqs = commitment.process.work_requirements()
+    process = commitment.process
+    wrqs = process.work_requirements()
     if wrqs.count() > 1:
         for wrq in wrqs:
             if wrq.from_agent != commitment.from_agent:
@@ -1370,9 +1371,10 @@ def create_labnotes_context(
     add_output_form = ProcessOutputForm(prefix='output')
     add_citation_form = ProcessCitationForm(prefix='citation')
     add_input_form = ProcessInputForm(prefix='input')
+    cited_ids = [c.resource.id for c in process.citations()]
     return {
         "commitment": commitment,
-        "process": commitment.process,
+        "process": process,
         "wb_form": wb_form,
         "others_working": others_working,
         "other_work_reqs": other_work_reqs,
@@ -1386,6 +1388,7 @@ def create_labnotes_context(
         "was_running": was_running,
         "was_retrying": was_retrying,
         "event": event,
+        "cited_ids": cited_ids,
     }
 
 def new_process_output(request, commitment_id):
@@ -1698,7 +1701,8 @@ def create_past_work_context(
     others_working = []
     other_work_reqs = []
     #import pdb; pdb.set_trace()
-    wrqs = commitment.process.work_requirements()
+    process = commitment.process
+    wrqs = process.work_requirements()
     if wrqs.count() > 1:
         for wrq in wrqs:
             if wrq.from_agent != commitment.from_agent:
@@ -1711,9 +1715,10 @@ def create_past_work_context(
     add_output_form = ProcessOutputForm(prefix='output')
     add_citation_form = ProcessCitationForm(prefix='citation')
     add_input_form = ProcessInputForm(prefix='input')
+    cited_ids = [c.resource.id for c in process.citations()]
     return {
         "commitment": commitment,
-        "process": commitment.process,
+        "process": process,
         "wb_form": wb_form,
         "others_working": others_working,
         "other_work_reqs": other_work_reqs,
@@ -1727,6 +1732,7 @@ def create_past_work_context(
         "was_retrying": was_retrying,
         "event": event,
         "event_date": event_date,
+        "cited_ids": cited_ids,
     }
 
 @login_required
@@ -1891,9 +1897,11 @@ def process_details(request, process_id):
     labnotes = False
     if process.work_events():
         labnotes = True
+    cited_ids = [c.resource.id for c in process.citations()]
     return render_to_response("valueaccounting/process.html", {
         "process": process,
         "labnotes": labnotes,
+        "cited_ids": cited_ids,
     }, context_instance=RequestContext(request))
 
 def resource(request, resource_id):

@@ -2824,6 +2824,37 @@ def change_process(request, process_id):
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
 
+def explode_dependent_demands(commitment):
+    rt = commitment.resource_type
+    ptrt = rt.main_producing_process_type_relationship()
+    if ptrt:
+        pt = ptrt.process_type
+        start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
+        feeder_process = Process(
+            name=pt.name,
+            process_type=pt,
+            project=pt.project,
+            url=pt.url,
+            end_date=process.start_date,
+            start_date=start_date,
+            created_by=request.user,
+        )
+        feeder_process.save()
+        output_commitment = Commitment(
+            independent_demand = demand,
+            event_type=ptrt.relationship.event_type,
+            relationship=ptrt.relationship,
+            due_date=process.start_date,
+            resource_type=rt,
+            process=feeder_process,
+            project=pt.project,
+            quantity=qty,
+            unit_of_quantity=rt.unit,
+            created_by=request.user,
+        )
+        output_commitment.save()
+        generate_schedule(feeder_process, demand, request.user)
+
 def propagate_qty_change(commitment, delta):
     #import pdb; pdb.set_trace()
     process = commitment.process

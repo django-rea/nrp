@@ -18,6 +18,28 @@
 
 		<div>
 		    <table class="table table-bordered" style="width: 50%;" >
+		        <tr>
+	                <th style="text-align: right;">{% trans "Quantity" %}</th>
+	                <td>{{ resource.quantity }} {{ resource.unit_of_quantity }}</td>
+                </tr>
+                <tr>
+	                <th style="text-align: right;">{% trans "Quality" %}</th>
+	                <td>{{ resource.quality }}</td>
+                </tr>
+                {% if resource.author %}
+                    <tr>
+		                <th style="text-align: right; vertical-align: top; ">{% trans "Author" %}</th>
+		                <td>{{ resource.author.name }}</td>
+                    </tr>
+                {% endif %}
+                <tr>
+	                <th style="text-align: right;">{% trans "Created date" %}</th>
+	                <td>{{ resource.created_date }}</td>
+                </tr>
+                <tr>
+	                <th style="text-align: right;">{% trans "Created by" %}</th>
+	                <td>{{ resource.created_by }}</td>
+                </tr>
 		        {% if resource.url %}
 		            <tr>
 		                <th style="text-align: right;">{% trans "URL" %}</th>
@@ -50,7 +72,7 @@
 		        <h4>{% trans "History" %}:</h4>
 		        <ul>
 		            {% for event in resource.producing_events %}
-		            <li><b>{% trans "Event" %}:</b> {{ event.event_type }} {{ event.event_date }}</li>
+		            <li><b>{% trans "Event" %}:</b> {{ event.event_type }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
 		            <ul>
 		                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a></li>
 		                <ul>
@@ -61,7 +83,7 @@
 		                                <li><b>{% trans "Resource" %}:</b> {{ inp.resource }}</li>
 		                                <ul>
 		                                    {% for pe in inp.resource.producing_events %}
-		                                        <li><b>{% trans "Event" %}:</b> {{ pe.event_type }} {{ event.event_date }}</li>
+		                                        <li><b>{% trans "Event" %}:</b> {{ pe.event_type }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
 		                                        <ul>
 		                                            <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=pe.process.id %}">{{ pe.process.name }}</a></li>
 		                                            <ul>

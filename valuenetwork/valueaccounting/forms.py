@@ -18,7 +18,7 @@ class EconomicResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'author', 'owner', 'custodian', 'photo')
+        exclude = ('resource_type', 'owner', 'custodian', 'photo')
 
 
 class FailedOutputForm(forms.ModelForm):

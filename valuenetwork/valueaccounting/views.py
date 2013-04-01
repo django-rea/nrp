@@ -1662,8 +1662,8 @@ def work_commitment(
             if description != ct.description:
                 ct.description = description
                 ct.save()
-            return HttpResponseRedirect('/%s/'
-                % ('accounting/work'))
+            return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/labnote', ct.id))
     return render_to_response("valueaccounting/workbook.html",
         template_params,
         context_instance=RequestContext(request))

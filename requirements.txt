@@ -1,7 +1,6 @@
 --extra-index-url=http://dist.pinaxproject.com/dev/
 --extra-index-url=http://dist.pinaxproject.com/alpha/
 
-Django==1.4.1
 South
 django_debug_toolbar
 django-extensions

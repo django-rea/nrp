@@ -35,6 +35,8 @@
 								{{ item }} 
 							{% endif %}
 						</p>
+					{% empty %}
+					    <p class="text-error" >{{ error_message }}</p>
 					{% endfor %}
 				</div>
 

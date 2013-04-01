@@ -515,15 +515,30 @@ def delete_resource_type(request, resource_type_id):
 @login_required
 def delete_order_confirmation(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
-    if order.producing_commitments():
-        sked = []
-        reqs = []
-        work = []
-        tools = []
+    pcs = order.producing_commitments()
+    sked = []
+    reqs = []
+    work = []
+    tools = []
+    if pcs:
         visited_resources = set()
-        for ct in order.producing_commitments():
+        for ct in pcs:
             visited_resources.add(ct.resource_type)
             schedule_commitment(ct, sked, reqs, work, tools, visited_resources, 0)
+        return render_to_response('valueaccounting/order_delete_confirmation.html', {
+            "order": order,
+            "sked": sked,
+            "reqs": reqs,
+            "work": work,
+            "tools": tools,
+        }, context_instance=RequestContext(request))
+    else:
+        commitments = Commitment.objects.filter(independent_demand=order)
+        if commitments:
+            for ct in commitments:
+                sked.append(ct)
+                if ct.process not in sked:
+                    sked.append(ct.process)
             return render_to_response('valueaccounting/order_delete_confirmation.html', {
                 "order": order,
                 "sked": sked,
@@ -531,10 +546,10 @@ def delete_order_confirmation(request, order_id):
                 "work": work,
                 "tools": tools,
             }, context_instance=RequestContext(request))
-    else:
-        order.delete()
-        return HttpResponseRedirect('/%s/'
-            % ('accounting/demand'))
+        else:
+            order.delete()
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/demand'))
 
 @login_required
 def delete_order(request, order_id):
@@ -542,11 +557,28 @@ def delete_order(request, order_id):
     if request.method == "POST":
         order = get_object_or_404(Order, pk=order_id)
         trash = []
-        for ct in order.producing_commitments():
-            collect_trash(ct, trash)
+        pcs = order.producing_commitments()
+        if pcs:
+            for ct in pcs:
+                collect_trash(ct, trash)
+                order.delete()
+                for item in trash:
+                    item.delete()
+        else:
+            commitments = Commitment.objects.filter(independent_demand=order)
+            if commitments:
+                #import pdb; pdb.set_trace()
+                processes = []
+                for ct in commitments:
+                    if ct.process:
+                        processes.append(ct.process)
+                    for event in ct.fulfillment_events.all():
+                        event.commitment = None
+                        event.save()
+                    ct.delete()
+                for process in processes:
+                    process.delete()
             order.delete()
-            for item in trash:
-                item.delete()
         next = request.POST.get("next")
         if next:
             return HttpResponseRedirect(next)
@@ -1199,15 +1231,21 @@ def order_schedule(request, order_id):
     tools = []
     visited_resources = set()
     #import pdb; pdb.set_trace()
-    for ct in order.producing_commitments():
-        visited_resources.add(ct.resource_type)
-        schedule_commitment(ct, sked, reqs, work, tools, visited_resources, 0)
+    pcs = order.producing_commitments()
+    error_message = ""
+    if pcs:
+        for ct in pcs:
+            visited_resources.add(ct.resource_type)
+            schedule_commitment(ct, sked, reqs, work, tools, visited_resources, 0)
+    else:
+        error_message = "An R&D order needs an output to find its schedule"
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
         "sked": sked,
         "reqs": reqs,
         "work": work,
         "tools": tools,
+        "error_message": error_message,
     }, context_instance=RequestContext(request))
 
 def demand(request):
@@ -2646,6 +2684,12 @@ def change_process(request, process_id):
                             ct.relationship = rel
                             ct.event_type = rel.event_type
                         ct.save()
+                        if process.name == "Make something":
+                            process.name = " ".join([
+                                        "Make",
+                                        rt.name,
+                                    ])
+                            process.save()
                     elif ct_from_id:
                         ct = form.save()
                         ct.delete()
@@ -2698,6 +2742,7 @@ def change_process(request, process_id):
                     input_data = form.cleaned_data
                     qty = input_data["quantity"]
                     ct_from_id = input_data["id"]
+                    import pdb; pdb.set_trace()
                     if not qty:
                         if ct_from_id:
                             ct = form.save()
@@ -2824,36 +2869,38 @@ def change_process(request, process_id):
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
 
-def explode_dependent_demands(commitment):
+def explode_dependent_demands(commitment, user):
+    #import pdb; pdb.set_trace()
     rt = commitment.resource_type
     ptrt = rt.main_producing_process_type_relationship()
+    demand = commitment.independent_demand
     if ptrt:
         pt = ptrt.process_type
-        start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
+        start_date = commitment.due_date - datetime.timedelta(minutes=pt.estimated_duration)
         feeder_process = Process(
             name=pt.name,
             process_type=pt,
             project=pt.project,
             url=pt.url,
-            end_date=process.start_date,
+            end_date=commitment.due_date,
             start_date=start_date,
-            created_by=request.user,
+            created_by=user,
         )
         feeder_process.save()
         output_commitment = Commitment(
-            independent_demand = demand,
+            independent_demand=demand,
             event_type=ptrt.relationship.event_type,
             relationship=ptrt.relationship,
-            due_date=process.start_date,
+            due_date=commitment.due_date,
             resource_type=rt,
             process=feeder_process,
             project=pt.project,
-            quantity=qty,
+            quantity=commitment.quantity,
             unit_of_quantity=rt.unit,
-            created_by=request.user,
+            created_by=user,
         )
         output_commitment.save()
-        generate_schedule(feeder_process, demand, request.user)
+        generate_schedule(feeder_process, demand, user)
 
 def propagate_qty_change(commitment, delta):
     #import pdb; pdb.set_trace()
@@ -3419,6 +3466,8 @@ def process_selections(request, rand=0):
     project_form = None
     if request.method == "POST":
         #import pdb; pdb.set_trace()
+        input_resource_types = []
+        input_process_types = []
         edit_process = request.POST.get("edit-process")
         labnotes = request.POST.get("labnotes")
         past = request.POST.get("past")
@@ -3495,10 +3544,16 @@ def process_selections(request, rand=0):
                     pt = ProcessType.objects.get(id=recipe_id)
                     pts.append(pt)
             pt = None
+            name = "Make something"
+            if output_rts:
+                name = " ".join([
+                    "Make",
+                    output_rts[0].name,
+                ])
             if len(pts) == 1:
                 pt = pts[0]
                 process = Process(
-                    name=pt.name,
+                    name=name,
                     process_type=pt,
                     project=pt.project,
                     url=pt.url,
@@ -3514,7 +3569,7 @@ def process_selections(request, rand=0):
                             pt = ptx
                 if pt:
                     process = Process(
-                        name=pt.name,
+                        name=name,
                         process_type=pt,
                         project=pt.project,
                         url=pt.url,
@@ -3524,12 +3579,6 @@ def process_selections(request, rand=0):
                     )
                     process.save()
                 else:
-                    name = "Make something"
-                    if output_rts:
-                        name = " ".join([
-                            "Make",
-                            output_rts[0].name,
-                        ])
                     process = Process(
                         name=name,
                         end_date=today,
@@ -3539,8 +3588,10 @@ def process_selections(request, rand=0):
                     )
                     process.save()
             if pt:
+                resource_types = pt.produced_resource_types()
                 for ptrt in pt.consumed_resource_type_relationships():
                     rel = ptrt.relationship
+                    rtype = ptrt.resource_type
                     commitment = Commitment(
                         process=process,
                         independent_demand=demand,
@@ -3548,12 +3599,13 @@ def process_selections(request, rand=0):
                         event_type=rel.event_type,
                         relationship=rel,
                         due_date=today,
-                        resource_type=ptrt.resource_type,
+                        resource_type=rtype,
                         quantity=ptrt.quantity,
                         unit_of_quantity=ptrt.unit_of_quantity,
                         created_by=request.user,
                     )
-                    commitment.save()                    
+                    commitment.save()
+                    explode_dependent_demands(commitment, request.user)         
             for rt in output_rts:
                 rel = ResourceRelationship.objects.get(
                     materiality=rt.materiality,
@@ -3592,25 +3644,29 @@ def process_selections(request, rand=0):
                         created_by=request.user,
                     )
                     commitment.save()
+            resource_types.extend([ic.resource_type for ic in process.incoming_commitments()])
             for rt in input_rts:
-                rel = ResourceRelationship.objects.get(
-                    materiality=rt.materiality,
-                    related_to="process",
-                    direction="in")
-                if rel:
-                    commitment = Commitment(
-                        process=process,
-                        independent_demand=demand,
-                        project=process.project,
-                        event_type=rel.event_type,
-                        relationship=rel,
-                        due_date=today,
-                        resource_type=rt,
-                        quantity=Decimal("1"),
-                        unit_of_quantity=rt.unit,
-                        created_by=request.user,
-                    )
-                    commitment.save()
+                #import pdb; pdb.set_trace()
+                if rt not in resource_types:
+                    rel = ResourceRelationship.objects.get(
+                        materiality=rt.materiality,
+                        related_to="process",
+                        direction="in")
+                    if rel:
+                        commitment = Commitment(
+                            process=process,
+                            independent_demand=demand,
+                            project=process.project,
+                            event_type=rel.event_type,
+                            relationship=rel,
+                            due_date=today,
+                            resource_type=rt,
+                            quantity=Decimal("1"),
+                            unit_of_quantity=rt.unit,
+                            created_by=request.user,
+                        )
+                        commitment.save()
+                        explode_dependent_demands(commitment, request.user)
             if work_form.is_valid():
                 #import pdb; pdb.set_trace()
                 agent = get_agent(request)

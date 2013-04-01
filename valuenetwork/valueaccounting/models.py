@@ -372,7 +372,8 @@ class EconomicResourceType(models.Model):
         max_length=12, choices=MATERIALITY_CHOICES,
         default='material')
     unit = models.ForeignKey(Unit, blank=True, null=True,
-        verbose_name=_('unit'), related_name="resource_units")
+        verbose_name=_('unit'), related_name="resource_units",
+        help_text=_('if this resource has different units of use and inventory, this is the unit of use'))
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)

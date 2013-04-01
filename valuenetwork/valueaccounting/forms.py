@@ -143,7 +143,7 @@ class ProcessCitationForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ProcessCitationForm, self).__init__(*args, **kwargs)
-        self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt.name) for rt in EconomicResourceType.objects.process_citables_with_resources()]
+        self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in EconomicResourceType.objects.process_citables_with_resources()]
         
 
 class ProcessCitationCommitmentForm(forms.ModelForm):

@@ -198,6 +198,18 @@ class PastWorkForm(forms.ModelForm):
         fields = ('id', 'event_date', 'quantity', 'description')
 
 
+class WorkEventChangeForm(forms.ModelForm):
+    id = forms.CharField(required=False, widget=forms.HiddenInput)
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(required=False,
+        widget=DecimalDurationWidget,
+        help_text="days, hours, minutes")
+	
+    class Meta:
+        model = EconomicEvent
+        fields = ('id', 'event_date', 'quantity')
+
+
 class WorkSelectionForm(forms.Form):
     type_of_work = forms.ChoiceField()
 

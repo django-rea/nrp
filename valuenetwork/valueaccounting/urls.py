@@ -132,6 +132,8 @@ urlpatterns = patterns("",
         name="resource"),
     url(r"^unscheduled-time/$", 'valuenetwork.valueaccounting.views.unscheduled_time_contributions', 
         name="unscheduled_time"),
+    url(r"^change-work-event/(?P<event_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_work_event', 
+        name="change_work_event"),
     url(r"^sessions/$", 'valuenetwork.valueaccounting.views.sessions', name="sessions"),
         
 )

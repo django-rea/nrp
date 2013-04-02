@@ -6,6 +6,15 @@
 {% block head_title %}{% trans "Labnotes for " %} {{ process.name }} {% trans "from " %} {{ commitment.from_agent.name }}{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.days, .hours, .minutes {
+	width: 24px;
+}
+
+</style>
 
 {% endblock %}
 
@@ -24,14 +33,39 @@
 		</legend>
 
 		<div class="row-fluid">
-			<div class="span8">
+			<div class="span7">
 				{{ commitment.description|urlize|linebreaks }}
 			</div>
-			<div class="span4">
+			<div class="span5">
 
 				<h3>{% trans "Time contributions" %}:</h3>
 				{% for event in work_events %}
-					<p>{{ event.event_date }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
+					<p>
+					    {{ event.event_date }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}
+					    {% if author %}
+					        
+							<a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+								{% trans "Change" %}
+							</a>
+						
+							<div class="modal hide fade eventModal" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+								<div class="modal-header">
+									<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+									<h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
+								</div>
+								<div class="modal-body">
+									<form class="eventForm{{ event.id }}" enctype="multipart/form-data" action="{% url change_work_event event_id=event.id %}" method="POST" >
+										{% csrf_token %}
+										{{ event.work_event_change_form|as_bootstrap }}
+									  <div class="modal-footer">
+										<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+										<input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+									  </div>
+									</form>
+								</div>
+							</div>
+					    {% endif %}
+				    </p>
 				{% endfor %}
 
 				{% if outputs %}
@@ -70,4 +104,23 @@
 
 	</div>
     </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+	    $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+	}); // end document.ready
+
+	</script>
+
 {% endblock %}

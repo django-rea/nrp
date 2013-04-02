@@ -1972,6 +1972,10 @@ class EconomicEvent(models.Model):
             self.unit(),
             ])
 
+    def work_event_change_form(self):
+        from valuenetwork.valueaccounting.forms import WorkEventChangeForm
+        return WorkEventChangeForm(instance=self)
+
 
 #todo: not used
 class Compensation(models.Model):

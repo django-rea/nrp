@@ -2604,6 +2604,20 @@ def copy_process(request, process_id):
     }, context_instance=RequestContext(request))
 
 @login_required
+def change_work_event(request, event_id):
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    commitment = event.commitment
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        form = WorkEventChangeForm(instance=event, data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            form.save()
+    return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/labnote', commitment.id))
+            
+
+@login_required
 def change_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     demand = process.independent_demand()

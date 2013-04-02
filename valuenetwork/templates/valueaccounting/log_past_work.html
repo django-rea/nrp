@@ -666,6 +666,8 @@
 
 
 	$(document).ready(function(){
+
+	    $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 	
         {% if event_date %}
             $("#id_event_date").attr('disabled', 'disabled');
@@ -677,8 +679,9 @@
 	        $("a").attr('disabled', 'disabled');
 
             $("#id_event_date").removeAttr('disabled');
+            $('#id_event_date').focus();
             
-	        $("#id_event_date").change(gotDate);
+	        $("#id_event_date").change(gotDate)
 
 	        function gotDate(event)
 	        {
@@ -843,9 +846,7 @@
 		});
 		
 
-		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
-
-				$( "#addOutputForm" ).validate({
+		$( "#addOutputForm" ).validate({
 			rules: {
 			    'output-resource_type': {
                     required: true

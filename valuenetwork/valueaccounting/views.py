@@ -1594,7 +1594,7 @@ def new_process_citation(request, commitment_id):
         event_id = event.id
     reload = request.POST["reload"]
     if request.method == "POST":
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         form = ProcessCitationForm(data=request.POST, prefix='citation')
         if form.is_valid():
             input_data = form.cleaned_data
@@ -2763,7 +2763,7 @@ def change_process(request, process_id):
                     input_data = form.cleaned_data
                     qty = input_data["quantity"]
                     ct_from_id = input_data["id"]
-                    import pdb; pdb.set_trace()
+                    #import pdb; pdb.set_trace()
                     if not qty:
                         if ct_from_id:
                             ct = form.save()

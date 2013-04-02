@@ -3458,6 +3458,7 @@ def process_selections(request, rand=0):
     related_citables = []
     related_inputs = []
     related_recipes = []
+    resource_types = []
     selected_name = ""
     selected_name2 = ""
     #import pdb; pdb.set_trace()
@@ -3588,7 +3589,7 @@ def process_selections(request, rand=0):
                     )
                     process.save()
             if pt:
-                resource_types = pt.produced_resource_types()
+                resource_types.extend(pt.produced_resource_types())
                 for ptrt in pt.consumed_resource_type_relationships():
                     rel = ptrt.relationship
                     rtype = ptrt.resource_type

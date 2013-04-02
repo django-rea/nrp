@@ -876,6 +876,9 @@ class Project(models.Model):
         from valuenetwork.valueaccounting.utils import flattened_children
         return flattened_children(self, Project.objects.all(), [])
 
+    def wip(self):
+        return self.processes.all()
+
 
 class ProcessType(models.Model):
     name = models.CharField(_('name'), max_length=128)

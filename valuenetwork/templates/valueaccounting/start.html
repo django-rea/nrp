@@ -355,6 +355,12 @@
 				None
 				{% endif %}
 
+				<h3 style="margin-top: 2em; margin-bottom: 4px;" >{% trans "Logged work hours" %}:</h3>
+
+				<div id="chart_div"></div>
+
+				
+
 			</div>
 		</div>
 
@@ -365,6 +371,7 @@
 {% block extra_script %}
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -401,8 +408,27 @@
 			});
 		});
 
-
 	}); // end document.ready
+
+	google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Member', 'Hours'],
+          {% for member, hours in member_hours %}
+              ['{{ member.nick }}',  {{ hours }} ],
+          {% endfor %}
+        ]);
+
+        var options = {
+          //title: 'Logged work hours',
+          vAxis: {title: 'Member',  titleTextStyle: {color: 'red'}}
+        };
+
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+      
     </script>
 
 {% endblock %}

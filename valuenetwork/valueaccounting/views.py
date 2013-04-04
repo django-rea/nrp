@@ -1378,6 +1378,16 @@ def start(request):
             from_agent=None, 
             resource_type__materiality="work")
 
+    contributions = EconomicEvent.objects.filter(is_contribution=True)
+    agents = {}
+    for c in contributions:
+        if c.from_agent not in agents:
+            agents[c.from_agent] = Decimal("0")
+        agents[c.from_agent] += c.quantity
+    member_hours = []
+    for key, value in agents.iteritems():
+        member_hours.append((key, value))
+    member_hours.sort(lambda x, y: cmp(y[1], x[1]))
 
     return render_to_response("valueaccounting/start.html", {
         "agent": agent,
@@ -1385,6 +1395,7 @@ def start(request):
         "my_skillz": my_skillz,
         "other_unassigned": other_unassigned,
         "scores": scores,
+        "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
 

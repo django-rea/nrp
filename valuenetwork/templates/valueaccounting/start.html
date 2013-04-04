@@ -1,0 +1,408 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Start" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.commitmentForm .modal-body {
+	max-height: 800px;
+}
+
+.commitmentForm {
+	width: 900px;
+	/*margin: -250px 0 0 -450px; */
+        /*margin-left: -450px;*/
+}
+.btn {
+	margin-right: 2em;
+}
+.my-work {
+    background-color: lightyellow;
+
+}
+.my-skills {
+    background-color: beige;
+}
+.other-unassigned {
+    background-color: whitesmoke;
+}
+.dashboard {
+    background-color: beige;
+}
+.my-work, .my-skills, .other-unassigned, .dashboard {
+    padding: 2px 6px 3px 6px;
+    margin-bottom: 12px;
+    border: 1px solid gainsboro;
+}
+
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>
+		    {% trans "Start" %} &nbsp;&nbsp;&nbsp;<a href="{% url timeline %}">{% trans "Timeline" %}</a> 
+		    {% if agent %}
+		        &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a>
+	        {% endif %}
+	    </legend>
+
+			<p>
+				{% if agent %}
+				    <a href="{% url process_selections %}" role="button" class="btn btn-primary" 
+				        title="Log time and create resources." >
+				        {% trans "Log resource production" %}
+			        </a>
+{% comment %}
+					&nbsp;&nbsp;&nbsp;
+					<a href="{% url create_process %}" role="button" class="btn btn-primary" 
+					    title="Schedule a process to log time and create resources. Does not use existing recipes for outputs." >
+					    {% trans "Create new types of resources" %}
+				    </a> 
+{% endcomment %}
+				    &nbsp;&nbsp;&nbsp;
+					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" 
+					    title="When you are not creating resources." >
+					    {% trans "Log non-production time" %}
+				    </a>
+					 
+				{% endif %}
+				
+				
+			</p>
+
+		<div class="row-fluid">
+			<div class="span6 my-work">
+
+				<h3 style="margin-bottom: 4px;" >{% trans "What I've been working on" %}:</h3>
+
+				{% if my_work %}
+						<ul>
+							{% for item in my_work %}
+								<li>
+									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+									<a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info" >{% trans "Labnotes for this task" %}</a>
+								</li>
+								<p style="margin-left: 1em; margin-bottom: 0;">
+									{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+									{% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %}
+								</p>
+								<p style="margin-left: 1em; margin-bottom: 0;">
+									{% trans "for order" %}: {{ item.independent_demand }}
+								</p>
+
+
+							{% endfor %}
+						</ul>
+				{% else %}
+				None
+				{% endif %}
+
+			</div>
+
+			<div class="span6 my-skills">
+
+				<h3 style="margin-bottom: 4px;" >{% trans "Unassigned tasks using my skills" %}:</h3>
+
+				{% if my_skillz %}
+						<ul>
+							{% for item in my_skillz %}
+								<li>
+									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+									{% if agent %}
+										<div style="display: inline;" >
+											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+												{% trans "Take this task" %}
+											</a>
+										</div>
+
+										<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+											<div class="modal-header">
+												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
+											</div>
+											<div class="modal-body">
+
+												<div class="row-fluid">
+													<div class="span5">
+														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+															{% csrf_token %}
+															{{ item.commitment_form|as_bootstrap }}
+															<input type="hidden" name="next" value="{% url work %}" />
+														  <div class="modal-footer">
+															<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+															<input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+														  </div>
+														</form>
+													</div>
+													<div class="span7">
+														<h4>
+															{{ item.resource_type.name }}: {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+														</h4>
+														<p style="margin-left: 1em; margin-bottom: 0;">
+															{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+														</p>
+														<p style="margin-left: 1em;">
+															{% trans "for order" %}: {{ item.independent_demand }}
+														</p>
+														<h4>{% trans "Material requirements" %}:</h4>
+														{% for reqmt in item.process.material_requirements %}	
+															<p style="margin-left: 1em;">
+																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
+															</p>
+															{% if reqmt.resource_type.onhand %}
+																{% for resource in reqmt.resource_type.onhand %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+																	</p>
+																{% endfor %}
+															{% elif reqmt.resource_type.producing_commitments %}
+																{% for ct in reqmt.resource_type.producing_commitments %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Scheduled" %}:</b> {{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}
+																	</p>
+																{% endfor %}
+															{% else %}
+																{% for source in reqmt.resource_type.producing_agent_relationships %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} 
+																		{% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+																	</p>
+																{% endfor %}
+															{% endif %}
+														{% endfor %}
+														<h4>{% trans "Tool Requirements" %}:</h4>
+														{% for reqmt in item.process.tool_requirements %}	
+															<p style="margin-left: 1em;">
+
+																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}
+															</p>
+															<ul>
+																{% for source in reqmt.resource_type.producing_agent_relationships %}
+																	<li>
+																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+																	</li>
+																{% endfor %}
+															</ul>
+														{% endfor %}
+													</div>
+												</div>
+										  </div>
+
+										</div>
+
+									{% endif %}
+								</li>
+								<p style="margin-left: 1em; margin-bottom: 0;">
+									{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+								</p>
+								<p style="margin-left: 1em; margin-bottom: 0;">
+									{% trans "for order" %}: {{ item.independent_demand }}
+								</p>
+
+
+							{% endfor %}
+						</ul>
+				{% else %}
+				None
+				{% endif %}
+
+			</div>
+
+		</div>
+
+		<div class="row-fluid">
+			<div class="span6 other-unassigned">
+
+				<h3 style="margin-bottom: 4px;" >{% trans "Other unassigned tasks" %}:</h3>
+
+				{% if other_unassigned %}
+						<ul>
+							{% for item in other_unassigned %}
+								<li>
+									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+									{% if agent %}
+										<div style="display: inline;" >
+											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+												{% trans "Take this task" %}
+											</a>
+										</div>
+
+										<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+											<div class="modal-header">
+												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
+											</div>
+											<div class="modal-body">
+
+												<div class="row-fluid">
+													<div class="span5">
+														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+															{% csrf_token %}
+															{{ item.commitment_form|as_bootstrap }}
+															<input type="hidden" name="next" value="{% url work %}" />
+														  <div class="modal-footer">
+															<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+															<input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+														  </div>
+														</form>
+													</div>
+													<div class="span7">
+														<h4>
+															{{ item.resource_type.name }}: {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+														</h4>
+														<p style="margin-left: 1em; margin-bottom: 0;">
+															{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+														</p>
+														<p style="margin-left: 1em;">
+															{% trans "for order" %}: {{ item.independent_demand }}
+														</p>
+														<h4>{% trans "Material requirements" %}:</h4>
+														{% for reqmt in item.process.material_requirements %}	
+															<p style="margin-left: 1em;">
+																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
+															</p>
+															{% if reqmt.resource_type.onhand %}
+																{% for resource in reqmt.resource_type.onhand %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+																	</p>
+																{% endfor %}
+															{% elif reqmt.resource_type.producing_commitments %}
+																{% for ct in reqmt.resource_type.producing_commitments %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Scheduled" %}:</b> {{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}
+																	</p>
+																{% endfor %}
+															{% else %}
+																{% for source in reqmt.resource_type.producing_agent_relationships %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} 
+																		{% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+																	</p>
+																{% endfor %}
+															{% endif %}
+														{% endfor %}
+														<h4>{% trans "Tool Requirements" %}:</h4>
+														{% for reqmt in item.process.tool_requirements %}	
+															<p style="margin-left: 1em;">
+
+																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}
+															</p>
+															<ul>
+																{% for source in reqmt.resource_type.producing_agent_relationships %}
+																	<li>
+																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+																	</li>
+																{% endfor %}
+															</ul>
+														{% endfor %}
+													</div>
+												</div>
+										  </div>
+
+										</div>
+
+									{% endif %}
+
+								</li>
+								<p style="margin-left: 1em; margin-bottom: 0;">
+									{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+								</p>
+								<p style="margin-left: 1em; margin-bottom: 0;">
+									{% trans "for order" %}: {{ item.independent_demand }}
+								</p>
+		                        <ul>
+									{% for source in item.resource_type.producing_agent_relationships %}
+										<li>
+											<b>{% trans "Possible source" %}:</b> {{ source.agent.name }}
+										</li>
+									{% endfor %}
+								</ul>
+							{% endfor %}
+						</ul>
+				{% else %}
+				None
+				{% endif %}
+
+			</div>
+			<div class="span6 dashboard">
+			    <h3 style="margin-bottom: 4px;" >{% trans "Scores for my skills" %}:</h3>
+				{% if scores %}
+						<ul>
+							{% for skill in scores %}
+								<li>
+									<b>{{ skill.resource_type.name }}:</b> {% trans "My score" %}:  {{ skill.score }}, {{ skill.comparative_scores }}
+								</li>
+
+							{% endfor %}
+						</ul>
+				{% else %}
+				None
+				{% endif %}
+
+			</div>
+		</div>
+
+
+	</div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#start').addClass('active');
+
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+		jQuery.validator.setDefaults({ 
+		    success: function(label) {
+					label
+						.text('').addClass('valid')
+						.closest('.control-group').addClass('success');
+				}
+		});
+
+
+		$.validator.addClassRules("quantity", { required: true, number: true });
+
+
+		$('.commitmentForm').each( function(){
+			var form = $(this);
+
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				},
+
+			});
+		});
+
+
+	}); // end document.ready
+    </script>
+
+{% endblock %}

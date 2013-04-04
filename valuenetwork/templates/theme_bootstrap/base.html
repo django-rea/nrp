@@ -44,6 +44,9 @@
                                 {% block nav %}
                                         <ul class="nav">
                                             <li id="home" ><a href="{% url 'home' %}">Home</a></li>
+                                            {% if request.user.is_authenticated %}
+                                                <li id="start" ><a href="{% url 'start' %}">Start</a></li>
+                                            {% endif %}
                                             <li id="demand" ><a href="{% url 'demand' %}">Demand</a></li>
                                             <li id="supply" ><a href="{% url 'supply' %}">Supply</a></li>
                                             <li id="inventory" ><a href="{% url 'inventory' %}">Inventory</a></li>

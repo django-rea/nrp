@@ -1353,6 +1353,41 @@ def work(request):
     }, context_instance=RequestContext(request))
 
 
+def start(request):
+    my_work = []
+    my_skillz = []
+    other_wip = []
+    scores = []
+    agent = get_agent(request)
+    if agent:
+        my_work = Commitment.objects.filter(
+            resource_type__materiality="work",
+            from_agent=agent)
+        skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
+        my_skillz = Commitment.objects.filter(
+            from_agent=None, 
+            resource_type__materiality="work",
+            resource_type__id__in=skill_ids)
+        other_unassigned = Commitment.objects.filter(
+            from_agent=None, 
+            resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
+        scores = agent.resource_types.all()
+        
+    else:
+        other_unassigned = Commitment.objects.filter(
+            from_agent=None, 
+            resource_type__materiality="work")
+
+
+    return render_to_response("valueaccounting/start.html", {
+        "agent": agent,
+        "my_work": my_work,
+        "my_skillz": my_skillz,
+        "other_unassigned": other_unassigned,
+        "scores": scores,
+    }, context_instance=RequestContext(request))
+
+
 def commit_to_task(request, commitment_id):
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)

@@ -17,7 +17,13 @@
             </ul>
         </li>
     {% else %}
-        <li><a href="{% url account_login %}?next={% firstof request.path '/' %}">Log in</a></li>
+        <li>
+            {% if request.path = '/' %}
+                <a href="{% url account_login %}">
+            {% else %}
+                <a href="{% url account_login %}?next={% firstof request.path '/' %}">
+            {% endif %}
+            Log in</a></li>
         {% if ACCOUNT_OPEN_SIGNUP %}
             <li class="navbar-text">or</li>
             <li><a href="{% url account_signup %}">Sign up</a></li>

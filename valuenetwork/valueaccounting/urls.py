@@ -2,6 +2,7 @@ from django.conf.urls import patterns, url
 
 
 urlpatterns = patterns("",
+    url(r"^start/$", 'valuenetwork.valueaccounting.views.start', name="start"),
     url(r"^projects/$", 'valuenetwork.valueaccounting.views.projects', name="projects"),
     url(r"^resources/$", 'valuenetwork.valueaccounting.views.resource_types', name="resource_types"),
     url(r"^inventory/$", 'valuenetwork.valueaccounting.views.inventory', name="inventory"),

@@ -666,10 +666,10 @@ class EconomicResource(models.Model):
         return EconomicResourceForm(prefix=prefix, instance=self)
 
     def producing_events(self):
-        if self.quality < 0:
-           return self.events.filter(event_type__resource_effect='<') 
-        else:
-            return self.events.filter(event_type__resource_effect='+')
+        if self.quality:
+            if self.quality < 0:
+               return self.events.filter(event_type__resource_effect='<') 
+        return self.events.filter(event_type__resource_effect='+')
 
     def using_events(self):
         return []

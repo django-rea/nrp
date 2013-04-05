@@ -1877,7 +1877,7 @@ def log_past_work(
         request, 
         commitment_id):
     ct = get_object_or_404(Commitment, id=commitment_id)
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     agent = get_agent(request)
     if not request.user.is_superuser:
         if agent != ct.from_agent:

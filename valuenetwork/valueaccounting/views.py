@@ -1726,8 +1726,9 @@ def work_commitment(
     ct = get_object_or_404(Commitment, id=commitment_id)
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
-    if agent != ct.from_agent:
-        return render_to_response('valueaccounting/no_permission.html')
+    if not request.user.is_superuser:
+        if agent != ct.from_agent:
+            return render_to_response('valueaccounting/no_permission.html')
     template_params = create_labnotes_context(
         request, 
         ct, 
@@ -1876,10 +1877,11 @@ def log_past_work(
         request, 
         commitment_id):
     ct = get_object_or_404(Commitment, id=commitment_id)
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     agent = get_agent(request)
-    if agent != ct.from_agent:
-        return render_to_response('valueaccounting/no_permission.html')
+    if not request.user.is_superuser:
+        if agent != ct.from_agent:
+            return render_to_response('valueaccounting/no_permission.html')
     template_params = create_past_work_context(
         request, 
         ct,

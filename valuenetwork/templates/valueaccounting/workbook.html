@@ -85,7 +85,7 @@
 			<div class="span4">
 			    <div class="row-fluid">
 			        <div class="span10">
-				        <button role="button" id="start" name="start" class="btn btn-info" >{% trans "Start" %}</button>
+				        <button role="button" id="startButton" name="start" class="btn btn-info" >{% trans "Start" %}</button>
 				        <button role="button" id="stop" name="stop"  class="btn btn-info" disabled="disabled" >{% trans "Stop" %}</button>
 				        
 				        <div class="control-group">
@@ -95,11 +95,12 @@
 					        <span class="help-block">{{ wb_form.quantity.help_text }}</span>
 				        </div>
 				    </div>
+				    </form>
                     <div class="span2">
 				        <a href="{% url labnote commitment_id=commitment.id %}" class="btn btn-primary">{% trans "Close" %}</a>
 			        </div>
 			    </div>
-            </form>
+            
                 <div class="row-fluid">
 			        <div class="span12">
 			            <a href="#addOutputModal" role="button" class="btn" data-toggle="modal">{% trans "+ output" %}</a>
@@ -834,7 +835,7 @@
 		    
         {% endfor %}
 
-		$("#start").click(function(event) {
+		$("#startButton").click(function(event) {
 		    event.preventDefault();
             startTimer();  
 		});
@@ -852,7 +853,7 @@
 			$("#id_quantity_1").val(hours);
 			$("#id_quantity_2").val(mins);
 			$("#stop").attr("disabled", "disabled");
-			$("#start").removeAttr("disabled"); 
+			$("#startButton").removeAttr("disabled"); 
 			saveContribution();
 		});
 
@@ -1083,7 +1084,7 @@
 		    running = true;
 		    // updateTime every minute
             runTimer = setInterval(updateTime, 60 * 1000);
-		    $("#start").attr("disabled", "disabled");
+		    $("#startButton").attr("disabled", "disabled");
 		    $("#stop").removeAttr("disabled");
         }
 

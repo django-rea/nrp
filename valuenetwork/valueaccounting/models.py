@@ -821,8 +821,7 @@ class AgentResourceType(models.Model):
         return sum(req.unfilled_quantity() for req in commitments)
 
     def comparative_scores(self):
-        scores = AgentResourceType.objects.filter(resource_type=self.resource_type).values_list('score')
-        scores = [score[0] for score in scores]
+        scores = AgentResourceType.objects.filter(resource_type=self.resource_type).values_list('score', flat=True)
         average = str((sum(scores) / len(scores)).quantize(Decimal('.01'), rounding=ROUND_UP))
         return "".join([
             "Min: ", str(min(scores).quantize(Decimal('.01'), rounding=ROUND_UP)), 
@@ -830,7 +829,6 @@ class AgentResourceType(models.Model):
             ", Max: ", str(max(scores).quantize(Decimal('.01'), rounding=ROUND_UP)),
             ]) 
         
-
 
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=128) 

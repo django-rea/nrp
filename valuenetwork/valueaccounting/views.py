@@ -2731,10 +2731,12 @@ def change_process(request, process_id):
                 create_order = rand_data['create_order']
                 if create_order or demand or receiver or provider:
                     demand = rand_form.save(commit=False)
-                    demand.order_type = 'rand'
                     if existing_demand:
+                        if create_order:
+                            demand.order_type = 'rand'
                         demand.changed_by = request.user
                     else:
+                        demand.order_type = 'rand'
                         demand.created_by = request.user
                     demand.due_date = process.end_date
                     demand.save()
@@ -2844,11 +2846,12 @@ def change_process(request, process_id):
                             old_ct = Commitment.objects.get(id=ct_from_id.id)
                             old_rt = old_ct.resource_type
                             explode = True
-                            #todo: this logic needs work
-                            #best to create independent demands always
                             for pc in producers:
                                 if demand:
                                     if pc.independent_demand == demand:
+                                        propagators.append(pc) 
+                                        explode = False
+                                    elif pc.independent_demand == existing_demand:
                                         propagators.append(pc) 
                                         explode = False
                                 else:
@@ -3603,6 +3606,12 @@ def process_selections(request, rand=0):
             if rand:
                 demand = Order(
                     order_type="rand",
+                    due_date=today,
+                    created_by=request.user)
+                demand.save()
+            else:
+                demand = Order(
+                    order_type="holder",
                     due_date=today,
                     created_by=request.user)
                 demand.save()

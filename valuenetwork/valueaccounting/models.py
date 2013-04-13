@@ -1473,6 +1473,7 @@ class Option(models.Model):
 ORDER_TYPE_CHOICES = (
     ('customer', _('Customer order')),
     ('rand', _('R&D order')),
+    ('holder', _('Placeholder order')),
 )
 
 #todo: Order is used for both of the above types.

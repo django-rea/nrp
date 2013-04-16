@@ -2126,7 +2126,7 @@ def resource_event_for_commitment(request, commitment_id):
     #todo: bug: resource_event_for_commitment didn't return an HttpResponse object.
     id = request.POST.get("itemId")
     event_date = request.POST.get("eventDate")
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     if event_date:
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
     else:

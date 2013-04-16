@@ -2126,7 +2126,7 @@ def resource_event_for_commitment(request, commitment_id):
     #todo: bug: resource_event_for_commitment didn't return an HttpResponse object.
     id = request.POST.get("itemId")
     event_date = request.POST.get("eventDate")
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     if event_date:
         event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
     else:
@@ -2136,6 +2136,7 @@ def resource_event_for_commitment(request, commitment_id):
     event = None
     events = ct.fulfillment_events.all()
     prefix = ct.form_prefix()
+    data = unicode('0')
     if events:
         event = events[events.count() - 1]
         form = EconomicResourceForm(prefix=prefix, data=request.POST, instance=event.resource)
@@ -2176,7 +2177,7 @@ def resource_event_for_commitment(request, commitment_id):
             )
             event.save()
         data = unicode(resource.quantity)
-        return HttpResponse(data, mimetype="text/plain")
+    return HttpResponse(data, mimetype="text/plain")
 
 
 #todo: how to handle splits?
@@ -3563,6 +3564,7 @@ def process_selections(request, rand=0):
             selected_name = request.POST.get("resourceName")
             if selected_name:
                 related_outputs = list(EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name))
+                #related_outputs.extend(list(EconomicResourceType.objects.process_outputs().filter(category__name__icontains=selected_name)))
                 related_citables = []
                 citables = EconomicResourceType.objects.process_citables_with_resources()
                 for c in citables:

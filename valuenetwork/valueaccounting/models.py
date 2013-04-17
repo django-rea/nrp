@@ -512,10 +512,12 @@ class EconomicResourceType(models.Model):
 
     #todo: failures do not have commitments. If and when they do, the next two methods must change.
     def producing_commitments(self):
-        return self.commitments.filter(relationship__event_type__resource_effect='+')
+        return self.commitments.filter(
+            relationship__event_type__resource_effect='+')
 
     def consuming_commitments(self):
-        return self.commitments.exclude(relationship__event_type__resource_effect='+')
+        return self.commitments.exclude(
+            relationship__event_type__resource_effect='+')
 
     def xbill_parents(self):
         answer = list(self.consuming_process_type_relationships())
@@ -817,7 +819,7 @@ class AgentResourceType(models.Model):
         return AgentResourceTypeForm(instance=self)
 
     def total_required(self):
-        commitments = Commitment.objects.filter(resource_type=self.resource_type)
+        commitments = Commitment.objects.unfinished().filter(resource_type=self.resource_type)
         return sum(req.unfilled_quantity() for req in commitments)
 
     def comparative_scores(self):
@@ -1063,6 +1065,14 @@ class ProcessTypeResourceType(models.Model):
         else:
             return ProcessTypeResourceTypeForm(instance=self, prefix=self.xbill_change_prefix())
 
+class ProcessManager(models.Manager):
+
+    def unfinished(self):
+        return Process.objects.filter(finished=False)
+
+    def finished(self):
+        return Process.objects.filter(finished=True)
+
 
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -1078,6 +1088,7 @@ class Process(models.Model):
     start_date = models.DateField(_('start date'))
     end_date = models.DateField(_('end date'), blank=True, null=True)
     started = models.DateField(_('started'), blank=True, null=True)
+    finished = models.BooleanField(_('finished'), default=False)
     managed_by = models.ForeignKey(EconomicAgent, related_name="managed_processes",
         verbose_name=_('managed by'), blank=True, null=True)
     owner = models.ForeignKey(EconomicAgent, related_name="owned_processes",
@@ -1090,6 +1101,8 @@ class Process(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = ProcessManager()
 
     class Meta:
         ordering = ('name',)
@@ -1147,13 +1160,16 @@ class Process(models.Model):
             return ""
 
     def incoming_commitments(self):
-        return self.commitments.filter(relationship__direction='in')
+        return self.commitments.filter(
+            relationship__direction='in')
 
     def schedule_requirements(self):
-        return self.commitments.exclude(relationship__direction='out')
+        return self.commitments.exclude(
+            relationship__direction='out')
 
     def outgoing_commitments(self):
-        return self.commitments.filter(relationship__direction='out')
+        return self.commitments.filter(
+            relationship__direction='out')
 
     def main_outgoing_commitment(self):
         cts = self.outgoing_commitments()
@@ -1208,10 +1224,12 @@ class Process(models.Model):
 
     def material_requirements(self):
         answer = list(self.commitments.filter(
+            #finished=False,
             relationship__direction='in',
             resource_type__materiality="material",
         ))
         answer.extend(self.commitments.filter(
+            #finished=False,
             relationship__direction='in',
             resource_type__materiality="purchmatl",
         ))
@@ -1220,6 +1238,7 @@ class Process(models.Model):
 
     def intellectual_requirements(self):
         return self.commitments.filter(
+            #finished=False,
             relationship__direction='in',
             resource_type__materiality="intellectual",
         )
@@ -1560,6 +1579,15 @@ class Order(models.Model):
         return answer
 
 
+class CommitmentManager(models.Manager):
+
+    def unfinished(self):
+        return Commitment.objects.filter(finished=False)
+
+    def finished(self):
+        return Commitment.objects.filter(finished=True)
+
+
 class Commitment(models.Model):
     order = models.ForeignKey(Order,
         blank=True, null=True,
@@ -1574,6 +1602,7 @@ class Commitment(models.Model):
     commitment_date = models.DateField(_('commitment date'), default=datetime.date.today)
     start_date = models.DateField(_('start date'), blank=True, null=True)
     due_date = models.DateField(_('due date'))
+    finished = models.BooleanField(_('finished'), default=False)
     from_agent_type = models.ForeignKey(AgentType,
         blank=True, null=True,
         related_name="given_commitments", verbose_name=_('from agent type'))
@@ -1612,6 +1641,8 @@ class Commitment(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = CommitmentManager()
 
     class Meta:
         ordering = ('due_date',)

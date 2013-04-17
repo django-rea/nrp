@@ -42,10 +42,10 @@ def get_agent(request):
     return agent
 
 def home(request):
-    work_to_do = Commitment.objects.filter(
+    work_to_do = Commitment.objects.unfinished().filter(
             from_agent=None, 
             resource_type__materiality="work")
-    reqs = Commitment.objects.filter(
+    reqs = Commitment.objects.unfinished().filter(
         resource_type__materiality="material",
         relationship__direction="in").order_by("resource_type__name")
     stuff = SortedDict()
@@ -54,14 +54,14 @@ def home(request):
             if req.resource_type not in stuff:
                 stuff[req.resource_type] = Decimal("0")
             stuff[req.resource_type] += req.quantity_to_buy()
-    treqs = Commitment.objects.filter(
+    treqs = Commitment.objects.unfinished().filter(
         resource_type__materiality="tool",
         relationship__direction="in").order_by("resource_type__name")
     for req in treqs:
         if req.quantity_to_buy():
             if req.resource_type not in stuff:
                 stuff[req.resource_type] = req.quantity_to_buy()
-    value_creations = Commitment.objects.filter(
+    value_creations = Commitment.objects.unfinished().filter(
         relationship__direction="out")
     return render_to_response("homepage.html", {
         "work_to_do": work_to_do,
@@ -992,7 +992,7 @@ def project_network(request):
 
 def timeline(request):
     timeline_date = datetime.date.today().strftime("%b %e %Y 00:00:00 GMT-0600")
-    unassigned = Commitment.objects.filter(
+    unassigned = Commitment.objects.unfinished().filter(
         from_agent=None,
         resource_type__materiality="work").order_by("due_date")
     return render_to_response("valueaccounting/timeline.html", {
@@ -1279,7 +1279,7 @@ def demand(request):
 
 def supply(request):
     mreqs = []
-    mrqs = Commitment.objects.filter(
+    mrqs = Commitment.objects.unfinished().filter(
         resource_type__materiality="material",
         relationship__direction="in").order_by("resource_type__name")
     suppliers = SortedDict()
@@ -1296,7 +1296,7 @@ def supply(request):
                         suppliers[agent][source] = []
                     suppliers[agent][source].append(commitment) 
     treqs = []
-    trqs = Commitment.objects.filter(
+    trqs = Commitment.objects.unfinished().filter(
         resource_type__materiality="tool",
         relationship__direction="in").order_by("resource_type__name")
     for commitment in trqs:
@@ -1323,21 +1323,21 @@ def work(request):
     other_wip = []
     agent = get_agent(request)
     if agent:
-        my_work = Commitment.objects.filter(
+        my_work = Commitment.objects.unfinished().filter(
             resource_type__materiality="work",
             from_agent=agent)
         skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
-        my_skillz = Commitment.objects.filter(
+        my_skillz = Commitment.objects.unfinished().filter(
             from_agent=None, 
             resource_type__materiality="work",
             resource_type__id__in=skill_ids)
-        other_unassigned = Commitment.objects.filter(
+        other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
             resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
-        other_wip = Commitment.objects.filter(
+        other_wip = Commitment.objects.unfinished().filter(
             resource_type__materiality="work").exclude(from_agent=None).exclude(from_agent=agent)
     else:
-        other_unassigned = Commitment.objects.filter(
+        other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
             resource_type__materiality="work")
 
@@ -1360,21 +1360,21 @@ def start(request):
     scores = []
     agent = get_agent(request)
     if agent:
-        my_work = Commitment.objects.filter(
+        my_work = Commitment.objects.unfinished().filter(
             resource_type__materiality="work",
             from_agent=agent)
         skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
-        my_skillz = Commitment.objects.filter(
+        my_skillz = Commitment.objects.unfinished().filter(
             from_agent=None, 
             resource_type__materiality="work",
             resource_type__id__in=skill_ids)
-        other_unassigned = Commitment.objects.filter(
+        other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
             resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
         scores = agent.resource_types.all()
         
     else:
-        other_unassigned = Commitment.objects.filter(
+        other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
             resource_type__materiality="work")
 
@@ -1446,10 +1446,18 @@ def create_labnotes_context(
     events = commitment.fulfillment_events.filter(event_date=today)
     if events:
         event = events[events.count() - 1]
-        wb_form = WorkbookForm(instance=event)
+        init = {
+            "work_done": commitment.finished,
+            "process_done": commitment.process.finished,
+        }
+        wb_form = WorkbookForm(instance=event, initial=init)
         duration = event.quantity * 60     
     else:
-        init = {"description": commitment.description,}
+        init = {
+            "description": commitment.description,
+            "work_done": commitment.finished,
+            "process_done": commitment.process.finished,
+        }
         wb_form = WorkbookForm(initial=init)
     prev_events = commitment.fulfillment_events.filter(event_date__lt=today)
     #import pdb; pdb.set_trace()
@@ -1701,6 +1709,50 @@ def delete_commitment(request, commitment_id, labnotes_id):
         return HttpResponseRedirect('/%s/%s/%s/%s/'
             % ('accounting/labnotes-reload', labnotes_id, was_running, was_retrying))
 
+def work_done(request):
+    #import pdb; pdb.set_trace()
+    commitment_id = int(request.POST.get("commitmentId"))
+    done = int(request.POST.get("done"))
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    if done:
+        if not commitment.finished:
+            commitment.finished = True
+            commitment.save()
+    else:
+        if commitment.finished:
+            commitment.finished = False
+            commitment.save()
+
+    return HttpResponse("Ok", mimetype="text/plain")
+
+   
+def process_done(request):
+    #import pdb; pdb.set_trace()
+    process_id = int(request.POST.get("processId"))
+    commitment_id = int(request.POST.get("commitmentId"))
+    done = int(request.POST.get("done"))
+    process = get_object_or_404(Process, pk=process_id)
+    if process.work_requirements().count() == 1:
+        commitment = get_object_or_404(Commitment, pk=commitment_id)
+        if done:
+            if not commitment.finished:
+                commitment.finished = True
+                commitment.save()
+        else:
+            if commitment.finished:
+                commitment.finished = False
+                commitment.save()
+    if done:
+        if not process.finished:
+            process.finished = True
+            process.save()
+    else:
+        if process.finished:
+            process.finished = False
+            process.save()
+
+    return HttpResponse("Ok", mimetype="text/plain")
+  
 
 def labnotes_reload(
         request, 
@@ -1786,12 +1838,18 @@ def create_past_work_context(
     event_date=None
     #import pdb; pdb.set_trace()
     if event:
-        wb_form = PastWorkForm(instance=event)
+        init = {
+                "work_done": commitment.finished,
+                "process_done": commitment.process.finished,
+            }
+        wb_form = PastWorkForm(instance=event, initial=init)
         duration = event.quantity * 60 
         event_date=event.event_date
     else:
         init = {
             "description": commitment.description,
+            "work_done": commitment.finished,
+            "process_done": commitment.process.finished,
         }
         wb_form = PastWorkForm(initial=init)
     if event_date:
@@ -3340,8 +3398,6 @@ def change_rand(request, rand_id):
     if process:
         had_process = True
         process_form = ProcessForm(instance=process, data=request.POST or None)
-        #output_queryset = process.outgoing_commitments()
-        #input_queryset = process.incoming_commitments()
         output_formset = OutputFormSet(
             queryset=process.outgoing_commitments(),
             data=request.POST or None,
@@ -3353,8 +3409,6 @@ def change_rand(request, rand_id):
     else:
         had_process = False
         process_form = ProcessForm(data=request.POST or None)
-        #output_queryset = Commitment.objects.none()
-        #input_queryset = Commitment.objects.none()
         output_formset = OutputFormSet(
             queryset=Commitment.objects.none(),
             data=request.POST or None,
@@ -3364,14 +3418,6 @@ def change_rand(request, rand_id):
             data=request.POST or None,
             prefix='input')
 
-    #output_formset = OutputFormSet(
-    #    queryset=output_queryset,
-    #    data=request.POST or None,
-    #    prefix='output')
-    #input_formset = InputFormSet(
-    #    queryset=input_queryset,
-    #    data=request.POST or None,
-    #    prefix='input')
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         keep_going = request.POST.get("keep-going")

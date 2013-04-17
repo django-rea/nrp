@@ -92,6 +92,12 @@
 			<form id="labnotesForm" method="POST" action="">
 				{% csrf_token %}
 				{{ wb_form.id }}
+				<p>
+				    {% if process.work_requirements.count > 1 %}
+				        {% trans "My work is done" %} {{ wb_form.work_done }}
+				    {% endif %}
+				     {% trans "This process is done" %} {{ wb_form.process_done }}
+				</p>
 				<div class="control-group">
 					<label><b>{% trans "Description of work done" %}:</b></label>
 					{{ wb_form.description }}
@@ -667,6 +673,8 @@
     var failSaved = true;
     var citationsSaved = true;
     var resourceSaved = true;
+    var workDoneSaved = true;
+    var processDoneSaved = true;
     var wasRunning = false;
     var wasRetrying = false;
     if ({{ was_running }})
@@ -686,6 +694,42 @@
 
 	$(document).ready(function(){
 
+        $("#id_work_done").click(function(event) 
+		{
+            var cb = event.target;
+            var cb = $('#' + cb.id);
+            setTimeout(function() {
+                var done = cb.prop('checked');
+                if (done) 
+                { 
+                    done = 1;
+                }
+                else
+                { 
+                    done = 0;
+                }
+                saveWorkDone(done);
+              }, 0);
+        });
+        
+        $("#id_process_done").click(function(event) 
+		{
+            var cb = event.target;
+            var cb = $('#' + cb.id);
+            setTimeout(function() {
+                var done = cb.prop('checked');
+                if (done) 
+                { 
+                    done = 1;
+                }
+                else
+                { 
+                    done = 0;
+                }
+                saveProcessDone(done);
+              }, 0);
+        });
+        
 	    $(".chzn-select").chosen();
 	    $("textarea").resizable();
 
@@ -849,8 +893,8 @@
 		{
             var resourceId = this.id;
             var id = this.name;
-            var cb = event.target
-            var cb = $('#' + cb.id)
+            var cb = event.target;
+            var cb = $('#' + cb.id);
             setTimeout(function() {
                 var cited = cb.prop('checked');
                 if (cited) 
@@ -1307,6 +1351,34 @@
 			});
 		}
 
+		if (!workDoneSaved)
+		{
+            var done = $("#id_work_done").prop('checked');
+            if (done) 
+            { 
+                done = 1;
+            }
+            else
+            { 
+                done = 0;
+            }
+	        saveWorkDone(done);
+		}
+
+		if (!processDoneSaved)
+		{
+            var done = $("#id_process_done").prop('checked');
+            if (done) 
+            { 
+                done = 1;
+            }
+            else
+            { 
+                done = 0;
+            }
+	        saveProcessDone(done);
+		}
+
 		if (!timeInputsSaved)
 		{
 			$(".time-used").each( function(){
@@ -1501,6 +1573,45 @@
 			{ 
 				notifyProblem(); 
 				citationsSaved = false;
+				startRetrying();
+			}
+		);
+	}
+
+	function saveWorkDone(done)
+	{
+	    var commitmentId = {{ commitment.id }};
+		notifySaving();
+		var jqxhr = $.post("{% url work_done  %}",  { commitmentId: commitmentId, done: done },
+			function( data ) 
+			{
+				notifySaved();
+				workDoneSaved = true;
+			})
+			.fail(function() 
+			{ 
+				notifyProblem(); 
+				workDoneSaved = false;
+				startRetrying();
+			}
+		);
+	}
+
+	function saveProcessDone(done)
+	{
+	    var processId = {{ process.id }};
+	    var commitmentId = {{ commitment.id }};
+		notifySaving();
+		var jqxhr = $.post("{% url process_done  %}",  { processId: processId, commitmentId: commitmentId, done: done },
+			function( data ) 
+			{
+				notifySaved();
+				processDoneSaved = true;
+			})
+			.fail(function() 
+			{ 
+				notifyProblem(); 
+				processDoneSaved = false;
 				startRetrying();
 			}
 		);

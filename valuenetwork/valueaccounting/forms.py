@@ -174,7 +174,12 @@ class CommitmentForm(forms.ModelForm):
 
 
 class WorkbookForm(forms.ModelForm):
-    #event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    work_done = forms.BooleanField(
+        required=False, 
+        widget=forms.CheckboxInput())
+    process_done = forms.BooleanField(
+        required=False, 
+        widget=forms.CheckboxInput())
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
@@ -187,6 +192,12 @@ class WorkbookForm(forms.ModelForm):
 
 class PastWorkForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)
+    work_done = forms.BooleanField(
+        required=False, 
+        widget=forms.CheckboxInput())
+    process_done = forms.BooleanField(
+        required=False, 
+        widget=forms.CheckboxInput())
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     quantity = forms.DecimalField(required=False,

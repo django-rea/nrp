@@ -660,6 +660,7 @@
 	$(document).ready(function(){
 
         $(".chzn-select").chosen();
+        $("textarea").resizable();
 
         $.validator.addClassRules("quantity", { required: true, number: true, });
         $.validator.addClassRules("quality", { number: true, });

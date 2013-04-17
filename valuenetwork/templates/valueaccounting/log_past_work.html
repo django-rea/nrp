@@ -10,12 +10,15 @@
 
 
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
 
 #labnotesForm textarea {
-  width: 100%;
-  height: 600px;
+    width: 100%;
+    height: 600px;  
+    max-width: 100%;
+    max-height: 600px;
 }
 
 .days, .hours, .minutes {
@@ -70,7 +73,7 @@
 		</legend>
 
 		<div class="row-fluid">
-			<div class="span8">
+			<div class="span7">
 
 			<form id="labnotesForm" method="POST" action="">
 				{% csrf_token %}
@@ -80,7 +83,7 @@
 					{{ wb_form.description }}
 				</div>
 			</div>
-			<div class="span4">
+			<div class="span5">
 			    <div class="row-fluid">
 			        <div class="span12">
 			            <div class="control-group">
@@ -622,6 +625,7 @@
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -647,6 +651,7 @@
     var inputsSaved = true;
     var timeInputsSaved = true;
     var failSaved = true;
+    var citationsSaved = true;
     var resourceSaved = true;
     var wasRunning = false;
     var wasRetrying = false;
@@ -666,6 +671,13 @@
 
 
 	$(document).ready(function(){
+
+	    $(".chzn-select").chosen();
+	    $("textarea").resizable();
+
+        $.validator.addClassRules("quantity", { required: true, number: true, });
+        $.validator.addClassRules("quality", { number: true, });
+		$.validator.addClassRules("url", { url: true });
 
 	    $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 	
@@ -896,6 +908,14 @@
 			    saveResource(url, itemId, qtyInputId, identifier, formData); 
 
 		    });
+
+		    $('#detailForm{{ item.id }}').validate(
+		    {
+			    highlight: function(label) {
+				    $(label).closest('.control-group').addClass('error');
+			    }
+		    });
+		    
 		    $("#failForm{{ item.id }}").submit(function(event) {
 		
 		        event.preventDefault();

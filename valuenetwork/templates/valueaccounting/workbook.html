@@ -657,6 +657,9 @@
 
 	$(document).ready(function(){
 
+        $.validator.addClassRules("quantity", { required: true, number: true, });
+        $.validator.addClassRules("quality", { number: true, });
+		$.validator.addClassRules("url", { url: true });
 
 	    $(".resource-type-selector").change(getUnit);
 
@@ -806,6 +809,14 @@
 			    saveResource(url, itemId, qtyInputId, identifier, formData); 
 
 		    });
+
+		    $('#detailForm{{ item.id }}').validate(
+		    {
+			    highlight: function(label) {
+				    $(label).closest('.control-group').addClass('error');
+			    }
+		    });
+		    
 		    $("#failForm{{ item.id }}").submit(function(event) {
 		
 		        event.preventDefault();
@@ -823,7 +834,8 @@
 			    rules: {
 				    quantity: {
                         required: true, 
-					    number: true
+					    number: true,
+					    min: .01
 				    },
 				    description: {
                         required: true

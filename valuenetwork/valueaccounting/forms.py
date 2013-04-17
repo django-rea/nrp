@@ -11,10 +11,10 @@ from valuenetwork.valueaccounting.widgets import DurationWidget, DecimalDuration
 
 
 class EconomicResourceForm(forms.ModelForm):
-    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
-    photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
-    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'input-small',}))
-    quality = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'input-small',}))
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    quality = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'quality input-small',}))
 
     class Meta:
         model = EconomicResource

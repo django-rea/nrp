@@ -30,7 +30,7 @@
 
 
 .failureModal textarea {
-  width: 100%;
+  width: 400px;
   height: 200px;
 }
 
@@ -45,7 +45,22 @@
 }
 
 .detailModal textarea {
-  width: 90%;
+  width: 400px;
+  height: 200px;
+}
+
+#addCiteModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
+#addInputModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
+#addOutputModal textarea {
+  width: 400px;
   height: 200px;
 }
 
@@ -74,7 +89,7 @@
 		</legend>
 
 		<div class="row-fluid">
-			<div class="span8">
+			<div class="span7">
 
 			<form id="labnotesForm" method="POST" action="">
 				{% csrf_token %}
@@ -83,7 +98,7 @@
 					{{ wb_form.description }}
 				</div>
 			</div>
-			<div class="span4">
+			<div class="span5">
 			    <div class="row-fluid">
 			        <div class="span10">
 				        <button role="button" id="startButton" name="start" class="btn btn-info" >{% trans "Start" %}</button>

@@ -97,7 +97,7 @@ class ProcessInputForm(forms.ModelForm):
         queryset=EconomicResourceType.objects.process_inputs(), 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
-            attrs={'class': 'resource-type-selector input-xlarge'}))
+            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -118,7 +118,7 @@ class ProcessOutputForm(forms.ModelForm):
         queryset=EconomicResourceType.objects.process_outputs(), 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
-            attrs={'class': 'resource-type-selector input-xlarge'}))
+            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity  input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -136,7 +136,7 @@ class ProcessOutputForm(forms.ModelForm):
 
 class ProcessCitationForm(forms.Form):
     resource_type = forms.ChoiceField( 
-        widget=forms.Select(attrs={'class': 'input-xlarge'}))
+        widget=forms.Select(attrs={'class': 'chzn-select input-xlarge'}))
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'item-description',}))

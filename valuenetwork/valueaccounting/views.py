@@ -1380,6 +1380,7 @@ def work(request):
             end = dates["end_date"]
             projects = assemble_schedule(start, end) 
     return render_to_response("valueaccounting/work.html", {
+        "agent": agent,
         "projects": projects,
         "date_form": date_form,
     }, context_instance=RequestContext(request))

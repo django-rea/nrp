@@ -1271,6 +1271,13 @@ class Process(models.Model):
             resource_type__materiality='work',
         )
 
+    def unfinished_work_requirements(self):
+        return self.commitments.filter(
+            finished=False,
+            relationship__direction='in',
+            resource_type__materiality='work',
+        )
+
     def non_work_requirements(self):
         return self.commitments.exclude(
             relationship__direction='in',

@@ -10,6 +10,7 @@
             </li>
         {% endif %}
     {% endif %}
+    
     {% if process.outgoing_commitments %}
         <li class="section deliverables-section">{% trans "Deliverables" %}:</li>
         <ul>
@@ -42,7 +43,52 @@
 		</ul>
 	{% endif %}
 
-    
+    {% if process.unfinished_work_requirements %}
+        <li class="section work-section">{% trans "Work requirements" %}:</li>
+		<ul>
+			{% for item in process.unfinished_work_requirements %}
+				<li class="work">
+					<span class="name deliverable-name">{{ item.resource_type.name }}:</span> {{ item.quantity }} {{ item.unit_of_quantity }}
+					{% if item.from_agent %}
+					    {% trans "Taken by" %} {{ item.from_agent.nick }}
+					{% else %}
+					     {% trans "due" %} {{ item.due_date }}
+					    {% if agent %}
+						    <div style="display: inline;" >
+							    <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+								    {% trans "Take this task" %}
+							    </a>
+						    </div>
+
+						    <div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+							    <div class="modal-header">
+								    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+								    <h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
+							    </div>
+							    <div class="modal-body">
+
+								    <form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+									    {% csrf_token %}
+									    {{ item.commitment_form|as_bootstrap }}
+									    <input type="hidden" name="next" value="{% url work %}" />
+								      <div class="modal-footer">
+									    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+									    <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+									    <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+								      </div>
+								    </form>
+						      </div>
+
+						    </div>
+
+					    {% endif %}
+					{% endif %}
+
+				</li>
+
+			{% endfor %}
+		</ul>
+    {% endif %}
     
     {% if process.material_requirements %}
         <li class="section materials-section" >{% trans "Material requirements" %}:</li>

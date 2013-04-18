@@ -42,6 +42,7 @@
 {% block body_base %}
 <div class="container">
 	<legend>{% trans "Log Unscheduled Time Contributions for " %} {{ member.name }}</legend>
+	<p>Both Date and Time spent are required for a contribution to be saved.</p>
 
     <form method="POST" action=".">
 	    {% csrf_token %}

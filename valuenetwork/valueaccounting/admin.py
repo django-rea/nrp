@@ -134,6 +134,7 @@ class EconomicEventAdmin(admin.ModelAdmin):
         'resource_type', 'quantity', 'unit_of_quantity', 'description', 'url', 'quality')
     list_filter = ['event_type', 'project', 'resource_type', 'from_agent', ]
     search_fields = ['event_type__name', 'from_agent__name', 'to_agent__name', 'resource_type__name']
+    list_editable = ['event_date',]
     
 admin.site.register(EconomicEvent, EconomicEventAdmin)
 

@@ -50,9 +50,9 @@
 				<li class="work">
 					<span class="name deliverable-name">{{ item.resource_type.name }}:</span> {{ item.quantity }} {{ item.unit_of_quantity }}
 					{% if item.from_agent %}
-					    {% trans "Taken by" %} {{ item.from_agent.nick }}
+					    <span class="taken">{% trans "Taken by" %} {{ item.from_agent.nick }}</span>
 					{% else %}
-					     {% trans "due" %} {{ item.due_date }}
+					     <span class="due">{% trans "due" %} {{ item.due_date }}</span>
 					    {% if agent %}
 						    <div style="display: inline;" >
 							    <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
@@ -94,13 +94,13 @@
         <li class="section materials-section" >{% trans "Material requirements" %}:</li>
         <ul>
 		    {% for reqmt in process.material_requirements %}	
-			    <li>
+			    <li class="material" >
 				    <span class="name material-name">{{ reqmt.resource_type.name }}:</span>  {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
 			    </li>
 			    {% if reqmt.resource_type.onhand %}
 			        <ul>
 				        {% for resource in reqmt.resource_type.onhand %}
-					        <li>
+					        <li class="subline" >
 						        <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
 						        <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
 						        {{ resource.quantity }} {{ resource.unit_of_quantity }}
@@ -110,16 +110,16 @@
 			    {% elif reqmt.resource_type.producing_commitments %}
 			        <ul>
 				        {% for ct in reqmt.resource_type.producing_commitments %}
-					        <li>
+					        <li class="subline" >
 						        <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
-						        <a href="{{ ct.process.get_absolute_url }}">{{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}</a>
+						        <a href="{{ ct.process.get_absolute_url }}">{{ ct.quantity }} {{ ct.unit_of_quantity }}</a> <span class="due">{{ ct.due_date }}</span>
 					        </li>
 				        {% endfor %}
 				    </ul>
 			    {% elif reqmt.resource_type.producing_agent_relationships %}
 			        <ul>
 				        {% for source in reqmt.resource_type.producing_agent_relationships %}
-					        <li>
+					        <li class="subline" >
 						        <span class="prefix source-prefix">{% trans "Possible source" %}:</span> {{ source.agent.name }} 
 						        {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
 					        </li>
@@ -141,7 +141,7 @@
 			    {% if reqmt.resource_type.onhand %}
 		            <ul>
 			            {% for resource in reqmt.resource_type.onhand %}
-				            <li>
+				            <li class="subline" >
 					            <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
 					            <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
 					            {{ resource.quantity }} {{ resource.unit_of_quantity }}
@@ -151,15 +151,16 @@
 		        {% elif reqmt.resource_type.producing_commitments %}
 		            <ul>
 			            {% for ct in reqmt.resource_type.producing_commitments %}
-				            <li>
-					            <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> {{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}
+				            <li class="subline" >
+					            <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
+					            {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 
 				            </li>
 			            {% endfor %}
 			        </ul>
 		        {% elif reqmt.resource_type.producing_agent_relationships %}
 		            <ul>
 			            {% for source in reqmt.resource_type.producing_agent_relationships %}
-				            <li>
+				            <li class="subline" >
 					            <span class="prefix source-prefix">{% trans "Possible source" %}:</span> {{ source.agent.name }} 
 					            {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
 				            </li>

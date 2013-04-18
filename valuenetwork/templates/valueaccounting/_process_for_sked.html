@@ -21,7 +21,7 @@
 			    {% if item.fulfilling_events %}
 			        <ul>
 				        {% for event in item.fulfilling_events %}
-					        <li>
+					        <li class="subline" >
 						        <span class="prefix created-prefix">{% trans "Created" %}:</span> 
 						        <a href="{% url resource resource_id=event.resource.id %}">{{ event.resource_type.name }} {{ event.resource.label }}</a>
 						        {{ event.quantity }} {{ event.unit_of_quantity }}
@@ -32,7 +32,7 @@
 			    {% if item.resource_type.wanting_commitments %}
 			        <ul>
 				        {% for wanter in item.resource_type.wanting_commitments %}
-					        <li>
+					        <li class="subline" >
 						        <span class="prefix created-prefix">{% trans "Wanted by" %}:</span> 
 						        <a href="{{ wanter.process.get_absolute_url }}">{{ wanter }}</a>
 					        </li>
@@ -134,7 +134,7 @@
 		<li class="section tools-section" >{% trans "Tool Requirements" %}:</li>
 		<ul>
 		    {% for reqmt in process.tool_requirements %}	
-			    <li>
+			    <li class="subline" >
 
 				    <span class="name tool-name">{{ reqmt.resource_type.name }}:</span> {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}
 			    </li>

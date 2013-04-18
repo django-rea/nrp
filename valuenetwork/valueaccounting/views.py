@@ -1367,7 +1367,7 @@ def assemble_schedule(start, end):
 def work(request):
     agent = get_agent(request)
     start = datetime.date.today()
-    start = start - datetime.timedelta(days=7)
+    #start = start - datetime.timedelta(days=7)
     end = start + datetime.timedelta(days=7)
     projects = assemble_schedule(start, end)   
     init = {"start_date": start, "end_date": end}

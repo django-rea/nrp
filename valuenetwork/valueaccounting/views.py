@@ -1317,7 +1317,7 @@ def supply(request):
         "suppliers": suppliers,
     }, context_instance=RequestContext(request))
 
-def work(request):
+def work_old(request):
     my_work = []
     my_skillz = []
     other_wip = []
@@ -1340,18 +1340,49 @@ def work(request):
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
             resource_type__materiality="work")
-
-    #for commitment in commitments:
-    #    if not commitment.resource_type.producing_commitments():
-    #        work.append(commitment)
+    start = datetime.date.today()
+    end = start + datetime.timedelta(days=7)
+    init = {"start_date": start, "end_date": end}
+    date_form = DateSelectionForm(initial=init)
     return render_to_response("valueaccounting/work.html", {
         "agent": agent,
         "my_work": my_work,
         "my_skillz": my_skillz,
         "other_unassigned": other_unassigned,
         "other_wip": other_wip,
+        "date_form": date_form,
     }, context_instance=RequestContext(request))
 
+def assemble_schedule(start, end):
+    processes = Process.objects.unfinished().filter(
+        Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)))
+    processes = processes.order_by("project__name")
+    projects = SortedDict()
+    for proc in processes:
+        if proc.project not in projects:
+            projects[proc.project] = []
+        projects[proc.project].append(proc)
+    return projects
+
+def work(request):
+    agent = get_agent(request)
+    start = datetime.date.today()
+    start = start - datetime.timedelta(days=7)
+    end = start + datetime.timedelta(days=7)
+    projects = assemble_schedule(start, end)   
+    init = {"start_date": start, "end_date": end}
+    date_form = DateSelectionForm(initial=init, data=request.POST or None)
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        if date_form.is_valid():
+            dates = date_form.cleaned_data
+            start = dates["start_date"]
+            end = dates["end_date"]
+            projects = assemble_schedule(start, end) 
+    return render_to_response("valueaccounting/work.html", {
+        "projects": projects,
+        "date_form": date_form,
+    }, context_instance=RequestContext(request))
 
 def start(request):
     my_work = []

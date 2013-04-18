@@ -1,0 +1,127 @@
+{% load i18n %}
+{% load bootstrap_tags %}
+
+<span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process }}</a>
+<ul>
+    {% if process.independent_demand %}
+        {% if process.independent_demand.order_type != 'holder' %}
+            <li class="for" >
+                <span class="prefix for-prefix">{% trans "For" %}:</span> {{ process.independent_demand }}
+            </li>
+        {% endif %}
+    {% endif %}
+    {% if process.outgoing_commitments %}
+        <li class="section deliverables-section">{% trans "Deliverables" %}:</li>
+        <ul>
+		    {% for item in process.outgoing_commitments %}	
+			    <li class="deliverable" >
+				    <span class="name deliverable-name">{{ item.resource_type.name }}:</span> {{ item.quantity }} {{ item.unit_of_quantity }}
+			    </li>
+			    {% if item.fulfilling_events %}
+			        <ul>
+				        {% for event in item.fulfilling_events %}
+					        <li>
+						        <span class="prefix created-prefix">{% trans "Created" %}:</span> 
+						        <a href="{% url resource resource_id=event.resource.id %}">{{ event.resource_type.name }} {{ event.resource.label }}</a>
+						        {{ event.quantity }} {{ event.unit_of_quantity }}
+					        </li>
+				        {% endfor %}
+				    </ul>
+			    {% endif %}
+			    {% if item.resource_type.wanting_commitments %}
+			        <ul>
+				        {% for wanter in item.resource_type.wanting_commitments %}
+					        <li>
+						        <span class="prefix created-prefix">{% trans "Wanted by" %}:</span> 
+						        <a href="{{ wanter.process.get_absolute_url }}">{{ wanter }}</a>
+					        </li>
+				        {% endfor %}
+				    </ul>
+			    {% endif %}
+			{% endfor %}
+		</ul>
+	{% endif %}
+
+    
+    
+    {% if process.material_requirements %}
+        <li class="section materials-section" >{% trans "Material requirements" %}:</li>
+        <ul>
+		    {% for reqmt in process.material_requirements %}	
+			    <li>
+				    <span class="name material-name">{{ reqmt.resource_type.name }}:</span>  {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
+			    </li>
+			    {% if reqmt.resource_type.onhand %}
+			        <ul>
+				        {% for resource in reqmt.resource_type.onhand %}
+					        <li>
+						        <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
+						        <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
+						        {{ resource.quantity }} {{ resource.unit_of_quantity }}
+					        </li>
+				        {% endfor %}
+				    </ul>
+			    {% elif reqmt.resource_type.producing_commitments %}
+			        <ul>
+				        {% for ct in reqmt.resource_type.producing_commitments %}
+					        <li>
+						        <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
+						        <a href="{{ ct.process.get_absolute_url }}">{{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}</a>
+					        </li>
+				        {% endfor %}
+				    </ul>
+			    {% elif reqmt.resource_type.producing_agent_relationships %}
+			        <ul>
+				        {% for source in reqmt.resource_type.producing_agent_relationships %}
+					        <li>
+						        <span class="prefix source-prefix">{% trans "Possible source" %}:</span> {{ source.agent.name }} 
+						        {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+					        </li>
+				        {% endfor %}
+				    </ul>
+			    {% endif %}
+		    {% endfor %}
+		</ul>
+	{% endif %}
+
+	{% if process.tool_requirements %}	
+		<li class="section tools-section" >{% trans "Tool Requirements" %}:</li>
+		<ul>
+		    {% for reqmt in process.tool_requirements %}	
+			    <li>
+
+				    <span class="name tool-name">{{ reqmt.resource_type.name }}:</span> {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}
+			    </li>
+			    {% if reqmt.resource_type.onhand %}
+		            <ul>
+			            {% for resource in reqmt.resource_type.onhand %}
+				            <li>
+					            <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
+					            <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
+					            {{ resource.quantity }} {{ resource.unit_of_quantity }}
+				            </li>
+			            {% endfor %}
+			        </ul>
+		        {% elif reqmt.resource_type.producing_commitments %}
+		            <ul>
+			            {% for ct in reqmt.resource_type.producing_commitments %}
+				            <li>
+					            <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> {{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}
+				            </li>
+			            {% endfor %}
+			        </ul>
+		        {% elif reqmt.resource_type.producing_agent_relationships %}
+		            <ul>
+			            {% for source in reqmt.resource_type.producing_agent_relationships %}
+				            <li>
+					            <span class="prefix source-prefix">{% trans "Possible source" %}:</span> {{ source.agent.name }} 
+					            {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+				            </li>
+			            {% endfor %}
+			        </ul>
+		        {% endif %}
+		    {% endfor %}
+		</ul>
+	{% endif %}
+
+</ul>

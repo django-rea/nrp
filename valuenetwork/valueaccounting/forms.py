@@ -249,6 +249,10 @@ class CasualTimeContributionForm(forms.ModelForm):
         self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in EconomicResourceType.objects.types_of_work()]
         self.fields["project"].choices = [(p.id, p.name) for p in Project.objects.all()]
 
+class DateSelectionForm(forms.Form):
+    start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    end_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+
 
 class OrderItemForm(forms.ModelForm):
     resource_type_id = forms.CharField(widget=forms.HiddenInput)

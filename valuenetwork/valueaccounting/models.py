@@ -481,6 +481,11 @@ class EconomicResourceType(models.Model):
     def consuming_process_type_relationships(self):
         return self.process_types.filter(relationship__direction='in')
 
+    def wanting_commitments(self):
+        return self.commitments.filter(
+            finished=False,
+            relationship__direction='in')
+
     def consuming_process_types(self):
         return [pt.process_type for pt in self.consuming_process_type_relationships()]
 

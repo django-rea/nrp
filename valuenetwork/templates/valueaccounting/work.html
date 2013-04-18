@@ -77,10 +77,10 @@
                     {% if projects %}
                         <ul>
 			                {% for project, processes in projects.items %}
-			                    <li> {% trans "Project" %}: {% if project %} {{ project.name }} {% else %} No project {% endif %}</li>
+			                    <li class="project-line"> {% trans "Project" %}: {% if project %} {{ project.name }} {% else %} No project {% endif %}</li>
 			                    <ul>
 			                        {% for process in processes %}
-			                            <li>{% include  "valueaccounting/_process_for_sked.html" %}</li>
+			                            <li class="process" >{% include  "valueaccounting/_process_for_sked.html" %}</li>
 			                        {% endfor %}
 			                    </ul>			                
 			                {% endfor %}

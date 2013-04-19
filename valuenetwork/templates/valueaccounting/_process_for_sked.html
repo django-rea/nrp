@@ -34,7 +34,8 @@
 				        {% for wanter in item.resource_type.wanting_commitments %}
 					        <li class="subline" >
 						        <span class="prefix created-prefix">{% trans "Wanted by" %}:</span> 
-						        <a href="{{ wanter.process.get_absolute_url }}">{{ wanter }}</a>
+						        <a href="{{ wanter.process.get_absolute_url }}">{{ wanter.process.name }}</a> 
+						        {{ wanter.quantity }} {{ wanter.unit_of_quantity }} {{ wanter.due_date }} 
 					        </li>
 				        {% endfor %}
 				    </ul>

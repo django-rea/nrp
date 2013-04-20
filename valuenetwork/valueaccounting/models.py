@@ -1184,17 +1184,42 @@ class Process(models.Model):
             return None
 
     #todo: both prev and next processes need more testing
-    def previous_processes(self):
+    def previous_processes_old(self):
         answer = []
         dmnd = None
         moc = self.main_outgoing_commitment()
+        #import pdb; pdb.set_trace()
         if moc:
             dmnd = moc.independent_demand
         output_rts = [oc.resource_type for oc in self.outgoing_commitments()]
         for ic in self.incoming_commitments():
             rt = ic.resource_type
+            # this is to block cycles
             if rt not in output_rts:
                 for pc in rt.producing_commitments():
+                    if dmnd:
+                        if pc.independent_demand == dmnd:
+                            answer.append(pc.process)
+                    else:
+                        if not pc.independent_demand:
+                            if pc.quantity >= ic.quantity:
+                                if pc.due_date >= self.start_date:
+                                    answer.append(pc.process)
+        return answer
+
+    def previous_processes(self):
+        answer = []
+        dmnd = None
+        moc = self.main_outgoing_commitment()
+        #import pdb; pdb.set_trace()
+        if moc:
+            dmnd = moc.independent_demand
+        output_rts = [oc.resource_type for oc in self.outgoing_commitments()]
+        for ic in self.incoming_commitments():
+            rt = ic.resource_type
+            # this is maybe a better way to block cycles
+            for pc in rt.producing_commitments():
+                if pc.process != self:
                     if dmnd:
                         if pc.independent_demand == dmnd:
                             answer.append(pc.process)
@@ -1216,7 +1241,8 @@ class Process(models.Model):
                 for cc in rt.consuming_commitments():
                     if dmnd:
                         if cc.independent_demand == dmnd:
-                            answer.append(cc.process)
+                            if cc.process not in answer:
+                                answer.append(cc.process)
                     else:
                         if not cc.independent_demand:
                             if cc.quantity >= oc.quantity:
@@ -1224,7 +1250,8 @@ class Process(models.Model):
                                 if not compare_date:
                                     compare_date = self.start_date
                                 if cc.due_date >= compare_date:
-                                    answer.append(cc.process)
+                                    if cc.process not in answer:
+                                        answer.append(cc.process)
         return answer
 
     def material_requirements(self):

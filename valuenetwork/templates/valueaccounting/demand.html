@@ -11,7 +11,7 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>{% trans "Demand" %}</legend>
-			{% if user.is_authenticated %}
+			{% if agent %}
 				<p>
 					<a class="btn btn-primary" href="{% url create_order %}">{% trans "Create Customer Order" %}</a>
 					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Create R&amp;D Order" %}</a>
@@ -48,11 +48,13 @@
                                 {% endwith %}
                             	<a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
 							{% else %}
-							    {% if user.is_authenticated %}
+							    {% if agent %}
 							        {% if user.is_superuser %}
 							            <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
 							        {% endif %}
+{% comment %}
                             	    <a class="btn btn-info" href="{% url copy_rand rand_id=rand.id %}">{% trans "Copy" %}</a>
+{% endcomment %}
                         	    {% endif %}
 							{% endif %}
                         </li>

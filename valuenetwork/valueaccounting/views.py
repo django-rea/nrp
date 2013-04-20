@@ -1281,11 +1281,13 @@ def order_schedule(request, order_id):
     }, context_instance=RequestContext(request))
 
 def demand(request):
+    agent = get_agent(request)
     orders = Order.objects.filter(order_type='customer')
     rands = Order.objects.filter(order_type='rand')
     return render_to_response("valueaccounting/demand.html", {
         "orders": orders,
         "rands": rands,
+        "agent": agent,
     }, context_instance=RequestContext(request))
 
 def supply(request):
@@ -2101,6 +2103,7 @@ def save_past_work(request, commitment_id):
 
 
 def process_details(request, process_id):
+    agent = get_agent(request)
     process = get_object_or_404(Process, id=process_id)
     labnotes = False
     if process.work_events():
@@ -2110,6 +2113,7 @@ def process_details(request, process_id):
         "process": process,
         "labnotes": labnotes,
         "cited_ids": cited_ids,
+        "agent": agent,
     }, context_instance=RequestContext(request))
 
 def resource(request, resource_id):

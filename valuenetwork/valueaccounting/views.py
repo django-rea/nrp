@@ -618,16 +618,17 @@ def delete_order(request, order_id):
 def collect_trash(commitment, trash, visited_resources):
     order = commitment.independent_demand
     process = commitment.process
-    trash.append(process)
-    for inp in process.incoming_commitments():
-        resource_type = inp.resource_type
-        if resource_type not in visited_resources:
-            visited_resources.add(resource_type)
-            pcs = resource_type.producing_commitments()
-            if pcs:
-                for pc in pcs:
-                    if pc.independent_demand == order:
-                        collect_trash(pc, trash, visited_resources)
+    if process:
+        trash.append(process)
+        for inp in process.incoming_commitments():
+            resource_type = inp.resource_type
+            if resource_type not in visited_resources:
+                visited_resources.add(resource_type)
+                pcs = resource_type.producing_commitments()
+                if pcs:
+                    for pc in pcs:
+                        if pc.independent_demand == order:
+                            collect_trash(pc, trash, visited_resources)
     return trash
 
 def collect_lower_trash(commitment, trash, visited_resources):

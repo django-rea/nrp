@@ -550,7 +550,7 @@ def delete_order_confirmation(request, order_id):
     if pcs:
         visited_resources = set()
         for ct in pcs:
-            visited_resources.add(ct.resource_type)
+            #visited_resources.add(ct.resource_type)
             schedule_commitment(ct, sked, reqs, work, tools, visited_resources, 0)
         return render_to_response('valueaccounting/order_delete_confirmation.html', {
             "order": order,
@@ -588,11 +588,12 @@ def delete_order(request, order_id):
         pcs = order.producing_commitments()
         if pcs:
             for ct in pcs:
-                visited_resources.add(ct.resource_type)
+                #visited_resources.add(ct.resource_type)
                 collect_trash(ct, trash, visited_resources)
-                order.delete()
-                for item in trash:
-                    item.delete()
+                #import pdb; pdb.set_trace()
+            order.delete()
+            for item in trash:
+                item.delete()
         else:
             commitments = Commitment.objects.filter(independent_demand=order)
             if commitments:
@@ -616,14 +617,17 @@ def delete_order(request, order_id):
                 % ('accounting/demand'))
 
 def collect_trash(commitment, trash, visited_resources):
+    #import pdb; pdb.set_trace()
     order = commitment.independent_demand
     process = commitment.process
     if process:
+        if process in trash:
+            return trash
         trash.append(process)
         for inp in process.incoming_commitments():
             resource_type = inp.resource_type
             if resource_type not in visited_resources:
-                visited_resources.add(resource_type)
+                #visited_resources.add(resource_type)
                 pcs = resource_type.producing_commitments()
                 if pcs:
                     for pc in pcs:
@@ -635,7 +639,7 @@ def collect_lower_trash(commitment, trash, visited_resources):
     order = commitment.independent_demand
     resource_type = commitment.resource_type
     pcs = resource_type.producing_commitments()
-    visited_resources.add(resource_type)
+    #visited_resources.add(resource_type)
     if pcs:
         for pc in pcs:
             if pc.independent_demand == order:
@@ -1229,14 +1233,18 @@ def schedule_commitment(
     process = commitment.process
     if process:
         process.depth = depth * 2
+        if process in schedule:
+            return schedule
         schedule.append(process)
         #import pdb; pdb.set_trace()
         for inp in process.schedule_requirements():
             inp.depth = depth * 2
             schedule.append(inp)
+            if inp.event_type.resource_effect != "-":
+                continue
             resource_type = inp.resource_type
             if resource_type not in visited_resources:
-                visited_resources.add(resource_type)
+                #visited_resources.add(resource_type)
                 pcs = resource_type.producing_commitments()
                 if pcs:
                     for pc in pcs:
@@ -1268,7 +1276,7 @@ def order_schedule(request, order_id):
     error_message = ""
     if pcs:
         for ct in pcs:
-            visited_resources.add(ct.resource_type)
+            #visited_resources.add(ct.resource_type)
             schedule_commitment(ct, sked, reqs, work, tools, visited_resources, 0)
     else:
         error_message = "An R&D order needs an output to find its schedule"

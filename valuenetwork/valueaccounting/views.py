@@ -61,8 +61,14 @@ def home(request):
         if req.quantity_to_buy():
             if req.resource_type not in stuff:
                 stuff[req.resource_type] = req.quantity_to_buy()
-    value_creations = Commitment.objects.unfinished().filter(
-        relationship__direction="out")
+    vcs = Commitment.objects.filter(relationship__direction="out")
+    value_creations = []
+    rts = []
+    for vc in vcs:
+        if vc.fulfilling_events():
+            if vc.resource_type not in rts:
+                rts.append(vc.resource_type)
+                value_creations.append(vc)
     return render_to_response("homepage.html", {
         "work_to_do": work_to_do,
         "stuff_to_buy": stuff,

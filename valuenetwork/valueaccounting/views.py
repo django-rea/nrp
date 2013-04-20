@@ -621,17 +621,18 @@ def collect_trash(commitment, trash, visited_resources):
             if pcs:
                 for pc in pcs:
                     if pc.independent_demand == order:
-                        collect_trash(pc, trash)
+                        collect_trash(pc, trash, visited_resources)
     return trash
 
-def collect_lower_trash(commitment, trash):
+def collect_lower_trash(commitment, trash, visited_resources):
     order = commitment.independent_demand
     resource_type = commitment.resource_type
     pcs = resource_type.producing_commitments()
+    visited_resources.add(resource_type)
     if pcs:
         for pc in pcs:
             if pc.independent_demand == order:
-                collect_trash(pc, trash)
+                collect_trash(pc, trash, visited_resources)
     return trash
 
 @login_required
@@ -2927,7 +2928,8 @@ def change_process(request, process_id):
                         if ct_from_id:
                             ct = form.save()
                             trash = []
-                            collect_lower_trash(ct, trash)
+                            visited_resources = set()
+                            collect_lower_trash(ct, trash, visited_resources)
                             for proc in trash:
                                 if proc.outgoing_commitments().count() <= 1:
                                     proc.delete()
@@ -2959,7 +2961,8 @@ def change_process(request, process_id):
                                 for ex_ct in old_rt.producing_commitments():
                                     if demand == ex_ct.independent_demand:
                                         trash = []
-                                        collect_trash(ex_ct, trash)
+                                        visited_resources = set()
+                                        collect_trash(ex_ct, trash, visited_resources)
                                         for proc in trash:
                                             #todo: feeder process with >1 outputs 
                                             # shd find the correct output to delete
@@ -3518,7 +3521,8 @@ def change_rand(request, rand_id):
                             if ct_from_id:
                                 ct = form.save()
                                 trash = []
-                                collect_lower_trash(ct, trash)
+                                visited_resources = set()
+                                collect_lower_trash(ct, trash, visited_resources)
                                 for proc in trash:
                                     if proc.outgoing_commitments().count() <= 1:
                                         proc.delete()
@@ -3534,7 +3538,8 @@ def change_rand(request, rand_id):
                                     for ex_ct in old_rt.producing_commitments():
                                         if rand == ex_ct.independent_demand:
                                             trash = []
-                                            collect_trash(ex_ct, trash)
+                                            visited_resources = set()
+                                            collect_trash(ex_ct, trash, visited_resources)
                                             for proc in trash:
                                                 #todo: feeder process with >1 outputs 
                                                 # shd find the correct output to delete

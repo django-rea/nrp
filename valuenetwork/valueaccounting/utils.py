@@ -286,7 +286,7 @@ def backschedule_order(order, events):
         events['events'].append(te.dictify())
         backschedule_process(order, pc.process, events)
 
-def generate_schedule(process, order, user):
+def recursively_explode_demands(process, order, user):
     pt = process.process_type
     output = process.main_outgoing_commitment()
     for ptrt in pt.consumed_resource_type_relationships():
@@ -329,7 +329,7 @@ def generate_schedule(process, order, user):
                 created_by=user,
             )
             next_commitment.save()
-            generate_schedule(next_process, order, user)
+            recursively_explode_demands(next_process, order, user)
 
 class XbillNode(object):
     def __init__(self, node, depth):

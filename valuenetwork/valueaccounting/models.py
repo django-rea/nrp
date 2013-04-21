@@ -430,6 +430,29 @@ class EconomicResourceType(models.Model):
             resource_type=self,
             quantity__gt=0)
 
+    def onhand_qty(self):
+        return sum(oh.quantity for oh in self.onhand())
+
+    def onhand_qty_for_commitment(self, commitment):
+        oh_qty = self.onhand_qty()
+        due_date = commitment.due_date
+        priors = self.wanting_commitments().filter(due_date__lt=due_date)
+        remainder = oh_qty - sum(p.quantity for p in priors)
+        if remainder > 0:
+            return remainder
+        else:
+            return Decimal("0")
+
+    def scheduled_qty_for_commitment(self, commitment):
+        sked_qty = self.scheduled_qty()
+        due_date = commitment.due_date
+        priors = self.wanting_commitments().filter(due_date__lt=due_date)
+        remainder = sked_qty - sum(p.quantity for p in priors)
+        if remainder > 0:
+            return remainder
+        else:
+            return Decimal("0")
+
     def producing_process_type_relationships(self):
         return self.process_types.filter(relationship__direction='out')
 
@@ -523,6 +546,9 @@ class EconomicResourceType(models.Model):
     def consuming_commitments(self):
         return self.commitments.exclude(
             relationship__event_type__resource_effect='+')
+
+    def scheduled_qty(self):
+        return sum(pc.quantity for pc in self.producing_commitments())
 
     def xbill_parents(self):
         answer = list(self.consuming_process_type_relationships())
@@ -1869,6 +1895,17 @@ class Commitment(models.Model):
                 if not self.resource_type.producing_commitments():
                     return Decimal("1")
         return Decimal("0")
+
+    def net(self):
+        rt = self.resource_type
+        oh_qty = rt.onhand_qty_for_commitment(self)
+        if oh_qty >= self.quantity:
+            return 0
+        remainder = self.quantity - oh_qty
+        sked_qty = rt.scheduled_qty_for_commitment(self)
+        if sked_qty >= remainder:
+            return 0
+        return remainder - sked_qty
   
     def creates_resources(self):
         return self.event_type.creates_resources()

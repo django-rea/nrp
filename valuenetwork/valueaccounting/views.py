@@ -1123,7 +1123,9 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             commitment.save()
-                            generate_schedule(process, order, request.user)
+                            #todo: needs testing
+                            explode_dependent_demands(commitment, request.user)
+                            
                         else:
                             rel = ResourceRelationship.objects.get(
                                 materiality=rt.materiality,
@@ -1168,34 +1170,7 @@ def create_order(request):
                                         created_by=request.user,
                                     )
                                     commitment.save()
-                                    pptr = component.main_producing_process_type_relationship()
-                                    if pptr:
-                                        next_pt = pptr.process_type
-                                        start_date = process.start_date - datetime.timedelta(minutes=next_pt.estimated_duration)
-                                        next_process = Process(          
-                                            name=next_pt.name,
-                                            process_type=next_pt,
-                                            project=next_pt.project,
-                                            url=next_pt.url,
-                                            end_date=process.start_date,
-                                            start_date=start_date,
-                                            created_by=request.user,
-                                        )
-                                        next_process.save()
-                                        next_commitment = Commitment(
-                                            independent_demand=order,
-                                            event_type=pptr.relationship.event_type,
-                                            relationship=pptr.relationship,
-                                            due_date=process.start_date,
-                                            resource_type=pptr.resource_type,
-                                            process=next_process,
-                                            project=next_pt.project,
-                                            quantity=qty * feature.quantity,
-                                            unit_of_quantity=pptr.resource_type.unit,
-                                            created_by=request.user,
-                                        )
-                                        next_commitment.save()
-                                        generate_schedule(next_process, order, request.user)
+                                    explode_dependent_demands(commitment, request.user)
                                 else:
                                     commitment = Commitment(
                                         independent_demand=order,
@@ -1648,36 +1623,7 @@ def new_process_input(request, commitment_id):
                 if ptrt:
                     ct.project = ptrt.process_type.project
                 ct.save()
-                rt = ct.resource_type
-                ptrt = rt.main_producing_process_type_relationship()
-                if ptrt:
-                    pt = ptrt.process_type
-                    start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
-                    feeder_process = Process(
-                        name=pt.name,
-                        process_type=pt,
-                        project=pt.project,
-                        url=pt.url,
-                        end_date=process.start_date,
-                        start_date=start_date,
-                        created_by=request.user,
-                    )
-                    feeder_process.save()
-                    output_commitment = Commitment(
-                        independent_demand = demand,
-                        event_type=ptrt.relationship.event_type,
-                        relationship=ptrt.relationship,
-                        due_date=process.start_date,
-                        resource_type=rt,
-                        process=feeder_process,
-                        project=pt.project,
-                        quantity=qty,
-                        unit_of_quantity=rt.unit,
-                        created_by=request.user,
-                    )
-                    output_commitment.save()
-                    generate_schedule(feeder_process, demand, request.user)
-                
+                explode_dependent_demands(ct, request.user)                
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
             % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
@@ -2580,35 +2526,7 @@ def create_process(request):
                         rt = ct.resource_type
                         ptrt = rt.main_producing_process_type_relationship()
                         ct.save()
-
-
-                        if ptrt:
-                            pt = ptrt.process_type
-                            start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
-                            feeder_process = Process(
-                                name=pt.name,
-                                process_type=pt,
-                                project=pt.project,
-                                url=pt.url,
-                                end_date=process.start_date,
-                                start_date=start_date,
-                                created_by=request.user,
-                            )
-                            feeder_process.save()
-                            output_commitment = Commitment(
-                                independent_demand = demand,
-                                event_type=ptrt.relationship.event_type,
-                                relationship=ptrt.relationship,
-                                due_date=process.start_date,
-                                resource_type=rt,
-                                process=feeder_process,
-                                project=pt.project,
-                                quantity=qty,
-                                unit_of_quantity=rt.unit,
-                                created_by=request.user,
-                            )
-                            output_commitment.save()
-                            generate_schedule(feeder_process, demand, request.user)
+                        explode_dependent_demands(ct, request.user)
             if just_save:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/process', process.id))
@@ -2723,35 +2641,7 @@ def copy_process(request, process_id):
                         rt = ct.resource_type
                         ptrt = rt.main_producing_process_type_relationship()
                         ct.save()
-
-
-                        if ptrt:
-                            pt = ptrt.process_type
-                            start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
-                            feeder_process = Process(
-                                name=pt.name,
-                                process_type=pt,
-                                project=pt.project,
-                                url=pt.url,
-                                end_date=process.start_date,
-                                start_date=start_date,
-                                created_by=request.user,
-                            )
-                            feeder_process.save()
-                            output_commitment = Commitment(
-                                independent_demand = demand,
-                                event_type=ptrt.relationship.event_type,
-                                relationship=ptrt.relationship,
-                                due_date=process.start_date,
-                                resource_type=rt,
-                                process=feeder_process,
-                                project=pt.project,
-                                quantity=qty,
-                                unit_of_quantity=rt.unit,
-                                created_by=request.user,
-                            )
-                            output_commitment.save()
-                            generate_schedule(feeder_process, demand, request.user)
+                        explode_dependent_demands(ct, request.user)
             if just_save:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/process', process.id))
@@ -2993,14 +2883,14 @@ def change_process(request, process_id):
                                 delta = qty - old_ct.quantity
                                 for pc in propagators:
                                     if demand != existing_demand:
-                                        propagate_changes(pc, delta, existing_demand, demand)
+                                        propagate_changes(pc, delta, existing_demand, demand, [])
                                     else:
-                                        propagate_qty_change(pc, delta) 
+                                        propagate_qty_change(pc, delta, []) 
                             else:
                                 if demand != existing_demand:
                                     delta = Decimal("0")
                                     for pc in propagators:
-                                        propagate_changes(pc, delta, existing_demand, demand)                    
+                                        propagate_changes(pc, delta, existing_demand, demand, [])                    
                             ct.changed_by = request.user
                             rt = input_data["resource_type"]
                             rel = ResourceRelationship.objects.get(
@@ -3027,35 +2917,7 @@ def change_process(request, process_id):
                                 ct.project = ptrt.process_type.project
                         ct.save()
                         if explode:
-                            rt = ct.resource_type
-                            ptrt = rt.main_producing_process_type_relationship()
-                            if ptrt:
-                                pt = ptrt.process_type
-                                start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
-                                feeder_process = Process(
-                                    name=pt.name,
-                                    process_type=pt,
-                                    project=pt.project,
-                                    url=pt.url,
-                                    end_date=process.start_date,
-                                    start_date=start_date,
-                                    created_by=request.user,
-                                )
-                                feeder_process.save()
-                                output_commitment = Commitment(
-                                    independent_demand = demand,
-                                    event_type=ptrt.relationship.event_type,
-                                    relationship=ptrt.relationship,
-                                    due_date=process.start_date,
-                                    resource_type=rt,
-                                    process=feeder_process,
-                                    project=pt.project,
-                                    quantity=qty,
-                                    unit_of_quantity=rt.unit,
-                                    created_by=request.user,
-                                )
-                                output_commitment.save()
-                                generate_schedule(feeder_process, demand, request.user)
+                            explode_dependent_demands(ct, request.user)
             if just_save:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/process', process.id))
@@ -3074,67 +2936,73 @@ def change_process(request, process_id):
 
 def explode_dependent_demands(commitment, user):
     #import pdb; pdb.set_trace()
-    rt = commitment.resource_type
-    ptrt = rt.main_producing_process_type_relationship()
-    demand = commitment.independent_demand
-    if ptrt:
-        pt = ptrt.process_type
-        start_date = commitment.due_date - datetime.timedelta(minutes=pt.estimated_duration)
-        feeder_process = Process(
-            name=pt.name,
-            process_type=pt,
-            project=pt.project,
-            url=pt.url,
-            end_date=commitment.due_date,
-            start_date=start_date,
-            created_by=user,
-        )
-        feeder_process.save()
-        output_commitment = Commitment(
-            independent_demand=demand,
-            event_type=ptrt.relationship.event_type,
-            relationship=ptrt.relationship,
-            due_date=commitment.due_date,
-            resource_type=rt,
-            process=feeder_process,
-            project=pt.project,
-            quantity=commitment.quantity,
-            unit_of_quantity=rt.unit,
-            created_by=user,
-        )
-        output_commitment.save()
-        generate_schedule(feeder_process, demand, user)
-
-def propagate_qty_change(commitment, delta):
+    qty_to_explode = commitment.net()
+    if qty_to_explode:
+        rt = commitment.resource_type
+        ptrt = rt.main_producing_process_type_relationship()
+        demand = commitment.independent_demand
+        if ptrt:
+            pt = ptrt.process_type
+            start_date = commitment.due_date - datetime.timedelta(minutes=pt.estimated_duration)
+            feeder_process = Process(
+                name=pt.name,
+                process_type=pt,
+                project=pt.project,
+                url=pt.url,
+                end_date=commitment.due_date,
+                start_date=start_date,
+                created_by=user,
+            )
+            feeder_process.save()
+            output_commitment = Commitment(
+                independent_demand=demand,
+                event_type=ptrt.relationship.event_type,
+                relationship=ptrt.relationship,
+                due_date=commitment.due_date,
+                resource_type=rt,
+                process=feeder_process,
+                project=pt.project,
+                quantity=qty_to_explode,
+                unit_of_quantity=rt.unit,
+                created_by=user,
+            )
+            output_commitment.save()
+            recursively_explode_demands(feeder_process, demand, user)
+    
+def propagate_qty_change(commitment, delta, visited):
     #import pdb; pdb.set_trace()
     process = commitment.process
-    for ic in process.incoming_commitments():
-        ratio = ic.quantity / commitment.quantity 
-        new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
-        ic.quantity += new_delta
-        ic.save()
-        rt = ic.resource_type
-        demand = ic.independent_demand
-        for pc in rt.producing_commitments():
-            if pc.independent_demand == demand:
-                propagate_qty_change(pc, new_delta)
+    if process not in visited:
+        visited.append(process)
+        for ic in process.incoming_commitments():
+            ratio = ic.quantity / commitment.quantity 
+            new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
+            ic.quantity += new_delta
+            ic.save()
+            rt = ic.resource_type
+            demand = ic.independent_demand
+            for pc in rt.producing_commitments():
+                if pc.independent_demand == demand:
+                    propagate_qty_change(pc, new_delta, visited)
     commitment.quantity += delta
     commitment.save()  
 
-def propagate_changes(commitment, delta, old_demand, new_demand):
+def propagate_changes(commitment, delta, old_demand, new_demand, visited):
     #import pdb; pdb.set_trace()
     process = commitment.process
-    for ic in process.incoming_commitments():
-        ratio = ic.quantity / commitment.quantity 
-        new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
-        ic.quantity += new_delta
-        ic.independent_demand = new_demand
-        ic.save()
-        rt = ic.resource_type
-        demand = ic.independent_demand
-        for pc in rt.producing_commitments():
-            if pc.independent_demand == old_demand:
-                propagate_changes(pc, new_delta, old_demand, new_demand)
+    if process not in visited:
+        visited.append(process)
+        for ic in process.incoming_commitments():
+            ratio = ic.quantity / commitment.quantity 
+            new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
+            ic.quantity += new_delta
+            ic.independent_demand = new_demand
+            ic.save()
+            rt = ic.resource_type
+            demand = ic.independent_demand
+            for pc in rt.producing_commitments():
+                if pc.independent_demand == old_demand:
+                    propagate_changes(pc, new_delta, old_demand, new_demand, visited)
     commitment.quantity += delta
     commitment.independent_demand = new_demand
     commitment.save()    
@@ -3227,33 +3095,7 @@ def create_rand(request):
                             if ptrt:
                                 ct.project = ptrt.process_type.project
                             ct.save()
-                            if ptrt:
-                                pt = ptrt.process_type
-                                start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
-                                feeder_process = Process(
-                                    name=pt.name,
-                                    process_type=pt,
-                                    project=pt.project,
-                                    url=pt.url,
-                                    end_date=process.start_date,
-                                    start_date=start_date,
-                                    created_by=request.user,
-                                )
-                                feeder_process.save()
-                                output_commitment = Commitment(
-                                    independent_demand=rand,
-                                    event_type=ptrt.relationship.event_type,
-                                    relationship=ptrt.relationship,
-                                    due_date=process.start_date,
-                                    resource_type=rt,
-                                    process=feeder_process,
-                                    project=pt.project,
-                                    quantity=qty,
-                                    unit_of_quantity=rt.unit,
-                                    created_by=request.user,
-                                )
-                                output_commitment.save()
-                                generate_schedule(feeder_process, rand, request.user)
+                            explode_dependent_demands(ct, request.user)
                 if just_save:
                     return HttpResponseRedirect('/%s/%s/'
                         % ('accounting/order-schedule', rand.id))
@@ -3391,33 +3233,7 @@ def copy_rand(request, rand_id):
                             if ptrt:
                                 ct.project = ptrt.process_type.project
                             ct.save()
-                            if ptrt:
-                                pt = ptrt.process_type
-                                start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
-                                feeder_process = Process(
-                                    name=pt.name,
-                                    process_type=pt,
-                                    project=pt.project,
-                                    url=pt.url,
-                                    end_date=process.start_date,
-                                    start_date=start_date,
-                                    created_by=request.user,
-                                )
-                                feeder_process.save()
-                                output_commitment = Commitment(
-                                    independent_demand=rand,
-                                    event_type=ptrt.relationship.event_type,
-                                    relationship=ptrt.relationship,
-                                    due_date=process.start_date,
-                                    resource_type=rt,
-                                    process=feeder_process,
-                                    project=pt.project,
-                                    quantity=qty,
-                                    unit_of_quantity=rt.unit,
-                                    created_by=request.user,
-                                )
-                                output_commitment.save()
-                                generate_schedule(feeder_process, rand, request.user)
+                            explode_dependent_demands(ct, request.user)
                 if just_save:
                     return HttpResponseRedirect('/%s/%s/'
                         % ('accounting/order-schedule', rand.id))
@@ -3570,10 +3386,11 @@ def change_rand(request, rand_id):
                                         ct.project = ptrt.process_type.project
                                     explode = True                                 
                                 elif qty != old_ct.quantity:
+                                    #import pdb; pdb.set_trace()
                                     delta = qty - old_ct.quantity
                                     for pc in ct.resource_type.producing_commitments():
                                         if pc.independent_demand == demand:
-                                            propagate_qty_change(pc, delta)                                
+                                            propagate_qty_change(pc, delta, [])                                
                                 ct.changed_by = request.user
                                 rt = input_data["resource_type"]
                                 rel = ResourceRelationship.objects.get(
@@ -3600,35 +3417,7 @@ def change_rand(request, rand_id):
                                     ct.project = ptrt.process_type.project
                             ct.save()
                             if explode:
-                                rt = ct.resource_type
-                                ptrt = rt.main_producing_process_type_relationship()
-                                if ptrt:
-                                    pt = ptrt.process_type
-                                    start_date = process.start_date - datetime.timedelta(minutes=pt.estimated_duration)
-                                    feeder_process = Process(
-                                        name=pt.name,
-                                        process_type=pt,
-                                        project=pt.project,
-                                        url=pt.url,
-                                        end_date=process.start_date,
-                                        start_date=start_date,
-                                        created_by=request.user,
-                                    )
-                                    feeder_process.save()
-                                    output_commitment = Commitment(
-                                        independent_demand=rand,
-                                        event_type=ptrt.relationship.event_type,
-                                        relationship=ptrt.relationship,
-                                        due_date=process.start_date,
-                                        resource_type=rt,
-                                        process=feeder_process,
-                                        project=pt.project,
-                                        quantity=qty,
-                                        unit_of_quantity=rt.unit,
-                                        created_by=request.user,
-                                    )
-                                    output_commitment.save()
-                                    generate_schedule(feeder_process, rand, request.user)
+                                explode_dependent_demands(ct, request.user)
                 if just_save:
                     return HttpResponseRedirect('/%s/%s/'
                         % ('accounting/order-schedule', rand.id))

@@ -601,7 +601,8 @@ def delete_order(request, order_id):
                 processes = []
                 for ct in commitments:
                     if ct.process:
-                        processes.append(ct.process)
+                        if ct.process not in processes:
+                            processes.append(ct.process)
                     for event in ct.fulfillment_events.all():
                         event.commitment = None
                         event.save()

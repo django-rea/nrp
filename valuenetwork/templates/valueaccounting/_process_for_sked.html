@@ -84,9 +84,11 @@
 						    </div>
 
 					    {% endif %}
-					    <ul>
-				            <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
-			            </ul>
+					    {% if item.description %}
+						    <ul>
+	                            <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                            </ul>
+                        {% endif %}
 					{% endif %}
 
 				</li>

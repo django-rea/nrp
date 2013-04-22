@@ -544,8 +544,8 @@ class EconomicResourceType(models.Model):
             relationship__event_type__resource_effect='+')
 
     def consuming_commitments(self):
-        return self.commitments.exclude(
-            relationship__event_type__resource_effect='+')
+        return self.commitments.filter(
+            relationship__event_type__resource_effect='-')
 
     def scheduled_qty(self):
         return sum(pc.quantity for pc in self.producing_commitments())

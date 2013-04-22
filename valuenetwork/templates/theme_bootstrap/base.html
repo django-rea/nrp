@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load staticfiles %}
+{% load i18n %}
 {% load url from future %}
 
 <html lang="{{ LANGUAGE_CODE }}">
@@ -43,16 +44,44 @@
                             <div class="nav-collapse">
                                 {% block nav %}
                                         <ul class="nav">
-                                            <li id="home" ><a href="{% url 'home' %}">Home</a></li>
+                                            <li id="home" ><a href="{% url 'home' %}">{% trans 'Home' %}</a></li>
                                             {% if request.user.is_authenticated %}
-                                                <li id="start" ><a href="{% url 'start' %}">Start</a></li>
+                                                <li id="start" >
+                                                    <a href="{% url 'start' %}"  
+                                                    title="{% trans 'Your work and comparative stats' %}"  
+                                                    >{% trans 'Start' %}</a>
+                                                </li>
                                             {% endif %}
-                                            <li id="demand" ><a href="{% url 'demand' %}">Demand</a></li>
-                                            <li id="supply" ><a href="{% url 'supply' %}">Supply</a></li>
-                                            <li id="inventory" ><a href="{% url 'inventory' %}">Inventory</a></li>
-                                            <li id="work" ><a href="{% url 'work' %}">Work</a></li>
-                                            <li id="resource-types" ><a href="{% url 'resource_types' %}">Resource Types</a></li>
-                                            <li id="projects" ><a href="{% url 'projects' %}">Projects</a></li>
+                                            <li id="demand" >
+                                                <a href="{% url 'demand' %}" 
+                                                title="{% trans 'Customer and R&amp;D Orders' %}" 
+                                                >{% trans 'Demand' %}</a>
+                                            </li>
+                                            <li id="supply" >
+                                                <a href="{% url 'supply' %}" 
+                                                title="{% trans 'Purchasing requirements now, purchasing forms to come' %}" 
+                                                >{% trans 'Supply' %}</a>
+                                            </li>
+                                            <li id="inventory" >
+                                                <a href="{% url 'inventory' %}" 
+                                                title="{% trans 'Available resources with their histories' %}"  
+                                                >{% trans 'Inventory' %}</a>
+                                            </li>
+                                            <li id="work" >
+                                                <a href="{% url 'work' %}" 
+                                                title="{% trans 'All the work in the network for a date range' %}" 
+                                                >{% trans 'Work' %}</a>
+                                            </li>
+                                            <li id="resource-types" >
+                                                <a href="{% url 'resource_types' %}" 
+                                                title="{% trans 'Resource types and recipes' %}" 
+                                                >{% trans 'Resource Types' %}</a>
+                                            </li>
+                                            <li id="projects" >
+                                                <a href="{% url 'projects' %}" 
+                                                title="{% trans 'Projects and their contributions' %}" 
+                                                >{% trans 'Projects' %}</a>
+                                            </li>
                                         </ul>
                                  {% endblock %}
                                 {% block account_bar %}{% include "_account_bar.html" %}{% endblock %}

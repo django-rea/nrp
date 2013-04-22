@@ -43,6 +43,13 @@
     border: 1px solid gainsboro;
 }
 
+.work-description {
+    font-size: .8em;
+    font-style: italic;
+    font-weight: normal;
+    margin-bottom: 0;
+}
+
 </style>
 {% endblock %}
 
@@ -205,6 +212,11 @@
 										</div>
 
 									{% endif %}
+									{% if item.description %}
+									    <ul>
+				                            <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+			                            </ul>
+			                        {% endif %}
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
 									{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
@@ -318,6 +330,11 @@
 										</div>
 
 									{% endif %}
+									{% if item.description %}
+									    <ul>
+				                            <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+			                            </ul>
+			                        {% endif %}
 
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">

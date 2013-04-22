@@ -50,6 +50,7 @@
 			{% for item in process.unfinished_work_requirements %}
 				<li class="work">
 					<span class="name deliverable-name">{{ item.resource_type.name }}:</span> {{ item.quantity }} {{ item.unit_of_quantity }}
+					
 					{% if item.from_agent %}
 					    <span class="taken">{% trans "Taken by" %} {{ item.from_agent.nick }}</span>
 					{% else %}
@@ -83,6 +84,9 @@
 						    </div>
 
 					    {% endif %}
+					    <ul>
+				            <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+			            </ul>
 					{% endif %}
 
 				</li>

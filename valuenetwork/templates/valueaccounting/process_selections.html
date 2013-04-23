@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Log resource production" %}{% endblock %}
+{% block head_title %}{% trans "R&D Production" %}{% endblock %}
 
 {% block extra_head %}
 
@@ -50,7 +50,7 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Log resource production" %}</legend>
+		<legend>{% trans "R&D Production" %}</legend>
 		<form class="form-horizontal" id="processForm" method="POST" action=".">
 			{% csrf_token %}
 		<div class="row-fluid">
@@ -170,7 +170,7 @@
                             <table class="table" >
                                 <tr>
                                     <td>
-			                            <input type="submit" name="edit-process" value="{% trans 'Edit process' %}" class="btn btn-primary" />
+			                            <input type="submit" name="edit-process" value="{% trans 'Plan work' %}" class="btn btn-primary" />
 			                            </br>Create new resource types or change process info.
 		                            </td>
 		                            <td id="fastpath">

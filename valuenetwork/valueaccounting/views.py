@@ -312,6 +312,22 @@ def unscheduled_time_contributions(request):
         "time_formset": time_formset,
     }, context_instance=RequestContext(request))
 
+@login_required
+def log_simple(request):
+    member = get_agent(request)
+    if not member:
+        return HttpResponseRedirect('/%s/'
+            % ('accounting/work'))
+
+    if request.method == "POST":
+	    save = request.POST.get("save")
+
+    
+    return render_to_response("valueaccounting/log_simple.html", {
+        "member": member,
+    }, context_instance=RequestContext(request))
+
+
 
 class EventSummary(object):
     def __init__(self, agent, role, quantity, value=Decimal('0.0')):

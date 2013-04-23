@@ -86,7 +86,7 @@
 					    {% endif %}
 					    {% if item.description %}
 						    <ul>
-	                            <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+	                            <li class="req-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
                             </ul>
                         {% endif %}
 					{% endif %}
@@ -104,6 +104,11 @@
 			    <li class="material" >
 				    <span class="name material-name">{{ reqmt.resource_type.name }}:</span>  {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
 			    </li>
+			    {% if reqmt.description %}
+				    <ul>
+                        <li class="req-description">{{ reqmt.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                    </ul>
+                {% endif %}
 			    {% if reqmt.resource_type.onhand %}
 			        <ul>
 				        {% for resource in reqmt.resource_type.onhand %}
@@ -145,6 +150,11 @@
 
 				    <span class="name tool-name">{{ reqmt.resource_type.name }}:</span> {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}
 			    </li>
+			    {% if reqmt.description %}
+				    <ul>
+                        <li class="req-description">{{ reqmt.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                    </ul>
+                {% endif %}
 			    {% if reqmt.resource_type.onhand %}
 		            <ul>
 			            {% for resource in reqmt.resource_type.onhand %}

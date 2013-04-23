@@ -2699,15 +2699,19 @@ def change_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     demand = process.independent_demand()
     existing_demand = demand
-    if demand.order_type != "holder":
-        init = {}
-        if not demand.receiver:
-            init = {'create_order': True,}
-        rand_form = RandOrderForm(
-            instance=demand,
-            data=request.POST or None,
-            initial=init)
-        demand_form = None
+    if demand:
+        if demand.order_type != "holder":
+            init = {}
+            if not demand.receiver:
+                init = {'create_order': True,}
+            rand_form = RandOrderForm(
+                instance=demand,
+                data=request.POST or None,
+                initial=init)
+            demand_form = None
+        else:
+            demand_form = DemandSelectionForm(data=request.POST or None)    
+            rand_form = RandOrderForm(data=request.POST or None)
     else:
         demand_form = DemandSelectionForm(data=request.POST or None)    
         rand_form = RandOrderForm(data=request.POST or None)

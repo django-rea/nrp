@@ -1453,8 +1453,15 @@ def commit_to_task(request, commitment_id):
             ct.from_agent = agent
             ct.created_by=request.user
             ct.save()
+            #todo: might want to change both start and end dates
             if start_date != process.start_date:
-                process.start_date = start_date
+                if process.work_requirements().count() == 1:
+                    process.start_date = start_date
+                if process.end_date:
+                    if start_date > process.end_date:
+                        process.end_date = start_date
+                else:
+                    process.end_date = start_date
                 process.changed_by=request.user
                 process.save()
             if request.POST.get("start"):
@@ -2676,7 +2683,7 @@ def change_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     demand = process.independent_demand()
     existing_demand = demand
-    if demand:
+    if demand.order_type != "holder":
         init = {}
         if not demand.receiver:
             init = {'create_order': True,}

@@ -34,7 +34,7 @@ class FailedOutputForm(forms.ModelForm):
 
 class DemandSelectionForm(forms.Form):
     demand = forms.ModelChoiceField(
-        queryset=Order.objects.all(), 
+        queryset=Order.objects.exclude(order_type="holder"), 
         label="For customer or R&D order (optional)",
         required=False)
 

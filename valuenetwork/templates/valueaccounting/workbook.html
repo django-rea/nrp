@@ -93,12 +93,7 @@
 
 			<form id="labnotesForm" method="POST" action="">
 				{% csrf_token %}
-				<p>
-				    {% if process.work_requirements.count > 1 %}
-				        {% trans "My work is done" %} {{ wb_form.work_done }}
-				    {% endif %}
-			        {% trans "This process is done" %} {{ wb_form.process_done }}
-				</p>
+
 				<div class="control-group">
 					<label><b>{% trans "Description of work done" %}:</b></label>
 					{{ wb_form.description }}
@@ -106,6 +101,19 @@
 			</div>
 			<div class="span5">
 			    <div class="row-fluid">
+				    <div class="span8">
+					    <p>
+					        {% if process.work_requirements.count > 1 %}
+						        {% trans "My work is done" %} {{ wb_form.work_done }}
+					        {% endif %}
+					        {% trans "This process is done" %} {{ wb_form.process_done }}
+					    </p>
+				    </div>
+				    <div class="span2">
+				        <a href="{% url labnote commitment_id=commitment.id %}" class="btn btn-primary btn-mini">{% trans "X" %}</a>
+			        </div>
+</div>
+<div class="row-fluid">
 			        <div class="span10">
 				        <button role="button" id="startButton" name="start" class="btn btn-info" >{% trans "Start" %}</button>
 				        <button role="button" id="stop" name="stop"  class="btn btn-info" disabled="disabled" >{% trans "Stop" %}</button>
@@ -118,9 +126,7 @@
 				        </div>
 				    </div>
 				    </form>
-                    <div class="span2">
-				        <a href="{% url labnote commitment_id=commitment.id %}" class="btn btn-primary btn-mini">{% trans "X" %}</a>
-			        </div>
+                    
 			    </div>
             
                 <div class="row-fluid">

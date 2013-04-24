@@ -72,10 +72,16 @@
 	                <td>{{ form.description }}</td>
 	            </tr>
            	{% endfor %}
+           	<tr>
+           	    <td>&nbsp;</td><td>&nbsp;</td><td style="text-align: right;" >{% trans 'Total' %}:</td>
+           	    <td style="text-align: right;" ><span id="total"></span> {% trans 'hours' %}</td>
+           	    <td>&nbsp;</td><td>&nbsp;</td>
+           	</tr>
             </tbody>
         </table>
         <div class="row-fluid">
-            <div class="span9"></div>
+            <div class="span9">
+            </div>
             <div class="span3" >
 			    <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
 			    <input type="submit" name="keep-going" value="{% trans 'Save and add more' %}" class="btn btn-primary" />
@@ -115,9 +121,33 @@
 		    }
 
 		});
-        
+
+        $('.days').blur(sumTime);
+        $('.hours').blur(sumTime);
+        $('.minutes').blur(sumTime);
+
 
     }); // end document.ready
+
+    function sumTime(event)
+	{
+	    var prefix = "id_form-";
+	    var total = 0.0;
+	    for (i=0;i<8;i++)
+	    {
+            var dayId = "#" + prefix + i + "-quantity_0";
+            var days = parseInt($(dayId).val());
+            var hourId = "#" + prefix + i + "-quantity_1";
+            var hours = parseInt($(hourId).val());
+            var minuteId = "#" + prefix + i + "-quantity_2";
+            var minutes = parseInt($(minuteId).val());
+            var d = days * 24;
+            var duration = (days * 24) + hours; 
+            duration += (minutes / 60);
+            total += duration; 
+	    }
+        $("#total").text(Math.round(total*100)/100);
+	}
 
     </script>
     

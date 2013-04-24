@@ -331,6 +331,7 @@ class EconomicResourceTypeManager(models.Manager):
         return [rel.materiality for rel in rels]
 
     def process_inputs(self):
+        #import pdb; pdb.set_trace()
         choices = self.input_choices()
         return EconomicResourceType.objects.filter(materiality__in=choices)
 
@@ -1307,10 +1308,15 @@ class Process(models.Model):
         )
 
     def tool_requirements(self):
-        return self.commitments.filter(
+        answer = list(self.commitments.filter(
             relationship__direction='in',
             resource_type__materiality='tool',
-        )
+        ))
+        answer.extend(list(self.commitments.filter(
+            relationship__direction='in',
+            resource_type__materiality='purchtool',
+        )))
+        return answer
 
     def space_requirements(self):
         return self.commitments.filter(
@@ -2092,6 +2098,14 @@ class EconomicEvent(models.Model):
     def work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import WorkEventChangeForm
         return WorkEventChangeForm(instance=self)
+
+    def change_date_form(self):
+        from valuenetwork.valueaccounting.forms import EventChangeDateForm
+        return EventChangeDateForm(instance=self)
+
+    def change_quantity_form(self):
+        from valuenetwork.valueaccounting.forms import EventChangeQuantityForm
+        return EventChangeQuantityForm(instance=self)
 
 
 #todo: not used

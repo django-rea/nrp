@@ -1733,6 +1733,28 @@ def delete_commitment(request, commitment_id, labnotes_id):
         return HttpResponseRedirect('/%s/%s/%s/%s/'
             % ('accounting/labnotes-reload', labnotes_id, was_running, was_retrying))
 
+def change_event_date(request):
+    #import pdb; pdb.set_trace()
+    event_id = request.POST.get("eventId")
+    event = get_object_or_404(EconomicEvent, pk=event_id)
+    form = EventChangeDateForm(data=request.POST, instance=event, prefix=event_id)
+    if form.is_valid():
+        data = form.cleaned_data
+        event = form.save()
+
+    return HttpResponse("Ok", mimetype="text/plain")
+
+def change_event_qty(request):
+    #import pdb; pdb.set_trace()
+    event_id = request.POST.get("eventId")
+    event = get_object_or_404(EconomicEvent, pk=event_id)
+    form = EventChangeQuantityForm(data=request.POST, instance=event, prefix=event_id)
+    if form.is_valid():
+        data = form.cleaned_data
+        event = form.save()
+
+    return HttpResponse("Ok", mimetype="text/plain")
+
 def work_done(request):
     #import pdb; pdb.set_trace()
     commitment_id = int(request.POST.get("commitmentId"))
@@ -1749,7 +1771,6 @@ def work_done(request):
 
     return HttpResponse("Ok", mimetype="text/plain")
 
-   
 def process_done(request):
     #import pdb; pdb.set_trace()
     process_id = int(request.POST.get("processId"))

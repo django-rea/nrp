@@ -141,6 +141,7 @@ urlpatterns = patterns("",
     url(r"^change-work-event/(?P<event_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_work_event', 
         name="change_work_event"),
     url(r"^sessions/$", 'valuenetwork.valueaccounting.views.sessions', name="sessions"),
-    #url(r"^schedule-dates/$", 'valuenetwork.valueaccounting.views.schedule_dates', name="schedule_dates"),
+    url(r"^change-event-date/$", 'valuenetwork.valueaccounting.views.change_event_date', name="change_event_date"),
+    url(r"^change-event-qty/$", 'valuenetwork.valueaccounting.views.change_event_qty', name="change_event_qty"),
         
 )

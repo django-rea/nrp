@@ -2101,11 +2101,11 @@ class EconomicEvent(models.Model):
 
     def change_date_form(self):
         from valuenetwork.valueaccounting.forms import EventChangeDateForm
-        return EventChangeDateForm(instance=self)
+        return EventChangeDateForm(instance=self, prefix=str(self.id))
 
     def change_quantity_form(self):
         from valuenetwork.valueaccounting.forms import EventChangeQuantityForm
-        return EventChangeQuantityForm(instance=self)
+        return EventChangeQuantityForm(instance=self, prefix=str(self.id))
 
 
 #todo: not used

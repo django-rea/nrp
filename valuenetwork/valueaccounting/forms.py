@@ -220,6 +220,22 @@ class WorkEventChangeForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('id', 'event_date', 'quantity')
 
+class EventChangeDateForm(forms.ModelForm):
+    id = forms.CharField(required=False, widget=forms.HiddenInput)
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+	
+    class Meta:
+        model = EconomicEvent
+        fields = ('id', 'event_date')
+
+class EventChangeQuantityForm(forms.ModelForm):
+    id = forms.CharField(required=False, widget=forms.HiddenInput)
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+	
+    class Meta:
+        model = EconomicEvent
+        fields = ('id', 'quantity')
+
 
 class WorkSelectionForm(forms.Form):
     type_of_work = forms.ChoiceField()

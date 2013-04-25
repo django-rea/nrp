@@ -3,7 +3,7 @@
 {% load i18n %}
 
 {% block head_title %}{% trans "Projects" %}{% endblock %}
-
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 {% block body_class %}projects{% endblock %}
 
 {% block body_base %}
@@ -61,6 +61,12 @@
 	</div>
     </div>
 {% endblock %}
+
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+
 {% block extra_body %}
 	{{ block.super }}
     <script type="text/javascript">
@@ -68,6 +74,12 @@
 	$(document).ready(function(){
 
 		$('#projects').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
 
 	}); // end document.ready
 

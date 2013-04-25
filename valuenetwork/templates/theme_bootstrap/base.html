@@ -45,13 +45,6 @@
                                 {% block nav %}
                                         <ul class="nav">
                                             <li id="home" ><a href="{% url 'home' %}">{% trans 'Home' %}</a></li>
-                                            {% if request.user.is_authenticated %}
-                                                <li id="start" >
-                                                    <a href="{% url 'start' %}"  
-                                                    title="{% trans 'Your work and comparative stats' %}"  
-                                                    >{% trans 'Start' %}</a>
-                                                </li>
-                                            {% endif %}
                                             <li id="demand" >
                                                 <a href="{% url 'demand' %}" 
                                                 title="{% trans 'Customer and R&amp;D Orders' %}" 
@@ -67,11 +60,6 @@
                                                 title="{% trans 'Available resources with their histories' %}"  
                                                 >{% trans 'Inventory' %}</a>
                                             </li>
-                                            <li id="work" >
-                                                <a href="{% url 'work' %}" 
-                                                title="{% trans 'All the work in the network for a date range' %}" 
-                                                >{% trans 'Work' %}</a>
-                                            </li>
                                             <li id="resource-types" >
                                                 <a href="{% url 'resource_types' %}" 
                                                 title="{% trans 'Resource types and recipes' %}" 
@@ -82,6 +70,18 @@
                                                 title="{% trans 'Projects and their contributions' %}" 
                                                 >{% trans 'Projects' %}</a>
                                             </li>
+                                            {% if request.user.is_authenticated %}
+                                                <li id="start" >
+                                                    <a href="{% url 'start' %}"  
+                                                    title="{% trans 'Your work and comparative stats' %}"  
+                                                    >{% trans 'My Work' %}</a>
+                                                </li>
+                                            {% endif %}
+                                            <li id="work" >
+                                                <a href="{% url 'work' %}" 
+                                                title="{% trans 'All the work in the network for a date range' %}" 
+                                                >{% trans 'All Work' %}</a>
+                                            </li>
                                         </ul>
                                  {% endblock %}
                                 {% block account_bar %}{% include "_account_bar.html" %}{% endblock %}
@@ -89,7 +89,25 @@
                         {% endblock %}
                     </div>
                 </div>
+                <div class="container">
+                    <div  class="row-fluid">
+                        <div class="pull-right">
+                            <a href="" id="help" class="help-link" >Help</a>
+                        </div>
+                    </div>
+                    <div  class="row-fluid">
+                        <div class="pull-right help-content" id="help-content" style="display: none; background: lightyellow; padding: 1em;" >
+                            {% if help %}
+                                {{ help.description|urlize|linebreaks }}
+                            {% else %}
+                                This page has no help yet.  Ask an Admin to create some.
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                </div>
             </div>
+            
         {% endblock %}
 
         {% block body_base %}
@@ -118,7 +136,8 @@
         {% endblock %}
 
         {% block extra_body_base %}
-            {% block extra_body %}{% endblock %}
+            {% block extra_body %}
+            {% endblock %}
         {% endblock %}
     </body>
 </html>

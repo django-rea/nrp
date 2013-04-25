@@ -134,6 +134,7 @@ li {
     </div>
 {% endblock %}
 {% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 {% endblock %}
@@ -146,6 +147,12 @@ li {
 	$(document).ready(function(){
 
 		$('#work').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 

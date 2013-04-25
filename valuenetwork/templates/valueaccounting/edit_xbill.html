@@ -6,7 +6,7 @@
 {% load bootstrap_tags %}
 
 {% block head_title %}{% trans " Edit Recipe for " %} {{ resource_type }}{% endblock %}
-
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 {% block extra_head %}
 
 <style>
@@ -523,11 +523,8 @@ ul {
 {% endblock %}
 
 {% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-{% comment %}
-	<script src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
-{% endcomment %}
-
 	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
 
 {% endblock %}
@@ -537,6 +534,12 @@ ul {
     <script type="text/javascript">
 
 	$(document).ready(function(){
+
+	    $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
 
 		$.validator.addClassRules("quantity", { required: true, number: true });
 		$.validator.addClassRules("days", { required: true, number: true });

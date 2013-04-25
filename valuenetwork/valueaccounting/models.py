@@ -96,6 +96,33 @@ def _slug_strip(value, separator=None):
 #        return self.name
         
 
+PAGE_CHOICES = (
+    ('home', _('Home')),
+    ('demand', _('Demand')),
+    ('supply', _('Supply')),
+    ('inventory', _('Inventory')),
+    ('resource_types', _('Resource Types')),
+    ('recipes', _('Recipes')),
+    ('projects', _('Projects')),
+    ('my_work', _('My Work')),
+    ('labnotes', _('Labnotes Form')),
+    ('labnote', _('Labnote view page')),
+    ('all_work', _('All Work')),
+    ('process', _('Process')),
+)
+
+class Help(models.Model):
+    page = models.CharField(_('page'), max_length=16, choices=PAGE_CHOICES, unique=True)
+    description = models.TextField(_('description'), blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = _('help')
+        ordering = ('page',)
+     
+    def __unicode__(self):
+        return self.get_page_display()
+
+
 CATEGORIZATION_CHOICES = (
     ('Anything', _('Anything')),
     ('EconomicResourceType', _('EconomicResourceType')),

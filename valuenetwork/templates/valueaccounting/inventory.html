@@ -5,7 +5,7 @@
 {% load thumbnail %}
 
 {% block head_title %}{% trans "Inventory" %}{% endblock %}
-
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 {% block extra_head %}
 
 <style>
@@ -94,6 +94,7 @@ container li {
     </div>
 {% endblock %}
 {% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 {% endblock %}
 {% block extra_body %}
@@ -103,6 +104,12 @@ container li {
 	$(document).ready(function(){
 
 		$('#inventory').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
 
 		var selectedCats = "{{ selected_cats }}";
 

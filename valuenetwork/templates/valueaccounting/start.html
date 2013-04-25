@@ -401,6 +401,12 @@
 
 		$('#start').addClass('active');
 
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
+
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
 		jQuery.validator.setDefaults({ 

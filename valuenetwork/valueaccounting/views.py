@@ -41,6 +41,12 @@ def get_agent(request):
                 pass
     return agent
 
+def get_help(page_name):
+    try:
+        return Help.objects.get(page=page_name)
+    except Help.DoesNotExist:
+        return None
+
 def home(request):
     work_to_do = Commitment.objects.unfinished().filter(
             from_agent=None, 
@@ -83,6 +89,7 @@ def projects(request):
     return render_to_response("valueaccounting/projects.html", {
         "roots": roots,
         "agent": agent,
+        "help": get_help("projects"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -142,6 +149,7 @@ def resource_types(request):
         "selected_cats": selected_cats,
         "create_form": create_form,
         "photo_size": (128, 128),
+        "help": get_help("resource_types"),
     }, context_instance=RequestContext(request))
 
 def inventory(request):
@@ -165,6 +173,7 @@ def inventory(request):
         "select_all": select_all,
         "selected_cats": selected_cats,
         "photo_size": (128, 128),
+        "help": get_help("inventory"),
     }, context_instance=RequestContext(request))
 
 def all_contributions(request):
@@ -480,6 +489,7 @@ def extended_bill(request, resource_type_id):
         "selected_cats": selected_cats,
         "photo_size": (128, 128),
         "big_photo_size": (200, 200),
+        "help": get_help("recipes"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -502,6 +512,7 @@ def edit_extended_bill(request, resource_type_id):
         "change_process_form": change_process_form,
         "source_form": source_form,
         "feature_form": feature_form,
+        "help": get_help("recipes"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -1285,10 +1296,12 @@ def demand(request):
     agent = get_agent(request)
     orders = Order.objects.filter(order_type='customer')
     rands = Order.objects.filter(order_type='rand')
+    help = get_help("demand")
     return render_to_response("valueaccounting/demand.html", {
         "orders": orders,
         "rands": rands,
         "agent": agent,
+        "help": help,
     }, context_instance=RequestContext(request))
 
 def supply(request):
@@ -1329,6 +1342,7 @@ def supply(request):
         "mreqs": mreqs,
         "treqs": treqs,
         "suppliers": suppliers,
+        "help": get_help("supply"),
     }, context_instance=RequestContext(request))
 
 def work_old(request):
@@ -1397,6 +1411,7 @@ def work(request):
         "agent": agent,
         "projects": projects,
         "date_form": date_form,
+        "help": get_help("all_work"),
     }, context_instance=RequestContext(request))
 
 def start(request):
@@ -1442,6 +1457,7 @@ def start(request):
         "other_unassigned": other_unassigned,
         "scores": scores,
         "member_hours": member_hours,
+        "help": get_help("my_work"),
     }, context_instance=RequestContext(request))
 
 
@@ -1555,6 +1571,7 @@ def create_labnotes_context(
         "was_retrying": was_retrying,
         "event": event,
         "cited_ids": cited_ids,
+        "help": get_help("labnotes"),
     }
 
 def new_process_output(request, commitment_id):
@@ -1942,6 +1959,7 @@ def create_past_work_context(
         "event": event,
         "event_date": event_date,
         "cited_ids": cited_ids,
+        "help": get_help("labnotes"),
     }
 
 @login_required
@@ -2114,6 +2132,7 @@ def process_details(request, process_id):
         "labnotes": labnotes,
         "cited_ids": cited_ids,
         "agent": agent,
+        "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
 def resource(request, resource_id):

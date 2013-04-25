@@ -5,6 +5,7 @@
 {% block head_title %}{% trans "Supply" %}{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 
 <style>
 
@@ -126,6 +127,10 @@
     </div>
 {% endblock %}
 
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
 {% block extra_body %}
 	{{ block.super }}
 
@@ -134,6 +139,12 @@
 	$(document).ready(function(){
 
 		$('#supply').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
 
 	}); // end document.ready
     </script>

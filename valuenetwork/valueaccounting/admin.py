@@ -13,6 +13,12 @@ class CategoryAdmin(admin.ModelAdmin):
 
 admin.site.register(Category, CategoryAdmin)
 
+class HelpAdmin(admin.ModelAdmin):
+    list_display = ('page',)
+
+admin.site.register(Help, HelpAdmin)
+
+
 
 class ResourceRelationshipAdmin(admin.ModelAdmin):
     list_display = ('name', 'inverse_name', 'related_to', 'direction', 'materiality', 'event_type', 'unit')

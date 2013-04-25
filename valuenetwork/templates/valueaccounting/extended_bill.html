@@ -183,6 +183,12 @@ ul {
 
 	$(document).ready(function(){
 
+	    $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
+
 		var selectedCats = "{{ selected_cats }}";
                 $('#categories').prop('value', selectedCats);
 

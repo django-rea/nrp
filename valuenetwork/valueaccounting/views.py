@@ -80,6 +80,7 @@ def home(request):
         "stuff_to_buy": stuff,
         "value_creations": value_creations,
         "photo_size": (128, 128),
+        "help": get_help("home"),
     }, context_instance=RequestContext(request))
 
 def projects(request):

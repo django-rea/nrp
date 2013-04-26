@@ -73,6 +73,7 @@
 		        <ul>
 		            {% for event in resource.producing_events %}
 		            <li><b>{% trans "Event" %}:</b> {{ event.event_type }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
+		            {% if event.process %}
 		            <ul>
 		                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a></li>
 		                <ul>
@@ -105,6 +106,7 @@
 		                    {% endfor %}
 		                </ul>
 		            </ul>
+		            {% endif %}
 		            {% endfor %}
 		        </ul>	
 		    </div> 

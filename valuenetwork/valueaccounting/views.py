@@ -1455,7 +1455,7 @@ def create_event_from_todo(todo):
         project=todo.project,
         url=todo.url,
         quantity=Decimal("1"),
-        unit_of_quantity=todo.resource_type.unit_of_quantity,
+        unit_of_quantity=todo.resource_type.unit,
     )
     return event
 

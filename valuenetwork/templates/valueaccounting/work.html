@@ -402,9 +402,9 @@ th, td {
 	function saveTime(event)
 	{
         var timeInput = event.target;
-        var id = timeInput.split('-')[0];;
+        var id = timeInput.id.split('-')[0];;
         formId = "#timeForm-" + id;
-        var fieldSelector = "#" + id;
+        var fieldSelector = "#" + id + "-timeId";
         var isValid = $(formId).validate().element(fieldSelector);
         if (isValid)
         {

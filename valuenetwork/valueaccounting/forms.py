@@ -136,6 +136,7 @@ class ProcessOutputForm(forms.ModelForm):
 
 class TodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
+        required=False,
         queryset=EconomicAgent.objects.filter(agent_type__member_type='agent'),
         label="Assigned to",  
         widget=forms.Select(

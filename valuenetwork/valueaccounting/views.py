@@ -1476,7 +1476,7 @@ def todo_time(request):
     return HttpResponse("Ok", mimetype="text/plain")
 
 def todo_description(request):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     todo_id = request.POST.get("todoId")
     did = request.POST.get("did")
     todo = get_object_or_404(Commitment, id=todo_id)

@@ -143,5 +143,11 @@ urlpatterns = patterns("",
     url(r"^sessions/$", 'valuenetwork.valueaccounting.views.sessions', name="sessions"),
     url(r"^change-event-date/$", 'valuenetwork.valueaccounting.views.change_event_date', name="change_event_date"),
     url(r"^change-event-qty/$", 'valuenetwork.valueaccounting.views.change_event_qty', name="change_event_qty"),
+    url(r"^add-todo/$", 'valuenetwork.valueaccounting.views.add_todo', name="add_todo"),
+    url(r"^todo-time/$", 'valuenetwork.valueaccounting.views.todo_time', name="todo_time"),
+    url(r"^todo-description/$", 'valuenetwork.valueaccounting.views.todo_description', name="todo_description"),
+    url(r"^todo-done/(?P<todo_id>\d+)/$", 'valuenetwork.valueaccounting.views.todo_done', name="todo_done"),
+    url(r"^todo-decline/(?P<todo_id>\d+)/$", 'valuenetwork.valueaccounting.views.todo_decline', name="todo_decline"),
+    url(r"^todo-mine/(?P<todo_id>\d+)/$", 'valuenetwork.valueaccounting.views.todo_mine', name="todo_mine"),
         
 )

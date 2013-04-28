@@ -1401,7 +1401,9 @@ def work(request):
     projects = assemble_schedule(start, end)   
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
+    todo_form = TodoForm()
     #import pdb; pdb.set_trace()
+    todos = Commitment.objects.todos()
     if request.method == "POST":
         if date_form.is_valid():
             dates = date_form.cleaned_data
@@ -1412,8 +1414,118 @@ def work(request):
         "agent": agent,
         "projects": projects,
         "date_form": date_form,
+        "todo_form": todo_form,
+        "todos": todos,
         "help": get_help("all_work"),
     }, context_instance=RequestContext(request))
+
+def add_todo(request):
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        form = TodoForm(request.POST)
+        agent = get_agent(request)
+        rel = None
+        rels = ResourceRelationship.objects.filter(
+            direction='todo',
+            materiality='work')
+        if rels:
+            rel = rels[0]
+        if rel:
+            if form.is_valid():
+                data = form.cleaned_data
+                todo = form.save(commit=False)
+                todo.to_agent=agent
+                todo.event_type=rel.event_type
+                todo.relationship=rel
+                todo.quantity = Decimal("1")
+                todo.unit_of_quantity=todo.resource_type.unit
+                todo.save()
+            
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/work'))
+
+def create_event_from_todo(todo):
+    event = EconomicEvent(
+        commitment=todo,
+        event_type=todo.event_type,
+        event_date=datetime.date.today(),
+        from_agent=todo.from_agent,
+        to_agent=todo.to_agent,
+        resource_type=todo.resource_type,
+        project=todo.project,
+        url=todo.url,
+        quantity=Decimal("0"),
+        unit_of_quantity=todo.resource_type.unit_of_quantity,
+    )
+    return event
+
+def todo_time(request):
+    #import pdb; pdb.set_trace()
+    todo_id = request.POST.get("todoId")
+    hours = request.POST.get("hours")
+    qty = Decimal(hours)
+    todo = get_object_or_404(Commitment, id=todo_id)
+    event = todo.todo_event()
+    if event:
+        event.quantity = qty
+        event.save()
+    else:
+        event = create_event_from_todo(todo)
+        event.quantity = qty
+        event.save()
+    return HttpResponse("Ok", mimetype="text/plain")
+
+def todo_description(request):
+    import pdb; pdb.set_trace()
+    todo_id = request.POST.get("todoId")
+    did = request.POST.get("did")
+    todo = get_object_or_404(Commitment, id=todo_id)
+    event = todo.todo_event()
+    if event:
+        event.description = did
+        event.save()
+    else:
+        event = create_event_from_todo(todo)
+        event.description = did
+        event.save()
+    return HttpResponse("Ok", mimetype="text/plain")
+
+def todo_done(request, todo_id):
+    #import pdb; pdb.set_trace()
+    todo = get_object_or_404(Commitment, id=todo_id)
+    todo.finished = True
+    todo.save()
+    event = todo.todo_event()
+    if not event:
+        event = create_event_from_todo(todo)
+        event.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/work'))
+
+def todo_mine(request, todo_id):
+    #import pdb; pdb.set_trace()
+    todo = get_object_or_404(Commitment, id=todo_id)
+    agent = get_agent(request)
+    todo.from_agent = agent
+    todo.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/work'))
+
+def todo_change(request, todo_id):
+    #import pdb; pdb.set_trace()
+    todo = get_object_or_404(Commitment, id=todo_id)
+    todo.finished = True
+    todo.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/work'))
+
+def todo_decline(request, todo_id):
+    #import pdb; pdb.set_trace()
+    todo = get_object_or_404(Commitment, id=todo_id)
+    todo.from_agent=None
+    todo.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/work'))
 
 def start(request):
     my_work = []

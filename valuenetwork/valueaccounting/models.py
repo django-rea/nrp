@@ -752,6 +752,7 @@ DIRECTION_CHOICES = (
     ('in', _('input')),
     ('out', _('output')),
     ('cite', _('citation')),
+    ('todo', _('todo')),
 )
 
 RELATED_CHOICES = (
@@ -1685,6 +1686,11 @@ class CommitmentManager(models.Manager):
     def finished(self):
         return Commitment.objects.filter(finished=True)
 
+    def todos(self):
+        return Commitment.objects.filter(
+            relationship__direction="todo",
+            finished=False)
+
 
 class Commitment(models.Model):
     order = models.ForeignKey(Order,
@@ -1863,6 +1869,13 @@ class Commitment(models.Model):
 
     def fulfilling_events(self):
         return self.fulfillment_events.all()
+
+    def todo_event(self):
+        events = self.fulfilling_events()
+        if events:
+            return events[0]
+        else:
+            return None
 
     def is_deletable(self):
         if self.fulfilling_events():

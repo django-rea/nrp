@@ -10,6 +10,7 @@
 
 
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
 
@@ -71,6 +72,51 @@ li {
     border: 1px solid gainsboro;
 }
 
+.entry-label {
+    text-align: right;
+    vertical-align: middle;
+}
+
+.todo-input {
+    vertical-align: bottom;
+}
+
+.todo-table {
+    margin-top: 1em;
+}
+
+th, td {
+    padding-left:15px;
+    padding-right:15px;
+}
+
+.did {
+    padding: 0;
+}
+
+.my-row {
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-color: lightgrey;
+    background-color:#EAF2D3;
+}
+
+.not-my-row {
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-color: lightgrey;
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: lightgrey;
+}
+
+.entry-row {
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: lightgrey;
+    background-color:#EAF2D3;
+}
+
 </style>
 {% endblock %}
 
@@ -109,8 +155,10 @@ li {
 	        </form>
 
 	        <div class="row-fluid">
-			    <div class="span12 schedule">
-			        <h3>{% trans "Work in process" %}</h3>
+			    <div class="span6 schedule">
+			        <h3>
+			            {% trans "Work in process" %}
+		            </h3>
                     {% if projects %}
                         <ul>
 			                {% for project, processes in projects.items %}
@@ -128,6 +176,145 @@ li {
 			        
 			    </div>
 
+			    <div class="span6 todos">
+			        <h3>
+			            {% trans "Todo list" %}
+	                    {% if agent %}
+					        &nbsp;&nbsp;&nbsp;&nbsp;
+					        <div style="display: inline;" >
+							    <a href="#todoModal" role="button" class="btn btn-primary" data-toggle="modal">
+								    {% trans "Add a todo" %}
+							    </a>
+						    </div>
+
+						    <div class="modal hide fade todoModal" id="todoModal" tabindex="-1" role="dialog" aria-labelledby="todo-label" aria-hidden="true">
+							    <div class="modal-header">
+								    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+								    <h3 id="todo-label">{% trans "Add a todo" %}</h3>
+							    </div>
+							    <div class="modal-body">
+
+								    <form class="todoForm" id="todoForm" action="{% url add_todo %}" method="POST" >
+									    {% csrf_token %}
+									    {{ todo_form|as_bootstrap }}
+									    <input type="hidden" name="next" value="{% url work %}" />
+								      <div class="modal-footer">
+									    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+									    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Add" %}' />
+								      </div>
+								    </form>
+						      </div>
+			            {% endif %}
+		            </h3>
+		            <table class="todo-table" >
+		                <thead>
+		                    <tr>
+		                        <th>{% trans "Due" %}</th>
+		                        <th>{% trans "Who" %}</th>
+		                        <th>&nbsp;</th>
+		                        <th>{% trans "What" %}</th>
+		                        <th>&nbsp;</th>
+		                        {% comment %}
+		                        <th>{% trans "Project" %}</th>
+		                        {% endcomment %}
+		                        <th>{% trans "Url" %}</th>
+		                        {% comment %}
+		                        <th>{% trans "Posted by" %}</th>
+		                        {% endcomment %}
+		                        <th>&nbsp;</th>
+		                    </tr>
+		                </thead>
+		                <tbody>
+		                    {% for todo in todos %}
+		                        {% if agent == todo.from_agent %}
+	                                <tr class="my-row" >
+                                {% else %}
+                                    <tr class="not-my-row" >
+                                {% endif %}
+	                                <td>
+	                                    {{ todo.due_date|date:"Y-m-d"  }}
+	                                </td>
+	                                <td>
+	                                    {% if todo.from_agent %}
+	                                        Do: {{ todo.from_agent }}
+                                        {% else %}
+                                            Do:?
+                                        {% endif %}
+                                        </br>From: {{ todo.to_agent }}
+	                                </td>
+	                                <td colspan="3" >
+	                                    {{ todo.description }}
+	                                </td>
+	                                {% comment %}
+	                                <td>
+	                                    {{ todo.project }}
+	                                </td>
+	                                {% endcomment %}
+	                                <td>
+						                {% if todo.url %}
+							                <a href="{{ todo.url }}" target="_blank">Open</a>
+						                {% endif %}
+					                </td>
+					                {% comment %}
+	                                <td>
+	                                    {{ todo.to_agent }}
+	                                </td>
+	                                {% endcomment %}
+	                                <td>
+	                                    
+	                                    {% if agent == todo.from_agent %}
+	                                        <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url todo_decline todo_id=todo.id %}" method="POST" >
+								                {% csrf_token %}
+	                                            <input type="submit" name="submit" class="btn btn-info btn-warning"  title="Decline" value="{% trans 'Decline' %}" />
+                                            </form>
+                                        {% else %}
+                                            {% if todo.from_agent %}
+                                                {% if agent == todo.to_agent %}
+                                                    <button class="btn btn-info btn-mini" title="Change" >{% trans "Change" %}</button>
+                                                {% endif %}
+                                            {% else %}
+                                                <form class="mineForm" id="mineForm-{{ todo.id }}" action="{% url todo_mine todo_id=todo.id %}" method="POST" >
+								                {% csrf_token %}
+	                                            <input type="submit" name="submit" class="btn btn-info btn-mini"  title="Mine" value="{% trans 'Mine!' %}" />
+                                            </form>
+                                            {% endif %}
+	                                    {% endif %}
+	                                </td>
+                                </tr>   
+                                {% if agent == todo.from_agent %}
+                                    {% with todo.todo_event as event %}
+                                    <tr class="entry-row" >
+                                        <th class="entry-label" >{% trans "Did" %}:</td>
+	                                    <td colspan="3" class="did" >
+	                                        <textarea class="input-block-level did" id="{{ todo.id }}-didId" name="{{ todo.id }}-did" rows="3" />
+	                                            {% if event %}{{ event.description }}{% endif %}
+	                                        </textarea>
+	                                    </td>
+	                                    <th class="entry-label">
+	                                        {% trans "Hours" %}:
+	                                    </th>
+	                                    <td class="todo-input" >
+	                                        <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url todo_time %}" method="POST" >
+								                {% csrf_token %}
+	                                            <input class="input-mini optional-quantity" id="{{ todo.id }}-timeId" name="{{ todo.id }}-time" type="text" size="6" 
+	                                                {% if event %} value="{{ event.quantity }}" {% endif %}
+	                                            />
+                                            </form>
+	                                    </td>
+	                                    <td>
+	                                        <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url todo_done todo_id=todo.id %}" method="POST" >
+								                {% csrf_token %}
+	                                            <input type="submit" name="submit" class="btn btn-info btn-mini"  title="Done" value="{% trans 'Done' %}" />
+                                            </form>
+	                                    </td>
+	                                </tr>
+	                                {% endwith %}
+	                            {% endif %}
+		                    {% endfor %}
+		                </tbody>
+		            </table>
+			    </div>
+
 		    </div>
 
 	    </div>
@@ -136,7 +323,7 @@ li {
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -147,6 +334,8 @@ li {
 	$(document).ready(function(){
 
 		$('#work').addClass('active');
+
+		$(".chzn-select").chosen();
 
 		$( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
@@ -165,7 +354,16 @@ li {
 		});
 
 
-		$.validator.addClassRules("quantity", { required: true, number: true });
+		$.validator.addClassRules("quantity", { 
+		    required: true, 
+		    number: true,
+		    max: 999999.99 
+	    });
+	    $.validator.addClassRules("optional-quantity", { 
+		    number: true,
+		    max: 999999.99 
+	    });
+		$.validator.addClassRules("url", { url: true });
 
 
 		$('.commitmentForm').each( function(){
@@ -179,8 +377,135 @@ li {
 			});
 		});
 
+		$('.timeForm').each( function(){
+			var form = $(this);
+
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				},
+
+			});
+		});
+
+		$('#todoForm').validate({
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+		$('.optional-quantity').blur(saveTime);
+		$('.did').blur(saveDescription);
 
 	}); // end document.ready
+
+	function saveTime(event)
+	{
+        var timeInput = event.target;
+        var id = timeInput.split('-')[0];;
+        formId = "#timeForm-" + id;
+        var fieldSelector = "#" + id;
+        var isValid = $(formId).validate().element(fieldSelector);
+        if (isValid)
+        {
+            var hours = timeInput.value;
+            notifySaving();
+		    var jqxhr = $.post("{% url todo_time  %}",  { todoId: id, hours: hours },
+			    function( data ) 
+			    {
+				    notifySaved();
+			    })
+			    .fail(function() 
+			    { 
+				    notifyProblem(); 
+			    }
+		    );
+        }      
+	}
+	
+    function saveDescription(event)
+	{
+        var didInput = event.target;
+        var id = didInput.id.split('-')[0];;
+        var did = didInput.value;
+        notifySaving();
+	    var jqxhr = $.post("{% url todo_description  %}",  { todoId: id, did: did },
+		    function( data ) 
+		    {
+			    notifySaved();
+		    })
+		    .fail(function() 
+		    { 
+			    notifyProblem(); 
+		    }
+	    );   
+	}
+
+	function notifySaving()
+	{
+		$("#saving").css("color","green"); 
+		$("#saving").text("Saving...");
+	}
+
+	function notifySaved()
+	{
+		$("#saving").css("color","green"); 
+		$("#saving").text("Saved");
+	}
+
+	function notifyProblem()
+	{
+		$("#saving").css("color","red"); 
+		$("#saving").text("Problem saving");
+	}
+
+	$(document).ajaxSend(function(event, xhr, settings) 
+	{
+		function getCookie(name) 
+		{
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie != '') 
+			{
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) 
+				{
+		            var cookie = jQuery.trim(cookies[i]);
+		            // Does this cookie string begin with the name we want?
+		            if (cookie.substring(0, name.length + 1) == (name + '=')) 
+					{
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+    	}
+
+		function sameOrigin(url) 
+		{
+		    // url could be relative or scheme relative or absolute
+		    var host = document.location.host; // host + port
+		    var protocol = document.location.protocol;
+		    var sr_origin = '//' + host;
+		    var origin = protocol + sr_origin;
+		    // Allow absolute or scheme relative URLs to same origin
+		    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+		        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+		        // or any other URL that isn't scheme relative or absolute i.e relative.
+		        !(/^(\/\/|http:|https:).*/.test(url));
+		}
+
+		function safeMethod(method) 
+		{
+		    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+
+		if (!safeMethod(settings.type) && sameOrigin(settings.url)) 
+		{
+		    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+		}
+	});
+	
     </script>
 
 {% endblock %}

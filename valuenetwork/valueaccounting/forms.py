@@ -138,7 +138,6 @@ class TodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.filter(agent_type__member_type='agent'),
         label="Assigned to",  
-        empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     resource_type = forms.ModelChoiceField(

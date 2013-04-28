@@ -286,9 +286,8 @@ th, td {
                                     <tr class="entry-row" >
                                         <th class="entry-label" >{% trans "Did" %}:</td>
 	                                    <td colspan="3" class="did" >
-	                                        <textarea class="input-block-level did" id="{{ todo.id }}-didId" name="{{ todo.id }}-did" rows="3" />
-	                                            {% if event %}{{ event.description }}{% endif %}
-	                                        </textarea>
+	                                        <textarea class="input-block-level did" id="{{ todo.id }}-didId" name="{{ todo.id }}-did" rows="3" 
+	                                        />{% if event %}{{ event.description }}{% endif %}</textarea>
 	                                    </td>
 	                                    <th class="entry-label">
 	                                        {% trans "Hours" %}:
@@ -336,6 +335,7 @@ th, td {
 		$('#work').addClass('active');
 
 		$(".chzn-select").chosen();
+		$("textarea").resizable();
 
 		$( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 

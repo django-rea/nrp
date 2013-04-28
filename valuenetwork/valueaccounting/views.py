@@ -513,7 +513,7 @@ def edit_extended_bill(request, resource_type_id):
         "change_process_form": change_process_form,
         "source_form": source_form,
         "feature_form": feature_form,
-        "help": get_help("recipes"),
+        "help": get_help("edit_recipes"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -1396,9 +1396,8 @@ def assemble_schedule(start, end):
 def work(request):
     agent = get_agent(request)
     start = datetime.date.today()
-    #start = start - datetime.timedelta(days=7)
     end = start + datetime.timedelta(days=7)
-    projects = assemble_schedule(start, end)   
+    #projects = assemble_schedule(start, end)   
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
     todo_form = TodoForm()
@@ -1409,7 +1408,8 @@ def work(request):
             dates = date_form.cleaned_data
             start = dates["start_date"]
             end = dates["end_date"]
-            projects = assemble_schedule(start, end) 
+    projects = assemble_schedule(start, end)
+    todos = Commitment.objects.todos()
     return render_to_response("valueaccounting/work.html", {
         "agent": agent,
         "projects": projects,
@@ -1562,7 +1562,7 @@ def start(request):
     for key, value in agents.iteritems():
         member_hours.append((key, value))
     member_hours.sort(lambda x, y: cmp(y[1], x[1]))
-
+    todos = Commitment.objects.todos().filter(from_agent=agent)
     return render_to_response("valueaccounting/start.html", {
         "agent": agent,
         "my_work": my_work,
@@ -1570,6 +1570,7 @@ def start(request):
         "other_unassigned": other_unassigned,
         "scores": scores,
         "member_hours": member_hours,
+        "todos": todos,
         "help": get_help("my_work"),
     }, context_instance=RequestContext(request))
 

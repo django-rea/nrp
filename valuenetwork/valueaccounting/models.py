@@ -102,6 +102,7 @@ PAGE_CHOICES = (
     ('supply', _('Supply')),
     ('inventory', _('Inventory')),
     ('resource_types', _('Resource Types')),
+    ('edit_recipes', _('Edit Recipes')),
     ('recipes', _('Recipes')),
     ('projects', _('Projects')),
     ('my_work', _('My Work')),

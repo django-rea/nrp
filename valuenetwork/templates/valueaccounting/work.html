@@ -300,7 +300,7 @@ th, td {
 				                                </div>
 				                                <div class="modal-body">
 
-					                                <form class="changeForm" id="changeForm" action="{% url todo_change todo_id=todo.id %}" method="POST" >
+					                                <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url todo_change todo_id=todo.id %}" method="POST" >
 						                                {% csrf_token %}
 						                                {{ todo.todo_change_form|as_bootstrap }}
 						                                <input type="hidden" name="next" value="{% url work %}" />
@@ -437,18 +437,19 @@ th, td {
 			},
 		});
 
-		$('#changeForm').validate({
-		    rules: {
-			    'due_date': {
-			        date: true,
-                    required: true
-				}
-			},
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			},
-		});
-
+        {% for todo in todos %}
+		    $('#changeForm-{{ todo.id }}').validate({
+		        rules: {
+			        'CT-{{  todo.id }}-due_date': {
+			            date: true,
+                        required: true
+				    }
+			    },
+			    highlight: function(label) {
+				    $(label).closest('.control-group').addClass('error');
+			    },
+		    });
+        {% endfor %}
 
 		$('.optional-quantity').blur(saveTime);
 		$('.did').blur(saveDescription);

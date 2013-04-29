@@ -274,19 +274,23 @@ th, td {
 	                                <td>
 	                                    
                                         {% if agent == todo.from_agent %}
-                                            <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url todo_decline todo_id=todo.id %}" method="POST" >
-							                    {% csrf_token %}
-                                                <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
-                                            </form>
+                                            {% if todo.is_deletable %}
+                                                <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url todo_decline todo_id=todo.id %}" method="POST" >
+							                        {% csrf_token %}
+                                                    <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
+                                                </form>
+                                            {% endif %}
                                         {% elif agent == todo.to_agent %}
                                             <div class="entry-label" >
                                                 <a href="#changeModal" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 					                                {% trans "Change" %}
 				                                </a>
-                                                <form class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url todo_delete todo_id=todo.id %}" method="POST" >
-					                                {% csrf_token %}
-                                                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "Delete" %}</button>
-                                                </form>
+				                                {% if todo.is_deletable %}
+                                                    <form class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url todo_delete todo_id=todo.id %}" method="POST" >
+					                                    {% csrf_token %}
+                                                        <button class="btn btn-warning btn-mini" title="Delete" >{% trans "Delete" %}</button>
+                                                    </form>
+                                                {% endif %}
                                             </div>
 
                                             <div class="modal hide fade changeModal" id="changeModal" tabindex="-1" role="dialog" aria-labelledby="change-label" aria-hidden="true">

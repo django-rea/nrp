@@ -149,5 +149,7 @@ urlpatterns = patterns("",
     url(r"^todo-done/(?P<todo_id>\d+)/$", 'valuenetwork.valueaccounting.views.todo_done', name="todo_done"),
     url(r"^todo-decline/(?P<todo_id>\d+)/$", 'valuenetwork.valueaccounting.views.todo_decline', name="todo_decline"),
     url(r"^todo-mine/(?P<todo_id>\d+)/$", 'valuenetwork.valueaccounting.views.todo_mine', name="todo_mine"),
+    url(r"^todo-change/(?P<todo_id>\d+)/$", 'valuenetwork.valueaccounting.views.todo_change', name="todo_change"),
+    url(r"^todo-delete/(?P<todo_id>\d+)/$", 'valuenetwork.valueaccounting.views.todo_delete', name="todo_delete"),
         
 )

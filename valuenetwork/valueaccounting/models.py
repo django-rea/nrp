@@ -1855,7 +1855,6 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import CommitmentForm
         prefix=self.form_prefix()
         return CommitmentForm(instance=self, prefix=prefix)
-        return CommitmentForm(instance=self)
 
     def resource_create_form(self):
         return self.resource_type.resource_create_form(self.form_prefix())
@@ -1866,7 +1865,11 @@ class Commitment(models.Model):
             return resource.change_form(self.form_prefix())
         else:
             return self.resource_type.resource_create_form(self.form_prefix())
-        
+
+    def todo_change_form(self):
+        from valuenetwork.valueaccounting.forms import TodoForm
+        prefix=self.form_prefix()
+        return TodoForm(instance=self, prefix=prefix)
 
     def fulfilling_events(self):
         return self.fulfillment_events.all()

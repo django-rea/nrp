@@ -77,6 +77,11 @@ li {
   height: 200px;
 }
 
+#changeModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
 
 .entry-label {
     text-align: right;
@@ -249,7 +254,7 @@ th, td {
                                         </br>From: {{ todo.to_agent }}
 	                                </td>
 	                                <td colspan="3" >
-	                                    {{ todo.description }}
+	                                    {{ todo.description|urlize|linebreaks }}
 	                                </td>
 	                                {% comment %}
 	                                <td>
@@ -268,24 +273,46 @@ th, td {
 	                                {% endcomment %}
 	                                <td>
 	                                    
-	                                    {% if agent == todo.from_agent %}
-	                                        <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url todo_decline todo_id=todo.id %}" method="POST" >
-								                {% csrf_token %}
-	                                            <input type="submit" name="submit" class="btn btn-info btn-warning"  title="Decline" value="{% trans 'Decline' %}" />
+                                        {% if agent == todo.from_agent %}
+                                            <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url todo_decline todo_id=todo.id %}" method="POST" >
+							                    {% csrf_token %}
+                                                <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
                                             </form>
-                                        {% else %}
-                                            {% if todo.from_agent %}
-                                                {% if agent == todo.to_agent %}
-                                                    <button class="btn btn-info btn-mini" title="Change" >{% trans "Change" %}</button>
-                                                {% endif %}
-                                            {% else %}
+                                        {% elif agent == todo.to_agent %}
+                                            <div class="entry-label" >
+                                                <a href="#changeModal" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+					                                {% trans "Change" %}
+				                                </a>
+                                                <form class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url todo_delete todo_id=todo.id %}" method="POST" >
+					                                {% csrf_token %}
+                                                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "Delete" %}</button>
+                                                </form>
+                                            </div>
+
+                                            <div class="modal hide fade changeModal" id="changeModal" tabindex="-1" role="dialog" aria-labelledby="change-label" aria-hidden="true">
+				                                <div class="modal-header">
+					                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+					                                <h3 id="change-label">{% trans "Change todo" %}</h3>
+				                                </div>
+				                                <div class="modal-body">
+
+					                                <form class="changeForm" id="changeForm" action="{% url todo_change todo_id=todo.id %}" method="POST" >
+						                                {% csrf_token %}
+						                                {{ todo.todo_change_form|as_bootstrap }}
+						                                <input type="hidden" name="next" value="{% url work %}" />
+					                                  <div class="modal-footer">
+						                                <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+						                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
+					                                  </div>
+					                                </form>
+			                                  </div>
+                                            {% elif not todo.from_agent %}
                                                 <form class="mineForm" id="mineForm-{{ todo.id }}" action="{% url todo_mine todo_id=todo.id %}" method="POST" >
-								                {% csrf_token %}
-	                                            <input type="submit" name="submit" class="btn btn-info btn-mini"  title="Mine" value="{% trans 'Mine!' %}" />
-                                            </form>
+							                        {% csrf_token %}
+                                                    <input type="submit" name="submit" class="btn btn-info btn-mini"  title="Mine" value="{% trans 'Mine!' %}" />
+                                                </form>
                                             {% endif %}
-	                                    {% endif %}
-	                                </td>
+	                                    </td>
                                 </tr>   
                                 {% if agent == todo.from_agent %}
                                     {% with todo.todo_event as event %}
@@ -405,6 +432,19 @@ th, td {
 				$(label).closest('.control-group').addClass('error');
 			},
 		});
+
+		$('#changeForm').validate({
+		    rules: {
+			    'due_date': {
+			        date: true,
+                    required: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
 
 		$('.optional-quantity').blur(saveTime);
 		$('.did').blur(saveDescription);

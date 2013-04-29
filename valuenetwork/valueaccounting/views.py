@@ -1513,9 +1513,13 @@ def todo_mine(request, todo_id):
 
 def todo_change(request, todo_id):
     #import pdb; pdb.set_trace()
-    todo = get_object_or_404(Commitment, id=todo_id)
-    todo.finished = True
-    todo.save()
+    if request.method == "POST":
+        todo = get_object_or_404(Commitment, id=todo_id)
+        prefix = todo.form_prefix()
+        form = TodoForm(data=request.POST, instance=todo, prefix=prefix)
+        if form.is_valid():
+            todo = form.save()
+
     return HttpResponseRedirect('/%s/'
         % ('accounting/work'))
 
@@ -1524,6 +1528,13 @@ def todo_decline(request, todo_id):
     todo = get_object_or_404(Commitment, id=todo_id)
     todo.from_agent=None
     todo.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/work'))
+
+def todo_delete(request, todo_id):
+    #import pdb; pdb.set_trace()
+    todo = get_object_or_404(Commitment, id=todo_id)
+    todo.delete()
     return HttpResponseRedirect('/%s/'
         % ('accounting/work'))
 

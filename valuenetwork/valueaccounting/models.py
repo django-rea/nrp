@@ -1867,6 +1867,7 @@ class Commitment(models.Model):
             return self.resource_type.resource_create_form(self.form_prefix())
 
     def todo_change_form(self):
+        #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import TodoForm
         prefix=self.form_prefix()
         return TodoForm(instance=self, prefix=prefix)

@@ -1423,6 +1423,7 @@ def add_todo(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         form = TodoForm(request.POST)
+        next = request.POST.get("next")
         agent = get_agent(request)
         rel = None
         rels = ResourceRelationship.objects.filter(
@@ -1441,8 +1442,9 @@ def add_todo(request):
                 todo.unit_of_quantity=todo.resource_type.unit
                 todo.save()
             
-    return HttpResponseRedirect('/%s/'
-        % ('accounting/work'))
+    #return HttpResponseRedirect('/%s/'
+    #    % ('accounting/work'))
+    return HttpResponseRedirect(next)
 
 def create_event_from_todo(todo):
     event = EconomicEvent(
@@ -1542,7 +1544,6 @@ def start(request):
     my_work = []
     my_skillz = []
     other_wip = []
-    scores = []
     agent = get_agent(request)
     if agent:
         my_work = Commitment.objects.unfinished().filter(
@@ -1555,16 +1556,29 @@ def start(request):
             resource_type__id__in=skill_ids)
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
-            resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
-        scores = agent.resource_types.all()
-        
+            resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)       
     else:
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
             resource_type__materiality="work")
+    todos = Commitment.objects.todos().filter(from_agent=agent)
+    todo_form = TodoForm()
+    return render_to_response("valueaccounting/start.html", {
+        "agent": agent,
+        "my_work": my_work,
+        "my_skillz": my_skillz,
+        "other_unassigned": other_unassigned,
+        "todos": todos,
+        "todo_form": todo_form,
+        "help": get_help("my_work"),
+    }, context_instance=RequestContext(request))
 
-    contributions = EconomicEvent.objects.filter(is_contribution=True)
+
+def agent_stats(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    scores = agent.resource_types.all()
     agents = {}
+    contributions = EconomicEvent.objects.filter(is_contribution=True)
     for c in contributions:
         if c.from_agent not in agents:
             agents[c.from_agent] = Decimal("0")
@@ -1573,16 +1587,10 @@ def start(request):
     for key, value in agents.iteritems():
         member_hours.append((key, value))
     member_hours.sort(lambda x, y: cmp(y[1], x[1]))
-    todos = Commitment.objects.todos().filter(from_agent=agent)
-    return render_to_response("valueaccounting/start.html", {
+    return render_to_response("valueaccounting/agent_stats.html", {
         "agent": agent,
-        "my_work": my_work,
-        "my_skillz": my_skillz,
-        "other_unassigned": other_unassigned,
         "scores": scores,
         "member_hours": member_hours,
-        "todos": todos,
-        "help": get_help("my_work"),
     }, context_instance=RequestContext(request))
 
 

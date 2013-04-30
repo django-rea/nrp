@@ -1463,66 +1463,86 @@ def todo_time(request):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         todo_id = request.POST.get("todoId")
-        hours = request.POST.get("hours")
-        qty = Decimal(hours)
-        todo = get_object_or_404(Commitment, id=todo_id)
-        event = todo.todo_event()
-        if event:
-            event.quantity = qty
-            event.save()
-        else:
-            event = create_event_from_todo(todo)
-            event.quantity = qty
-            event.save()
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            hours = request.POST.get("hours")
+            qty = Decimal(hours)
+            event = todo.todo_event()
+            if event:
+                event.quantity = qty
+                event.save()
+            else:
+                event = create_event_from_todo(todo)
+                event.quantity = qty
+                event.save()
     return HttpResponse("Ok", mimetype="text/plain")
 
 def todo_description(request):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         todo_id = request.POST.get("todoId")
-        did = request.POST.get("did")
-        todo = get_object_or_404(Commitment, id=todo_id)
-        event = todo.todo_event()
-        if event:
-            event.description = did
-            event.save()
-        else:
-            event = create_event_from_todo(todo)
-            event.description = did
-            event.save()
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            did = request.POST.get("did")
+            event = todo.todo_event()
+            if event:
+                event.description = did
+                event.save()
+            else:
+                event = create_event_from_todo(todo)
+                event.description = did
+                event.save()
     return HttpResponse("Ok", mimetype="text/plain")
 
 def todo_done(request, todo_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
-        todo = get_object_or_404(Commitment, id=todo_id)
-        todo.finished = True
-        todo.save()
-        event = todo.todo_event()
-        if not event:
-            event = create_event_from_todo(todo)
-            event.save()
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            todo.finished = True
+            todo.save()
+            event = todo.todo_event()
+            if not event:
+                event = create_event_from_todo(todo)
+                event.save()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
 def todo_mine(request, todo_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
-        todo = get_object_or_404(Commitment, id=todo_id)
-        agent = get_agent(request)
-        todo.from_agent = agent
-        todo.save()
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            agent = get_agent(request)
+            todo.from_agent = agent
+            todo.save()
     return HttpResponseRedirect('/%s/'
         % ('accounting/work'))
 
 def todo_change(request, todo_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
-        todo = get_object_or_404(Commitment, id=todo_id)
-        prefix = todo.form_prefix()
-        form = TodoForm(data=request.POST, instance=todo, prefix=prefix)
-        if form.is_valid():
-            todo = form.save()
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            prefix = todo.form_prefix()
+            form = TodoForm(data=request.POST, instance=todo, prefix=prefix)
+            if form.is_valid():
+                todo = form.save()
 
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
@@ -1530,17 +1550,25 @@ def todo_change(request, todo_id):
 def todo_decline(request, todo_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
-        todo = get_object_or_404(Commitment, id=todo_id)
-        todo.from_agent=None
-        todo.save()
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            todo.from_agent=None
+            todo.save()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
 def todo_delete(request, todo_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
-        todo = get_object_or_404(Commitment, id=todo_id)
-        todo.delete()
+        try:
+            todo = Commitment.objects.get(id=todo_id)
+        except Commitment.DoesNotExist:
+            todo = None
+        if todo:
+            todo.delete()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 

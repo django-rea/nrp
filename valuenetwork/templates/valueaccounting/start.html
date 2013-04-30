@@ -36,10 +36,10 @@
 .other-unassigned {
     background-color: whitesmoke;
 }
-.dashboard {
-    background-color: beige;
+.todos {
+    background-color: lightyellow;
 }
-.my-work, .my-skills, .other-unassigned, .dashboard {
+.my-work, .my-skills, .other-unassigned, .todos {
     padding: 2px 6px 3px 6px;
     margin-bottom: 12px;
     border: 1px solid gainsboro;
@@ -68,6 +68,11 @@
     vertical-align: middle;
 }
 
+.entry-buttons {
+    padding-top: 4px;
+    text-align: right;
+}
+
 .todo-input {
     vertical-align: bottom;
 }
@@ -89,7 +94,14 @@ th, td {
     border-top-style: solid;
     border-top-width: thin;
     border-top-color: lightgrey;
+}
+
+.odd {
     background-color:#EAF2D3;
+}
+
+.even {
+    background-color: whitesmoke;
 }
 
 .not-my-row {
@@ -105,7 +117,11 @@ th, td {
     border-bottom-style: solid;
     border-bottom-width: thin;
     border-bottom-color: lightgrey;
-    background-color:#EAF2D3;
+}
+
+.who {
+    font-size: 90%;
+    white-space:nowrap;
 }
 
 </style>
@@ -223,7 +239,7 @@ th, td {
                             {% endcomment %}
                             <th>{% trans "Url" %}</th>
                             {% comment %}
-                            <th>{% trans "Posted by" %}</th>
+                            <th>{% trans "Poster" %}</th>
                             {% endcomment %}
                             <th>&nbsp;</th>
                         </tr>
@@ -231,15 +247,15 @@ th, td {
                     <tbody>
                         {% for todo in todos %}
                             {% if agent == todo.from_agent %}
-                                <tr class="my-row" >
+                                <tr class="my-row {% cycle 'odd' 'even' as rowcolors %}" >
                             {% else %}
                                 <tr class="not-my-row" >
                             {% endif %}
                                 <td>
                                     {{ todo.due_date|date:"Y-m-d"  }}
                                 </td>
-                                <td>
-                                    Posted by: {{ todo.to_agent }}
+                                <td class="who">
+                                    Poster: {{ todo.to_agent }}
                                 </td>
                                 <td colspan="3" >
                                     {{ todo.description|urlize|linebreaks }}
@@ -262,13 +278,14 @@ th, td {
                                 <td>
                                     
                                     {% if agent == todo.to_agent %}
-                                        <div class="entry-label" >
+                                        <div class="entry-buttons" >
                                             <a href="#changeModal-{{ todo.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 			                                    {% trans "Change" %}
 		                                    </a>
 		                                    {% if todo.is_deletable %}
                                                 <form class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url todo_delete todo_id=todo.id %}" method="POST" >
 			                                        {% csrf_token %}
+			                                        <input type="hidden" name="next" value="{% url start %}" />
                                                     <button class="btn btn-warning btn-mini" title="Delete" >{% trans "Delete" %}</button>
                                                 </form>
                                             {% endif %}
@@ -291,12 +308,22 @@ th, td {
 			                                      </div>
 			                                    </form>
 	                                      </div>
+                                    {% else %}
+                                        {% if todo.is_deletable %}
+                                            <div class="entry-buttons">
+                                                <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url todo_decline todo_id=todo.id %}" method="POST" >
+						                            {% csrf_token %}
+						                            <input type="hidden" name="next" value="{% url start %}" />
+                                                    <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
+                                                </form>
+                                            </div>
                                         {% endif %}
-                                    </td>
+                                    {% endif %}
+                                </td>
                             </tr>   
                             {% if agent == todo.from_agent %}
                                 {% with todo.todo_event as event %}
-                                <tr class="entry-row" >
+                                <tr class="entry-row {{ rowcolors }}" >
                                     <th class="entry-label" >{% trans "Did" %}:</td>
                                     <td colspan="3" class="did" >
                                         <textarea class="input-block-level did" id="{{ todo.id }}-didId" name="{{ todo.id }}-did" rows="3" 
@@ -316,6 +343,7 @@ th, td {
                                     <td>
                                         <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url todo_done todo_id=todo.id %}" method="POST" >
 						                    {% csrf_token %}
+						                    <input type="hidden" name="next" value="{% url start %}" />
                                             <input type="submit" name="submit" class="btn btn-info btn-mini"  title="Done" value="{% trans 'Done' %}" />
                                         </form>
                                     </td>

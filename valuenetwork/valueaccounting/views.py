@@ -1442,8 +1442,6 @@ def add_todo(request):
                 todo.unit_of_quantity=todo.resource_type.unit
                 todo.save()
             
-    #return HttpResponseRedirect('/%s/'
-    #    % ('accounting/work'))
     return HttpResponseRedirect(next)
 
 def create_event_from_todo(todo):
@@ -1463,53 +1461,57 @@ def create_event_from_todo(todo):
 
 def todo_time(request):
     #import pdb; pdb.set_trace()
-    todo_id = request.POST.get("todoId")
-    hours = request.POST.get("hours")
-    qty = Decimal(hours)
-    todo = get_object_or_404(Commitment, id=todo_id)
-    event = todo.todo_event()
-    if event:
-        event.quantity = qty
-        event.save()
-    else:
-        event = create_event_from_todo(todo)
-        event.quantity = qty
-        event.save()
+    if request.method == "POST":
+        todo_id = request.POST.get("todoId")
+        hours = request.POST.get("hours")
+        qty = Decimal(hours)
+        todo = get_object_or_404(Commitment, id=todo_id)
+        event = todo.todo_event()
+        if event:
+            event.quantity = qty
+            event.save()
+        else:
+            event = create_event_from_todo(todo)
+            event.quantity = qty
+            event.save()
     return HttpResponse("Ok", mimetype="text/plain")
 
 def todo_description(request):
     #import pdb; pdb.set_trace()
-    todo_id = request.POST.get("todoId")
-    did = request.POST.get("did")
-    todo = get_object_or_404(Commitment, id=todo_id)
-    event = todo.todo_event()
-    if event:
-        event.description = did
-        event.save()
-    else:
-        event = create_event_from_todo(todo)
-        event.description = did
-        event.save()
+    if request.method == "POST":
+        todo_id = request.POST.get("todoId")
+        did = request.POST.get("did")
+        todo = get_object_or_404(Commitment, id=todo_id)
+        event = todo.todo_event()
+        if event:
+            event.description = did
+            event.save()
+        else:
+            event = create_event_from_todo(todo)
+            event.description = did
+            event.save()
     return HttpResponse("Ok", mimetype="text/plain")
 
 def todo_done(request, todo_id):
     #import pdb; pdb.set_trace()
-    todo = get_object_or_404(Commitment, id=todo_id)
-    todo.finished = True
-    todo.save()
-    event = todo.todo_event()
-    if not event:
-        event = create_event_from_todo(todo)
-        event.save()
-    return HttpResponseRedirect('/%s/'
-        % ('accounting/work'))
+    if request.method == "POST":
+        todo = get_object_or_404(Commitment, id=todo_id)
+        todo.finished = True
+        todo.save()
+        event = todo.todo_event()
+        if not event:
+            event = create_event_from_todo(todo)
+            event.save()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
 
 def todo_mine(request, todo_id):
     #import pdb; pdb.set_trace()
-    todo = get_object_or_404(Commitment, id=todo_id)
-    agent = get_agent(request)
-    todo.from_agent = agent
-    todo.save()
+    if request.method == "POST":
+        todo = get_object_or_404(Commitment, id=todo_id)
+        agent = get_agent(request)
+        todo.from_agent = agent
+        todo.save()
     return HttpResponseRedirect('/%s/'
         % ('accounting/work'))
 
@@ -1522,23 +1524,25 @@ def todo_change(request, todo_id):
         if form.is_valid():
             todo = form.save()
 
-    return HttpResponseRedirect('/%s/'
-        % ('accounting/work'))
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
 
 def todo_decline(request, todo_id):
     #import pdb; pdb.set_trace()
-    todo = get_object_or_404(Commitment, id=todo_id)
-    todo.from_agent=None
-    todo.save()
-    return HttpResponseRedirect('/%s/'
-        % ('accounting/work'))
+    if request.method == "POST":
+        todo = get_object_or_404(Commitment, id=todo_id)
+        todo.from_agent=None
+        todo.save()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
 
 def todo_delete(request, todo_id):
     #import pdb; pdb.set_trace()
-    todo = get_object_or_404(Commitment, id=todo_id)
-    todo.delete()
-    return HttpResponseRedirect('/%s/'
-        % ('accounting/work'))
+    if request.method == "POST":
+        todo = get_object_or_404(Commitment, id=todo_id)
+        todo.delete()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
 
 def start(request):
     my_work = []
@@ -1562,7 +1566,8 @@ def start(request):
             from_agent=None, 
             resource_type__materiality="work")
     todos = Commitment.objects.todos().filter(from_agent=agent)
-    todo_form = TodoForm()
+    init = {"from_agent": agent,}
+    todo_form = TodoForm(initial=init)
     return render_to_response("valueaccounting/start.html", {
         "agent": agent,
         "my_work": my_work,

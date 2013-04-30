@@ -88,6 +88,11 @@ li {
     vertical-align: middle;
 }
 
+.entry-buttons {
+    padding-top: 4px;
+    text-align: right;
+}
+
 .todo-input {
     vertical-align: bottom;
 }
@@ -126,6 +131,12 @@ th, td {
     border-bottom-width: thin;
     border-bottom-color: lightgrey;
     background-color:#EAF2D3;
+}
+
+
+.who {
+    font-size: 90%;
+    white-space:nowrap;
 }
 
 </style>
@@ -230,7 +241,7 @@ th, td {
 		                        {% endcomment %}
 		                        <th>{% trans "Url" %}</th>
 		                        {% comment %}
-		                        <th>{% trans "Posted by" %}</th>
+		                        <th>{% trans "Poster" %}</th>
 		                        {% endcomment %}
 		                        <th>&nbsp;</th>
 		                    </tr>
@@ -245,13 +256,13 @@ th, td {
 	                                <td>
 	                                    {{ todo.due_date|date:"Y-m-d"  }}
 	                                </td>
-	                                <td>
+	                                <td class="who">
 	                                    {% if todo.from_agent %}
-	                                        Do: {{ todo.from_agent }}
+	                                        Doer: {{ todo.from_agent }}
                                         {% else %}
-                                            Do:?
+                                            Doer:?
                                         {% endif %}
-                                        </br>Posted by: {{ todo.to_agent }}
+                                        </br>Poster: {{ todo.to_agent }}
 	                                </td>
 	                                <td colspan="3" >
 	                                    {{ todo.description|urlize|linebreaks }}
@@ -275,19 +286,26 @@ th, td {
 	                                    
                                         {% if agent == todo.from_agent %}
                                             {% if todo.is_deletable %}
-                                                <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url todo_decline todo_id=todo.id %}" method="POST" >
-							                        {% csrf_token %}
-                                                    <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
-                                                </form>
+                                                {% if agent != todo.to_agent %}
+                                                    <div class="entry-buttons" >
+                                                        <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url todo_decline todo_id=todo.id %}" method="POST" >
+							                                {% csrf_token %}
+							                                <input type="hidden" name="next" value="{% url work %}" />
+                                                            <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
+                                                        </form>
+                                                    </div>
+                                                {% endif %}
                                             {% endif %}
-                                        {% elif agent == todo.to_agent %}
-                                            <div class="entry-label" >
+                                        {% endif %}
+                                        {% if agent == todo.to_agent %}
+                                            <div class="entry-buttons" >
                                                 <a href="#changeModal-{{ todo.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 					                                {% trans "Change" %}
 				                                </a>
 				                                {% if todo.is_deletable %}
                                                     <form class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url todo_delete todo_id=todo.id %}" method="POST" >
 					                                    {% csrf_token %}
+					                                    <input type="hidden" name="next" value="{% url work %}" />
                                                         <button class="btn btn-warning btn-mini" title="Delete" >{% trans "Delete" %}</button>
                                                     </form>
                                                 {% endif %}
@@ -340,6 +358,7 @@ th, td {
 	                                    <td>
 	                                        <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url todo_done todo_id=todo.id %}" method="POST" >
 								                {% csrf_token %}
+								                <input type="hidden" name="next" value="{% url work %}" />
 	                                            <input type="submit" name="submit" class="btn btn-info btn-mini"  title="Done" value="{% trans 'Done' %}" />
                                             </form>
 	                                    </td>

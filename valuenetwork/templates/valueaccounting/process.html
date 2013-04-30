@@ -24,6 +24,14 @@
 {% endcomment %}
 			{% endif %}
 		</legend>
+
+		{% if labnotes %}
+			<h4>
+				<a href="{% url labnotes process_id=process.id %}">Labnotes for this process</a>
+			</h4>
+		{% endif %}
+        <br />
+
         {% if process.independent_demand %}
 		    <p>
 			    <b>{% trans "for" %}:</b> {{ process.independent_demand }}
@@ -181,12 +189,6 @@
 				    {% endfor %}
 			    {% endif %}
 		    {% endfor %}
-		{% endif %}
-
-		{% if labnotes %}
-			<p>
-				<a href="{% url labnotes process_id=process.id %}">Labnotes for this process</a>
-			</p>
 		{% endif %}
 
         {% if process.tool_requirements %}

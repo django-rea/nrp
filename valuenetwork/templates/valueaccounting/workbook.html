@@ -68,6 +68,11 @@
 	color: green;
 }
 
+.lablink {
+    font-size: 1.3em;
+    padding-left: 1em;
+}
+
 </style>
 {% endblock %}
 
@@ -94,8 +99,23 @@
 			<form id="labnotesForm" method="POST" action="">
 				{% csrf_token %}
 
+				{% if others_working %}
+					<h4 style="margin-bottom: 2px;" >{% trans "Others working on this process" %}:</h4>
+					<ul>
+						{% for item in others_working %}
+							<li>
+								<b>{{ item.from_agent }}</b> {% trans "doing" %} {{ item.resource_type }}
+                                {% if item.has_labnotes %}
+									<a href="{% url labnote commitment_id=item.id %}" target="_blank" class="lablink">Labnotes</a>
+								{% endif %}
+							</li>
+
+						{% endfor %}
+					</ul>
+				{% endif %}
+
 				<div class="control-group">
-					<label><b>{% trans "Description of work done" %}:</b></label>
+					<label><h4>{% trans "Description of work done" %}:</h4></label>
 					{{ wb_form.description }}
 				</div>
 			</div>
@@ -590,22 +610,6 @@
 							</ul>
 						{% endfor %}
 					</div>
-				{% endif %}
-
-				{% if others_working %}
-					<h4 style="margin-left: 1em; margin-bottom: 2px;" >{% trans "Others working on this process" %}:</h4>
-					<ul>
-						{% for item in others_working %}
-							<li>
-								<b>{{ item.from_agent }}</b> {% trans "doing" %} {{ item.resource_type }}
-                                {% if item.has_labnotes %}
-									<a href="{% url labnote commitment_id=item.id %}" target="_blank">Labnotes</a>
-								{% endif %}
-							</li>
-
-						{% endfor %}
-					</ul>
-
 				{% endif %}
 
 				{% if other_work_reqs %}

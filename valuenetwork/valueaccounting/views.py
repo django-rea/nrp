@@ -327,14 +327,20 @@ def log_simple(request):
     member = get_agent(request)
     if not member:
         return HttpResponseRedirect('/%s/'
-            % ('accounting/work'))
+            % ('accounting/start')) 
 
+    output_form = SimpleOutputForm()
+    work_form = SimpleWorkForm()
+    citations_form = ProcessCitationForm() #not enough
     if request.method == "POST":
 	    save = request.POST.get("save")
 
     
     return render_to_response("valueaccounting/log_simple.html", {
         "member": member,
+        "output_form": output_form,
+        "work_form": work_form,
+        "citations_form": citations_form,
     }, context_instance=RequestContext(request))
 
 

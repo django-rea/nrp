@@ -22,33 +22,36 @@
 
 {% block body_base %}
 <div class="container">
+    {% include "_messages.html" %}
 	<legend>{% trans "Log Design Contributions for " %} {{ member.name }}</legend>
 
-    <form method="POST" action=".">
+                <b>UNDER CONSTRUCTION!!!  DO NOT USE!!!</b>
+                <br /><br /><br />
+    <form id="simpleForm" method="POST" action="">
 	    {% csrf_token %}
         <div class="row-fluid">
-            <div class="span12">
-                Type of work:
-                <br />
-		        Project:
-                <br />
-		        Output resource type: - give limited list based on category relationship in model above
-                <br />
-		        Design name:
-                <br />
-		        Design description:
-                <br />
-		        URL:
-                <br />
-		        Photo: (browse?)
-                <br />
-		        Photo URL:
-                <br />
-		        Date finished:
-                <br />
-		        Time spent:
-                <br />
-		        Citations:
+            <div class="span6">
+				<legend style="margin-top: 1em;" >{% trans "Resource Created" %}:</legend>
+				{{ output_form|as_bootstrap }}
+            </div>
+            <div class="span6">
+				<legend style="margin-top: 1em;" >{% trans "Work Done" %}:</legend>
+				{{ work_form|as_bootstrap }}
+
+				<legend style="margin-top: 1em;" >{% trans "Citations" %}:</legend>
+				{{ citations_form|as_bootstrap }}
+
+				{{ citation_formset.management_form }}
+				{% for form in citation_formset %}
+					{{ form.id }}
+					<div class="row-fluid formset-top">
+						{% trans "Resource Type" %}: {{ form.resource_type }} 
+						{% trans "Cite" %}: {{ form.quantity }}
+					</div>
+					<div class="row-fluid formset-bottom">
+						{% trans "Description" %}: {{ form.description }} 
+					</div>
+				{% endfor %}
 
             </div>
 	   	</div>
@@ -76,9 +79,13 @@
 
     $(document).ready(function(){
 
+	    $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
+
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
-
-
 
 		});
         

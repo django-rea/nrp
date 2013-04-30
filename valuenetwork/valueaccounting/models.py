@@ -345,6 +345,9 @@ class EconomicResourceTypeManager(models.Manager):
     def types_of_work(self):
         return EconomicResourceType.objects.filter(materiality="work")
 
+    def intellectual_resource_types(self):
+        return EconomicResourceType.objects.filter(materiality="intellectual")
+
     def output_choices(self):
         rels = ResourceRelationship.objects.filter(direction="out", related_to="process")
         return [rel.materiality for rel in rels]

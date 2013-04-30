@@ -208,6 +208,50 @@ class PastWorkForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('id', 'event_date', 'quantity', 'description')
 
+class SimpleOutputForm(forms.ModelForm):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        label="Type of resource created",
+        widget=SelectWithPopUp(
+            model=EconomicResourceType,
+            attrs={'class': 'resource-type-selector'}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
+    event_date = forms.DateField(
+        label="Date created",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
+   
+		        #Photo: (browse)
+		        #Photo URL:
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('project', 'event_date', 'resource_type', 'description', 'url')
+
+    def __init__(self, *args, **kwargs):
+        super(SimpleOutputForm, self).__init__(*args, **kwargs)
+        self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in EconomicResourceType.objects.intellectual_resource_types()]
+        self.fields["project"].choices = [(p.id, p.name) for p in Project.objects.all()]
+
+class SimpleWorkForm(forms.ModelForm):
+    type_of_work = forms.ChoiceField()
+    quantity = forms.DecimalField(required=True,
+        widget=DecimalDurationWidget,
+        label="Time spent",
+        help_text="hours, minutes")
+    unit_of_quantity = forms.ModelChoiceField(
+        required = True,
+        queryset=Unit.objects.all(),  
+        widget=SelectWithPopUp(model=Unit))
+   
+    class Meta:
+        model = EconomicEvent
+        fields = ('quantity', 'unit_of_quantity')
+
+    def __init__(self, *args, **kwargs):
+        super(SimpleWorkForm, self).__init__(*args, **kwargs)
+        self.fields["type_of_work"].choices = [('', '----------')] + [(rt.id, rt.name) for rt in EconomicResourceType.objects.types_of_work()]
+
 
 class WorkEventChangeForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)

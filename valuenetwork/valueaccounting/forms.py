@@ -1,4 +1,5 @@
 import sys
+import datetime
 from decimal import *
 from django import forms
 from django.utils.translation import ugettext_lazy as _
@@ -246,6 +247,7 @@ class SimpleOutputForm(forms.ModelForm):
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     event_date = forms.DateField(
         label="Date created",
+        initial=datetime.date.today,  
         widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
    

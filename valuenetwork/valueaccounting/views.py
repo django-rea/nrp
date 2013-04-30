@@ -322,6 +322,7 @@ def unscheduled_time_contributions(request):
         "time_formset": time_formset,
     }, context_instance=RequestContext(request))
 
+
 @login_required
 def log_simple(request):
     member = get_agent(request)

@@ -102,6 +102,7 @@ PAGE_CHOICES = (
     ('supply', _('Supply')),
     ('inventory', _('Inventory')),
     ('resource_types', _('Resource Types')),
+    ('edit_recipes', _('Edit Recipes')),
     ('recipes', _('Recipes')),
     ('projects', _('Projects')),
     ('my_work', _('My Work')),
@@ -755,6 +756,7 @@ DIRECTION_CHOICES = (
     ('in', _('input')),
     ('out', _('output')),
     ('cite', _('citation')),
+    ('todo', _('todo')),
 )
 
 RELATED_CHOICES = (
@@ -1688,6 +1690,11 @@ class CommitmentManager(models.Manager):
     def finished(self):
         return Commitment.objects.filter(finished=True)
 
+    def todos(self):
+        return Commitment.objects.filter(
+            relationship__direction="todo",
+            finished=False)
+
 
 class Commitment(models.Model):
     order = models.ForeignKey(Order,
@@ -1851,7 +1858,6 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import CommitmentForm
         prefix=self.form_prefix()
         return CommitmentForm(instance=self, prefix=prefix)
-        return CommitmentForm(instance=self)
 
     def resource_create_form(self):
         return self.resource_type.resource_create_form(self.form_prefix())
@@ -1862,10 +1868,22 @@ class Commitment(models.Model):
             return resource.change_form(self.form_prefix())
         else:
             return self.resource_type.resource_create_form(self.form_prefix())
-        
+
+    def todo_change_form(self):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import TodoForm
+        prefix=self.form_prefix()
+        return TodoForm(instance=self, prefix=prefix)
 
     def fulfilling_events(self):
         return self.fulfillment_events.all()
+
+    def todo_event(self):
+        events = self.fulfilling_events()
+        if events:
+            return events[0]
+        else:
+            return None
 
     def is_deletable(self):
         if self.fulfilling_events():

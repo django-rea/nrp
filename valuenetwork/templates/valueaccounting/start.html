@@ -1,14 +1,16 @@
 {% extends "site_base.html" %}
 
+{% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Start" %}{% endblock %}
+{% block head_title %}{% trans "My Work" %}{% endblock %}
 
 {% block extra_head %}
 
 
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
 
@@ -34,10 +36,10 @@
 .other-unassigned {
     background-color: whitesmoke;
 }
-.dashboard {
-    background-color: beige;
+.todos {
+    background-color: lightyellow;
 }
-.my-work, .my-skills, .other-unassigned, .dashboard {
+.my-work, .my-skills, .other-unassigned, .todos {
     padding: 2px 6px 3px 6px;
     margin-bottom: 12px;
     border: 1px solid gainsboro;
@@ -50,6 +52,78 @@
     margin-bottom: 0;
 }
 
+#todoModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
+.changeModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
+
+.entry-label {
+    text-align: right;
+    vertical-align: middle;
+}
+
+.entry-buttons {
+    padding-top: 4px;
+    text-align: right;
+}
+
+.todo-input {
+    vertical-align: bottom;
+}
+
+.todo-table {
+    margin-top: 1em;
+}
+
+th, td {
+    padding-left:15px;
+    padding-right:15px;
+}
+
+.did {
+    padding: 0;
+}
+
+.my-row {
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-color: lightgrey;
+}
+
+.odd {
+    background-color:#EAF2D3;
+}
+
+.even {
+    background-color: whitesmoke;
+}
+
+.not-my-row {
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-color: lightgrey;
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: lightgrey;
+}
+
+.entry-row {
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: lightgrey;
+}
+
+.who {
+    font-size: 90%;
+    white-space:nowrap;
+}
+
 </style>
 {% endblock %}
 
@@ -60,9 +134,10 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>
-		    {% trans "Start" %} &nbsp;&nbsp;&nbsp;<a href="{% url timeline %}">{% trans "Timeline" %}</a> 
+		    {% trans "My Work" %} &nbsp;&nbsp;&nbsp;<a href="{% url timeline %}">{% trans "Timeline" %}</a> 
 		    {% if agent %}
 		        &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a>
+		        &nbsp;&nbsp;&nbsp;<a href="{% url agent_stats agent_id=agent.id %}">{% trans "Comparative stats" %}</a>
 	        {% endif %}
 	    </legend>
 
@@ -92,6 +167,7 @@
 			</p>
 
 		<div class="row-fluid">
+		
 			<div class="span6 my-work">
 
 				<h3 style="margin-bottom: 4px;" >{% trans "What I've been working on" %}:</h3>
@@ -120,125 +196,171 @@
 
 			</div>
 
-			<div class="span6 my-skills">
+			<div class="span6 todos">
+	            <h3>
+	                {% trans "Todo list" %}
+                    {% if agent %}
+			            &nbsp;&nbsp;&nbsp;&nbsp;
+			            <div style="display: inline;" >
+					        <a href="#todoModal" role="button" class="btn btn-primary" data-toggle="modal">
+						        {% trans "Add a todo" %}
+					        </a>
+				        </div>
 
-				<h3 style="margin-bottom: 4px;" >{% trans "Unassigned tasks using my skills" %}:</h3>
+				        <div class="modal hide fade todoModal" id="todoModal" tabindex="-1" role="dialog" aria-labelledby="todo-label" aria-hidden="true">
+					        <div class="modal-header">
+						        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						        <h3 id="todo-label">{% trans "Add a todo" %}</h3>
+					        </div>
+					        <div class="modal-body">
 
-				{% if my_skillz %}
-						<ul>
-							{% for item in my_skillz %}
-								<li>
-									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-									{% if agent %}
-										<div style="display: inline;" >
-											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
-												{% trans "Take this task" %}
-											</a>
-										</div>
+						        <form class="todoForm" id="todoForm" action="{% url add_todo %}" method="POST" >
+							        {% csrf_token %}
+							        {{ todo_form|as_bootstrap }}
+							        <input type="hidden" name="next" value="{% url start %}" />
+						          <div class="modal-footer">
+							        <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+							        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Add" %}' />
+						          </div>
+						        </form>
+				          </div>
+	                {% endif %}
+                </h3>
+                <table class="todo-table" >
+                    <thead>
+                        <tr>
+                            <th>{% trans "Due" %}</th>
+                            <th>{% trans "Who" %}</th>
+                            <th>&nbsp;</th>
+                            <th>{% trans "What" %}</th>
+                            <th>&nbsp;</th>
+                            {% comment %}
+                            <th>{% trans "Project" %}</th>
+                            {% endcomment %}
+                            <th>{% trans "Url" %}</th>
+                            {% comment %}
+                            <th>{% trans "Poster" %}</th>
+                            {% endcomment %}
+                            <th>&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for todo in todos %}
+                            {% if agent == todo.from_agent %}
+                                <tr class="my-row {% cycle 'odd' 'even' as rowcolors %}" >
+                            {% else %}
+                                <tr class="not-my-row" >
+                            {% endif %}
+                                <td>
+                                    {{ todo.due_date|date:"Y-m-d"  }}
+                                </td>
+                                <td class="who">
+                                    Poster: {{ todo.to_agent }}
+                                </td>
+                                <td colspan="3" >
+                                    {{ todo.description|urlize|linebreaks }}
+                                </td>
+                                {% comment %}
+                                <td>
+                                    {{ todo.project }}
+                                </td>
+                                {% endcomment %}
+                                <td>
+				                    {% if todo.url %}
+					                    <a href="{{ todo.url }}" target="_blank">Open</a>
+				                    {% endif %}
+			                    </td>
+			                    {% comment %}
+                                <td>
+                                    {{ todo.to_agent }}
+                                </td>
+                                {% endcomment %}
+                                <td>
+                                    
+                                    {% if agent == todo.to_agent %}
+                                        <div class="entry-buttons" >
+                                            <a href="#changeModal-{{ todo.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+			                                    {% trans "Change" %}
+		                                    </a>
+		                                    {% if todo.is_deletable %}
+                                                <form class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url todo_delete todo_id=todo.id %}" method="POST" >
+			                                        {% csrf_token %}
+			                                        <input type="hidden" name="next" value="{% url start %}" />
+                                                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "Delete" %}</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
 
-										<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
-											<div class="modal-header">
-												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
-											</div>
-											<div class="modal-body">
+                                        <div class="modal hide fade changeModal" id="changeModal-{{ todo.id }}" tabindex="-1" role="dialog" aria-labelledby="change-label" aria-hidden="true">
+		                                    <div class="modal-header">
+			                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			                                    <h3 id="change-label">{% trans "Change todo" %}</h3>
+		                                    </div>
+		                                    <div class="modal-body">
 
-												<div class="row-fluid">
-													<div class="span5">
-														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
-															{% csrf_token %}
-															{{ item.commitment_form|as_bootstrap }}
-															<input type="hidden" name="next" value="{% url work %}" />
-														  <div class="modal-footer">
-															<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
-															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
-															<input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
-														  </div>
-														</form>
-													</div>
-													<div class="span7">
-														<h4>
-															{{ item.resource_type.name }}: {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-														</h4>
-														<p style="margin-left: 1em; margin-bottom: 0;">
-															{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
-														</p>
-														<p style="margin-left: 1em;">
-															{% trans "for order" %}: {{ item.independent_demand }}
-														</p>
-														<h4>{% trans "Material requirements" %}:</h4>
-														{% for reqmt in item.process.material_requirements %}	
-															<p style="margin-left: 1em;">
-																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
-															</p>
-															{% if reqmt.resource_type.onhand %}
-																{% for resource in reqmt.resource_type.onhand %}
-																	<p style="margin-left: 2em;">
-																		<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
-																	</p>
-																{% endfor %}
-															{% elif reqmt.resource_type.producing_commitments %}
-																{% for ct in reqmt.resource_type.producing_commitments %}
-																	<p style="margin-left: 2em;">
-																		<b>{% trans "Scheduled" %}:</b> {{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}
-																	</p>
-																{% endfor %}
-															{% else %}
-																{% for source in reqmt.resource_type.producing_agent_relationships %}
-																	<p style="margin-left: 2em;">
-																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} 
-																		{% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-																	</p>
-																{% endfor %}
-															{% endif %}
-														{% endfor %}
-														<h4>{% trans "Tool Requirements" %}:</h4>
-														{% for reqmt in item.process.tool_requirements %}	
-															<p style="margin-left: 1em;">
-
-																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}
-															</p>
-															<ul>
-																{% for source in reqmt.resource_type.producing_agent_relationships %}
-																	<li>
-																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-																	</li>
-																{% endfor %}
-															</ul>
-														{% endfor %}
-													</div>
-												</div>
-										  </div>
-
-										</div>
-
-									{% endif %}
-									{% if item.description %}
-									    <ul>
-				                            <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
-			                            </ul>
-			                        {% endif %}
-								</li>
-								<p style="margin-left: 1em; margin-bottom: 0;">
-									{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
-								</p>
-								<p style="margin-left: 1em; margin-bottom: 0;">
-									{% trans "for order" %}: {{ item.independent_demand }}
-								</p>
-
-
-							{% endfor %}
-						</ul>
-				{% else %}
-				None
-				{% endif %}
-
-			</div>
+			                                    <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url todo_change todo_id=todo.id %}" method="POST" >
+				                                    {% csrf_token %}
+				                                    {{ todo.todo_change_form|as_bootstrap }}
+				                                    <input type="hidden" name="next" value="{% url start %}" />
+			                                      <div class="modal-footer">
+				                                    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+				                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
+			                                      </div>
+			                                    </form>
+	                                      </div>
+                                    {% else %}
+                                        {% if todo.is_deletable %}
+                                            <div class="entry-buttons">
+                                                <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url todo_decline todo_id=todo.id %}" method="POST" >
+						                            {% csrf_token %}
+						                            <input type="hidden" name="next" value="{% url start %}" />
+                                                    <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
+                                                </form>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>   
+                            {% if agent == todo.from_agent %}
+                                {% with todo.todo_event as event %}
+                                <tr class="entry-row {{ rowcolors }}" >
+                                    <th class="entry-label" >{% trans "Did" %}:</td>
+                                    <td colspan="3" class="did" >
+                                        <textarea class="input-block-level did" id="{{ todo.id }}-didId" name="{{ todo.id }}-did" rows="3" 
+                                        />{% if event %}{{ event.description }}{% endif %}</textarea>
+                                    </td>
+                                    <th class="entry-label">
+                                        {% trans "Hours" %}:
+                                    </th>
+                                    <td class="todo-input" >
+                                        <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url todo_time %}" method="POST" >
+						                    {% csrf_token %}
+                                            <input class="input-mini optional-quantity" id="{{ todo.id }}-timeId" name="{{ todo.id }}-time" type="text" size="6" 
+                                                {% if event %} value="{{ event.quantity }}" {% else %} value="1" {% endif %}
+                                            />
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url todo_done todo_id=todo.id %}" method="POST" >
+						                    {% csrf_token %}
+						                    <input type="hidden" name="next" value="{% url start %}" />
+                                            <input type="submit" name="submit" class="btn btn-info btn-mini"  title="Done" value="{% trans 'Done' %}" />
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+	        </div>
 
 		</div>
 
 		<div class="row-fluid">
-			<div class="span6 other-unassigned">
+			
+
+		<div class="span6 other-unassigned">
 
 				<h3 style="margin-bottom: 4px;" >{% trans "Other unassigned tasks" %}:</h3>
 
@@ -266,7 +388,7 @@
 														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
 															{% csrf_token %}
 															{{ item.commitment_form|as_bootstrap }}
-															<input type="hidden" name="next" value="{% url work %}" />
+															<input type="hidden" name="next" value="{% url start %}" />
 														  <div class="modal-footer">
 															<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
 															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
@@ -358,14 +480,114 @@
 				{% endif %}
 
 			</div>
-			<div class="span6 dashboard">
-			    <h3 style="margin-bottom: 4px;" >{% trans "Scores for my skills" %}:</h3>
-				{% if scores %}
+
+
+		<div class="span6 my-skills">
+
+				<h3 style="margin-bottom: 4px;" >{% trans "Unassigned tasks using my skills" %}:</h3>
+
+				{% if my_skillz %}
 						<ul>
-							{% for skill in scores %}
+							{% for item in my_skillz %}
 								<li>
-									<b>{{ skill.resource_type.name }}:</b> {% trans "My score" %}:  {{ skill.score }}, {{ skill.comparative_scores }}
+									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+									{% if agent %}
+										<div style="display: inline;" >
+											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+												{% trans "Take this task" %}
+											</a>
+										</div>
+
+										<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+											<div class="modal-header">
+												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
+											</div>
+											<div class="modal-body">
+
+												<div class="row-fluid">
+													<div class="span5">
+														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+															{% csrf_token %}
+															{{ item.commitment_form|as_bootstrap }}
+															<input type="hidden" name="next" value="{% url start %}" />
+														  <div class="modal-footer">
+															<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+															<input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+														  </div>
+														</form>
+													</div>
+													<div class="span7">
+														<h4>
+															{{ item.resource_type.name }}: {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+														</h4>
+														<p style="margin-left: 1em; margin-bottom: 0;">
+															{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+														</p>
+														<p style="margin-left: 1em;">
+															{% trans "for order" %}: {{ item.independent_demand }}
+														</p>
+														<h4>{% trans "Material requirements" %}:</h4>
+														{% for reqmt in item.process.material_requirements %}	
+															<p style="margin-left: 1em;">
+																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
+															</p>
+															{% if reqmt.resource_type.onhand %}
+																{% for resource in reqmt.resource_type.onhand %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+																	</p>
+																{% endfor %}
+															{% elif reqmt.resource_type.producing_commitments %}
+																{% for ct in reqmt.resource_type.producing_commitments %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Scheduled" %}:</b> {{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}
+																	</p>
+																{% endfor %}
+															{% else %}
+																{% for source in reqmt.resource_type.producing_agent_relationships %}
+																	<p style="margin-left: 2em;">
+																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} 
+																		{% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+																	</p>
+																{% endfor %}
+															{% endif %}
+														{% endfor %}
+														<h4>{% trans "Tool Requirements" %}:</h4>
+														{% for reqmt in item.process.tool_requirements %}	
+															<p style="margin-left: 1em;">
+
+																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}
+															</p>
+															<ul>
+																{% for source in reqmt.resource_type.producing_agent_relationships %}
+																	<li>
+																		<b>{% trans "Possible source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+																	</li>
+																{% endfor %}
+															</ul>
+														{% endfor %}
+													</div>
+												</div>
+										  </div>
+
+										</div>
+
+									{% endif %}
+									{% if item.description %}
+									    <ul>
+				                            <li class="work-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+			                            </ul>
+			                        {% endif %}
 								</li>
+								<p style="margin-left: 1em; margin-bottom: 0;">
+									{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+								</p>
+								<p style="margin-left: 1em; margin-bottom: 0;">
+									{% trans "for order" %}: {{ item.independent_demand }}
+								</p>
+
 
 							{% endfor %}
 						</ul>
@@ -373,14 +595,11 @@
 				None
 				{% endif %}
 
-				<h3 style="margin-top: 2em; margin-bottom: 4px;" >{% trans "Logged work hours" %}:</h3>
-
-				<div id="chart_div"></div>
-
-				
-
 			</div>
+
+	        
 		</div>
+		</div>		    
 
 
 	</div>
@@ -389,7 +608,7 @@
 {% block extra_script %}
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -409,6 +628,9 @@
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
+		$(".chzn-select").chosen();
+		$("textarea").resizable();
+
 		jQuery.validator.setDefaults({ 
 		    success: function(label) {
 					label
@@ -418,8 +640,16 @@
 		});
 
 
-		$.validator.addClassRules("quantity", { required: true, number: true });
-
+		$.validator.addClassRules("quantity", { 
+		    required: true, 
+		    number: true,
+		    max: 999999.99 
+	    });
+	    $.validator.addClassRules("optional-quantity", { 
+		    number: true,
+		    max: 999999.99 
+	    });
+		$.validator.addClassRules("url", { url: true });
 
 		$('.commitmentForm').each( function(){
 			var form = $(this);
@@ -432,26 +662,155 @@
 			});
 		});
 
+		$('.timeForm').each( function(){
+			var form = $(this);
+
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				},
+
+			});
+		});
+
+		$('#todoForm').validate({
+		    rules: {
+			    'due_date': {
+			        date: true,
+                    required: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+        {% for todo in todos %}
+		    $('#changeForm-{{ todo.id }}').validate({
+		        rules: {
+			        'CT-{{  todo.id }}-due_date': {
+			            date: true,
+                        required: true
+				    }
+			    },
+			    highlight: function(label) {
+				    $(label).closest('.control-group').addClass('error');
+			    },
+		    });
+        {% endfor %}
+
+		$('.optional-quantity').blur(saveTime);
+		$('.did').blur(saveDescription);
+
 	}); // end document.ready
 
-	google.load("visualization", "1", {packages:["corechart"]});
-      google.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Member', 'Hours'],
-          {% for member, hours in member_hours %}
-              ['{{ member.nick }}',  {{ hours }} ],
-          {% endfor %}
-        ]);
+	function saveTime(event)
+	{
+        var timeInput = event.target;
+        var id = timeInput.id.split('-')[0];;
+        formId = "#timeForm-" + id;
+        var fieldSelector = "#" + id + "-timeId";
+        var isValid = $(formId).validate().element(fieldSelector);
+        if (isValid)
+        {
+            var hours = timeInput.value;
+            notifySaving();
+		    var jqxhr = $.post("{% url todo_time  %}",  { todoId: id, hours: hours },
+			    function( data ) 
+			    {
+				    notifySaved();
+			    })
+			    .fail(function() 
+			    { 
+				    notifyProblem(); 
+			    }
+		    );
+        }      
+	}
+	
+    function saveDescription(event)
+	{
+        var didInput = event.target;
+        var id = didInput.id.split('-')[0];;
+        var did = didInput.value;
+        notifySaving();
+	    var jqxhr = $.post("{% url todo_description  %}",  { todoId: id, did: did },
+		    function( data ) 
+		    {
+			    notifySaved();
+		    })
+		    .fail(function() 
+		    { 
+			    notifyProblem(); 
+		    }
+	    );   
+	}
 
-        var options = {
-          //title: 'Logged work hours',
-          vAxis: {title: 'Member',  titleTextStyle: {color: 'red'}}
-        };
+	function notifySaving()
+	{
+		$("#saving").css("color","green"); 
+		$("#saving").text("Saving...");
+	}
 
-        var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
-        chart.draw(data, options);
-      }
+	function notifySaved()
+	{
+		$("#saving").css("color","green"); 
+		$("#saving").text("Saved");
+	}
+
+	function notifyProblem()
+	{
+		$("#saving").css("color","red"); 
+		$("#saving").text("Problem saving");
+	}
+
+	$(document).ajaxSend(function(event, xhr, settings) 
+	{
+		function getCookie(name) 
+		{
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie != '') 
+			{
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) 
+				{
+		            var cookie = jQuery.trim(cookies[i]);
+		            // Does this cookie string begin with the name we want?
+		            if (cookie.substring(0, name.length + 1) == (name + '=')) 
+					{
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+    	}
+
+		function sameOrigin(url) 
+		{
+		    // url could be relative or scheme relative or absolute
+		    var host = document.location.host; // host + port
+		    var protocol = document.location.protocol;
+		    var sr_origin = '//' + host;
+		    var origin = protocol + sr_origin;
+		    // Allow absolute or scheme relative URLs to same origin
+		    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+		        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+		        // or any other URL that isn't scheme relative or absolute i.e relative.
+		        !(/^(\/\/|http:|https:).*/.test(url));
+		}
+
+		function safeMethod(method) 
+		{
+		    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+
+		if (!safeMethod(settings.type) && sameOrigin(settings.url)) 
+		{
+		    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+		}
+	});
+
       
     </script>
 

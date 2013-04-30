@@ -519,7 +519,7 @@ def edit_extended_bill(request, resource_type_id):
         "change_process_form": change_process_form,
         "source_form": source_form,
         "feature_form": feature_form,
-        "help": get_help("recipes"),
+        "help": get_help("edit_recipes"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -1402,30 +1402,158 @@ def assemble_schedule(start, end):
 def work(request):
     agent = get_agent(request)
     start = datetime.date.today()
-    #start = start - datetime.timedelta(days=7)
     end = start + datetime.timedelta(days=7)
-    projects = assemble_schedule(start, end)   
+    #projects = assemble_schedule(start, end)   
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
+    todo_form = TodoForm()
     #import pdb; pdb.set_trace()
+    todos = Commitment.objects.todos()
     if request.method == "POST":
         if date_form.is_valid():
             dates = date_form.cleaned_data
             start = dates["start_date"]
             end = dates["end_date"]
-            projects = assemble_schedule(start, end) 
+    projects = assemble_schedule(start, end)
+    todos = Commitment.objects.todos()
     return render_to_response("valueaccounting/work.html", {
         "agent": agent,
         "projects": projects,
         "date_form": date_form,
+        "todo_form": todo_form,
+        "todos": todos,
         "help": get_help("all_work"),
     }, context_instance=RequestContext(request))
+
+def add_todo(request):
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        form = TodoForm(request.POST)
+        next = request.POST.get("next")
+        agent = get_agent(request)
+        rel = None
+        rels = ResourceRelationship.objects.filter(
+            direction='todo',
+            materiality='work')
+        if rels:
+            rel = rels[0]
+        if rel:
+            if form.is_valid():
+                data = form.cleaned_data
+                todo = form.save(commit=False)
+                todo.to_agent=agent
+                todo.event_type=rel.event_type
+                todo.relationship=rel
+                todo.quantity = Decimal("1")
+                todo.unit_of_quantity=todo.resource_type.unit
+                todo.save()
+            
+    return HttpResponseRedirect(next)
+
+def create_event_from_todo(todo):
+    event = EconomicEvent(
+        commitment=todo,
+        event_type=todo.event_type,
+        event_date=datetime.date.today(),
+        from_agent=todo.from_agent,
+        to_agent=todo.to_agent,
+        resource_type=todo.resource_type,
+        project=todo.project,
+        url=todo.url,
+        quantity=Decimal("1"),
+        unit_of_quantity=todo.resource_type.unit,
+    )
+    return event
+
+def todo_time(request):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        todo_id = request.POST.get("todoId")
+        hours = request.POST.get("hours")
+        qty = Decimal(hours)
+        todo = get_object_or_404(Commitment, id=todo_id)
+        event = todo.todo_event()
+        if event:
+            event.quantity = qty
+            event.save()
+        else:
+            event = create_event_from_todo(todo)
+            event.quantity = qty
+            event.save()
+    return HttpResponse("Ok", mimetype="text/plain")
+
+def todo_description(request):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        todo_id = request.POST.get("todoId")
+        did = request.POST.get("did")
+        todo = get_object_or_404(Commitment, id=todo_id)
+        event = todo.todo_event()
+        if event:
+            event.description = did
+            event.save()
+        else:
+            event = create_event_from_todo(todo)
+            event.description = did
+            event.save()
+    return HttpResponse("Ok", mimetype="text/plain")
+
+def todo_done(request, todo_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        todo = get_object_or_404(Commitment, id=todo_id)
+        todo.finished = True
+        todo.save()
+        event = todo.todo_event()
+        if not event:
+            event = create_event_from_todo(todo)
+            event.save()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+
+def todo_mine(request, todo_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        todo = get_object_or_404(Commitment, id=todo_id)
+        agent = get_agent(request)
+        todo.from_agent = agent
+        todo.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/work'))
+
+def todo_change(request, todo_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        todo = get_object_or_404(Commitment, id=todo_id)
+        prefix = todo.form_prefix()
+        form = TodoForm(data=request.POST, instance=todo, prefix=prefix)
+        if form.is_valid():
+            todo = form.save()
+
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+
+def todo_decline(request, todo_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        todo = get_object_or_404(Commitment, id=todo_id)
+        todo.from_agent=None
+        todo.save()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+
+def todo_delete(request, todo_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        todo = get_object_or_404(Commitment, id=todo_id)
+        todo.delete()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
 
 def start(request):
     my_work = []
     my_skillz = []
     other_wip = []
-    scores = []
     agent = get_agent(request)
     if agent:
         my_work = Commitment.objects.unfinished().filter(
@@ -1438,16 +1566,30 @@ def start(request):
             resource_type__id__in=skill_ids)
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
-            resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
-        scores = agent.resource_types.all()
-        
+            resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)       
     else:
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
             resource_type__materiality="work")
+    todos = Commitment.objects.todos().filter(from_agent=agent)
+    init = {"from_agent": agent,}
+    todo_form = TodoForm(initial=init)
+    return render_to_response("valueaccounting/start.html", {
+        "agent": agent,
+        "my_work": my_work,
+        "my_skillz": my_skillz,
+        "other_unassigned": other_unassigned,
+        "todos": todos,
+        "todo_form": todo_form,
+        "help": get_help("my_work"),
+    }, context_instance=RequestContext(request))
 
-    contributions = EconomicEvent.objects.filter(is_contribution=True)
+
+def agent_stats(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    scores = agent.resource_types.all()
     agents = {}
+    contributions = EconomicEvent.objects.filter(is_contribution=True)
     for c in contributions:
         if c.from_agent not in agents:
             agents[c.from_agent] = Decimal("0")
@@ -1456,15 +1598,10 @@ def start(request):
     for key, value in agents.iteritems():
         member_hours.append((key, value))
     member_hours.sort(lambda x, y: cmp(y[1], x[1]))
-
-    return render_to_response("valueaccounting/start.html", {
+    return render_to_response("valueaccounting/agent_stats.html", {
         "agent": agent,
-        "my_work": my_work,
-        "my_skillz": my_skillz,
-        "other_unassigned": other_unassigned,
         "scores": scores,
         "member_hours": member_hours,
-        "help": get_help("my_work"),
     }, context_instance=RequestContext(request))
 
 

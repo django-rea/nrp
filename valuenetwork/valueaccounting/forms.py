@@ -134,6 +134,34 @@ class ProcessOutputForm(forms.ModelForm):
         fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
 
 
+class TodoForm(forms.ModelForm):
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.filter(agent_type__member_type='agent'),
+        label="Assigned to",  
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.types_of_work(), 
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(), 
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'todo-description input-xlarge',}))
+    url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('from_agent', 'project', 'resource_type', 'due_date', 'description', 'url')
+
+
 class ProcessCitationForm(forms.Form):
     resource_type = forms.ChoiceField( 
         widget=forms.Select(attrs={'class': 'chzn-select input-xlarge'}))

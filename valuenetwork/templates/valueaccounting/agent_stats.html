@@ -1,0 +1,102 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Comparative stats for " %} {{ agent.name }}{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+.dashboard {
+    background-color: beige;
+    padding: 2px 6px 3px 6px;
+    margin-bottom: 12px;
+    border: 1px solid gainsboro;
+}
+
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>
+		    {% trans "Comparative stats for " %} {{ agent.name }}
+	    </legend>
+			<div class="dashboard">
+			    <h3 style="margin-bottom: 4px;" >{% trans "Scores for my skills" %}:</h3>
+				{% if scores %}
+						<ul>
+							{% for skill in scores %}
+								<li>
+									<b>{{ skill.resource_type.name }}:</b> {% trans "My score" %}:  {{ skill.score }}, {{ skill.comparative_scores }}
+								</li>
+
+							{% endfor %}
+						</ul>
+				{% else %}
+				None
+				{% endif %}
+
+				<h3 style="margin-top: 2em; margin-bottom: 4px;" >{% trans "Logged work hours" %}:</h3>
+
+				<div id="chart_div"></div>
+
+				
+
+			</div>
+		</div>
+
+
+	</div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#start').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
+
+
+	}); // end document.ready
+
+	google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Member', 'Hours'],
+          {% for member, hours in member_hours %}
+              ['{{ member.nick }}',  {{ hours }} ],
+          {% endfor %}
+        ]);
+
+        var options = {
+          //title: 'Logged work hours',
+          vAxis: {title: 'Member',  titleTextStyle: {color: 'red'}}
+        };
+
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+      
+    </script>
+
+{% endblock %}

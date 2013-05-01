@@ -1,6 +1,7 @@
 {% extends "site_base.html" %}
 
 {% load i18n %}
+{% load thumbnail %}
 
 {% block head_title %}{% trans "Labnotes History" %}{% endblock %}
 {% block extra_head %}
@@ -63,8 +64,15 @@ li {
 	                </ul>
 	                {% if process.deliverables %}
 	                    <ul>
-	                        {% for item in process.deliverables %}
-	                            <li class="deliverable" >{% trans "Deliverable" %}: {{ item }}</li>
+	                        {% for resource in process.deliverables %}
+	                            <li class="deliverable" >{% trans "Deliverable" %}: 
+	                                <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a>
+                                </li>
+		                        {% if resource.photo %}
+		                        	<img src="{% thumbnail resource.photo photo_size %}" />
+	                        	{% elif resource.photo_url %}
+		                        	<img src="{{ resource.photo_url }}" width="128" height="96" />
+		                        {% endif %}
 	                        {% endfor %}
                         </ul>
 	                {% endif %}
@@ -72,6 +80,21 @@ li {
 	        </ul>
         {% endif %}
 
+<div class="pagination">
+    <span class="step-links">
+        {% if processes.has_previous %}
+            <a href="?page={{ processes.previous_page_number }}">{% trans "previous" %}</a>
+        {% endif %}
+
+        <span class="current">
+            {% trans "Page" %} {{ processes.number }} {% trans "of" %} {{ processes.paginator.num_pages }}.
+        </span>
+
+        {% if processes.has_next %}
+            <a href="?page={{ processes.next_page_number }}">{% trans "next" %}</a>
+        {% endif %}
+    </span>
+</div>
 
 	</div>
     </div>

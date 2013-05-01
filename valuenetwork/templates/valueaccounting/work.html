@@ -142,6 +142,7 @@ th, td {
 	    <div>
 		    <legend>
 		        {% trans "Work" %} &nbsp;&nbsp;&nbsp;<a href="{% url timeline %}">{% trans "Timeline" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
+		        <a href="{% url labnotes_history %}">{% trans "History" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        {% if agent %}
 					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Create R&amp;D Order" %}</a>
 			    {% endif %}

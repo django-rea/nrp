@@ -52,7 +52,7 @@ li {
         {% if processes %}
             <ul>
 		        {% for process in processes %}
-		            <li class="process" >{{ process }}</li>
+		            <li class="process" ><a href="{{ process.get_absolute_url }}">{{ process }}</a></li>
 		            <ul>
 		                {% for req in process.work_requirements %}
 		                    {% if req.description %}

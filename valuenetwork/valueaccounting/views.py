@@ -2308,6 +2308,19 @@ def process_details(request, process_id):
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
+def labnotes_history(request):
+    procs = Process.objects.all().order_by("-start_date")
+    candidates = [p for p in procs if p.work_events()]
+    processes = []
+    for p in candidates:
+        for e in p.work_requirements():
+            if e.description:
+                if p not in processes:
+                    processes.append(p)
+    return render_to_response("valueaccounting/labnotes_history.html", {
+        "processes": processes,
+    }, context_instance=RequestContext(request))
+
 def resource(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     return render_to_response("valueaccounting/resource.html", {

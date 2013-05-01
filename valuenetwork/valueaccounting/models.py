@@ -1967,6 +1967,12 @@ class Commitment(models.Model):
     def consumes_resources(self):
         return self.event_type.consumes_resources()
 
+    def output_resources(self):
+        answer = None
+        if self.relationship.direction == "out":
+            answer = [event.resource for event in self.fulfilling_events()]
+        return answer
+
     def output_resource(self):
         #todo: this is a hack, cd be several resources
         answer = None

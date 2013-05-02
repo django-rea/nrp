@@ -243,7 +243,9 @@ class SimpleOutputForm(forms.ModelForm):
         label="Type of resource created",
         widget=SelectWithPopUp(
             model=EconomicResourceType,
-            attrs={'class': 'resource-type-selector chzn-select'})) #check!
+            attrs={'class': 'resource-type-selector chzn-select'})) 
+        #widget=forms.Select(
+        #    attrs={'class': 'chzn-select'}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     event_date = forms.DateField(
         label="Date created",
@@ -260,11 +262,15 @@ class SimpleOutputForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SimpleOutputForm, self).__init__(*args, **kwargs)
-        #self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in EconomicResourceType.objects.intellectual_resource_types()]
         self.fields["project"].choices = [(p.id, p.name) for p in Project.objects.all()]
 
 class SimpleWorkForm(forms.ModelForm):
-    type_of_work = forms.ChoiceField() #make like other one, add label
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.types_of_work(), 
+        label="Type of work done",
+        widget=SelectWithPopUp(
+            model=EconomicResourceType,
+            attrs={'class': 'resource-type-selector chzn-select'})) 
     quantity = forms.DecimalField(required=True,
         widget=DecimalDurationWidget,
         label="Time spent",
@@ -276,7 +282,6 @@ class SimpleWorkForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SimpleWorkForm, self).__init__(*args, **kwargs)
-        self.fields["type_of_work"].choices = [('', '----------')] + [(rt.id, rt.name) for rt in EconomicResourceType.objects.types_of_work()]
 
 
 class WorkEventChangeForm(forms.ModelForm):

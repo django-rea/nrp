@@ -132,4 +132,7 @@ a:hover {
   background-color: white;
 }
 
+.hours, .minutes {
+    width: 25px;
+}   
 

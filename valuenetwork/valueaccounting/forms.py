@@ -212,7 +212,7 @@ class WorkbookForm(forms.ModelForm):
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
-        help_text="days, hours, minutes")
+        help_text="hours, minutes")
 	
     class Meta:
         model = EconomicEvent
@@ -231,7 +231,7 @@ class PastWorkForm(forms.ModelForm):
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
-        help_text="days, hours, minutes")
+        help_text="hours, minutes")
 	
     class Meta:
         model = EconomicEvent
@@ -288,7 +288,7 @@ class WorkEventChangeForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
-        help_text="days, hours, minutes")
+        help_text="hours, minutes")
 	
     class Meta:
         model = EconomicEvent
@@ -328,7 +328,7 @@ class CasualTimeContributionForm(forms.ModelForm):
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
-        help_text="days, hrs, mins")
+        help_text="hrs, mins")
 	
     class Meta:
         model = EconomicEvent

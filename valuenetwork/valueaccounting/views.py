@@ -2308,6 +2308,32 @@ def process_details(request, process_id):
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
+def labnotes_history(request):
+    procs = Process.objects.all().order_by("-start_date")
+    candidates = [p for p in procs if p.work_events()]
+    process_list = []
+    for p in candidates:
+        for e in p.work_requirements():
+            if e.description:
+                if p not in process_list:
+                    process_list.append(p)
+                    
+    paginator = Paginator(process_list, 25)
+    page = request.GET.get('page')
+    try:
+        processes = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        processes = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        processes = paginator.page(paginator.num_pages)
+        
+    return render_to_response("valueaccounting/labnotes_history.html", {
+        "processes": processes,
+        "photo_size": (128, 128),
+    }, context_instance=RequestContext(request))
+
 def resource(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     return render_to_response("valueaccounting/resource.html", {

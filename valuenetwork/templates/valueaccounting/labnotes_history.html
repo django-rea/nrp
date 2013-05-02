@@ -1,0 +1,101 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "Labnotes History" %}{% endblock %}
+{% block extra_head %}
+
+<style>
+li {
+    list-style-type: none;
+}
+
+.process {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: .8em;
+}
+
+.section {
+    color:     #008A2E;
+    font-size: 1em;
+}
+
+.deliverable {
+    font-weight: normal;
+
+}
+
+.labnote {
+    background-color: beige;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+}
+
+.name {
+    font-weight: bold;
+}
+
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>
+			{% trans "Labnotes History" %}
+		</legend>
+        {% if processes %}
+            <ul>
+		        {% for process in processes %}
+		            <li class="process" ><a href="{{ process.get_absolute_url }}">{{ process }}</a></li>
+		            <ul>
+		                {% for req in process.work_requirements %}
+		                    {% if req.description %}
+		                        <li class="who" ><span class="name" >{{ req.from_agent }}</span> {% trans "labnotes" %}:
+		                            <div class="labnote" >{{ req.description|urlize|linebreaks }}</div>
+		                        </li>
+		                    {% endif %}
+		                {% endfor %}
+	                </ul>
+	                {% if process.deliverables %}
+	                    <ul>
+	                        {% for resource in process.deliverables %}
+	                            <li class="deliverable" >{% trans "Deliverable" %}: 
+	                                <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a>
+                                </li>
+		                        {% if resource.photo %}
+		                        	<img src="{% thumbnail resource.photo photo_size %}" />
+	                        	{% elif resource.photo_url %}
+		                        	<img src="{{ resource.photo_url }}" width="128" height="96" />
+		                        {% endif %}
+	                        {% endfor %}
+                        </ul>
+	                {% endif %}
+		        {% endfor %}
+	        </ul>
+        {% endif %}
+
+<div class="pagination">
+    <span class="step-links">
+        {% if processes.has_previous %}
+            <a href="?page={{ processes.previous_page_number }}">{% trans "previous" %}</a>
+        {% endif %}
+
+        <span class="current">
+            {% trans "Page" %} {{ processes.number }} {% trans "of" %} {{ processes.paginator.num_pages }}.
+        </span>
+
+        {% if processes.has_next %}
+            <a href="?page={{ processes.next_page_number }}">{% trans "next" %}</a>
+        {% endif %}
+    </span>
+</div>
+
+	</div>
+    </div>
+{% endblock %}

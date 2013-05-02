@@ -662,7 +662,6 @@
 	var start = new Date();
     var duration = {{ duration }};
     var description = "";
-    var daysValue = 0;
     var hoursValue = 0;
     var minutesValue = 0;
 	var used = {};
@@ -846,9 +845,8 @@
 
 
 		description = $("#id_description").val();
-		daysValue = parseInt($("#id_quantity_0").val());
-		hoursValue = parseInt($("#id_quantity_1").val());
-		minutesValue = parseInt($("#id_quantity_2").val());
+		hoursValue = parseInt($("#id_quantity_0").val());
+		minutesValue = parseInt($("#id_quantity_1").val());
 
 	    if (wasRunning)
         {
@@ -866,18 +864,8 @@
 			}
 		});
 
-		$("#id_quantity_0").blur(function() 
-		{
-            var newDays = parseInt(this.value);
-            if (daysValue != newDays)
-			{
-				daysValue = newDays;
-				recomputeDuration();
-				saveContribution();
-			}
-		});
 
-		$("#id_quantity_1").blur(function() 
+		$("#id_quantity_0").blur(function() 
 		{
             var newHours = parseInt(this.value);
             if (hoursValue != newHours)
@@ -888,7 +876,7 @@
 			}
 		});
 
-		$("#id_quantity_2").blur(function() 
+		$("#id_quantity_1").blur(function() 
 		{
             var newMinutes = parseInt(this.value);
             if (minutesValue != newMinutes)
@@ -1021,18 +1009,11 @@
 
 		$("#stop").click(function(event) {
             event.preventDefault();
-            var stop = new Date();
-			duration += Math.round((stop - start) / 60000);
+            setHoursMins();
             running = false;
 			clearInterval(runTimer);
-        	var days = Math.floor(duration / 1440);
-        	var hours = Math.floor((duration - (days * 1440)) / 60);
-            var mins = Math.round(duration - (days * 1440) - (hours * 60));
-			$("#id_quantity_0").val(days);
-			$("#id_quantity_1").val(hours);
-			$("#id_quantity_2").val(mins);
 			$("#stop").attr("disabled", "disabled");
-			$("#start").removeAttr("disabled"); 
+			$("#startButton").removeAttr("disabled"); 
 			saveContribution();
 		});
 
@@ -1253,11 +1234,23 @@
 
 
 
-	function recomputeDuration()
-	{
-		duration = (daysValue * 1440) + (hoursValue * 60) + minutesValue;
+	function setHoursMins()
+    {
+        var stop = new Date();
+		duration += Math.round((stop - start) / 60000);
+        start = stop;
+        duration += Math.round((stop - start) / 60000);
+    	var hours = Math.floor(duration / 60);
+        var mins = Math.round(duration - (hours * 60));
+		$("#id_quantity_0").val(hours);
+		$("#id_quantity_1").val(mins);
 	}
 
+
+	function recomputeDuration()
+	{
+		duration = (hoursValue * 60) + minutesValue;
+	}
 
 	function saveContribution()
 	{
@@ -1289,15 +1282,7 @@
 
 	function updateTime()
 	{
-        var stop = new Date();
-		duration += Math.round((stop - start) / 60000);
-        start = stop;
-    	var days = Math.floor(duration / 1440);
-    	var hours = Math.floor((duration - (days * 1440)) / 60);
-        var mins = Math.round(duration - (days * 1440) - (hours * 60));
-		$("#id_quantity_0").val(days);
-		$("#id_quantity_1").val(hours);
-		$("#id_quantity_2").val(mins);
+        setHoursMins();
 		saveContribution();	
 		retrySaving();		
 	}

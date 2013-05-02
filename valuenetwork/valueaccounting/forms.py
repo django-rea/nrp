@@ -134,6 +134,10 @@ class ProcessOutputForm(forms.ModelForm):
         model = Commitment
         fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
 
+class WorkModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.name
+
 
 class TodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
@@ -142,8 +146,9 @@ class TodoForm(forms.ModelForm):
         label="Assigned to",  
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
-    resource_type = forms.ModelChoiceField(
+    resource_type = WorkModelChoiceField(
         queryset=EconomicResourceType.objects.types_of_work(), 
+        label="Type of work", 
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))

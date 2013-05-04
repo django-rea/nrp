@@ -243,6 +243,20 @@ class PastWorkForm(forms.ModelForm):
         fields = ('id', 'event_date', 'quantity', 'description')
 
 class SimpleOutputForm(forms.ModelForm):
+    event_date = forms.DateField(
+        label="Date created",
+        initial=datetime.date.today,  
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('project', 'event_date')
+
+    def __init__(self, *args, **kwargs):
+        super(SimpleOutputForm, self).__init__(*args, **kwargs)
+        self.fields["project"].choices = [(p.id, p.name) for p in Project.objects.all()]
+
+class SimpleOutputResourceForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.intellectual_resource_types(), 
         label="Type of resource created",
@@ -251,26 +265,21 @@ class SimpleOutputForm(forms.ModelForm):
             attrs={'class': 'resource-type-selector chzn-select'})) 
         #widget=forms.Select(
         #    attrs={'class': 'chzn-select'}))
-    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
-    event_date = forms.DateField(
-        label="Date created",
-        initial=datetime.date.today,  
-        widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    name = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
    
 		        #Photo: (browse)
 		        #Photo URL:
 
     class Meta:
-        model = EconomicEvent
-        fields = ('project', 'event_date', 'resource_type', 'description', 'url')
+        model = EconomicResource
+        fields = ('resource_type', 'name', 'url')
 
     def __init__(self, *args, **kwargs):
-        super(SimpleOutputForm, self).__init__(*args, **kwargs)
-        self.fields["project"].choices = [(p.id, p.name) for p in Project.objects.all()]
+        super(SimpleOutputResourceForm, self).__init__(*args, **kwargs)
 
 class SimpleWorkForm(forms.ModelForm):
-    resource_type = forms.ModelChoiceField(
+    resource_type = WorkModelChoiceField(
         queryset=EconomicResourceType.objects.types_of_work(), 
         label="Type of work done",
         widget=SelectWithPopUp(

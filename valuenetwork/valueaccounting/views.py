@@ -331,19 +331,68 @@ def log_simple(request):
             % ('accounting/start')) 
 
     output_form = SimpleOutputForm()
+    output_resource_form = SimpleOutputResourceForm()
     work_form = SimpleWorkForm()
-    citations_form = ProcessCitationForm() #not enough
-    if request.method == "POST":
-	    save = request.POST.get("save")
+    #citations_form = 
 
-    
+    if request.method == "POST":
+        if output_form.is_valid():
+            output_data = output_form.cleaned_data
+            output_event = output_form.save(commit=False)
+            if work_form.is_valid():
+                work_data = work_form.cleaned_data
+                work_event = work_form.save(commit=False)
+                if output_resource_form.is_valid():
+                    resource_data = output_resource_form.cleaned_data
+                    output_resource = output_resource_form.save(commit=False)
+                    
+                    process = Process()
+                    process.name = 'Create intellectual resource'
+                    process.project = output_event.project
+                    process.start_date = output_event.event_date
+                    process.end_date = output_event.event_date
+                    process.started = true
+                    process.finished = true
+                    process.created_by = request.user
+                    process.save()                    
+                    
+                    output_resource.quantity=1
+                    #output_resource.unit_of_quantity =   #each
+                    output_resource.created_by = request.user
+                    output_resource.save()
+
+
+                    #output_event.event_type = et
+                    output_event.process = process
+                    output_event.created_by = request.user
+                    output_event.resource = output_resource
+                    output_event.save()
+
+                    #work_event.unit_of_quantity = 
+                    #work_event.event_type = 
+                    work_event.event_date = output_event.event_date
+                    work_event.process = process
+                    work_event.project = output_event.project
+                    #work_event.unit_of_quantity =   #hours
+                    work_event.created_by = request.user
+                    work_event.save()
+
+                    return HttpResponseRedirect('/%s/%s/'
+                        % ('accounting/start'))
+
+                else:
+                    raise ValidationError(output_resource_form.errors)
+            else:
+                raise ValidationError(work_form.errors)
+        else:
+            raise ValidationError(output_form.errors)
+
     return render_to_response("valueaccounting/log_simple.html", {
         "member": member,
         "output_form": output_form,
         "work_form": work_form,
-        "citations_form": citations_form,
+        #"citations_form": citations_form,
     }, context_instance=RequestContext(request))
-
 
 
 class EventSummary(object):

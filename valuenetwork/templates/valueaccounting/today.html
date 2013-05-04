@@ -3,20 +3,16 @@
 {% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load thumbnail %}
 
-{% block head_title %}{% trans "Work" %}{% endblock %}
-
+{% block head_title %}{% trans "Today" %}{% endblock %}
 {% block extra_head %}
 
-
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
-<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
-
 <style>
-
 li {
     list-style-type: none;
 }
+
 .project-line {
     font-size: 1.2em;
     color: brown;
@@ -52,8 +48,15 @@ li {
 	margin-right: 2em;
 }
 
-.schedule, .todos {
+.schedule, .todos, .events {
     background-color: beige;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+}
+
+.events {
+    margin-top: 2em;
+    background-color: whitesmoke;
     padding: 2px 6px 3px 6px;
     border: 1px solid gainsboro;
 }
@@ -131,6 +134,34 @@ th, td {
     width: 2em;
 }
 
+.process {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: .8em;
+}
+
+.section {
+    color:     #008A2E;
+    font-size: 1em;
+}
+
+.deliverable {
+    font-weight: normal;
+    margin-left: 1em;
+
+}
+
+.labnote {
+    background-color: beige;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+    margin-left: 1em;
+}
+
+.name {
+    font-weight: bold;
+}
+
 </style>
 {% endblock %}
 
@@ -139,43 +170,16 @@ th, td {
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-	    <div>
-		    <legend>
-		        {% trans "Work" %} &nbsp;&nbsp;&nbsp;
-		        <a href="{% url today %}">{% trans "Today" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
-		        <a href="{% url timeline %}">{% trans "Timeline" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
-		        <a href="{% url labnotes_history %}">{% trans "History" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
-		        {% if agent %}
-					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Create R&amp;D Order" %}</a>
-			    {% endif %}
-	        </legend>
-
-	        <form id="dateForm" action="." method="POST" >
-                {% csrf_token %}
-                <div id="div_id_start_date" class="control-group" style="display: inline;" >     
-                    <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
-                        Start date
-                    </label>
-                    <div class="controls" style="display: inline;" >
-                        {{ date_form.start_date }}
-                    </div>
-                </div>
-                <div id="div_id_end_date" class="control-group" style="display: inline;" >     
-                    <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
-                        End date
-                    </label>
-                    <div class="controls" style="display: inline;" >
-                        {{ date_form.end_date }}
-                    </div>
-                </div>
-                <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Reload' %}" />
-	        </form>
-
-	        <div class="row-fluid">
+	<div>
+		<legend>
+			{% trans "Today" %}
+		</legend>
+         <div class="row-fluid">
 			    <div class="span6 schedule">
 			        <h3>
-			            {% trans "Work in process" %}
+			            {% trans "Work in process today" %}
 		            </h3>
+		            
                     {% if projects %}
                         <ul>
 			                {% for project, processes in projects.items %}
@@ -195,34 +199,9 @@ th, td {
 
 			    <div class="span6 todos">
 			        <h3>
-			            {% trans "Todo list" %}
-	                    {% if agent %}
-					        &nbsp;&nbsp;&nbsp;&nbsp;
-					        <div style="display: inline;" >
-							    <a href="#todoModal" role="button" class="btn btn-primary" data-toggle="modal">
-								    {% trans "Add a todo" %}
-							    </a>
-						    </div>
-
-						    <div class="modal hide fade todoModal" id="todoModal" tabindex="-1" role="dialog" aria-labelledby="todo-label" aria-hidden="true">
-							    <div class="modal-header">
-								    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-								    <h3 id="todo-label">{% trans "Add a todo" %}</h3>
-							    </div>
-							    <div class="modal-body">
-
-								    <form class="todoForm" id="todoForm" action="{% url add_todo %}" method="POST" >
-									    {% csrf_token %}
-									    {{ todo_form|as_bootstrap }}
-									    <input type="hidden" name="next" value="{% url work %}" />
-								      <div class="modal-footer">
-									    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
-									    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Add" %}' />
-								      </div>
-								    </form>
-						      </div>
-			            {% endif %}
+			            {% trans "Todos due today" %}
 		            </h3>
+		            {% if todos %}
 		            <table class="todo-table" >
 		                <thead>
 		                    <tr>
@@ -363,220 +342,46 @@ th, td {
 		                    {% endfor %}
 		                </tbody>
 		            </table>
+		            {% else %}
+		                None
+	                {% endif %}
 			    </div>
 
 		    </div>
+            <div class="events" >
+                <h3>
+		            {% trans "Today's events" %}
+	            </h3>
+	            {% if events %}
+	                <ul>
+                        {% for event in events %}
+                            <li><span class="name">
+                                    {% if event.does_todo %}
+                                        Todo 
+                                    {% endif %}
+                                    {{ event.event_type }} 
+                                </span>
+                                {{ event.doer }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.resource_type }}
+                                {% if event.process %}
+                                    <div class="deliverable" >{% trans "Process" %}: <a href="{{ process.get_absolute_url }}">{{ event.process }}</a></div>
+                                {% endif %}
+                                {% if event.resource %}
+                                    <div class="deliverable" >{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id %}">{{ event.resource }}</a></div>
+                                {% endif %}
+                                {% if event.does_todo %}
+                                    <div class="deliverable"> {% trans "Todo" %}: {{ event.commitment.description|urlize }}</div>
+                                {% endif %}
+                                {% if event.description %}
+                                    <div class="labnote" >{{ event.description|urlize|linebreaks }}</div>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+	                None
+                {% endif %}
+            </div>
 
-	    </div>
+	</div>
     </div>
-{% endblock %}
-{% block extra_script %}
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-	<script src="{% static 'js/chosen.jquery.js' %}"></script>
-{% endblock %}
-
-{% block extra_body %}
-	{{ block.super }}
-
-    <script type="text/javascript">
-
-	$(document).ready(function(){
-
-		$('#work').addClass('active');
-
-		$(".chzn-select").chosen();
-		$("textarea").resizable();
-
-		$( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
-        }, function() {
-            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
-        })
-
-		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
-
-		jQuery.validator.setDefaults({ 
-		    success: function(label) {
-					label
-						.text('').addClass('valid')
-						.closest('.control-group').addClass('success');
-				}
-		});
-
-
-		$.validator.addClassRules("quantity", { 
-		    required: true, 
-		    number: true,
-		    max: 999999.99 
-	    });
-	    $.validator.addClassRules("optional-quantity", { 
-		    number: true,
-		    max: 999999.99 
-	    });
-		$.validator.addClassRules("url", { url: true });
-
-
-		$('.commitmentForm').each( function(){
-			var form = $(this);
-
-			form.validate({
-				highlight: function(label) {
-					$(label).closest('.control-group').addClass('error');
-				},
-
-			});
-		});
-
-		$('.timeForm').each( function(){
-			var form = $(this);
-
-			form.validate({
-				highlight: function(label) {
-					$(label).closest('.control-group').addClass('error');
-				},
-
-			});
-		});
-
-		$('#todoForm').validate({
-		    rules: {
-			    'due_date': {
-			        date: true,
-                    required: true
-				}
-			},
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			},
-		});
-
-        {% for todo in todos %}
-		    $('#changeForm-{{ todo.id }}').validate({
-		        rules: {
-			        'CT-{{  todo.id }}-due_date': {
-			            date: true,
-                        required: true
-				    }
-			    },
-			    highlight: function(label) {
-				    $(label).closest('.control-group').addClass('error');
-			    },
-		    });
-        {% endfor %}
-
-		$('.optional-quantity').blur(saveTime);
-		$('.did').blur(saveDescription);
-
-	}); // end document.ready
-
-	function saveTime(event)
-	{
-        var timeInput = event.target;
-        var id = timeInput.id.split('-')[0];;
-        formId = "#timeForm-" + id;
-        var fieldSelector = "#" + id + "-timeId";
-        var isValid = $(formId).validate().element(fieldSelector);
-        if (isValid)
-        {
-            var hours = timeInput.value;
-            notifySaving();
-		    var jqxhr = $.post("{% url todo_time  %}",  { todoId: id, hours: hours },
-			    function( data ) 
-			    {
-				    notifySaved();
-			    })
-			    .fail(function() 
-			    { 
-				    notifyProblem(); 
-			    }
-		    );
-        }      
-	}
-	
-    function saveDescription(event)
-	{
-        var didInput = event.target;
-        var id = didInput.id.split('-')[0];;
-        var did = didInput.value;
-        notifySaving();
-	    var jqxhr = $.post("{% url todo_description  %}",  { todoId: id, did: did },
-		    function( data ) 
-		    {
-			    notifySaved();
-		    })
-		    .fail(function() 
-		    { 
-			    notifyProblem(); 
-		    }
-	    );   
-	}
-
-	function notifySaving()
-	{
-		$("#saving").css("color","green"); 
-		$("#saving").text("Saving...");
-	}
-
-	function notifySaved()
-	{
-		$("#saving").css("color","green"); 
-		$("#saving").text("Saved");
-	}
-
-	function notifyProblem()
-	{
-		$("#saving").css("color","red"); 
-		$("#saving").text("Problem saving");
-	}
-
-	$(document).ajaxSend(function(event, xhr, settings) 
-	{
-		function getCookie(name) 
-		{
-		    var cookieValue = null;
-		    if (document.cookie && document.cookie != '') 
-			{
-		        var cookies = document.cookie.split(';');
-		        for (var i = 0; i < cookies.length; i++) 
-				{
-		            var cookie = jQuery.trim(cookies[i]);
-		            // Does this cookie string begin with the name we want?
-		            if (cookie.substring(0, name.length + 1) == (name + '=')) 
-					{
-		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-		                break;
-		            }
-		        }
-		    }
-		    return cookieValue;
-    	}
-
-		function sameOrigin(url) 
-		{
-		    // url could be relative or scheme relative or absolute
-		    var host = document.location.host; // host + port
-		    var protocol = document.location.protocol;
-		    var sr_origin = '//' + host;
-		    var origin = protocol + sr_origin;
-		    // Allow absolute or scheme relative URLs to same origin
-		    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
-		        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
-		        // or any other URL that isn't scheme relative or absolute i.e relative.
-		        !(/^(\/\/|http:|https:).*/.test(url));
-		}
-
-		function safeMethod(method) 
-		{
-		    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-		}
-
-		if (!safeMethod(settings.type) && sameOrigin(settings.url)) 
-		{
-		    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-		}
-	});
-	
-    </script>
-
 {% endblock %}

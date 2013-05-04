@@ -771,6 +771,9 @@
 	            $("textarea").removeAttr('disabled');
 	            $("a").removeAttr('disabled');
 	            $("#id_event_date").attr('disabled', 'disabled');
+	            //todo: if the past work logging form becomes accessible other ways,
+                // existing events will need to be retrieved when the date is entered
+                // to initialize the duration fields.
 	            saveContribution();
 	            
 	        }

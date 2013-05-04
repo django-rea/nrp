@@ -1428,7 +1428,6 @@ def work(request):
 def today(request):
     agent = get_agent(request)
     start = datetime.date.today()
-    start = start - datetime.timedelta(days=2)
     end = start
     #import pdb; pdb.set_trace()
     todos = Commitment.objects.todos().filter(due_date=start)

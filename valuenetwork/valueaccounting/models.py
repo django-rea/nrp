@@ -671,6 +671,26 @@ class EconomicResourceType(models.Model):
             answer = False
         return answer
 
+    def production_resource_relationship(self):
+        try:
+            rel = ResourceRelationship.objects.get(
+                materiality=self.materiality,
+                related_to='process',
+                direction='out')
+        except ResourceRelationship.DoesNotExist:
+            rel = None
+        return rel
+
+    def citation_resource_relationship(self):
+        try:
+            rel = ResourceRelationship.objects.get(
+                materiality=self.materiality,
+                related_to='process',
+                direction='cite')
+        except ResourceRelationship.DoesNotExist:
+            rel = None
+        return rel
+        
 
 class GoodResourceManager(models.Manager):
     def get_query_set(self):

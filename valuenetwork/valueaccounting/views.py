@@ -1458,7 +1458,6 @@ def work(request):
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
     todo_form = TodoForm()
     #import pdb; pdb.set_trace()
-    todos = Commitment.objects.todos()
     if request.method == "POST":
         if date_form.is_valid():
             dates = date_form.cleaned_data
@@ -1473,6 +1472,22 @@ def work(request):
         "todo_form": todo_form,
         "todos": todos,
         "help": get_help("all_work"),
+    }, context_instance=RequestContext(request))
+
+def today(request):
+    agent = get_agent(request)
+    start = datetime.date.today()
+    end = start
+    #import pdb; pdb.set_trace()
+    todos = Commitment.objects.todos().filter(due_date=start)
+    projects = assemble_schedule(start, end)
+    processes = []
+    events = EconomicEvent.objects.filter(event_date=start)
+    return render_to_response("valueaccounting/today.html", {
+        "agent": agent,
+        "projects": projects,
+        "todos": todos,
+        "events": events,
     }, context_instance=RequestContext(request))
 
 def add_todo(request):
@@ -1935,7 +1950,7 @@ def new_process_citation(request, commitment_id):
                 resource_type=rt,
                 project=process.project,
                 quantity=quantity,
-                unit_of_quantity=rt.unit,
+                unit_of_quantity=rt.directional_unit("cite"),
                 created_by=request.user,
             )
             ct.save()
@@ -2300,6 +2315,8 @@ def save_past_work(request, commitment_id):
             event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
         events = ct.fulfillment_events.filter(event_date=event_date)
         if events:
+            #todo: if the past work logging form becomes accessible other ways,
+            # existing events will need to be retrieved when the date is entered.
             event = events[events.count() - 1]
             form = PastWorkForm(instance=event, data=request.POST)
         else:

@@ -671,6 +671,26 @@ class EconomicResourceType(models.Model):
             answer = False
         return answer
 
+    def production_resource_relationship(self):
+        try:
+            rel = ResourceRelationship.objects.get(
+                materiality=self.materiality,
+                related_to='process',
+                direction='out')
+        except ResourceRelationship.DoesNotExist:
+            rel = None
+        return rel
+
+    def citation_resource_relationship(self):
+        try:
+            rel = ResourceRelationship.objects.get(
+                materiality=self.materiality,
+                related_to='process',
+                direction='cite')
+        except ResourceRelationship.DoesNotExist:
+            rel = None
+        return rel
+        
 
 class GoodResourceManager(models.Manager):
     def get_query_set(self):
@@ -800,11 +820,17 @@ class ResourceRelationship(models.Model):
             return self.name
 
     def infer_label(self):
+        #todo: need to consider new direction choices?
         if self.direction == "out":
             return self.inverse_name
         else:
             return self.name
 
+    def doing_agent(self):
+        if self.direction == "out":
+            return "from"
+        else:
+            return "to"
 
 
 class AgentResourceType(models.Model):
@@ -2160,6 +2186,18 @@ class EconomicEvent(models.Model):
     def change_quantity_form(self):
         from valuenetwork.valueaccounting.forms import EventChangeQuantityForm
         return EventChangeQuantityForm(instance=self, prefix=str(self.id))
+
+    def doer(self):
+        if self.event_type.consumes_resources():
+            return self.to_agent
+        else:
+            return self.from_agent
+
+    def does_todo(self):
+        if self.commitment:
+            if self.commitment.relationship.direction == "todo":
+                return True
+        return False
 
 
 #todo: not used

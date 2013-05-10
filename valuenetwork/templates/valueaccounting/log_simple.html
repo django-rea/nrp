@@ -136,6 +136,12 @@
         });
 
         $(".chzn-select").chosen();
+        $(".resource-type-selector").change(updateList);
+
+        function updateList(event)
+        {
+            $(".chzn-select").trigger("liszt:updated");
+        }
 
 		$( "#simpleForm" ).validate({
 			rules: {

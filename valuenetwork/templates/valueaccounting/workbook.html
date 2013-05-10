@@ -744,6 +744,7 @@
 
 		function getUnit(event)
 		{
+	        $(".chzn-select").trigger("liszt:updated");
 		    var resourceId = event.target.value;
 		    if (resourceId)
 		    {

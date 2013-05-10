@@ -133,7 +133,7 @@
 	                                    <li><b>{% trans "Resource" %}:</b> {{ inp.resource }}</li>
 	                                    <ul>
 	                                        {% for pe in inp.resource.producing_events %}
-	                                            <li><b>{% trans "Event" %}:</b> {{ pe.event_type }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
+	                                            <li>{% trans "Event" %}: <b>{{ pe.event_type }}</b> {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
 	                                            <ul>
 	                                                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=pe.process.id %}">{{ pe.process.name }}</a></li>
 	                                                <ul>

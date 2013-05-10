@@ -179,7 +179,6 @@ class ProcessCitationForm(forms.Form):
         super(ProcessCitationForm, self).__init__(*args, **kwargs)
         self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in EconomicResourceType.objects.process_citables_with_resources()]
         
-
 class ProcessCitationCommitmentForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.process_citables(),
@@ -195,7 +194,16 @@ class ProcessCitationCommitmentForm(forms.ModelForm):
         model = Commitment
         fields = ('resource_type', 'description', 'quantity')
 
+class SelectCitationResourceForm(forms.Form):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.intellectual_resource_types(),
+        widget=forms.Select(attrs={'class': 'input-xlarge', 'onchange': 'getResources();'}))
+    resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
 
+#class CitationResourceForm(forms.Form):
+#    resource_id = forms.CharField()
+#    resource_identifier = forms.CharField(widget=forms.Textarea(attrs={'class': 'item-description',}))
+    
 
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -265,15 +273,23 @@ class SimpleOutputResourceForm(forms.ModelForm):
             attrs={'class': 'resource-type-selector chzn-select'})) 
         #widget=forms.Select(
         #    attrs={'class': 'chzn-select'}))
-    name = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
-    url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
-   
-		        #Photo: (browse)
-		        #Photo URL:
+    identifier = forms.CharField(
+        required=True, 
+        label="Name",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    notes = forms.CharField(
+        required=False,
+        label="Notes (optional)", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    url = forms.URLField(
+        required=False, 
+        label="URL (optional)",
+        widget=forms.TextInput(attrs={'class': 'url',}))
+    #Photo URL:
 
     class Meta:
         model = EconomicResource
-        fields = ('resource_type', 'name', 'url')
+        fields = ('resource_type', 'identifier', 'url', 'notes')
 
     def __init__(self, *args, **kwargs):
         super(SimpleOutputResourceForm, self).__init__(*args, **kwargs)
@@ -284,7 +300,7 @@ class SimpleWorkForm(forms.ModelForm):
         label="Type of work done",
         widget=SelectWithPopUp(
             model=EconomicResourceType,
-            attrs={'class': 'resource-type-selector chzn-select'})) 
+            attrs={'class': 'chzn-select'})) 
     quantity = forms.DecimalField(required=True,
         widget=DecimalDurationWidget,
         label="Time spent",

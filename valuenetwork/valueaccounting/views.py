@@ -330,54 +330,64 @@ def log_simple(request):
         return HttpResponseRedirect('/%s/'
             % ('accounting/start')) 
 
-    output_form = SimpleOutputForm()
-    output_resource_form = SimpleOutputResourceForm()
-    work_form = SimpleWorkForm()
-    #citations_form = 
+    output_form = SimpleOutputForm(data=request.POST or None)
+    resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource')
+    work_form = SimpleWorkForm(data=request.POST or None, prefix='work')
+    citations_select_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite')
+    #citations_display_form = CitationDisplayForm(data=request.POST or None, prefix='cited')
 
     if request.method == "POST":
+        #import pdb; pdb.set_trace()
         if output_form.is_valid():
             output_data = output_form.cleaned_data
             output_event = output_form.save(commit=False)
             if work_form.is_valid():
                 work_data = work_form.cleaned_data
                 work_event = work_form.save(commit=False)
-                if output_resource_form.is_valid():
-                    resource_data = output_resource_form.cleaned_data
-                    output_resource = output_resource_form.save(commit=False)
+                if resource_form.is_valid():
+                    resource_data = resource_form.cleaned_data
+                    output_resource = resource_form.save(commit=False)
                     
                     process = Process()
-                    process.name = 'Create intellectual resource'
+                    process.name = 'Create ' + output_resource.identifier
                     process.project = output_event.project
                     process.start_date = output_event.event_date
                     process.end_date = output_event.event_date
-                    process.started = true
-                    process.finished = true
+                    process.started = output_event.event_date
+                    process.finished = True
                     process.created_by = request.user
                     process.save()                    
+
+                    output_rel = output_resource.resource_type.production_resource_relationship()
+                    input_rel = work_event.resource_type.work_resource_relationship()
                     
-                    output_resource.quantity=1
-                    #output_resource.unit_of_quantity =   #each
+                    output_resource.quantity = 1
+                    output_resource.unit_of_quantity = output_resource.resource_type.directional_unit(output_rel.direction) 
+                    output_resource.author = member
                     output_resource.created_by = request.user
                     output_resource.save()
 
-
-                    #output_event.event_type = et
+                    output_event.event_type = output_rel.event_type
                     output_event.process = process
-                    output_event.created_by = request.user
+                    output_event.resource_type = output_resource.resource_type 
+                    output_event.quantity = output_resource.quantity 
+                    output_event.unit_of_quantity = output_resource.unit_of_quantity 
                     output_event.resource = output_resource
+                    output_event.from_agent = member
+                    output_event.created_by = request.user
                     output_event.save()
 
-                    #work_event.unit_of_quantity = 
-                    #work_event.event_type = 
+                    work_event.event_type = input_rel.event_type
                     work_event.event_date = output_event.event_date
                     work_event.process = process
                     work_event.project = output_event.project
-                    #work_event.unit_of_quantity =   #hours
+                    work_event.is_contribution = True
+                    work_event.unit_of_quantity = work_event.resource_type.directional_unit(input_rel.direction)  
+                    work_event.from_agent = member
                     work_event.created_by = request.user
                     work_event.save()
 
-                    return HttpResponseRedirect('/%s/%s/'
+                    return HttpResponseRedirect('/%s/'
                         % ('accounting/start'))
 
                 else:
@@ -391,8 +401,16 @@ def log_simple(request):
         "member": member,
         "output_form": output_form,
         "work_form": work_form,
-        #"citations_form": citations_form,
+        "resource_form":resource_form,
+        "citations_select_form": citations_select_form,
+        #"citations_display_form": citations_display_form,
     }, context_instance=RequestContext(request))
+
+def json_resource_type_resources(request, resource_type_id):
+    #import pdb; pdb.set_trace()
+    json = serializers.serialize("json", EconomicResource.objects.filter(resource_type=resource_type_id), fields=('identifier'))
+    return HttpResponse(json, mimetype='application/json')
+
 
 
 class EventSummary(object):

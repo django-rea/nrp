@@ -690,6 +690,16 @@ class EconomicResourceType(models.Model):
         except ResourceRelationship.DoesNotExist:
             rel = None
         return rel
+
+    def work_resource_relationship(self):
+        try:
+            rel = ResourceRelationship.objects.get(
+                materiality='work',
+                related_to='process',
+                direction='in')
+        except ResourceRelationship.DoesNotExist:
+            rel = None
+        return rel
         
 
 class GoodResourceManager(models.Manager):
@@ -699,7 +709,6 @@ class GoodResourceManager(models.Manager):
 class FailedResourceManager(models.Manager):
     def get_query_set(self):
         return super(FailedResourceManager, self).get_query_set().filter(quality__lt=0)
-
 
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
@@ -769,7 +778,13 @@ class EconomicResource(models.Model):
             if event.event_type == rel.event_type:
                 answer = True
         return answer
-        
+
+    def label_with_cited(self):
+        if self.is_cited:
+            cited = ' (Cited)'
+        else:
+            cited = ''
+        return (self.identifier or str(self.id)) + cited
 
 
 DIRECTION_CHOICES = (

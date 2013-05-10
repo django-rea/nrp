@@ -2157,7 +2157,7 @@ class EconomicEvent(models.Model):
                 art.save()
         slug = "-".join([
             str(self.event_type.name),
-            str(from_agt.id),
+            #str(from_agt.id),
             self.event_date.strftime('%Y-%m-%d'),
         ])
         unique_slugify(self, slug)

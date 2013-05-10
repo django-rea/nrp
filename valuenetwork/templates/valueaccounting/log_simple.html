@@ -3,13 +3,14 @@
 {% load i18n %}
 {% load url from future %}
 {% load bootstrap_tags %}
-
+{% load staticfiles %}
 
 {% block head_title %}{% trans "Log Design Contributions" %}{% endblock %}
 
 {% block extra_head %}
 
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
 
@@ -57,8 +58,6 @@
     {% include "_messages.html" %}
 	<legend>{% trans "Log Design Contributions for " %} {{ member.name }}</legend>
 
-                <h1>UNDER CONSTRUCTION!!!  DO NOT USE!!!</h1>
-                <br /><br />
     <form id="simpleForm" method="POST" action="">
 	    {% csrf_token %}
         <div class="row-fluid">
@@ -108,6 +107,8 @@
 {% block extra_script %}
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -126,6 +127,30 @@
 
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
+
+        $(".chzn-select").chosen();
+
+		$( "#simpleForm" ).validate({
+			rules: {
+			    'resource-identifier': {
+                    required: true
+				},
+				'event_date': {
+                    required: true,
+					date: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
 
     }); // end document.ready
 
@@ -151,8 +176,7 @@
         var resourceText = selectedResource.options[selectedResource.selectedIndex].text;
         var resourceID = selectedResource.options[selectedResource.selectedIndex].value;
         $("#citation-list").append("<li id='li-" + resourceID + "'>" +  resourceText + 
-            "<input type='hidden' name='citation-" + resourceID + 
-            "' value='" + resourceID + "' />&nbsp;&nbsp;<button id='cite-remove-" + resourceID + 
+            "<input type='hidden' name='citation' value='" + resourceID + "' />&nbsp;&nbsp;<button id='cite-remove-" + resourceID + 
             "' class='btn btn-warning btn-mini' title='remove' onclick='$(this).parent().remove(); return false;'>{% trans 'Remove' %}</button></li>");
         $('#addCiteModal').modal('hide');
     }

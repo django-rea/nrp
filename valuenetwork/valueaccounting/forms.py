@@ -200,10 +200,6 @@ class SelectCitationResourceForm(forms.Form):
         widget=forms.Select(attrs={'class': 'input-xlarge', 'onchange': 'getResources();'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
 
-#class CitationResourceForm(forms.Form):
-#    resource_id = forms.CharField()
-#    resource_identifier = forms.CharField(widget=forms.Textarea(attrs={'class': 'item-description',}))
-    
 
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -268,11 +264,10 @@ class SimpleOutputResourceForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.intellectual_resource_types(), 
         label="Type of resource created",
+        empty_label=None, 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector chzn-select'})) 
-        #widget=forms.Select(
-        #    attrs={'class': 'chzn-select'}))
     identifier = forms.CharField(
         required=True, 
         label="Name",
@@ -298,9 +293,9 @@ class SimpleWorkForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(
         queryset=EconomicResourceType.objects.types_of_work(), 
         label="Type of work done",
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
-            attrs={'class': 'chzn-select'})) 
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))         
     quantity = forms.DecimalField(required=True,
         widget=DecimalDurationWidget,
         label="Time spent",

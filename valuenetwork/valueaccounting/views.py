@@ -334,7 +334,6 @@ def log_simple(request):
     resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource')
     work_form = SimpleWorkForm(data=request.POST or None, prefix='work')
     citations_select_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite')
-    #citations_display_form = CitationDisplayForm(data=request.POST or None, prefix='cited')
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -387,11 +386,29 @@ def log_simple(request):
                     work_event.created_by = request.user
                     work_event.save()
 
+                    #import pdb; pdb.set_trace()
+                    citation_resources = request.POST.getlist("citation")
+                    if citation_resources:
+                        for cr_id in citation_resources:
+                            cr = EconomicResource.objects.get(id=int(cr_id))
+                            citation_event = EconomicEvent()
+                            citation_event.event_type = cr.resource_type.citation_resource_relationship().event_type
+                            citation_event.event_date = output_event.event_date
+                            citation_event.process = process
+                            citation_event.project = output_event.project
+                            citation_event.resource = cr
+                            citation_event.resource_type = cr.resource_type
+                            citation_event.quantity = 1
+                            citation_event.unit_of_quantity = citation_event.resource_type.directional_unit(input_rel.direction)  
+                            citation_event.from_agent = member
+                            citation_event.created_by = request.user
+                            citation_event.save()
+
                     return HttpResponseRedirect('/%s/'
                         % ('accounting/start'))
 
                 else:
-                    raise ValidationError(output_resource_form.errors)
+                    raise ValidationError(resource_form.errors)
             else:
                 raise ValidationError(work_form.errors)
         else:
@@ -403,14 +420,12 @@ def log_simple(request):
         "work_form": work_form,
         "resource_form":resource_form,
         "citations_select_form": citations_select_form,
-        #"citations_display_form": citations_display_form,
     }, context_instance=RequestContext(request))
 
 def json_resource_type_resources(request, resource_type_id):
     #import pdb; pdb.set_trace()
     json = serializers.serialize("json", EconomicResource.objects.filter(resource_type=resource_type_id), fields=('identifier'))
     return HttpResponse(json, mimetype='application/json')
-
 
 
 class EventSummary(object):

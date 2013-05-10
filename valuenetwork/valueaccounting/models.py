@@ -331,14 +331,14 @@ class EventType(models.Model):
 
 
 MATERIALITY_CHOICES = (
+    ('intellectual', _('intellectual')),
     ('material', _('material')),
     ('purchmatl', _('purchased material')),
-    ('intellectual', _('intellectual')),
-    ('work', _('work')),
-    ('tool', _('tool')),
     ('purchtool', _('purchased tool')),
     ('space', _('space')),
+    ('tool', _('tool')),
     ('value', _('value')),
+    ('work', _('work')),
 )
 
 class EconomicResourceTypeManager(models.Manager):
@@ -402,7 +402,7 @@ class EconomicResourceType(models.Model):
     #todo: needs better name.  Technically, is supertype.
     materiality = models.CharField(_('behavior'), 
         max_length=12, choices=MATERIALITY_CHOICES,
-        default='material')
+        default='intellectual')
     unit = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="resource_units",
         help_text=_('if this resource has different units of use and inventory, this is the unit of use'))

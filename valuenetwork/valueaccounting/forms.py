@@ -195,12 +195,14 @@ class ProcessCitationCommitmentForm(forms.ModelForm):
         fields = ('resource_type', 'description', 'quantity')
 
 class SelectCitationResourceForm(forms.Form):
-    resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.intellectual_resource_types(),
+    resource_type = forms.ChoiceField(
         widget=forms.Select(attrs={'class': 'input-xlarge', 'onchange': 'getResources();'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
 
-
+    def __init__(self, *args, **kwargs):
+        super(SelectCitationResourceForm, self).__init__(*args, **kwargs)
+        self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in EconomicResourceType.objects.intellectuals_with_resources()]
+ 
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'quantity input-small',}))

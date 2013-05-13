@@ -100,7 +100,7 @@ class ProcessInputForm(forms.ModelForm):
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity input-small'}))
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
         queryset=Unit.objects.exclude(unit_type='value'), 
         empty_label=None,
@@ -121,7 +121,7 @@ class ProcessOutputForm(forms.ModelForm):
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity  input-small'}))
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity  input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
         queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'), 
         empty_label=None,

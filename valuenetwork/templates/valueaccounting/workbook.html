@@ -130,7 +130,10 @@
 					    </p>
 				    </div>
 				    <div class="span2">
-				        <a href="{% url labnote commitment_id=commitment.id %}" class="btn btn-primary btn-mini">{% trans "X" %}</a>
+				        <a href="{% url labnote commitment_id=commitment.id %}" class="btn btn-primary btn-mini" 
+				            title="Close page" >
+				            {% trans "Close" %}
+			            </a>
 			        </div>
 </div>
 <div class="row-fluid">

@@ -2408,6 +2408,7 @@ def process_details(request, process_id):
     }, context_instance=RequestContext(request))
 
 def labnotes_history(request):
+    agent = get_agent(request)
     procs = Process.objects.all().order_by("-start_date")
     candidates = [p for p in procs if p.work_events()]
     process_list = []
@@ -2431,6 +2432,7 @@ def labnotes_history(request):
     return render_to_response("valueaccounting/labnotes_history.html", {
         "processes": processes,
         "photo_size": (128, 128),
+        "agent": agent,
     }, context_instance=RequestContext(request))
 
 def resource(request, resource_id):

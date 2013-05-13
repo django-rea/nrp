@@ -56,7 +56,13 @@ li {
 		            <ul>
 		                {% for req in process.work_requirements %}
 		                    {% if req.description %}
-		                        <li class="who" ><span class="name" >{{ req.from_agent }}</span> {% trans "labnotes" %}:
+		                        <li class="who" ><span class="name" >{{ req.from_agent }}</span> 
+		                            <a href="{% url labnote commitment_id=req.id %}">{% trans "labnotes" %}:</a>
+		                            {% if agent == req.from_agent %}
+		                                <a href="{% url work_commitment commitment_id=req.id %}" role="button" class="btn btn-info btn-mini" >
+		                                    {% trans "Open" %}
+	                                    </a>
+		                            {% endif %}
 		                            <div class="labnote" >{{ req.description|urlize|linebreaks }}</div>
 		                        </li>
 		                    {% endif %}

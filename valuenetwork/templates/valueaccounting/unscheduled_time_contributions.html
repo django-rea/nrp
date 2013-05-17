@@ -122,7 +122,6 @@
 
 		});
 
-        $('.days').blur(sumTime);
         $('.hours').blur(sumTime);
         $('.minutes').blur(sumTime);
 
@@ -135,14 +134,11 @@
 	    var total = 0.0;
 	    for (i=0;i<8;i++)
 	    {
-            var dayId = "#" + prefix + i + "-quantity_0";
-            var days = parseInt($(dayId).val());
-            var hourId = "#" + prefix + i + "-quantity_1";
+            var hourId = "#" + prefix + i + "-quantity_0";
             var hours = parseInt($(hourId).val());
-            var minuteId = "#" + prefix + i + "-quantity_2";
+            var minuteId = "#" + prefix + i + "-quantity_1";
             var minutes = parseInt($(minuteId).val());
-            var d = days * 24;
-            var duration = (days * 24) + hours; 
+            var duration = hours; 
             duration += (minutes / 60);
             total += duration; 
 	    }

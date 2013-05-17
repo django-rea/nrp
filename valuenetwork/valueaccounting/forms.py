@@ -11,6 +11,26 @@ from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.widgets import DurationWidget, DecimalDurationWidget
 
 
+class AgentForm(forms.ModelForm):
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    last_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    email = forms.EmailField(widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    agent_type = forms.ModelChoiceField(
+        queryset=AgentType.objects.all(),
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+
+    class Meta:
+        model = EconomicAgent
+        fields = ('nick', 'agent_type', 'description', 'url', 'address', 'email')
+        
+
 class EconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))

@@ -155,5 +155,6 @@ urlpatterns = patterns("",
     url(r"^todo-delete/(?P<todo_id>\d+)/$", 'valuenetwork.valueaccounting.views.todo_delete', name="todo_delete"),
     url(r"^labnotes-history/$", 'valuenetwork.valueaccounting.views.labnotes_history', name="labnotes_history"),
     url(r"^today/$", 'valuenetwork.valueaccounting.views.today', name="today"),
+    url(r"^create-user-agent/$", 'valuenetwork.valueaccounting.views.create_user_and_agent', name="create_user_and_agent"),
         
 )

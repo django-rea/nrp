@@ -19,7 +19,6 @@ class HelpAdmin(admin.ModelAdmin):
 admin.site.register(Help, HelpAdmin)
 
 
-
 class ResourceRelationshipAdmin(admin.ModelAdmin):
     list_display = ('name', 'inverse_name', 'related_to', 'direction', 'materiality', 'event_type', 'unit')
     list_filter = ['materiality', 'related_to', 'direction']
@@ -28,10 +27,15 @@ class ResourceRelationshipAdmin(admin.ModelAdmin):
 admin.site.register(ResourceRelationship, ResourceRelationshipAdmin)
 
 
+class AgentUserInline(admin.TabularInline):
+    model = AgentUser
+
+
 class EconomicAgentAdmin(admin.ModelAdmin):
     list_display = ('nick', 'name', 'agent_type', 'url', 'address', 'email', 'created_date')
     list_filter = ['agent_type',]
     search_fields = ['name', 'address']
+    inlines = [ AgentUserInline, ]
     
 admin.site.register(EconomicAgent, EconomicAgentAdmin)
 

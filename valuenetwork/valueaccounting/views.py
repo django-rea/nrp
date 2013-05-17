@@ -21,6 +21,7 @@ from django.forms.models import formset_factory, modelformset_factory
 from django.forms import ValidationError
 from django.utils import simplejson
 from django.utils.datastructures import SortedDict
+from django.contrib.auth.forms import UserCreationForm
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
@@ -28,17 +29,12 @@ from valuenetwork.valueaccounting.forms import *
 from valuenetwork.valueaccounting.utils import *
 
 def get_agent(request):
-    #import pdb; pdb.set_trace()
     agent = None
-    nick = request.user.username
-    if nick:
-        try:
-            agent = EconomicAgent.objects.get(nick=nick.capitalize)
-        except EconomicAgent.DoesNotExist:
-            try:
-                agent = EconomicAgent.objects.get(nick=nick)
-            except EconomicAgent.DoesNotExist:
-                pass
+    try:
+        au = request.user.agent
+        agent = au.agent
+    except EconomicAgent.DoesNotExist:
+        pass
     return agent
 
 def get_help(page_name):
@@ -81,6 +77,36 @@ def home(request):
         "value_creations": value_creations,
         "photo_size": (128, 128),
         "help": get_help("home"),
+    }, context_instance=RequestContext(request))
+
+@login_required
+def create_user_and_agent(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    user_form = UserCreationForm(data=request.POST or None)
+    agent_form = AgentForm(data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if user_form.is_valid() and agent_form.is_valid():
+            user = user_form.save(commit=False)
+            agent = agent_form.save(commit=False)
+            data = agent_form.cleaned_data
+            user.first_name = data["first_name"]
+            user.last_name = data["last_name"]
+            user.email = data["email"]
+            user.save()
+            name = " ".join([data["first_name"], data["last_name"]])       
+            agent.name = name            
+            agent.save()
+            au = AgentUser(
+                agent = agent,
+                user = user)
+            au.save()
+            return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
+    
+    return render_to_response("valueaccounting/create_user_and_agent.html", {
+        "user_form": user_form,
+        "agent_form": agent_form,
     }, context_instance=RequestContext(request))
 
 def projects(request):

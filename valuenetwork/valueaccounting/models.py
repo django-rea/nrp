@@ -282,6 +282,13 @@ class EconomicAgent(models.Model):
         return self.given_events.filter(is_contribution=True)
 
 
+class AgentUser(models.Model):
+    agent = models.ForeignKey(EconomicAgent,
+        verbose_name=_('agent'), related_name='users')
+    user = models.OneToOneField(User, 
+        verbose_name=_('user'), related_name='agent')
+
+
 class AssociationType(models.Model):
     name = models.CharField(_('name'), max_length=128)
 

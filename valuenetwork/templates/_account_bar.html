@@ -12,6 +12,9 @@
 				{% if user.is_staff %}
 	                <li><a href="/admin/"><i class="icon-wrench"></i> Admin</a></li>
 				{% endif %}
+				{% if user.is_superuser %}
+	                <li><a href="{% url create_user_and_agent %}"><i class="icon-user"></i> Create Agent and User</a></li>
+				{% endif %}
                 <li class="divider"></li>
                 <li><a href="{% url account_logout %}"><i class="icon-off"></i> Log out</a></li>
             </ul>

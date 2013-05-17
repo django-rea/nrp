@@ -40,6 +40,9 @@
 	border-width:1px;
 	border-color:lightgrey;
 }
+.section {
+    color: firebrick;
+}
 
 </style>
 {% endblock %}
@@ -63,7 +66,7 @@
 			   	</div>
 			</div>
 			<div class="span6">
-				<legend>{% trans "Outputs" %}:</legend>
+				<legend class="section">{% trans "Outputs" %}:</legend>
 				{{ output_formset.management_form }}
 				{% for form in output_formset %}
 					<div class="row-fluid formset-top">
@@ -81,7 +84,7 @@
 						{% trans "Description" %}: {{ form.description }} 
 					</div>
 				{% endfor %}
-				<legend style="margin-top: 1em;" >{% trans "Inputs" %}:</legend>
+				<legend style="margin-top: 1em;"  class="section">{% trans "Inputs" %}:</legend>
 				{{ input_formset.management_form }}
 				{% for form in input_formset %}
 					<div class="row-fluid formset-top">

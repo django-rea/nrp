@@ -275,12 +275,12 @@ class SimpleOutputResourceForm(forms.ModelForm):
         label="Name",
         widget=forms.TextInput(attrs={'class': 'item-name',}))
     notes = forms.CharField(
-        required=False,
-        label="Notes (optional)", 
+        required=True,
+        label="Notes", 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
     url = forms.URLField(
-        required=False, 
-        label="URL (optional)",
+        required=True, 
+        label="URL",
         widget=forms.TextInput(attrs={'class': 'url',}))
     #Photo URL:
 

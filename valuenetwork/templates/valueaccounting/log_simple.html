@@ -27,7 +27,6 @@
     margin-top: 3em;
 }
 .section {
-    margin-top: 1em;
     color: firebrick;
 }
 #id_cite-resource 
@@ -70,7 +69,7 @@
 				<legend class="section" >{% trans "Work Done" %}:</legend>
 				{{ work_form|as_bootstrap }}
 
-				<legend class="section">{% trans "Citations" %}:</legend>
+				<legend class="section" style="margin-top: 1em;">{% trans "Citations" %}:</legend>
                 <a href="#addCiteModal" role="button" class="btn" data-toggle="modal">{% trans "+ cite" %}</a>
                 <ul id="citation-list"></ul>
 
@@ -146,6 +145,12 @@
 		$( "#simpleForm" ).validate({
 			rules: {
 			    'resource-identifier': {
+                    required: true
+				},
+			    'resource-url': {
+                    required: true
+				},
+			    'resource-notes': {
                     required: true
 				},
 				'event_date': {

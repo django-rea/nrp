@@ -33,7 +33,7 @@ def get_agent(request):
     try:
         au = request.user.agent
         agent = au.agent
-    except EconomicAgent.DoesNotExist:
+    except:
         pass
     return agent
 

@@ -52,6 +52,7 @@
 				<th>{% trans "Description" %}</th>
 				<th>{% trans "Process" %}</th>
 				<th>{% trans "Deliverables" %}</th>
+				<th>&nbsp;</th>
 			</thead>
 			<tbody>	
 				{% for event in events %}
@@ -96,6 +97,25 @@
 						        <a href="{% url resource resource_id=d.id %}">{{ d }}</a></br >
 					        {% endfor %}
 					    </td>
+					    <td>
+					        <form
+						        class="change-form" 
+						        id="changeForm{{ event.id }}" 
+						        action="{% url change_event event_id=event.id %}" 
+						        method="GET" >
+                            	<input type='hidden' class="page" id='changePage{{ event.id }}' name='page' value='' />
+			                    <button class="btn btn-info btn-mini" title="Change" ><i class="icon-edit icon-white"></button>
+		                    </form>
+					        <form
+						        class="delete-form" 
+						        id="deleteForm{{ event.id }}" 
+						        action="{% url delete_event event_id=event.id %}" 
+						        method="POST" >
+			                    {% csrf_token %}
+                            	<input type='hidden' class="page" id='deletePage{{ event.id }}' name='page' value='' />
+			                    <button class="btn btn-warning btn-mini" title="Delete" ><i class="icon-remove icon-white"></button>
+		                    </form>
+					    </td>
 					</tr>
 				{% endfor %}
 			<tbody>	
@@ -131,6 +151,29 @@
 <script type="text/javascript">
 
     $(document).ready(function(){
+
+        $.extend({
+          getUrlVars: function(){
+            var vars = [], hash;
+            var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+            for(var i = 0; i < hashes.length; i++)
+            {
+              hash = hashes[i].split('=');
+              vars.push(hash[0]);
+              vars[hash[0]] = hash[1];
+            }
+            return vars;
+          },
+          getUrlVar: function(name){
+            return $.getUrlVars()[name];
+          }
+        });
+
+        var pageNumber = $.getUrlVar('page');
+
+        $( ".page" ).each(function() {
+            $(this).val(pageNumber);
+        });
 
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
@@ -170,23 +213,7 @@
 			    }
 		    });
 		{% endfor %}
-/*
-        $('.eventQtyForm').each( function(){
-			var form = $(this);
-			form.validate({
-				rules: {
-					quantity: {
-						required: true, 
-                        number: true, 
-                        max: 999999.99
-					}
-				},
-				highlight: function(label) {
-					$(label).closest('.control-group').addClass('error');
-				}
-			});
-		});
-*/
+
 
     }); // end document.ready
 

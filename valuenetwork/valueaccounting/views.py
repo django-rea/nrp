@@ -2068,6 +2068,43 @@ def change_event_qty(request):
 
     return HttpResponse("Ok", mimetype="text/plain")
 
+def change_event(request, event_id):
+    event = get_object_or_404(EconomicEvent, pk=event_id)
+    page = request.GET.get("page")
+    event_form = WorkContributionChangeForm(instance=event, data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        page = request.POST.get("page")
+        if event_form.is_valid():
+            event = event_form.save(commit=False)
+            event.changed_by = request.user
+            event.save()
+        agent = event.from_agent
+        if page:
+            return HttpResponseRedirect('/%s/%s/?page=%s'
+                % ('accounting/contributionhistory', agent.id, page))
+        else:
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/contributionhistory', agent.id))
+    return render_to_response("valueaccounting/change_event.html", {
+        "event_form": event_form,
+        "page": page,
+    }, context_instance=RequestContext(request)) 
+        
+def delete_event(request, event_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        event = get_object_or_404(EconomicEvent, pk=event_id)
+        agent = event.from_agent
+        event.delete()
+        page = request.POST.get("page")
+        if page:
+            return HttpResponseRedirect('/%s/%s/?page=%s'
+                % ('accounting/contributionhistory', agent.id, page))
+        else:
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/contributionhistory', agent.id))
+
 def work_done(request):
     #import pdb; pdb.set_trace()
     commitment_id = int(request.POST.get("commitmentId"))

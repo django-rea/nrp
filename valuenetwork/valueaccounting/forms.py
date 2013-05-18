@@ -342,6 +342,35 @@ class WorkEventChangeForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('id', 'event_date', 'quantity')
 
+
+class WorkContributionChangeForm(forms.ModelForm):
+    id = forms.CharField(required=False, widget=forms.HiddenInput)
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.types_of_work(), 
+        label="Type of work", 
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(), 
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    quantity = forms.DecimalField(required=False,
+        widget=DecimalDurationWidget,
+        label = "Time spent",
+        help_text="hours, minutes")
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+	
+    class Meta:
+        model = EconomicEvent
+        fields = ('id', 'event_date', 'resource_type', 'project', 'quantity', 'url', 'description')
+
+
 class EventChangeDateForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

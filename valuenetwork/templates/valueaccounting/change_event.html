@@ -1,0 +1,98 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load url from future %}
+{% load bootstrap_tags %}
+{% load staticfiles %}
+
+{% block head_title %}{% trans "Change Contribution" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}event{% endblock %}
+
+{% block body_base %}
+<div class="container">
+    {% include "_messages.html" %}
+	<legend>{% trans "Change Contribution" %}</legend>
+
+    <form id="eventForm" class="form-horizontal" method="POST" action="">
+	    {% csrf_token %}
+
+				{{ event_form|as_bootstrap }}
+				<input type="hidden" id="page" name="page" value="{{ page }}" />
+
+        <div class="form-actions">
+		    <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
+		</div>
+
+    </form>
+
+</div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+
+	    $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
+
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
+
+        $(".chzn-select").chosen();
+
+		$( "#eventForm" ).validate({
+		    rules: {
+		        'quantity_0': {
+                    number: true,
+				},
+				'quantity_1': {
+                    number: true,
+                    max: 59
+				},
+			    'url': {
+                    url: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+    }); // end document.ready
+
+    </script>
+    
+{% endblock %}

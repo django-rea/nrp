@@ -156,5 +156,9 @@ urlpatterns = patterns("",
     url(r"^labnotes-history/$", 'valuenetwork.valueaccounting.views.labnotes_history', name="labnotes_history"),
     url(r"^today/$", 'valuenetwork.valueaccounting.views.today', name="today"),
     url(r"^create-user-agent/$", 'valuenetwork.valueaccounting.views.create_user_and_agent', name="create_user_and_agent"),
+    url(r"^delete-event/(?P<event_id>\d+)/$", 'valuenetwork.valueaccounting.views.delete_event', 
+        name="delete_event"),
+    url(r"^change-event/(?P<event_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_event', 
+        name="change_event"),
         
 )

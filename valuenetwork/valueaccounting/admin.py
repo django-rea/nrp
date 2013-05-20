@@ -30,6 +30,17 @@ class FacetAdmin(admin.ModelAdmin):
 admin.site.register(Facet, FacetAdmin)
 
 
+class PatternFacetInline(admin.TabularInline):
+    model = PatternFacet
+    
+
+class ProcessPatternAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    inlines = [ PatternFacetInline, ]
+
+admin.site.register(ProcessPattern, ProcessPatternAdmin)
+
+
 class ResourceRelationshipAdmin(admin.ModelAdmin):
     list_display = ('name', 'inverse_name', 'related_to', 'direction', 'materiality', 'event_type', 'unit')
     list_filter = ['materiality', 'related_to', 'direction']

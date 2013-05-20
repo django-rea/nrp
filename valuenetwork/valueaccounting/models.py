@@ -751,7 +751,42 @@ class ResourceTypeFacet(models.Model):
 
     def __unicode__(self):
         return ": ".join([self.resource_type.name, self.facet.facet.name, self.facet.value])
+
+
+class ProcessPattern(models.Model):
+    name = models.CharField(_('name'), max_length=32)
+
+    class Meta:
+        ordering = ('name',)
+
+    def __unicode__(self):
+        return self.name
         
+
+SITUATION_CHOICES = (
+    ('in', _('input')),
+    ('out', _('output')),
+    ('cite', _('citation')),
+    ('work', _('work')),
+)
+
+
+class PatternFacet(models.Model):
+    pattern = models.ForeignKey(ProcessPattern, 
+        verbose_name=_('pattern'), related_name='facets')
+    facet = models.ForeignKey(FacetValue,
+        verbose_name=_('facet'), related_name='patterns')
+    process_relationship = models.CharField(_('process relationship'), 
+        max_length=12, choices=SITUATION_CHOICES)
+    
+
+    class Meta:
+        unique_together = ('pattern', 'facet', 'process_relationship')
+        ordering = ('pattern', 'facet')
+
+    def __unicode__(self):
+        return ": ".join([self.pattern.name, self.facet.facet.name, self.facet.value])
+
 
 class GoodResourceManager(models.Manager):
     def get_query_set(self):

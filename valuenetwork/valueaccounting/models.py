@@ -124,6 +124,33 @@ class Help(models.Model):
         return self.get_page_display()
 
 
+class Facet(models.Model):
+    name = models.CharField(_('name'), max_length=32)
+
+    class Meta:
+        ordering = ('name',)
+
+    def __unicode__(self):
+        return self.name
+
+    def value_list(self):
+        return ", ".join([fv.value for fv in self.values.all()])
+
+
+class FacetValue(models.Model):
+    facet = models.ForeignKey(Facet,
+        verbose_name=_('facet'), related_name='values')
+    value = models.CharField(_('value'), max_length=32)
+
+    class Meta:
+        unique_together = ('facet', 'value')
+        ordering = ('facet', 'value')
+
+    def __unicode__(self):
+        return ": ".join([self.facet.name, self.value])
+
+
+
 CATEGORIZATION_CHOICES = (
     ('Anything', _('Anything')),
     ('EconomicResourceType', _('EconomicResourceType')),
@@ -710,6 +737,20 @@ class EconomicResourceType(models.Model):
         except ResourceRelationship.DoesNotExist:
             rel = None
         return rel
+
+
+class ResourceTypeFacet(models.Model):
+    resource_type = models.ForeignKey(EconomicResourceType, 
+        verbose_name=_('resource type'), related_name='facets')
+    facet = models.ForeignKey(FacetValue,
+        verbose_name=_('facet'), related_name='resource_types')
+
+    class Meta:
+        unique_together = ('resource_type', 'facet')
+        ordering = ('resource_type', 'facet')
+
+    def __unicode__(self):
+        return ": ".join([self.resource_type.name, self.facet.facet.name, self.facet.value])
         
 
 class GoodResourceManager(models.Manager):

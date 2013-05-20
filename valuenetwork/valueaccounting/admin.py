@@ -19,6 +19,17 @@ class HelpAdmin(admin.ModelAdmin):
 admin.site.register(Help, HelpAdmin)
 
 
+class FacetValueInline(admin.TabularInline):
+    model = FacetValue
+    
+
+class FacetAdmin(admin.ModelAdmin):
+    list_display = ('name', 'value_list')
+    inlines = [ FacetValueInline, ]
+
+admin.site.register(Facet, FacetAdmin)
+
+
 class ResourceRelationshipAdmin(admin.ModelAdmin):
     list_display = ('name', 'inverse_name', 'related_to', 'direction', 'materiality', 'event_type', 'unit')
     list_filter = ['materiality', 'related_to', 'direction']
@@ -39,12 +50,15 @@ class EconomicAgentAdmin(admin.ModelAdmin):
     
 admin.site.register(EconomicAgent, EconomicAgentAdmin)
 
+class ResourceTypeFacetInline(admin.TabularInline):
+    model = ResourceTypeFacet
 
 class EconomicResourceTypeAdmin(admin.ModelAdmin):
     list_display = ('label', 'name', 'category', 'rate', 'materiality', 'unit', 'description')
-    list_filter = ['category', 'materiality',]
+    list_filter = ['category', 'materiality', 'facets__facet']
     search_fields = ['name',]
     list_editable = ['category', 'materiality',]
+    inlines = [ ResourceTypeFacetInline, ]
     
 admin.site.register(EconomicResourceType, EconomicResourceTypeAdmin)
 

@@ -31,7 +31,7 @@ admin.site.register(Facet, FacetAdmin)
 
 
 class PatternFacetInline(admin.TabularInline):
-    model = PatternFacet
+    model = PatternFacetValue
     
 
 class ProcessPatternAdmin(admin.ModelAdmin):
@@ -62,11 +62,11 @@ class EconomicAgentAdmin(admin.ModelAdmin):
 admin.site.register(EconomicAgent, EconomicAgentAdmin)
 
 class ResourceTypeFacetInline(admin.TabularInline):
-    model = ResourceTypeFacet
+    model = ResourceTypeFacetValue
 
 class EconomicResourceTypeAdmin(admin.ModelAdmin):
     list_display = ('label', 'name', 'category', 'rate', 'materiality', 'unit', 'description')
-    list_filter = ['category', 'materiality', 'facets__facet']
+    list_filter = ['category', 'materiality', 'facets__facet_value']
     search_fields = ['name',]
     list_editable = ['category', 'materiality',]
     inlines = [ ResourceTypeFacetInline, ]

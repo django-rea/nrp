@@ -8,6 +8,24 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding model 'ProcessPattern'
+        db.create_table('valueaccounting_processpattern', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=32)),
+        ))
+        db.send_create_signal('valueaccounting', ['ProcessPattern'])
+
+        # Adding model 'ResourceTypeFacetValue'
+        db.create_table('valueaccounting_resourcetypefacetvalue', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='facets', to=orm['valueaccounting.EconomicResourceType'])),
+            ('facet_value', self.gf('django.db.models.fields.related.ForeignKey')(related_name='resource_types', to=orm['valueaccounting.FacetValue'])),
+        ))
+        db.send_create_signal('valueaccounting', ['ResourceTypeFacetValue'])
+
+        # Adding unique constraint on 'ResourceTypeFacetValue', fields ['resource_type', 'facet_value']
+        db.create_unique('valueaccounting_resourcetypefacetvalue', ['resource_type_id', 'facet_value_id'])
+
         # Adding model 'Facet'
         db.create_table('valueaccounting_facet', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -26,24 +44,34 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'FacetValue', fields ['facet', 'value']
         db.create_unique('valueaccounting_facetvalue', ['facet_id', 'value'])
 
-        # Adding model 'ResourceTypeFacet'
-        db.create_table('valueaccounting_resourcetypefacet', (
+        # Adding model 'PatternFacetValue'
+        db.create_table('valueaccounting_patternfacetvalue', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='facets', to=orm['valueaccounting.EconomicResourceType'])),
-            ('facet', self.gf('django.db.models.fields.related.ForeignKey')(related_name='resource_types', to=orm['valueaccounting.FacetValue'])),
+            ('pattern', self.gf('django.db.models.fields.related.ForeignKey')(related_name='facets', to=orm['valueaccounting.ProcessPattern'])),
+            ('facet_value', self.gf('django.db.models.fields.related.ForeignKey')(related_name='patterns', to=orm['valueaccounting.FacetValue'])),
+            ('process_relationship', self.gf('django.db.models.fields.CharField')(max_length=12)),
         ))
-        db.send_create_signal('valueaccounting', ['ResourceTypeFacet'])
+        db.send_create_signal('valueaccounting', ['PatternFacetValue'])
 
-        # Adding unique constraint on 'ResourceTypeFacet', fields ['resource_type', 'facet']
-        db.create_unique('valueaccounting_resourcetypefacet', ['resource_type_id', 'facet_id'])
+        # Adding unique constraint on 'PatternFacetValue', fields ['pattern', 'facet_value', 'process_relationship']
+        db.create_unique('valueaccounting_patternfacetvalue', ['pattern_id', 'facet_value_id', 'process_relationship'])
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'ResourceTypeFacet', fields ['resource_type', 'facet']
-        db.delete_unique('valueaccounting_resourcetypefacet', ['resource_type_id', 'facet_id'])
+        # Removing unique constraint on 'PatternFacetValue', fields ['pattern', 'facet_value', 'process_relationship']
+        db.delete_unique('valueaccounting_patternfacetvalue', ['pattern_id', 'facet_value_id', 'process_relationship'])
 
         # Removing unique constraint on 'FacetValue', fields ['facet', 'value']
         db.delete_unique('valueaccounting_facetvalue', ['facet_id', 'value'])
+
+        # Removing unique constraint on 'ResourceTypeFacetValue', fields ['resource_type', 'facet_value']
+        db.delete_unique('valueaccounting_resourcetypefacetvalue', ['resource_type_id', 'facet_value_id'])
+
+        # Deleting model 'ProcessPattern'
+        db.delete_table('valueaccounting_processpattern')
+
+        # Deleting model 'ResourceTypeFacetValue'
+        db.delete_table('valueaccounting_resourcetypefacetvalue')
 
         # Deleting model 'Facet'
         db.delete_table('valueaccounting_facet')
@@ -51,8 +79,8 @@ class Migration(SchemaMigration):
         # Deleting model 'FacetValue'
         db.delete_table('valueaccounting_facetvalue')
 
-        # Deleting model 'ResourceTypeFacet'
-        db.delete_table('valueaccounting_resourcetypefacet')
+        # Deleting model 'PatternFacetValue'
+        db.delete_table('valueaccounting_patternfacetvalue')
 
 
     models = {
@@ -341,6 +369,13 @@ class Migration(SchemaMigration):
             'provider': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'sales_orders'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
             'receiver': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'purchase_orders'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"})
         },
+        'valueaccounting.patternfacetvalue': {
+            'Meta': {'ordering': "('pattern', 'facet_value')", 'unique_together': "(('pattern', 'facet_value', 'process_relationship'),)", 'object_name': 'PatternFacetValue'},
+            'facet_value': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'patterns'", 'to': "orm['valueaccounting.FacetValue']"}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'pattern': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'facets'", 'to': "orm['valueaccounting.ProcessPattern']"}),
+            'process_relationship': ('django.db.models.fields.CharField', [], {'max_length': '12'})
+        },
         'valueaccounting.process': {
             'Meta': {'ordering': "('name',)", 'object_name': 'Process'},
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
@@ -361,6 +396,11 @@ class Migration(SchemaMigration):
             'start_date': ('django.db.models.fields.DateField', [], {}),
             'started': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'})
+        },
+        'valueaccounting.processpattern': {
+            'Meta': {'ordering': "('name',)", 'object_name': 'ProcessPattern'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '32'})
         },
         'valueaccounting.processtype': {
             'Meta': {'ordering': "('name',)", 'object_name': 'ProcessType'},
@@ -421,9 +461,9 @@ class Migration(SchemaMigration):
             'related_to': ('django.db.models.fields.CharField', [], {'default': "'process'", 'max_length': '12'}),
             'unit': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'relationship_units'", 'null': 'True', 'to': "orm['valueaccounting.Unit']"})
         },
-        'valueaccounting.resourcetypefacet': {
-            'Meta': {'ordering': "('resource_type', 'facet')", 'unique_together': "(('resource_type', 'facet'),)", 'object_name': 'ResourceTypeFacet'},
-            'facet': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'resource_types'", 'to': "orm['valueaccounting.FacetValue']"}),
+        'valueaccounting.resourcetypefacetvalue': {
+            'Meta': {'ordering': "('resource_type', 'facet_value')", 'unique_together': "(('resource_type', 'facet_value'),)", 'object_name': 'ResourceTypeFacetValue'},
+            'facet_value': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'resource_types'", 'to': "orm['valueaccounting.FacetValue']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'resource_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'facets'", 'to': "orm['valueaccounting.EconomicResourceType']"})
         },

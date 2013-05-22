@@ -739,18 +739,18 @@ class EconomicResourceType(models.Model):
         return rel
 
 
-class ResourceTypeFacet(models.Model):
+class ResourceTypeFacetValue(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='facets')
-    facet = models.ForeignKey(FacetValue,
-        verbose_name=_('facet'), related_name='resource_types')
+    facet_value = models.ForeignKey(FacetValue,
+        verbose_name=_('facet value'), related_name='resource_types')
 
     class Meta:
-        unique_together = ('resource_type', 'facet')
-        ordering = ('resource_type', 'facet')
+        unique_together = ('resource_type', 'facet_value')
+        ordering = ('resource_type', 'facet_value')
 
     def __unicode__(self):
-        return ": ".join([self.resource_type.name, self.facet.facet.name, self.facet.value])
+        return ": ".join([self.resource_type.name, self.facet_value.facet.name, self.facet_value.value])
 
 
 class ProcessPattern(models.Model):
@@ -761,6 +761,34 @@ class ProcessPattern(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def get_resource_types(self, process_relationship):
+        #import pdb; pdb.set_trace()
+        pfvs = self.facets.filter(process_relationship=process_relationship)
+        fvs = [pfv.facet_value for pfv in pfvs]
+        fv_ids = [fv.id for fv in fvs]
+        rtfvs = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
+        rts = [rtfv.resource_type for rtfv in rtfvs]
+        answer = []
+        for rt in rts:
+            rtfs = [rtfv.facet_value for rtfv in rt.facets.all()]
+            if set(rtfs) == set(fvs):
+                if not rt in answer:
+                    answer.append(rt)
+        return answer
+        
+    def work_resource_types(self):
+        return self.get_resource_types("work")
+
+    def citable_resource_types(self):
+        return self.get_resource_types("cite")
+
+    def input_resource_types(self):
+        return self.get_resource_types("in")
+
+    def output_resource_types(self):
+        return self.get_resource_types("out") 
+        
         
 
 SITUATION_CHOICES = (
@@ -771,21 +799,21 @@ SITUATION_CHOICES = (
 )
 
 
-class PatternFacet(models.Model):
+class PatternFacetValue(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 
         verbose_name=_('pattern'), related_name='facets')
-    facet = models.ForeignKey(FacetValue,
-        verbose_name=_('facet'), related_name='patterns')
+    facet_value = models.ForeignKey(FacetValue,
+        verbose_name=_('facet value'), related_name='patterns')
     process_relationship = models.CharField(_('process relationship'), 
         max_length=12, choices=SITUATION_CHOICES)
     
 
     class Meta:
-        unique_together = ('pattern', 'facet', 'process_relationship')
-        ordering = ('pattern', 'facet')
+        unique_together = ('pattern', 'facet_value', 'process_relationship')
+        ordering = ('pattern', 'facet_value')
 
     def __unicode__(self):
-        return ": ".join([self.pattern.name, self.facet.facet.name, self.facet.value])
+        return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
 
 
 class GoodResourceManager(models.Manager):

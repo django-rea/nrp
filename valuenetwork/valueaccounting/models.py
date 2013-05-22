@@ -763,18 +763,44 @@ class ProcessPattern(models.Model):
         return self.name
 
     def get_resource_types(self, process_relationship):
+        """ Logic:
+            Facet values in different Facets are ANDed.
+            Ie, a resource type must have all of those facet values.
+            Facet values in the same Facet are ORed.
+            Ie, a resource type must have at least one of those facet values.
+        """
         #import pdb; pdb.set_trace()
-        pfvs = self.facets.filter(process_relationship=process_relationship)
-        fvs = [pfv.facet_value for pfv in pfvs]
-        fv_ids = [fv.id for fv in fvs]
-        rtfvs = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
-        rts = [rtfv.resource_type for rtfv in rtfvs]
+        pattern_facet_values = self.facets.filter(process_relationship=process_relationship)
+        facet_values = [pfv.facet_value for pfv in pattern_facet_values]
+        fv_ids = [fv.id for fv in facet_values]
+        rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
+        rts = [rtfv.resource_type for rtfv in rt_facet_values]
         answer = []
+        singles = [] #Facets with only one facet_value in the Pattern
+        multis = []  #Facets with more than one facet_value in the Pattern
+        aspects = {}
+        for pfv in pattern_facet_values:
+            if pfv.facet_value.facet not in aspects:
+                aspects[pfv.facet_value.facet] = []
+            aspects[pfv.facet_value.facet].append(pfv)
+        for facet, pattern_facet_values in aspects.items():
+            if len(pattern_facet_values) > 1:
+                for pfv in pattern_facet_values:
+                    multis.append(pfv.facet_value)
+            else:
+                singles.append(pattern_facet_values[0].facet_value)
+        single_ids = [s.id for s in singles]
+        #import pdb; pdb.set_trace()
         for rt in rts:
-            rtfs = [rtfv.facet_value for rtfv in rt.facets.all()]
-            if set(rtfs) == set(fvs):
+            rt_singles = [rtfv.facet_value for rtfv in rt.facets.filter(facet_value_id__in=single_ids)]
+            rt_multis = [rtfv.facet_value for rtfv in rt.facets.exclude(facet_value_id__in=single_ids)]
+            if set(rt_singles) == set(singles):
                 if not rt in answer:
-                    answer.append(rt)
+                    if multis:
+                        if set(rt_multis) & set(multis):
+                            answer.append(rt)
+                    else:
+                        answer.append(rt)
         return answer
         
     def work_resource_types(self):

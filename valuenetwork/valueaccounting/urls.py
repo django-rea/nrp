@@ -160,5 +160,7 @@ urlpatterns = patterns("",
         name="delete_event"),
     url(r"^change-event/(?P<event_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_event', 
         name="change_event"),
+    url(r"^test-patterns/$", 'valuenetwork.valueaccounting.views.test_patterns', 
+        name="test_patterns"),
         
 )

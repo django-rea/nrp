@@ -119,6 +119,20 @@ def projects(request):
         "help": get_help("projects"),
     }, context_instance=RequestContext(request))
 
+def test_patterns(request):
+    pattern_form = PatternSelectionForm(data=request.POST or None)
+    pattern = None
+    if request.method == "POST":
+        if pattern_form.is_valid():
+            pattern = pattern_form.cleaned_data["pattern"]
+    
+    
+    
+    return render_to_response("valueaccounting/test_patterns.html", {
+        "pattern_form": pattern_form,
+        "pattern": pattern,
+    }, context_instance=RequestContext(request))
+
 @login_required
 def sessions(request):
     if not request.user.is_superuser:

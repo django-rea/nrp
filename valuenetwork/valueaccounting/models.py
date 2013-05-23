@@ -738,6 +738,9 @@ class EconomicResourceType(models.Model):
             rel = None
         return rel
 
+    def facet_list(self):
+        return ", ".join([facet.facet_value.__unicode__() for facet in self.facets.all()])
+
 
 class ResourceTypeFacetValue(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
@@ -797,6 +800,7 @@ class ProcessPattern(models.Model):
             if set(rt_singles) == set(singles):
                 if not rt in answer:
                     if multis:
+                        # if multis intersect
                         if set(rt_multis) & set(multis):
                             answer.append(rt)
                     else:
@@ -814,6 +818,18 @@ class ProcessPattern(models.Model):
 
     def output_resource_types(self):
         return self.get_resource_types("out") 
+
+    def output_facets(self):
+        return self.facets.filter(process_relationship="out")
+
+    def citable_facets(self):
+        return self.facets.filter(process_relationship="cite")
+
+    def input_facets(self):
+        return self.facets.filter(process_relationship="in")
+
+    def work_facets(self):
+        return self.facets.filter(process_relationship="work")
         
         
 

@@ -400,6 +400,13 @@ class ProjectSelectionForm(forms.Form):
     project = forms.ModelChoiceField(queryset=Project.objects.all())
 
 
+class PatternSelectionForm(forms.Form):
+    pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.all(),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+
+
 class CasualTimeContributionForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))

@@ -852,7 +852,7 @@ class PatternFacetValue(models.Model):
 
     class Meta:
         unique_together = ('pattern', 'facet_value', 'process_relationship')
-        ordering = ('pattern', 'facet_value')
+        ordering = ('pattern', 'process_relationship', 'facet_value')
 
     def __unicode__(self):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])

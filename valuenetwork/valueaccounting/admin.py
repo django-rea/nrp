@@ -32,6 +32,7 @@ admin.site.register(Facet, FacetAdmin)
 
 class PatternFacetInline(admin.TabularInline):
     model = PatternFacetValue
+    fields = ('process_relationship', 'facet_value')
     
 
 class ProcessPatternAdmin(admin.ModelAdmin):

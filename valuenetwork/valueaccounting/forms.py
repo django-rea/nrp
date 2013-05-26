@@ -284,9 +284,12 @@ class SimpleOutputForm(forms.ModelForm):
         self.fields["project"].choices = [(p.id, p) for p in Project.objects.all()]
 
 class SimpleOutputResourceForm(forms.ModelForm):
-    resource_type = forms.ChoiceField(
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
         label="Type of resource created",
-        widget=forms.Select(
+        empty_label=None,
+        widget=SelectWithPopUp(
+            model=EconomicResourceType,
             attrs={'class': 'resource-type-selector chzn-select'})) 
     identifier = forms.CharField(
         required=True, 
@@ -312,10 +315,12 @@ class SimpleOutputResourceForm(forms.ModelForm):
         self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.output_resource_types()]
 
 class SimpleWorkForm(forms.ModelForm):
-    resource_type = forms.ChoiceField(
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
         label="Type of work done",
+        empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'}))         
+            attrs={'class': 'chzn-select'})) 
     quantity = forms.DecimalField(required=True,
         widget=DecimalDurationWidget,
         label="Time spent",

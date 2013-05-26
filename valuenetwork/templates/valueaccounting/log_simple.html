@@ -55,9 +55,14 @@
 {% block body_base %}
 <div class="container">
     {% include "_messages.html" %}
-	<legend>{% trans "Log Design Contributions for " %} {{ member.name }}</legend>
 
     <form id="simpleForm" method="POST" action="">
+
+	    <legend>
+            {% trans "Log Contribution for " %} {{ member.name }} 
+            <span class="select-pattern"></span>
+        </legend>
+
 	    {% csrf_token %}
         <div class="row-fluid">
             <div class="span6">

@@ -370,10 +370,13 @@ def log_simple(request):
         return HttpResponseRedirect('/%s/'
             % ('accounting/start')) 
 
+    #hard-coding a pattern to try this out
+    pattern = ProcessPattern.objects.get(name='Intellectual - Design')
+
     output_form = SimpleOutputForm(data=request.POST or None)
-    resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource')
-    work_form = SimpleWorkForm(data=request.POST or None, prefix='work')
-    citations_select_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite')
+    resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
+    work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
+    citations_select_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite', pattern=pattern)
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()

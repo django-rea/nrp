@@ -221,7 +221,8 @@ class SelectCitationResourceForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(SelectCitationResourceForm, self).__init__(*args, **kwargs)
-        self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in EconomicResourceType.objects.intellectuals_with_resources()]
+        self.pattern = pattern
+        self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in pattern.citable_resource_types()]
  
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -284,9 +285,7 @@ class SimpleOutputForm(forms.ModelForm):
 
 class SimpleOutputResourceForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.intellectual_resource_types(), 
         label="Type of resource created",
-        empty_label=None, 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector chzn-select'})) 
@@ -308,12 +307,13 @@ class SimpleOutputResourceForm(forms.ModelForm):
         model = EconomicResource
         fields = ('resource_type', 'identifier', 'url', 'notes')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pattern, *args, **kwargs):
         super(SimpleOutputResourceForm, self).__init__(*args, **kwargs)
+        self.pattern = pattern
+        self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.output_resource_types()]
 
 class SimpleWorkForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.types_of_work(), 
         label="Type of work done",
         empty_label=None, 
         widget=forms.Select(
@@ -327,8 +327,10 @@ class SimpleWorkForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('resource_type', 'quantity')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pattern, *args, **kwargs):
         super(SimpleWorkForm, self).__init__(*args, **kwargs)
+        self.pattern = pattern
+        self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
 
 
 class WorkEventChangeForm(forms.ModelForm):

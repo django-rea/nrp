@@ -162,5 +162,7 @@ urlpatterns = patterns("",
         name="change_event"),
     url(r"^test-patterns/$", 'valuenetwork.valueaccounting.views.test_patterns', 
         name="test_patterns"),
+    url(r"^resource-facets/$", 'valuenetwork.valueaccounting.views.resource_facet_table', 
+        name="resource_facet_table"),
         
 )

@@ -4150,3 +4150,23 @@ def process_selections(request, rand=0):
         "project_form": project_form,
     }, context_instance=RequestContext(request))
 
+def resource_facet_table(request):
+    headings = ["Resource Type"]
+    rows = []
+    facets = Facet.objects.all()
+    for facet in facets:
+        headings.append(facet)
+    for rt in EconomicResourceType.objects.all():
+        row = [rt, ]
+        for i in range(0, facets.count()):
+            row.append(" ")
+        for rf in rt.facets.all():
+            cell = headings.index(rf.facet_value.facet)
+            row[cell] = rf
+        rows.append(row)     
+    return render_to_response("valueaccounting/resource_facets.html", {
+        "headings": headings,
+        "rows": rows,
+    }, context_instance=RequestContext(request))
+
+

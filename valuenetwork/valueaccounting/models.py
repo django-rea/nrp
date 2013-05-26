@@ -813,6 +813,9 @@ class ProcessPattern(models.Model):
     def citable_resource_types(self):
         return self.get_resource_types("cite")
 
+    def citables_with_resources(self):
+        return [rt for rt in self.citable_resource_types() if rt.onhand()]
+    
     def input_resource_types(self):
         return self.get_resource_types("in")
 

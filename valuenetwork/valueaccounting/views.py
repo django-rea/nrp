@@ -379,7 +379,7 @@ def log_simple(request):
     citations_select_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite', pattern=pattern)
 
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         if output_form.is_valid():
             output_data = output_form.cleaned_data
             output_event = output_form.save(commit=False)
@@ -400,8 +400,10 @@ def log_simple(request):
                     process.created_by = request.user
                     process.save()                    
 
+                    we_rt = EconomicResourceType.objects.get(id=work_form.fields['rtype'])
+                    input_rel = we_rt.work_resource_relationship()
+                    #or_rt = EconomicResourceType.objects.get(id=
                     output_rel = output_resource.resource_type.production_resource_relationship()
-                    input_rel = work_event.resource_type.work_resource_relationship()
                     
                     output_resource.quantity = 1
                     output_resource.unit_of_quantity = output_resource.resource_type.directional_unit(output_rel.direction) 
@@ -419,6 +421,7 @@ def log_simple(request):
                     output_event.created_by = request.user
                     output_event.save()
 
+                    work_event.resource_type = we_rt
                     work_event.event_type = input_rel.event_type
                     work_event.event_date = output_event.event_date
                     work_event.process = process

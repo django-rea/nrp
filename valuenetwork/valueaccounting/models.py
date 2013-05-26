@@ -805,7 +805,8 @@ class ProcessPattern(models.Model):
                             answer.append(rt)
                     else:
                         answer.append(rt)
-        return answer
+        answer_ids = [a.id for a in answer]
+        return EconomicResourceType.objects.filter(id__in=answer_ids)
         
     def work_resource_types(self):
         return self.get_resource_types("work")
@@ -814,7 +815,9 @@ class ProcessPattern(models.Model):
         return self.get_resource_types("cite")
 
     def citables_with_resources(self):
-        return [rt for rt in self.citable_resource_types() if rt.onhand()]
+        rts = [rt for rt in self.citable_resource_types() if rt.onhand()]
+        rt_ids = [rt.id for rt in rts]
+        return EconomicResourceType.objects.filter(id__in=rt_ids)
     
     def input_resource_types(self):
         return self.get_resource_types("in")

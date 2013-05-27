@@ -52,13 +52,14 @@ container li {
 							{% csrf_token %}
 							{{ create_form|as_bootstrap }}
 							<input type="hidden" name="next" value="{% url resource_types %}" />
+
 						  <div class="modal-footer">
 							<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 							<button class="btn btn-primary">{% trans "Save changes" %}</button>
 						  </div>
 
-
 						</form>
+
 				    </div>
                 </div>
 			{% endif %}

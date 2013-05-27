@@ -33,11 +33,16 @@ admin.site.register(Facet, FacetAdmin)
 class PatternFacetInline(admin.TabularInline):
     model = PatternFacetValue
     fields = ('process_relationship', 'facet_value')
+
+
+class PatternLoggingMethodInline(admin.TabularInline):
+    model = PatternLoggingMethod
+    extra = 1
     
 
 class ProcessPatternAdmin(admin.ModelAdmin):
     list_display = ('name',)
-    inlines = [ PatternFacetInline, ]
+    inlines = [ PatternFacetInline, PatternLoggingMethodInline]
 
 admin.site.register(ProcessPattern, ProcessPatternAdmin)
 

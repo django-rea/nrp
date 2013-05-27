@@ -164,5 +164,7 @@ urlpatterns = patterns("",
         name="test_patterns"),
     url(r"^resource-facets/$", 'valuenetwork.valueaccounting.views.resource_facet_table', 
         name="resource_facet_table"),
+    url(r"^change-resource-facet-value/$", 'valuenetwork.valueaccounting.views.change_resource_facet_value', 
+        name="change_resource_facet_value"),
         
 )

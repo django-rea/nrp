@@ -11,6 +11,7 @@
                 <li><a href="/databrowse/"><i class="icon-info-sign"></i> Browse Data</a></li>
 				{% if user.is_staff %}
 	                <li><a href="/admin/"><i class="icon-wrench"></i> Admin</a></li>
+	                <li><a href="{% url test_patterns %}"><i class="icon-wrench"></i> Patterns</a></li>
 				{% endif %}
 				{% if user.is_superuser %}
 	                <li><a href="{% url create_user_and_agent %}"><i class="icon-user"></i> Create Agent and User</a></li>

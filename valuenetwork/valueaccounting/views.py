@@ -4173,3 +4173,33 @@ def resource_facet_table(request):
     }, context_instance=RequestContext(request))
 
 
+def change_resource_facet_value(request):
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        resource_type_label = request.POST.get("resourceType")
+        rt_name = resource_type_label.split("-", 1)[1].lstrip()
+        facet_name = request.POST.get("facet")
+        value = request.POST.get("facetValue")
+        rt = EconomicResourceType.objects.get(name=rt_name)
+        facet = Facet.objects.get(name=facet_name)
+        facet_value = FacetValue.objects.get(facet=facet, value=value)
+        rtfv = None
+        try:
+            rtfv = ResourceTypeFacetValue.objects.get(
+                resource_type=rt,
+                facet_value__facet=facet)
+        except ResourceTypeFacetValue.DoesNotExist:
+            pass
+        if rtfv:
+            if rtfv.facet_value != facet_value:
+                rtfv.delete()
+                rtfv = None
+        if not rtfv:
+            rtfv = ResourceTypeFacetValue(
+                resource_type=rt,
+                facet_value=facet_value)
+            rtfv.save()
+
+    return HttpResponse("Ok", mimetype="text/plain")
+
+

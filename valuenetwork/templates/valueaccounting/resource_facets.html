@@ -1,10 +1,15 @@
 {% extends "site_base.html" %}
 
+{% load staticfiles %}
 {% load i18n %}
 
 {% block head_title %}{% trans "Resource Type Facets" %}{% endblock %}
 
 {% block extra_head %}
+
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+<link rel="stylesheet" media="screen" href="{% static 'css/jquery.handsontable.full.css' %}">
+
 <style>
 
 	tr.even td 
@@ -27,50 +32,165 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-	<div>
-		<legend>{% trans "Resource Type Facets" %}</legend>
-		<table class="table table-bordered table-hover table-condensed" >
-			<thead>
-			    {% for heading in headings %}
-			        {% if forloop.first %}
-			            <th>{{ heading }}</th>
-		            {% else %}
-				        <th>{{ heading.name }}</th>
-			        {% endif %}
-                {% endfor %}
-				
-			</thead>
-			<tbody>	
-				{% for row in rows %}
-					<tr class="{% cycle 'odd' 'even' %}">
-					    {% for cell in row %}
-					        {% if forloop.first %}
-						        <td>{{ cell }}</td>
-					        {% else %}
-					            {% if cell.facet_value %}
-					                <td>{{ cell.facet_value.value }}</td>
-				                {% else %}
-				                    <td>{{ cell }}</td>
-			                    {% endif %}
-				            {% endif %}
-			            {% endfor  %}
+	    <div>
+		    <legend>{% trans "Resource Type Facets" %}</legend>
 
-					</tr>
-				{% endfor %}
-			<tbody>	
-		</table>
+		    <p>Click on a heading to sort. Double-click on a cell to change.</p>
 
-    </div>
+		    <div id="resourceFacetsTable" style="height: 600px; overflow: scroll;">
+		    </div>
+
+        </div>
     </div>
 {% endblock %}
+
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+	<script src="{% static 'js/jquery.handsontable.full.js' %}"></script>
+{% endblock %}
+
 {% block extra_body %}
 	{{ block.super }}
     <script type="text/javascript">
 
 	$(document).ready(function(){
+	
+        var headings = [];
+        var rows = [];
+        var columns = [];
 
+        {% for heading in headings %}
+	        {% if forloop.first %}
+	            headings.push("{{ heading }}");
+	            columns.push({ readonly: true });
+            {% else %}
+		        headings.push("{{ heading.name }}");
+		        var sources = [];
+		        {% for fv in heading.values.all %}
+		            sources.push("{{ fv.value }}");
+	            {% endfor %}
+	            columns.push({ 
+	                type: 'autocomplete',
+                    source: sources,
+                    strict: true
+                });
+	        {% endif %}
+        {% endfor %}
+
+        {% for row in rows %}
+            var row = [];
+		    {% for cell in row %}
+		        {% if forloop.first %}
+			        row.push("{{ cell }}");
+		        {% else %}
+		            {% if cell.facet_value %}
+		                row.push("{{ cell.facet_value.value }}");
+	                {% else %}
+	                    row.push("{{ cell }}");
+                    {% endif %}
+	            {% endif %}
+            {% endfor  %}
+            rows.push(row);
+		{% endfor %}
+
+		var $container = $("#resourceFacetsTable");
+
+        $container.handsontable({
+            data: rows,
+            rowHeaders: false,
+            colHeaders: headings,
+            columns: columns,
+            columnSorting: true,
+            fixedRowsTop: 2,
+            fixedColumnsLeft: 2,
+            stretchH: 'all',
+            contextMenu: false,
+            cells: function (row, col, prop) {
+                var cellProperties = {}
+                if(col === 0) {
+                  cellProperties.readOnly = true;
+                }
+                return cellProperties;
+              }
+        });
+
+        $container.handsontable('render');
+
+        $container.handsontable({
+            afterChange: function(changes, source) {
+                var changeArray = changes[0];
+                var row = changeArray[0];
+                var prop = changeArray[1];
+                var oldVal = changeArray[2];
+                var newVal = changeArray[3];
+                var facet = headings[prop];
+                var rt = this.getDataAtCell(row, 0);
+                var jqxhr = $.post("{% url change_resource_facet_value  %}",  { facet: facet, resourceType: rt, facetValue: newVal },
+			        function( data ) 
+			        {
+				        //notifySaved();
+				        facetSaved = true;
+			        })
+			        .fail(function() 
+			        { 
+				        //notifyProblem(); 
+				        facetSaved = false;
+			        }
+		        );
+            }
+        });
 
 	}); // end document.ready
+
+	$(document).ajaxSend(function(event, xhr, settings) 
+	{
+		function getCookie(name) 
+		{
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie != '') 
+			{
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) 
+				{
+		            var cookie = jQuery.trim(cookies[i]);
+		            // Does this cookie string begin with the name we want?
+		            if (cookie.substring(0, name.length + 1) == (name + '=')) 
+					{
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+    	}
+
+		function sameOrigin(url) 
+		{
+		    // url could be relative or scheme relative or absolute
+		    var host = document.location.host; // host + port
+		    var protocol = document.location.protocol;
+		    var sr_origin = '//' + host;
+		    var origin = protocol + sr_origin;
+		    // Allow absolute or scheme relative URLs to same origin
+		    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+		        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+		        // or any other URL that isn't scheme relative or absolute i.e relative.
+		        !(/^(\/\/|http:|https:).*/.test(url));
+		}
+
+		function safeMethod(method) 
+		{
+		    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+
+		if (!safeMethod(settings.type) && sameOrigin(settings.url)) 
+		{
+		    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+		}
+	});
+	
 
     </script>
 {% endblock %}

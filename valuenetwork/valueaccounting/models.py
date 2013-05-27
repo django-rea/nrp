@@ -125,7 +125,7 @@ class Help(models.Model):
 
 
 class Facet(models.Model):
-    name = models.CharField(_('name'), max_length=32)
+    name = models.CharField(_('name'), max_length=32, unique=True)
 
     class Meta:
         ordering = ('name',)
@@ -427,7 +427,7 @@ class EconomicResourceTypeManager(models.Manager):
 
 
 class EconomicResourceType(models.Model):
-    name = models.CharField(_('name'), max_length=128)
+    name = models.CharField(_('name'), max_length=128, unique=True)
     #version = models.CharField(_('version'), max_length=32, blank=True)    
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='children', editable=False)

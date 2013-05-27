@@ -67,7 +67,7 @@
 	            columns.push({ readonly: true });
             {% else %}
 		        headings.push("{{ heading.name }}");
-		        var sources = [];
+		        var sources = [""];
 		        {% for fv in heading.values.all %}
 		            sources.push("{{ fv.value }}");
 	            {% endfor %}

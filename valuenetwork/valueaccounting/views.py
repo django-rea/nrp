@@ -4182,7 +4182,9 @@ def change_resource_facet_value(request):
         value = request.POST.get("facetValue")
         rt = EconomicResourceType.objects.get(name=rt_name)
         facet = Facet.objects.get(name=facet_name)
-        facet_value = FacetValue.objects.get(facet=facet, value=value)
+        facet_value = None
+        if value:
+            facet_value = FacetValue.objects.get(facet=facet, value=value)
         rtfv = None
         try:
             rtfv = ResourceTypeFacetValue.objects.get(
@@ -4195,10 +4197,11 @@ def change_resource_facet_value(request):
                 rtfv.delete()
                 rtfv = None
         if not rtfv:
-            rtfv = ResourceTypeFacetValue(
-                resource_type=rt,
-                facet_value=facet_value)
-            rtfv.save()
+            if value:
+                rtfv = ResourceTypeFacetValue(
+                    resource_type=rt,
+                    facet_value=facet_value)
+                rtfv.save()
 
     return HttpResponse("Ok", mimetype="text/plain")
 

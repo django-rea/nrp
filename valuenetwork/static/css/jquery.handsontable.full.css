@@ -166,6 +166,7 @@
 }
 
 .handsontable .columnSorting:hover {
+  color: blue;
   text-decoration: underline;
   cursor: pointer;
 }

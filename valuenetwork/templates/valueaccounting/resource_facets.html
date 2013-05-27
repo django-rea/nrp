@@ -57,12 +57,22 @@
 	
         var headings = [];
         var rows = [];
+        var columns = [];
 
         {% for heading in headings %}
 	        {% if forloop.first %}
 	            headings.push("{{ heading }}");
+	            columns.push({ readonly: true });
             {% else %}
 		        headings.push("{{ heading.name }}");
+		        var sources = [];
+		        {% for fv in heading.values.all %}
+		            sources.push("{{ fv.value }}");
+	            {% endfor %}
+	            columns.push({ 
+	                type: 'autocomplete',
+                    source: sources
+                });
 	        {% endif %}
         {% endfor %}
 
@@ -88,11 +98,19 @@
             data: rows,
             rowHeaders: false,
             colHeaders: headings,
+            columns: columns,
             columnSorting: true,
             fixedRowsTop: 2,
             fixedColumnsLeft: 2,
             stretchH: 'all',
-            contextMenu: false
+            contextMenu: false,
+            cells: function (row, col, prop) {
+                var cellProperties = {}
+                if(col === 0) {
+                  cellProperties.readOnly = true;
+                }
+                return cellProperties;
+              }
         });
 
         $container.handsontable('render');

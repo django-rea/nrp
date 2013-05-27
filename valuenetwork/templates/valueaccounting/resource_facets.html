@@ -1,10 +1,15 @@
 {% extends "site_base.html" %}
 
+{% load staticfiles %}
 {% load i18n %}
 
 {% block head_title %}{% trans "Resource Type Facets" %}{% endblock %}
 
 {% block extra_head %}
+
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+<link rel="stylesheet" media="screen" href="{% static 'css/jquery.handsontable.full.css' %}">
+
 <style>
 
 	tr.even td 
@@ -27,48 +32,70 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-	<div>
-		<legend>{% trans "Resource Type Facets" %}</legend>
-		<table class="table table-bordered table-hover table-condensed" >
-			<thead>
-			    {% for heading in headings %}
-			        {% if forloop.first %}
-			            <th>{{ heading }}</th>
-		            {% else %}
-				        <th>{{ heading.name }}</th>
-			        {% endif %}
-                {% endfor %}
-				
-			</thead>
-			<tbody>	
-				{% for row in rows %}
-					<tr class="{% cycle 'odd' 'even' %}">
-					    {% for cell in row %}
-					        {% if forloop.first %}
-						        <td>{{ cell }}</td>
-					        {% else %}
-					            {% if cell.facet_value %}
-					                <td>{{ cell.facet_value.value }}</td>
-				                {% else %}
-				                    <td>{{ cell }}</td>
-			                    {% endif %}
-				            {% endif %}
-			            {% endfor  %}
+	    <div>
+		    <legend>{% trans "Resource Type Facets" %}</legend>
 
-					</tr>
-				{% endfor %}
-			<tbody>	
-		</table>
+		    <div id="resourceFacetsTable" style="height: 600px; overflow: scroll;">
+		    </div>
 
-    </div>
+        </div>
     </div>
 {% endblock %}
+
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+	<script src="{% static 'js/jquery.handsontable.full.js' %}"></script>
+{% endblock %}
+
 {% block extra_body %}
 	{{ block.super }}
     <script type="text/javascript">
 
 	$(document).ready(function(){
+	
+        var headings = [];
+        var rows = [];
 
+        {% for heading in headings %}
+	        {% if forloop.first %}
+	            headings.push("{{ heading }}");
+            {% else %}
+		        headings.push("{{ heading.name }}");
+	        {% endif %}
+        {% endfor %}
+
+        {% for row in rows %}
+            var row = [];
+		    {% for cell in row %}
+		        {% if forloop.first %}
+			        row.push("{{ cell }}");
+		        {% else %}
+		            {% if cell.facet_value %}
+		                row.push("{{ cell.facet_value.value }}");
+	                {% else %}
+	                    row.push("{{ cell }}");
+                    {% endif %}
+	            {% endif %}
+            {% endfor  %}
+            rows.push(row);
+		{% endfor %}
+
+		var $container = $("#resourceFacetsTable");
+
+        $container.handsontable({
+            data: rows,
+            rowHeaders: false,
+            colHeaders: headings,
+            columnSorting: true,
+            fixedRowsTop: 2,
+            fixedColumnsLeft: 2,
+            stretchH: 'all',
+            contextMenu: false
+        });
+
+        $container.handsontable('render');
 
 	}); // end document.ready
 

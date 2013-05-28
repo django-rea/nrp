@@ -10,24 +10,9 @@
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 <link rel="stylesheet" media="screen" href="{% static 'css/jquery.handsontable.full.css' %}">
 
-<style>
-
-	tr.even td 
-	{
-		color:#000000;
-		background-color:#EAF2D3;
-	}
-
-	th
-	{
-		background-color:#C8D6E8;
-	}
-
-</style>
-
 {% endblock %}
 
-{% block body_class %}projects{% endblock %}
+{% block body_class %}patterns{% endblock %}
 
 {% block body_base %}
     <div class="container">
@@ -45,7 +30,6 @@
 {% endblock %}
 
 {% block extra_script %}
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 	<script src="{% static 'js/jquery.handsontable.full.js' %}"></script>

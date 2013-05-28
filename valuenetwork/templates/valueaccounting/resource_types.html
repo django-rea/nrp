@@ -21,6 +21,10 @@
 container li {
 	padding: 3px;
 }
+.facet {
+    font-weight: bold;
+    font-size: 1.1em;
+}
 
 </style>
 {% endblock %}
@@ -38,7 +42,7 @@ container li {
 			{% if user.is_authenticated %}
 				<div style="display: inline;" >
 					<a href="#createResourceForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create new Resource Type" %}</a>
-					<br />
+					<br /><br />
 				</div>
 
 
@@ -52,13 +56,14 @@ container li {
 							{% csrf_token %}
 							{{ create_form|as_bootstrap }}
 							<input type="hidden" name="next" value="{% url resource_types %}" />
+
 						  <div class="modal-footer">
 							<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 							<button class="btn btn-primary">{% trans "Save changes" %}</button>
 						  </div>
 
-
 						</form>
+
 				    </div>
                 </div>
 			{% endif %}
@@ -77,12 +82,15 @@ container li {
 		    </ul>
 		</div>
 		<div class="span2 filter">
-			<h4>{% trans "Filter by Category" %}</h4>
+			<h3>{% trans "Filter the List" %}</h3>
 			<form id="category-form" action="." method="POST">
 				{% csrf_token %}
 				<p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All" %}</p>
-				{% for cat in categories %}
-				<p><input type="checkbox" class="category" id="{{ cat }}" name="{{ cat }}" value="{{ cat }}" /> {{ cat }}</p>
+				{% for facet in facets %}
+                    <p class="facet"> {{ facet.name }} </p>
+                    {% for val in facet.values.all %}
+				        <p><input type="checkbox" class="category" id="{{ val }}" name="{{ val }}" value="{{ val }}" /> {{ val.value }}</p>
+				    {% endfor %}
 				{% endfor %}
 				<input type='hidden' id='categories' name='categories' value='' />
 				<input type="submit" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
@@ -109,12 +117,12 @@ container li {
             $('#help-content').hide("slide", { direction: "right" }, "slow"); 
         })
 
-		var selectedCats = "{{ selected_cats }}";
+		var selectedVals = "{{ selected_values }}";
 
 		$('.category').each(function()
 		{
-			var cat = $(this)[0];
-            if (selectedCats.indexOf(cat.name) > -1)
+			var val = $(this)[0];
+            if (selectedVals.indexOf(val.name) > -1)
 			{
 				$(this).prop('checked', true);
 			}
@@ -130,7 +138,7 @@ container li {
 
 		$('.category').click(function() 
 		{
-			var checkedCats = [];
+			var checkedVals = [];
 			var checkedBox = $(this)[0];
 			var allBox = $('#all')[0];
 			if (checkedBox == allBox)
@@ -140,21 +148,21 @@ container li {
 		            $(this).prop('checked', false);
 				});
 				$('#all').prop('checked', true);
-				checkedCats.push('all');
+				checkedVals.push('all');
 			}
 			else
 			{
 				$('#all').prop('checked', false);
 				$('.category').each(function()
 				{
-					var cat = $(this)[0];
-		            if (cat.checked)
+					var val = $(this)[0];
+		            if (val.checked)
 					{
-						checkedCats.push(cat.value);
+						checkedVals.push(val.value);
 					}
 				});
 			}
-			$('#categories').prop('value', checkedCats);
+			$('#categories').prop('value', checkedVals);
 		});
 
 		$('.resource-create-form').validate(

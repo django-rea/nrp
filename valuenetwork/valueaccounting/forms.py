@@ -496,6 +496,18 @@ class EconomicResourceTypeWithPopupForm(forms.ModelForm):
         return True
 
 
+class EconomicResourceTypeFacetForm(forms.Form):
+    #coding in process, probably doesn't work
+    
+    facet_value = forms.ChoiceField()
+
+    def __init__(self, rt, facet, *args, **kwargs):
+        super(EconomicResourceTypeFacetForm, self).__init__(*args, **kwargs)
+        self.rt = rt
+        self.facet = facet
+        self.fields["facet_value"].choices = [('', '----------')] + [(fv.value, fv.value) for fv in facet.value_list()]
+
+
 class AgentResourceTypeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):

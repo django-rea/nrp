@@ -170,24 +170,33 @@ def resource_types(request):
     roots = EconomicResourceType.objects.exclude(materiality="work")
     #roots = EconomicResourceType.objects.all()
     create_form = EconomicResourceTypeForm()
-    categories = Category.objects.all()
+    facets = Facet.objects.all()
     select_all = True
-    selected_cats = "all"
+    selected_values = "all"
     if request.method == "POST":
-        selected_cats = request.POST["categories"]
-        cats = selected_cats.split(",")
-        if cats[0] == "all":
+        #import pdb; pdb.set_trace()
+        selected_values = request.POST["categories"]
+        vals = selected_values.split(",")
+        if vals[0] == "all":
             select_all = True
             roots = EconomicResourceType.objects.all()
         else:
             select_all = False
-            roots = EconomicResourceType.objects.filter(category__name__in=cats)
-        #import pdb; pdb.set_trace()
+            fvs = []
+            for val in vals:
+                val_split = val.split(":")
+                fname = val_split[0]
+                fvalue = val_split[1].strip()
+                fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+            rtfvs = ResourceTypeFacetValue.objects.filter(facet_value__in=fvs)
+            roots = [rtfv.resource_type for rtfv in rtfvs]
+            roots = list(set(roots))
+            roots.sort(key=lambda rt: rt.label())
     return render_to_response("valueaccounting/resource_types.html", {
         "roots": roots,
-        "categories": categories,
+        "facets": facets,
         "select_all": select_all,
-        "selected_cats": selected_cats,
+        "selected_values": selected_values,
         "create_form": create_form,
         "photo_size": (128, 128),
         "help": get_help("resource_types"),

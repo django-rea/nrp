@@ -497,7 +497,7 @@ class EconomicResourceTypeWithPopupForm(forms.ModelForm):
 
 
 class EconomicResourceTypeFacetForm(forms.Form):
-    #in process, probably doesn't work
+    #coding in process, probably doesn't work
     
     facet_value = forms.ChoiceField()
 

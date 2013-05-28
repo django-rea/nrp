@@ -864,6 +864,22 @@ class PatternFacetValue(models.Model):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
 
 
+LOGGING_CHOICES = (
+    ('design', _('Design')),
+    ('non_production', _('Non-production')),
+    ('rand', _('R&D')),
+)
+
+class PatternLoggingMethod(models.Model):
+    pattern = models.ForeignKey(ProcessPattern, 
+        verbose_name=_('pattern'), related_name='logging_methods')
+    logging_method = models.CharField(_('logging method'), 
+        max_length=12, choices=LOGGING_CHOICES)
+
+    def __unicode__(self):
+        return ": ".join([self.pattern.name, self.get_logging_method_display()])
+
+
 class GoodResourceManager(models.Manager):
     def get_query_set(self):
         return super(GoodResourceManager, self).get_query_set().exclude(quality__lt=0)

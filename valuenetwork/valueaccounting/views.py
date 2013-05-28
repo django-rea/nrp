@@ -379,8 +379,7 @@ def log_simple(request):
         return HttpResponseRedirect('/%s/'
             % ('accounting/start')) 
 
-    #hard-coding a pattern to try this out
-    pattern = ProcessPattern.objects.get(name='Intellectual - Design')
+    pattern = PatternLoggingMethod.objects.get(logging_method='design').pattern   
 
     output_form = SimpleOutputForm(data=request.POST or None)
     resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)

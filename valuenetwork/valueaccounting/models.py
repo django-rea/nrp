@@ -866,7 +866,7 @@ class PatternFacetValue(models.Model):
 
 LOGGING_CHOICES = (
     ('design', _('Design')),
-    ('non_production', _('Non-production')),
+    ('non_prod', _('Non-production')),
     ('rand', _('R&D')),
 )
 

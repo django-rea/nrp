@@ -327,6 +327,7 @@ def unscheduled_time_contributions(request):
     if not member:
         return HttpResponseRedirect('/%s/'
             % ('accounting/work'))
+        
     TimeFormSet = modelformset_factory(
         EconomicEvent,
         form=CasualTimeContributionForm,

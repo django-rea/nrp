@@ -414,6 +414,13 @@ class PatternSelectionForm(forms.Form):
 
 
 class CasualTimeContributionForm(forms.ModelForm):
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.none(), 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(), 
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     quantity = forms.DecimalField(required=False,
@@ -426,8 +433,16 @@ class CasualTimeContributionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(CasualTimeContributionForm, self).__init__(*args, **kwargs)
-        self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in EconomicResourceType.objects.types_of_work()]
-        self.fields["project"].choices = [(p.id, p.name) for p in Project.objects.all()]
+        pattern = None
+        try:
+            pattern = PatternLoggingMethod.objects.get(logging_method='non_prod').pattern
+        except PatternLoggingMethod.DoesNotExist:
+            pass
+        if pattern:
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in pattern.work_resource_types().order_by("name")]
+        else:
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in EconomicResourceType.objects.types_of_work()]
+
 
 class DateSelectionForm(forms.Form):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

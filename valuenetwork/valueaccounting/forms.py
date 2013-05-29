@@ -415,7 +415,8 @@ class PatternSelectionForm(forms.Form):
 
 class CasualTimeContributionForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.none(), 
+        queryset=EconomicResourceType.objects.types_of_work(), 
+        empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     project = forms.ModelChoiceField(
         queryset=Project.objects.all(), 
@@ -439,9 +440,7 @@ class CasualTimeContributionForm(forms.ModelForm):
         except PatternLoggingMethod.DoesNotExist:
             pass
         if pattern:
-            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in pattern.work_resource_types().order_by("name")]
-        else:
-            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in EconomicResourceType.objects.types_of_work()]
+            self.fields["resource_type"].queryset = pattern.work_resource_types().order_by("name")
 
 
 class DateSelectionForm(forms.Form):

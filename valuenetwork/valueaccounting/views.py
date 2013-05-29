@@ -119,6 +119,7 @@ def projects(request):
         "help": get_help("projects"),
     }, context_instance=RequestContext(request))
 
+@login_required
 def test_patterns(request):
     pattern_form = PatternSelectionForm(data=request.POST or None)
     pattern = None
@@ -4162,6 +4163,7 @@ def process_selections(request, rand=0):
         "project_form": project_form,
     }, context_instance=RequestContext(request))
 
+@login_required
 def resource_facet_table(request):
     headings = ["Resource Type"]
     rows = []
@@ -4181,7 +4183,7 @@ def resource_facet_table(request):
         "rows": rows,
     }, context_instance=RequestContext(request))
 
-
+@login_required
 def change_resource_facet_value(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()

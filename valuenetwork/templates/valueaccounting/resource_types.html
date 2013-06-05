@@ -25,6 +25,10 @@ container li {
     font-weight: bold;
     font-size: 1.1em;
 }
+.facet-name {
+    padding-right: 1em;
+    text-align: right;
+}
 
 </style>
 {% endblock %}
@@ -55,6 +59,12 @@ container li {
 						<form class="resource-create-form" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
 							{% csrf_token %}
 							{{ create_form|as_bootstrap }}
+                            {{ create_formset.management_form }}
+                            <table>
+                                {% for form in create_formset %}
+                                    <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                                {% endfor %}
+                            </table>
 							<input type="hidden" name="next" value="{% url resource_types %}" />
 
 						  <div class="modal-footer">

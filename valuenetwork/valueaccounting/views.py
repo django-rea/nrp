@@ -171,6 +171,7 @@ def resource_types(request):
     roots = EconomicResourceType.objects.exclude(materiality="work")
     #roots = EconomicResourceType.objects.all()
     create_form = EconomicResourceTypeForm()
+    create_formset = create_facet_formset()
     facets = Facet.objects.all()
     select_all = True
     selected_values = "all"
@@ -199,6 +200,7 @@ def resource_types(request):
         "select_all": select_all,
         "selected_values": selected_values,
         "create_form": create_form,
+        "create_formset": create_formset,
         "photo_size": (128, 128),
         "help": get_help("resource_types"),
     }, context_instance=RequestContext(request))
@@ -381,7 +383,7 @@ def log_simple(request):
         return HttpResponseRedirect('/%s/'
             % ('accounting/start')) 
 
-    pattern = PatternLoggingMethod.objects.get(logging_method='design').pattern   
+    pattern = PatternLoggingMethod.objects.get(logging_method='design').pattern  
 
     output_form = SimpleOutputForm(data=request.POST or None)
     resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
@@ -894,14 +896,27 @@ def delete_feature(request, feature_id):
 
 @login_required
 def create_resource_type(request):
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     if request.method == "POST":
         form = EconomicResourceTypeForm(request.POST, request.FILES)
         if form.is_valid():
             data = form.cleaned_data
-            rt = form.save(commit=False)
+            rt = form.save(commit=False)                    
             rt.created_by=request.user
+            #todo: get rid of category
+            rt.category = Category.objects.get(id=1)
             rt.save()
+            formset = create_facet_formset(data=request.POST)
+            for form_rtfv in formset.forms:
+                if form_rtfv.is_valid():
+                    data_rtfv = form_rtfv.cleaned_data
+                    fv = FacetValue.objects.get(id=data_rtfv["value"])
+                    if fv:
+                        rtfv = ResourceTypeFacetValue()
+                        rtfv.resource_type = rt
+                        rtfv.facet_value = fv
+                        rtfv.save()
+
             next = request.POST.get("next")
             if next:
                 return HttpResponseRedirect(next)
@@ -4216,14 +4231,14 @@ def change_resource_facet_value(request):
 
     return HttpResponse("Ok", mimetype="text/plain")
 
-def create_facet_formset():
+def create_facet_formset(data=None):
     RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
     init = []
     facets = Facet.objects.all()
     for facet in facets:
         d = {"facet_id": facet.id,}
         init.append(d)
-    formset = RtfvFormSet(initial=init)
+    formset = RtfvFormSet(initial=init, data=data)
     for form in formset:
         id = int(form["facet_id"].value())
         facet = Facet.objects.get(id=id)

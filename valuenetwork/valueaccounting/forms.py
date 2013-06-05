@@ -448,6 +448,11 @@ class DateSelectionForm(forms.Form):
     end_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
 
 
+class ResourceTypeFacetValueForm(forms.Form):
+    facet_id = forms.CharField(widget=forms.HiddenInput)
+    value = forms.ChoiceField()
+
+
 class OrderItemForm(forms.ModelForm):
     resource_type_id = forms.CharField(widget=forms.HiddenInput)
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'input-small',}))

@@ -4216,4 +4216,21 @@ def change_resource_facet_value(request):
 
     return HttpResponse("Ok", mimetype="text/plain")
 
+def create_facet_formset():
+    RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
+    init = []
+    facets = Facet.objects.all()
+    for facet in facets:
+        d = {"facet_id": facet.id,}
+        init.append(d)
+    formset = RtfvFormSet(initial=init)
+    for form in formset:
+        id = int(form["facet_id"].value())
+        facet = Facet.objects.get(id=id)
+        form.facet_name = facet.name
+        fvs = facet.values.all()
+        choices = [('', '----------')] + [(fv.id, fv.value) for fv in fvs]
+        form.fields["value"].choices = choices
+    return formset
+    
 

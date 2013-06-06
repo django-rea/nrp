@@ -59,6 +59,7 @@ class DemandSelectionForm(forms.Form):
         label="For customer or R&D order (optional)",
         required=False)
 
+
 # does not appear to be used anywhere
 class OutputResourceTypeSelectionForm(forms.Form):
     resource_type = forms.ModelChoiceField(
@@ -118,9 +119,11 @@ class NamelessProcessForm(forms.ModelForm):
 class ProcessInputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.process_inputs(), 
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
+        widget=forms.Select(
             attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+        #widget=SelectWithPopUp(
+        #    model=EconomicResourceType,
+        #    attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -135,13 +138,16 @@ class ProcessInputForm(forms.ModelForm):
         model = Commitment
         fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
 
+
 #used in labnotes, create, copy and change_process, and create and change_rand
 class ProcessOutputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.process_outputs(), 
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
+        widget=forms.Select(
             attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+        #widget=SelectWithPopUp(
+        #    model=EconomicResourceType,
+        #    attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity  input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -221,9 +227,10 @@ class SelectCitationResourceForm(forms.Form):
         widget=forms.Select(attrs={'class': 'input-xlarge', 'onchange': 'getResources();'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pattern, *args, **kwargs):
         super(SelectCitationResourceForm, self).__init__(*args, **kwargs)
-        self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in EconomicResourceType.objects.intellectuals_with_resources()]
+        self.pattern = pattern
+        self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in pattern.citables_with_resources()]
  
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -282,18 +289,20 @@ class SimpleOutputForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SimpleOutputForm, self).__init__(*args, **kwargs)
-        self.fields["project"].choices = [(p.id, p.name) for p in Project.objects.all()]
+        self.fields["project"].choices = [(p.id, p) for p in Project.objects.all()]
 
 
 # used in log_simple()
 class SimpleOutputResourceForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.intellectual_resource_types(), 
+        queryset=EconomicResourceType.objects.all(),
         label="Type of resource created",
-        empty_label=None, 
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
-            attrs={'class': 'resource-type-selector chzn-select'})) 
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+        #widget=SelectWithPopUp(
+        #    model=EconomicResourceType,
+        #    attrs={'class': 'resource-type-selector chzn-select'})) 
     identifier = forms.CharField(
         required=True, 
         label="Name",
@@ -310,18 +319,20 @@ class SimpleOutputResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicResource
-        fields = ('resource_type', 'identifier', 'url', 'notes')
+        fields = ('resource_type','identifier', 'url', 'notes')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pattern, *args, **kwargs):
         super(SimpleOutputResourceForm, self).__init__(*args, **kwargs)
+        self.pattern = pattern
+        self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.output_resource_types()]
 
 class SimpleWorkForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.types_of_work(), 
+        queryset=EconomicResourceType.objects.all(),
         label="Type of work done",
-        empty_label=None, 
+        empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'}))         
+            attrs={'class': 'chzn-select'})) 
     quantity = forms.DecimalField(required=True,
         widget=DecimalDurationWidget,
         label="Time spent",
@@ -329,10 +340,13 @@ class SimpleWorkForm(forms.ModelForm):
    
     class Meta:
         model = EconomicEvent
-        fields = ('resource_type', 'quantity')
+        fields = ('resource_type','quantity')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pattern, *args, **kwargs):
+        #import pdb; pdb.set_trace()
         super(SimpleWorkForm, self).__init__(*args, **kwargs)
+        self.pattern = pattern
+        self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
 
 
 class WorkEventChangeForm(forms.ModelForm):
@@ -404,7 +418,22 @@ class ProjectSelectionForm(forms.Form):
     project = forms.ModelChoiceField(queryset=Project.objects.all())
 
 
+class PatternSelectionForm(forms.Form):
+    pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.all(),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+
+
 class CasualTimeContributionForm(forms.ModelForm):
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.types_of_work(), 
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(), 
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     quantity = forms.DecimalField(required=False,
@@ -417,12 +446,23 @@ class CasualTimeContributionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(CasualTimeContributionForm, self).__init__(*args, **kwargs)
-        self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in EconomicResourceType.objects.types_of_work()]
-        self.fields["project"].choices = [(p.id, p.name) for p in Project.objects.all()]
+        pattern = None
+        try:
+            pattern = PatternLoggingMethod.objects.get(logging_method='non_prod').pattern
+        except PatternLoggingMethod.DoesNotExist:
+            pass
+        if pattern:
+            self.fields["resource_type"].queryset = pattern.work_resource_types().order_by("name")
+
 
 class DateSelectionForm(forms.Form):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     end_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+
+
+class ResourceTypeFacetValueForm(forms.Form):
+    facet_id = forms.CharField(widget=forms.HiddenInput)
+    value = forms.ChoiceField()
 
 
 class OrderItemForm(forms.ModelForm):
@@ -473,7 +513,8 @@ class EconomicResourceTypeForm(forms.ModelForm):
         exclude = ('parent', 'created_by', 'changed_by', 'category')
 
 
-# used in EconomicResourceType.add_new_form(cls)
+# used in EconomicResourceType.add_new_form(cls), which is used in popups
+# does not matter if we disable popups
 class EconomicResourceTypeWithPopupForm(forms.ModelForm):
     unit = forms.ModelChoiceField(
         queryset=Unit.objects.all(),  
@@ -486,6 +527,18 @@ class EconomicResourceTypeWithPopupForm(forms.ModelForm):
     @classmethod
     def is_multipart(cls):
         return True
+
+
+class EconomicResourceTypeFacetForm(forms.Form):
+    #coding in process, probably doesn't work
+    
+    facet_value = forms.ChoiceField()
+
+    def __init__(self, rt, facet, *args, **kwargs):
+        super(EconomicResourceTypeFacetForm, self).__init__(*args, **kwargs)
+        self.rt = rt
+        self.facet = facet
+        self.fields["facet_value"].choices = [('', '----------')] + [(fv.value, fv.value) for fv in facet.value_list()]
 
 
 class AgentResourceTypeForm(forms.ModelForm):
@@ -549,6 +602,7 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
     class Meta:
         model = ProcessTypeResourceType
         exclude = ('process_type', 'relationship')
+
 
 # used in ProcessTypeResourceType.xbill_change_form()
 class LaborInputForm(forms.ModelForm):

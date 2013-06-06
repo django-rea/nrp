@@ -1711,7 +1711,7 @@ def start(request):
     if agent:
         my_work = Commitment.objects.unfinished().filter(
             resource_type__materiality="work",
-            from_agent=agent)
+            from_agent=agent).exclude(relationship__direction="todo")
         skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
         my_skillz = Commitment.objects.unfinished().filter(
             from_agent=None, 

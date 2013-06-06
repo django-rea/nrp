@@ -470,7 +470,7 @@ class EconomicResourceTypeForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('parent', 'created_by', 'changed_by')
+        exclude = ('parent', 'created_by', 'changed_by', 'category')
 
 
 # used in EconomicResourceType.add_new_form(cls)

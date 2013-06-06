@@ -1586,6 +1586,7 @@ def create_event_from_todo(todo):
         url=todo.url,
         quantity=Decimal("1"),
         unit_of_quantity=todo.resource_type.unit,
+        is_contribution=True,
     )
     return event
 

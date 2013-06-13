@@ -13,8 +13,6 @@ from valuenetwork.valueaccounting.models import *
 
 databrowse.site.register(
     AgentType,
-    AssociationType,
-    AgentAssociation,
     EconomicAgent, 
     EconomicResourceType,
     EconomicResource,
@@ -22,13 +20,11 @@ databrowse.site.register(
     ProcessType, 
     ProcessTypeResourceType,
     Project,
-    ResourceRelationship,
     Commitment,
     EconomicEvent,
     EventType,
     Process,
     Unit,
-    CachedEventSummary,
 )
 
 urlpatterns = patterns("",

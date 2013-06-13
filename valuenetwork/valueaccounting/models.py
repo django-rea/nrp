@@ -1,6 +1,7 @@
 import datetime
 import re
 from decimal import *
+from operator import attrgetter
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -330,6 +331,21 @@ class AgentAssociation(models.Model):
     description = models.TextField(_('description'), blank=True, null=True)
 
 
+DIRECTION_CHOICES = (
+    ('in', _('input')),
+    ('out', _('output')),
+    ('cite', _('citation')),
+    ('work', _('work')),
+    #('todo', _('todo')),
+    #do todos need their own EventType?
+    # or can PatternFacetValues handle it?
+)
+
+RELATED_CHOICES = (
+    ('process', _('process')),
+    ('agent', _('agent')),
+)
+
 RESOURCE_EFFECT_CHOICES = (
     ('+', _('increase')),
     ('-', _('decrease')),
@@ -340,6 +356,12 @@ RESOURCE_EFFECT_CHOICES = (
 
 class EventType(models.Model):
     name = models.CharField(_('name'), max_length=128)
+    label = models.CharField(_('label'), max_length=32)
+    inverse_label = models.CharField(_('inverse label'), max_length=40, blank=True)
+    relationship = models.CharField(_('relationship'), 
+        max_length=12, choices=DIRECTION_CHOICES, default='in')
+    related_to = models.CharField(_('related to'), 
+        max_length=12, choices=RELATED_CHOICES, default='process')
     resource_effect = models.CharField(_('resource effect'), 
         max_length=12, choices=RESOURCE_EFFECT_CHOICES)
     unit_type = models.CharField(_('unit type'), 
@@ -348,10 +370,10 @@ class EventType(models.Model):
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('label',)
 
     def __unicode__(self):
-        return self.name
+        return self.label
 
     def save(self, *args, **kwargs):
         unique_slugify(self, self.name)
@@ -375,6 +397,7 @@ MATERIALITY_CHOICES = (
     ('work', _('work')),
 )
 
+#todo: EconomicResourceTypeManager s/b removable
 class EconomicResourceTypeManager(models.Manager):
 
     def types_of_work(self):
@@ -442,6 +465,9 @@ class EconomicResourceType(models.Model):
         default='intellectual')
     unit = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="resource_units",
+        help_text=_('if this resource has different units of use and inventory, this is the unit of inventory'))
+    unit_of_use = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit'), related_name="units_of_use",
         help_text=_('if this resource has different units of use and inventory, this is the unit of use'))
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
@@ -456,14 +482,14 @@ class EconomicResourceType(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
-    
+
+    #todo: EconomicResourceTypeManager s/b removable
     objects = EconomicResourceTypeManager()
 
     class Meta:
         #ordering = ('category', 'name', 'stage')
         #unique_together = ('name', 'version', 'stage')
-        ordering = ('category', 'name')
-        unique_together = ('name', 'category')
+        ordering = ('name',)
         verbose_name = _('resource type')
     
     def __unicode__(self):
@@ -471,7 +497,8 @@ class EconomicResourceType(models.Model):
         #if self.stage:
         #    stage_name = self.stage.name
         #return " ".join([self.category.name, self.name, self.version, stage_name])
-        return " - ".join([self.category.name, self.name])
+        #return " - ".join([self.category.name, self.name])
+        return self.name
 
     def label(self):
         return self.__unicode__()
@@ -765,7 +792,17 @@ class ProcessPattern(models.Model):
     def __unicode__(self):
         return self.name
 
-    def get_resource_types(self, process_relationship):
+    def process_slots(self):
+        facets = self.facets.all()
+        slots = [facet.event_type for facet in facets]
+        slots = list(set(slots))
+        slots.sort(lambda x, y: cmp(x.label, y.label))
+        slots = sorted(slots, key=attrgetter('label'))
+        slots = sorted(slots, key=attrgetter('relationship'), reverse=True)
+        return slots
+
+    def get_resource_types(self, event_type):
+    #def get_resource_types(self, process_relationship):
         """ Logic:
             Facet values in different Facets are ANDed.
             Ie, a resource type must have all of those facet values.
@@ -773,7 +810,8 @@ class ProcessPattern(models.Model):
             Ie, a resource type must have at least one of those facet values.
         """
         #import pdb; pdb.set_trace()
-        pattern_facet_values = self.facets.filter(process_relationship=process_relationship)
+        pattern_facet_values = self.facets.filter(event_type=event_type)
+        #pattern_facet_values = self.facets.filter(process_relationship=process_relationship)
         facet_values = [pfv.facet_value for pfv in pattern_facet_values]
         fv_ids = [fv.id for fv in facet_values]
         rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
@@ -807,12 +845,26 @@ class ProcessPattern(models.Model):
                         answer.append(rt)
         answer_ids = [a.id for a in answer]
         return EconomicResourceType.objects.filter(id__in=answer_ids)
+
+    def resource_types_for_relationship(self, relationship):
+        ets = [f.event_type for f in self.facets.filter(event_type__relationship=relationship)] 
+        if ets:
+            ets = list(set(ets))
+            if len(ets) == 1:
+                return self.get_resource_types(ets[0])
+            else:
+                answer = []
+                for et in ets:
+                    answer.extend(list(self.get_resource_types(et)))
+                return answer
+        else:
+            return EconomicResourceType.objects.none()
         
     def work_resource_types(self):
-        return self.get_resource_types("work")
+        return self.resource_types_for_relationship("work")
 
     def citable_resource_types(self):
-        return self.get_resource_types("cite")
+        return self.resource_types_for_relationship("cite")
 
     def citables_with_resources(self):
         rts = [rt for rt in self.citable_resource_types() if rt.onhand()]
@@ -820,22 +872,28 @@ class ProcessPattern(models.Model):
         return EconomicResourceType.objects.filter(id__in=rt_ids)
     
     def input_resource_types(self):
-        return self.get_resource_types("in")
+        return self.resource_types_for_relationship("in")
 
     def output_resource_types(self):
-        return self.get_resource_types("out") 
+        return self.resource_types_for_relationship("out")
+
+    def facets_for_event_type(self, event_type):
+        return self.facets.filter(event_type=event_type)
+
+    def facets_for_relationship(self, relationship):
+        return self.facets.filter(event_type__relationship=relationship)
 
     def output_facets(self):
-        return self.facets.filter(process_relationship="out")
+        return self.facets_for_relationship("out")
 
     def citable_facets(self):
-        return self.facets.filter(process_relationship="cite")
+        return self.facets_for_relationship("cite")
 
     def input_facets(self):
-        return self.facets.filter(process_relationship="in")
+        return self.facets_for_relationship("in")
 
     def work_facets(self):
-        return self.facets.filter(process_relationship="work")
+        return self.facets_for_relationship("work")
         
         
 
@@ -854,11 +912,14 @@ class PatternFacetValue(models.Model):
         verbose_name=_('facet value'), related_name='patterns')
     process_relationship = models.CharField(_('process relationship'), 
         max_length=12, choices=SITUATION_CHOICES)
-    
+    event_type = models.ForeignKey(EventType,
+        verbose_name=_('event type'), related_name='patterns',
+        limit_choices_to = {'related_to': 'process'})
+
 
     class Meta:
         unique_together = ('pattern', 'facet_value', 'process_relationship')
-        ordering = ('pattern', 'process_relationship', 'facet_value')
+        ordering = ('pattern', 'event_type', 'facet_value')
 
     def __unicode__(self):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
@@ -868,6 +929,7 @@ LOGGING_CHOICES = (
     ('design', _('Design')),
     ('non_prod', _('Non-production')),
     ('rand', _('R&D')),
+    ('todo', _('Todo')),
 )
 
 class PatternLoggingMethod(models.Model):
@@ -964,18 +1026,6 @@ class EconomicResource(models.Model):
             cited = ''
         return (self.identifier or str(self.id)) + cited
 
-
-DIRECTION_CHOICES = (
-    ('in', _('input')),
-    ('out', _('output')),
-    ('cite', _('citation')),
-    ('todo', _('todo')),
-)
-
-RELATED_CHOICES = (
-    ('process', _('process')),
-    ('agent', _('agent')),
-)
 
 class ResourceRelationship(models.Model):
     name = models.CharField(_('name'), max_length=32)

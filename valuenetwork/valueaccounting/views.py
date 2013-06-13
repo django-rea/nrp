@@ -122,15 +122,20 @@ def projects(request):
 def test_patterns(request):
     pattern_form = PatternSelectionForm(data=request.POST or None)
     pattern = None
+    slots = []
     if request.method == "POST":
         if pattern_form.is_valid():
             pattern = pattern_form.cleaned_data["pattern"]
-    
-    
+            slots = pattern.process_slots()
+            #import pdb; pdb.set_trace()
+            for slot in slots:
+                slot.resource_types = pattern.get_resource_types(slot)
+                slot.facets = pattern.facets_for_event_type(slot)
     
     return render_to_response("valueaccounting/test_patterns.html", {
         "pattern_form": pattern_form,
         "pattern": pattern,
+        "slots": slots,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -3970,10 +3975,11 @@ def process_selections(request, rand=0):
         past = request.POST.get("past")
         get_related = request.POST.get("get-related")
         if get_related:
+            #todo: replace selected_name queries with ProcessPattern methods
+            # split inputs into consumed and used
             selected_name = request.POST.get("resourceName")
             if selected_name:
                 related_outputs = list(EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name))
-                #related_outputs.extend(list(EconomicResourceType.objects.process_outputs().filter(category__name__icontains=selected_name)))
                 related_citables = []
                 citables = EconomicResourceType.objects.process_citables_with_resources()
                 for c in citables:

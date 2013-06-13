@@ -15,7 +15,6 @@ databrowse.site.register(
     AgentType,
     AssociationType,
     AgentAssociation,
-    Category,
     EconomicAgent, 
     EconomicResourceType,
     EconomicResource,

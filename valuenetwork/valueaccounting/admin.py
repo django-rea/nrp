@@ -8,10 +8,6 @@ admin.site.register(Unit)
 admin.site.register(AgentType)
 #admin.site.register(Stage)
 
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'applies_to', 'description','orderable' )
-
-admin.site.register(Category, CategoryAdmin)
 
 class HelpAdmin(admin.ModelAdmin):
     list_display = ('page',)
@@ -32,7 +28,7 @@ admin.site.register(Facet, FacetAdmin)
 
 class PatternFacetInline(admin.TabularInline):
     model = PatternFacetValue
-    fields = ('process_relationship', 'facet_value')
+    fields = ('event_type', 'facet_value', 'process_relationship')
 
 
 class PatternLoggingMethodInline(admin.TabularInline):
@@ -110,8 +106,9 @@ admin.site.register(ProcessType, ProcessTypeAdmin)
 
 
 class EventTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'resource_effect', 'unit_type' )
-    list_filter = ['resource_effect', 'unit_type']
+    list_display = ('name', 'label', 'inverse_label', 'related_to', 'relationship', 'resource_effect', 'unit_type' )
+    list_filter = ['resource_effect', 'related_to', 'relationship',]
+    list_editable = ['label', 'inverse_label', 'related_to', 'relationship']
 
 admin.site.register(EventType, EventTypeAdmin)
 

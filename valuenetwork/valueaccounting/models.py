@@ -853,10 +853,11 @@ class ProcessPattern(models.Model):
             if len(ets) == 1:
                 return self.get_resource_types(ets[0])
             else:
-                answer = []
+                rts = []
                 for et in ets:
-                    answer.extend(list(self.get_resource_types(et)))
-                return answer
+                    rts.extend(list(self.get_resource_types(et)))
+                rt_ids = [rt.id for rt in rts]
+                return EconomicResourceType.objects.filter(id__in=rt_ids)
         else:
             return EconomicResourceType.objects.none()
         
@@ -894,6 +895,16 @@ class ProcessPattern(models.Model):
 
     def work_facets(self):
         return self.facets_for_relationship("work")
+
+    def event_type_for_resource_type(self, relationship, resource_type):
+        rt_fvs = [x.facet_value for x in resource_type.facets.all()]
+        pfvs = self.facets_for_relationship(relationship)
+        pat_fvs = [x.facet_value for x in pfvs]
+        #import pdb; pdb.set_trace()
+        fv_intersect = set(rt_fvs) & set(pat_fvs)
+        fv = list(fv_intersect)[0]
+        pfv = pfvs.get(facet_value=fv)
+        return pfv.event_type
         
         
 class PatternFacetValue(models.Model):
@@ -903,7 +914,8 @@ class PatternFacetValue(models.Model):
         verbose_name=_('facet value'), related_name='patterns')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='patterns',
-        limit_choices_to = {'related_to': 'process'})
+        limit_choices_to = {'related_to': 'process'},
+        help_text=_('consumed means gone, used means re-usable'))
 
 
     class Meta:
@@ -1217,6 +1229,9 @@ class ProcessType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='sub_process_types', editable=False)
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('process pattern'), related_name='process_types')
     project = models.ForeignKey(Project,
         blank=True, null=True,
         verbose_name=_('project'), related_name='process_types')
@@ -1400,6 +1415,9 @@ class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='sub_processes', editable=False)
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('process pattern'), related_name='processes')
     process_type = models.ForeignKey(ProcessType,
         blank=True, null=True,
         verbose_name=_('process type'), related_name='processes')

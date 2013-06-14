@@ -415,7 +415,10 @@ class WorkSelectionForm(forms.Form):
 
 
 class ProjectSelectionForm(forms.Form):
-    project = forms.ModelChoiceField(queryset=Project.objects.all())
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
 
 
 class PatternSelectionForm(forms.Form):

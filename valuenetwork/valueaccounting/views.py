@@ -3953,21 +3953,17 @@ def change_rand(request, rand_id):
 
 @login_required
 def process_selections(request, rand=0):
+    #some of recipe related code is commented out for now
     #import pdb; pdb.set_trace()
-    resource_names = [res.name for res in EconomicResourceType.objects.process_outputs()]
-    related_outputs = []
-    related_citables = []
-    related_inputs = []
-    related_recipes = []
+    slots = []
+    #related_recipes = []
     resource_types = []
-    selected_name = ""
-    selected_name2 = ""
-    #import pdb; pdb.set_trace()
+    selected_pattern = None
+    selected_project = None
     use_radio = True
-    work_form = None
-    project_form = None
+    pattern_form = PatternSelectionForm()
+    project_form = ProjectSelectionForm()
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
         input_resource_types = []
         input_process_types = []
         edit_process = request.POST.get("edit-process")
@@ -3975,49 +3971,23 @@ def process_selections(request, rand=0):
         past = request.POST.get("past")
         get_related = request.POST.get("get-related")
         if get_related:
-            #todo: replace selected_name queries with ProcessPattern methods
-            # split inputs into consumed and used
-            selected_name = request.POST.get("resourceName")
-            if selected_name:
-                related_outputs = list(EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name))
-                related_citables = []
-                citables = EconomicResourceType.objects.process_citables_with_resources()
-                for c in citables:
-                    name = c.name.lower()
-                    sname = selected_name.lower()
-                    if name.find(sname) >= 0:
-                        related_citables.append(c)
-                related_inputs = list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name))
-                related_recipes = []
-                for output in related_outputs:
-                    ppt = output.main_producing_process_type()
-                    if ppt:
-                        if ppt not in related_recipes:
-                            related_recipes.append(ppt)
-
-            selected_name2 = request.POST.get("resourceName2")
-            if selected_name2:
-                #import pdb; pdb.set_trace()
-                new_outputs = list(EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name2))
-                related_outputs.extend(new_outputs)
-                related_inputs.extend(list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name2)))
-                for output in new_outputs:
-                    ppt = output.main_producing_process_type()
-                    if ppt:
-                        if ppt not in related_recipes:
-                            related_recipes.append(ppt)
-            if len(related_recipes) == 1:
-                use_radio = False
-            work_form = WorkSelectionForm()
-            project_form = ProjectSelectionForm()
-        else:
-            rp = request.POST
-            work_form = WorkSelectionForm(data=rp)
-            project = None
-            project_form = ProjectSelectionForm(data=rp)
-            if project_form.is_valid():
-                project = project_form.cleaned_data["project"]
             #import pdb; pdb.set_trace()
+            selected_pattern = ProcessPattern.objects.get(id=request.POST.get("pattern"))
+            selected_project = Project.objects.get(id=request.POST.get("project"))
+            if selected_pattern:
+                slots = selected_pattern.process_slots()
+                for slot in slots:
+                    slot.resource_types = selected_pattern.get_resource_types(slot)
+            #if len(related_recipes) == 1:
+            #    use_radio = False
+        else:
+            #import pdb; pdb.set_trace()
+            rp = request.POST
+
+            #if project_form.is_valid():
+            #    project = project_form.cleaned_data["project"]
+            selected_project = request.POST.get("selected_project")
+            project = Project.objects.get(id=selected_project)
             today = datetime.date.today()
             demand = None
             if rand:
@@ -4032,40 +4002,46 @@ def process_selections(request, rand=0):
                     due_date=today,
                     created_by=request.user)
                 demand.save()
-            output_rts = []
-            citable_rts = []
-            input_rts = []
+            produced_rts = []
+            cited_rts = []
+            consumed_rts = []
+            used_rts = []
             pts = []
             for key, value in dict(rp).iteritems():
-                if "input" in key:
-                    input_id = int(value[0])
-                    input_rt = EconomicResourceType.objects.get(id=input_id)
-                    input_rts.append(input_rt)
-                if "citable" in key:
-                    citable_id = int(value[0])
-                    citable_rt = EconomicResourceType.objects.get(id=citable_id)
-                    citable_rts.append(citable_rt)
-                if "output" in key:
-                    output_id = int(value[0])
-                    output_rt = EconomicResourceType.objects.get(id=output_id)
-                    output_rts.append(output_rt)
-                if "recipe" in key:
-                    recipe_id = int(value[0])
-                    pt = ProcessType.objects.get(id=recipe_id)
-                    pts.append(pt)
+                if "consumed" in key:
+                    consumed_id = int(value[0])
+                    consumed_rt = EconomicResourceType.objects.get(id=consumed_id)
+                    consumed_rts.append(consumed_rt)
+                if "used" in key:
+                    used_id = int(value[0])
+                    used_rt = EconomicResourceType.objects.get(id=used_id)
+                    used_rts.append(used_rt)
+                if "cited" in key:
+                    cited_id = int(value[0])
+                    cited_rt = EconomicResourceType.objects.get(id=cited_id)
+                    cited_rts.append(cited_rt)
+                if "produced" in key:
+                    produced_id = int(value[0])
+                    produced_rt = EconomicResourceType.objects.get(id=produced_id)
+                    produced_rts.append(produced_rt)
+                #if "recipe" in key:
+                #    recipe_id = int(value[0])
+                #    pt = ProcessType.objects.get(id=recipe_id)
+                #    pts.append(pt)
             pt = None
             name = "Make something"
-            if output_rts:
+            if produced_rts:
                 name = " ".join([
                     "Make",
-                    output_rts[0].name,
+                    produced_rts[0].name,
                 ])
             if len(pts) == 1:
                 pt = pts[0]
                 process = Process(
                     name=name,
                     process_type=pt,
-                    project=pt.project,
+                    #project=pt.project,
+                    project=selected_project,
                     url=pt.url,
                     end_date=today,
                     start_date=today,
@@ -4075,13 +4051,15 @@ def process_selections(request, rand=0):
             else:
                 for ptx in pts:
                     for rt in ptx.produced_resource_types():
-                        if rt in output_rts:
+                        if rt in produced_rts:
                             pt = ptx
                 if pt:
                     process = Process(
                         name=name,
                         process_type=pt,
-                        project=pt.project,
+                        #project=pt.project,
+                        project=selected_project,
+                        project = 
                         url=pt.url,
                         end_date=today,
                         start_date=today,
@@ -4097,7 +4075,7 @@ def process_selections(request, rand=0):
                         project=project,
                     )
                     process.save()
-            if pt:
+            """if pt:
                 resource_types.extend(pt.produced_resource_types())
                 for ptrt in pt.consumed_resource_type_relationships():
                     rel = ptrt.relationship
@@ -4115,8 +4093,8 @@ def process_selections(request, rand=0):
                         created_by=request.user,
                     )
                     commitment.save()
-                    explode_dependent_demands(commitment, request.user)         
-            for rt in output_rts:
+                    explode_dependent_demands(commitment, request.user)"""         
+            for rt in produced_rts:
                 rel = ResourceRelationship.objects.get(
                     materiality=rt.materiality,
                     related_to="process",
@@ -4213,16 +4191,13 @@ def process_selections(request, rand=0):
                     % ('accounting/past-work', work_commitment.id))            
                             
     return render_to_response("valueaccounting/process_selections.html", {
-        "resource_names": resource_names,
-        "related_outputs": related_outputs,
-        "related_citables": related_citables,
-        "related_inputs": related_inputs,
-        "related_recipes": related_recipes,
-        "selected_name": selected_name,
-        "selected_name2": selected_name2,
-        "use_radio": use_radio,
-        "work_form": work_form,
+        "slots": slots,
+        #"related_recipes": related_recipes,
+        "selected_pattern": selected_pattern,
+        "selected_project": selected_project,
+        #"use_radio": use_radio,
         "project_form": project_form,
+        "pattern_form": pattern_form,
     }, context_instance=RequestContext(request))
 
 @login_required

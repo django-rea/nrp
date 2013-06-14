@@ -896,29 +896,18 @@ class ProcessPattern(models.Model):
         return self.facets_for_relationship("work")
         
         
-
-SITUATION_CHOICES = (
-    ('in', _('input')),
-    ('out', _('output')),
-    ('cite', _('citation')),
-    ('work', _('work')),
-)
-
-
 class PatternFacetValue(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 
         verbose_name=_('pattern'), related_name='facets')
     facet_value = models.ForeignKey(FacetValue,
         verbose_name=_('facet value'), related_name='patterns')
-    process_relationship = models.CharField(_('process relationship'), 
-        max_length=12, choices=SITUATION_CHOICES)
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='patterns',
         limit_choices_to = {'related_to': 'process'})
 
 
     class Meta:
-        unique_together = ('pattern', 'facet_value', 'process_relationship')
+        unique_together = ('pattern', 'facet_value', 'event_type')
         ordering = ('pattern', 'event_type', 'facet_value')
 
     def __unicode__(self):

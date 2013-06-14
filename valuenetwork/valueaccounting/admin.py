@@ -28,7 +28,7 @@ admin.site.register(Facet, FacetAdmin)
 
 class PatternFacetInline(admin.TabularInline):
     model = PatternFacetValue
-    fields = ('event_type', 'facet_value', 'process_relationship')
+    fields = ('event_type', 'facet_value')
 
 
 class PatternLoggingMethodInline(admin.TabularInline):

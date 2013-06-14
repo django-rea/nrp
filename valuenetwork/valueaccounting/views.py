@@ -1998,7 +1998,7 @@ def new_process_output(request, commitment_id):
                     related_to="process",
                     direction="out")
                 ct.relationship = rel
-                pattern = process.pattern
+                pattern = process.process_pattern
                 event_type = pattern.event_type_for_resource_type("out", rt)
                 ct.event_type = event_type
                 ct.process = process
@@ -2046,12 +2046,15 @@ def new_process_input(request, commitment_id):
                 demand = process.independent_demand()
                 ct = form.save(commit=False)
                 rt = input_data["resource_type"]
+                #todo: ax rel
                 rel = ResourceRelationship.objects.get(
                     materiality=rt.materiality,
                     related_to="process",
                     direction="in")
                 ct.relationship = rel
-                ct.event_type = rel.event_type
+                pattern = process.process_pattern
+                event_type = pattern.event_type_for_resource_type("in", rt)
+                ct.event_type = event_type
                 ct.process = process
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
@@ -2094,16 +2097,19 @@ def new_process_citation(request, commitment_id):
             quantity = Decimal("1")
             rt_id = input_data["resource_type"]
             rt = EconomicResourceType.objects.get(id=rt_id)
+            #todo: ax rel
             rel = ResourceRelationship.objects.get(
                 materiality=rt.materiality,
                 related_to="process",
                 direction="cite")
+            pattern = process.process_pattern
+            event_type = pattern.event_type_for_resource_type("cite", rt)
             agent = get_agent(request)
             ct = Commitment(
                 process=process,
                 from_agent=agent,
                 independent_demand=demand,
-                event_type=rel.event_type,
+                event_type=event_type,
                 relationship=rel,
                 due_date=process.start_date,
                 resource_type=rt,
@@ -2126,7 +2132,8 @@ def new_process_worker(request, commitment_id):
     was_running = request.POST["wasRunning"] or 0
     was_retrying = request.POST["wasRetrying"] or 0
     #import pdb; pdb.set_trace()
-    event_date = request.POST.get("citationDate")
+    #comes from past_work
+    event_date = request.POST.get("workDate")
     event = None
     events = None
     event_id=0
@@ -2139,32 +2146,30 @@ def new_process_worker(request, commitment_id):
     reload = request.POST["reload"]
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        form = SimpleWorkForm(data=request.POST, prefix='work')
+        form = WorkCommitmentForm(data=request.POST, prefix='work')
         if form.is_valid():
             input_data = form.cleaned_data
             process = commitment.process
             demand = process.independent_demand()
-            quantity = Decimal("1")
-            rt_id = input_data["resource_type"]
-            rt = EconomicResourceType.objects.get(id=rt_id)
+            rt = input_data["resource_type"]
+            # rt = EconomicResourceType.objects.get(id=rt_id)
+            #todo: ax rel
             rel = ResourceRelationship.objects.get(
                 materiality=rt.materiality,
                 related_to="process",
-                direction="cite")
-            agent = get_agent(request)
-            ct = Commitment(
-                process=process,
-                from_agent=agent,
-                independent_demand=demand,
-                event_type=rel.event_type,
-                relationship=rel,
-                due_date=process.start_date,
-                resource_type=rt,
-                project=process.project,
-                quantity=quantity,
-                unit_of_quantity=rt.directional_unit("cite"),
-                created_by=request.user,
-            )
+                direction="in")
+            pattern = process.process_pattern
+            event_type = pattern.event_type_for_resource_type("work", rt)
+            ct = form.save(commit=False)
+            ct.process=process
+            ct.independent_demand=demand
+            ct.event_type=event_type
+            ct.relationship=rel
+            ct.due_date=process.end_date
+            ct.resource_type=rt
+            ct.project=process.project
+            ct.unit_of_quantity=rt.directional_unit("in")
+            ct.created_by=request.user
             ct.save()
                 
     if reload == 'pastwork':

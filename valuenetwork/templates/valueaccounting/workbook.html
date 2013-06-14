@@ -373,7 +373,7 @@
                     
 						{% endfor %}
 					</ul>
-
+{% comment  %}
 				{% if process.intellectual_requirements %}
 					<div>
 						<h4>{% trans "Design inputs" %}:</h4>
@@ -428,6 +428,7 @@
 						
 					</div>
 				{% endif %}
+{% endcomment  %}
 
 				{% if process.citation_requirements %}
 					<div>
@@ -474,10 +475,10 @@
 					</div>
 				{% endif %}
 							  
-				{% if process.material_requirements %}
+				{% if process.consumed_input_requirements %}
 					<div>
-						<h4>{% trans "Material inputs" %}:</h4>
-						{% for item in process.material_requirements %}
+						<h4>{% trans "Consumed inputs" %}:</h4>
+						{% for item in process.consumed_input_requirements %}
 						<ul>
 						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} 
 								{% if item.is_deletable %}
@@ -530,6 +531,7 @@
 					</div>
 				{% endif %}
 
+{% comment  %}
 				{% if process.tool_requirements %}
 					<div>
 						<h4>{% trans "Tool inputs" %}:</h4>
@@ -584,11 +586,13 @@
 						{% endfor %}
 					</div>
 				{% endif %}
+{% endcomment  %}
 
-				{% if process.space_requirements %}
+
+				{% if process.used_input_requirements %}
 					<div>
-						<h4>{% trans "Space inputs" %}:</h4>
-						{% for item in process.space_requirements %}
+						<h4>{% trans "Used inputs" %}:</h4>
+						{% for item in process.used_input_requirements %}
 		                    <ul>
 				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} 
 				                    {% if item.is_deletable %}
@@ -891,6 +895,17 @@
 			},
 		});
 
+		$( "#addWorkForm" ).validate({
+			rules: {
+			    'input-resource_type': {
+                    required: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
         {% for item in process.outgoing_commitments %}
 		    $("#detailForm{{ item.id }}").submit(function(event) {
 		
@@ -1012,6 +1027,25 @@
             }
             {
                 $('#inputRetrying').prop('value', 0);
+            }
+            return true;
+		});
+
+		$("#addWorkForm").submit(function(event) {
+            if(running)
+            {
+                $('#workRunning').prop('value', 1);
+            }
+            else
+            {
+                $('#workRunning').prop('value', 0);
+            }
+            if (retrying)
+            {
+                $('#workRetrying').prop('value', 1);
+            }
+            {
+                $('#workRetrying').prop('value', 0);
             }
             return true;
 		});

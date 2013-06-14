@@ -4055,19 +4055,19 @@ def process_selections(request, rand=0):
             project = Project.objects.get(id=selected_project)
             today = datetime.date.today()
             demand = None
-            if rand:
-                demand = Order(
-                    order_type="rand",
-                    due_date=today,
-                    created_by=request.user)
-                demand.save()
-            else:
-                demand = Order(
-                    order_type="holder",
-                    due_date=today,
-                    created_by=request.user)
-                demand.save()
-            produced_rts = []
+            #if rand:
+            demand = Order(
+                order_type="rand",
+                due_date=today,
+                created_by=request.user)
+            demand.save()
+            #else:
+            #    demand = Order(
+            #        order_type="holder",
+            #        due_date=today,
+            #        created_by=request.user)
+            #    demand.save()
+            '''produced_rts = []
             cited_rts = []
             consumed_rts = []
             used_rts = []
@@ -4092,7 +4092,12 @@ def process_selections(request, rand=0):
                 #if "recipe" in key:
                 #    recipe_id = int(value[0])
                 #    pt = ProcessType.objects.get(id=recipe_id)
-                #    pts.append(pt)
+                #    pts.append(pt)'''
+            rts = []
+            for key, value in dict(rp).iteritems():
+                rt_id = int(value[0])
+                rt = EconomicResourceType.objects.get(id=rt_id)
+                rts.append(rt) #probably need slots
             pt = None
             name = "Make something"
             if produced_rts:
@@ -4163,8 +4168,10 @@ def process_selections(request, rand=0):
                     materiality=rt.materiality,
                     related_to="process",
                     direction="out")"""
-                et = 
+
+                et = selected_pattern.event_type_for_resource_type("out", rt)
                 #if rel:
+                
                 if et:
                     commitment = Commitment(
                         process=process,

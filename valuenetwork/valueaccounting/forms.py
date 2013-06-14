@@ -118,7 +118,7 @@ class NamelessProcessForm(forms.ModelForm):
 #used in labnotes, create, copy and change_process, and create and change_rand
 class ProcessInputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.process_inputs(), 
+        queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
             attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
         #widget=SelectWithPopUp(
@@ -138,11 +138,17 @@ class ProcessInputForm(forms.ModelForm):
         model = Commitment
         fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
 
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(ProcessInputForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.input_resource_types()
+
 
 #used in labnotes, create, copy and change_process, and create and change_rand
 class ProcessOutputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.process_outputs(), 
+        queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
             attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
         #widget=SelectWithPopUp(
@@ -161,6 +167,13 @@ class ProcessOutputForm(forms.ModelForm):
     class Meta:
         model = Commitment
         fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(ProcessOutputForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.output_resource_types()
+
 
 class WorkModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
@@ -197,15 +210,21 @@ class TodoForm(forms.ModelForm):
 
 
 class ProcessCitationForm(forms.Form):
+    #todo: this could now become a ModelChoiceField
     resource_type = forms.ChoiceField( 
         widget=forms.Select(attrs={'class': 'chzn-select input-xlarge'}))
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pattern=None, *args, **kwargs):
         super(ProcessCitationForm, self).__init__(*args, **kwargs)
-        self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in EconomicResourceType.objects.process_citables_with_resources()]
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in pattern.citables_with_resources()]
+        else:
+            self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in EconomicResourceType.objects.all()]
+
         
 class ProcessCitationCommitmentForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
@@ -342,11 +361,36 @@ class SimpleWorkForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('resource_type','quantity')
 
-    def __init__(self, pattern, *args, **kwargs):
+    def __init__(self, pattern=None, *args, **kwargs):
         #import pdb; pdb.set_trace()
         super(SimpleWorkForm, self).__init__(*args, **kwargs)
-        self.pattern = pattern
-        self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
+
+
+class WorkCommitmentForm(forms.ModelForm):
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
+        label="Type of work",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(required=True,
+        widget=DecimalDurationWidget,
+        label="Estimated time",
+        help_text="hours, minutes")
+   
+    class Meta:
+        model = Commitment
+        fields = ('resource_type','quantity')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(WorkCommitmentForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.work_resource_types()
 
 
 class WorkEventChangeForm(forms.ModelForm):

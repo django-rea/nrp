@@ -1934,9 +1934,17 @@ def create_labnotes_context(
                 else:
                     other_work_reqs.append(wrq)
     failure_form = FailedOutputForm()
-    add_output_form = ProcessOutputForm(prefix='output')
-    add_citation_form = ProcessCitationForm(prefix='citation')
-    add_input_form = ProcessInputForm(prefix='input')
+    if process.process_pattern:
+        pattern = process.process_pattern
+        add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
+        add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
+        add_input_form = ProcessInputForm(prefix='input', pattern=pattern)
+        add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
+    else:
+        add_output_form = ProcessOutputForm(prefix='output')
+        add_citation_form = ProcessCitationForm(prefix='citation')
+        add_input_form = ProcessInputForm(prefix='input')
+        add_work_form = WorkCommitmentForm(prefix='work')
     cited_ids = [c.resource.id for c in process.citations()]
     return {
         "commitment": commitment,
@@ -1949,6 +1957,7 @@ def create_labnotes_context(
         "add_output_form": add_output_form,
         "add_citation_form": add_citation_form,
         "add_input_form": add_input_form,
+        "add_work_form": add_work_form,
         "duration": duration,
         "prev": prev,
         "was_running": was_running,
@@ -1983,12 +1992,15 @@ def new_process_output(request, commitment_id):
             if qty:
                 ct = form.save(commit=False)
                 rt = output_data["resource_type"]
+                # todo: eliminate rel
                 rel = ResourceRelationship.objects.get(
                     materiality=rt.materiality,
                     related_to="process",
                     direction="out")
                 ct.relationship = rel
-                ct.event_type = rel.event_type
+                pattern = process.pattern
+                event_type = pattern.event_type_for_resource_type("out", rt)
+                ct.event_type = event_type
                 ct.process = process
                 ct.project = process.project
                 ct.independent_demand = commitment.independent_demand
@@ -2075,6 +2087,59 @@ def new_process_citation(request, commitment_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         form = ProcessCitationForm(data=request.POST, prefix='citation')
+        if form.is_valid():
+            input_data = form.cleaned_data
+            process = commitment.process
+            demand = process.independent_demand()
+            quantity = Decimal("1")
+            rt_id = input_data["resource_type"]
+            rt = EconomicResourceType.objects.get(id=rt_id)
+            rel = ResourceRelationship.objects.get(
+                materiality=rt.materiality,
+                related_to="process",
+                direction="cite")
+            agent = get_agent(request)
+            ct = Commitment(
+                process=process,
+                from_agent=agent,
+                independent_demand=demand,
+                event_type=rel.event_type,
+                relationship=rel,
+                due_date=process.start_date,
+                resource_type=rt,
+                project=process.project,
+                quantity=quantity,
+                unit_of_quantity=rt.directional_unit("cite"),
+                created_by=request.user,
+            )
+            ct.save()
+                
+    if reload == 'pastwork':
+        return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+            % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
+    else:
+        return HttpResponseRedirect('/%s/%s/%s/%s/'
+            % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
+
+def new_process_worker(request, commitment_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    was_running = request.POST["wasRunning"] or 0
+    was_retrying = request.POST["wasRetrying"] or 0
+    #import pdb; pdb.set_trace()
+    event_date = request.POST.get("citationDate")
+    event = None
+    events = None
+    event_id=0
+    if event_date:
+        event_date = datetime.datetime.strptime(event_date, '%Y-%m-%d').date()
+        events = commitment.fulfillment_events.filter(event_date=event_date)
+    if events:
+        event = events[events.count() - 1]
+        event_id = event.id
+    reload = request.POST["reload"]
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        form = SimpleWorkForm(data=request.POST, prefix='work')
         if form.is_valid():
             input_data = form.cleaned_data
             process = commitment.process

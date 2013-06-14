@@ -158,10 +158,9 @@
 
 			            <a href="#addCiteModal" role="button" class="btn" data-toggle="modal">{% trans "+ cite" %}</a>
 
-			            {% comment %}
-                            Todo: request to create a work input addition function called "invite a friend" - see issue #6
-			            {% endcomment %}
 			            <a href="#addInputModal" role="button" class="btn" data-toggle="modal">{% trans "+ input" %}</a>
+
+			            <a href="#addWorkModal" role="button" class="btn" data-toggle="modal">{% trans "+ work" %}</a>
 			            
 			            <div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
 				            <div class="modal-header">
@@ -234,6 +233,32 @@
 					              <div class="modal-footer">
 						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						            <button class="btn btn-primary">{% trans "Add input" %}</button>
+					              </div>
+
+
+					            </form>
+                            </div>
+                        </div>
+
+                        <div class="modal hide fade" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+				            <div class="modal-header">
+					            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+				                <h3 id="work-label">{% trans "Invite a helper" %}</h3>
+				                
+				            </div>
+				            <div class="modal-body">
+					            <form class="work-form" id="addWorkForm" action="{% url new_process_worker commitment_id=commitment.id %}" method="POST" >
+						            {% csrf_token %}
+
+					                    {{ add_work_form|as_bootstrap }}
+
+                                	<input type='hidden' id='workRunning' name='wasRunning' value='' />
+			                        <input type='hidden' id='workRetrying' name='wasRetrying' value='' />
+			                        <input type="hidden" name="reload" value="labnotes" />
+					              <div class="modal-footer">
+						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						            <button class="btn btn-primary">{% trans "Invite helper" %}</button>
 					              </div>
 
 

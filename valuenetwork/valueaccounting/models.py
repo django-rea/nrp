@@ -1501,7 +1501,7 @@ class Process(models.Model):
 
     def incoming_commitments(self):
         return self.commitments.filter(
-            relationship__direction='in')
+            event_type__relationship='in')
 
     def schedule_requirements(self):
         return self.commitments.exclude(
@@ -1509,7 +1509,7 @@ class Process(models.Model):
 
     def outgoing_commitments(self):
         return self.commitments.filter(
-            relationship__direction='out')
+            event_type__relationship='out')
 
     def main_outgoing_commitment(self):
         cts = self.outgoing_commitments()
@@ -1602,6 +1602,18 @@ class Process(models.Model):
         ))
         return answer
 
+    def consumed_input_requirements(self):
+        return self.commitments.filter(
+            event_type__relationship='in',
+            event_type__resource_effect='-',
+        )
+
+    def used_input_requirements(self):
+        return self.commitments.filter(
+            event_type__relationship='in',
+            event_type__resource_effect='=',
+        )
+
 
     def intellectual_requirements(self):
         return self.commitments.filter(
@@ -1612,7 +1624,7 @@ class Process(models.Model):
 
     def citation_requirements(self):
         return self.commitments.filter(
-            relationship__direction='cite',
+            event_type__relationship='cite',
         )
 
     def tool_requirements(self):
@@ -1641,14 +1653,12 @@ class Process(models.Model):
     def unfinished_work_requirements(self):
         return self.commitments.filter(
             finished=False,
-            relationship__direction='in',
-            resource_type__materiality='work',
+            event_type__relationship='work',
         )
 
     def non_work_requirements(self):
         return self.commitments.exclude(
-            relationship__direction='in',
-            resource_type__materiality='work',
+            event_type__relationship='work',
         )
 
     def work_events(self):

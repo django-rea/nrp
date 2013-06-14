@@ -4059,7 +4059,6 @@ def process_selections(request, rand=0):
                         process_type=pt,
                         #project=pt.project,
                         project=selected_project,
-                        project = 
                         url=pt.url,
                         end_date=today,
                         start_date=today,
@@ -4072,7 +4071,7 @@ def process_selections(request, rand=0):
                         end_date=today,
                         start_date=today,
                         created_by=request.user,
-                        project=project,
+                        project=selected_project, #project,
                     )
                     process.save()
             """if pt:
@@ -4095,18 +4094,21 @@ def process_selections(request, rand=0):
                     commitment.save()
                     explode_dependent_demands(commitment, request.user)"""         
             for rt in produced_rts:
-                rel = ResourceRelationship.objects.get(
+                """rel = ResourceRelationship.objects.get(
                     materiality=rt.materiality,
                     related_to="process",
-                    direction="out")
-                if rel:
+                    direction="out")"""
+                et = 
+                #if rel:
+                if et:
                     commitment = Commitment(
                         process=process,
                         order=demand,
                         independent_demand=demand,
                         project=process.project,
-                        event_type=rel.event_type,
-                        relationship=rel,
+                        #event_type=rel.event_type,
+                        event_type=et,
+                        #relationship=rel,
                         due_date=today,
                         resource_type=rt,
                         quantity=Decimal("1"),
@@ -4114,7 +4116,7 @@ def process_selections(request, rand=0):
                         created_by=request.user,
                     )
                     commitment.save()
-            for rt in citable_rts:
+            for rt in cited_rts:
                 rel = ResourceRelationship.objects.get(
                     materiality=rt.materiality,
                     direction="cite")

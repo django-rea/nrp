@@ -439,15 +439,6 @@ class EconomicResourceTypeManager(models.Manager):
         choices = self.citable_choices()
         return EconomicResourceType.objects.filter(materiality__in=choices)
 
-    def agent_outputs(self):
-        ert_ids = [ert.id for ert in EconomicResourceType.objects.all() if ert.is_agent_output()]
-        return EconomicResourceType.objects.filter(id__in=ert_ids)
-
-    def agent_inputs(self):
-        ert_ids = [ert.id for ert in EconomicResourceType.objects.all() if ert.is_agent_input()]
-        return EconomicResourceType.objects.filter(id__in=ert_ids)
-
-
 
 class EconomicResourceType(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
@@ -483,21 +474,12 @@ class EconomicResourceType(models.Model):
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
 
-    #todo: EconomicResourceTypeManager s/b removable
-    objects = EconomicResourceTypeManager()
 
     class Meta:
-        #ordering = ('category', 'name', 'stage')
-        #unique_together = ('name', 'version', 'stage')
         ordering = ('name',)
         verbose_name = _('resource type')
     
     def __unicode__(self):
-        #stage_name = ""
-        #if self.stage:
-        #    stage_name = self.stage.name
-        #return " ".join([self.category.name, self.name, self.version, stage_name])
-        #return " - ".join([self.category.name, self.name])
         return self.name
 
     def label(self):
@@ -570,33 +552,17 @@ class EconomicResourceType(models.Model):
             return None
 
     def is_process_output(self):
-        rels = ResourceRelationship.objects.filter(
-            materiality=self.materiality,
-            direction="out",
-            related_to="process")
-        return (rels.count() > 0)
-
-    def is_process_input(self):
-        rels = ResourceRelationship.objects.filter(
-            materiality=self.materiality,
-            direction="in",
-            related_to="process")
-        return (rels.count() > 0)
-
-    def is_agent_output(self):
-        rels = ResourceRelationship.objects.filter(
-            materiality=self.materiality,
-            direction="out",
-            related_to="agent")
-        return (rels.count() > 0)
-
-    def is_agent_input(self):
-        rels = ResourceRelationship.objects.filter(
-            materiality=self.materiality,
-            direction="in",
-            related_to="agent")
-        return (rels.count() > 0)
-
+        answer = False
+        fvs = self.facets.all()
+        for fv in fvs:
+            pfvs = fv.facet_value.patterns.filter(
+                event_type__related_to="process",
+                event_type__relationship="out")
+            if pfvs:
+                answer = True
+                break
+        return answer
+        
     def consuming_process_type_relationships(self):
         return self.process_types.filter(relationship__direction='in')
 
@@ -688,42 +654,20 @@ class EconomicResourceType(models.Model):
 
     def directional_unit(self, direction):
         answer = self.unit
-        try:
-            rel = ResourceRelationship.objects.get(
-                materiality=self.materiality,
-                related_to='process',
-                direction=direction)
-            if rel.unit:
-                answer = rel.unit
-        except ResourceRelationship.DoesNotExist:
-            pass
+        if self.unit_of_use:
+            if direction == "in":
+                answer = self.unit_of_use
         return answer
 
     def process_input_unit(self):
         answer = self.unit
-        try:
-            rel = ResourceRelationship.objects.get(
-                materiality=self.materiality,
-                related_to='process',
-                direction='in')
-            if rel.unit:
-                answer = rel.unit
-        except ResourceRelationship.DoesNotExist:
-            pass
+        if self.unit_of_use:
+            if direction == "in":
+                answer = self.unit_of_use
         return answer
 
     def process_output_unit(self):
-        answer = self.unit
-        try:
-            rel = ResourceRelationship.objects.get(
-                materiality=self.materiality,
-                related_to='process',
-                direction='out')
-            if rel.unit:
-                answer = rel.unit
-        except ResourceRelationship.DoesNotExist:
-            pass
-        return answer
+        return self.unit
 
     def is_deletable(self):
         answer = True
@@ -734,36 +678,6 @@ class EconomicResourceType(models.Model):
         elif self.commitments.all():
             answer = False
         return answer
-
-    def production_resource_relationship(self):
-        try:
-            rel = ResourceRelationship.objects.get(
-                materiality=self.materiality,
-                related_to='process',
-                direction='out')
-        except ResourceRelationship.DoesNotExist:
-            rel = None
-        return rel
-
-    def citation_resource_relationship(self):
-        try:
-            rel = ResourceRelationship.objects.get(
-                materiality=self.materiality,
-                related_to='process',
-                direction='cite')
-        except ResourceRelationship.DoesNotExist:
-            rel = None
-        return rel
-
-    def work_resource_relationship(self):
-        try:
-            rel = ResourceRelationship.objects.get(
-                materiality='work',
-                related_to='process',
-                direction='in')
-        except ResourceRelationship.DoesNotExist:
-            rel = None
-        return rel
 
     def facet_list(self):
         return ", ".join([facet.facet_value.__unicode__() for facet in self.facets.all()])
@@ -1010,15 +924,11 @@ class EconomicResource(models.Model):
         return []
 
     def is_cited(self):
-        #import pdb; pdb.set_trace()
-        answer = False
-        rel = ResourceRelationship.objects.get(
-            materiality=self.resource_type.materiality,
-            direction='cite')
-        for event in self.events.all():
-            if event.event_type == rel.event_type:
-                answer = True
-        return answer
+        ces = self.events.filter(event_type__relationship="cite")
+        if ces:
+            return True
+        else:
+            return False
 
     def label_with_cited(self):
         if self.is_cited:
@@ -1324,6 +1234,8 @@ class ProcessTypeResourceType(models.Model):
         verbose_name=_('resource type'), related_name='process_types')
     relationship = models.ForeignKey(ResourceRelationship,
         verbose_name=_('relationship'), related_name='process_resource_types')
+    event_type = models.ForeignKey(EventType,
+        verbose_name=_('event type'), related_name='process_resource_types')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="process_resource_qty_units")
@@ -1339,15 +1251,15 @@ class ProcessTypeResourceType(models.Model):
 
     def __unicode__(self):
         relname = ""
-        if self.relationship:
-            relname = self.relationship.name
+        if self.event_type:
+            relname = self.event_type.label
         return " ".join([self.process_type.name, relname, str(self.quantity), self.resource_type.name])        
 
     def inverse_label(self):
-        return self.relationship.inverse_label()
+        return self.event_type.inverse_label()
 
     def xbill_label(self):
-        if self.relationship.direction == 'out':
+        if self.event_type.relationship == 'out':
             return self.inverse_label()
         else:
            abbrev = ""
@@ -1356,13 +1268,13 @@ class ProcessTypeResourceType(models.Model):
            return " ".join([self.relationship.name, str(self.quantity), abbrev])
 
     def xbill_explanation(self):
-        if self.relationship.direction == 'out':
+        if self.event_type.relationship == 'out':
             return "Process Type"
         else:
             return "Input"
 
     def xbill_child_object(self):
-        if self.relationship.direction == 'out':
+        if self.event_type.relationship == 'out':
             return self.process_type
         else:
             return self.resource_type
@@ -1371,7 +1283,7 @@ class ProcessTypeResourceType(models.Model):
         return self.xbill_child_object().xbill_class()
 
     def xbill_parent_object(self):
-        if self.relationship.direction == 'out':
+        if self.event_type.relationship == 'out':
             return self.resource_type
             #if self.resource_type.category.name == 'option':
             #    return self
@@ -1384,7 +1296,7 @@ class ProcessTypeResourceType(models.Model):
         return [self.resource_type, self]
 
     def xbill_category(self):
-        if self.relationship.direction == 'out':
+        if self.event_type.relationship == 'out':
             return Category(name="processes")
         else:
             return self.resource_type.category

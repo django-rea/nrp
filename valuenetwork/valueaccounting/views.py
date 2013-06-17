@@ -1292,7 +1292,7 @@ def json_resource_type_defaults(request, resource_type_id):
 @login_required
 def create_order(request):
     cats = Category.objects.filter(orderable=True)
-    rts = EconomicResourceType.objects.process_outputs().filter(category__in=cats)
+    rts = EconomicResourceType.objects.all().filter(category__in=cats)
     item_forms = []
     data = request.POST or None
     order_form = OrderForm(data=data)
@@ -4024,7 +4024,7 @@ def change_rand(request, rand_id):
 @login_required
 def process_selections(request, rand=0):
     #import pdb; pdb.set_trace()
-    resource_names = [res.name for res in EconomicResourceType.objects.process_outputs()]
+    resource_names = [res.name for res in EconomicResourceType.objects.all()]
     related_outputs = []
     related_citables = []
     related_inputs = []
@@ -4049,7 +4049,7 @@ def process_selections(request, rand=0):
             # split inputs into consumed and used
             selected_name = request.POST.get("resourceName")
             if selected_name:
-                related_outputs = list(EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name))
+                related_outputs = list(EconomicResourceType.objects.all().filter(name__icontains=selected_name))
                 related_citables = []
                 citables = EconomicResourceType.objects.process_citables_with_resources()
                 for c in citables:
@@ -4068,7 +4068,7 @@ def process_selections(request, rand=0):
             selected_name2 = request.POST.get("resourceName2")
             if selected_name2:
                 #import pdb; pdb.set_trace()
-                new_outputs = list(EconomicResourceType.objects.process_outputs().filter(name__icontains=selected_name2))
+                new_outputs = list(EconomicResourceType.objects.all().filter(name__icontains=selected_name2))
                 related_outputs.extend(new_outputs)
                 related_inputs.extend(list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name2)))
                 for output in new_outputs:
@@ -4319,8 +4319,9 @@ def resource_facet_table(request):
 def change_resource_facet_value(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        resource_type_label = request.POST.get("resourceType")
-        rt_name = resource_type_label.split("-", 1)[1].lstrip()
+        #resource_type_label = request.POST.get("resourceType")
+        #rt_name = resource_type_label.split("-", 1)[1].lstrip()
+        rt_name = request.POST.get("resourceType")
         facet_name = request.POST.get("facet")
         value = request.POST.get("facetValue")
         rt = EconomicResourceType.objects.get(name=rt_name)

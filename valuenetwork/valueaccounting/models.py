@@ -1256,7 +1256,7 @@ class ProcessTypeResourceType(models.Model):
         return " ".join([self.process_type.name, relname, str(self.quantity), self.resource_type.name])        
 
     def inverse_label(self):
-        return self.event_type.inverse_label()
+        return self.event_type.inverse_label
 
     def xbill_label(self):
         if self.event_type.relationship == 'out':

@@ -282,14 +282,16 @@ class EconomicAgent(models.Model):
     def color(self):
         return "green"
 
+    #todo: don't think these are used anywhere, but 
+    # they now assume ARTs have event_types
     def produced_resource_type_relationships(self):
-        return self.resource_types.filter(relationship__direction='out')
+        return self.resource_types.filter(event_type__relationship='out')
 
     def produced_resource_types(self):
         return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
 
     def consumed_resource_type_relationships(self):
-        return self.resource_types.filter(relationship__direction='in')
+        return self.resource_types.filter(event_type__relationship='in')
 
     def consumed_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
@@ -336,9 +338,7 @@ DIRECTION_CHOICES = (
     ('out', _('output')),
     ('cite', _('citation')),
     ('work', _('work')),
-    #('todo', _('todo')),
-    #do todos need their own EventType?
-    # or can PatternFacetValues handle it?
+    ('todo', _('todo')),
 )
 
 RELATED_CHOICES = (
@@ -532,7 +532,7 @@ class EconomicResourceType(models.Model):
             return Decimal("0")
 
     def producing_process_type_relationships(self):
-        return self.process_types.filter(relationship__direction='out')
+        return self.process_types.filter(event_type__relationship='out')
 
     def main_producing_process_type_relationship(self):
         ptrts = self.producing_process_type_relationships()
@@ -564,16 +564,17 @@ class EconomicResourceType(models.Model):
         return answer
         
     def consuming_process_type_relationships(self):
-        return self.process_types.filter(relationship__direction='in')
+        return self.process_types.filter(event_type__relationship='in')
 
     def wanting_commitments(self):
         return self.commitments.filter(
             finished=False,
-            relationship__direction='in')
+            event_type__relationship='in')
 
     def consuming_process_types(self):
         return [pt.process_type for pt in self.consuming_process_type_relationships()]
 
+    #todo: maybe AgentResourceType needs EventType?
     def producing_agent_relationships(self):
         return self.agents.filter(relationship__direction='out')
 
@@ -662,8 +663,7 @@ class EconomicResourceType(models.Model):
     def process_input_unit(self):
         answer = self.unit
         if self.unit_of_use:
-            if direction == "in":
-                answer = self.unit_of_use
+            answer = self.unit_of_use
         return answer
 
     def process_output_unit(self):
@@ -706,7 +706,7 @@ class ProcessPattern(models.Model):
     def __unicode__(self):
         return self.name
 
-    def process_slots(self):
+    def event_types(self):
         facets = self.facets.all()
         slots = [facet.event_type for facet in facets]
         slots = list(set(slots))
@@ -778,6 +778,9 @@ class ProcessPattern(models.Model):
     def work_resource_types(self):
         return self.resource_types_for_relationship("work")
 
+    def todo_resource_types(self):
+        return self.resource_types_for_relationship("todo")
+
     def citable_resource_types(self):
         return self.resource_types_for_relationship("cite")
 
@@ -828,7 +831,6 @@ class PatternFacetValue(models.Model):
         verbose_name=_('facet value'), related_name='patterns')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='patterns',
-        limit_choices_to = {'related_to': 'process'},
         help_text=_('consumed means gone, used means re-usable'))
 
 
@@ -845,6 +847,8 @@ LOGGING_CHOICES = (
     ('non_prod', _('Non-production')),
     ('rand', _('R&D')),
     ('todo', _('Todo')),
+    ('cust_orders', _('Customer Orders')),
+    ('purchasing', _('Purchasing')),
 )
 
 class PatternLoggingMethod(models.Model):
@@ -997,6 +1001,8 @@ class AgentResourceType(models.Model):
         help_text=_("the quantity of contributions of this resource type from this agent"))
     relationship = models.ForeignKey(ResourceRelationship,
         verbose_name=_('relationship'), related_name='agent_resource_types')
+    #event_type = models.ForeignKey(EventType,
+    #    verbose_name=_('event type'), related_name='agent_resource_types')
     lead_time = models.IntegerField(_('lead time'), 
         default=0, help_text=_("in days"))
     value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
@@ -1178,7 +1184,7 @@ class ProcessType(models.Model):
         return "blue"
 
     def produced_resource_type_relationships(self):
-        return self.resource_types.filter(relationship__direction='out')
+        return self.resource_types.filter(event_type__relationship='out')
 
     def produced_resource_types(self):
         return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
@@ -1190,8 +1196,9 @@ class ProcessType(models.Model):
         else:
             return None
 
+    #todo: shd be renamed; filter gets both used and consumed
     def consumed_resource_type_relationships(self):
-        return self.resource_types.filter(relationship__direction='in')
+        return self.resource_types.filter(event_type__relationship='in')
 
     def consumed_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
@@ -1417,7 +1424,7 @@ class Process(models.Model):
 
     def schedule_requirements(self):
         return self.commitments.exclude(
-            relationship__direction='out')
+            event_type__relationship='out')
 
     def outgoing_commitments(self):
         return self.commitments.filter(
@@ -1502,17 +1509,9 @@ class Process(models.Model):
         return answer
 
     def material_requirements(self):
-        answer = list(self.commitments.filter(
-            #finished=False,
-            relationship__direction='in',
-            resource_type__materiality="material",
-        ))
-        answer.extend(self.commitments.filter(
-            #finished=False,
-            relationship__direction='in',
-            resource_type__materiality="purchmatl",
-        ))
-        return answer
+        return self.commitments.filter(
+            event_type__relationship='in',
+        )
 
     def consumed_input_requirements(self):
         return self.commitments.filter(
@@ -1527,18 +1526,12 @@ class Process(models.Model):
         )
 
 
-    def intellectual_requirements(self):
-        return self.commitments.filter(
-            #finished=False,
-            relationship__direction='in',
-            resource_type__materiality="intellectual",
-        )
-
     def citation_requirements(self):
         return self.commitments.filter(
             event_type__relationship='cite',
         )
-
+    
+    #todo: tool and space requirements won't work anymore
     def tool_requirements(self):
         answer = list(self.commitments.filter(
             relationship__direction='in',
@@ -1558,8 +1551,7 @@ class Process(models.Model):
 
     def work_requirements(self):
         return self.commitments.filter(
-            relationship__direction='in',
-            resource_type__materiality='work',
+            event_type__relationship='work',
         )
 
     def unfinished_work_requirements(self):
@@ -1574,60 +1566,30 @@ class Process(models.Model):
         )
 
     def work_events(self):
-        reqs = self.work_requirements()
-        events = []
-        for req in reqs:
-            events.extend(req.fulfillment_events.all())
-        return events
+        return self.events.filter(
+            event_type__relationship='work')
 
     def outputs(self):
-        answer = []
-        events = self.events.filter(quality__gte=0)
-        for event in events:
-            rels = ResourceRelationship.objects.filter(
-                direction='out',
-                related_to='process',
-                event_type=event.event_type)
-            if rels:
-                answer.append(event)
-        return answer
+        return self.events.filter(
+            event_type__relationship='out',
+            quality__gte=0)
 
     def deliverables(self):
         return [output.resource for output in self.outputs() if output.resource]
 
     def failed_outputs(self):
-        answer = []
-        events = self.events.filter(quality__lt=0)
-        for event in events:
-            rels = ResourceRelationship.objects.filter(
-                direction='out',
-                related_to='process')
-            if rels:
-                answer.append(event)
-        return answer
+        return self.events.filter(
+            event_type__relationship='out',
+            quality__lt=0)
 
     def inputs(self):
-        answer = []
-        events = self.events.all()
-        for event in events:
-            rels = ResourceRelationship.objects.filter(
-                direction='in',
-                related_to='process',
-                event_type=event.event_type)
-            if rels:
-                answer.append(event)
-        return answer
+        #todo: does not include work. Shd it?
+        return self.events.filter(
+            event_type__relationship='in')
 
     def citations(self):
-        answer = []
-        events = self.events.all()
-        for event in events:
-            rels = ResourceRelationship.objects.filter(
-                direction='cite',
-                event_type=event.event_type)
-            if rels:
-                answer.append(event)
-        return answer
+        return self.events.filter(
+            event_type__relationship='cite')
 
     def outputs_from_agent(self, agent):
         answer = []
@@ -1646,6 +1608,7 @@ class Process(models.Model):
     def inputs_used_by_agent(self, agent):
         answer = []
         for event in self.inputs():
+            #todo: inputs do not include work anyway
             if event.to_agent == agent:
                 if event.resource_type.materiality != 'work':
                     answer.append(event)
@@ -1890,7 +1853,7 @@ class CommitmentManager(models.Manager):
 
     def todos(self):
         return Commitment.objects.filter(
-            relationship__direction="todo",
+            event_type__relationship="todo",
             finished=False)
 
 

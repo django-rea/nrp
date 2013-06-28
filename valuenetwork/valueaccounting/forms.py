@@ -208,6 +208,12 @@ class TodoForm(forms.ModelForm):
         model = Commitment
         fields = ('from_agent', 'project', 'resource_type', 'due_date', 'description', 'url')
 
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(TodoForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.todo_resource_types()]
+
 
 class ProcessCitationForm(forms.Form):
     #todo: this could now become a ModelChoiceField

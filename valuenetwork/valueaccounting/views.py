@@ -126,7 +126,7 @@ def test_patterns(request):
     if request.method == "POST":
         if pattern_form.is_valid():
             pattern = pattern_form.cleaned_data["pattern"]
-            slots = pattern.process_slots()
+            slots = pattern.event_types()
             #import pdb; pdb.set_trace()
             for slot in slots:
                 slot.resource_types = pattern.get_resource_types(slot)
@@ -1603,7 +1603,11 @@ def work(request):
     #projects = assemble_schedule(start, end)   
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
-    todo_form = TodoForm()
+    try:
+        pattern = PatternLoggingMethod.objects.get(logging_method='todo').pattern
+        todo_form = TodoForm(pattern=pattern)
+    except PatternLoggingMethod.DoesNotExist:
+        todo_form = TodoForm()
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         if date_form.is_valid():
@@ -1640,22 +1644,26 @@ def today(request):
 def add_todo(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        form = TodoForm(request.POST)
+        try:
+            pattern = PatternLoggingMethod.objects.get(logging_method='todo').pattern
+            form = TodoForm(data=request.POST, pattern=pattern)
+        except PatternLoggingMethod.DoesNotExist:
+            form = TodoForm(request.POST)
         next = request.POST.get("next")
         agent = get_agent(request)
-        rel = None
-        rels = ResourceRelationship.objects.filter(
-            direction='todo',
-            materiality='work')
-        if rels:
-            rel = rels[0]
-        if rel:
+        et = None
+        ets = EventType.objects.filter(
+            relationship='todo')
+        if ets:
+            et = ets[0]
+        if et:
             if form.is_valid():
                 data = form.cleaned_data
                 todo = form.save(commit=False)
                 todo.to_agent=agent
-                todo.event_type=rel.event_type
-                todo.relationship=rel
+                todo.event_type=et
+                #todo: delete next line
+                todo.relationship=ResourceRelationship.objects.get(direction="todo")
                 todo.quantity = Decimal("1")
                 todo.unit_of_quantity=todo.resource_type.unit
                 todo.save()
@@ -1813,7 +1821,11 @@ def start(request):
             resource_type__materiality="work")
     todos = Commitment.objects.todos().filter(from_agent=agent)
     init = {"from_agent": agent,}
-    todo_form = TodoForm(initial=init)
+    try:
+        pattern = PatternLoggingMethod.objects.get(logging_method='todo').pattern
+        todo_form = TodoForm(pattern=pattern, initial=init)
+    except PatternLoggingMethod.DoesNotExist:
+        todo_form = TodoForm(initial=init)
     return render_to_response("valueaccounting/start.html", {
         "agent": agent,
         "my_work": my_work,

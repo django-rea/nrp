@@ -498,8 +498,8 @@ class CasualTimeContributionForm(forms.ModelForm):
         super(CasualTimeContributionForm, self).__init__(*args, **kwargs)
         pattern = None
         try:
-            pattern = PatternLoggingMethod.objects.get(logging_method='non_prod').pattern
-        except PatternLoggingMethod.DoesNotExist:
+            pattern = PatternUseCase.objects.get(use_case='non_prod').pattern
+        except PatternUseCase.DoesNotExist:
             pass
         if pattern:
             self.fields["resource_type"].queryset = pattern.work_resource_types().order_by("name")

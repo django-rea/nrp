@@ -429,7 +429,7 @@ def log_simple(request):
         return HttpResponseRedirect('/%s/'
             % ('accounting/start')) 
 
-    pattern = PatternLoggingMethod.objects.get(logging_method='design').pattern  
+    pattern = PatternUseCase.objects.get(use_case='design').pattern  
 
     output_form = SimpleOutputForm(data=request.POST or None)
     resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
@@ -1604,9 +1604,9 @@ def work(request):
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
     try:
-        pattern = PatternLoggingMethod.objects.get(logging_method='todo').pattern
+        pattern = PatternUseCase.objects.get(use_case='todo').pattern
         todo_form = TodoForm(pattern=pattern)
-    except PatternLoggingMethod.DoesNotExist:
+    except PatternUseCase.DoesNotExist:
         todo_form = TodoForm()
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -1645,9 +1645,9 @@ def add_todo(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         try:
-            pattern = PatternLoggingMethod.objects.get(logging_method='todo').pattern
+            pattern = PatternUseCase.objects.get(use_case='todo').pattern
             form = TodoForm(data=request.POST, pattern=pattern)
-        except PatternLoggingMethod.DoesNotExist:
+        except PatternUseCase.DoesNotExist:
             form = TodoForm(request.POST)
         next = request.POST.get("next")
         agent = get_agent(request)
@@ -1822,9 +1822,9 @@ def start(request):
     todos = Commitment.objects.todos().filter(from_agent=agent)
     init = {"from_agent": agent,}
     try:
-        pattern = PatternLoggingMethod.objects.get(logging_method='todo').pattern
+        pattern = PatternUseCase.objects.get(use_case='todo').pattern
         todo_form = TodoForm(pattern=pattern, initial=init)
-    except PatternLoggingMethod.DoesNotExist:
+    except PatternUseCase.DoesNotExist:
         todo_form = TodoForm(initial=init)
     return render_to_response("valueaccounting/start.html", {
         "agent": agent,

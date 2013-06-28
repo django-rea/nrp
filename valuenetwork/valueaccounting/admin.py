@@ -31,14 +31,14 @@ class PatternFacetInline(admin.TabularInline):
     fields = ('event_type', 'facet_value')
 
 
-class PatternLoggingMethodInline(admin.TabularInline):
-    model = PatternLoggingMethod
+class PatternUseCaseInline(admin.TabularInline):
+    model = PatternUseCase
     extra = 1
     
 
 class ProcessPatternAdmin(admin.ModelAdmin):
     list_display = ('name',)
-    inlines = [ PatternFacetInline, PatternLoggingMethodInline]
+    inlines = [ PatternFacetInline, PatternUseCaseInline]
 
 admin.site.register(ProcessPattern, ProcessPatternAdmin)
 

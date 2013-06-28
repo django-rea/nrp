@@ -842,7 +842,7 @@ class PatternFacetValue(models.Model):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
 
 
-LOGGING_CHOICES = (
+USECASE_CHOICES = (
     ('design', _('Design')),
     ('non_prod', _('Non-production')),
     ('rand', _('R&D')),
@@ -851,14 +851,14 @@ LOGGING_CHOICES = (
     ('purchasing', _('Purchasing')),
 )
 
-class PatternLoggingMethod(models.Model):
+class PatternUseCase(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 
-        verbose_name=_('pattern'), related_name='logging_methods')
-    logging_method = models.CharField(_('logging method'), 
-        max_length=12, choices=LOGGING_CHOICES)
+        verbose_name=_('pattern'), related_name='use_cases')
+    use_case = models.CharField(_('use case'), 
+        max_length=12, choices=USECASE_CHOICES)
 
     def __unicode__(self):
-        return ": ".join([self.pattern.name, self.get_logging_method_display()])
+        return ": ".join([self.pattern.name, self.get_use_case_display()])
 
 
 class GoodResourceManager(models.Manager):

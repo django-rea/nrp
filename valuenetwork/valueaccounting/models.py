@@ -397,48 +397,6 @@ MATERIALITY_CHOICES = (
     ('work', _('work')),
 )
 
-#todo: EconomicResourceTypeManager s/b removable
-class EconomicResourceTypeManager(models.Manager):
-
-    def types_of_work(self):
-        return EconomicResourceType.objects.filter(materiality="work")
-
-    def intellectual_resource_types(self):
-        return EconomicResourceType.objects.filter(materiality="intellectual")
-
-    def intellectuals_with_resources(self):
-        return [rt for rt in EconomicResourceType.objects.filter(materiality="intellectual") if rt.onhand()]
-
-    def output_choices(self):
-        rels = ResourceRelationship.objects.filter(direction="out", related_to="process")
-        return [rel.materiality for rel in rels]
-
-    def input_choices(self):
-        rels = ResourceRelationship.objects.filter(direction="in", related_to="process")
-        return [rel.materiality for rel in rels]
-
-    def citable_choices(self):
-        rels = ResourceRelationship.objects.filter(direction="cite", related_to="process")
-        return [rel.materiality for rel in rels]
-
-    def process_inputs(self):
-        #import pdb; pdb.set_trace()
-        choices = self.input_choices()
-        return EconomicResourceType.objects.filter(materiality__in=choices)
-
-    def process_outputs(self):
-        choices = self.output_choices()
-        return EconomicResourceType.objects.filter(materiality__in=choices)
-
-    def process_citables_with_resources(self):
-        choices = self.citable_choices()
-        return [rt for rt in EconomicResourceType.objects.filter(materiality__in=choices) if rt.onhand()]
-
-
-    def process_citables(self):
-        choices = self.citable_choices()
-        return EconomicResourceType.objects.filter(materiality__in=choices)
-
 
 class EconomicResourceType(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
@@ -574,12 +532,11 @@ class EconomicResourceType(models.Model):
     def consuming_process_types(self):
         return [pt.process_type for pt in self.consuming_process_type_relationships()]
 
-    #todo: maybe AgentResourceType needs EventType?
     def producing_agent_relationships(self):
-        return self.agents.filter(relationship__direction='out')
+        return self.agents.filter(event_type__relationship='out')
 
     def consuming_agent_relationships(self):
-        return self.agents.filter(relationship__direction='in')
+        return self.agents.filter(event_type__relationship='in')
 
     def consuming_agents(self):
         return [art.agent for art in self.consuming_agent_relationships()]
@@ -587,15 +544,8 @@ class EconomicResourceType(models.Model):
     def producing_agents(self):
         return [art.agent for art in self.producing_agent_relationships()]
 
-    #todo: hacks based on name 'distributes' which is user-changeable
-    def distributor_relationships(self):
-        return self.agents.filter(relationship__name='distributes')
-
-    def distributors(self):
-        return [art.agent for art in self.distributor_relationships()]
-
     def producer_relationships(self):
-        return self.agents.filter(relationship__direction='out').exclude(relationship__name='distributes')
+        return self.agents.filter(event_type__relationship='out')
 
     def producers(self):
         arts = self.producer_relationships()
@@ -604,11 +554,11 @@ class EconomicResourceType(models.Model):
     #todo: failures do not have commitments. If and when they do, the next two methods must change.
     def producing_commitments(self):
         return self.commitments.filter(
-            relationship__event_type__resource_effect='+')
+            event_type__relationship='out')
 
     def consuming_commitments(self):
         return self.commitments.filter(
-            relationship__event_type__resource_effect='-')
+            event_type__relationship='in')
 
     def scheduled_qty(self):
         return sum(pc.quantity for pc in self.producing_commitments())
@@ -1001,8 +951,8 @@ class AgentResourceType(models.Model):
         help_text=_("the quantity of contributions of this resource type from this agent"))
     relationship = models.ForeignKey(ResourceRelationship,
         verbose_name=_('relationship'), related_name='agent_resource_types')
-    #event_type = models.ForeignKey(EventType,
-    #    verbose_name=_('event type'), related_name='agent_resource_types')
+    event_type = models.ForeignKey(EventType,
+        verbose_name=_('event type'), related_name='agent_resource_types')
     lead_time = models.IntegerField(_('lead time'), 
         default=0, help_text=_("in days"))
     value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
@@ -1642,6 +1592,8 @@ class Feature(models.Model):
         verbose_name=_('process type'), related_name='features')
     relationship = models.ForeignKey(ResourceRelationship,
         verbose_name=_('relationship'), related_name='features')
+    event_type = models.ForeignKey(EventType,
+        verbose_name=_('event type'), related_name='features')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="feature_units")

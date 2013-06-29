@@ -4063,13 +4063,15 @@ def process_selections(request, rand=0):
             if selected_name:
                 related_outputs = list(EconomicResourceType.objects.all().filter(name__icontains=selected_name))
                 related_citables = []
-                citables = EconomicResourceType.objects.process_citables_with_resources()
+                #todo: does not work anymore
+                #citables = EconomicResourceType.objects.process_citables_with_resources()
                 for c in citables:
                     name = c.name.lower()
                     sname = selected_name.lower()
                     if name.find(sname) >= 0:
                         related_citables.append(c)
-                related_inputs = list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name))
+                #todo: does not work anymore
+                #related_inputs = list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name))
                 related_recipes = []
                 for output in related_outputs:
                     ppt = output.main_producing_process_type()
@@ -4082,7 +4084,8 @@ def process_selections(request, rand=0):
                 #import pdb; pdb.set_trace()
                 new_outputs = list(EconomicResourceType.objects.all().filter(name__icontains=selected_name2))
                 related_outputs.extend(new_outputs)
-                related_inputs.extend(list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name2)))
+                #todo: does not work anymore
+                #related_inputs.extend(list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name2)))
                 for output in new_outputs:
                     ppt = output.main_producing_process_type()
                     if ppt:

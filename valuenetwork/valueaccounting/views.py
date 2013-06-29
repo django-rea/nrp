@@ -393,22 +393,25 @@ def unscheduled_time_contributions(request):
         just_save = request.POST.get("save")
         if time_formset.is_valid():
             events = time_formset.save(commit=False)
-            rel = ResourceRelationship.objects.get(
-                materiality="work",
-                related_to="process",
-                direction="in")
-            event_type=rel.event_type
-            unit = Unit.objects.filter(
-                unit_type="time",
-                name__icontains="Hours")[0]
-            for event in events:
-                if event.event_date and event.quantity:
-                    event.from_agent=member
-                    event.is_contribution=True
-                    event.event_type=event_type
-                    event.unit_of_quantity=unit
-                    event.created_by=request.user
-                    event.save()
+            pattern = None
+            try:
+                pattern = PatternUseCase.objects.get(use_case='non_prod').pattern
+            except PatternUseCase.DoesNotExist:
+                raise ValidationError("no non-production ProcessPattern")
+            if pattern:
+                unit = Unit.objects.filter(
+                    unit_type="time",
+                    name__icontains="Hours")[0]
+                for event in events:
+                    if event.event_date and event.quantity:
+                        event.from_agent=member
+                        event.is_contribution=True
+                        rt = event.resource_type
+                        event_type = pattern.event_type_for_resource_type("work", rt)
+                        event.event_type=event_type
+                        event.unit_of_quantity=unit
+                        event.created_by=request.user
+                        event.save()
             if keep_going:
                 return HttpResponseRedirect('/%s/'
                     % ('accounting/unscheduled-time'))

@@ -1906,7 +1906,7 @@ class Commitment(models.Model):
                 prep = "from"
             return ' '.join([
                 name1,
-                self.relationship.name,
+                self.event_type.name,
                 quantity_string,
                 abbrev,
                 resource_name,
@@ -1917,7 +1917,7 @@ class Commitment(models.Model):
         else:
             return ' '.join([
                 process_name,
-                self.relationship.name,
+                self.event_type.name,
                 quantity_string,
                 abbrev,
                 resource_name,

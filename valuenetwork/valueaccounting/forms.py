@@ -98,12 +98,15 @@ class RandOrderForm(forms.ModelForm):
 
 class ProcessForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.production_patterns(),
+        empty_label=None)
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
 
     class Meta:
         model = Process
-        fields = ('name', 'project', 'start_date', 'end_date', 'notes' )
+        fields = ('name', 'project', 'process_pattern', 'start_date', 'end_date', 'notes' )
 
 
 class NamelessProcessForm(forms.ModelForm):
@@ -140,9 +143,17 @@ class ProcessInputForm(forms.ModelForm):
 
     def __init__(self, pattern=None, *args, **kwargs):
         super(ProcessInputForm, self).__init__(*args, **kwargs)
+        use_pattern = True
+        if self.instance:
+            if self.instance.id:
+                use_pattern = False
+                ct = Commitment.objects.get(id=self.instance.id)
+                rt = ct.resource_type
+                self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
         if pattern:
-            self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.input_resource_types()
+            if use_pattern:
+                self.pattern = pattern
+                self.fields["resource_type"].queryset = pattern.input_resource_types()
 
 
 #used in labnotes, create, copy and change_process, and create and change_rand
@@ -170,9 +181,18 @@ class ProcessOutputForm(forms.ModelForm):
 
     def __init__(self, pattern=None, *args, **kwargs):
         super(ProcessOutputForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        use_pattern = True
+        if self.instance:
+            if self.instance.id:
+                use_pattern = False
+                ct = Commitment.objects.get(id=self.instance.id)
+                rt = ct.resource_type
+                self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
         if pattern:
-            self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.output_resource_types()
+            if use_pattern:
+                self.pattern = pattern
+                self.fields["resource_type"].queryset = pattern.output_resource_types()
 
 
 class WorkModelChoiceField(forms.ModelChoiceField):
@@ -246,6 +266,21 @@ class ProcessCitationCommitmentForm(forms.ModelForm):
     class Meta:
         model = Commitment
         fields = ('resource_type', 'description', 'quantity')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(ProcessCitationCommitmentForm, self).__init__(*args, **kwargs)
+        use_pattern = True
+        if self.instance:
+            if self.instance.id:
+                use_pattern = False
+                ct = Commitment.objects.get(id=self.instance.id)
+                rt = ct.resource_type
+                self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
+        if pattern:
+            if use_pattern:
+                self.pattern = pattern
+                self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in pattern.citables_with_resources()]
+
 
 class SelectCitationResourceForm(forms.Form):
     resource_type = forms.ChoiceField(

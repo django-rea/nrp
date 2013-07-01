@@ -647,8 +647,18 @@ class ResourceTypeFacetValue(models.Model):
         return ": ".join([self.resource_type.name, self.facet_value.facet.name, self.facet_value.value])
 
 
+class ProcessPatternManager(models.Manager):
+
+    def production_patterns(self):
+        #import pdb; pdb.set_trace()
+        use_cases = PatternUseCase.objects.filter(use_case='rand')
+        pattern_ids = [uc.pattern.id for uc in use_cases]
+        return ProcessPattern.objects.filter(id__in=pattern_ids)
+
+
 class ProcessPattern(models.Model):
     name = models.CharField(_('name'), max_length=32)
+    objects = ProcessPatternManager()
 
     class Meta:
         ordering = ('name',)
@@ -1896,7 +1906,7 @@ class Commitment(models.Model):
                 prep = "from"
             return ' '.join([
                 name1,
-                self.relationship.name,
+                self.event_type.name,
                 quantity_string,
                 abbrev,
                 resource_name,
@@ -1907,7 +1917,7 @@ class Commitment(models.Model):
         else:
             return ' '.join([
                 process_name,
-                self.relationship.name,
+                self.event_type.name,
                 quantity_string,
                 abbrev,
                 resource_name,

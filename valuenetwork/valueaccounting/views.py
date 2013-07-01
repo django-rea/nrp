@@ -16,7 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils import simplejson
-from django.forms.models import formset_factory, modelformset_factory
+from django.forms.models import formset_factory, modelformset_factory, BaseModelFormSet
 from django.forms import ValidationError
 from django.utils import simplejson
 from django.utils.datastructures import SortedDict
@@ -1943,6 +1943,7 @@ def create_labnotes_context(
                 else:
                     other_work_reqs.append(wrq)
     failure_form = FailedOutputForm()
+    #import pdb; pdb.set_trace()
     if process.process_pattern:
         pattern = process.process_pattern
         add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
@@ -3227,7 +3228,43 @@ def change_work_event(request, event_id):
             form.save()
     return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/labnote', commitment.id))
-            
+
+
+class ProcessOutputFormSet(BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        self.pattern = kwargs.pop('pattern', None)
+        super(ProcessOutputFormSet, self).__init__(*args, **kwargs)
+
+    def _construct_forms(self): 
+        self.forms = []
+        #import pdb; pdb.set_trace()
+        for i in xrange(self.total_form_count()):
+            self.forms.append(self._construct_form(i, pattern=self.pattern))
+
+
+class ProcessInputFormSet(BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        self.pattern = kwargs.pop('pattern', None)
+        super(ProcessInputFormSet, self).__init__(*args, **kwargs)
+
+    def _construct_forms(self): 
+        self.forms = []
+        #import pdb; pdb.set_trace()
+        for i in xrange(self.total_form_count()):
+            self.forms.append(self._construct_form(i, pattern=self.pattern))
+
+
+class ProcessCitationFormSet(BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        self.pattern = kwargs.pop('pattern', None)
+        super(ProcessCitationFormSet, self).__init__(*args, **kwargs)
+
+    def _construct_forms(self): 
+        self.forms = []
+        #import pdb; pdb.set_trace()
+        for i in xrange(self.total_form_count()):
+            self.forms.append(self._construct_form(i, pattern=self.pattern))
+
 
 @login_required
 def change_process(request, process_id):
@@ -3251,36 +3288,45 @@ def change_process(request, process_id):
         demand_form = DemandSelectionForm(data=request.POST or None)    
         rand_form = RandOrderForm(data=request.POST or None)
     process_form = ProcessForm(instance=process, data=request.POST or None)
+    pattern = None
+    if process.process_pattern:
+        pattern = process.process_pattern
     OutputFormSet = modelformset_factory(
         Commitment,
         form=ProcessOutputForm,
+        formset=ProcessOutputFormSet,
         can_delete=True,
         extra=1,
         )
     output_formset = OutputFormSet(
         queryset=process.outgoing_commitments(),
         data=request.POST or None,
-        prefix='output')
+        prefix='output',
+        pattern=pattern)
     CitationFormSet = modelformset_factory(
         Commitment,
         form=ProcessCitationCommitmentForm,
+        formset=ProcessCitationFormSet,
         can_delete=True,
         extra=2,
         )
     citation_formset = CitationFormSet(
         queryset=process.citation_requirements(),
         data=request.POST or None,
-        prefix='citation')
+        prefix='citation',
+        pattern=pattern)
     InputFormSet = modelformset_factory(
         Commitment,
         form=ProcessInputForm,
+        formset=ProcessInputFormSet,
         can_delete=True,
         extra=4,
         )
     input_formset = InputFormSet(
         queryset=process.incoming_commitments(),
         data=request.POST or None,
-        prefix='input')
+        prefix='input',
+        pattern=pattern)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         keep_going = request.POST.get("keep-going")
@@ -3332,7 +3378,7 @@ def change_process(request, process_id):
                             ct.created_by = request.user
                             rt = output_data["resource_type"]
                             event_type = pattern.event_type_for_resource_type("out", rt)
-                            ct.event_type = rel.event_type
+                            ct.event_type = event_type
                         ct.save()
                         if process.name == "Make something":
                             process.name = " ".join([
@@ -3371,7 +3417,7 @@ def change_process(request, process_id):
                                     ct.created_by = request.user
                                     event_type = pattern.event_type_for_resource_type("cite", rt)
                                     ct.event_type = event_type
-                                    unit = rel.unit or rt.unit
+                                    unit = rt.unit
                                     ct.unit_of_quantity = unit
                                 ct.save()
                         elif ct_from_id:

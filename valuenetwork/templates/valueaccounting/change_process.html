@@ -10,6 +10,7 @@
 
 
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
 
@@ -128,7 +129,7 @@
 {% block extra_script %}
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -138,6 +139,7 @@
 
 	$(document).ready(function(){
 
+        $("select").chosen();
 
 		$(".resource-type-selector").change(getUnit);
 		$("#id_receiver").change(receiverChanged);

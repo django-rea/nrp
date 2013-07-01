@@ -3964,25 +3964,22 @@ class ResourceType_EventType(object):
 
 @login_required
 def process_selections(request, rand=0):
-    #some of recipe related code is commented out for now
+    #recipe related code is commented out for now
     #import pdb; pdb.set_trace()
     slots = []
-    #related_recipes = []
-    #following from merge conflict commented for now
-    #resource_names = [res.name for res in EconomicResourceType.objects.all()]
-    #related_outputs = []
-    #related_citables = []
-    #related_inputs = []
     #related_recipes = []
     resource_types = []
     selected_pattern = None
     selected_project = None
-    use_radio = True
+    #use_radio = True
     pattern_form = PatternSelectionForm()
     project_form = ProjectSelectionForm()
+    init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
+    date_form = DateSelectionForm(initial=init, data=request.POST or None)
     if request.method == "POST":
         input_resource_types = []
         input_process_types = []
+        done_process = request.POST.get("create-process")
         edit_process = request.POST.get("edit-process")
         labnotes = request.POST.get("labnotes")
         past = request.POST.get("past")
@@ -3992,82 +3989,38 @@ def process_selections(request, rand=0):
             selected_pattern = ProcessPattern.objects.get(id=request.POST.get("pattern"))
             selected_project = Project.objects.get(id=request.POST.get("project"))
             if selected_pattern:
-                slots = selected_pattern.process_slots()
+                slots = selected_pattern.event_types()
                 for slot in slots:
                     slot.resource_types = selected_pattern.get_resource_types(slot)
             #if len(related_recipes) == 1:
             #    use_radio = False
-            """ following commented from merge conflict
-            #todo: replace selected_name queries with ProcessPattern methods
-            # split inputs into consumed and used
-            selected_name = request.POST.get("resourceName")
-            if selected_name:
-                related_outputs = list(EconomicResourceType.objects.all().filter(name__icontains=selected_name))
-                related_citables = []
-                #todo: does not work anymore
-                #citables = EconomicResourceType.objects.process_citables_with_resources()
-                for c in citables:
-                    name = c.name.lower()
-                    sname = selected_name.lower()
-                    if name.find(sname) >= 0:
-                        related_citables.append(c)
-                #todo: does not work anymore
-                #related_inputs = list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name))
-                related_recipes = []
-                for output in related_outputs:
-                    ppt = output.main_producing_process_type()
-                    if ppt:
-                        if ppt not in related_recipes:
-                            related_recipes.append(ppt)
-
-            selected_name2 = request.POST.get("resourceName2")
-            if selected_name2:
-                #import pdb; pdb.set_trace()
-                new_outputs = list(EconomicResourceType.objects.all().filter(name__icontains=selected_name2))
-                related_outputs.extend(new_outputs)
-                #todo: does not work anymore
-                #related_inputs.extend(list(EconomicResourceType.objects.process_inputs().filter(name__icontains=selected_name2)))
-                for output in new_outputs:
-                    ppt = output.main_producing_process_type()
-                    if ppt:
-                        if ppt not in related_recipes:
-                            related_recipes.append(ppt)
-            if len(related_recipes) == 1:
-                use_radio = False
-            work_form = WorkSelectionForm()
-            project_form = ProjectSelectionForm()
-            """
         else:
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             rp = request.POST
-
-            #if project_form.is_valid():
-            #    project = project_form.cleaned_data["project"]
-            selected_project = request.POST.get("selected_project")
-            project = Project.objects.get(id=selected_project)
             today = datetime.date.today()
-            #demand = None
-            #if rand:
-            demand = Order(
-                order_type="rand",
-                due_date=today,
-                created_by=request.user)
-            demand.save()
-            #else:
-            #    demand = Order(
-            #        order_type="holder",
-            #        due_date=today,
-            #        created_by=request.user)
-            #    demand.save()
-            '''produced_rts = []
+            if date_form.is_valid():
+                start_date = date_form.cleaned_data["start_date"]
+                end_date = date_form.cleaned_data["end_date"]
+            else:
+                start_date = today
+                end_date = today
+            produced_rts = []
             cited_rts = []
             consumed_rts = []
             used_rts = []
-            pts = []
+            #pts = []
+            work_rts = []
             for key, value in dict(rp).iteritems():
+                if "selected-project" in key:
+                    project_id = key.split("~")[1]
+                    selected_project = Project.objects.get(id=project_id)
+                if "selected-pattern" in key:
+                    pattern_id = key.split("~")[1]
+                    selected_pattern = ProcessPattern.objects.get(id=pattern_id)
                 if "consumed" in key:
                     consumed_id = int(value[0])
                     consumed_rt = EconomicResourceType.objects.get(id=consumed_id)
+                    #event_type = pattern.event_type_for_resource_type("out",consumed_rt)
                     consumed_rts.append(consumed_rt)
                 if "used" in key:
                     used_id = int(value[0])
@@ -4081,131 +4034,124 @@ def process_selections(request, rand=0):
                     produced_id = int(value[0])
                     produced_rt = EconomicResourceType.objects.get(id=produced_id)
                     produced_rts.append(produced_rt)
+                if "work" in key:
+                    work_id = int(value[0])
+                    work_rt = EconomicResourceType.objects.get(id=work_id)
+                    work_rts.append(work_rt)
                 #if "recipe" in key:
                 #    recipe_id = int(value[0])
                 #    pt = ProcessType.objects.get(id=recipe_id)
-                #    pts.append(pt)'''
-            selected_pattern = request.POST.get("selected_pattern")
-            rtets = []
-            for key, value in dict(rp).iteritems():
-                rt_id = int(value[0])
-                rt = EconomicResourceType.objects.get(id=rt_id)
-                #et = selected_pattern.event_type_for_resource_type(, rt)
+                #    pts.append(pt)
+            #demand = None
+            #if rand:
+            demand = Order(
+                order_type="rand",
+                order_date=today,
+                due_date=end_date,
+                created_by=request.user)
+            demand.save()
+            #else:
+            #    demand = Order(
+            #        order_type="holder",
+            #        due_date=today,
+            #        created_by=request.user)
+            #    demand.save()
 
-            rt_slots = []
             pt = None
             name = "Make something"
-            #produced_rts = selected_pattern.
             if produced_rts:
                 name = " ".join([
                     "Make",
                     produced_rts[0].name,
                 ])
-            if len(pts) == 1:
-                pt = pts[0]
-                process = Process(
-                    name=name,
-                    process_type=pt,
-                    #project=pt.project,
-                    project=selected_project,
-                    url=pt.url,
-                    end_date=today,
-                    start_date=today,
-                    created_by=request.user,
-                )
-                process.save()
-            else:
-                for ptx in pts:
-                    for rt in ptx.produced_resource_types():
-                        if rt in produced_rts:
-                            pt = ptx
-                if pt:
-                    process = Process(
-                        name=name,
-                        process_type=pt,
-                        #project=pt.project,
-                        project=selected_project,
-                        url=pt.url,
-                        end_date=today,
-                        start_date=today,
-                        created_by=request.user,
-                    )
-                    process.save()
-                else:
-                    process = Process(
-                        name=name,
-                        end_date=today,
-                        start_date=today,
-                        created_by=request.user,
-                        project=selected_project, #project,
-                    )
-                    process.save()
-            """if pt:
-                resource_types.extend(pt.produced_resource_types())
-                for ptrt in pt.consumed_resource_type_relationships():
-                    rel = ptrt.relationship
-                    rtype = ptrt.resource_type
-                    commitment = Commitment(
-                        process=process,
-                        independent_demand=demand,
-                        project=process.project,
-                        event_type=rel.event_type,
-                        relationship=rel,
-                        due_date=today,
-                        resource_type=rtype,
-                        quantity=ptrt.quantity,
-                        unit_of_quantity=ptrt.unit_of_quantity,
-                        created_by=request.user,
-                    )
-                    commitment.save()
-                    explode_dependent_demands(commitment, request.user)"""         
-            for rt in produced_rts:
-                """rel = ResourceRelationship.objects.get(
-                    materiality=rt.materiality,
-                    related_to="process",
-                    direction="out")"""
 
+            #if len(pts) == 1:
+            #    pt = pts[0]
+            #    process = Process(
+            #        name=name,
+            #        process_type=pt,
+            #        #project=pt.project,
+            #        project=selected_project,
+            #        url=pt.url,
+            #        end_date=today,
+            #        start_date=today,
+            #        created_by=request.user,
+            #    )
+            #    process.save()
+            #else:
+            #    for ptx in pts:
+            #        for rt in ptx.produced_resource_types():
+            #            if rt in produced_rts:
+            #                pt = ptx
+            #    if pt:
+            #        process = Process(
+            #            name=name,
+            #           process_type=pt,
+            #            #project=pt.project,
+            #            project=selected_project,
+            #           url=pt.url,
+            #            end_date=today,
+            #            start_date=today,
+            #            created_by=request.user,
+            #        )
+            #        process.save()
+            #    else:
+            process = Process(
+                name=name,
+                end_date=end_date,
+                start_date=start_date,
+                created_by=request.user,
+                project=selected_project
+            )
+            process.save()
+            #if pt:
+            #    resource_types.extend(pt.produced_resource_types())
+            #    for ptrt in pt.consumed_resource_type_relationships():
+            #        rel = ptrt.relationship
+            #        rtype = ptrt.resource_type
+            #        commitment = Commitment(
+            #            process=process,
+            #            independent_demand=demand,
+            #            project=process.project,
+            #            event_type=rel.event_type,
+            #            relationship=rel,
+            #            due_date=today,
+            #            resource_type=rtype,
+            #            quantity=ptrt.quantity,
+            #            unit_of_quantity=ptrt.unit_of_quantity,
+            #            created_by=request.user,
+            #        )
+            #        commitment.save()
+            #        explode_dependent_demands(commitment, request.user)
+         
+            #import pdb; pdb.set_trace()      
+            for rt in produced_rts:
                 et = selected_pattern.event_type_for_resource_type("out", rt)
-                #if rel:
-                
                 if et:
-                    """ following commented out per merge conflict
-                    explode_dependent_demands(commitment, request.user)         
-            for rt in output_rts:
-                #rel = RR.objects.get(
-                #    materiality=rt.materiality,
-                #    related_to="process",
-                #    direction="out")
-                if rel:
-                    """
                     commitment = Commitment(
                         process=process,
                         order=demand,
                         independent_demand=demand,
                         project=process.project,
-                        #event_type=rel.event_type,
                         event_type=et,
-                        #relationship=rel,
-                        due_date=today,
+                        start_date=start_date,
+                        due_date=end_date,
                         resource_type=rt,
                         quantity=Decimal("1"),
                         unit_of_quantity=rt.unit,
                         created_by=request.user,
                     )
                     commitment.save()
-            for rt in citable_rts:
-                #bh commented the following
-                #rel = RR.objects.get(
-                #    materiality=rt.materiality,
-                #    direction="cite")
-                if rel:
+            for rt in cited_rts:
+                et = selected_pattern.event_type_for_resource_type("cite", rt)
+                if et:
                     commitment = Commitment(
                         process=process,
                         independent_demand=demand,
                         project=process.project,
-                        event_type=rel.event_type,
-                        relationship=rel,
-                        due_date=today,
+                        event_type=et,
+                        start_date=start_date,
+                        due_date=end_date,
                         resource_type=rt,
                         quantity=Decimal("1"),
                         unit_of_quantity=rt.unit,
@@ -4213,21 +4159,17 @@ def process_selections(request, rand=0):
                     )
                     commitment.save()
             resource_types.extend([ic.resource_type for ic in process.incoming_commitments()])
-            for rt in input_rts:
-                #import pdb; pdb.set_trace()
+            for rt in used_rts:
                 if rt not in resource_types:
-                    #rel = RR.objects.get(
-                    #    materiality=rt.materiality,
-                    #    related_to="process",
-                    #    direction="in")
-                    if rel:
+                    et = selected_pattern.event_type_for_resource_type("in", rt)
+                    if et:
                         commitment = Commitment(
                             process=process,
                             independent_demand=demand,
                             project=process.project,
-                            event_type=rel.event_type,
-                            relationship=rel,
-                            due_date=today,
+                            event_type=et,
+                            start_date=start_date,
+                            due_date=end_date,
                             resource_type=rt,
                             quantity=Decimal("1"),
                             unit_of_quantity=rt.unit,
@@ -4235,31 +4177,50 @@ def process_selections(request, rand=0):
                         )
                         commitment.save()
                         explode_dependent_demands(commitment, request.user)
-            if work_form.is_valid():
+            for rt in consumed_rts:
+                if rt not in resource_types:
+                    et = selected_pattern.event_type_for_resource_type("in", rt)
+                    if et:
+                        commitment = Commitment(
+                            process=process,
+                            independent_demand=demand,
+                            project=process.project,
+                            event_type=et,
+                            start_date=start_date,
+                            due_date=end_date,
+                            resource_type=rt,
+                            quantity=Decimal("1"),
+                            unit_of_quantity=rt.unit,
+                            created_by=request.user,
+                        )
+                        commitment.save()
+                        explode_dependent_demands(commitment, request.user)
+            for rt in work_rts:
                 #import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 if agent:
-                    rt_id = work_form.cleaned_data["type_of_work"]
-                    rt = EconomicResourceType.objects.get(id=rt_id)
-                    #rel = RR.objects.get(
-                    #    materiality=rt.materiality,
-                    #    related_to="process",
-                    #    direction="in")
-                    if rel:
+                    #rt_id = work_form.cleaned_data["type_of_work"]
+                    #rt = EconomicResourceType.objects.get(id=rt_id)
+                    et = selected_pattern.event_type_for_resource_type("work", rt)
+                    if et:
                         work_commitment = Commitment(
                             process=process,
                             independent_demand=demand,
                             project=process.project,
-                            event_type=rel.event_type,
+                            event_type=et,
                             from_agent=agent,
-                            relationship=rel,
-                            due_date=today,
+                            start_date=start_date,
+                            due_date=end_date,
                             resource_type=rt,
                             quantity=Decimal("1"),
                             unit_of_quantity=rt.unit,
                             created_by=request.user,
                         )
                         work_commitment.save()
+            import pdb; pdb.set_trace()
+            if done_process: 
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/process-selections'))                 
             if edit_process:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/change-process', process.id))  
@@ -4278,6 +4239,7 @@ def process_selections(request, rand=0):
         #"use_radio": use_radio,
         "project_form": project_form,
         "pattern_form": pattern_form,
+        "date_form": date_form,
     }, context_instance=RequestContext(request))
 
 @login_required

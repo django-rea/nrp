@@ -46,8 +46,14 @@
 .section {
     color: firebrick;
 }
-.table-buttons td {
-    padding: 1em;
+.select-buttons {
+    margin-left: 75px;
+}
+.select-buttons p {
+    margin-top: 20px;
+}
+#div_id_start_date {
+    margin-top: 20px
 }
 
 </style>
@@ -68,10 +74,10 @@
                     <p class="selected">
                     <i>Chosen:</i>&nbsp;&nbsp;
                     {% trans "Process pattern " %} 
-	                <input type="text" name="selected-pattern-{{ selected_pattern.id }}" value="{{ selected_pattern }}"
+	                <input type="text" name="selected-pattern~{{ selected_pattern.id }}" value="{{ selected_pattern }}"
                         readonly="readonly" />&nbsp;&nbsp; 
                     {% trans "Project " %} 
-	                <input type="text" name="selected-project-{{ selected_project.id }}" value="{{ selected_project }}"
+	                <input type="text" name="selected-project~{{ selected_project.id }}" value="{{ selected_project }}"
                         readonly="readonly" /> 
                     </p>
                 {% else %}
@@ -95,7 +101,7 @@
                         {% for item in slot.resource_types %}
                             <div>
 		                        <p>
-		                            <input type="checkbox" class="{{ slot }}" id="{{ slot }}-{{ item.id }}" name="{{ slot }}-{{ item.name }}" value="{{ item.id }}" /> 
+		                            <input type="checkbox" class="{{ slot }}" id="{{ slot }}-{{ item.id }}" name="{{ slot }}~{{ item.name }}" value="{{ item.id }}" /> 
 		                            {{ item }}
 	                            </p>
                             </div>
@@ -129,43 +135,39 @@
 
 			        {% endif %}
 {% endcomment %}
+                    
+                    {{ date_form|as_bootstrap }}
+                    <div class="select-buttons">
+                        <p>
+                            <input type="submit" name="create-process" value="{% trans 'Create order' %}" class="btn btn-primary" />
+                            </br>Create R&D planned work using the selected resource types.
+                        </p>
+                        <p>
+                            <input type="submit" name="edit-process" value="{% trans 'Change order' %}" class="btn btn-primary" />
+                            </br>Create R&D planned work and add to the planned process.
+                        </p>
+    {% comment %}
+                        <p id="fastpath">
+                            <span style="color: red;">
+                                To access the fast path buttons to labnotes, you must select one type of work.
+                            </span>
+                        </p>
+    {% endcomment %}
+                        <p id="startNow" >
+                            <input type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" />
+                            </br>Go to Labnotes for working now. (You must select one type of work.)
+                        </p>
+
+                        <p id="pastWork" >
+                            <input type="submit" name="past" value="{% trans 'Log past work' %}" 
+                            class="btn btn-primary" />
+                            </br>Go to Labnotes for past work. (You must select one type of work.)
+                        </p>
+                    </div>
+
                </div>
             </div>
-			<div class="row-fluid">
-	            <div class="span12">
-	                <div class="form-actions">
-
-                      <table class="table-buttons">
-                        <tr>
-                            <td>
-	                            <input type="submit" name="create-process" value="{% trans 'Create order' %}" class="btn btn-primary" />
-	                            </br>Create R&D planned work from the above selections.
-                            </td>
-                            <td>
-	                            <input type="submit" name="edit-process" value="{% trans 'Change order' %}" class="btn btn-primary" />
-	                            </br>Create R&D plan and add to the planned process.
-                            </td>
-                            <td id="fastpath">
-                                <span style="color: red;">
-                                    To access the fast path buttons to labnotes, you must select a type of work.
-                                </span>
-                            </td>
-                            <td id="startNow" >
-	                            <input type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" />
-	                            </br>Go to Labnotes for working now.
-                            </td>
-                            <td id="pastWork" >
-	                            <input type="submit" name="past" value="{% trans 'Log past work' %}" 
-	                            class="btn btn-primary" />
-	                            </br>Go to Labnotes for past work.
-                            </td>
-	                    </tr>
-
-	                  </table>
-	                </div>
-                </div>
-	        </div>
-				    
+   
 	      {% endif %}
 
 		</form>
@@ -188,6 +190,41 @@
 
 	$(document).ready(function(){
 
+        $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+        $( "#id_end_date" ).datepicker({ 
+			dateFormat: "yy-mm-dd",
+    		onClose: function() {
+      			$( this ).valid();
+			}
+		 });
+
+		jQuery.validator.addMethod("equalToOrGreaterThan", 
+		function(value, element, params) {
+
+			if (!/Invalid|NaN/.test(new Date(value))) {
+				return new Date(value) >= new Date($(params).val());
+			}
+
+			return isNaN(value) && isNaN($(params).val()) 
+				|| (Number(value) >= Number($(params).val())); 
+		},'Must be equal to or greater than start date.');
+
+		$( "#processForm" ).validate({
+			rules: {
+				start_date: {
+					required: true,
+					date: true
+				},
+				end_date: {
+					date: true,
+					equalToOrGreaterThan: '#id_start_date'
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
 	    //var resourceNames = []
 	    //{% for rname in resource_names %}
         //    resourceNames.push("{{ rname }}");
@@ -198,10 +235,10 @@
         //temp!! fix later!!
 	    //$('#startNow').hide(); 
 	    //$('#pastWork').hide();
-        $('#fastpath').hide();
+        //$('#fastpath').hide();
         //end temp
 
-	    $("#id_type_of_work").change(workChanged);
+	    //$("#id_type_of_work").change(workChanged);
 
 	    //function workChanged(event)
 		//{
@@ -217,21 +254,21 @@
         //    resetButtons();
         //}
 
-	    function workChanged(event)
-		{
-            var typeOfWork = event.target.value;
-            if (typeOfWork)
-            {
-	            gotWork = true;                
-            }
-            else
-            {
-	            gotWork = false;
-            }
-            resetButtons();
-        }
+	    //function workChanged(event)
+		//{
+        //    var typeOfWork = event.target.value;
+        //    if (typeOfWork)
+        //    {
+	    //        gotWork = true;                
+        //    }
+        //    else
+        //    {
+	    //        gotWork = false;
+        //    }
+        //    resetButtons();
+        //}
 
-        $("#id_project").change(projectChanged);
+        //$("#id_project").change(projectChanged);
 
 	    //function projectChanged(event)
 		//{
@@ -247,33 +284,33 @@
          //   resetButtons();
         //}
 
-        {% for recipe in related_recipes %}
-            $("#recipe-{{ recipe.id }}").click(function() {
-                gotRecipe = true;
-                resetButtons();
-            });
-        {% endfor %}
+        //{% for recipe in related_recipes %}
+        //    $("#recipe-{{ recipe.id }}").click(function() {
+        //        gotRecipe = true;
+        //        resetButtons();
+        //    });
+        //{% endfor %}
 
 
 
 	}); // end document.ready
 
-    function resetButtons()
-	{
-        if (gotWork)
-        {
-            $('#startNow').show();
-            $('#pastWork').show();
-            $('#fastpath').hide();               
-        }
-        else
-        {
-            $('#startNow').hide();
-            $('#pastWork').hide(); 
-            $('#fastpath').show(); 
-        }
+    //function resetButtons()
+	//{
+    //    if (gotWork)
+    //    {
+    //        $('#startNow').show();
+    //        $('#pastWork').show();
+    //        $('#fastpath').hide();               
+    //    }
+    //    else
+     //   {
+     //       $('#startNow').hide();
+     //       $('#pastWork').hide(); 
+     //       $('#fastpath').show(); 
+    //    }
 
-    }
+    //}
 	
     </script>
 

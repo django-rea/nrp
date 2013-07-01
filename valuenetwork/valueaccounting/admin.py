@@ -31,14 +31,14 @@ class PatternFacetInline(admin.TabularInline):
     fields = ('event_type', 'facet_value')
 
 
-class PatternLoggingMethodInline(admin.TabularInline):
-    model = PatternLoggingMethod
+class PatternUseCaseInline(admin.TabularInline):
+    model = PatternUseCase
     extra = 1
     
 
 class ProcessPatternAdmin(admin.ModelAdmin):
     list_display = ('name',)
-    inlines = [ PatternFacetInline, PatternLoggingMethodInline]
+    inlines = [ PatternFacetInline, PatternUseCaseInline]
 
 admin.site.register(ProcessPattern, ProcessPatternAdmin)
 
@@ -84,10 +84,9 @@ admin.site.register(AgentResourceType, AgentResourceTypeAdmin)
 
 
 class ProcessTypeResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('process_type', 'resource_type', 'relationship')
+    list_display = ('process_type', 'resource_type')
     list_filter = ['process_type', 'resource_type']
-    search_fields = ['process_type__name','resource_type__name', 'relationship__name',]
-    list_editable = ['relationship',]
+    search_fields = ['process_type__name','resource_type__name',]
     
 admin.site.register(ProcessTypeResourceType, ProcessTypeResourceTypeAdmin)
 
@@ -129,7 +128,7 @@ class CommitmentInline(admin.TabularInline):
 class OrderItemInline(admin.TabularInline):
     model = Commitment
     fk_name = 'order'
-    fields = ('event_type', 'relationship', 'due_date', 'resource_type', 'quantity', 'unit_of_quantity', 'process')
+    fields = ('event_type', 'due_date', 'resource_type', 'quantity', 'unit_of_quantity', 'process')
 
 
 class OrderAdmin(admin.ModelAdmin):

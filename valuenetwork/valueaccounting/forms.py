@@ -63,7 +63,7 @@ class DemandSelectionForm(forms.Form):
 # does not appear to be used anywhere
 class OutputResourceTypeSelectionForm(forms.Form):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.process_outputs(), 
+        queryset=EconomicResourceType.objects.all(), 
         label="Output Resource Type", 
         widget=SelectWithPopUp(
             model=EconomicResourceType,
@@ -188,7 +188,7 @@ class TodoForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.types_of_work(), 
+        queryset=EconomicResourceType.objects.all(), 
         label="Type of work", 
         empty_label=None,
         widget=forms.Select(
@@ -207,6 +207,12 @@ class TodoForm(forms.ModelForm):
     class Meta:
         model = Commitment
         fields = ('from_agent', 'project', 'resource_type', 'due_date', 'description', 'url')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(TodoForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.todo_resource_types()]
 
 
 class ProcessCitationForm(forms.Form):
@@ -228,7 +234,7 @@ class ProcessCitationForm(forms.Form):
         
 class ProcessCitationCommitmentForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.process_citables(),
+        queryset=EconomicResourceType.objects.all(),
         widget=forms.Select(attrs={'class': 'input-xlarge'}))
     quantity = forms.BooleanField(
         required=False, 
@@ -409,7 +415,7 @@ class WorkContributionChangeForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.types_of_work(), 
+        queryset=EconomicResourceType.objects.all(), 
         label="Type of work", 
         empty_label=None,
         widget=forms.Select(
@@ -455,7 +461,7 @@ class WorkSelectionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(WorkSelectionForm, self).__init__(*args, **kwargs)
-        self.fields["type_of_work"].choices = [('', '----------')] + [(rt.id, rt.name) for rt in EconomicResourceType.objects.types_of_work()]
+        self.fields["type_of_work"].choices = [('', '----------')] + [(rt.id, rt.name) for rt in EconomicResourceType.objects.all()]
 
 
 class ProjectSelectionForm(forms.Form):
@@ -474,7 +480,7 @@ class PatternSelectionForm(forms.Form):
 
 class CasualTimeContributionForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.types_of_work(), 
+        queryset=EconomicResourceType.objects.all(), 
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     project = forms.ModelChoiceField(
@@ -495,8 +501,8 @@ class CasualTimeContributionForm(forms.ModelForm):
         super(CasualTimeContributionForm, self).__init__(*args, **kwargs)
         pattern = None
         try:
-            pattern = PatternLoggingMethod.objects.get(logging_method='non_prod').pattern
-        except PatternLoggingMethod.DoesNotExist:
+            pattern = PatternUseCase.objects.get(use_case='non_prod').pattern
+        except PatternUseCase.DoesNotExist:
             pass
         if pattern:
             self.fields["resource_type"].queryset = pattern.work_resource_types().order_by("name")
@@ -654,7 +660,7 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
 # used in ProcessTypeResourceType.xbill_change_form()
 class LaborInputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.types_of_work(), 
+        queryset=EconomicResourceType.objects.all(), 
         empty_label=None, 
         widget=SelectWithPopUp(
             model=EconomicResourceType,

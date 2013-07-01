@@ -48,7 +48,7 @@ def home(request):
             resource_type__materiality="work")
     reqs = Commitment.objects.unfinished().filter(
         resource_type__materiality="material",
-        relationship__direction="in").order_by("resource_type__name")
+        event_type__relationship="in").order_by("resource_type__name")
     stuff = SortedDict()
     for req in reqs:
         if req.quantity_to_buy():
@@ -57,12 +57,12 @@ def home(request):
             stuff[req.resource_type] += req.quantity_to_buy()
     treqs = Commitment.objects.unfinished().filter(
         resource_type__materiality="tool",
-        relationship__direction="in").order_by("resource_type__name")
+        event_type__relationship="in").order_by("resource_type__name")
     for req in treqs:
         if req.quantity_to_buy():
             if req.resource_type not in stuff:
                 stuff[req.resource_type] = req.quantity_to_buy()
-    vcs = Commitment.objects.filter(relationship__direction="out")
+    vcs = Commitment.objects.filter(event_type__relationship="out")
     value_creations = []
     rts = []
     for vc in vcs:
@@ -989,13 +989,11 @@ def create_process_type_input(request, process_type_id):
             rt = form.cleaned_data["resource_type"]
             ptrt.process_type=pt
             rel = None
-            try:
-                rel = ResourceRelationship.objects.get(
-                    materiality=rt.materiality,
-                    related_to="process",
-                    direction="in")
-            except ResourceRelationship.DoesNotExist:
-                pass
+            #try:
+            #    rel = RR.objects.get(
+            #        materiality=rt.materiality,
+            #        related_to="process",
+            #        direction="in")
             ptrt.relationship = rel
             ptrt.created_by=request.user
             ptrt.save()
@@ -1019,17 +1017,17 @@ def create_process_type_feature(request, process_type_id):
             if rts:
                 rt = rts[0]
                 feature.product=rt
-                rel = ResourceRelationship.objects.get(
-                    materiality=rt.materiality,
-                    related_to="process",
-                    direction="in")
+                #rel = RR.objects.get(
+                #    materiality=rt.materiality,
+                #    related_to="process",
+                #    direction="in")
                 feature.relationship = rel
             else:
                 #todo: when will we get here? It's a hack.
-                rel = ResourceRelationship.objects.get(
-                    materiality="material",
-                    related_to="process",
-                    direction="in")
+                #rel = RR.objects.get(
+                #    materiality="material",
+                #    related_to="process",
+                #    direction="in")
                 feature.relationship = rel
             feature.created_by=request.user
             feature.save()
@@ -1156,13 +1154,11 @@ def create_agent_resource_type(request, resource_type_id):
             art = form.save(commit=False)
             art.resource_type=rt
             rel = None
-            try:
-                rel = ResourceRelationship.objects.get(
-                    materiality=rt.materiality,
-                    related_to="agent",
-                    direction="out")
-            except ResourceRelationship.DoesNotExist:
-                pass
+            #try:
+            #    rel = RR.objects.get(
+            #        materiality=rt.materiality,
+            #        related_to="agent",
+            #        direction="out")
             art.relationship = rel
             art.created_by=request.user
             art.save()
@@ -1200,10 +1196,10 @@ def create_process_type_for_resource_type(request, resource_type_id):
             pt.changed_by=request.user
             pt.save()
             quantity = data["quantity"]
-            rel = ResourceRelationship.objects.get(
-                materiality=rt.materiality,
-                related_to="process",
-                direction="out")
+            #rel = RR.objects.get(
+            #    materiality=rt.materiality,
+            #    related_to="process",
+            #    direction="out")
             unit = rt.unit
             quantity = Decimal(quantity)
             ptrt = ProcessTypeResourceType(
@@ -1362,10 +1358,10 @@ def create_order(request):
                             explode_dependent_demands(commitment, request.user)
                             
                         else:
-                            rel = ResourceRelationship.objects.get(
-                                materiality=rt.materiality,
-                                related_to="process",
-                                direction="out")
+                            #rel = RR.objects.get(
+                            #    materiality=rt.materiality,
+                            #    related_to="process",
+                            #    direction="out")
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
@@ -1515,7 +1511,7 @@ def supply(request):
     mreqs = []
     mrqs = Commitment.objects.unfinished().filter(
         resource_type__materiality="material",
-        relationship__direction="in").order_by("resource_type__name")
+       event_type__relationship="in").order_by("resource_type__name")
     suppliers = SortedDict()
     for commitment in mrqs:
         if not commitment.resource_type.producing_commitments():
@@ -1532,7 +1528,7 @@ def supply(request):
     treqs = []
     trqs = Commitment.objects.unfinished().filter(
         resource_type__materiality="tool",
-        relationship__direction="in").order_by("resource_type__name")
+       event_type__relationship="in").order_by("resource_type__name")
     for commitment in trqs:
         if not commitment.resource_type.producing_commitments():
             if not commitment.fulfilling_events():    
@@ -1665,8 +1661,6 @@ def add_todo(request):
                 todo = form.save(commit=False)
                 todo.to_agent=agent
                 todo.event_type=et
-                #todo: delete next line
-                todo.relationship=ResourceRelationship.objects.get(direction="todo")
                 todo.quantity = Decimal("1")
                 todo.unit_of_quantity=todo.resource_type.unit
                 todo.save()
@@ -2007,12 +2001,6 @@ def new_process_output(request, commitment_id):
             if qty:
                 ct = form.save(commit=False)
                 rt = output_data["resource_type"]
-                # todo: eliminate rel
-                rel = ResourceRelationship.objects.get(
-                    materiality=rt.materiality,
-                    related_to="process",
-                    direction="out")
-                ct.relationship = rel
                 pattern = process.process_pattern
                 event_type = pattern.event_type_for_resource_type("out", rt)
                 ct.event_type = event_type
@@ -2061,12 +2049,6 @@ def new_process_input(request, commitment_id):
                 demand = process.independent_demand()
                 ct = form.save(commit=False)
                 rt = input_data["resource_type"]
-                #todo: ax rel
-                rel = ResourceRelationship.objects.get(
-                    materiality=rt.materiality,
-                    related_to="process",
-                    direction="in")
-                ct.relationship = rel
                 pattern = process.process_pattern
                 event_type = pattern.event_type_for_resource_type("in", rt)
                 ct.event_type = event_type
@@ -2112,11 +2094,6 @@ def new_process_citation(request, commitment_id):
             quantity = Decimal("1")
             rt_id = input_data["resource_type"]
             rt = EconomicResourceType.objects.get(id=rt_id)
-            #todo: ax rel
-            rel = ResourceRelationship.objects.get(
-                materiality=rt.materiality,
-                related_to="process",
-                direction="cite")
             pattern = process.process_pattern
             event_type = pattern.event_type_for_resource_type("cite", rt)
             agent = get_agent(request)
@@ -2125,7 +2102,6 @@ def new_process_citation(request, commitment_id):
                 from_agent=agent,
                 independent_demand=demand,
                 event_type=event_type,
-                relationship=rel,
                 due_date=process.start_date,
                 resource_type=rt,
                 project=process.project,
@@ -2167,19 +2143,12 @@ def new_process_worker(request, commitment_id):
             process = commitment.process
             demand = process.independent_demand()
             rt = input_data["resource_type"]
-            # rt = EconomicResourceType.objects.get(id=rt_id)
-            #todo: ax rel
-            rel = ResourceRelationship.objects.get(
-                materiality=rt.materiality,
-                related_to="process",
-                direction="in")
             pattern = process.process_pattern
             event_type = pattern.event_type_for_resource_type("work", rt)
             ct = form.save(commit=False)
             ct.process=process
             ct.independent_demand=demand
             ct.event_type=event_type
-            ct.relationship=rel
             ct.due_date=process.end_date
             ct.resource_type=rt
             ct.project=process.project
@@ -3050,6 +3019,7 @@ def failed_outputs(request, commitment_id):
             data = unicode(ct.failed_output_qty())
             return HttpResponse(data, mimetype="text/plain")
 
+#todo: obsolete
 @login_required
 def create_process(request):
     #import pdb; pdb.set_trace()
@@ -3094,10 +3064,7 @@ def create_process(request):
                     if qty:
                         ct = form.save(commit=False)
                         rt = output_data["resource_type"]
-                        rel = ResourceRelationship.objects.get(
-                            materiality=rt.materiality,
-                            related_to="process",
-                            direction="out")
+                        #rel = 
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
@@ -3113,10 +3080,7 @@ def create_process(request):
                     if qty:
                         ct = form.save(commit=False)
                         rt = input_data["resource_type"]
-                        rel = ResourceRelationship.objects.get(
-                            materiality=rt.materiality,
-                            related_to="process",
-                            direction="in")
+                        #rel = 
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
@@ -3140,6 +3104,7 @@ def create_process(request):
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
 
+#todo: obsolete
 @login_required
 def copy_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
@@ -3209,10 +3174,7 @@ def copy_process(request, process_id):
                     if qty:
                         ct = form.save(commit=False)
                         rt = output_data["resource_type"]
-                        rel = ResourceRelationship.objects.get(
-                            materiality=rt.materiality,
-                            related_to="process",
-                            direction="out")
+                        #rel = 
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
@@ -3228,10 +3190,7 @@ def copy_process(request, process_id):
                     if qty:
                         ct = form.save(commit=False)
                         rt = input_data["resource_type"]
-                        rel = ResourceRelationship.objects.get(
-                            materiality=rt.materiality,
-                            related_to="process",
-                            direction="in")
+                        #rel = 
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
@@ -3331,6 +3290,7 @@ def change_process(request, process_id):
             process = process_form.save(commit=False)
             process.changed_by=request.user
             process.save()
+            pattern = process.process_pattern
             #import pdb; pdb.set_trace()
             #todo: always creates a rand. the form is always valid.
             if rand_form.is_valid():
@@ -3371,11 +3331,7 @@ def change_process(request, process_id):
                             ct.process = process
                             ct.created_by = request.user
                             rt = output_data["resource_type"]
-                            rel = ResourceRelationship.objects.get(
-                                materiality=rt.materiality,
-                                related_to="process",
-                                direction="out")
-                            ct.relationship = rel
+                            event_type = pattern.event_type_for_resource_type("out", rt)
                             ct.event_type = rel.event_type
                         ct.save()
                         if process.name == "Make something":
@@ -3405,22 +3361,16 @@ def change_process(request, process_id):
                                     old_ct = Commitment.objects.get(id=ct_from_id.id)
                                     old_rt = old_ct.resource_type
                                     if not old_rt == rt:
-                                        rel = ResourceRelationship.objects.get(
-                                            materiality=rt.materiality,
-                                            direction="cite")
-                                        ct.relationship = rel
-                                        ct.event_type = rel.event_type
-                                        unit = rel.unit or rt.unit
+                                        event_type = pattern.event_type_for_resource_type("cite", rt)
+                                        ct.event_type = event_type
+                                        unit = rt.unit
                                         ct.unit_of_quantity = unit
                                         ct.changed_by = request.user
                                 else:
                                     ct.process = process
                                     ct.created_by = request.user
-                                    rel = ResourceRelationship.objects.get(
-                                        materiality=rt.materiality,
-                                        direction="cite")
-                                    ct.relationship = rel
-                                    ct.event_type = rel.event_type
+                                    event_type = pattern.event_type_for_resource_type("cite", rt)
+                                    ct.event_type = event_type
                                     unit = rel.unit or rt.unit
                                     ct.unit_of_quantity = unit
                                 ct.save()
@@ -3497,21 +3447,13 @@ def change_process(request, process_id):
                                         propagate_changes(pc, delta, existing_demand, demand, [])                    
                             ct.changed_by = request.user
                             rt = input_data["resource_type"]
-                            rel = ResourceRelationship.objects.get(
-                                materiality=rt.materiality,
-                                related_to="process",
-                                direction="in")
-                            ct.relationship = rel
-                            ct.event_type = rel.event_type
+                            event_type = pattern.event_type_for_resource_type("in", rt)
+                            ct.event_type = event_type
                         else:
                             explode = True
                             rt = input_data["resource_type"]
-                            rel = ResourceRelationship.objects.get(
-                                materiality=rt.materiality,
-                                related_to="process",
-                                direction="in")
-                            ct.relationship = rel
-                            ct.event_type = rel.event_type
+                            event_type = pattern.event_type_for_resource_type("in", rt)
+                            ct.event_type = event_type
                             ct.process = process
                             ct.independent_demand = demand
                             ct.due_date = process.start_date
@@ -3611,6 +3553,7 @@ def propagate_changes(commitment, delta, old_demand, new_demand, visited):
     commitment.independent_demand = new_demand
     commitment.save()    
 
+#todo: obsolete?
 @login_required
 def create_rand(request):
     #import pdb; pdb.set_trace()
@@ -3649,6 +3592,7 @@ def create_rand(request):
                 process = process_form.save(commit=False)
                 process.created_by=request.user
                 process.save()
+                pattern = process.process_pattern
                 rand.due_date = process.end_date
                 rand.save()
                 for form in output_formset.forms:
@@ -3661,12 +3605,8 @@ def create_rand(request):
                         if qty:
                             ct = form.save(commit=False)
                             rt = output_data["resource_type"]
-                            rel = ResourceRelationship.objects.get(
-                                materiality=rt.materiality,
-                                related_to="process",
-                                direction="out")
-                            ct.relationship = rel
-                            ct.event_type = rel.event_type
+                            event_type = pattern.event_type_for_resource_type("out", rt)
+                            ct.event_type = event_type
                             ct.order = rand
                             ct.independent_demand = rand
                             ct.process = process
@@ -3684,11 +3624,7 @@ def create_rand(request):
                         if qty:
                             ct = form.save(commit=False)
                             rt = input_data["resource_type"]
-                            rel = ResourceRelationship.objects.get(
-                                materiality=rt.materiality,
-                                related_to="process",
-                                direction="in")
-                            ct.relationship = rel
+                            
                             ct.event_type = rel.event_type
                             ct.independent_demand = rand
                             ct.process = process
@@ -3713,6 +3649,7 @@ def create_rand(request):
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
 
+#todo: obsolete
 @login_required
 def copy_rand(request, rand_id):
     rand = get_object_or_404(Order, id=rand_id)
@@ -3799,10 +3736,7 @@ def copy_rand(request, rand_id):
                         if qty:
                             ct = form.save(commit=False)
                             rt = output_data["resource_type"]
-                            rel = ResourceRelationship.objects.get(
-                                materiality=rt.materiality,
-                                related_to="process",
-                                direction="out")
+                            #rel = 
                             ct.relationship = rel
                             ct.event_type = rel.event_type
                             ct.order = rand
@@ -3822,10 +3756,7 @@ def copy_rand(request, rand_id):
                         if qty:
                             ct = form.save(commit=False)
                             rt = input_data["resource_type"]
-                            rel = ResourceRelationship.objects.get(
-                                materiality=rt.materiality,
-                                related_to="process",
-                                direction="in")
+                            #rel = 
                             ct.relationship = rel
                             ct.event_type = rel.event_type
                             ct.independent_demand = rand
@@ -3911,6 +3842,7 @@ def change_rand(request, rand_id):
                 else:
                     process.created_by=request.user
                 process.save()
+                pattern = process.process_pattern
                 rand.due_date = process.end_date
                 rand.save()
                 for form in output_formset.forms:
@@ -3931,12 +3863,8 @@ def change_rand(request, rand_id):
                                 ct.due_date = process.end_date
                                 ct.created_by = request.user
                                 rt = output_data["resource_type"]
-                                rel = ResourceRelationship.objects.get(
-                                    materiality=rt.materiality,
-                                    related_to="process",
-                                    direction="out")
-                                ct.relationship = rel
-                                ct.event_type = rel.event_type
+                                event_type = pattern.event_type_for_resource_type("out", rt)
+                                ct.event_type = event_type
                                 ct.order = rand
                                 ct.independent_demand = rand
                                 ct.project = process.project
@@ -3997,21 +3925,13 @@ def change_rand(request, rand_id):
                                             propagate_qty_change(pc, delta, [])                                
                                 ct.changed_by = request.user
                                 rt = input_data["resource_type"]
-                                rel = ResourceRelationship.objects.get(
-                                    materiality=rt.materiality,
-                                    related_to="process",
-                                    direction="in")
-                                ct.relationship = rel
+                                event_type = pattern.event_type_for_resource_type("in", rt)
                                 ct.event_type = rel.event_type
                             else:
                                 explode = True
                                 rt = input_data["resource_type"]
-                                rel = ResourceRelationship.objects.get(
-                                    materiality=rt.materiality,
-                                    related_to="process",
-                                    direction="in")
-                                ct.relationship = rel
-                                ct.event_type = rel.event_type
+                                event_type = pattern.event_type_for_resource_type("in", rt)
+                                ct.event_type = event_type
                                 ct.independent_demand = rand
                                 ct.process = process
                                 ct.due_date = process.start_date
@@ -4205,10 +4125,10 @@ def process_selections(request, rand=0):
                     commitment.save()
                     explode_dependent_demands(commitment, request.user)         
             for rt in output_rts:
-                rel = ResourceRelationship.objects.get(
-                    materiality=rt.materiality,
-                    related_to="process",
-                    direction="out")
+                #rel = RR.objects.get(
+                #    materiality=rt.materiality,
+                #    related_to="process",
+                #    direction="out")
                 if rel:
                     commitment = Commitment(
                         process=process,
@@ -4225,9 +4145,9 @@ def process_selections(request, rand=0):
                     )
                     commitment.save()
             for rt in citable_rts:
-                rel = ResourceRelationship.objects.get(
-                    materiality=rt.materiality,
-                    direction="cite")
+                #rel = RR.objects.get(
+                #    materiality=rt.materiality,
+                #    direction="cite")
                 if rel:
                     commitment = Commitment(
                         process=process,
@@ -4246,10 +4166,10 @@ def process_selections(request, rand=0):
             for rt in input_rts:
                 #import pdb; pdb.set_trace()
                 if rt not in resource_types:
-                    rel = ResourceRelationship.objects.get(
-                        materiality=rt.materiality,
-                        related_to="process",
-                        direction="in")
+                    #rel = RR.objects.get(
+                    #    materiality=rt.materiality,
+                    #    related_to="process",
+                    #    direction="in")
                     if rel:
                         commitment = Commitment(
                             process=process,
@@ -4271,10 +4191,10 @@ def process_selections(request, rand=0):
                 if agent:
                     rt_id = work_form.cleaned_data["type_of_work"]
                     rt = EconomicResourceType.objects.get(id=rt_id)
-                    rel = ResourceRelationship.objects.get(
-                        materiality=rt.materiality,
-                        related_to="process",
-                        direction="in")
+                    #rel = RR.objects.get(
+                    #    materiality=rt.materiality,
+                    #    related_to="process",
+                    #    direction="in")
                     if rel:
                         work_commitment = Commitment(
                             process=process,

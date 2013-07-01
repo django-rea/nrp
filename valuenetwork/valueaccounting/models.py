@@ -990,7 +990,7 @@ class AgentResourceType(models.Model):
         return "Source"
 
     def xbill_child_object(self):
-        if self.relationship.direction == 'out':
+        if self.event_type.relationship == 'out':
             return self.agent
         else:
             return self.resource_type
@@ -1002,7 +1002,7 @@ class AgentResourceType(models.Model):
         return Category(name="sources")
 
     def xbill_parent_object(self):
-        if self.relationship.direction == 'out':
+        if self.event_type.relationship == 'out':
             return self.resource_type
         else:
             return self.agent
@@ -1189,8 +1189,8 @@ class ProcessTypeResourceType(models.Model):
         verbose_name=_('process type'), related_name='resource_types')
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='process_types')
-    relationship = models.ForeignKey(ResourceRelationship,
-        verbose_name=_('relationship'), related_name='process_resource_types')
+    #relationship = models.ForeignKey(ResourceRelationship,
+    #    verbose_name=_('relationship'), related_name='process_resource_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='process_resource_types')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
@@ -1484,18 +1484,18 @@ class Process(models.Model):
     #todo: tool and space requirements won't work anymore
     def tool_requirements(self):
         answer = list(self.commitments.filter(
-            relationship__direction='in',
+           event_type__relationship='in',
             resource_type__materiality='tool',
         ))
         answer.extend(list(self.commitments.filter(
-            relationship__direction='in',
+           event_type__relationship='in',
             resource_type__materiality='purchtool',
         )))
         return answer
 
     def space_requirements(self):
         return self.commitments.filter(
-            relationship__direction='in',
+           event_type__relationship='in',
             resource_type__materiality='space',
         )
 
@@ -1818,8 +1818,8 @@ class Commitment(models.Model):
         related_name="dependent_commitments", verbose_name=_('independent_demand'))
     event_type = models.ForeignKey(EventType, 
         related_name="commitments", verbose_name=_('event type'))
-    relationship = models.ForeignKey(ResourceRelationship,
-        verbose_name=_('relationship'), related_name='commitments')
+    #relationship = models.ForeignKey(ResourceRelationship,
+    #    verbose_name=_('relationship'), related_name='commitments')
     commitment_date = models.DateField(_('commitment date'), default=datetime.date.today)
     start_date = models.DateField(_('start date'), blank=True, null=True)
     due_date = models.DateField(_('due date'))
@@ -1886,7 +1886,7 @@ class Commitment(models.Model):
             to_agt = 'Unassigned'
             if self.to_agent:
                 to_agt = self.to_agent.name
-            if self.relationship.direction == "out":
+            if self.event_type.relationship == "out":
                 name1 = from_agt
                 name2 = to_agt
                 prep = "for"
@@ -2082,14 +2082,14 @@ class Commitment(models.Model):
 
     def output_resources(self):
         answer = None
-        if self.relationship.direction == "out":
+        if self.event_type.relationship == "out":
             answer = [event.resource for event in self.fulfilling_events()]
         return answer
 
     def output_resource(self):
         #todo: this is a hack, cd be several resources
         answer = None
-        if self.relationship.direction == "out":
+        if self.event_type.relationship == "out":
             events = self.fulfilling_events()
             if events:
                 event = events[0]
@@ -2282,7 +2282,7 @@ class EconomicEvent(models.Model):
 
     def does_todo(self):
         if self.commitment:
-            if self.commitment.relationship.direction == "todo":
+            if self.commitment.event_type.relationship == "todo":
                 return True
         return False
 

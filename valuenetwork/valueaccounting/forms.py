@@ -98,12 +98,15 @@ class RandOrderForm(forms.ModelForm):
 
 class ProcessForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.production_patterns(),
+        empty_label=None)
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
 
     class Meta:
         model = Process
-        fields = ('name', 'project', 'start_date', 'end_date', 'notes' )
+        fields = ('name', 'project', 'process_pattern', 'start_date', 'end_date', 'notes' )
 
 
 class NamelessProcessForm(forms.ModelForm):

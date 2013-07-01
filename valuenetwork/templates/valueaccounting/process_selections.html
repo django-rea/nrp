@@ -43,9 +43,6 @@
 .selected {
     font-size: 1.2em;
 }
-.selected-display {
-    font-weight: bold;
-}
 .section {
     color: firebrick;
 }
@@ -67,12 +64,15 @@
 	      {% csrf_token %}
 		  <div class="row-fluid">
 			<div class="span12">
-
                 {% if selected_pattern %}
                     <p class="selected">
-                    <i>Chosen:</i>&nbsp;
-                    {% trans " process pattern " %} <span class="selected-display"> {{ selected_pattern }} </span>
-                    {% trans " project " %} <span class="selected-display"> {{ selected_project }} </span>
+                    <i>Chosen:</i>&nbsp;&nbsp;
+                    {% trans "Process pattern " %} 
+	                <input type="text" name="selected-pattern-{{ selected_pattern.id }}" value="{{ selected_pattern }}"
+                        readonly="readonly" />&nbsp;&nbsp; 
+                    {% trans "Project " %} 
+	                <input type="text" name="selected-project-{{ selected_project.id }}" value="{{ selected_project }}"
+                        readonly="readonly" /> 
                     </p>
                 {% else %}
                     {% trans "Choose a process pattern " %} {{ pattern_form.pattern }} &nbsp; 
@@ -195,10 +195,27 @@
 	    //$( "#resourceName" ).autocomplete({source: resourceNames});
 	    //$( "#resourceName2" ).autocomplete({source: resourceNames});
 
-	    $('#startNow').hide();
-	    $('#pastWork').hide();
+        //temp!! fix later!!
+	    //$('#startNow').hide(); 
+	    //$('#pastWork').hide();
+        $('#fastpath').hide();
+        //end temp
 
 	    $("#id_type_of_work").change(workChanged);
+
+	    //function workChanged(event)
+		//{
+        //    var typeOfWork = event.target.value;
+        //    if (typeOfWork)
+        //    {
+	    //        gotWork = true;                
+        //    }
+        //    else
+        //    {
+	    //        gotWork = false;
+        //    }
+        //    resetButtons();
+        //}
 
 	    function workChanged(event)
 		{

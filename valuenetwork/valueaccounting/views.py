@@ -4021,6 +4021,12 @@ def change_rand(request, rand_id):
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
 
+
+class ResourceType_EventType(object):
+    def __init__(self, resource_type, event_type):
+        self.resource_type = resource_type
+        self.event_type = event_type
+
 @login_required
 def process_selections(request, rand=0):
     #some of recipe related code is commented out for now
@@ -4051,7 +4057,7 @@ def process_selections(request, rand=0):
             #if len(related_recipes) == 1:
             #    use_radio = False
         else:
-            #import pdb; pdb.set_trace()
+            import pdb; pdb.set_trace()
             rp = request.POST
 
             #if project_form.is_valid():
@@ -4059,7 +4065,7 @@ def process_selections(request, rand=0):
             selected_project = request.POST.get("selected_project")
             project = Project.objects.get(id=selected_project)
             today = datetime.date.today()
-            demand = None
+            #demand = None
             #if rand:
             demand = Order(
                 order_type="rand",
@@ -4098,13 +4104,17 @@ def process_selections(request, rand=0):
                 #    recipe_id = int(value[0])
                 #    pt = ProcessType.objects.get(id=recipe_id)
                 #    pts.append(pt)'''
-            rts = []
+            selected_pattern = request.POST.get("selected_pattern")
+            rtets = []
             for key, value in dict(rp).iteritems():
                 rt_id = int(value[0])
                 rt = EconomicResourceType.objects.get(id=rt_id)
-                rts.append(rt) #probably need slots
+                #et = selected_pattern.event_type_for_resource_type(, rt)
+
+            rt_slots = []
             pt = None
             name = "Make something"
+            #produced_rts = selected_pattern.
             if produced_rts:
                 name = " ".join([
                     "Make",

@@ -1354,7 +1354,6 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             commitment.save()
-                            #todo: needs testing
                             explode_dependent_demands(commitment, request.user)
                             
                         else:
@@ -3536,7 +3535,9 @@ def change_process(request, process_id):
 
 def explode_dependent_demands(commitment, user):
     #import pdb; pdb.set_trace()
-    qty_to_explode = commitment.net()
+    #todo: temporarily disabled
+    #qty_to_explode = commitment.net()
+    qty_to_explode = 0
     if qty_to_explode:
         rt = commitment.resource_type
         ptrt = rt.main_producing_process_type_relationship()
@@ -3554,6 +3555,7 @@ def explode_dependent_demands(commitment, user):
                 created_by=user,
             )
             feeder_process.save()
+            #todo: get event_type from pattern, remove relationship
             output_commitment = Commitment(
                 independent_demand=demand,
                 event_type=ptrt.relationship.event_type,

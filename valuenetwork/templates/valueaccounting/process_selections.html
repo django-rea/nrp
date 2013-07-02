@@ -176,6 +176,8 @@
 {% endblock %}
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	//<script src="{% static 'js/chosen.jquery.js' %}"></script>
 	
 {% endblock %}
 
@@ -185,10 +187,18 @@
     <script type="text/javascript">
 
     var gotWork = false;
-    var gotRecipe = false;
-    var gotProject = false;
+    //var gotRecipe = false;
+    //var gotProject = false;
 
 	$(document).ready(function(){
+
+	    $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
+
+        //$(".chzn-select").chosen();
 
         $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
         $( "#id_end_date" ).datepicker({ 
@@ -232,41 +242,35 @@
 	    //$( "#resourceName" ).autocomplete({source: resourceNames});
 	    //$( "#resourceName2" ).autocomplete({source: resourceNames});
 
-        //temp!! fix later!!
-	    //$('#startNow').hide(); 
-	    //$('#pastWork').hide();
-        //$('#fastpath').hide();
-        //end temp
-
 	    //$("#id_type_of_work").change(workChanged);
 
-	    //function workChanged(event)
-		//{
-        //    var typeOfWork = event.target.value;
-        //    if (typeOfWork)
-        //    {
-	    //        gotWork = true;                
-        //    }
-        //    else
-        //    {
-	    //        gotWork = false;
-        //    }
-        //    resetButtons();
-        //}
+	    function workChanged(event)
+		{
+            var typeOfWork = event.target.value;
+            if (typeOfWork)
+            {
+	            gotWork = true;                
+            }
+            else
+            {
+	            gotWork = false;
+            }
+            resetButtons();
+        }
 
-	    //function workChanged(event)
-		//{
-        //    var typeOfWork = event.target.value;
-        //    if (typeOfWork)
-        //    {
-	    //        gotWork = true;                
-        //    }
-        //    else
-        //    {
-	    //        gotWork = false;
-        //    }
-        //    resetButtons();
-        //}
+	    function workChanged(event)
+		{
+            var typeOfWork = event.target.value;
+            if (typeOfWork)
+            {
+	            gotWork = true;                
+            }
+            else
+            {
+	            gotWork = false;
+            }
+            resetButtons();
+        }
 
         //$("#id_project").change(projectChanged);
 
@@ -295,22 +299,19 @@
 
 	}); // end document.ready
 
-    //function resetButtons()
-	//{
-    //    if (gotWork)
-    //    {
-    //        $('#startNow').show();
-    //        $('#pastWork').show();
-    //        $('#fastpath').hide();               
-    //    }
-    //    else
-     //   {
-     //       $('#startNow').hide();
-     //       $('#pastWork').hide(); 
-     //       $('#fastpath').show(); 
-    //    }
-
-    //}
+    function resetButtons()
+	{
+        if (gotWork)
+        {
+            $('#startNow').enable();
+            $('#pastWork').enable();
+        }
+        else
+        {
+            $('#startNow').disable();
+            $('#pastWork').disable(); 
+        }
+    }
 	
     </script>
 

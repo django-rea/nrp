@@ -4010,7 +4010,7 @@ class ResourceType_EventType(object):
 
 @login_required
 def process_selections(request, rand=0):
-    #recipe related code is commented out for now
+    #recipe related code is commented out for now, and also will need to be upgraded if it is put back in
     #import pdb; pdb.set_trace()
     slots = []
     #related_recipes = []
@@ -4021,7 +4021,7 @@ def process_selections(request, rand=0):
     pattern_form = PatternSelectionForm()
     project_form = ProjectSelectionForm()
     init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
-    date_form = DateSelectionForm(initial=init, data=request.POST or None)
+    date_form = DateSelectionForm(data=request.POST or None)
     if request.method == "POST":
         input_resource_types = []
         input_process_types = []
@@ -4040,6 +4040,7 @@ def process_selections(request, rand=0):
                     slot.resource_types = selected_pattern.get_resource_types(slot)
             #if len(related_recipes) == 1:
             #    use_radio = False
+            date_form = DateSelectionForm(initial=init)
         else:
             #import pdb; pdb.set_trace()
             rp = request.POST
@@ -4066,7 +4067,6 @@ def process_selections(request, rand=0):
                 if "consumed" in key:
                     consumed_id = int(value[0])
                     consumed_rt = EconomicResourceType.objects.get(id=consumed_id)
-                    #event_type = pattern.event_type_for_resource_type("out",consumed_rt)
                     consumed_rts.append(consumed_rt)
                 if "used" in key:
                     used_id = int(value[0])
@@ -4090,12 +4090,14 @@ def process_selections(request, rand=0):
                 #    pts.append(pt)
             #demand = None
             #if rand:
+
             demand = Order(
                 order_type="rand",
                 order_date=today,
                 due_date=end_date,
                 created_by=request.user)
             demand.save()
+
             #else:
             #    demand = Order(
             #        order_type="holder",
@@ -4142,14 +4144,17 @@ def process_selections(request, rand=0):
             #        )
             #        process.save()
             #    else:
+
             process = Process(
                 name=name,
                 end_date=end_date,
                 start_date=start_date,
+                process_pattern=selected_pattern,
                 created_by=request.user,
                 project=selected_project
             )
             process.save()
+
             #if pt:
             #    resource_types.extend(pt.produced_resource_types())
             #    for ptrt in pt.consumed_resource_type_relationships():
@@ -4263,7 +4268,8 @@ def process_selections(request, rand=0):
                             created_by=request.user,
                         )
                         work_commitment.save()
-            import pdb; pdb.set_trace()
+
+            #import pdb; pdb.set_trace()
             if done_process: 
                 return HttpResponseRedirect('/%s/'
                     % ('accounting/process-selections'))                 

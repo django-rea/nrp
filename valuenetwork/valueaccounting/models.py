@@ -651,7 +651,8 @@ class ProcessPatternManager(models.Manager):
 
     def production_patterns(self):
         #import pdb; pdb.set_trace()
-        use_cases = PatternUseCase.objects.filter(use_case='rand')
+        use_cases = PatternUseCase.objects.filter(
+            Q(use_case='rand')|Q(use_case='design'))
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
 
@@ -676,7 +677,6 @@ class ProcessPattern(models.Model):
         return slots
 
     def get_resource_types(self, event_type):
-    #def get_resource_types(self, process_relationship):
         """ Logic:
             Facet values in different Facets are ANDed.
             Ie, a resource type must have all of those facet values.
@@ -685,7 +685,6 @@ class ProcessPattern(models.Model):
         """
         #import pdb; pdb.set_trace()
         pattern_facet_values = self.facets.filter(event_type=event_type)
-        #pattern_facet_values = self.facets.filter(process_relationship=process_relationship)
         facet_values = [pfv.facet_value for pfv in pattern_facet_values]
         fv_ids = [fv.id for fv in facet_values]
         rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)

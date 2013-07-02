@@ -1354,7 +1354,6 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             commitment.save()
-                            #todo: needs testing
                             explode_dependent_demands(commitment, request.user)
                             
                         else:
@@ -2123,7 +2122,6 @@ def new_process_worker(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     was_running = request.POST["wasRunning"] or 0
     was_retrying = request.POST["wasRetrying"] or 0
-    #import pdb; pdb.set_trace()
     #comes from past_work
     event_date = request.POST.get("workDate")
     event = None
@@ -2414,9 +2412,17 @@ def create_past_work_context(
                 else:
                     other_work_reqs.append(wrq)
     failure_form = FailedOutputForm()
-    add_output_form = ProcessOutputForm(prefix='output')
-    add_citation_form = ProcessCitationForm(prefix='citation')
-    add_input_form = ProcessInputForm(prefix='input')
+    if process.process_pattern:
+        pattern = process.process_pattern
+        add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
+        add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
+        add_input_form = ProcessInputForm(prefix='input', pattern=pattern)
+        add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
+    else:
+        add_output_form = ProcessOutputForm(prefix='output')
+        add_citation_form = ProcessCitationForm(prefix='citation')
+        add_input_form = ProcessInputForm(prefix='input')
+        add_work_form = WorkCommitmentForm(prefix='work') 
     cited_ids = [c.resource.id for c in process.citations()]
     return {
         "commitment": commitment,
@@ -2428,6 +2434,7 @@ def create_past_work_context(
         "add_output_form": add_output_form,
         "add_citation_form": add_citation_form,
         "add_input_form": add_input_form,
+        "add_work_form": add_work_form,
         "duration": duration,
         "prev": prev,
         "was_running": was_running,
@@ -3528,7 +3535,9 @@ def change_process(request, process_id):
 
 def explode_dependent_demands(commitment, user):
     #import pdb; pdb.set_trace()
-    qty_to_explode = commitment.net()
+    #todo: temporarily disabled
+    #qty_to_explode = commitment.net()
+    qty_to_explode = 0
     if qty_to_explode:
         rt = commitment.resource_type
         ptrt = rt.main_producing_process_type_relationship()
@@ -3546,6 +3555,7 @@ def explode_dependent_demands(commitment, user):
                 created_by=user,
             )
             feeder_process.save()
+            #todo: get event_type from pattern, remove relationship
             output_commitment = Commitment(
                 independent_demand=demand,
                 event_type=ptrt.relationship.event_type,
@@ -3828,6 +3838,8 @@ def copy_rand(request, rand_id):
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
 
+
+#todo: obsolete?
 @login_required
 def change_rand(request, rand_id):
     #import pdb; pdb.set_trace()

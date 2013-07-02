@@ -66,6 +66,11 @@
 	color: green;
 }
 
+.lablink {
+    font-size: 1.3em;
+    padding-left: 1em;
+}
+
 </style>
 {% endblock %}
 
@@ -92,8 +97,24 @@
 			<form id="labnotesForm" method="POST" action="">
 				{% csrf_token %}
 				{{ wb_form.id }}
+
+                {% if others_working %}
+					<h4 style="margin-bottom: 2px;" >{% trans "Others working on this process" %}:</h4>
+					<ul>
+						{% for item in others_working %}
+							<li>
+								<b>{{ item.from_agent }}</b> {% trans "doing" %} {{ item.resource_type }}
+                                {% if item.has_labnotes %}
+									<a href="{% url labnote commitment_id=item.id %}" target="_blank" class="lablink">Labnotes</a>
+								{% endif %}
+							</li>
+
+						{% endfor %}
+					</ul>
+				{% endif %}
+				
 				<div class="control-group">
-					<label><b>{% trans "Description of work done" %}:</b></label>
+					<label><h4>{% trans "Description of work done" %}:</h4></label>
 					{{ wb_form.description }}
 				</div>
 			</div>
@@ -134,6 +155,7 @@
 			            <a href="#addOutputModal" role="button" class="btn" data-toggle="modal">{% trans "+ output" %}</a>
 			            <a href="#addCiteModal" role="button" class="btn" data-toggle="modal">{% trans "+ cite" %}</a>
 			            <a href="#addInputModal" role="button" class="btn" data-toggle="modal">{% trans "+ input" %}</a>
+			            <a href="#addWorkModal" role="button" class="btn" data-toggle="modal">{% trans "+ work" %}</a>
 			            
 			            <div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
 				            <div class="modal-header">
@@ -209,6 +231,33 @@
 					              <div class="modal-footer">
 						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						            <button class="btn btn-primary">{% trans "Add citation" %}</button>
+					              </div>
+
+
+					            </form>
+                            </div>
+                        </div>
+
+                        <div class="modal hide fade" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+				            <div class="modal-header">
+					            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+				                <h3 id="work-label">{% trans "Invite a helper" %}</h3>
+				                
+				            </div>
+				            <div class="modal-body">
+					            <form class="work-form" id="addWorkForm" action="{% url new_process_worker commitment_id=commitment.id %}" method="POST" >
+						            {% csrf_token %}
+
+					                    {{ add_work_form|as_bootstrap }}
+
+                                	<input type='hidden' id='workRunning' name='wasRunning' value='' />
+			                        <input type='hidden' id='workRetrying' name='wasRetrying' value='' />
+			                        <input type="hidden" name="reload" value="pastwork" />
+			                        <input type="hidden" id="workDate" name="workDate" value="{{ event_date|date:'Y-m-d' }}" />
+					              <div class="modal-footer">
+						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						            <button class="btn btn-primary">{% trans "Invite helper" %}</button>
 					              </div>
 
 
@@ -325,61 +374,6 @@
 						{% endfor %}
 					</ul>
 
-				{% if process.intellectual_requirements %}
-					<div>
-						<h4>{% trans "Design inputs" %}:</h4>
-						{% for item in process.intellectual_requirements %}
-						<ul>
-						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}
-						        {% if item.is_deletable %}
-								    <form style="display: inline;" 
-								        class="delete-form" 
-								        id="deleteForm{{ item.id }}" 
-								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
-								        method="POST" >
-					                    {% csrf_token %}
-                                    	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
-		                                <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
-		                                <input type="hidden" id="eventDate{{ item.id }}" name="eventDate" value="{{ event_date|date:'Y-m-d' }}" />
-		                                <input type="hidden" name="reload" value="pastwork" />
-					                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
-				                    </form>
-								{% endif %}
-						    </li>
-							<ul>
-							{% if item.onhand %}
-								{% for resource in item.onhand_with_fulfilled_quantity %}
-									<li>
-										<b>{% trans "Available" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b> <span id="onhand-{{resource.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
-										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
-									</li>
-								{% endfor %}
-							{% elif item.resource_type.producing_commitments %}
-								{% for ct in item.resource_type.producing_commitments %}
-									<li>
-										<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b>
-										<a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}</a>
-									</li>
-								{% endfor %}
-							{% else %}
-								<li>
-									<b>{% trans "Not purchased yet" %}: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
-								</li>
-		                        <ul>
-									{% for source in item.resource_type.producing_agent_relationships %}
-										<li>
-											{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-										</li>
-									{% endfor %}
-								</ul>
-							{% endif %}
-							
-							</ul>
-						</ul>
-						{% endfor %}
-						
-					</div>
-				{% endif %}
 
 				{% if process.citation_requirements %}
 					<div>
@@ -427,14 +421,14 @@
 					</div>
 				{% endif %}
 							  
-				{% if process.material_requirements %}
+				{% if process.consumed_input_requirements %}
 					<div>
-						<h4>{% trans "Material inputs" %}:</h4>
-						{% for item in process.material_requirements %}
+						<h4>{% trans "Consumed inputs" %}:</h4>
+						{% for item in process.consumed_input_requirements %}
 						<ul>
-						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}
-						        {% if item.is_deletable %}
-								    <form style="display: inline;" 
+						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} 
+								{% if item.is_deletable %}
+							        <form style="display: inline;" 
 								        class="delete-form" 
 								        id="deleteForm{{ item.id }}" 
 								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
@@ -447,7 +441,7 @@
 					                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
 				                    </form>
 								{% endif %}
-						    </li>
+					        </li>
 							<ul>
 							{% if item.onhand %}
 								{% for resource in item.onhand_with_fulfilled_quantity %}
@@ -484,68 +478,13 @@
 					</div>
 				{% endif %}
 
-				{% if process.tool_requirements %}
+
+				{% if process.used_input_requirements %}
 					<div>
-						<h4>{% trans "Tool inputs" %}:</h4>
-						{% for item in process.tool_requirements %}
+						<h4>{% trans "Used inputs" %}:</h4>
+						{% for item in process.used_input_requirements %}
 		                    <ul>
-				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}
-				                    {% if item.is_deletable %}
-								        <form style="display: inline;" 
-								            class="delete-form" 
-								            id="deleteForm{{ item.id }}" 
-								            action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
-								            method="POST" >
-					                        {% csrf_token %}
-                                        	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
-		                                    <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
-		                                    <input type="hidden" id="eventDate{{ item.id }}" name="eventDate" value="{{ event_date|date:'Y-m-d' }}" />
-		                                    <input type="hidden" name="reload" value="pastwork" />
-					                        <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
-				                        </form>
-								{% endif %}
-				                </li>
-								<ul>
-									{% if item.onhand %}
-										{% for resource in item.onhand_with_fulfilled_quantity %}
-											<li>
-												<b>{% trans "Onhand" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b></br>
-												{% trans "Used" %}: <input class="input-mini time-used" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
-											</li>
-										{% endfor %}
-
-									{% elif item.resource_type.producing_commitments %}
-										{% for ct in item.resource_type.producing_commitments %}
-											<li>
-												<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b>
-												<a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}</a>
-											</li>
-										{% endfor %}
-									{% else %}
-										<li>
-											<b>{% trans "Not purchased yet" %}: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
-										</li>
-						                <ul>
-											{% for source in item.resource_type.producing_agent_relationships %}
-												<li>
-													{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-												</li>
-											{% endfor %}
-										</ul>
-									{% endif %}
-
-								</ul>
-							</ul>
-						{% endfor %}
-					</div>
-				{% endif %}
-
-				{% if process.space_requirements %}
-					<div>
-						<h4>{% trans "Space inputs" %}:</h4>
-						{% for item in process.space_requirements %}
-		                    <ul>
-				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }}
+				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} 
 				                    {% if item.is_deletable %}
 								        <form style="display: inline;" 
 								            class="delete-form" 
@@ -560,7 +499,7 @@
 					                        <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
 				                        </form>
 								    {% endif %}
-				                </li>
+			                    </li>
 								<ul>
 									{% if item.onhand %}
 										{% for resource in item.onhand_with_fulfilled_quantity %}
@@ -596,21 +535,6 @@
 					</div>
 				{% endif %}
 
-				{% if others_working %}
-					<h4 style="margin-left: 1em; margin-bottom: 2px;" >{% trans "Others working on this process" %}:</h4>
-					<ul>
-						{% for item in others_working %}
-							<li>
-								<b>{{ item.from_agent }}</b> {% trans "doing" %} {{ item.resource_type }}
-                                {% if item.has_labnotes %}
-									<a href="{% url labnote commitment_id=item.id %}" target="_blank">Labnotes</a>
-								{% endif %}
-							</li>
-
-						{% endfor %}
-					</ul>
-
-				{% endif %}
 
 				{% if other_work_reqs %}
 					<h4 style="margin-left: 1em; margin-bottom: 2px;" >{% trans "Other work requirements" %}:</h4>
@@ -815,6 +739,7 @@
 
 		function getUnit(event)
 		{
+		    $(".chzn-select").trigger("liszt:updated");
 		    var resourceId = event.target.value;
 		    if (resourceId)
 		    {
@@ -952,6 +877,17 @@
 			},
 		});
 
+		$( "#addWorkForm" ).validate({
+			rules: {
+			    'input-resource_type': {
+                    required: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
 
         {% for item in process.outgoing_commitments %}
 		    $("#detailForm{{ item.id }}").submit(function(event) {
@@ -1076,6 +1012,26 @@
             }
             {
                 $('#inputRetrying').prop('value', 0);
+            }
+            return true;
+		});
+
+		$("#addWorkForm").submit(function(event) {
+		    $('#workDate').prop('value', eventDate);
+            if(running)
+            {
+                $('#workRunning').prop('value', 1);
+            }
+            else
+            {
+                $('#workRunning').prop('value', 0);
+            }
+            if (retrying)
+            {
+                $('#workRetrying').prop('value', 1);
+            }
+            {
+                $('#workRetrying').prop('value', 0);
             }
             return true;
 		});
@@ -1296,7 +1252,7 @@
 		{
 			if (!retrying)
 			{
-				retryTimer = setInterval(retrySaving, 30 * 1000);
+				//retryTimer = setInterval(retrySaving, 30 * 1000);
                 retrying = true;
 			}
 		}

@@ -59,7 +59,7 @@
 </style>
 {% endblock %}
 
-{% block body_class %}work{% endblock %}
+{% block body_class %}x{% endblock %}
 
 {% block body_base %}
     <div class="container">
@@ -146,14 +146,12 @@
                             <input type="submit" name="edit-process" value="{% trans 'Change process' %}" class="btn btn-primary" />
                             </br>Create R&D planned work and edit the process details.
                         </p>
-                        <p id="startNow" >
-                            <input type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" />
+                        <p>
+                            <input id="startNow" type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" disabled />
                             </br>Go to Labnotes for working now. (You must select one type of work.)
                         </p>
-
-                        <p id="pastWork" >
-                            <input type="submit" name="past" value="{% trans 'Log past work' %}" 
-                            class="btn btn-primary" />
+                        <p>
+                            <input id="pastWork" type="submit" name="past" value="{% trans 'Log past work' %}"                           class="btn btn-primary" disabled />
                             </br>Go to Labnotes for past work. (You must select one type of work.)
                         </p>
                     </div>
@@ -179,9 +177,7 @@
 
     <script type="text/javascript">
 
-    var gotWork = false;
-
-	$(document).ready(function(){
+ 	$(document).ready(function(){
 
 	    $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
@@ -226,38 +222,19 @@
 			},
 		});
 
-	    //$("#id_type_of_work").change(workChanged);
-
-	    //function workChanged(event)
-		//{
-        //    var typeOfWork = event.target.value;
-        //    if (typeOfWork)
-        //    {
-	    //        gotWork = true;                
-        //    }
-        //    else
-        //    {
-	    //        gotWork = false;
-        //    }
-        //    resetButtons();
-       // }
-
         $(".work").click(function() { 
-            var numberOfWorks = 0;
-            for (var i = 0; i < form.elements.length; i++ ) {
-              if (form.elements[i].type == 'checkbox') {
-                 if (form.elements[i].hasClass('work') {
-                    if (form.elements[i].checked == true) {
-                       numberOfWorks += 1;
-                 }
-               }
+            var numberChecked = 0;
+            var works = $('.work');
+            var gotWork = false;
+            for (i in works) {
+                if (works[i].checked == true) {
+                    numberChecked += 1;
+                }
             }
-            if (numberOfWorks == 1) {
-               gotWork = true;
-            } else {
-               gotWork = false;
+            if (numberChecked == 1) {
+               var gotWork = true;
             }
-            resetButtons();
+            resetButtons(gotWork);
         });
 
         //{% for recipe in related_recipes %}
@@ -269,7 +246,8 @@
 
 	}); // end document.ready
 
-    function resetButtons()
+
+    function resetButtons(gotWork)
 	{
         if (gotWork)
         {

@@ -28,7 +28,7 @@
 	width: 32em;
     height: 40px;
 }
-
+/*
 .formset-top
 {
 	padding-top: 1em;
@@ -39,6 +39,21 @@
 	border-bottom-style:solid;
 	border-width:1px;
 	border-color:lightgrey;
+}*/
+.selected {
+    font-size: 1.2em;
+}
+.section {
+    color: firebrick;
+}
+.select-buttons {
+    margin-left: 75px;
+}
+.select-buttons p {
+    margin-top: 20px;
+}
+#div_id_start_date {
+    margin-top: 20px
 }
 
 </style>
@@ -48,104 +63,60 @@
 
 {% block body_base %}
     <div class="container">
-        {% include "_messages.html" %}
-	<div>
+      {% include "_messages.html" %}
+	  <div>
 		<legend>{% trans "R&D Production" %}</legend>
 		<form class="form-horizontal" id="processForm" method="POST" action=".">
-			{% csrf_token %}
-		<div class="row-fluid">
+	      {% csrf_token %}
+		  <div class="row-fluid">
 			<div class="span12">
+                {% if selected_pattern %}
+                    <p class="selected">
+                    <i>Chosen:</i>&nbsp;&nbsp;
+                    {% trans "Process pattern " %} 
+	                <input type="text" name="selected-pattern~{{ selected_pattern.id }}" value="{{ selected_pattern }}"
+                        readonly="readonly" />&nbsp;&nbsp; 
+                    {% trans "Project " %} 
+	                <input type="text" name="selected-project~{{ selected_project.id }}" value="{{ selected_project }}"
+                        readonly="readonly" /> 
+                    </p>
+                {% else %}
+                    {% trans "Choose a process pattern " %} {{ pattern_form.pattern }} &nbsp; 
+                    {% trans "Choose a project " %} {{ project_form.project }} &nbsp;&nbsp; 
+	                <input type="submit" name="get-related" value="{% trans 'Get resource types' %}" class="btn btn-primary" />
+                {% endif %}
+            </div>
+          </div>
 
-			    <table>
-			        <tr>
-			            <td style="white-space:nowrap;" >
-			                {% if selected_name %}
-			                    {% trans "Resource Family Names" %}
-			                {% else %}
-			                    {% trans "Enter one or two Resource Family Names" %} 
-		                    {% endif %}
-	                    </td>
-	                    <td>
-		                    <input type="text" id="resourceName" name="resourceName" value="{{ selected_name }}" 
-		                    {% if  selected_name %} disabled="disabled" {% endif %} /> 
-	                    </td>
-	                    <td>
-	                        <input type="text" id="resourceName2" name="resourceName2" value="{{ selected_name2 }}" 
-	                         {% if  selected_name %} disabled="disabled" {% endif %} />  
-                        </td>
-			            {% if not selected_name %} 
-			                <td>
-			                    <input type="submit" name="get-related" value="{% trans 'Get relatives' %}" class="btn btn-primary" />
-		                    </td>
-			            {% endif %}
-		            </tr>
-		            {% if not selected_name %}
-		                <tr>
-		                    <td>{% trans "(parts of names work, too)" %}</td>
-		                    <td>&nbsp;</td><td>&nbsp;</td>
-	                        <td>{% trans "Finds all related inputs, outputs, citables and resources" %}</td>
-	                    </tr>
-	                {% endif %}
-                </table>
-		                
+		  {% if selected_pattern %}
 
+		    <div class="row-fluid">
+			  <div class="span6">
 			            
-			    {% if selected_name %}
 
-			        {% if related_outputs %}
+	              {% for slot in slots %}
 
-			            <legend>{% trans "Related Output Resource Types" %}:</legend>
+                    <legend class="section"> {{ slot }} </legend>
+                    <div>
+                        {% for item in slot.resource_types %}
+                            <div>
+		                        <p>
+		                            <input type="checkbox" class="{{ slot }}" id="{{ slot }}-{{ item.id }}" name="{{ slot }}~{{ item.name }}" value="{{ item.id }}" /> 
+		                            {{ item }}
+	                            </p>
+                            </div>
+                        {% endfor %}
+                    </div>
 
-			            {% for output in related_outputs %}
+                  {% endfor %}
+              </div>
+              <div class="span6">
 
-    		                <p>
-    		                    <input type="checkbox" class="output" id="output-{{ output.id }}" name="output-{{ output.name }}" value="{{ output.id }}" /> 
-			                    {{ output.label }}
-		                    </p>
-
-			            {% endfor %}
-
-		            {% endif %}
-
-		            {% if related_citables %}
-			        
-				        <legend>{% trans "Related Citable Resource Types" %}:</legend>
-
-				        {% for citable in related_citables %}
-
-				            <p>
-    		                    <input type="checkbox" class="citable" id="citable-{{ citable.id }}" name="citable-{{ citable.name }}" value="{{ citable.id }}" /> 
-			                    {{ citable.label }}
-		                    </p>
-
-				        {% endfor %}
-
-			        {% endif %}
-
-			        {% if related_inputs %}
-			        
-				        <legend>{% trans "Related Input Resource Types" %}:</legend>
-
-				        {% for inp in related_inputs %}
-
-				            <p>
-    		                    <input type="checkbox" class="input" id="input-{{ inp.id }}" name="input-{{ inp.name }}" value="{{ inp.id }}" /> 
-			                    {{ inp.label }}
-		                    </p>
-
-				        {% endfor %}
-
-			        {% endif %}
-
-			        {% if work_form %}
-			            <div style="margin-top: 2em; margin-bottom: 2em;" >
-    			            {% trans "My type of work" %} {{ work_form.type_of_work }} {% trans "Project" %} {{ project_form.project }}
-			            </div>
-			        {% endif %}
+{% comment %}
+			
+				    <legend class="section">{% trans "recipes" %}:</legend>
 
 			        {% if related_recipes %}
-				
-				        <legend>{% trans "Related Recipes" %}:</legend>
 
 				        {% for recipe in related_recipes %}
 
@@ -163,49 +134,50 @@
 				        {% endfor %}
 
 			        {% endif %}
-			        <div class="row-fluid">
-			            <div class="span8">
-			                <div class="form-actions">
+{% endcomment %}
+                    
+                    {{ date_form|as_bootstrap }}
+                    <div class="select-buttons">
+                        <p>
+                            <input type="submit" name="create-process" value="{% trans 'Create order' %}" class="btn btn-primary" />
+                            </br>Create R&D planned work using the selected resource types.
+                        </p>
+                        <p>
+                            <input type="submit" name="edit-process" value="{% trans 'Change order' %}" class="btn btn-primary" />
+                            </br>Create R&D planned work and add to the planned process.
+                        </p>
+    {% comment %}
+                        <p id="fastpath">
+                            <span style="color: red;">
+                                To access the fast path buttons to labnotes, you must select one type of work.
+                            </span>
+                        </p>
+    {% endcomment %}
+                        <p id="startNow" >
+                            <input type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" />
+                            </br>Go to Labnotes for working now. (You must select one type of work.)
+                        </p>
 
-                            <table class="table" >
-                                <tr>
-                                    <td>
-			                            <input type="submit" name="edit-process" value="{% trans 'Plan work' %}" class="btn btn-primary" />
-			                            </br>Create new resource types or change process info.
-		                            </td>
-		                            <td id="fastpath">
-		                                <span style="color: red;">
-		                                    To access the fast path buttons, you must select a type of work, <br/>
-		                                    and either a recipe or a project.
-		                                </span>
-		                            </td>
-		                            <td id="startNow" >
-			                            <input type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" />
-			                            </br>Go to Labnotes for working now.
-		                            </td>
-		                            <td id="pastWork" >
-			                            <input type="submit" name="past" value="{% trans 'Log past work' %}" 
-			                            class="btn btn-primary" />
-			                            </br>Go to Labnotes for past work.
-		                            </td>
-			                    </tr>
+                        <p id="pastWork" >
+                            <input type="submit" name="past" value="{% trans 'Log past work' %}" 
+                            class="btn btn-primary" />
+                            </br>Go to Labnotes for past work. (You must select one type of work.)
+                        </p>
+                    </div>
 
-			                </table>
-			                </div>
-		                </div>
-	                </div>
+               </div>
+            </div>
+   
+	      {% endif %}
 
-				    
-			    {% endif %}
-
-			</div>
-		</div>
 		</form>
-    </div>
+      </div>
     </div>
 {% endblock %}
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	//<script src="{% static 'js/chosen.jquery.js' %}"></script>
 	
 {% endblock %}
 
@@ -215,22 +187,62 @@
     <script type="text/javascript">
 
     var gotWork = false;
-    var gotRecipe = false;
-    var gotProject = false;
+    //var gotRecipe = false;
+    //var gotProject = false;
 
 	$(document).ready(function(){
 
-	    var resourceNames = []
-	    {% for rname in resource_names %}
-            resourceNames.push("{{ rname }}");
-	    {% endfor %}
-	    $( "#resourceName" ).autocomplete({source: resourceNames});
-	    $( "#resourceName2" ).autocomplete({source: resourceNames});
+	    $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
 
-	    $('#startNow').hide();
-	    $('#pastWork').hide();
+        //$(".chzn-select").chosen();
 
-	    $("#id_type_of_work").change(workChanged);
+        $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+        $( "#id_end_date" ).datepicker({ 
+			dateFormat: "yy-mm-dd",
+    		onClose: function() {
+      			$( this ).valid();
+			}
+		 });
+
+		jQuery.validator.addMethod("equalToOrGreaterThan", 
+		function(value, element, params) {
+
+			if (!/Invalid|NaN/.test(new Date(value))) {
+				return new Date(value) >= new Date($(params).val());
+			}
+
+			return isNaN(value) && isNaN($(params).val()) 
+				|| (Number(value) >= Number($(params).val())); 
+		},'Must be equal to or greater than start date.');
+
+		$( "#processForm" ).validate({
+			rules: {
+				start_date: {
+					required: true,
+					date: true
+				},
+				end_date: {
+					date: true,
+					equalToOrGreaterThan: '#id_start_date'
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+	    //var resourceNames = []
+	    //{% for rname in resource_names %}
+        //    resourceNames.push("{{ rname }}");
+	    //{% endfor %}
+	    //$( "#resourceName" ).autocomplete({source: resourceNames});
+	    //$( "#resourceName2" ).autocomplete({source: resourceNames});
+
+	    //$("#id_type_of_work").change(workChanged);
 
 	    function workChanged(event)
 		{
@@ -246,28 +258,42 @@
             resetButtons();
         }
 
-        $("#id_project").change(projectChanged);
-
-	    function projectChanged(event)
+	    function workChanged(event)
 		{
-            var project = event.target.value;
-            if (project)
+            var typeOfWork = event.target.value;
+            if (typeOfWork)
             {
-	            gotProject = true;                
+	            gotWork = true;                
             }
             else
             {
-	            gotProject = false;
+	            gotWork = false;
             }
             resetButtons();
         }
 
-        {% for recipe in related_recipes %}
-            $("#recipe-{{ recipe.id }}").click(function() {
-                gotRecipe = true;
-                resetButtons();
-            });
-        {% endfor %}
+        //$("#id_project").change(projectChanged);
+
+	    //function projectChanged(event)
+		//{
+         //   var project = event.target.value;
+         //   if (project)
+         //   {
+	     //       gotProject = true;                
+         //   }
+         //   else
+         //   {
+	     //       gotProject = false;
+         //   }
+         //   resetButtons();
+        //}
+
+        //{% for recipe in related_recipes %}
+        //    $("#recipe-{{ recipe.id }}").click(function() {
+        //        gotRecipe = true;
+        //        resetButtons();
+        //    });
+        //{% endfor %}
 
 
 
@@ -275,20 +301,16 @@
 
     function resetButtons()
 	{
-	    var fastPath = (gotWork && (gotRecipe || gotProject))
-        if (fastPath)
+        if (gotWork)
         {
-            $('#startNow').show();
-            $('#pastWork').show();
-            $('#fastpath').hide();               
+            $('#startNow').enable();
+            $('#pastWork').enable();
         }
         else
         {
-            $('#startNow').hide();
-            $('#pastWork').hide(); 
-            $('#fastpath').show(); 
+            $('#startNow').disable();
+            $('#pastWork').disable(); 
         }
-
     }
 	
     </script>

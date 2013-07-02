@@ -139,20 +139,13 @@
                     {{ date_form|as_bootstrap }}
                     <div class="select-buttons">
                         <p>
-                            <input type="submit" name="create-process" value="{% trans 'Create order' %}" class="btn btn-primary" />
+                            <input type="submit" name="create-process" value="{% trans 'Create process & exit' %}" class="btn btn-primary" />
                             </br>Create R&D planned work using the selected resource types.
                         </p>
                         <p>
-                            <input type="submit" name="edit-process" value="{% trans 'Change order' %}" class="btn btn-primary" />
-                            </br>Create R&D planned work and add to the planned process.
+                            <input type="submit" name="edit-process" value="{% trans 'Change process' %}" class="btn btn-primary" />
+                            </br>Create R&D planned work and edit the process details.
                         </p>
-    {% comment %}
-                        <p id="fastpath">
-                            <span style="color: red;">
-                                To access the fast path buttons to labnotes, you must select one type of work.
-                            </span>
-                        </p>
-    {% endcomment %}
                         <p id="startNow" >
                             <input type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" />
                             </br>Go to Labnotes for working now. (You must select one type of work.)
@@ -177,7 +170,7 @@
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-	//<script src="{% static 'js/chosen.jquery.js' %}"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 	
 {% endblock %}
 
@@ -187,8 +180,6 @@
     <script type="text/javascript">
 
     var gotWork = false;
-    //var gotRecipe = false;
-    //var gotProject = false;
 
 	$(document).ready(function(){
 
@@ -235,58 +226,39 @@
 			},
 		});
 
-	    //var resourceNames = []
-	    //{% for rname in resource_names %}
-        //    resourceNames.push("{{ rname }}");
-	    //{% endfor %}
-	    //$( "#resourceName" ).autocomplete({source: resourceNames});
-	    //$( "#resourceName2" ).autocomplete({source: resourceNames});
-
 	    //$("#id_type_of_work").change(workChanged);
 
-	    function workChanged(event)
-		{
-            var typeOfWork = event.target.value;
-            if (typeOfWork)
-            {
-	            gotWork = true;                
-            }
-            else
-            {
-	            gotWork = false;
-            }
-            resetButtons();
-        }
-
-	    function workChanged(event)
-		{
-            var typeOfWork = event.target.value;
-            if (typeOfWork)
-            {
-	            gotWork = true;                
-            }
-            else
-            {
-	            gotWork = false;
-            }
-            resetButtons();
-        }
-
-        //$("#id_project").change(projectChanged);
-
-	    //function projectChanged(event)
+	    //function workChanged(event)
 		//{
-         //   var project = event.target.value;
-         //   if (project)
-         //   {
-	     //       gotProject = true;                
-         //   }
-         //   else
-         //   {
-	     //       gotProject = false;
-         //   }
-         //   resetButtons();
-        //}
+        //    var typeOfWork = event.target.value;
+        //    if (typeOfWork)
+        //    {
+	    //        gotWork = true;                
+        //    }
+        //    else
+        //    {
+	    //        gotWork = false;
+        //    }
+        //    resetButtons();
+       // }
+
+        $(".work").click(function() { 
+            var numberOfWorks = 0;
+            for (var i = 0; i < form.elements.length; i++ ) {
+              if (form.elements[i].type == 'checkbox') {
+                 if (form.elements[i].hasClass('work') {
+                    if (form.elements[i].checked == true) {
+                       numberOfWorks += 1;
+                 }
+               }
+            }
+            if (numberOfWorks == 1) {
+               gotWork = true;
+            } else {
+               gotWork = false;
+            }
+            resetButtons();
+        });
 
         //{% for recipe in related_recipes %}
         //    $("#recipe-{{ recipe.id }}").click(function() {
@@ -295,21 +267,19 @@
         //    });
         //{% endfor %}
 
-
-
 	}); // end document.ready
 
     function resetButtons()
 	{
         if (gotWork)
         {
-            $('#startNow').enable();
-            $('#pastWork').enable();
+            $('#startNow').removeAttr("disabled");
+            $('#pastWork').removeAttr("disabled");
         }
         else
         {
-            $('#startNow').disable();
-            $('#pastWork').disable(); 
+            $('#startNow').attr("disabled", "disabled");
+            $('#pastWork').attr("disabled", "disabled"); 
         }
     }
 	

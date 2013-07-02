@@ -4018,7 +4018,7 @@ def process_selections(request, rand=0):
     selected_pattern = None
     selected_project = None
     #use_radio = True
-    pattern_form = PatternSelectionForm()
+    pattern_form = PatternProdSelectionForm()
     project_form = ProjectSelectionForm()
     init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
     date_form = DateSelectionForm(data=request.POST or None)
@@ -4088,20 +4088,22 @@ def process_selections(request, rand=0):
                 #    recipe_id = int(value[0])
                 #    pt = ProcessType.objects.get(id=recipe_id)
                 #    pts.append(pt)
-            #demand = None
-            #if rand:
 
+            demand = None
+            #removed the option for non-r&d order because then it doesn't bring the order into the process edit page
+            #todo: may want to remove from the rest of the code after discussion (note it is still an input parameter here and other places)
+            #if rand: 
             demand = Order(
                 order_type="rand",
                 order_date=today,
                 due_date=end_date,
                 created_by=request.user)
             demand.save()
-
             #else:
             #    demand = Order(
             #        order_type="holder",
-            #        due_date=today,
+            #        order_date=today,
+            #        due_date=end_date,
             #        created_by=request.user)
             #    demand.save()
 
@@ -4250,8 +4252,6 @@ def process_selections(request, rand=0):
                 #import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 if agent:
-                    #rt_id = work_form.cleaned_data["type_of_work"]
-                    #rt = EconomicResourceType.objects.get(id=rt_id)
                     et = selected_pattern.event_type_for_resource_type("work", rt)
                     if et:
                         work_commitment = Commitment(

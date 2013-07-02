@@ -502,6 +502,7 @@ class WorkSelectionForm(forms.Form):
 class ProjectSelectionForm(forms.Form):
     project = forms.ModelChoiceField(
         queryset=Project.objects.all(),
+        empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
 
@@ -509,6 +510,13 @@ class ProjectSelectionForm(forms.Form):
 class PatternSelectionForm(forms.Form):
     pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.all(),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+
+class PatternProdSelectionForm(forms.Form):
+    pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.production_patterns(),
+        empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
 

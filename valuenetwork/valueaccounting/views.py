@@ -4262,24 +4262,25 @@ def process_selections(request, rand=0):
                         explode_dependent_demands(commitment, request.user)
             for rt in work_rts:
                 #import pdb; pdb.set_trace()
-                agent = get_agent(request)
-                if agent:
-                    et = selected_pattern.event_type_for_resource_type("work", rt)
-                    if et:
-                        work_commitment = Commitment(
-                            process=process,
-                            independent_demand=demand,
-                            project=process.project,
-                            event_type=et,
-                            from_agent=agent,
-                            start_date=start_date,
-                            due_date=end_date,
-                            resource_type=rt,
-                            quantity=Decimal("1"),
-                            unit_of_quantity=rt.unit,
-                            created_by=request.user,
-                        )
-                        work_commitment.save()
+                agent = None
+                if past or labnotes:
+                    agent = get_agent(request)
+                et = selected_pattern.event_type_for_resource_type("work", rt)
+                if et:
+                    work_commitment = Commitment(
+                        process=process,
+                        independent_demand=demand,
+                        project=process.project,
+                        event_type=et,
+                        from_agent=agent,
+                        start_date=start_date,
+                        due_date=end_date,
+                        resource_type=rt,
+                        quantity=Decimal("1"),
+                        unit_of_quantity=rt.unit,
+                        created_by=request.user,
+                    )
+                    work_commitment.save()
 
             #import pdb; pdb.set_trace()
             if done_process: 

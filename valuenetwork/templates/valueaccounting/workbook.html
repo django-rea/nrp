@@ -135,8 +135,8 @@
 				            {% trans "Close" %}
 			            </a>
 			        </div>
-</div>
-<div class="row-fluid">
+                </div>
+                <div class="row-fluid">
 			        <div class="span10">
 				        <button role="button" id="startButton" name="start" class="btn btn-info" >{% trans "Start" %}</button>
 				        <button role="button" id="stop" name="stop"  class="btn btn-info" disabled="disabled" >{% trans "Stop" %}</button>
@@ -373,62 +373,7 @@
                     
 						{% endfor %}
 					</ul>
-{% comment  %}
-				{% if process.intellectual_requirements %}
-					<div>
-						<h4>{% trans "Design inputs" %}:</h4>
-						{% for item in process.intellectual_requirements %}
-						<ul>
-						    <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} 
-						        {% if item.is_deletable %}
-								    <form style="display: inline;" 
-								        class="delete-form" 
-								        id="deleteForm{{ item.id }}" 
-								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
-								        method="POST" >
-					                    {% csrf_token %}
-                                    	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
-		                                <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
-		                                <input type="hidden" name="reload" value="labnotes" />
-					                    <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
-				                    </form>
-								{% endif %}
-					        </li>
-							<ul>
-							{% if item.onhand %}
-								{% for resource in item.onhand_with_fulfilled_quantity %}
-									<li>
-										<b>{% trans "Available" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b> <span id="onhand-{{resource.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
-										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
-									</li>
-								{% endfor %}
-							{% elif item.resource_type.producing_commitments %}
-								{% for ct in item.resource_type.producing_commitments %}
-									<li>
-										<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b>
-										<a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}</a>
-									</li>
-								{% endfor %}
-							{% else %}
-								<li>
-									<b>{% trans "Not purchased yet" %}: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
-								</li>
-		                        <ul>
-									{% for source in item.resource_type.producing_agent_relationships %}
-										<li>
-											{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-										</li>
-									{% endfor %}
-								</ul>
-							{% endif %}
-							
-							</ul>
-						</ul>
-						{% endfor %}
-						
-					</div>
-				{% endif %}
-{% endcomment  %}
+
 
 				{% if process.citation_requirements %}
 					<div>
@@ -530,63 +475,6 @@
 						
 					</div>
 				{% endif %}
-
-{% comment  %}
-				{% if process.tool_requirements %}
-					<div>
-						<h4>{% trans "Tool inputs" %}:</h4>
-						{% for item in process.tool_requirements %}
-		                    <ul>
-				                <li><b>{{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} 
-				                    {% if item.is_deletable %}
-								        <form style="display: inline;" 
-								            class="delete-form" 
-								            id="deleteForm{{ item.id }}" 
-								            action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
-								            method="POST" >
-					                        {% csrf_token %}
-                                        	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
-		                                    <input type='hidden' id='deleteRetrying{{ item.id }}' name='wasRetrying' value='' />
-		                                    <input type="hidden" name="reload" value="labnotes" />
-					                        <button class="btn btn-warning btn-mini" title="Delete" >{% trans "X" %}</button>
-				                        </form>
-								    {% endif %}
-			                    </li>
-								<ul>
-									{% if item.onhand %}
-										{% for resource in item.onhand_with_fulfilled_quantity %}
-											<li>
-												<b>{% trans "Onhand" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b></br>
-												{% trans "Used" %}: <input class="input-mini time-used" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
-											</li>
-										{% endfor %}
-
-									{% elif item.resource_type.producing_commitments %}
-										{% for ct in item.resource_type.producing_commitments %}
-											<li>
-												<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b>
-												<a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}</a>
-											</li>
-										{% endfor %}
-									{% else %}
-										<li>
-											<b>{% trans "Not purchased yet" %}: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
-										</li>
-						                <ul>
-											{% for source in item.resource_type.producing_agent_relationships %}
-												<li>
-													{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-												</li>
-											{% endfor %}
-										</ul>
-									{% endif %}
-
-								</ul>
-							</ul>
-						{% endfor %}
-					</div>
-				{% endif %}
-{% endcomment  %}
 
 
 				{% if process.used_input_requirements %}

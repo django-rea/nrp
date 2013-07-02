@@ -2229,14 +2229,14 @@ class EconomicEvent(models.Model):
         from_agt = 'Unassigned'
         if self.from_agent:
             from_agt = self.from_agent.name
-            if self.commitment:
-                relationship = self.commitment.relationship 
-                art, created = AgentResourceType.objects.get_or_create(
-                    agent=self.from_agent,
-                    resource_type=self.resource_type,
-                    relationship=relationship)
-                art.score += self.quantity
-                art.save()
+            #todo: remove relationship line below
+            art, created = AgentResourceType.objects.get_or_create(
+                agent=self.from_agent,
+                resource_type=self.resource_type,
+                relationship=ResourceRelationship.objects.get(id=1),
+                event_type=self.event_type)
+            art.score += self.quantity
+            art.save()
         slug = "-".join([
             str(self.event_type.name),
             #str(from_agt.id),

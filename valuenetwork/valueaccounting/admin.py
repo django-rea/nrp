@@ -140,8 +140,8 @@ admin.site.register(Order, OrderAdmin)
 
 class ProcessAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
-    list_display = ('name', 'start_date', 'end_date', 'process_type', 'project', 'owner', 'managed_by')
-    list_filter = ['process_type', 'owner', 'managed_by']
+    list_display = ('name', 'start_date', 'end_date', 'finished', 'process_type', 'project', 'owner', 'managed_by')
+    list_filter = ['process_type', 'finished', 'owner', 'managed_by']
     search_fields = ['name', 'process_type__name', 'owner__name', 'managed_by__name']
     inlines = [ CommitmentInline, ]
     

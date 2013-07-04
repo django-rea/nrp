@@ -14,15 +14,15 @@
 
 <style>
 
-.commitmentModal .modal-body {
+.commitmentModal {
 	max-height: 800px;
 }
 
 .commitmentModal {
 	width: 900px;
-	/*margin: -250px 0 0 -450px; */
-        /*margin-left: -450px;*/
 }
+
+
 .btn {
 	margin-right: 2em;
 }
@@ -57,11 +57,15 @@
   height: 200px;
 }
 
-.changeModal, .commitmentModal textarea {
+.changeModal textarea {
   width: 400px;
   height: 200px;
 }
 
+.commitmentModal textarea {
+  width: 400px;
+  height: 200px;
+}
 
 .entry-label {
     text-align: right;
@@ -299,23 +303,6 @@ th, td {
                                             {% endif %}
                                         </div>
 
-                                        <div class="modal hide fade changeModal" id="changeModal-{{ todo.id }}" tabindex="-1" role="dialog" aria-labelledby="change-label" aria-hidden="true">
-		                                    <div class="modal-header">
-			                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-			                                    <h3 id="change-label">{% trans "Change todo" %}</h3>
-		                                    </div>
-		                                    <div class="modal-body">
-
-			                                    <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url todo_change todo_id=todo.id %}" method="POST" >
-				                                    {% csrf_token %}
-				                                    {{ todo.todo_change_form|as_bootstrap }}
-				                                    <input type="hidden" name="next" value="{% url start %}" />
-			                                      <div class="modal-footer">
-				                                    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
-				                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
-			                                      </div>
-			                                    </form>
-	                                      </div>
                                     {% else %}
                                         {% if todo.is_deletable %}
                                             <div class="entry-buttons">
@@ -329,6 +316,25 @@ th, td {
                                     {% endif %}
                                 </td>
                             </tr>   
+                            
+                            <div class="modal hide fade changeModal" id="changeModal-{{ todo.id }}" tabindex="-1" role="dialog" aria-labelledby="change-label" aria-hidden="true">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h3 id="change-label">{% trans "Change todo" %}</h3>
+                                </div>
+                                <div class="modal-body">
+
+                                    <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url todo_change todo_id=todo.id %}" method="POST" >
+	                                    {% csrf_token %}
+	                                    {{ todo.todo_change_form|as_bootstrap }}
+	                                    <input type="hidden" name="next" value="{% url start %}" />
+                                      <div class="modal-footer">
+	                                    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+	                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
+                                      </div>
+                                    </form>
+                              </div>
+                
                             {% if agent == todo.from_agent %}
                                 {% with todo.todo_event as event %}
                                 <tr class="entry-row {{ rowcolors }}" >

@@ -14,11 +14,11 @@
 
 <style>
 
-.commitmentForm .modal-body {
+.commitmentModal .modal-body {
 	max-height: 800px;
 }
 
-.commitmentForm {
+.commitmentModal {
 	width: 900px;
 	/*margin: -250px 0 0 -450px; */
         /*margin-left: -450px;*/
@@ -57,7 +57,7 @@
   height: 200px;
 }
 
-.changeModal textarea {
+.changeModal, .commitmentModal textarea {
   width: 400px;
   height: 200px;
 }
@@ -379,12 +379,12 @@ th, td {
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 									{% if agent %}
 										<div style="display: inline;" >
-											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+											<a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
 												{% trans "Take this task" %}
 											</a>
 										</div>
 
-										<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+										<div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
 											<div class="modal-header">
 												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
@@ -501,12 +501,12 @@ th, td {
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 									{% if agent %}
 										<div style="display: inline;" >
-											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+											<a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
 												{% trans "Take this task" %}
 											</a>
 										</div>
 
-										<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+										<div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
 											<div class="modal-header">
 												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>

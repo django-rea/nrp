@@ -945,7 +945,7 @@ def delete_feature(request, feature_id):
 
 @login_required
 def create_resource_type(request):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     if request.method == "POST":
         form = EconomicResourceTypeForm(request.POST, request.FILES)
         if form.is_valid():

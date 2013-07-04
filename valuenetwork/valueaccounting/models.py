@@ -573,7 +573,6 @@ class EconomicResourceType(models.Model):
         answer = []
         answer.extend(self.producing_process_type_relationships())
         answer.extend(self.producer_relationships())
-        answer.extend(self.distributor_relationships())
         return answer
 
     def xbill_child_object(self):
@@ -1198,8 +1197,8 @@ class ProcessTypeResourceType(models.Model):
         verbose_name=_('process type'), related_name='resource_types')
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='process_types')
-    #relationship = models.ForeignKey(ResourceRelationship,
-    #    verbose_name=_('relationship'), related_name='process_resource_types')
+    relationship = models.ForeignKey(ResourceRelationship,
+        verbose_name=_('relationship'), related_name='process_resource_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='process_resource_types')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
@@ -1231,7 +1230,7 @@ class ProcessTypeResourceType(models.Model):
            abbrev = ""
            if self.unit_of_quantity:
                abbrev = self.unit_of_quantity.abbrev
-           return " ".join([self.relationship.name, str(self.quantity), abbrev])
+           return " ".join([self.event_type.label, str(self.quantity), abbrev])
 
     def xbill_explanation(self):
         if self.event_type.relationship == 'out':

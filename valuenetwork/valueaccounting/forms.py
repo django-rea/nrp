@@ -434,6 +434,32 @@ class WorkCommitmentForm(forms.ModelForm):
             self.fields["resource_type"].queryset = pattern.work_resource_types()
 
 
+class ProcessWorkForm(forms.ModelForm):
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
+        label="Type of work",
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(required=True,
+        widget=DecimalDurationWidget,
+        label="Estimated time",
+        help_text="hours, minutes")
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+   
+    class Meta:
+        model = Commitment
+        fields = ('resource_type','quantity', 'description')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(ProcessWorkForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.work_resource_types()
+
+
 class WorkEventChangeForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

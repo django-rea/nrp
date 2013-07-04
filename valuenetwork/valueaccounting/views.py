@@ -3273,6 +3273,18 @@ class ProcessCitationFormSet(BaseModelFormSet):
             self.forms.append(self._construct_form(i, pattern=self.pattern))
 
 
+class ProcessWorkFormSet(BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        self.pattern = kwargs.pop('pattern', None)
+        super(ProcessWorkFormSet, self).__init__(*args, **kwargs)
+
+    def _construct_forms(self): 
+        self.forms = []
+        #import pdb; pdb.set_trace()
+        for i in xrange(self.total_form_count()):
+            self.forms.append(self._construct_form(i, pattern=self.pattern))
+
+
 @login_required
 def change_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
@@ -3321,6 +3333,18 @@ def change_process(request, process_id):
         queryset=process.citation_requirements(),
         data=request.POST or None,
         prefix='citation',
+        pattern=pattern)
+    WorkFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessWorkForm,
+        formset=ProcessWorkFormSet,
+        can_delete=True,
+        extra=2,
+        )
+    work_formset = WorkFormSet(
+        queryset=process.work_requirements(),
+        data=request.POST or None,
+        prefix='work',
         pattern=pattern)
     InputFormSet = modelformset_factory(
         Commitment,
@@ -3430,7 +3454,40 @@ def change_process(request, process_id):
                         elif ct_from_id:
                             ct = form.save()
                             ct.delete() 
-                        
+
+            for form in work_formset.forms:
+                if form.is_valid():
+                    work_data = form.cleaned_data
+                    if work_data:
+                        hours = work_data["quantity"]
+                        ct_from_id = work_data["id"]
+                        if hours:
+                            rt = work_data["resource_type"]
+                            if rt:
+                                ct = form.save(commit=False)
+                                ct.independent_demand = demand
+                                ct.project = process.project
+                                ct.due_date = process.end_date
+                                if ct_from_id:
+                                    old_ct = Commitment.objects.get(id=ct_from_id.id)
+                                    old_rt = old_ct.resource_type
+                                    if not old_rt == rt:
+                                        event_type = pattern.event_type_for_resource_type("work", rt)
+                                        ct.event_type = event_type
+                                        unit = rt.unit
+                                        ct.unit_of_quantity = unit
+                                        ct.changed_by = request.user
+                                else:
+                                    ct.process = process
+                                    ct.created_by = request.user
+                                    event_type = pattern.event_type_for_resource_type("work", rt)
+                                    ct.event_type = event_type
+                                    unit = rt.unit
+                                    ct.unit_of_quantity = unit
+                                ct.save()
+                        elif ct_from_id:
+                            ct = form.save()
+                            ct.delete() 
 
             for form in input_formset.forms:
                 #import pdb; pdb.set_trace()
@@ -3531,6 +3588,7 @@ def change_process(request, process_id):
         "output_formset": output_formset,
         "citation_formset": citation_formset,
         "input_formset": input_formset,
+        "work_formset": work_formset,
     }, context_instance=RequestContext(request))
 
 def explode_dependent_demands(commitment, user):

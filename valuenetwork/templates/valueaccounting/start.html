@@ -14,6 +14,7 @@
 
 <style>
 
+/*
 .commitmentModal {
 	max-height: 800px;
 }
@@ -21,7 +22,7 @@
 .commitmentModal {
 	width: 900px;
 }
-
+*/
 
 .btn {
 	margin-right: 2em;
@@ -399,7 +400,7 @@ th, td {
 											<div class="modal-body">
 
 												<div class="row-fluid">
-													<div class="span5">
+													<div class="span12">
 														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
 															{% csrf_token %}
 															{{ item.commitment_form|as_bootstrap }}
@@ -411,6 +412,7 @@ th, td {
 														  </div>
 														</form>
 													</div>
+													{% comment %}
 													<div class="span7">
 														<h4>
 															{{ item.resource_type.name }}: {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
@@ -462,6 +464,7 @@ th, td {
 															</ul>
 														{% endfor %}
 													</div>
+													{% endcomment %}
 												</div>
 										  </div>
 
@@ -521,7 +524,7 @@ th, td {
 											<div class="modal-body">
 
 												<div class="row-fluid">
-													<div class="span5">
+													<div class="span12">
 														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
 															{% csrf_token %}
 															{{ item.commitment_form|as_bootstrap }}
@@ -533,6 +536,7 @@ th, td {
 														  </div>
 														</form>
 													</div>
+													{% comment %}
 													<div class="span7">
 														<h4>
 															{{ item.resource_type.name }}: {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
@@ -584,6 +588,7 @@ th, td {
 															</ul>
 														{% endfor %}
 													</div>
+													{% endcomment %}
 												</div>
 										  </div>
 

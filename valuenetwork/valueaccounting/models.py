@@ -1935,7 +1935,7 @@ class Commitment(models.Model):
         super(Commitment, self).save(*args, **kwargs)
 
     def label(self):
-        return self.relationship.get_direction_display()
+        return self.event_type.get_relationship_display()
 
     def feature_label(self):
         if not self.order:

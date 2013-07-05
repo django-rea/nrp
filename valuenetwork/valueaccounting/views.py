@@ -989,12 +989,13 @@ def create_process_type_input(request, process_type_id):
             rt = form.cleaned_data["resource_type"]
             ptrt.process_type=pt
             rel = None
-            #try:
-            #    rel = RR.objects.get(
-            #        materiality=rt.materiality,
-            #        related_to="process",
-            #        direction="in")
+            #todo: remove all rel
+            rel = ResourceRelationship.objects.get(
+                materiality=rt.materiality,
+                related_to="process",
+                direction="in")
             ptrt.relationship = rel
+            ptrt.event_type = rel.event_type
             ptrt.created_by=request.user
             ptrt.save()
             next = request.POST.get("next")
@@ -1014,20 +1015,21 @@ def create_process_type_feature(request, process_type_id):
             rts = pt.produced_resource_types()
             #todo: assuming the feature applies to the first
             # produced_resource_type
+            # and: remove all rel
             if rts:
                 rt = rts[0]
                 feature.product=rt
-                #rel = RR.objects.get(
-                #    materiality=rt.materiality,
-                #    related_to="process",
-                #    direction="in")
+                rel = RR.objects.get(
+                    materiality=rt.materiality,
+                    related_to="process",
+                    direction="in")
                 feature.relationship = rel
             else:
                 #todo: when will we get here? It's a hack.
-                #rel = RR.objects.get(
-                #    materiality="material",
-                #    related_to="process",
-                #    direction="in")
+                rel = RR.objects.get(
+                    materiality="material",
+                    related_to="process",
+                    direction="in")
                 feature.relationship = rel
             feature.created_by=request.user
             feature.save()
@@ -1154,11 +1156,11 @@ def create_agent_resource_type(request, resource_type_id):
             art = form.save(commit=False)
             art.resource_type=rt
             rel = None
-            #try:
-            #    rel = RR.objects.get(
-            #        materiality=rt.materiality,
-            #        related_to="agent",
-            #        direction="out")
+            #todo: remove all rel
+            rel = ResourceRelationship.objects.get(
+                materiality=rt.materiality,
+                related_to="agent",
+                direction="out")
             art.relationship = rel
             art.created_by=request.user
             art.save()
@@ -1196,16 +1198,18 @@ def create_process_type_for_resource_type(request, resource_type_id):
             pt.changed_by=request.user
             pt.save()
             quantity = data["quantity"]
-            #rel = RR.objects.get(
-            #    materiality=rt.materiality,
-            #    related_to="process",
-            #    direction="out")
+            #todo: remove all rel
+            rel = ResourceRelationship.objects.get(
+                materiality=rt.materiality,
+                related_to="process",
+                direction="out")
             unit = rt.unit
             quantity = Decimal(quantity)
             ptrt = ProcessTypeResourceType(
                 process_type=pt,
                 resource_type=rt,
                 relationship=rel,
+                event_type=rel.event_type,
                 unit_of_quantity=unit,
                 quantity=quantity,
                 created_by=request.user,
@@ -1336,11 +1340,11 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             process.save()
+                            #todo: replace rel with pattern
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
                                 event_type=ptrt.relationship.event_type,
-                                relationship=ptrt.relationship,
                                 due_date=order.due_date,
                                 from_agent_type=order.provider.agent_type,
                                 from_agent=order.provider,
@@ -1357,6 +1361,7 @@ def create_order(request):
                             explode_dependent_demands(commitment, request.user)
                             
                         else:
+                            #todo: replace rel with pattern
                             #rel = RR.objects.get(
                             #    materiality=rt.materiality,
                             #    related_to="process",
@@ -1365,7 +1370,6 @@ def create_order(request):
                                 order=order,
                                 independent_demand=order,
                                 event_type=rel.event_type,
-                                relationship=rel,
                                 due_date=order.due_date,
                                 from_agent_type=order.provider.agent_type,
                                 from_agent=order.provider,
@@ -1389,7 +1393,6 @@ def create_order(request):
                                     commitment = Commitment(
                                         independent_demand=order,
                                         event_type=feature.relationship.event_type,
-                                        relationship=feature.relationship,
                                         due_date=process.start_date,
                                         to_agent=order.provider,
                                         resource_type=component,
@@ -1405,7 +1408,6 @@ def create_order(request):
                                     commitment = Commitment(
                                         independent_demand=order,
                                         event_type=feature.relationship.event_type,
-                                        relationship=feature.relationship,
                                         due_date=process.start_date,
                                         to_agent=order.provider,
                                         resource_type=component,
@@ -3616,8 +3618,7 @@ def explode_dependent_demands(commitment, user):
             #todo: get event_type from pattern, remove relationship
             output_commitment = Commitment(
                 independent_demand=demand,
-                event_type=ptrt.relationship.event_type,
-                relationship=ptrt.relationship,
+                event_type=ptrt.event_type,
                 due_date=commitment.due_date,
                 resource_type=rt,
                 process=feeder_process,

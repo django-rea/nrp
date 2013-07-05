@@ -416,7 +416,7 @@ class EconomicResourceType(models.Model):
         verbose_name=_('unit'), related_name="resource_units",
         help_text=_('if this resource has different units of use and inventory, this is the unit of inventory'))
     unit_of_use = models.ForeignKey(Unit, blank=True, null=True,
-        verbose_name=_('unit'), related_name="units_of_use",
+        verbose_name=_('unit of use'), related_name="units_of_use",
         help_text=_('if this resource has different units of use and inventory, this is the unit of use'))
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
@@ -882,8 +882,12 @@ class EconomicResource(models.Model):
                return self.events.filter(event_type__resource_effect='<') 
         return self.events.filter(event_type__resource_effect='+')
 
+    def consuming_events(self):
+        return self.events.filter(event_type__resource_effect='-')
+
     def using_events(self):
-        return []
+        return self.events.filter(event_type__resource_effect='=',
+            event_type__relationship="in")
 
     def is_cited(self):
         ces = self.events.filter(event_type__relationship="cite")

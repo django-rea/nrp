@@ -14,15 +14,16 @@
 
 <style>
 
-.commitmentForm .modal-body {
+/*
+.commitmentModal {
 	max-height: 800px;
 }
 
-.commitmentForm {
+.commitmentModal {
 	width: 900px;
-	/*margin: -250px 0 0 -450px; */
-        /*margin-left: -450px;*/
 }
+*/
+
 .btn {
 	margin-right: 2em;
 }
@@ -62,6 +63,10 @@
   height: 200px;
 }
 
+.commitmentModal textarea {
+  width: 400px;
+  height: 200px;
+}
 
 .entry-label {
     text-align: right;
@@ -300,22 +305,23 @@ th, td {
                                         </div>
 
                                         <div class="modal hide fade changeModal" id="changeModal-{{ todo.id }}" tabindex="-1" role="dialog" aria-labelledby="change-label" aria-hidden="true">
-		                                    <div class="modal-header">
-			                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-			                                    <h3 id="change-label">{% trans "Change todo" %}</h3>
-		                                    </div>
-		                                    <div class="modal-body">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                <h3 id="change-label">{% trans "Change todo" %}</h3>
+                                            </div>
+                                            <div class="modal-body">
 
-			                                    <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url todo_change todo_id=todo.id %}" method="POST" >
-				                                    {% csrf_token %}
-				                                    {{ todo.todo_change_form|as_bootstrap }}
-				                                    <input type="hidden" name="next" value="{% url start %}" />
-			                                      <div class="modal-footer">
-				                                    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
-				                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
-			                                      </div>
-			                                    </form>
-	                                      </div>
+                                                <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url todo_change todo_id=todo.id %}" method="POST" >
+	                                                {% csrf_token %}
+	                                                {{ todo.todo_change_form|as_bootstrap }}
+	                                                <input type="hidden" name="next" value="{% url start %}" />
+                                                  <div class="modal-footer">
+	                                                <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+	                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
+                                                  </div>
+                                                </form>
+                                          </div>
+
                                     {% else %}
                                         {% if todo.is_deletable %}
                                             <div class="entry-buttons">
@@ -329,6 +335,8 @@ th, td {
                                     {% endif %}
                                 </td>
                             </tr>   
+                            
+                
                             {% if agent == todo.from_agent %}
                                 {% with todo.todo_event as event %}
                                 <tr class="entry-row {{ rowcolors }}" >
@@ -379,12 +387,12 @@ th, td {
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 									{% if agent %}
 										<div style="display: inline;" >
-											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+											<a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
 												{% trans "Take this task" %}
 											</a>
 										</div>
 
-										<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+										<div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
 											<div class="modal-header">
 												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
@@ -392,7 +400,7 @@ th, td {
 											<div class="modal-body">
 
 												<div class="row-fluid">
-													<div class="span5">
+													<div class="span12">
 														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
 															{% csrf_token %}
 															{{ item.commitment_form|as_bootstrap }}
@@ -404,6 +412,7 @@ th, td {
 														  </div>
 														</form>
 													</div>
+													{% comment %}
 													<div class="span7">
 														<h4>
 															{{ item.resource_type.name }}: {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
@@ -455,6 +464,7 @@ th, td {
 															</ul>
 														{% endfor %}
 													</div>
+													{% endcomment %}
 												</div>
 										  </div>
 
@@ -501,12 +511,12 @@ th, td {
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 									{% if agent %}
 										<div style="display: inline;" >
-											<a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+											<a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
 												{% trans "Take this task" %}
 											</a>
 										</div>
 
-										<div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+										<div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
 											<div class="modal-header">
 												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 												<h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
@@ -514,7 +524,7 @@ th, td {
 											<div class="modal-body">
 
 												<div class="row-fluid">
-													<div class="span5">
+													<div class="span12">
 														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
 															{% csrf_token %}
 															{{ item.commitment_form|as_bootstrap }}
@@ -526,6 +536,7 @@ th, td {
 														  </div>
 														</form>
 													</div>
+													{% comment %}
 													<div class="span7">
 														<h4>
 															{{ item.resource_type.name }}: {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
@@ -577,6 +588,7 @@ th, td {
 															</ul>
 														{% endfor %}
 													</div>
+													{% endcomment %}
 												</div>
 										  </div>
 

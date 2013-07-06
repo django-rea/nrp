@@ -7,6 +7,16 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.use {
+    margin-left: 4em;
+    font-style: italic;
+}
+
+</style>
+
 {% endblock %}
 
 {% block body_class %}work{% endblock %}
@@ -88,7 +98,7 @@
 				{% if item.onhand %}
 					{% for resource in item.onhand %}
 						<li>
-							<b>{% trans "Onhand" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
+							<b>{% trans "Onhand" %}:</b> <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
 							{% if resource.id in cited_ids %}
 							    <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
 							{% endif %}
@@ -102,9 +112,9 @@
 						
 				{% endif %}
 
-        {% if process.material_requirements %}
-		    <h3 style="margin-bottom: 4px;" >{% trans "Material Requirements" %}:</h3>
-		    {% for item in process.material_requirements %}
+        {% if process.consumed_input_requirements %}
+		    <h3 style="margin-bottom: 4px;" >{% trans "Consumed Input Requirements" %}:</h3>
+		    {% for item in process.consumed_input_requirements %}
 			    <p>
 				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 			    </p>
@@ -112,18 +122,63 @@
                 	{% for resource in item.resource_type.onhand %}
 					    <p style="margin-left: 2em;">
 						    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }}
-                            {% if item.fulfilled_quantity %}
-							    <p style="margin-left: 4em;">
-								    <b>{% trans "Used" %}:</b> {{ item.fulfilled_quantity }}
-							    </p>
-						    {% endif %}
+                            {% for event in resource.consuming_events %}
+                                {% if event.commitment = item %}
+							        <p class="use" >
+								        <b>{% trans "Consumed" %}:</b> {{ event.quantity }} {{ event.event_date }}
+							        </p>
+							    {% endif %}
+						    {% endfor %}
 					    </p>
 				    {% endfor %}
                 {% elif item.fulfilled_quantity %}
 				    <p style="margin-left: 2em;">
 					    <b>{% trans "Onhand" %}:</b> 0 {{ item.unit_of_quantity }}
-					    <p style="margin-left: 4em;">
-						    <b>{% trans "Used" %}:</b> {{ item.fulfilled_quantity }}
+					    <p class="use" >
+						    <b>{% trans "Consumed" %}:</b> {{ item.fulfilled_quantity }}
+					    </p>
+				    </p>
+			    {% elif item.resource_type.producing_commitments %}
+                	{% for ct in item.resource_type.producing_commitments %}
+					    <p style="margin-left: 2em;">
+						    <b>{% trans "Scheduled" %}:</b> 
+						    <a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a>
+					    </p>
+				    {% endfor %}
+			    {% else %}
+				    {% for source in item.resource_type.producing_agent_relationships %}
+					    <p style="margin-left: 2em;">
+						    <b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+					    </p>
+				    {% endfor %}
+			    {% endif %}
+		    {% endfor %}    
+		{% endif %}
+
+		{% if process.used_input_requirements %}
+		    <h3 style="margin-bottom: 4px;" >{% trans "Used Input Requirements" %}:</h3>
+		    {% for item in process.used_input_requirements %}
+			    <p>
+				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+			    </p>
+                {% if item.resource_type.onhand %}
+                	{% for resource in item.resource_type.onhand %}
+					    <p style="margin-left: 2em;">
+						    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }}
+                            {% for event in resource.using_events %}
+                                {% if event.commitment = item %}
+							        <p  class="use" >
+								        <b>{% trans "Used" %}:</b> {{ event.quantity }} {{ item.resource_type.unit_of_use }} {{ event.event_date }}
+							        </p>
+							    {% endif %}
+						    {% endfor %}
+					    </p>
+				    {% endfor %}
+                {% elif item.fulfilled_quantity %}
+				    <p style="margin-left: 2em;">
+					    <b>{% trans "Onhand" %}:</b> 0 {{ item.unit_of_quantity }}
+					    <p class="use" >
+						    <b>{% trans "Used" %}:</b> {{ item.fulfilled_quantity }} {{ item.resource_type.unit_of_use }}
 					    </p>
 				    </p>
 			    {% elif item.resource_type.producing_commitments %}
@@ -190,42 +245,6 @@
 			    {% endif %}
 		    {% endfor %}
 		{% endif %}
-
-        {% if process.tool_requirements %}
-		    <h3 style="margin-bottom: 4px;" >{% trans "Tool Requirements" %}:</h3>
-		    {% for item in process.tool_requirements %}
-			    <p>
-				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-			    </p>
-			    {% for source in item.resource_type.producing_agent_relationships %}
-				    <p style="margin-left: 2em;">
-					    <b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-				    </p>
-			    {% endfor %}
-		    {% endfor %}
-	    {% endif %}
-
-	    {% if process.space_requirements %}
-		    <h3 style="margin-bottom: 4px;" >{% trans "Space Requirements" %}:</h3>
-		    {% for item in process.space_requirements %}
-			    <p>
-				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }}
-			    </p>
-			    {% if item.resource_type.onhand %}
-                	{% for resource in item.resource_type.onhand %}
-					    <p style="margin-left: 2em;">
-						    <b>{% trans "Available" %}:</b> {{ resource.label }}
-                            {% if item.fulfilled_quantity %}
-							    <p style="margin-left: 4em;">
-								    <b>{% trans "Used" %}:</b> {{ item.fulfilled_quantity }}
-							    </p>
-						    {% endif %}
-					    </p>
-				    {% endfor %}
-			    {% endif %}
-
-		    {% endfor %}
-	    {% endif %}
 
 	</div>
     </div>

@@ -25,7 +25,9 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>
-			{% trans "Labnotes for " %} {{ process.name }}  {% trans "from " %} {{ commitment.from_agent.name }}
+			{% trans "Labnotes for " %} 
+			    <a href="{{ process.get_absolute_url }}">{{ process.name }}</a>  
+			    {% trans "from " %} {{ commitment.from_agent.name }}
 			{% if author %}
 			    <a href="{% url work_commitment commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Open Labnotes" %}</a> 
 			    <a class="btn btn-info" href="{% url change_process process_id=commitment.process.id %}">{% trans "Change Process" %}</a>

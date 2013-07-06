@@ -50,10 +50,10 @@
 	            headings.push("{{ heading }}");
 	            columns.push({ readonly: true });
             {% else %}
-		        headings.push("{{ heading.name }}");
+		        headings.push("{{ heading.name|safe }}");
 		        var sources = [""];
 		        {% for fv in heading.values.all %}
-		            sources.push("{{ fv.value }}");
+		            sources.push("{{ fv.value|safe }}");
 	            {% endfor %}
 	            columns.push({ 
 	                type: 'autocomplete',
@@ -67,10 +67,10 @@
             var row = [];
 		    {% for cell in row %}
 		        {% if forloop.first %}
-			        row.push("{{ cell }}");
+			        row.push("{{ cell|safe }}");
 		        {% else %}
 		            {% if cell.facet_value %}
-		                row.push("{{ cell.facet_value.value }}");
+		                row.push("{{ cell.facet_value.value|safe }}");
 	                {% else %}
 	                    row.push("{{ cell }}");
                     {% endif %}

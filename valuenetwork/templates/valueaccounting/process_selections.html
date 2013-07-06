@@ -101,8 +101,11 @@
                         {% for item in slot.resource_types %}
                             <div>
 		                        <p>
-		                            <input type="checkbox" class="{{ slot }}" id="{{ slot }}-{{ item.id }}" name="{{ slot }}~{{ item.name }}" value="{{ item.id }}" /> 
+		                            <input type="checkbox" class="{{ slot }}" id="{{ slot }}-{{ item.id }}" name="{{ slot }}~{{ item.name }}" value="{{ item.id }}" />
 		                            {{ item }}
+                                    {% if slot.relationship == "out" %} 
+                                        &nbsp;&nbsp;(will use recipe)
+                                    {% endif %}
 	                            </p>
                             </div>
                         {% endfor %}
@@ -137,6 +140,7 @@
 {% endcomment %}
                     
                     {{ date_form|as_bootstrap }}
+                    
                     <div class="select-buttons">
                         <p>
                             <input type="submit" name="create-process" value="{% trans 'Create process & exit' %}" class="btn btn-primary" />

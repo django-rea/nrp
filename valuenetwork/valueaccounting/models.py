@@ -631,6 +631,9 @@ class EconomicResourceType(models.Model):
     def facet_list(self):
         return ", ".join([facet.facet_value.__unicode__() for facet in self.facets.all()])
 
+    def facet_values_list(self):
+        return ", ".join([facet.facet_value.value for facet in self.facets.all()])
+
 
 class ResourceTypeFacetValue(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 

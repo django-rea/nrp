@@ -4109,7 +4109,7 @@ def process_selections(request, rand=0):
                     slot.resource_types = selected_pattern.get_resource_types(slot)
             date_form = DateSelectionForm(initial=init)
         else:
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             rp = request.POST
             today = datetime.date.today()
             if date_form.is_valid():
@@ -4305,6 +4305,7 @@ def process_selections(request, rand=0):
         "pattern_form": pattern_form,
         "date_form": date_form,
         "demand_form": demand_form,
+        "rand": rand,
     }, context_instance=RequestContext(request))
 
 

@@ -432,7 +432,7 @@ def log_simple(request):
         return HttpResponseRedirect('/%s/'
             % ('accounting/start')) 
 
-    pattern = PatternUseCase.objects.get(use_case='design').pattern  
+    pattern = PatternUseCase.objects.get(use_case='design').pattern  #assumes only one pattern is assigned to design
 
     output_form = SimpleOutputForm(data=request.POST or None)
     resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
@@ -4081,18 +4081,16 @@ class ResourceType_EventType(object):
 
 @login_required
 def process_selections(request, rand=0):
-    #recipe related code is commented out for now, and also will need to be upgraded if it is put back in
     #import pdb; pdb.set_trace()
     slots = []
-    #related_recipes = []
     resource_types = []
     selected_pattern = None
     selected_project = None
-    #use_radio = True
     pattern_form = PatternProdSelectionForm()
     project_form = ProjectSelectionForm()
     init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
     date_form = DateSelectionForm(data=request.POST or None)
+    demand_form = DemandSelectionForm(data=request.POST or None)
     if request.method == "POST":
         input_resource_types = []
         input_process_types = []
@@ -4109,11 +4107,9 @@ def process_selections(request, rand=0):
                 slots = selected_pattern.event_types()
                 for slot in slots:
                     slot.resource_types = selected_pattern.get_resource_types(slot)
-            #if len(related_recipes) == 1:
-            #    use_radio = False
             date_form = DateSelectionForm(initial=init)
         else:
-            #import pdb; pdb.set_trace()
+            import pdb; pdb.set_trace()
             rp = request.POST
             today = datetime.date.today()
             if date_form.is_valid():
@@ -4122,11 +4118,13 @@ def process_selections(request, rand=0):
             else:
                 start_date = today
                 end_date = today
+            demand = None
+            if demand_form.is_valid():
+                demand = demand_form.cleaned_data["demand"]                
             produced_rts = []
             cited_rts = []
             consumed_rts = []
             used_rts = []
-            #pts = []
             work_rts = []
             for key, value in dict(rp).iteritems():
                 if "selected-project" in key:
@@ -4155,21 +4153,17 @@ def process_selections(request, rand=0):
                     work_id = int(value[0])
                     work_rt = EconomicResourceType.objects.get(id=work_id)
                     work_rts.append(work_rt)
-                #if "recipe" in key:
-                #    recipe_id = int(value[0])
-                #    pt = ProcessType.objects.get(id=recipe_id)
-                #    pts.append(pt)
 
-            demand = None
             #removed the option for non-r&d order because then it doesn't bring the order into the process edit page
             #todo: may want to remove from the rest of the code after discussion (note it is still an input parameter here and other places)
             #if rand: 
-            demand = Order(
-                order_type="rand",
-                order_date=today,
-                due_date=end_date,
-                created_by=request.user)
-            demand.save()
+            if not demand:
+                demand = Order(
+                    order_type="rand",
+                    order_date=today,
+                    due_date=end_date,
+                    created_by=request.user)
+                demand.save()
             #else:
             #    demand = Order(
             #        order_type="holder",
@@ -4186,38 +4180,6 @@ def process_selections(request, rand=0):
                     produced_rts[0].name,
                 ])
 
-            #if len(pts) == 1:
-            #    pt = pts[0]
-            #    process = Process(
-            #        name=name,
-            #        process_type=pt,
-            #        #project=pt.project,
-            #        project=selected_project,
-            #        url=pt.url,
-            #        end_date=today,
-            #        start_date=today,
-            #        created_by=request.user,
-            #    )
-            #    process.save()
-            #else:
-            #    for ptx in pts:
-            #        for rt in ptx.produced_resource_types():
-            #            if rt in produced_rts:
-            #                pt = ptx
-            #    if pt:
-            #        process = Process(
-            #            name=name,
-            #           process_type=pt,
-            #            #project=pt.project,
-            #            project=selected_project,
-            #           url=pt.url,
-            #            end_date=today,
-            #            start_date=today,
-            #            created_by=request.user,
-            #        )
-            #        process.save()
-            #    else:
-
             process = Process(
                 name=name,
                 end_date=end_date,
@@ -4227,27 +4189,7 @@ def process_selections(request, rand=0):
                 project=selected_project
             )
             process.save()
-
-            #if pt:
-            #    resource_types.extend(pt.produced_resource_types())
-            #    for ptrt in pt.consumed_resource_type_relationships():
-            #        rel = ptrt.relationship
-            #        rtype = ptrt.resource_type
-            #        commitment = Commitment(
-            #            process=process,
-            #            independent_demand=demand,
-            #            project=process.project,
-            #            event_type=rel.event_type,
-            #            relationship=rel,
-            #            due_date=today,
-            #            resource_type=rtype,
-            #            quantity=ptrt.quantity,
-            #            unit_of_quantity=ptrt.unit_of_quantity,
-            #            created_by=request.user,
-            #        )
-            #        commitment.save()
-            #        explode_dependent_demands(commitment, request.user)
-         
+        
             #import pdb; pdb.set_trace()      
             for rt in produced_rts:
                 et = selected_pattern.event_type_for_resource_type("out", rt)
@@ -4357,14 +4299,14 @@ def process_selections(request, rand=0):
                             
     return render_to_response("valueaccounting/process_selections.html", {
         "slots": slots,
-        #"related_recipes": related_recipes,
         "selected_pattern": selected_pattern,
         "selected_project": selected_project,
-        #"use_radio": use_radio,
         "project_form": project_form,
         "pattern_form": pattern_form,
         "date_form": date_form,
+        "demand_form": demand_form,
     }, context_instance=RequestContext(request))
+
 
 @login_required
 def resource_facet_table(request):

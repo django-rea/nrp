@@ -46,9 +46,9 @@
 .section {
     color: firebrick;
 }
-.select-buttons {
+/*.select-buttons {
     margin-left: 75px;
-}
+}*/
 .select-buttons p {
     margin-top: 20px;
 }
@@ -102,9 +102,9 @@
                             <div>
 		                        <p>
 		                            <input type="checkbox" class="{{ slot }}" id="{{ slot }}-{{ item.id }}" name="{{ slot }}~{{ item.name }}" value="{{ item.id }}" />
-		                            {{ item }}
-                                    {% if slot.relationship == "out" %} 
-                                        &nbsp;&nbsp;(will use recipe)
+		                            {{ item }} ( {{ item.facet_values_list }} )
+                                    {% if item.producing_process_type_relationships %}
+                                        <br />&nbsp;&nbsp;&nbsp;&nbsp;(will use recipe to create all needed processes and components)
                                     {% endif %}
 	                            </p>
                             </div>
@@ -115,31 +115,11 @@
               </div>
               <div class="span6">
 
-{% comment %}
-			
-				    <legend class="section">{% trans "recipes" %}:</legend>
-
-			        {% if related_recipes %}
-
-				        {% for recipe in related_recipes %}
-
-				            <p>
-				                {% if use_radio %}
-        		                    <input type="radio" class="recipe" id="recipe-{{ recipe.id }}" name="recipe-{{ recipe.name }}" value="{{ recipe.id }}" /> 
-			                        {{ recipe.name }} - {% trans "makes" %} {{ recipe.main_produced_resource_type }}
-			                    {% else %}
-			                        <input type="checkbox" class="recipe" id="recipe-{{ recipe.id }}" name="recipe-{{ recipe.name }}" value="{{ recipe.id }}" /> 
-			                        {{ recipe.name }} - {% trans "makes" %} {{ recipe.main_produced_resource_type }}
-			                    {% endif %}
-		                    </p>
-				            
-
-				        {% endfor %}
-
-			        {% endif %}
-{% endcomment %}
-                    
+                    <hr />
                     {{ date_form|as_bootstrap }}
+                    {{ demand_form|as_bootstrap }}  
+                    (If an R&D order is not selected, a new R&D order will be created automatically.) 
+                    <hr />                
                     
                     <div class="select-buttons">
                         <p>

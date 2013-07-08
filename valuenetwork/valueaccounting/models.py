@@ -520,8 +520,11 @@ class EconomicResourceType(models.Model):
                 event_type__related_to="process",
                 event_type__relationship="out")
             if pfvs:
-                answer = True
-                break
+                for pf in pfvs:
+                    pattern = pf.pattern
+                    if self in pattern.output_resource_types():
+                        answer = True
+                        break
         return answer
         
     def consuming_process_type_relationships(self):
@@ -972,7 +975,7 @@ class AgentResourceType(models.Model):
     score = models.DecimalField(_('score'), max_digits=8, decimal_places=2, 
         default=Decimal("0.0"),
         help_text=_("the quantity of contributions of this resource type from this agent"))
-    relationship = models.ForeignKey(ResourceRelationship,
+    relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
         verbose_name=_('relationship'), related_name='agent_resource_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='agent_resource_types')
@@ -1174,6 +1177,12 @@ class ProcessType(models.Model):
     def consumed_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='in')
 
+    def cited_resource_type_relationships(self):
+        return self.resource_types.filter(event_type__relationship='cite')
+
+    def work_resource_type_relationships(self):
+        return self.resource_types.filter(event_type__relationship='work')
+
     def consumed_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
 
@@ -1182,6 +1191,8 @@ class ProcessType(models.Model):
 
     def xbill_children(self):
         kids = list(self.consumed_resource_type_relationships())
+        kids.extend(self.cited_resource_type_relationships())
+        kids.extend(self.work_resource_type_relationships())
         kids.extend(self.features.all())
         return kids
 
@@ -1193,17 +1204,28 @@ class ProcessType(models.Model):
 
     def xbill_change_form(self):
         from valuenetwork.valueaccounting.forms import ChangeProcessTypeForm
-        #return ChangeProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
-        return ChangeProcessTypeForm(instance=self)
+        return ChangeProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
 
     def xbill_input_prefix(self):
         return "".join(["PTINPUT", str(self.id)])
 
+    def xbill_citable_prefix(self):
+        return "".join(["PTCITE", str(self.id)])
+
+    def xbill_work_prefix(self):
+        return "".join(["PTWORK", str(self.id)])
+
     def xbill_input_form(self):
-        #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import ProcessTypeInputForm
         return ProcessTypeInputForm(process_type=self, prefix=self.xbill_input_prefix())
-        #return ProcessTypeResourceTypeForm()
+
+    def xbill_citable_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessTypeCitableForm
+        return ProcessTypeCitableForm(process_type=self, prefix=self.xbill_citable_prefix())
+
+    def xbill_work_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessTypeWorkForm
+        return ProcessTypeWorkForm(process_type=self, prefix=self.xbill_work_prefix())
 
     def xbill_class(self):
         return "process-type"
@@ -1214,7 +1236,7 @@ class ProcessTypeResourceType(models.Model):
         verbose_name=_('process type'), related_name='resource_types')
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='process_types')
-    relationship = models.ForeignKey(ResourceRelationship,
+    relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
         verbose_name=_('relationship'), related_name='process_resource_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='process_resource_types')
@@ -1617,7 +1639,7 @@ class Feature(models.Model):
     process_type = models.ForeignKey(ProcessType,
         blank=True, null=True,
         verbose_name=_('process type'), related_name='features')
-    relationship = models.ForeignKey(ResourceRelationship,
+    relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
         verbose_name=_('relationship'), related_name='features')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='features')

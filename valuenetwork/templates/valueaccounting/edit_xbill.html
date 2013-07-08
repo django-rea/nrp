@@ -6,8 +6,11 @@
 {% load bootstrap_tags %}
 
 {% block head_title %}{% trans " Edit Recipe for " %} {{ resource_type }}{% endblock %}
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
 {% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
 h4 {
@@ -61,6 +64,11 @@ ul {
 
 .description {
 	font-style: italic;
+	font-weight: normal;
+}
+
+.facets {
+    margin-left: 1em;
 	font-weight: normal;
 }
 
@@ -296,6 +304,10 @@ ul {
 
 					{% endif %}
 
+					{% if xbill_object.facet_list %}
+						<div class="facets" >{{ xbill_object.facet_list }}</div>
+					{% endif %}
+
 					{% if xbill_object.description %}
 						<div class="description" >{{ xbill_object.description|urlize|linebreaks }}</div>
 					{% endif %}
@@ -304,7 +316,7 @@ ul {
 					{% if xb_type == "economic-resource-type" %}
 						<div>
                         {% with xbill_object as rtype %}
-						    {% if not rtype.category.materiality = "work" %}
+						    {% if rtype.is_process_output %}
                                 {% if not rtype.producing_process_type_relationships %}
 							        <div style="display: inline;" >
 								        <a href="#processForm{{ rtype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
@@ -581,6 +593,7 @@ ul {
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 
 {% endblock %}
 
@@ -589,6 +602,8 @@ ul {
     <script type="text/javascript">
 
 	$(document).ready(function(){
+
+	    $("select").chosen();
 
 	    $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
@@ -624,6 +639,7 @@ ul {
 				function(data){
 					var unit = data["unit"];
                     $(unitName).val(unit);
+                    $(unitName).trigger("liszt:updated");
 				});
 		}
 

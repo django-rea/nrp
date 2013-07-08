@@ -194,13 +194,13 @@
 		    }
 		}
 
-                jQuery.validator.setDefaults({ 
-                    success: function(label) {
-				        label
-					        .text('').addClass('valid')
-					        .closest('.control-group').addClass('success');
-			        }
-                });
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
 
 
         $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });

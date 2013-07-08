@@ -4214,7 +4214,7 @@ def process_selections(request, rand=0):
                         created_by=request.user,
                     )
                     commitment.save()
-            resource_types.extend([ic.resource_type for ic in process.incoming_commitments()])
+                    resource_types.append(rt)
             for rt in used_rts:
                 if rt not in resource_types:
                     et = selected_pattern.event_type_for_resource_type("in", rt)
@@ -4232,7 +4232,9 @@ def process_selections(request, rand=0):
                             created_by=request.user,
                         )
                         commitment.save()
-                        explode_dependent_demands(commitment, request.user)
+                        resource_types.append(rt)
+                        if rand:
+                            explode_dependent_demands(commitment, request.user)
             for rt in consumed_rts:
                 if rt not in resource_types:
                     et = selected_pattern.event_type_for_resource_type("in", rt)
@@ -4250,7 +4252,8 @@ def process_selections(request, rand=0):
                             created_by=request.user,
                         )
                         commitment.save()
-                        explode_dependent_demands(commitment, request.user)
+                        if rand:
+                            explode_dependent_demands(commitment, request.user)
             for rt in work_rts:
                 #import pdb; pdb.set_trace()
                 agent = None

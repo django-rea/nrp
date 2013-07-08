@@ -4154,25 +4154,15 @@ def process_selections(request, rand=0):
                     work_rt = EconomicResourceType.objects.get(id=work_id)
                     work_rts.append(work_rt)
 
-            #removed the option for non-r&d order because then it doesn't bring the order into the process edit page
-            #todo: may want to remove from the rest of the code after discussion (note it is still an input parameter here and other places)
-            #if rand: 
-            if not demand:
-                demand = Order(
-                    order_type="rand",
-                    order_date=today,
-                    due_date=end_date,
-                    created_by=request.user)
-                demand.save()
-            #else:
-            #    demand = Order(
-            #        order_type="holder",
-            #        order_date=today,
-            #        due_date=end_date,
-            #        created_by=request.user)
-            #    demand.save()
+            if rand: 
+                if not demand:
+                    demand = Order(
+                        order_type="rand",
+                        order_date=today,
+                        due_date=end_date,
+                        created_by=request.user)
+                    demand.save()
 
-            pt = None
             name = "Make something"
             if produced_rts:
                 name = " ".join([

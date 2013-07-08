@@ -105,12 +105,14 @@ ul {
 			{% elif resource_type.photo_url %}
         	    		<img src="{{ resource_type.photo_url }}" width="200" height="128" />
 			{% endif %}
+		
 
 			<div style="display: inline;" >
 				<a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
 			</div>
 
-
+        </h4>
+        
 			<div class="modal hide fade" id="resourceChangeForm" tabindex="-1" role="dialog" aria-labelledby="resource-change-label" aria-hidden="true">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -132,7 +134,6 @@ ul {
 
 			</div>
 
-		</h4>
 		{% if resource_type.description %}
 			<div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
 		{% endif %}

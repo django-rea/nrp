@@ -510,6 +510,9 @@ class EconomicResourceType(models.Model):
             return None
 
     def is_process_output(self):
+        #import pdb; pdb.set_trace()
+        #todo: this is wrong, gets false positives
+        #don't know how to fix it now
         answer = False
         fvs = self.facets.all()
         for fv in fvs:
@@ -601,6 +604,11 @@ class EconomicResourceType(models.Model):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
         init = {"unit_of_quantity": self.unit,}
         return EconomicResourceForm(prefix=prefix, initial=init)
+
+    def process_create_form(self):
+        from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
+        init = {"name": " ".join(["Make", self.name])}
+        return XbillProcessTypeForm(initial=init)
 
     def directional_unit(self, direction):
         answer = self.unit
@@ -999,7 +1007,8 @@ class AgentResourceType(models.Model):
         return self.relationship.inverse_label()
 
     def xbill_label(self):
-        return self.relationship.infer_label()
+        #return self.relationship.infer_label()
+        return ""
 
     def xbill_explanation(self):
         return "Source"
@@ -1191,8 +1200,9 @@ class ProcessType(models.Model):
         return "".join(["PTINPUT", str(self.id)])
 
     def xbill_input_form(self):
-        from valuenetwork.valueaccounting.forms import ProcessTypeResourceTypeForm
-        return ProcessTypeResourceTypeForm(prefix=self.xbill_input_prefix())
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import ProcessTypeInputForm
+        return ProcessTypeInputForm(process_type=self, prefix=self.xbill_input_prefix())
         #return ProcessTypeResourceTypeForm()
 
     def xbill_class(self):
@@ -1232,7 +1242,8 @@ class ProcessTypeResourceType(models.Model):
 
     def xbill_label(self):
         if self.event_type.relationship == 'out':
-            return self.inverse_label()
+            #return self.inverse_label()
+            return ""
         else:
            abbrev = ""
            if self.unit_of_quantity:
@@ -1304,7 +1315,8 @@ class Process(models.Model):
         verbose_name=_('process pattern'), related_name='processes')
     process_type = models.ForeignKey(ProcessType,
         blank=True, null=True,
-        verbose_name=_('process type'), related_name='processes')
+        verbose_name=_('process type'), related_name='processes',
+        on_delete=models.SET_NULL)
     project = models.ForeignKey(Project,
         blank=True, null=True,
         verbose_name=_('project'), related_name='processes')

@@ -982,20 +982,14 @@ def create_process_type_input(request, process_type_id):
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         prefix = pt.xbill_input_prefix()
-        form = ProcessTypeResourceTypeForm(request.POST, prefix=prefix)
-        #form = ProcessTypeResourceTypeForm(request.POST)
+        form = ProcessTypeInputForm(data=request.POST, process_type=pt, prefix=prefix)
         if form.is_valid():
             ptrt = form.save(commit=False)
             rt = form.cleaned_data["resource_type"]
             ptrt.process_type=pt
-            rel = None
-            #todo: remove all rel
-            rel = ResourceRelationship.objects.get(
-                materiality=rt.materiality,
-                related_to="process",
-                direction="in")
-            ptrt.relationship = rel
-            ptrt.event_type = rel.event_type
+            pattern = pt.process_pattern
+            event_type = pattern.event_type_for_resource_type("in", rt)
+            ptrt.event_type = event_type
             ptrt.created_by=request.user
             ptrt.save()
             next = request.POST.get("next")
@@ -1008,21 +1002,15 @@ def create_process_type_citable(request, process_type_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
-        prefix = pt.xbill_input_prefix()
-        form = ProcessTypeResourceTypeForm(request.POST, prefix=prefix)
-        #form = ProcessTypeResourceTypeForm(request.POST)
+        prefix = pt.xbill_citable_prefix()
+        form = ProcessTypeCitableForm(data=request.POST, process_type=pt, prefix=prefix)
         if form.is_valid():
             ptrt = form.save(commit=False)
             rt = form.cleaned_data["resource_type"]
             ptrt.process_type=pt
-            rel = None
-            #todo: remove all rel
-            rel = ResourceRelationship.objects.get(
-                materiality=rt.materiality,
-                related_to="process",
-                direction="in")
-            ptrt.relationship = rel
-            ptrt.event_type = rel.event_type
+            pattern = pt.process_pattern
+            event_type = pattern.event_type_for_resource_type("cite", rt)
+            ptrt.event_type = event_type
             ptrt.created_by=request.user
             ptrt.save()
             next = request.POST.get("next")
@@ -1035,21 +1023,15 @@ def create_process_type_work(request, process_type_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
-        prefix = pt.xbill_input_prefix()
-        form = ProcessTypeResourceTypeForm(request.POST, prefix=prefix)
-        #form = ProcessTypeResourceTypeForm(request.POST)
+        prefix = pt.xbill_work_prefix()
+        form = ProcessTypeWorkForm(data=request.POST, process_type=pt, prefix=prefix)
         if form.is_valid():
             ptrt = form.save(commit=False)
             rt = form.cleaned_data["resource_type"]
             ptrt.process_type=pt
-            rel = None
-            #todo: remove all rel
-            rel = ResourceRelationship.objects.get(
-                materiality=rt.materiality,
-                related_to="process",
-                direction="in")
-            ptrt.relationship = rel
-            ptrt.event_type = rel.event_type
+            pattern = pt.process_pattern
+            event_type = pattern.event_type_for_resource_type("work", rt)
+            ptrt.event_type = event_type
             ptrt.created_by=request.user
             ptrt.save()
             next = request.POST.get("next")
@@ -1069,22 +1051,19 @@ def create_process_type_feature(request, process_type_id):
             rts = pt.produced_resource_types()
             #todo: assuming the feature applies to the first
             # produced_resource_type
-            # and: remove all rel
             if rts:
                 rt = rts[0]
                 feature.product=rt
-                rel = RR.objects.get(
-                    materiality=rt.materiality,
-                    related_to="process",
-                    direction="in")
-                feature.relationship = rel
+                pattern = pt.process_pattern
+                event_type = pattern.event_type_for_resource_type("in", rt)
+                feature.event_type = event_type
             else:
                 #todo: when will we get here? It's a hack.
-                rel = RR.objects.get(
-                    materiality="material",
-                    related_to="process",
-                    direction="in")
-                feature.relationship = rel
+                ets = EventType.objects.filter(
+                    relationship="in",
+                    resource_effect="-")
+                event_type = ets[0]
+                feature.event_type = event_type
             feature.created_by=request.user
             feature.save()
             next = request.POST.get("next")
@@ -1228,9 +1207,8 @@ def change_process_type(request, process_type_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
-        #prefix = pt.xbill_change_prefix()
-        #form = ChangeProcessTypeForm(request.POST, instance=pt, prefix=prefix)
-        form = ChangeProcessTypeForm(request.POST, instance=pt)
+        prefix = pt.xbill_change_prefix()
+        form = ChangeProcessTypeForm(request.POST, instance=pt, prefix=prefix)
         if form.is_valid():
             pt = form.save(commit=False)
             pt.changed_by=request.user

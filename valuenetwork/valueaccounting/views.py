@@ -1004,6 +1004,60 @@ def create_process_type_input(request, process_type_id):
             raise ValidationError(form.errors)
 
 @login_required
+def create_process_type_citable(request, process_type_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        pt = get_object_or_404(ProcessType, pk=process_type_id)
+        prefix = pt.xbill_input_prefix()
+        form = ProcessTypeResourceTypeForm(request.POST, prefix=prefix)
+        #form = ProcessTypeResourceTypeForm(request.POST)
+        if form.is_valid():
+            ptrt = form.save(commit=False)
+            rt = form.cleaned_data["resource_type"]
+            ptrt.process_type=pt
+            rel = None
+            #todo: remove all rel
+            rel = ResourceRelationship.objects.get(
+                materiality=rt.materiality,
+                related_to="process",
+                direction="in")
+            ptrt.relationship = rel
+            ptrt.event_type = rel.event_type
+            ptrt.created_by=request.user
+            ptrt.save()
+            next = request.POST.get("next")
+            return HttpResponseRedirect(next)
+        else:
+            raise ValidationError(form.errors)
+
+@login_required
+def create_process_type_work(request, process_type_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        pt = get_object_or_404(ProcessType, pk=process_type_id)
+        prefix = pt.xbill_input_prefix()
+        form = ProcessTypeResourceTypeForm(request.POST, prefix=prefix)
+        #form = ProcessTypeResourceTypeForm(request.POST)
+        if form.is_valid():
+            ptrt = form.save(commit=False)
+            rt = form.cleaned_data["resource_type"]
+            ptrt.process_type=pt
+            rel = None
+            #todo: remove all rel
+            rel = ResourceRelationship.objects.get(
+                materiality=rt.materiality,
+                related_to="process",
+                direction="in")
+            ptrt.relationship = rel
+            ptrt.event_type = rel.event_type
+            ptrt.created_by=request.user
+            ptrt.save()
+            next = request.POST.get("next")
+            return HttpResponseRedirect(next)
+        else:
+            raise ValidationError(form.errors)
+
+@login_required
 def create_process_type_feature(request, process_type_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":

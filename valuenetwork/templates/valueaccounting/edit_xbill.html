@@ -144,7 +144,7 @@ ul {
 		  <div class="modal-body">
 				<form class="process-form" action="{% url create_process_type_for_resource_type resource_type_id=resource_type.id %}" method="POST">
 						{% csrf_token %}
-					{{ process_form|as_bootstrap }}
+					{{ resource_type.process_create_form|as_bootstrap }}
 					<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 				  <div class="modal-footer">
 					<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -303,116 +303,171 @@ ul {
 
 					{% if xb_type == "economic-resource-type" %}
 						<div>
+                        {% with xbill_object as rtype %}
+						    {% if not rtype.category.materiality = "work" %}
+                                {% if not rtype.producing_process_type_relationships %}
+							        <div style="display: inline;" >
+								        <a href="#processForm{{ rtype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+									        {% blocktrans %}Add a process type to produce {{ rtype }}{% endblocktrans %}
+								        </a>
+							        </div>
+                                {% endif %}
 
-						{% if not xbill_object.category.materiality = "work" %}
-                            {% if not xbill_object.producing_process_type_relationships %}
-							    <div style="display: inline;" >
-								    <a href="#processForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
-									    {% blocktrans %}Add a process type to produce {{ xbill_object }}{% endblocktrans %}
-								    </a>
+							    <div class="modal hide fade processForm" id="processForm{{ rtype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
+							      <div class="modal-header">
+								    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+								    <h3 id="process-label">{% blocktrans %}Add a process type to produce {{ rtype }}{% endblocktrans %}</h3>
+							      </div>
+							      <div class="modal-body">
+									    <form class="process-form form-horizontal" action="{% url create_process_type_for_resource_type resource_type_id=rtype.id %}" method="POST" >
+										    {% csrf_token %}
+										    {{ rtype.process_create_form|as_bootstrap }}
+										    <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									      <div class="modal-footer">
+										    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+										    <button class="btn btn-primary">{% trans "Save changes" %}</button>
+									      </div>
+
+
+									    </form>
+							      </div>
+
 							    </div>
-                            {% endif %}
+						    {% endif %}
 
-							<div class="modal hide fade processForm" id="processForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
-							  <div class="modal-header">
-								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-								<h3 id="process-label">{% blocktrans %}Add a process type to produce {{ xbill_object }}{% endblocktrans %}</h3>
-							  </div>
-							  <div class="modal-body">
-									<form class="process-form form-horizontal" action="{% url create_process_type_for_resource_type resource_type_id=xbill_object.id %}" method="POST" >
-										{% csrf_token %}
-										{{ process_form|as_bootstrap }}
-										<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
-									  <div class="modal-footer">
-										<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-										<button class="btn btn-primary">{% trans "Save changes" %}</button>
-									  </div>
+						    <div style="display: inline;" >
+							    <a href="#sourceForm{{ rtype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">Add a source for {{ rtype }}</a>							
+						    </div>
 
+						    <div class="modal hide fade sourceForm" id="sourceForm{{ rtype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="source-label" aria-hidden="true">
+						      <div class="modal-header">
+							    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							    <h3 id="source-label">{% blocktrans %}Add a source for {{ rtype }}{% endblocktrans %}</h3>
+						      </div>
+						      <div class="modal-body">
+								    <form class="source-form form-horizontal" action="{% url create_agent_resource_type resource_type_id=rtype.id %}" method="POST" >
+									    {% csrf_token %}
+									    {{ source_form|as_bootstrap }}
+									    <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+								      <div class="modal-footer">
+									    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									    <button class="btn btn-primary">{% trans "Save changes" %}</button>
+								      </div>
 
-									</form>
-							  </div>
+								    </form>
+						      </div>
 
-							</div>
-						{% endif %}
-
-						<div style="display: inline;" >
-							<a href="#sourceForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">Add a source for {{ xbill_object }}</a>							
-						</div>
-
-						<div class="modal hide fade sourceForm" id="sourceForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="source-label" aria-hidden="true">
-						  <div class="modal-header">
-							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h3 id="source-label">{% blocktrans %}Add a source for {{ xbill_object }}{% endblocktrans %}</h3>
-						  </div>
-						  <div class="modal-body">
-								<form class="source-form form-horizontal" action="{% url create_agent_resource_type resource_type_id=xbill_object.id %}" method="POST" >
-									{% csrf_token %}
-									{{ source_form|as_bootstrap }}
-									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
-								  <div class="modal-footer">
-									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-									<button class="btn btn-primary">{% trans "Save changes" %}</button>
-								  </div>
-
-								</form>
-						  </div>
-
-						</div>
+						    </div>
+						    {% endwith %}
 						</div>
 						{% endif %}
 
 						{% if xb_type == "process-type" %}
-						<div style="display: inline;" >
-							<a href="#inputForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
-								{% blocktrans %}Add an input to {{ xbill_object }}{% endblocktrans %}
-							</a>
-						</div>
+						    {% with xbill_object as ptype %}
+						        <div style="display: inline;" >
+							        <a href="#inputForm{{ ptype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+								        {% trans "Add input" %}
+							        </a>
+						        </div>
 
-						<div class="modal hide fade" id="inputForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="input-label" aria-hidden="true">
-						  <div class="modal-header">
-							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h3 id="input-label">{% blocktrans %}Add an input to {{ xbill_object }}{% endblocktrans %}</h3>
-						  </div>
-						  <div class="modal-body">
-								<form class="input-form" action="{% url create_process_type_input process_type_id=xbill_object.id %}" method="POST" >
-									{% csrf_token %}
-									{{ xbill_object.xbill_input_form|as_bootstrap }}
-									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
-								  <div class="modal-footer">
-									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-									<button class="btn btn-primary">{% trans "Save changes" %}</button>
-								  </div>
+						        <div class="modal hide fade" id="inputForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="input-label" aria-hidden="true">
+						          <div class="modal-header">
+							        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							        <h3 id="input-label">{% blocktrans %}Add an input to {{ ptype }}{% endblocktrans %}</h3>
+						          </div>
+						          <div class="modal-body">
+								        <form class="input-form" action="{% url create_process_type_input process_type_id=ptype.id %}" method="POST" >
+									        {% csrf_token %}
+									        {{ ptype.xbill_input_form|as_bootstrap }}
+									        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+								          <div class="modal-footer">
+									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									        <button class="btn btn-primary">{% trans "Save changes" %}</button>
+								          </div>
 
-								</form>
-						  </div>
+								        </form>
+						          </div>
 
-						</div>
+						        </div>
 
-						<div style="display: inline;" >
-							<a href="#featureForm{{ xbill_object.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
-								{% blocktrans %}Add a feature to {{ xbill_object }}{% endblocktrans %}
-							</a>
-						</div>
+						        <div style="display: inline;" >
+							        <a href="#citeForm{{ ptype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+								        {% trans "Add citable" %}
+							        </a>
+						        </div>
 
-						<div class="modal hide fade" id="featureForm{{ xbill_object.node_id }}" tabindex="-1" role="dialog" aria-labelledby="feature-label" aria-hidden="true">
-						  <div class="modal-header">
-							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h3 id="feature-label">{% blocktrans %}Add a feature to {{ xbill_object }}{% endblocktrans %}</h3>
-						  </div>
-						  <div class="modal-body">
-								<form class="feature-form" action="{% url create_process_type_feature process_type_id=xbill_object.id %}" method="POST" >
-									{% csrf_token %}
-									{{ feature_form|as_bootstrap }}
-									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
-								  <div class="modal-footer">
-									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-									<button class="btn btn-primary">{% trans "Save changes" %}</button>
-								  </div>
+						        <div class="modal hide fade" id="citeForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+						          <div class="modal-header">
+							        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							        <h3 id="cite-label">{% blocktrans %}Add a citable to {{ ptype }}{% endblocktrans %}</h3>
+						          </div>
+						          <div class="modal-body">
+								        <form class="cite-form" action="{% url create_process_type_citable process_type_id=ptype.id %}" method="POST" >
+									        {% csrf_token %}
+									        {{ ptype.xbill_citable_form|as_bootstrap }}
+									        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+								          <div class="modal-footer">
+									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									        <button class="btn btn-primary">{% trans "Save changes" %}</button>
+								          </div>
 
-								</form>
-						  </div>
+								        </form>
+						          </div>
 
-						</div>
+						        </div>
+
+						        <div style="display: inline;" >
+							        <a href="#workForm{{ ptype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+								        {% trans "Add work" %}
+							        </a>
+						        </div>
+
+						        <div class="modal hide fade" id="workForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+						          <div class="modal-header">
+							        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							        <h3 id="work-label">{% blocktrans %}Add work to {{ ptype }}{% endblocktrans %}</h3>
+						          </div>
+						          <div class="modal-body">
+								        <form class="work-form" action="{% url create_process_type_work process_type_id=ptype.id %}" method="POST" >
+									        {% csrf_token %}
+									        {{ ptype.xbill_work_form|as_bootstrap }}
+									        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+								          <div class="modal-footer">
+									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									        <button class="btn btn-primary">{% trans "Save changes" %}</button>
+								          </div>
+
+								        </form>
+						          </div>
+
+						        </div>
+
+						        <div style="display: inline;" >
+							        <a href="#featureForm{{ ptype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+								        {% trans "Add feature" %}
+							        </a>
+						        </div>
+
+						        <div class="modal hide fade" id="featureForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="feature-label" aria-hidden="true">
+						          <div class="modal-header">
+							        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							        <h3 id="feature-label">{% blocktrans %}Add a feature to {{ ptype }}{% endblocktrans %}</h3>
+						          </div>
+						          <div class="modal-body">
+								        <form class="feature-form" action="{% url create_process_type_feature process_type_id=ptype.id %}" method="POST" >
+									        {% csrf_token %}
+									        {{ feature_form|as_bootstrap }}
+									        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+								          <div class="modal-footer">
+									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									        <button class="btn btn-primary">{% trans "Save changes" %}</button>
+								          </div>
+
+								        </form>
+						          </div>
+
+						        </div>
+					        {% endwith %}
 
 						{% endif %}
 

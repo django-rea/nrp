@@ -725,6 +725,46 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
         exclude = ('process_type', 'relationship')
 
 
+class ProcessTypeInputForm(forms.ModelForm):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        empty_label=None, 
+        widget=SelectWithPopUp(
+            model=EconomicResourceType,
+            attrs={'class': 'resource-type-selector'}))
+    quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        required = False,
+        queryset=Unit.objects.all(),  
+        widget=SelectWithPopUp(model=Unit))
+
+    class Meta:
+        model = ProcessTypeResourceType
+        exclude = ('process_type', 'relationship', 'event_type')
+
+    def __init__(self, process_type=None, *args, **kwargs):
+        super(ProcessTypeInputForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        use_pattern = True
+        pattern = None
+        if process_type:
+            pattern = process_type.process_pattern
+        if self.instance:
+            if self.instance.id:
+                use_pattern = False
+                inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
+                rt = inst.resource_type
+                self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
+        if pattern:
+            if use_pattern:
+                self.pattern = pattern
+                output_ids = [pt.id for pt in process_type.produced_resource_types()]
+                self.fields["resource_type"].queryset = pattern.input_resource_types().exclude(id__in=output_ids)
+
+        
+
+
 # used in ProcessTypeResourceType.xbill_change_form()
 class LaborInputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(

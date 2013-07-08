@@ -58,7 +58,10 @@
 	            columns.push({ 
 	                type: 'autocomplete',
                     source: sources,
-                    strict: true
+                    strict: true,
+                    options: {
+                        items: sources.length
+                      }
                 });
 	        {% endif %}
         {% endfor %}

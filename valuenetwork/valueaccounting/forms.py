@@ -59,7 +59,6 @@ class DemandSelectionForm(forms.Form):
         label="For customer or R&D order (optional)",
         required=False)
 
-
 # does not appear to be used anywhere
 class OutputResourceTypeSelectionForm(forms.Form):
     resource_type = forms.ModelChoiceField(

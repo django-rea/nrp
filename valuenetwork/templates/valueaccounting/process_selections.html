@@ -46,9 +46,9 @@
 .section {
     color: firebrick;
 }
-.select-buttons {
+/*.select-buttons {
     margin-left: 75px;
-}
+}*/
 .select-buttons p {
     margin-top: 20px;
 }
@@ -65,7 +65,11 @@
     <div class="container">
       {% include "_messages.html" %}
 	  <div>
-		<legend>{% trans "R&D Production" %}</legend>
+        {% if rand %}
+		  <legend>{% trans "R&D Planning" %}</legend>
+        {% else %}
+		  <legend>{% trans "Log Unscheduled R&D Work" %}</legend>
+        {% endif %}
 		<form class="form-horizontal" id="processForm" method="POST" action=".">
 	      {% csrf_token %}
 		  <div class="row-fluid">
@@ -92,7 +96,6 @@
 
 		    <div class="row-fluid">
 			  <div class="span6">
-			            
 
 	              {% for slot in slots %}
 
@@ -101,8 +104,11 @@
                         {% for item in slot.resource_types %}
                             <div>
 		                        <p>
-		                            <input type="checkbox" class="{{ slot }}" id="{{ slot }}-{{ item.id }}" name="{{ slot }}~{{ item.name }}" value="{{ item.id }}" /> 
-		                            {{ item }}
+		                            <input type="checkbox" class="{{ slot }}" id="{{ slot }}-{{ item.id }}" name="{{ slot }}~{{ item.name }}" value="{{ item.id }}" />
+		                            {{ item }} ( {{ item.facet_values_list }} )
+                                    {% if item.producing_process_type_relationships %}
+                                        <br />&nbsp;&nbsp;&nbsp;&nbsp;(will use recipe to create all needed processes and components)
+                                    {% endif %}
 	                            </p>
                             </div>
                         {% endfor %}
@@ -112,48 +118,37 @@
               </div>
               <div class="span6">
 
-{% comment %}
-			
-				    <legend class="section">{% trans "recipes" %}:</legend>
-
-			        {% if related_recipes %}
-
-				        {% for recipe in related_recipes %}
-
-				            <p>
-				                {% if use_radio %}
-        		                    <input type="radio" class="recipe" id="recipe-{{ recipe.id }}" name="recipe-{{ recipe.name }}" value="{{ recipe.id }}" /> 
-			                        {{ recipe.name }} - {% trans "makes" %} {{ recipe.main_produced_resource_type }}
-			                    {% else %}
-			                        <input type="checkbox" class="recipe" id="recipe-{{ recipe.id }}" name="recipe-{{ recipe.name }}" value="{{ recipe.id }}" /> 
-			                        {{ recipe.name }} - {% trans "makes" %} {{ recipe.main_produced_resource_type }}
-			                    {% endif %}
-		                    </p>
-				            
-
-				        {% endfor %}
-
-			        {% endif %}
-{% endcomment %}
-                    
+                    <hr />
                     {{ date_form|as_bootstrap }}
+
+                    {% if rand %}
+                        {{ demand_form|as_bootstrap }}  
+                        (If an R&D order is not selected, a new R&D order will be created automatically.) 
+                    {% endif %}
+                    <hr />                
+                    
                     <div class="select-buttons">
-                        <p>
-                            <input type="submit" name="create-process" value="{% trans 'Create process & exit' %}" class="btn btn-primary" />
-                            </br>Create R&D planned work using the selected resource types.
-                        </p>
-                        <p>
-                            <input type="submit" name="edit-process" value="{% trans 'Change process' %}" class="btn btn-primary" />
-                            </br>Create R&D planned work and edit the process details.
-                        </p>
-                        <p>
-                            <input id="startNow" type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" disabled />
-                            </br>Go to Labnotes for working now. (You must select one type of work.)
-                        </p>
-                        <p>
-                            <input id="pastWork" type="submit" name="past" value="{% trans 'Log past work' %}"                           class="btn btn-primary" disabled />
-                            </br>Go to Labnotes for past work. (You must select one type of work.)
-                        </p>
+                        {% if rand %}
+                            <p>
+                                <input type="submit" name="create-process" value="{% trans 'Create process & exit' %}" class="btn btn-primary" />
+                                </br>Create R&D planned work using the selected resource types.
+                            </p>
+                            <p>
+                                <input type="submit" name="edit-process" value="{% trans 'Change process' %}" class="btn btn-primary" />
+                                </br>Create R&D planned work and edit the process details.
+                            </p>
+                        {% else %}
+
+                            <p>
+                                <input id="startNow" type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" disabled />
+                                </br>Go to Labnotes for working now. (You must select one type of work.)
+                            </p>
+                            <p>
+                                <input id="pastWork" type="submit" name="past" value="{% trans 'Log past work' %}"                           class="btn btn-primary" disabled />
+                                </br>Go to Labnotes for past work. (You must select one type of work.)
+                            </p>
+                        {% endif %}
+
                     </div>
 
                </div>

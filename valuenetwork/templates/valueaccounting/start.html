@@ -136,6 +136,9 @@ th, td {
     width: 2em;
     margin-right: 0;
 }
+.top-buttons a {
+    margin-right: 30px;
+}
 
 </style>
 {% endblock %}
@@ -154,7 +157,7 @@ th, td {
 	        {% endif %}
 	    </legend>
 
-			<p>
+			<p class="top-buttons">
 				{% if agent %}
 
 				    <a href="{% url log_simple %}" role="button" class="btn btn-primary" 
@@ -162,13 +165,11 @@ th, td {
 					    {% trans "Log design work" %}
 				    </a> 
 
-				    &nbsp;&nbsp;&nbsp;
 				    <a href="{% url process_selections %}" role="button" class="btn btn-primary" 
 				        title="Log time and create R&D resources." >
-				        {% trans "Log R&D work" %}
+				        {% trans "Log unplanned R&D work" %}
 			        </a>
 
-					&nbsp;&nbsp;&nbsp;
 					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" 
 					    title="When you are not creating resources." >
 					    {% trans "Log non-production work" %}

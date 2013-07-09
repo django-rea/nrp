@@ -167,8 +167,6 @@ def create_events(orders, processes, events):
         )
         events['events'].append(te.dictify())
     for process in processes:
-        #if process.id == 15:
-        #    import pdb; pdb.set_trace()
         te = TimelineEvent(
             process,
             process.start_date,
@@ -356,37 +354,54 @@ class XbillNode(object):
         return self.node.xbill_category()
 
 
-def xbill_dfs(node, all_nodes, depth):
+def xbill_dfs(node, all_nodes, visited, depth):
     """
     Performs a recursive depth-first search starting at ``node``. 
     """
-    to_return = [XbillNode(node,depth),]
-    #print "+created node:+", node, depth
-    #import pdb; pdb.set_trace()
-    for subnode in all_nodes:
-        parents = subnode.xbill_parent_object().xbill_parents()
-        if not subnode is node:
-            if parents and node in parents:
-                #print "*active node:*", node, "*depth:*", depth, "*subnode:*", subnode, "*parent_object:*", subnode.xbill_parent_object(), "*parents:*", parents
-                #import pdb; pdb.set_trace()
-                to_return.extend(xbill_dfs(subnode, all_nodes, depth+1))
+    to_return = []
+    if node not in visited:
+        visited.append(node)
+        #to_return = [XbillNode(node,depth),]
+        to_return.append(XbillNode(node,depth))
+        print "+created node:+", node, depth
+        for subnode in all_nodes:
+            parents = subnode.xbill_parent_object().xbill_parents()
+            xclass = subnode.xbill_class()
+            if not subnode is node:
+                if parents and node in parents:
+                    print "*active node:*", node, "*depth:*", depth, "*subnode:*", subnode, "*parent_object:*", subnode.xbill_parent_object(), "*parents:*", parents
+                    #import pdb; pdb.set_trace()
+                    to_return.extend(xbill_dfs(subnode, all_nodes, visited, depth+1))
     return to_return
 
-def explode_xbill_children(node, nodes):
-    nodes.append(node)
-    #import pdb; pdb.set_trace()
-    for kid in node.xbill_child_object().xbill_children():
-        explode_xbill_children(kid, nodes)
+def explode_xbill_children(node, nodes, exploded):
+    if node not in nodes:
+        nodes.append(node)
+        #import pdb; pdb.set_trace()
+        xclass = node.xbill_class()
+        explode = True
+        if xclass == 'process-type':
+            #import pdb; pdb.set_trace()
+            pt = node.process_type
+            if pt in exploded:
+                explode = False
+            else:
+                exploded.append(pt)
+        if explode:
+            for kid in node.xbill_child_object().xbill_children():
+                explode_xbill_children(kid, nodes, exploded)
 
 def generate_xbill(resource_type):
     nodes = []
+    exploded = []
     for kid in resource_type.xbill_children():
-        explode_xbill_children(kid, nodes)
+        explode_xbill_children(kid, nodes, exploded)
     nodes = list(set(nodes))
     #import pdb; pdb.set_trace()
     to_return = []
+    visited = []
     for kid in resource_type.xbill_children():
-        to_return.extend(xbill_dfs(kid, nodes, 1))
+        to_return.extend(xbill_dfs(kid, nodes, visited, 1))
     annotate_tree_properties(to_return)
     #to_return.sort(lambda x, y: cmp(x.xbill_object().name,
     #                                y.xbill_object().name))

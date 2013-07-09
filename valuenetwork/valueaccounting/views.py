@@ -479,17 +479,14 @@ def log_simple(request):
                     process.finished = True
                     process.created_by = request.user
                     process.save()                    
-
-                    output_rel = output_resource.resource_type.production_resource_relationship()
-                    input_rel = work_event.resource_type.work_resource_relationship()
                     
                     output_resource.quantity = 1
-                    output_resource.unit_of_quantity = output_resource.resource_type.directional_unit(output_rel.direction) 
+                    output_resource.unit_of_quantity = output_resource.resource_type.directional_unit("out") 
                     output_resource.author = member
                     output_resource.created_by = request.user
                     output_resource.save()
 
-                    output_event.event_type = output_rel.event_type
+                    output_event.event_type = pattern.event_type_for_resource_type("out", output_resource.resource_type)
                     output_event.process = process
                     output_event.resource_type = output_resource.resource_type 
                     output_event.quantity = output_resource.quantity 
@@ -499,12 +496,12 @@ def log_simple(request):
                     output_event.created_by = request.user
                     output_event.save()
 
-                    work_event.event_type = input_rel.event_type
+                    work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)
                     work_event.event_date = output_event.event_date
                     work_event.process = process
                     work_event.project = output_event.project
                     work_event.is_contribution = True
-                    work_event.unit_of_quantity = work_event.resource_type.directional_unit(input_rel.direction)  
+                    work_event.unit_of_quantity = work_event.resource_type.directional_unit("in")  
                     work_event.from_agent = member
                     work_event.created_by = request.user
                     work_event.save()
@@ -515,14 +512,14 @@ def log_simple(request):
                         for cr_id in citation_resources:
                             cr = EconomicResource.objects.get(id=int(cr_id))
                             citation_event = EconomicEvent()
-                            citation_event.event_type = cr.resource_type.citation_resource_relationship().event_type
+                            citation_event.event_type = pattern.event_type_for_resource_type("cite", cr.resource_type)
                             citation_event.event_date = output_event.event_date
                             citation_event.process = process
                             citation_event.project = output_event.project
                             citation_event.resource = cr
                             citation_event.resource_type = cr.resource_type
                             citation_event.quantity = 1
-                            citation_event.unit_of_quantity = citation_event.resource_type.directional_unit(input_rel.direction)  
+                            citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("in")  
                             citation_event.from_agent = member
                             citation_event.created_by = request.user
                             citation_event.save()
@@ -686,10 +683,12 @@ def extended_bill(request, resource_type_id):
                 if select_all:
                     node.show = True
                 else:
-                    val = node.category()
+                    #val = node.category()
                     #if val.name in vals:
                     #    node.show = True
 
+                    #if node....facet values:
+                    node.show = True
     else:
         nodes = generate_xbill(rt)
         depth = 1

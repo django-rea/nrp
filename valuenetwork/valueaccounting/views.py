@@ -252,25 +252,46 @@ def resource_types(request):
     }, context_instance=RequestContext(request))
 
 def inventory(request):
-    #TODO: resource types don't have to have categories, for now assuming they all will
-    resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type__category', 'resource_type')
-    categories = Category.objects.all()
+    #import pdb; pdb.set_trace()
+    #resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type')
+    rts = EconomicResourceType.objects.all()
+    resource_types = []
+    facets = Facet.objects.all()
     select_all = True
-    selected_cats = "all"
+    selected_values = "all"
     if request.method == "POST":
-        selected_cats = request.POST["categories"]
-        cats = selected_cats.split(",")
-        if cats[0] == "all":
+        selected_values = request.POST["categories"]
+        vals = selected_values.split(",")
+        if vals[0] == "all":
             select_all = True
-            resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type__category', 'resource_type')
+            #resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type')
+            for rt in rts:
+                if rt.onhand_qty()>0:
+                    resource_types.append(rt)
         else:
             select_all = False
-            resources = EconomicResource.objects.select_related().filter(quantity__gt=0, resource_type__category__name__in=cats).order_by('resource_type__category', 'resource_type')
+            #resources = EconomicResource.objects.select_related().filter(quantity__gt=0, resource_type__category__name__in=vals).order_by('resource_type')
+            fvs = []
+            for val in vals:
+                val_split = val.split(":")
+                fname = val_split[0]
+                fvalue = val_split[1].strip()
+                fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+            rts = select_resource_types(fvs)
+            for rt in rts:
+                if rt.onhand_qty()>0:
+                    resource_types.append(rt)
+            resource_types.sort(key=lambda rt: rt.label())
+    else:
+        for rt in rts:
+            if rt.onhand_qty()>0:
+                resource_types.append(rt)
     return render_to_response("valueaccounting/inventory.html", {
-        "resources": resources,
-        "categories": categories,
+        #"resources": resources,
+        "resource_types": resource_types,
+        "facets": facets,
         "select_all": select_all,
-        "selected_cats": selected_cats,
+        "selected_values": selected_values,
         "photo_size": (128, 128),
         "help": get_help("inventory"),
     }, context_instance=RequestContext(request))
@@ -640,30 +661,37 @@ def extended_bill(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     #import pdb; pdb.set_trace()
     select_all = True
-    categories = Category.objects.all()
+    facets = Facet.objects.all()
     if request.method == "POST":
         nodes = generate_xbill(rt)
         depth = 1
         for node in nodes:
             depth = max(depth, node.depth)
-        selected_cats = request.POST["categories"]
-        cats = selected_cats.split(",")
+        selected_vals = request.POST["categories"]
+        vals = selected_vals.split(",")
         selected_depth = int(request.POST['depth'])
         #import pdb; pdb.set_trace()
-        if cats[0]:
-            if cats[0] == "all":
+        if vals[0]:
+            if vals[0] == "all":
                 select_all = True
             else:
                 select_all = False
+        fvs = []
+        for val in vals:
+            val_split = val.split(":")
+            fname = val_split[0]
+            fvalue = val_split[1].strip()
+            fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
         for node in nodes:
             node.show = False
             if node.depth <= selected_depth:
                 if select_all:
                     node.show = True
                 else:
-                    cat = node.category()
-                    if cat.name in cats:
-                        node.show = True
+                    val = node.category()
+                    #if val.name in vals:
+                    #    node.show = True
+
     else:
         nodes = generate_xbill(rt)
         depth = 1
@@ -672,15 +700,15 @@ def extended_bill(request, resource_type_id):
             node.show = True
         selected_depth = depth
         select_all = True
-        selected_cats = "all"
+        selected_vals = "all"
     return render_to_response("valueaccounting/extended_bill.html", {
         "resource_type": rt,
         "nodes": nodes,
         "depth": depth,
         "selected_depth": selected_depth,
-        "categories": categories,
+        "facets": facets,
         "select_all": select_all,
-        "selected_cats": selected_cats,
+        "selected_vals": selected_vals,
         "photo_size": (128, 128),
         "big_photo_size": (200, 200),
         "help": get_help("recipes"),
@@ -4331,6 +4359,7 @@ def process_selections(request, rand=0):
         "date_form": date_form,
         "demand_form": demand_form,
         "rand": rand,
+        "help": get_help("process_selections"),
     }, context_instance=RequestContext(request))
 
 

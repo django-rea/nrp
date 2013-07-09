@@ -10,7 +10,7 @@
 <style>
 
 .name {
-	font-size: 1.4em;
+	font-size: 1.3em;
 	font-weight: bold;
 }
 
@@ -21,6 +21,9 @@
 container li {
 	padding: 3px;
 }
+/*ul {
+    list-style-type: none;
+}*/
 .facet {
     font-weight: bold;
     font-size: 1.1em;
@@ -39,7 +42,7 @@ container li {
     <div class="container">
         {% include "_messages.html" %}
 	<div class="row-fluid">
-		<div class="span10">
+		<div class="span9">
 		
 			<legend>{% trans "Resource Types" %}</legend>
 
@@ -86,26 +89,16 @@ container li {
 
 					    {% include  "valueaccounting/_resource_type.html" %}
 
-			    </li>
+			        </li>
 
 			    {% endfor %}
 		    </ul>
 		</div>
-		<div class="span2 filter">
-			<h3>{% trans "Filter the List" %}</h3>
-			<form id="category-form" action="." method="POST">
-				{% csrf_token %}
-				<p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All" %}</p>
-				{% for facet in facets %}
-                    <p class="facet"> {{ facet.name }} </p>
-                    {% for val in facet.values.all %}
-				        <p><input type="checkbox" class="category" id="{{ val }}" name="{{ val }}" value="{{ val }}" /> {{ val.value }}</p>
-				    {% endfor %}
-				{% endfor %}
-				<input type='hidden' id='categories' name='categories' value='' />
-				<input type="submit" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
-			</form>
+
+		<div class="span3 filter">
+            {% include "valueaccounting/_facet_filter.html" %}
 		</div>
+
 	</div>
     </div>
 {% endblock %}

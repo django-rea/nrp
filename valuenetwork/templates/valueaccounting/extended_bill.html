@@ -90,7 +90,7 @@ ul {
     <div class="container">
         {% include "_messages.html" %}
 	<div class="row-fluid">
-		<div class="span10">
+		<div class="span9">
 			<legend>{% trans "Recipe for " %} {{ resource_type }}</legend>
 
 		    <h4>
@@ -165,8 +165,8 @@ ul {
 
 		</div>
 
-		<div class="span2 filter">
-			<h4 style="margin-bottom: 0;" >{% trans "Filter" %}</h4>
+		<div class="span3 filter">
+			<h3 style="margin-bottom: 0;" >{% trans "Filter" %}</h3>
 			<form id="category-form" action="." method="POST">
 				{% csrf_token %}
 				<p>
@@ -178,10 +178,18 @@ ul {
 				<p><input type="checkbox" class="category" id="inputs" name="inputs" value="inputs" /> {% trans "Inputs" %}</p>
 {% endcomment %}
 				<p><input type="checkbox" class="category" id="features" name="features" value="features" /> {% trans "Features" %}</p>
-				<p><b>{% trans "Input Categories" %}:</b></p>
+				<p><b>{% trans "Inputs" %}:</b></p>
+{% comment %}
 				{% for cat in categories %}
 				<p style="margin-left: 1em;" ><input type="checkbox" class="category" id="{{ cat }}" name="{{ cat }}" value="{{ cat }}" /> {{ cat }}</p>
 				{% endfor %}
+{% endcomment %}
+	            {% for facet in facets %}
+                    <p class="facet"> {{ facet.name }} </p>
+                    {% for val in facet.values.all %}
+	                    <p><input type="checkbox" class="category" id="{{ val }}" name="{{ val }}" value="{{ val }}" /> {{ val.value }}</p>
+	                {% endfor %}
+	            {% endfor %}
 				<input type='hidden' id='categories' name='categories' value='' />
 				<input type="submit" name="submit" class="btn btn-info" value="Filter" />
 			</form>
@@ -204,7 +212,7 @@ ul {
             $('#help-content').hide("slide", { direction: "right" }, "slow"); 
         })
 
-		var selectedCats = "{{ selected_cats }}";
+		var selectedCats = "{{ selected_vals }}";
                 $('#categories').prop('value', selectedCats);
 
 		$('.category').each(function()

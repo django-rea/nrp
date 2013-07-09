@@ -10,19 +10,12 @@
 
 <style>
 
-.cat {
-	font-size: 1.3em;
-	font-weight: bold;
-    margin-top: .3em;
-    color: brown;
-}
 .rtype {
-    font-size: 1.1em;
-    margin-left: 2em;
+    font-size: 1.2em;
     color: firebrick;
 }
 .res {
-    margin-left: 4em;
+    margin-left: 2em;
 }
 .info {
     margin-left: 6em;
@@ -33,7 +26,9 @@ ul {
 container li {
 	padding: 3px;
 }
-
+.facet {
+    font-size: 1.1em;
+    font-weight: bold;
 
 </style>
 {% endblock %}
@@ -44,51 +39,32 @@ container li {
     <div class="container">
         {% include "_messages.html" %}
 	<div class="row-fluid">
-		<div class="span10">
+		<div class="span9">
 		    <legend>
 			    {% trans "Inventory" %}
 		    </legend>
-            {% for resource in resources.all %}
-                {% ifchanged resource.resource_type.category.name %}
-                    <div class="cat">  {{ resource.resource_type.category.name }} </div>
-                {% endifchanged %}
-                {% ifchanged resource.resource_type.name %}
-                    <div class="rtype">  {{ resource.resource_type.name }} 
-			        {% if resource.resource_type.photo %}
-			        	<img src="{% thumbnail resource.resource_type.photo photo_size %}" />
-		        	{% elif resource.resource_type.photo_url %}
-		        	    <img src="{{ resource.resource_type.photo_url }}" width="128" height="96" />
-			        {% endif %}
+            {% for rt in resource_types %}
+                <div class="rtype">  {{ rt.name }} ( {{ rt.facet_list }} )</div>
+                {% for resource in rt.onhand %}
+                    <div class="res">
+                     <a href="{% url resource resource_id=resource.id %}">{{ resource.label }}</a>
+		             {% if resource.photo %}
+		            	<img src="{% thumbnail resource.photo photo_size %}" />
+	            	 {% elif resource.photo_url %}
+		            	<img src="{{ resource.photo_url }}" width="128" height="96" />
+		             {% endif %}
                     </div>
-                {% endifchanged %}
-                <div class="res">
-                 <a href="{% url resource resource_id=resource.id %}">{{ resource.label }}</a>
-		        {% if resource.photo %}
-		        	<img src="{% thumbnail resource.photo photo_size %}" />
-	        	{% elif resource.photo_url %}
-		        	<img src="{{ resource.photo_url }}" width="128" height="96" />
-		        {% endif %}
-                </div>
-                <div class="info"> {{ resource.quantity }} {{ resource.unit_of_quantity }} </div>
-                <div class="info">Quality: {{ resource.quality }} </div>
-                {% url 'path.to.view' as resource.url %}
-                {% if resource.url %}
-                    <div class="info"><a href="{{ resource.url }}">Documentation</a></div>
-                {% endif %} 
-
+                    <div class="info"> {{ resource.quantity }} {{ resource.unit_of_quantity }} </div>
+                    <div class="info">Quality: {{ resource.quality }} </div>
+                    {% url 'path.to.view' as resource.url %}
+                    {% if resource.url %}
+                        <div class="info"><a href="{{ resource.url }}">Documentation</a></div>
+                    {% endif %}                     
+                {% endfor %}
             {% endfor %}
 		</div>
-		<div class="span2 filter">
-			<h4>{% trans "Filter by Category" %}</h4>
-			<form id="category-form" action="." method="POST">
-				{% csrf_token %}
-				<p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All" %}</p>
-				{% for cat in categories %}
-				<p><input type="checkbox" class="category" id="{{ cat }}" name="{{ cat }}" value="{{ cat }}" /> {{ cat }}</p>
-				{% endfor %}
-				<input type='hidden' id='categories' name='categories' value='' />
-				<input type="submit" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
-			</form>
+		<div class="span3 filter">
+            {% include "valueaccounting/_facet_filter.html" %}
 		</div>
 	</div>
     </div>
@@ -111,7 +87,7 @@ container li {
             $('#help-content').hide("slide", { direction: "right" }, "slow"); 
         })
 
-		var selectedCats = "{{ selected_cats }}";
+		var selectedCats = "{{ selected_values }}";
 
 		$('.category').each(function()
 		{

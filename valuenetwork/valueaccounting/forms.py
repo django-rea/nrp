@@ -673,7 +673,7 @@ class AgentResourceTypeForm(forms.ModelForm):
 
     class Meta:
         model = AgentResourceType
-        exclude = ('resource_type', 'relationship')
+        exclude = ('resource_type', 'relationship', 'event_type')
 
 
 class XbillProcessTypeForm(forms.ModelForm):

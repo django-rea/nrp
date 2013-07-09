@@ -45,9 +45,9 @@ def get_help(page_name):
 def home(request):
     work_to_do = Commitment.objects.unfinished().filter(
             from_agent=None, 
-            resource_type__materiality="work")
+            event_type__relationship="work")
+    #todo: reqs needs a lot of work
     reqs = Commitment.objects.unfinished().filter(
-        resource_type__materiality="material",
         event_type__relationship="in").order_by("resource_type__name")
     stuff = SortedDict()
     for req in reqs:
@@ -55,13 +55,12 @@ def home(request):
             if req.resource_type not in stuff:
                 stuff[req.resource_type] = Decimal("0")
             stuff[req.resource_type] += req.quantity_to_buy()
-    treqs = Commitment.objects.unfinished().filter(
-        resource_type__materiality="tool",
-        event_type__relationship="in").order_by("resource_type__name")
-    for req in treqs:
-        if req.quantity_to_buy():
-            if req.resource_type not in stuff:
-                stuff[req.resource_type] = req.quantity_to_buy()
+    #treqs = Commitment.objects.unfinished().filter(
+    #    event_type__relationship="in").order_by("resource_type__name")
+    #for req in treqs:
+    #    if req.quantity_to_buy():
+    #        if req.resource_type not in stuff:
+    #            stuff[req.resource_type] = req.quantity_to_buy()
     vcs = Commitment.objects.filter(event_type__relationship="out")
     value_creations = []
     rts = []
@@ -213,8 +212,7 @@ def select_resource_types(facet_values):
     return list(EconomicResourceType.objects.filter(id__in=answer_ids))
 
 def resource_types(request):
-    roots = EconomicResourceType.objects.exclude(materiality="work")
-    #roots = EconomicResourceType.objects.all()
+    roots = EconomicResourceType.objects.all()
     create_form = EconomicResourceTypeForm()
     create_formset = create_facet_formset()
     facets = Facet.objects.all()
@@ -361,8 +359,8 @@ def log_time(request):
     member = get_agent(request)
     form = TimeForm()
     roots = Project.objects.filter(parent=None)
-    resource_types = EconomicResourceType.objects.filter(materiality="work")
-    #resource_types = EconomicResourceType.objects.all()
+    #todo: this whole thing is obsolete
+    resource_types = EconomicResourceType.objects.all()
     return render_to_response("valueaccounting/log_time.html", {
         "member": member,
         "form": form,
@@ -1133,9 +1131,6 @@ def change_process_type_input(request, input_id):
             data=request.POST, 
             instance=ptrt,
             prefix=prefix)
-        #form = ProcessTypeResourceTypeForm(
-        #    data=request.POST, 
-        #    instance=ptrt)
         if form.is_valid():
             inp = form.save(commit=False)
             inp.changed_by=request.user
@@ -1152,7 +1147,6 @@ def change_agent_resource_type(request, agent_resource_type_id):
         art = get_object_or_404(AgentResourceType, pk=agent_resource_type_id)
         prefix = art.xbill_change_prefix()
         form = AgentResourceTypeForm(data=request.POST, instance=art, prefix=prefix)
-        #form = AgentResourceTypeForm(data=request.POST, instance=art)
         if form.is_valid():
             art = form.save(commit=False)
             art.changed_by=request.user
@@ -1184,17 +1178,19 @@ def create_agent_resource_type(request, resource_type_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-        form = AgentResourceTypeForm(request.POST)
+        prefix = rt.source_create_prefix()
+        form = AgentResourceTypeForm(request.POST, prefix=prefix)
         if form.is_valid():
             art = form.save(commit=False)
             art.resource_type=rt
-            rel = None
-            #todo: remove all rel
-            rel = ResourceRelationship.objects.get(
-                materiality=rt.materiality,
+            #todo: this is a hack
+            #shd be rethought and encapsulated
+            ets = EventType.objects.filter(
                 related_to="agent",
-                direction="out")
-            art.relationship = rel
+                relationship="out",
+                resource_effect="=")
+            event_type = ets[0]
+            art.event_type = event_type
             art.created_by=request.user
             art.save()
             next = request.POST.get("next")
@@ -1228,21 +1224,18 @@ def create_process_type_for_resource_type(request, resource_type_id):
         if form.is_valid():
             data = form.cleaned_data
             pt = form.save(commit=False)
+            pt.created_by=request.user
             pt.changed_by=request.user
             pt.save()
             quantity = data["quantity"]
-            #todo: remove all rel
-            rel = ResourceRelationship.objects.get(
-                materiality=rt.materiality,
-                related_to="process",
-                direction="out")
+            pattern = pt.process_pattern
+            event_type = pattern.event_type_for_resource_type("out", rt)
             unit = rt.unit
             quantity = Decimal(quantity)
             ptrt = ProcessTypeResourceType(
                 process_type=pt,
                 resource_type=rt,
-                relationship=rel,
-                event_type=rel.event_type,
+                event_type=event_type,
                 unit_of_quantity=unit,
                 quantity=quantity,
                 created_by=request.user,
@@ -1278,7 +1271,7 @@ def timeline(request):
     timeline_date = datetime.date.today().strftime("%b %e %Y 00:00:00 GMT-0600")
     unassigned = Commitment.objects.unfinished().filter(
         from_agent=None,
-        resource_type__materiality="work").order_by("due_date")
+        event_type__relationship="work").order_by("due_date")
     return render_to_response("valueaccounting/timeline.html", {
         "timeline_date": timeline_date,
         "unassigned": unassigned,
@@ -1491,12 +1484,6 @@ def schedule_commitment(
                         if pc.independent_demand == order:
                             schedule_commitment(pc, schedule, reqs, work, tools, visited_resources, depth+1)
                 elif inp.independent_demand == order:
-                    #if resource_type.materiality == 'material':
-                    #    reqs.append(inp)
-                    #elif resource_type.materiality == 'work':
-                    #    work.append(inp)
-                    #elif resource_type.materiality == 'tool':
-                    #    tools.append(inp)
                     reqs.append(inp)
                     for art in resource_type.producing_agent_relationships():
                         art.depth = (depth + 1) * 2
@@ -1543,9 +1530,10 @@ def demand(request):
 
 def supply(request):
     mreqs = []
+    #todo: needs a lot of work
     mrqs = Commitment.objects.unfinished().filter(
-        resource_type__materiality="material",
-       event_type__relationship="in").order_by("resource_type__name")
+        event_type__resource_effect="-",
+        event_type__relationship="in").order_by("resource_type__name")
     suppliers = SortedDict()
     for commitment in mrqs:
         if not commitment.resource_type.producing_commitments():
@@ -1561,8 +1549,8 @@ def supply(request):
                     suppliers[agent][source].append(commitment) 
     treqs = []
     trqs = Commitment.objects.unfinished().filter(
-        resource_type__materiality="tool",
-       event_type__relationship="in").order_by("resource_type__name")
+        event_type__resource_effect="=",
+        event_type__relationship="in").order_by("resource_type__name")
     for commitment in trqs:
         if not commitment.resource_type.producing_commitments():
             if not commitment.fulfilling_events():    
@@ -1582,41 +1570,6 @@ def supply(request):
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
 
-def work_old(request):
-    my_work = []
-    my_skillz = []
-    other_wip = []
-    agent = get_agent(request)
-    if agent:
-        my_work = Commitment.objects.unfinished().filter(
-            resource_type__materiality="work",
-            from_agent=agent)
-        skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
-        my_skillz = Commitment.objects.unfinished().filter(
-            from_agent=None, 
-            resource_type__materiality="work",
-            resource_type__id__in=skill_ids)
-        other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None, 
-            resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)
-        other_wip = Commitment.objects.unfinished().filter(
-            resource_type__materiality="work").exclude(from_agent=None).exclude(from_agent=agent)
-    else:
-        other_unassigned = Commitment.objects.unfinished().filter(
-            from_agent=None, 
-            resource_type__materiality="work")
-    start = datetime.date.today()
-    end = start + datetime.timedelta(days=7)
-    init = {"start_date": start, "end_date": end}
-    date_form = DateSelectionForm(initial=init)
-    return render_to_response("valueaccounting/work.html", {
-        "agent": agent,
-        "my_work": my_work,
-        "my_skillz": my_skillz,
-        "other_unassigned": other_unassigned,
-        "other_wip": other_wip,
-        "date_form": date_form,
-    }, context_instance=RequestContext(request))
 
 def assemble_schedule(start, end):
     processes = Process.objects.unfinished().filter(
@@ -1841,15 +1794,15 @@ def start(request):
         skill_ids = agent.resource_types.values_list('resource_type__id', flat=True)
         my_skillz = Commitment.objects.unfinished().filter(
             from_agent=None, 
-            resource_type__materiality="work",
+            event_type__relationship="work",
             resource_type__id__in=skill_ids)
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
-            resource_type__materiality="work").exclude(resource_type__id__in=skill_ids)       
+            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)       
     else:
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None, 
-            resource_type__materiality="work")
+            event_type__relationship="work")
     todos = Commitment.objects.todos().filter(from_agent=agent)
     init = {"from_agent": agent,}
     try:

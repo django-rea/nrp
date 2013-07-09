@@ -408,10 +408,6 @@ class EconomicResourceType(models.Model):
     category = models.ForeignKey(Category, 
         verbose_name=_('category'), related_name='resource_types',
         limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
-    #todo: needs better name.  Technically, is supertype.
-    materiality = models.CharField(_('behavior'), 
-        max_length=12, choices=MATERIALITY_CHOICES,
-        default='intellectual')
     unit = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="resource_units",
         help_text=_('if this resource has different units of use and inventory, this is the unit of inventory'))
@@ -624,6 +620,13 @@ class EconomicResourceType(models.Model):
         init = {"name": " ".join(["Make", self.name])}
         return XbillProcessTypeForm(initial=init, prefix=self.process_create_prefix())
 
+    def source_create_prefix(self):
+        return "".join(["SRC", str(self.id)])
+
+    def source_create_form(self):
+        from valuenetwork.valueaccounting.forms import AgentResourceTypeForm
+        return AgentResourceTypeForm(prefix=self.source_create_prefix())
+
     def directional_unit(self, direction):
         answer = self.unit
         if self.unit_of_use:
@@ -730,10 +733,13 @@ class ProcessPattern(models.Model):
         single_ids = [s.id for s in singles]
         #import pdb; pdb.set_trace()
         for rt in rts:
+            #if rt.name == "R&D optics":
+            #    import pdb; pdb.set_trace()
             rt_singles = [rtfv.facet_value for rtfv in rt.facets.filter(facet_value_id__in=single_ids)]
             rt_multis = [rtfv.facet_value for rtfv in rt.facets.exclude(facet_value_id__in=single_ids)]
             if set(rt_singles) == set(singles):
                 if not rt in answer:
+                    #todo: multis need to be broken out
                     if multis:
                         # if multis intersect
                         if set(rt_multis) & set(multis):
@@ -1008,7 +1014,7 @@ class AgentResourceType(models.Model):
     def __unicode__(self):
         return ' '.join([
             self.agent.name,
-            self.relationship.name,
+            self.event_type.label,
             self.resource_type.name,
         ])
 
@@ -1055,7 +1061,6 @@ class AgentResourceType(models.Model):
     def xbill_change_form(self):
         from valuenetwork.valueaccounting.forms import AgentResourceTypeForm
         return AgentResourceTypeForm(instance=self, prefix=self.xbill_change_prefix())
-        #return AgentResourceTypeForm(instance=self)
 
     def total_required(self):
         commitments = Commitment.objects.unfinished().filter(resource_type=self.resource_type)
@@ -1105,7 +1110,8 @@ class Project(models.Model):
 
     def time_contributions(self):
         return sum(event.quantity for event in self.events.filter(
-            resource_type__materiality="work"))
+            is_contribution=True,
+            event_type__relationship="work"))
 
     def contributions(self):
         return sum(event.quantity for event in self.events.filter(
@@ -1327,7 +1333,7 @@ class ProcessTypeResourceType(models.Model):
 
     def xbill_change_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeResourceTypeForm, LaborInputForm
-        if self.resource_type.materiality == "work":
+        if self.event_type.relationship == "work":
             return LaborInputForm(instance=self, prefix=self.xbill_change_prefix())
         else:
             return ProcessTypeResourceTypeForm(instance=self, prefix=self.xbill_change_prefix())
@@ -1545,21 +1551,23 @@ class Process(models.Model):
     
     #todo: tool and space requirements won't work anymore
     def tool_requirements(self):
-        answer = list(self.commitments.filter(
-           event_type__relationship='in',
-            resource_type__materiality='tool',
-        ))
-        answer.extend(list(self.commitments.filter(
-           event_type__relationship='in',
-            resource_type__materiality='purchtool',
-        )))
-        return answer
+        #answer = list(self.commitments.filter(
+        #   event_type__relationship='in',
+        #    resource_type__materiality='tool',
+        #))
+        #answer.extend(list(self.commitments.filter(
+        #   event_type__relationship='in',
+        #    resource_type__materiality='purchtool',
+        #)))
+        #return answer
+        return []
 
     def space_requirements(self):
-        return self.commitments.filter(
-           event_type__relationship='in',
-            resource_type__materiality='space',
-        )
+        #return self.commitments.filter(
+        #   event_type__relationship='in',
+        #    resource_type__materiality='space',
+        #)
+        return []
 
     def work_requirements(self):
         return self.commitments.filter(
@@ -1622,7 +1630,7 @@ class Process(models.Model):
         for event in self.inputs():
             #todo: inputs do not include work anyway
             if event.to_agent == agent:
-                if event.resource_type.materiality != 'work':
+                if event.event_type.relationship != 'work':
                     answer.append(event)
         return answer
 
@@ -2113,12 +2121,13 @@ class Commitment(models.Model):
         return resources
 
     def quantity_to_buy(self):
-        onhand = self.onhand()       
-        if self.resource_type.materiality == "material":
-            if not self.resource_type.producing_commitments():
-                qty =  self.unfilled_quantity() - sum(oh.quantity for oh in self.onhand())
-                if qty > Decimal("0"):
-                    return qty
+        onhand = self.onhand()  
+        #todo: won't work anymore     
+        #if self.resource_type.materiality == "material":
+        if not self.resource_type.producing_commitments():
+            qty =  self.unfilled_quantity() - sum(oh.quantity for oh in self.onhand())
+            if qty > Decimal("0"):
+                return qty
         else:
             if not onhand:
                 if not self.resource_type.producing_commitments():
@@ -2285,7 +2294,6 @@ class EconomicEvent(models.Model):
             art, created = AgentResourceType.objects.get_or_create(
                 agent=self.from_agent,
                 resource_type=self.resource_type,
-                relationship=ResourceRelationship.objects.get(id=1),
                 event_type=self.event_type)
             art.score += self.quantity
             art.save()

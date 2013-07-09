@@ -733,17 +733,40 @@ class ProcessPattern(models.Model):
         single_ids = [s.id for s in singles]
         #import pdb; pdb.set_trace()
         for rt in rts:
-            #if rt.name == "R&D optics":
-            #    import pdb; pdb.set_trace()
+            if rt.name == "R&D optics":
+                import pdb; pdb.set_trace()
             rt_singles = [rtfv.facet_value for rtfv in rt.facets.filter(facet_value_id__in=single_ids)]
             rt_multis = [rtfv.facet_value for rtfv in rt.facets.exclude(facet_value_id__in=single_ids)]
             if set(rt_singles) == set(singles):
                 if not rt in answer:
-                    #todo: multis need to be broken out
                     if multis:
                         # if multis intersect
                         if set(rt_multis) & set(multis):
-                            answer.append(rt)
+                            rt_matches = True
+                            #break out multis by facet
+                            multi_facets = {}
+                            rt_facets = {}
+                            for mf in multis:
+                                if mf.facet not in multi_facets:
+                                    multi_facets[mf.facet] = []
+                                multi_facets[mf.facet].append(mf.value)
+                            for rf in rt_multis:
+                                if rf.facet not in rt_facets:
+                                    rt_facets[rf.facet] = []
+                                rt_facets[rf.facet].append(rf.value)
+                            for mf, mf_values in multi_facets.iteritems():
+                                #if rt does not have this pattern facet at all
+                                if mf not in rt_facets:
+                                    rt_matches = False
+                                    break
+                                else:
+                                    rt_values = rt_facets[mf]
+                                    #if rt facet values do not intersect with pattern facet values
+                                    if not (set(mf_values) & set(rt_values)):
+                                        rt_matches = False
+                                        break
+                            if rt_matches:
+                                answer.append(rt)
                     else:
                         answer.append(rt)
         answer_ids = [a.id for a in answer]

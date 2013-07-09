@@ -79,6 +79,19 @@ ul {
 	width: 16px;
 	font-size: 80%;
 }
+.subfilter {
+    font-size: 1.1em;
+    font-weight: bold;
+    font-style: italic;
+    margin-top: 8px;
+}
+.facet {
+    font-size: 1.1em;
+    font-weight: bold;   
+}
+.filter h3 {
+    margin-bottom: 5px;
+}
 
 
 </style>
@@ -173,7 +186,7 @@ ul {
 		</div>
 
 		<div class="span3 filter">
-			<h3 style="margin-bottom: 0;" >{% trans "Filter" %}</h3>
+			<h3 >{% trans "Filter Recipe Contents" %}</h3>
 			<form id="category-form" action="." method="POST">
 				{% csrf_token %}
 				<p>
@@ -185,7 +198,7 @@ ul {
 				<p><input type="checkbox" class="category" id="inputs" name="inputs" value="inputs" /> {% trans "Inputs" %}</p>
 {% endcomment %}
 				<p><input type="checkbox" class="category" id="features" name="features" value="features" /> {% trans "Features" %}</p>
-				<p><b>{% trans "Inputs" %}:</b></p>
+				<p class="subfilter">{% trans "Inputs" %}:</p>
 {% comment %}
 				{% for cat in categories %}
 				<p style="margin-left: 1em;" ><input type="checkbox" class="category" id="{{ cat }}" name="{{ cat }}" value="{{ cat }}" /> {{ cat }}</p>

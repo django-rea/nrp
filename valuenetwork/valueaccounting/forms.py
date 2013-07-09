@@ -722,7 +722,7 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
 
     class Meta:
         model = ProcessTypeResourceType
-        exclude = ('process_type', 'relationship')
+        exclude = ('process_type', 'relationship', 'event_type')
 
 
 class ProcessTypeInputForm(forms.ModelForm):
@@ -848,10 +848,6 @@ class LaborInputForm(forms.ModelForm):
         widget=SelectWithPopUp(
             model=EconomicResourceType,
             attrs={'class': 'resource-type-selector'}))
-    relationship = forms.ModelChoiceField(
-        queryset=ResourceRelationship.objects.exclude(direction='out'), 
-        empty_label=None, 
-        widget=SelectWithPopUp(model=ResourceRelationship))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -860,7 +856,7 @@ class LaborInputForm(forms.ModelForm):
 
     class Meta:
         model = ProcessTypeResourceType
-        exclude = ('process_type',)
+        exclude = ('process_type', 'event_type', 'relationship')
 
 
 class TimeForm(forms.Form):

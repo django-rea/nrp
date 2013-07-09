@@ -67,10 +67,16 @@ ul {
 	font-weight: normal;
 }
 
-.facets {
+.node-description {
+	font-weight: normal;
+}
+
+
+.facets, .pattern {
     margin-left: 1em;
 	font-weight: normal;
 }
+
 
 .btn-info {
 	margin-top: 2px;
@@ -134,9 +140,14 @@ ul {
 
 			</div>
 
+		{% if resource_type.facet_list %}
+			<div class="facets" >{{ resource_type.facet_list }}</div>
+		{% endif %}
+
 		{% if resource_type.description %}
 			<div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
 		{% endif %}
+		
         {% if not resource_type.producing_process_type_relationships %}
 		    <div style="margin-bottom: 2px;" >
 			    <a href="#processForm{{ resource_type.id }}" role="button" class="btn btn-info" data-toggle="modal">
@@ -309,10 +320,15 @@ ul {
 						<div class="facets" >{{ xbill_object.facet_list }}</div>
 					{% endif %}
 
+					{% if xbill_node.description %}
+						<div class="description" >{{ xbill_node.description|urlize|linebreaks }}</div>
+					{% endif %}
+
+{% comment %}
 					{% if xbill_object.description %}
 						<div class="description" >{{ xbill_object.description|urlize|linebreaks }}</div>
 					{% endif %}
-
+{% endcomment %}
 
 					{% if xb_type == "economic-resource-type" %}
 						<div>
@@ -480,6 +496,12 @@ ul {
 						          </div>
 
 						        </div>
+						        
+                                <div class="pattern" >{% trans "Pattern:" %} {{ ptype.process_pattern }}</div>
+                                
+						        {% if ptype.description %}
+						            <div class="description" >{{ ptype.description|urlize|linebreaks }}</div>
+					            {% endif %}
 					        {% endwith %}
 
 						{% endif %}

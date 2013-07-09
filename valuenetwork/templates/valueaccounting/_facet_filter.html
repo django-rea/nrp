@@ -1,0 +1,15 @@
+{% load i18n %}
+
+<h3>{% trans "Filter the List" %}</h3>
+<form id="category-form" action="." method="POST">
+	{% csrf_token %}
+	<p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All" %}</p>
+	{% for facet in facets %}
+        <p class="facet"> {{ facet.name }} </p>
+        {% for val in facet.values.all %}
+	        <p><input type="checkbox" class="category" id="{{ val }}" name="{{ val }}" value="{{ val }}" /> {{ val.value }}</p>
+	    {% endfor %}
+	{% endfor %}
+	<input type='hidden' id='categories' name='categories' value='' />
+	<input type="submit" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
+</form>

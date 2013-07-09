@@ -686,6 +686,7 @@ def extended_bill(request, resource_type_id):
                     #val = node.category()
                     #if val.name in vals:
                     #    node.show = True
+                    rt_fvs = self.facets.all()
 
                     #if node....facet values:
                     node.show = True

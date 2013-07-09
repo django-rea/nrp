@@ -733,8 +733,8 @@ class ProcessPattern(models.Model):
         single_ids = [s.id for s in singles]
         #import pdb; pdb.set_trace()
         for rt in rts:
-            if rt.name == "R&D optics":
-                import pdb; pdb.set_trace()
+            #if rt.name == "R&D optics":
+                #import pdb; pdb.set_trace()
             rt_singles = [rtfv.facet_value for rtfv in rt.facets.filter(facet_value_id__in=single_ids)]
             rt_multis = [rtfv.facet_value for rtfv in rt.facets.exclude(facet_value_id__in=single_ids)]
             if set(rt_singles) == set(singles):

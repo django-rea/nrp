@@ -530,6 +530,9 @@ class EconomicResourceType(models.Model):
     def consuming_process_type_relationships(self):
         return self.process_types.filter(event_type__relationship='in')
 
+    def citing_process_type_relationships(self):
+        return self.process_types.filter(event_type__relationship='cite')
+
     def wanting_commitments(self):
         return self.commitments.filter(
             finished=False,
@@ -566,11 +569,16 @@ class EconomicResourceType(models.Model):
         return self.commitments.filter(
             event_type__relationship='in')
 
+    def citing_commitments(self):
+        return self.commitments.filter(
+            event_type__relationship='cite')
+
     def scheduled_qty(self):
         return sum(pc.quantity for pc in self.producing_commitments())
 
     def xbill_parents(self):
         answer = list(self.consuming_process_type_relationships())
+        answer.extend(list(self.citing_process_type_relationships()))
         answer.extend(list(self.options.all()))
         #answer.append(self)
         return answer
@@ -608,10 +616,13 @@ class EconomicResourceType(models.Model):
         init = {"unit_of_quantity": self.unit,}
         return EconomicResourceForm(prefix=prefix, initial=init)
 
+    def process_create_prefix(self):
+        return "".join(["PC", str(self.id)])
+        
     def process_create_form(self):
         from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
         init = {"name": " ".join(["Make", self.name])}
-        return XbillProcessTypeForm(initial=init)
+        return XbillProcessTypeForm(initial=init, prefix=self.process_create_prefix())
 
     def directional_unit(self, direction):
         answer = self.unit
@@ -986,6 +997,7 @@ class AgentResourceType(models.Model):
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         limit_choices_to={'unit_type': 'value'},
         verbose_name=_('unit of value'), related_name="agent_resource_value_units")
+    description = models.TextField(_('description'), null=True, blank=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='arts_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
@@ -1042,8 +1054,8 @@ class AgentResourceType(models.Model):
 
     def xbill_change_form(self):
         from valuenetwork.valueaccounting.forms import AgentResourceTypeForm
-        #return AgentResourceTypeForm(instance=self, prefix=self.xbill_change_prefix())
-        return AgentResourceTypeForm(instance=self)
+        return AgentResourceTypeForm(instance=self, prefix=self.xbill_change_prefix())
+        #return AgentResourceTypeForm(instance=self)
 
     def total_required(self):
         commitments = Commitment.objects.unfinished().filter(resource_type=self.resource_type)
@@ -1243,6 +1255,7 @@ class ProcessTypeResourceType(models.Model):
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="process_resource_qty_units")
+    description = models.TextField(_('description'), null=True, blank=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='ptrts_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

@@ -1178,9 +1178,9 @@ def change_agent_resource_type(request, agent_resource_type_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         art = get_object_or_404(AgentResourceType, pk=agent_resource_type_id)
-        #prefix = art.xbill_change_prefix()
-        #form = AgentResourceTypeForm(data=request.POST, instance=art, prefix=prefix)
-        form = AgentResourceTypeForm(data=request.POST, instance=art)
+        prefix = art.xbill_change_prefix()
+        form = AgentResourceTypeForm(data=request.POST, instance=art, prefix=prefix)
+        #form = AgentResourceTypeForm(data=request.POST, instance=art)
         if form.is_valid():
             art = form.save(commit=False)
             art.changed_by=request.user
@@ -1251,7 +1251,8 @@ def create_process_type_for_resource_type(request, resource_type_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-        form = XbillProcessTypeForm(request.POST)
+        prefix = rt.process_create_prefix()
+        form = XbillProcessTypeForm(request.POST, prefix=prefix)
         if form.is_valid():
             data = form.cleaned_data
             pt = form.save(commit=False)

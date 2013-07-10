@@ -70,7 +70,7 @@ class EconomicResourceTypeAdmin(admin.ModelAdmin):
     list_display = ('label', 'name', 'category', 'rate', 'unit', 'unit_of_use', 'description', 'facet_list')
     list_filter = ['facets__facet_value']
     search_fields = ['name',]
-    list_editable = ['unit_of_use']
+    list_editable = ['unit', 'unit_of_use']
     inlines = [ ResourceTypeFacetInline, ]
     
 admin.site.register(EconomicResourceType, EconomicResourceTypeAdmin)

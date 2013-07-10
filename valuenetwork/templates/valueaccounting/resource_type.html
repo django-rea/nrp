@@ -4,7 +4,7 @@
 {% load bootstrap_tags %}
 {% load thumbnail %}
 
-{% block head_title %}{% trans "Resource Types" %}{% endblock %}
+{% block head_title %}{% trans "Resource Type" %}:  {{ resource_type.name }}{% endblock %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 {% block extra_head %}
 
@@ -42,80 +42,75 @@ container li {
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-	<div class="row-fluid">
-		<div class="span9">
 		
-			<legend>{% trans "Resource Types" %}</legend>
+		<legend>
+		    {% trans "Resource Type" %}:  {{ resource_type.name }}
+		    {% if user.is_authenticated %}
+		        <div style="display: inline;" >
+				    <a href="#resourceChangeForm{{ resource_type.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+			    </div>
+			    {% if resource_type.is_deletable %}
+			        <div style="display: inline;" >
+				        <a href="{% url delete_resource_type_confirmation resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >{% trans "Delete" %}</a>
+			        </div>
+		        {% endif %}
 
-			{% if user.is_authenticated %}
-				<div style="display: inline;" >
-					<a href="#createResourceForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create new Resource Type" %}</a>
-					<br /><br />
+		    {% endif %}
+	   
+            {% if resource_type.producing_process_type_relationships %}
+                <a href="{% url extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+            {% endif %}
+            {% if user.is_authenticated %}
+                {% if resource_type.is_process_output %}
+			        <a href="{% url edit_extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+				        {% if resource_type.producing_process_type_relationships %}
+					        {% trans "Change Recipe" %}
+				        {% else %}
+					        {% trans "Create Recipe" %}
+				        {% endif %}
+			        </a>
+		        {% endif %}
+		        
+		    {% endif %}
+
+		</legend>
+
+        
+
+        <div class="facets" >{{ resource_type.facet_list }}</div>
+
+        <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
+
+	    {% if resource_type.photo %}
+            <img src="{% thumbnail resource_type.photo photo_size %}" />
+        {% elif resource_type.photo_url %}
+    	    <img src="{{ resource_type.photo_url }}" width="128" height="96" />
+        {% endif %}
+
+			
+
+			<div class="modal hide fade" id="resourceChangeForm{{ resource_type.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-change-label" aria-hidden="true">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+					<h3 id="resource-change-label">{% trans "Change" %} {{ resource_type }}</h3>
 				</div>
+				<div class="modal-body">
+					<form class="resource-change-form" enctype="multipart/form-data" action="{% url change_resource_type resource_type_id=resource_type.id %}" method="POST" >
+						{% csrf_token %}
+						{{ resource_type.change_form|as_bootstrap }}
+						<input type="hidden" name="next" value="{% url resource_types %}" />
+					  <div class="modal-footer">
+						<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						<button class="btn btn-primary">{% trans "Save changes" %}</button>
+					  </div>
 
 
-				<div class="modal hide fade" id="createResourceForm" tabindex="-1" role="dialog" aria-labelledby="resource-create-label" aria-hidden="true">
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-						<h3 id="resource-create-label">{% trans "Create a new Resource Type" %}</h3>
-					</div>
-					<div class="modal-body">
-						<form class="resource-create-form" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
-							{% csrf_token %}
-							{{ create_form|as_bootstrap }}
-                            {{ create_formset.management_form }}
-                            <table>
-                                {% for form in create_formset %}
-                                    <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
-                                {% endfor %}
-                            </table>
-							<input type="hidden" name="next" value="{% url resource_types %}" />
+					</form>
+			  </div>
 
-						  <div class="modal-footer">
-							<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							<button class="btn btn-primary">{% trans "Save changes" %}</button>
-						  </div>
-
-						</form>
-
-				    </div>
-                </div>
-			{% endif %}
-
-	
-		    <ul>
-			    {% for resource_type in roots %}
-				    <li>
-					    <span class="name"><a href="{% url resource_type resource_type_id=resource_type.id %}">{{ resource_type }}</a></span> 
-
-					    {% if resource_type.photo %}
-			                <img src="{% thumbnail resource_type.photo photo_size %}" />
-		                {% elif resource_type.photo_url %}
-                    	    <img src="{{ resource_type.photo_url }}" width="128" height="96" />
-		                {% endif %}
+			</div>
 
 
-
-		                {% if resource_type.producing_process_type_relationships %}
-			                <a href="{% url extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
-		                {% endif %}
-
-		                <div class="facets" >{{ resource_type.facet_list }}</div>
-
-		                <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
-
-			        </li>
-
-			    {% endfor %}
-		    </ul>
-		</div>
-
-		<div class="span3 filter">
-            {% include "valueaccounting/_facet_filter.html" %}
-		</div>
-
-	</div>
-    </div>
 {% endblock %}
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>

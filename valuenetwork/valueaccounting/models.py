@@ -659,6 +659,39 @@ class EconomicResourceType(models.Model):
     def facet_values_list(self):
         return ", ".join([facet.facet_value.value for facet in self.facets.all()])
 
+    def has_facet_value(self, facet_value):
+        answer = False
+        for rt_facet in self.facets.all():
+            if rt_facet.facet_value == facet_value:
+                answer = True
+                break
+        return answer
+
+    def matches_filter(self, facet_values):
+        answer = True
+        incoming_facets = []
+        for fv in facet_values:
+            incoming_facets.append(fv.facet)
+        filter_facets = set(incoming_facets)
+        filter_facet_value_collections = []
+        for f in filter_facets:
+            fv_collection = []
+            for fv in facet_values:
+                if fv.facet == f:
+                    fv_collection.append(fv)
+            filter_facet_value_collections.append(fv_collection)
+        filter_matches = []
+        for (i, fac) in enumerate(filter_facets):
+            fm = False
+            for fv in filter_facet_value_collections(i):
+                if self.has_facet_value(fv):
+                    fm = True
+                    break
+            filter_matches.append(fm)
+        if False in filter_matches:
+            answer = False
+        return answer
+
 
 class ResourceTypeFacetValue(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 

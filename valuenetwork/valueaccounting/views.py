@@ -683,13 +683,10 @@ def extended_bill(request, resource_type_id):
                 if select_all:
                     node.show = True
                 else:
-                    #val = node.category()
-                    #if val.name in vals:
-                    #    node.show = True
-                    rt_fvs = self.facets.all()
-
-                    #if node....facet values:
-                    node.show = True
+                    import pdb; pdb.set_trace()
+                    rt_fvs = node.facets.all()
+                    if node.matches_filter(rt_fvs):
+                        node.show = True
     else:
         nodes = generate_xbill(rt)
         depth = 1
@@ -4213,6 +4210,8 @@ def process_selections(request, rand=0):
                         created_by=request.user,
                     )
                     commitment.save()
+                    if rand:
+                        explode_dependent_demands(commitment, request.user)
             for rt in cited_rts:
                 et = selected_pattern.event_type_for_resource_type("cite", rt)
                 if et:

@@ -212,6 +212,8 @@ def select_resource_types(facet_values):
     return list(EconomicResourceType.objects.filter(id__in=answer_ids))
 
 def resource_types(request):
+    #select_related did not help
+    #roots = EconomicResourceType.objects.select_related()
     roots = EconomicResourceType.objects.all()
     create_form = EconomicResourceTypeForm()
     create_formset = create_facet_formset()
@@ -247,6 +249,13 @@ def resource_types(request):
         "create_formset": create_formset,
         "photo_size": (128, 128),
         "help": get_help("resource_types"),
+    }, context_instance=RequestContext(request))
+
+def resource_type(request, resource_type_id):
+    resource_type = get_object_or_404(EconomicResourceType, id=resource_type_id)
+    return render_to_response("valueaccounting/resource_type.html", {
+        "resource_type": resource_type,
+        "photo_size": (128, 128),
     }, context_instance=RequestContext(request))
 
 def inventory(request):

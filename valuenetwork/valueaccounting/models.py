@@ -296,6 +296,7 @@ class EconomicAgent(models.Model):
     def consumed_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
 
+
     def xbill_parents(self):
         return self.produced_resource_type_relationships()
 
@@ -1048,10 +1049,10 @@ class AgentResourceType(models.Model):
         return " ".join(["Get ", self.resource_type.name, "from ", self.agent.name])
 
     def inverse_label(self):
-        return self.relationship.inverse_label()
+        return self.event_type.inverse_label()
 
     def xbill_label(self):
-        #return self.relationship.infer_label()
+        #return self.event_type.infer_label()
         return ""
 
     def xbill_explanation(self):
@@ -1226,6 +1227,12 @@ class ProcessType(models.Model):
 
     def consumed_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
+
+    def all_input_resource_type_relationships(self):
+        return self.resource_types.filter(
+            Q(event_type__relationship='in')|
+            Q(event_type__relationship='cite')|
+            Q(event_type__relationship='work'))
 
     def xbill_parents(self):
         return self.produced_resource_type_relationships()
@@ -2158,6 +2165,7 @@ class Commitment(models.Model):
         return Decimal("0")
 
     def net(self):
+        #import pdb; pdb.set_trace()
         rt = self.resource_type
         oh_qty = rt.onhand_qty_for_commitment(self)
         if oh_qty >= self.quantity:

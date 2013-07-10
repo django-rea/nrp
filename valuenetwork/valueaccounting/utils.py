@@ -45,7 +45,7 @@ def project_graph(producers):
                 if p.project and pt.process_type.project:
                     if p.project != pt.process_type.project:
                         nodes.extend([p.project, pt.process_type.project, rt.resource_type])
-                        edges.append(Edge(p.project, rt.resource_type, rt.relationship.name))
+                        edges.append(Edge(p.project, rt.resource_type, rt.event_type.label))
                         edges.append(Edge(rt.resource_type, pt.process_type.project, pt.inverse_label()))
     return [nodes, edges]
 
@@ -58,14 +58,14 @@ def explode(process_type_relationship, nodes, edges, depth, depth_limit):
     edges.append(Edge(
         process_type_relationship.process_type, 
         process_type_relationship.resource_type, 
-        process_type_relationship.relationship.name
+        process_type_relationship.event_type.label
     ))
     for rtr in process_type_relationship.process_type.consumed_resource_type_relationships():
         nodes.append(rtr.resource_type)
         edges.append(Edge(rtr.resource_type, process_type_relationship.process_type, rtr.inverse_label()))
         for art in rtr.resource_type.producing_agent_relationships():
             nodes.append(art.agent)
-            edges.append(Edge(art.agent, rtr.resource_type, art.relationship.name))
+            edges.append(Edge(art.agent, rtr.resource_type, art.event_type.label))
         for pt in rtr.resource_type.producing_process_type_relationships():
             explode(pt, nodes, edges, depth+1, depth_limit)
 
@@ -74,7 +74,7 @@ def graphify(focus, depth_limit):
     edges = []
     for art in focus.consuming_agent_relationships():
         nodes.append(art.agent)
-        edges.append(Edge(focus, art.agent, art.relationship.name))
+        edges.append(Edge(focus, art.agent, art.event_type.label))
     for ptr in focus.producing_process_type_relationships():
         explode(ptr, nodes, edges, 0, depth_limit)
     return [nodes, edges]
@@ -287,11 +287,12 @@ def backschedule_order(order, events):
 def recursively_explode_demands(process, order, user):
     pt = process.process_type
     output = process.main_outgoing_commitment()
-    for ptrt in pt.consumed_resource_type_relationships():
+    #import pdb; pdb.set_trace()
+    for ptrt in pt.all_input_resource_type_relationships():
         commitment = Commitment(
             independent_demand=order,
-            event_type=ptrt.relationship.event_type,
-            relationship=ptrt.relationship,
+            event_type=ptrt.event_type,
+            description=ptrt.description,
             due_date=process.start_date,
             resource_type=ptrt.resource_type,
             process=process,
@@ -308,6 +309,7 @@ def recursively_explode_demands(process, order, user):
             next_process = Process(          
                 name=next_pt.name,
                 process_type=next_pt,
+                process_pattern=next_pt.process_pattern,
                 project=next_pt.project,
                 url=next_pt.url,
                 end_date=process.start_date,
@@ -316,8 +318,8 @@ def recursively_explode_demands(process, order, user):
             next_process.save()
             next_commitment = Commitment(
                 independent_demand=order,
-                event_type=pptr.relationship.event_type,
-                relationship=pptr.relationship,
+                event_type=pptr.event_type,
+                description=pptr.description,
                 due_date=process.start_date,
                 resource_type=pptr.resource_type,
                 process=next_process,

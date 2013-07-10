@@ -1398,7 +1398,7 @@ def create_order(request):
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
-                                event_type=ptrt.relationship.event_type,
+                                event_type=ptrt.event_type,
                                 due_date=order.due_date,
                                 from_agent_type=order.provider.agent_type,
                                 from_agent=order.provider,
@@ -1446,7 +1446,7 @@ def create_order(request):
                                 if process_type:
                                     commitment = Commitment(
                                         independent_demand=order,
-                                        event_type=feature.relationship.event_type,
+                                        event_type=feature.event_type,
                                         due_date=process.start_date,
                                         to_agent=order.provider,
                                         resource_type=component,
@@ -1461,7 +1461,7 @@ def create_order(request):
                                 else:
                                     commitment = Commitment(
                                         independent_demand=order,
-                                        event_type=feature.relationship.event_type,
+                                        event_type=feature.event_type,
                                         due_date=process.start_date,
                                         to_agent=order.provider,
                                         resource_type=component,
@@ -3610,9 +3610,7 @@ def change_process(request, process_id):
 
 def explode_dependent_demands(commitment, user):
     #import pdb; pdb.set_trace()
-    #todo: temporarily disabled
-    #qty_to_explode = commitment.net()
-    qty_to_explode = 0
+    qty_to_explode = commitment.net()
     if qty_to_explode:
         rt = commitment.resource_type
         ptrt = rt.main_producing_process_type_relationship()
@@ -3623,6 +3621,7 @@ def explode_dependent_demands(commitment, user):
             feeder_process = Process(
                 name=pt.name,
                 process_type=pt,
+                process_pattern=pt.process_pattern,
                 project=pt.project,
                 url=pt.url,
                 end_date=commitment.due_date,
@@ -3640,6 +3639,7 @@ def explode_dependent_demands(commitment, user):
                 project=pt.project,
                 quantity=qty_to_explode,
                 unit_of_quantity=rt.unit,
+                description=ptrt.description,
                 created_by=user,
             )
             output_commitment.save()

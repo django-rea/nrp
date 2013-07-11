@@ -847,6 +847,10 @@ class ProcessPattern(models.Model):
                 ets = EventType.objects.filter(relationship=relationship)
                 event_type = ets[0]
         return event_type
+
+    def use_case_list(self):
+        ucl = [uc.get_use_case_display() for uc in self.use_cases.all()]
+        return ", ".join(ucl)
         
         
 class PatternFacetValue(models.Model):
@@ -868,10 +872,11 @@ class PatternFacetValue(models.Model):
 
 
 USECASE_CHOICES = (
-    ('design', _('Design')),
-    ('non_prod', _('Non-production')),
-    ('rand', _('R&D')),
-    ('todo', _('Todo')),
+    ('design', _('Design logging')),
+    ('non_prod', _('Non-production logging')),
+    ('rand', _('R&D logging')),
+    ('recipe', _('Recipes')),
+    ('todo', _('Todos')),
     ('cust_orders', _('Customer Orders')),
     ('purchasing', _('Purchasing')),
 )

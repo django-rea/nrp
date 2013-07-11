@@ -37,7 +37,7 @@ class PatternUseCaseInline(admin.TabularInline):
     
 
 class ProcessPatternAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'use_case_list')
     inlines = [ PatternFacetInline, PatternUseCaseInline]
 
 admin.site.register(ProcessPattern, ProcessPatternAdmin)

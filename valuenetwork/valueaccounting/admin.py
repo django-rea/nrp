@@ -84,7 +84,7 @@ admin.site.register(AgentResourceType, AgentResourceTypeAdmin)
 
 
 class ProcessTypeResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('process_type', 'resource_type', 'event_type', 'unit')
+    list_display = ('process_type', 'resource_type', 'event_type', 'unit_of_quantity')
     list_filter = ['event_type', 'process_type', 'resource_type']
     search_fields = ['process_type__name','resource_type__name',]
     

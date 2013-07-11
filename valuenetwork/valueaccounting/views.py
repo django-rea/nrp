@@ -212,9 +212,9 @@ def select_resource_types(facet_values):
     return list(EconomicResourceType.objects.filter(id__in=answer_ids))
 
 def resource_types(request):
-    #select_related did not help
-    #roots = EconomicResourceType.objects.select_related()
     roots = EconomicResourceType.objects.all()
+    resource_names = '~'.join([
+        res.name for res in roots])
     create_form = EconomicResourceTypeForm()
     create_formset = create_facet_formset()
     facets = Facet.objects.all()
@@ -249,6 +249,7 @@ def resource_types(request):
         "create_formset": create_formset,
         "photo_size": (128, 128),
         "help": get_help("resource_types"),
+        "resource_names": resource_names,
     }, context_instance=RequestContext(request))
 
 def resource_type(request, resource_type_id):

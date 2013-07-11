@@ -77,15 +77,15 @@ admin.site.register(EconomicResourceType, EconomicResourceTypeAdmin)
 
 
 class AgentResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('agent', 'resource_type', 'score','relationship')
-    list_filter = ['agent', 'resource_type']
+    list_display = ('agent', 'resource_type', 'score', 'event_type', 'relationship')
+    list_filter = ['event_type', 'agent', 'resource_type']
     
 admin.site.register(AgentResourceType, AgentResourceTypeAdmin)
 
 
 class ProcessTypeResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('process_type', 'resource_type')
-    list_filter = ['process_type', 'resource_type']
+    list_display = ('process_type', 'resource_type', 'event_type')
+    list_filter = ['event_type', 'process_type', 'resource_type']
     search_fields = ['process_type__name','resource_type__name',]
     
 admin.site.register(ProcessTypeResourceType, ProcessTypeResourceTypeAdmin)

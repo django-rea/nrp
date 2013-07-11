@@ -35,6 +35,11 @@ container li {
 }
 
 </style>
+
+<script>
+    var resourceNames = [];
+</script>
+
 {% endblock %}
 
 {% block body_class %}resource-types{% endblock %}
@@ -60,7 +65,7 @@ container li {
 						<h3 id="resource-create-label">{% trans "Create a new Resource Type" %}</h3>
 					</div>
 					<div class="modal-body">
-						<form class="resource-create-form" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
+						<form class="resource-create-form" id="resourceCreateForm" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
 							{% csrf_token %}
 							{{ create_form|as_bootstrap }}
                             {{ create_formset.management_form }}
@@ -85,6 +90,11 @@ container li {
 	
 		    <ul>
 			    {% for resource_type in roots %}
+			    
+			        <script>
+			            resourceNames.push("{{ resource_type.name }}");
+			        </script>
+			        
 				    <li>
 					    <span class="name"><a href="{% url resource_type resource_type_id=resource_type.id %}">{{ resource_type }}</a></span> 
 
@@ -127,6 +137,9 @@ container li {
 
 	$(document).ready(function(){
 
+        var nameArray = resourceNames;
+
+
 		$('#resource-types').addClass('active');
 
 		$( "#help" ).toggle( function(){
@@ -146,14 +159,15 @@ container li {
 			}
 		});
 
-                jQuery.validator.setDefaults({ 
-                    success: function(label) {
-				        label
-					        .text('').addClass('valid')
-					        .closest('.control-group').addClass('success');
-			        }
-                });
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
 
+        
 		$('.category').click(function() 
 		{
 			var checkedVals = [];
@@ -183,11 +197,18 @@ container li {
 			$('#categories').prop('value', checkedVals);
 		});
 
-		$('.resource-create-form').validate(
+
+        jQuery.validator.addMethod("unique", function(value, element, param) {
+            return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
+        }, "Name is not unique.");
+
+
+		$('#resourceCreateForm').validate(
 		{
 			rules: {
 				name: {
-					required: true
+					required: true,
+					unique: nameArray
 				},
 				url: {
 					url: true

@@ -104,7 +104,15 @@ ul {
         {% include "_messages.html" %}
 	<div class="row-fluid">
 		<div class="span9">
-			<legend>{% trans "Recipe for " %} {{ resource_type }}</legend>
+			<legend>
+			    {% trans "Recipe for " %} {{ resource_type }}
+
+			    {% if user.is_authenticated %}
+			        <a href="{% url edit_extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+				        {% trans "Change Recipe" %}
+			        </a>
+		        {% endif %}
+		    </legend>
 
 		    <h4>
 				{% if resource_type.url %}

@@ -832,9 +832,21 @@ class ProcessPattern(models.Model):
         pat_fvs = [x.facet_value for x in pfvs]
         #import pdb; pdb.set_trace()
         fv_intersect = set(rt_fvs) & set(pat_fvs)
-        fv = list(fv_intersect)[0]
-        pfv = pfvs.get(facet_value=fv)
-        return pfv.event_type
+        event_type = None
+        if fv_intersect:
+            fv = list(fv_intersect)[0]
+            pfv = pfvs.get(facet_value=fv)
+            event_type = pfv.event_type
+        else:
+            ets = self.event_types()
+            for et in ets:
+                if et.relationship == relationship:
+                    event_type=et
+                    break
+            if not event_type:
+                ets = EventType.objects.filter(relationship=relationship)
+                event_type = ets[0]
+        return event_type
         
         
 class PatternFacetValue(models.Model):

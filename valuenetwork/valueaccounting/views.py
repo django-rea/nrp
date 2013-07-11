@@ -501,7 +501,7 @@ def log_simple(request):
                     output_event.quantity = output_resource.quantity 
                     output_event.unit_of_quantity = output_resource.unit_of_quantity 
                     output_event.resource = output_resource
-                    output_event.from_agent = member
+                    #output_event.from_agent = member
                     output_event.created_by = request.user
                     output_event.save()
 
@@ -529,7 +529,7 @@ def log_simple(request):
                             citation_event.resource_type = cr.resource_type
                             citation_event.quantity = 1
                             citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("in")  
-                            citation_event.from_agent = member
+                            #citation_event.from_agent = member
                             citation_event.created_by = request.user
                             citation_event.save()
 
@@ -2125,7 +2125,7 @@ def new_process_citation(request, commitment_id):
             agent = get_agent(request)
             ct = Commitment(
                 process=process,
-                from_agent=agent,
+                #from_agent=agent,
                 independent_demand=demand,
                 event_type=event_type,
                 due_date=process.start_date,
@@ -2771,7 +2771,7 @@ def production_event_for_commitment(request):
             commitment = ct,
             event_date = event_date,
             event_type = ct.event_type,
-            from_agent = agent,
+            #from_agent = agent,
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,
@@ -2828,7 +2828,7 @@ def resource_event_for_commitment(request, commitment_id):
                 commitment = ct,
                 event_date = event_date,
                 event_type = ct.event_type,
-                from_agent = agent,
+                #from_agent = agent,
                 resource_type = ct.resource_type,
                 process = ct.process,
                 project = ct.project,
@@ -2927,7 +2927,7 @@ def citation_event_for_commitment(request):
             commitment = ct,
             event_date = event_date,
             event_type = ct.event_type,
-            from_agent = agent,
+            #from_agent = agent,
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,

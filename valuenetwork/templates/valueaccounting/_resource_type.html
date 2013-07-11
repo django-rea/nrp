@@ -8,40 +8,7 @@
     	    <img src="{{ resource_type.photo_url }}" width="128" height="96" />
 		{% endif %}
 
-		{% if user.is_authenticated %}
-			<div style="display: inline;" >
-				<a href="#resourceChangeForm{{ resource_type.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
-			</div>
 
-
-			<div class="modal hide fade" id="resourceChangeForm{{ resource_type.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-change-label" aria-hidden="true">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-					<h3 id="resource-change-label">{% trans "Change" %} {{ resource_type }}</h3>
-				</div>
-				<div class="modal-body">
-					<form class="resource-change-form" enctype="multipart/form-data" action="{% url change_resource_type resource_type_id=resource_type.id %}" method="POST" >
-						{% csrf_token %}
-						{{ resource_type.change_form|as_bootstrap }}
-						<input type="hidden" name="next" value="{% url resource_types %}" />
-					  <div class="modal-footer">
-						<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-						<button class="btn btn-primary">{% trans "Save changes" %}</button>
-					  </div>
-
-
-					</form>
-			  </div>
-
-			</div>
-			
-            {% if resource_type.is_deletable %}
-			<div style="display: inline;" >
-				<a href="{% url delete_resource_type_confirmation resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >{% trans "Delete" %}</a>
-			</div>
-			{% endif %}
-
-		{% endif %}
 
 		{% if resource_type.producing_process_type_relationships %}
 			<a href="{% url extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>

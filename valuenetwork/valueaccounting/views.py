@@ -1511,8 +1511,8 @@ def schedule_commitment(
         for inp in process.schedule_requirements():
             inp.depth = depth * 2
             schedule.append(inp)
-            if inp.event_type.resource_effect != "-":
-                continue
+            #if inp.event_type.resource_effect != "-":
+            #    continue
             resource_type = inp.resource_type
             if resource_type not in visited_resources:
                 #visited_resources.add(resource_type)
@@ -4223,6 +4223,22 @@ def process_selections(request, rand=0):
                         created_by=request.user,
                     )
                     commitment.save()
+                    import pdb; pdb.set_trace()
+                    if rand:
+                        pt = rt.main_producing_process_type()
+                        if pt:
+                            for xrt in pt.cited_resource_types():
+                                if xrt not in cited_rts:
+                                    cited_rts.append(xrt)
+                            for xrt in pt.used_resource_types():
+                                if xrt not in used_rts:
+                                    used_rts.append(xrt)
+                            for xrt in pt.consumed_resource_types():
+                                if xrt not in consumed_rts:
+                                    consumed_rts.append(xrt)
+                            for xrt in pt.work_resource_types():
+                                if xrt not in work_rts:
+                                    work_rts.append(xrt)
             for rt in cited_rts:
                 et = selected_pattern.event_type_for_resource_type("cite", rt)
                 if et:
@@ -4240,6 +4256,8 @@ def process_selections(request, rand=0):
                     )
                     commitment.save()
                     resource_types.append(rt)
+                    if rand:
+                        explode_dependent_demands(commitment, request.user)
             for rt in used_rts:
                 if rt not in resource_types:
                     et = selected_pattern.event_type_for_resource_type("in", rt)

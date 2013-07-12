@@ -290,11 +290,11 @@ class EconomicAgent(models.Model):
     def produced_resource_types(self):
         return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
 
-    def consumed_resource_type_relationships(self):
+    def consumed_and_used_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='in')
 
-    def consumed_resource_types(self):
-        return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
+    def consumed_and_used_resource_types(self):
+        return [ptrt.resource_type for ptrt in self.consumed_and_used_resource_type_relationships()]
 
 
     def xbill_parents(self):
@@ -469,7 +469,7 @@ class EconomicResourceType(models.Model):
     def onhand_qty_for_commitment(self, commitment):
         oh_qty = self.onhand_qty()
         due_date = commitment.due_date
-        priors = self.wanting_commitments().filter(due_date__lt=due_date)
+        priors = self.consuming_commitments().filter(due_date__lt=due_date)
         remainder = oh_qty - sum(p.quantity for p in priors)
         if remainder > 0:
             return remainder
@@ -479,7 +479,7 @@ class EconomicResourceType(models.Model):
     def scheduled_qty_for_commitment(self, commitment):
         sked_qty = self.scheduled_qty()
         due_date = commitment.due_date
-        priors = self.wanting_commitments().filter(due_date__lt=due_date)
+        priors = self.consuming_commitments().filter(due_date__lt=due_date)
         remainder = sked_qty - sum(p.quantity for p in priors)
         if remainder > 0:
             return remainder
@@ -525,15 +525,24 @@ class EconomicResourceType(models.Model):
         return answer
         
     def consuming_process_type_relationships(self):
-        return self.process_types.filter(event_type__relationship='in')
+        return self.process_types.filter(event_type__resource_effect='-')
 
     def citing_process_type_relationships(self):
         return self.process_types.filter(event_type__relationship='cite')
 
     def wanting_commitments(self):
         return self.commitments.filter(
-            finished=False,
-            event_type__relationship='in')
+            finished=False).exclude(event_type__relationship='out')
+
+    def consuming_commitments(self):
+        return self.commitments.filter(
+            finished=False, event_type__resource_effect='-')
+
+    def wanting_process_type_relationships(self):
+        return self.process_types.exclude(event_type__relationship='out')
+
+    def wanting_process_types(self):
+        return [pt.process_type for pt in self.wanting_process_type_relationships()]
 
     def consuming_process_types(self):
         return [pt.process_type for pt in self.consuming_process_type_relationships()]
@@ -961,6 +970,9 @@ class EconomicResource(models.Model):
         return self.events.filter(event_type__resource_effect='=',
             event_type__relationship="in")
 
+    def demands(self):
+        return self.resource_type.commitments.exclude(event_type__relationship="out")
+
     def is_cited(self):
         ces = self.events.filter(event_type__relationship="cite")
         if ces:
@@ -1233,8 +1245,18 @@ class ProcessType(models.Model):
             return None
 
     #todo: shd be renamed; filter gets both used and consumed
-    def consumed_resource_type_relationships(self):
+    def consumed_and_used_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='in')
+
+    def consumed_resource_type_relationships(self):
+        return self.resource_types.filter(
+            event_type__relationship='in',
+            event_type__resource_effect="-")
+
+    def used_resource_type_relationships(self):
+        return self.resource_types.filter(
+            event_type__relationship='in',
+            event_type__resource_effect="=")
 
     def cited_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='cite')
@@ -1244,6 +1266,15 @@ class ProcessType(models.Model):
 
     def consumed_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
+
+    def used_resource_types(self):
+        return [ptrt.resource_type for ptrt in self.used_resource_type_relationships()]
+
+    def cited_resource_types(self):
+        return [ptrt.resource_type for ptrt in self.cited_resource_type_relationships()]
+
+    def work_resource_types(self):
+        return [ptrt.resource_type for ptrt in self.work_resource_type_relationships()]
 
     def all_input_resource_type_relationships(self):
         return self.resource_types.filter(
@@ -1255,7 +1286,7 @@ class ProcessType(models.Model):
         return self.produced_resource_type_relationships()
 
     def xbill_children(self):
-        kids = list(self.consumed_resource_type_relationships())
+        kids = list(self.consumed_and_used_resource_type_relationships())
         kids.extend(self.cited_resource_type_relationships())
         kids.extend(self.work_resource_type_relationships())
         kids.extend(self.features.all())
@@ -1484,8 +1515,8 @@ class Process(models.Model):
             return ""
 
     def incoming_commitments(self):
-        return self.commitments.filter(
-            event_type__relationship='in')
+        return self.commitments.exclude(
+            event_type__relationship='out')
 
     def schedule_requirements(self):
         return self.commitments.exclude(
@@ -2024,7 +2055,7 @@ class Commitment(models.Model):
         else:
             return ' '.join([
                 process_name,
-                self.event_type.name,
+                self.event_type.label,
                 quantity_string,
                 abbrev,
                 resource_name,
@@ -2187,11 +2218,17 @@ class Commitment(models.Model):
         oh_qty = rt.onhand_qty_for_commitment(self)
         if oh_qty >= self.quantity:
             return 0
-        remainder = self.quantity - oh_qty
-        sked_qty = rt.scheduled_qty_for_commitment(self)
-        if sked_qty >= remainder:
-            return 0
-        return remainder - sked_qty
+        if self.event_type.resource_effect == "-":
+            remainder = self.quantity - oh_qty
+            sked_qty = rt.scheduled_qty_for_commitment(self)
+            if sked_qty >= remainder:
+                return 0
+            return remainder - sked_qty
+        else:
+            if oh_qty:
+                return 0
+            else:
+                return self.quantity
   
     def creates_resources(self):
         return self.event_type.creates_resources()

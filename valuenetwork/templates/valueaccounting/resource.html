@@ -31,55 +31,73 @@
 			{% trans "Resource" %}: {{ resource }} 
 		</legend>
 
-		<div>
-		    <table class="table table-bordered" style="width: 50%;" >
-		        <tr>
-	                <th style="text-align: right;">{% trans "Quantity" %}</th>
-	                <td>{{ resource.quantity }} {{ resource.unit_of_quantity }}</td>
-                </tr>
-                <tr>
-	                <th style="text-align: right;">{% trans "Quality" %}</th>
-	                <td>{{ resource.quality }}</td>
-                </tr>
-                {% if resource.author %}
-                    <tr>
-		                <th style="text-align: right; vertical-align: top; ">{% trans "Author" %}</th>
-		                <td>{{ resource.author.name }}</td>
-                    </tr>
-                {% endif %}
-                <tr>
-	                <th style="text-align: right;">{% trans "Created date" %}</th>
-	                <td>{{ resource.created_date }}</td>
-                </tr>
-                <tr>
-	                <th style="text-align: right;">{% trans "Created by" %}</th>
-	                <td>{{ resource.created_by }}</td>
-                </tr>
-		        {% if resource.url %}
+		<div class="row-fluid">
+		
+			<div class="span6 resource">
+			
+		        <table class="table table-bordered" >
 		            <tr>
-		                <th style="text-align: right;">{% trans "URL" %}</th>
-		                <td>{{ resource.url|urlize }}</td>
+	                    <th style="text-align: right;">{% trans "Quantity" %}</th>
+	                    <td>{{ resource.quantity }} {{ resource.unit_of_quantity }}</td>
                     </tr>
-                {% endif %}
-                {% if resource.notes %}
                     <tr>
-		                <th style="text-align: right; vertical-align: top; ">{% trans "Notes" %}</th>
-		                <td>{{ resource.notes|urlize|linebreaks }}</td>
+	                    <th style="text-align: right;">{% trans "Quality" %}</th>
+	                    <td>{{ resource.quality }}</td>
                     </tr>
-                {% endif %}
-                {% if resource.photo %}
-		        	<tr>
-		                <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
-		                <td><img src="{% thumbnail resource.photo photo_size %}" /></td>
-                    </tr>
-	        	{% elif resource.photo_url %}
+                    {% if resource.author %}
+                        <tr>
+		                    <th style="text-align: right; vertical-align: top; ">{% trans "Author" %}</th>
+		                    <td>{{ resource.author.name }}</td>
+                        </tr>
+                    {% endif %}
                     <tr>
-		                <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
-		                <td><img src="{{ resource.photo_url }}" width="128" height="96" /></td>
+	                    <th style="text-align: right;">{% trans "Created date" %}</th>
+	                    <td>{{ resource.created_date }}</td>
                     </tr>
+                    <tr>
+	                    <th style="text-align: right;">{% trans "Created by" %}</th>
+	                    <td>{{ resource.created_by }}</td>
+                    </tr>
+		            {% if resource.url %}
+		                <tr>
+		                    <th style="text-align: right;">{% trans "URL" %}</th>
+		                    <td>{{ resource.url|urlize }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if resource.notes %}
+                        <tr>
+		                    <th style="text-align: right; vertical-align: top; ">{% trans "Notes" %}</th>
+		                    <td>{{ resource.notes|urlize|linebreaks }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if resource.photo %}
+		            	<tr>
+		                    <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
+		                    <td><img src="{% thumbnail resource.photo photo_size %}" /></td>
+                        </tr>
+	            	{% elif resource.photo_url %}
+                        <tr>
+		                    <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
+		                    <td><img src="{{ resource.photo_url }}" width="128" height="96" /></td>
+                        </tr>
+		            {% endif %}
+
+		        </table>
+		    
+		    </div>
+
+		    <div class="span6 info">
+
+		        {% if resource.demands %}
+		            <h4>{% trans "Demands" %}:</h4>
+		            <ul>
+		            {% for demand in resource.demands %}
+		                <li>{{ demand }}</li>
+		            {% endfor %}
+		            </ul>
 		        {% endif %}
 
-		    </table>
+		    </div>
 
 		</div>
         {% if resource.producing_events %}

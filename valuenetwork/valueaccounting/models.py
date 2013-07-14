@@ -1930,6 +1930,11 @@ class CommitmentManager(models.Manager):
             event_type__relationship="todo",
             finished=False)
 
+    def finished_todos(self):
+        return Commitment.objects.filter(
+            event_type__relationship="todo",
+            finished=True)
+
 
 class Commitment(models.Model):
     order = models.ForeignKey(Order,

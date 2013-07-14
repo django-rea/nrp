@@ -87,7 +87,52 @@ container li {
     	    <img src="{{ resource_type.photo_url }}" width="128" height="96" />
         {% endif %}
 
-			
+	    {% if resource_type.wanting_process_types %}
+	        <h3>{% trans "Used in these recipes" %}:</h4>
+	        <ul>
+	            {% for pt in resource_type.wanting_process_types %}
+	                <li>
+	                    {% with pt.main_produced_resource_type as output %}
+	                        <a href="{% url extended_bill resource_type_id=output.id %}">{{ pt }}</a>
+	                    {% endwith %}
+	                </li>
+	            {% endfor %}
+	        </ul>
+
+	    {% endif %}
+
+	    {% if resource_type.onhand %}
+	        <h3>{% trans "Resources" %}:</h4>
+	        <ul>
+	            {% for r in resource_type.onhand %}
+	                <li>
+                        <a href="{% url resource resource_id=r.id %}">{{ r }}</a>
+	                </li>
+	            {% endfor %}
+	        </ul>
+	    {% endif %}
+
+	    {% if resource_type.wanting_commitments %}
+	        <h3>{% trans "Scheduled Requirements" %}:</h4>
+	        <ul>
+	            {% for ct in resource_type.wanting_commitments %}
+                    <li>
+                        <a href="{{ ct.process.get_absolute_url }}">{{ ct }}</a>
+                    </li>
+	            {% endfor %}
+	        </ul>
+	    {% endif %}
+
+	    {% if resource_type.producing_commitments %}
+	        <h3>{% trans "Scheduled Production" %}:</h4>
+	        <ul>
+	            {% for ct in resource_type.producing_commitments %}
+                    <li>
+                        <a href="{{ ct.process.get_absolute_url }}">{{ ct }}</a>
+                    </li>
+	            {% endfor %}
+	        </ul>
+	    {% endif %}
 
 			<div class="modal hide fade" id="resourceChangeForm{{ resource_type.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-change-label" aria-hidden="true">
 				<div class="modal-header">

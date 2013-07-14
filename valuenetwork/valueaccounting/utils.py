@@ -60,7 +60,7 @@ def explode(process_type_relationship, nodes, edges, depth, depth_limit):
         process_type_relationship.resource_type, 
         process_type_relationship.event_type.label
     ))
-    for rtr in process_type_relationship.process_type.consumed_resource_type_relationships():
+    for rtr in process_type_relationship.process_type.consumed_and_used_resource_type_relationships():
         nodes.append(rtr.resource_type)
         edges.append(Edge(rtr.resource_type, process_type_relationship.process_type, rtr.inverse_label()))
         for art in rtr.resource_type.producing_agent_relationships():

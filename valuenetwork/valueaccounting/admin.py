@@ -37,7 +37,7 @@ class PatternUseCaseInline(admin.TabularInline):
     
 
 class ProcessPatternAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'use_case_list')
     inlines = [ PatternFacetInline, PatternUseCaseInline]
 
 admin.site.register(ProcessPattern, ProcessPatternAdmin)
@@ -77,15 +77,15 @@ admin.site.register(EconomicResourceType, EconomicResourceTypeAdmin)
 
 
 class AgentResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('agent', 'resource_type', 'score','relationship')
-    list_filter = ['agent', 'resource_type']
+    list_display = ('agent', 'resource_type', 'score', 'event_type', 'relationship')
+    list_filter = ['event_type', 'agent', 'resource_type']
     
 admin.site.register(AgentResourceType, AgentResourceTypeAdmin)
 
 
 class ProcessTypeResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('process_type', 'resource_type')
-    list_filter = ['process_type', 'resource_type']
+    list_display = ('process_type', 'resource_type', 'event_type', 'unit_of_quantity')
+    list_filter = ['event_type', 'process_type', 'resource_type']
     search_fields = ['process_type__name','resource_type__name',]
     
 admin.site.register(ProcessTypeResourceType, ProcessTypeResourceTypeAdmin)
@@ -157,8 +157,8 @@ admin.site.register(Project, ProjectAdmin)
 
 class CommitmentAdmin(admin.ModelAdmin):
     date_hierarchy = 'due_date'
-    list_display = ('resource_type', 'quantity', 'unit_of_quantity', 'event_type', 'due_date', 'from_agent', 'process', 'project', 'order', 'independent_demand',  
-        'description', 'quality')
+    list_display = ('resource_type', 'quantity', 'unit_of_quantity', 'event_type', 'due_date', 'finished', 'from_agent', 'process', 'project', 'order', 'independent_demand',  
+        'description')
     list_filter = ['independent_demand', 'event_type', 'resource_type', 'from_agent', 'project']
     search_fields = ['event_type__name', 'from_agent__name', 'to_agent__name', 'resource_type__name']
     

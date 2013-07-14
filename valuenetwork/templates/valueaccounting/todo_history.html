@@ -52,7 +52,7 @@ li {
         {% if todos %}
             <ul>
 		        {% for todo in todos %}
-		            <li class="todo" >{{ todo.event_type }} {% trans "Poster" %}: {{ todo.to_agent }} {% trans "Due" %}: {{ todo.due_date }}</li>
+		            <li class="todo" >{% trans "Todo" %}: {% trans "Poster" %}: {{ todo.to_agent }} {% trans "Due" %}: {{ todo.due_date }}</li>
 		            {% if todo.description %}
 		                <p>{{ todo.description|urlize|linebreaks }}</p>
 	                {% endif %}
@@ -61,7 +61,7 @@ li {
 	                {% endif %}
 		            <ul>
 		                {% for event in todo.fulfilling_events %}
-	                        <li class="who" >{% trans "Doer" %}: {{ event.from_agent }} {{ event.event_date }}</li> 
+	                        <li class="todo" >{% trans "Doer" %}: {{ event.from_agent }} {{ event.event_date }}</li> 
 	                        {% if event.description %}
 	                            <p>{{ event.description|urlize|linebreaks }}</p>
                             {% endif %}

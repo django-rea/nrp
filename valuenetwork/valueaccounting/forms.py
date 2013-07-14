@@ -11,6 +11,13 @@ from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.widgets import DurationWidget, DecimalDurationWidget
 
 
+class FacetedModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        #if obj.name == "Optical - Poke transducer":
+        #    import pdb; pdb.set_trace()
+        return ": ".join([obj.name, obj.facet_values_list()])
+
+
 class AgentForm(forms.ModelForm):
     first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     last_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
@@ -119,7 +126,7 @@ class NamelessProcessForm(forms.ModelForm):
 
 #used in labnotes, create, copy and change_process, and create and change_rand
 class ProcessInputForm(forms.ModelForm):
-    resource_type = forms.ModelChoiceField(
+    resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
             attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
@@ -157,7 +164,7 @@ class ProcessInputForm(forms.ModelForm):
 
 #used in labnotes, create, copy and change_process, and create and change_rand
 class ProcessOutputForm(forms.ModelForm):
-    resource_type = forms.ModelChoiceField(
+    resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
             attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
@@ -234,7 +241,8 @@ class TodoForm(forms.ModelForm):
             self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.todo_resource_types()]
 
 
-class ProcessCitationForm(forms.Form):
+#used in labnotes
+class OldProcessCitationForm(forms.Form):
     #todo: this could now become a ModelChoiceField
     resource_type = forms.ChoiceField( 
         widget=forms.Select(attrs={'class': 'chzn-select input-xlarge'}))
@@ -250,9 +258,32 @@ class ProcessCitationForm(forms.Form):
         else:
             self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in EconomicResourceType.objects.all()]
 
-        
+
+class ProcessCitationForm(forms.ModelForm):
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
+        widget=forms.Select(attrs={'class': 'input-xlarge'}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('resource_type', 'description')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(ProcessCitationForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.citables_with_resources()
+        else:
+            self.fields["resource_type"].queryset = EconomicResourceType.objects.all()        
+
+
+#used in change_process        
 class ProcessCitationCommitmentForm(forms.ModelForm):
-    resource_type = forms.ModelChoiceField(
+    resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
         widget=forms.Select(attrs={'class': 'input-xlarge'}))
     quantity = forms.BooleanField(
@@ -267,6 +298,7 @@ class ProcessCitationCommitmentForm(forms.ModelForm):
         fields = ('resource_type', 'description', 'quantity')
 
     def __init__(self, pattern=None, *args, **kwargs):
+        #import pdb; pdb.set_trace()
         super(ProcessCitationCommitmentForm, self).__init__(*args, **kwargs)
         use_pattern = True
         if self.instance:
@@ -278,7 +310,7 @@ class ProcessCitationCommitmentForm(forms.ModelForm):
         if pattern:
             if use_pattern:
                 self.pattern = pattern
-                self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in pattern.citables_with_resources()]
+                self.fields["resource_type"].queryset = pattern.citables_with_resources()
 
 
 class SelectCitationResourceForm(forms.Form):
@@ -761,14 +793,9 @@ class ProcessTypeInputForm(forms.ModelForm):
                 output_ids = [pt.id for pt in process_type.produced_resource_types()]
                 self.fields["resource_type"].queryset = pattern.input_resource_types().exclude(id__in=output_ids)
 
-
-class CitableModelChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return ": ".join([obj.name, obj.facet_values_list()])
-
         
 class ProcessTypeCitableForm(forms.ModelForm):
-    resource_type = CitableModelChoiceField(
+    resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         widget=SelectWithPopUp(
             model=EconomicResourceType,

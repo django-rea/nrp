@@ -2375,13 +2375,14 @@ class EconomicEvent(models.Model):
         from_agt = 'Unassigned'
         if self.from_agent:
             from_agt = self.from_agent.name
-            #todo: remove relationship line below
-            art, created = AgentResourceType.objects.get_or_create(
-                agent=self.from_agent,
-                resource_type=self.resource_type,
-                event_type=self.event_type)
-            art.score += self.quantity
-            art.save()
+            #todo: suppliers shd also get ART scores
+            if self.event_type.relationship == "work" or self.event_type.related_to == "agent":
+                art, created = AgentResourceType.objects.get_or_create(
+                    agent=self.from_agent,
+                    resource_type=self.resource_type,
+                    event_type=self.event_type)
+                art.score += self.quantity
+                art.save()
         slug = "-".join([
             str(self.event_type.name),
             #str(from_agt.id),

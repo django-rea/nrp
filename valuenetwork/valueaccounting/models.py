@@ -1344,6 +1344,12 @@ class ProcessType(models.Model):
     def xbill_work_prefix(self):
         return "".join(["PTWORK", str(self.id)])
 
+    def xbill_input_rt_prefix(self):
+        return "".join(["PTINPUTRT", str(self.id)])
+
+    def xbill_citable_rt_prefix(self):
+        return "".join(["PTCITERT", str(self.id)])
+
     def xbill_input_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeInputForm
         return ProcessTypeInputForm(process_type=self, prefix=self.xbill_input_prefix())
@@ -1355,6 +1361,15 @@ class ProcessType(models.Model):
     def xbill_work_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeWorkForm
         return ProcessTypeWorkForm(process_type=self, prefix=self.xbill_work_prefix())
+
+    def xbill_input_rt_form(self):
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
+        return EconomicResourceTypeForm(process_type=self, prefix=self.xbill_input_rt_prefix())
+
+    def xbill_citable_rt_form(self):
+        #print "xbill_citable_rt_form"
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
+        return EconomicResourceTypeForm(process_type=self, prefix=self.xbill_citable_rt_prefix())
 
     def xbill_class(self):
         return "process-type"

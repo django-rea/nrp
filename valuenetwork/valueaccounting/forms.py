@@ -760,8 +760,10 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
 class ProcessTypeInputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),  
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
+        #widget=SelectWithPopUp(
+        #    model=EconomicResourceType,
+        #    attrs={'class': 'resource-type-selector input-xlarge' }))
+        widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
@@ -797,8 +799,10 @@ class ProcessTypeInputForm(forms.ModelForm):
 class ProcessTypeCitableForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
+        #widget=SelectWithPopUp(
+        #    model=EconomicResourceType,
+        #    attrs={'class': 'resource-type-selector input-xlarge' }))
+        widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
@@ -834,8 +838,7 @@ class ProcessTypeCitableForm(forms.ModelForm):
 class ProcessTypeWorkForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
+        widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))

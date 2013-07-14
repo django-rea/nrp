@@ -4153,6 +4153,8 @@ def process_selections(request, rand=0):
             consumed_rts = []
             used_rts = []
             work_rts = []
+            #todo: several of these key values are user-defined in EventTypes.
+            #they should be replaced with something else that is not.
             for key, value in dict(rp).iteritems():
                 if "selected-project" in key:
                     project_id = key.split("~")[1]
@@ -4160,19 +4162,20 @@ def process_selections(request, rand=0):
                 if "selected-pattern" in key:
                     pattern_id = key.split("~")[1]
                     selected_pattern = ProcessPattern.objects.get(id=pattern_id)
-                if "consumed" in key:
+                if "consumes" in key:
                     consumed_id = int(value[0])
                     consumed_rt = EconomicResourceType.objects.get(id=consumed_id)
                     consumed_rts.append(consumed_rt)
-                if "used" in key:
+                if "uses" in key:
                     used_id = int(value[0])
                     used_rt = EconomicResourceType.objects.get(id=used_id)
                     used_rts.append(used_rt)
-                if "cited" in key:
+                if "cites" in key:
                     cited_id = int(value[0])
                     cited_rt = EconomicResourceType.objects.get(id=cited_id)
                     cited_rts.append(cited_rt)
-                if "produced" in key:
+                #import pdb; pdb.set_trace()
+                if "produces" in key:
                     produced_id = int(value[0])
                     produced_rt = EconomicResourceType.objects.get(id=produced_id)
                     produced_rts.append(produced_rt)

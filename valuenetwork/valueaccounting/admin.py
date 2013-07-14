@@ -43,14 +43,6 @@ class ProcessPatternAdmin(admin.ModelAdmin):
 admin.site.register(ProcessPattern, ProcessPatternAdmin)
 
 
-class ResourceRelationshipAdmin(admin.ModelAdmin):
-    list_display = ('name', 'inverse_name', 'related_to', 'direction', 'materiality', 'event_type', 'unit')
-    list_filter = ['materiality', 'related_to', 'direction']
-    list_editable = ['event_type',]
-
-admin.site.register(ResourceRelationship, ResourceRelationshipAdmin)
-
-
 class AgentUserInline(admin.TabularInline):
     model = AgentUser
 
@@ -67,7 +59,7 @@ class ResourceTypeFacetInline(admin.TabularInline):
     model = ResourceTypeFacetValue
 
 class EconomicResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('label', 'name', 'category', 'rate', 'unit', 'unit_of_use', 'description', 'facet_list')
+    list_display = ('label', 'name', 'rate', 'unit', 'unit_of_use', 'description', 'facet_list')
     list_filter = ['facets__facet_value']
     search_fields = ['name',]
     list_editable = ['unit', 'unit_of_use']
@@ -77,7 +69,7 @@ admin.site.register(EconomicResourceType, EconomicResourceTypeAdmin)
 
 
 class AgentResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('agent', 'resource_type', 'score', 'event_type', 'relationship')
+    list_display = ('agent', 'resource_type', 'score', 'event_type')
     list_filter = ['event_type', 'agent', 'resource_type']
     
 admin.site.register(AgentResourceType, AgentResourceTypeAdmin)

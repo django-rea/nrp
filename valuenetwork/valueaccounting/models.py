@@ -151,31 +151,6 @@ class FacetValue(models.Model):
         return ": ".join([self.facet.name, self.value])
 
 
-
-CATEGORIZATION_CHOICES = (
-    ('Anything', _('Anything')),
-    ('EconomicResourceType', _('EconomicResourceType')),
-)
-
-
-class Category(models.Model):
-    name = models.CharField(_('name'), max_length=128)
-    #todo: should applies_to go away?
-    applies_to = models.CharField(_('applies to'), max_length=128, 
-        choices=CATEGORIZATION_CHOICES,
-        default='EconomicResourceType')
-    description = models.TextField(_('description'), blank=True, null=True)
-    orderable = models.BooleanField(_('orderable'), default=False,
-        help_text=_('Should appear in Order form?'))
-
-    class Meta:
-        verbose_name_plural = _('categories')
-        ordering = ('name',)
-     
-    def __unicode__(self):
-        return self.name
-
-
 UNIT_TYPE_CHOICES = (
     ('area', _('area')),
     ('length', _('length')),
@@ -406,9 +381,9 @@ class EconomicResourceType(models.Model):
         verbose_name=_('parent'), related_name='children', editable=False)
     #stage = models.ForeignKey(Stage, blank=True, null=True, 
     #    verbose_name=_('stage'), related_name='resource_types')
-    category = models.ForeignKey(Category, 
-        verbose_name=_('category'), related_name='resource_types',
-        limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
+    #category = models.ForeignKey(Category, 
+    #    verbose_name=_('category'), related_name='resource_types',
+    #    limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
     unit = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="resource_units",
         help_text=_('if this resource has different units of use and inventory, this is the unit of inventory'))
@@ -610,8 +585,8 @@ class EconomicResourceType(models.Model):
     def xbill_label(self):
         return ""
 
-    def xbill_category(self):
-        return self.category
+    #def xbill_category(self):
+    #    return self.category
 
     def change_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
@@ -1021,55 +996,6 @@ class EconomicResource(models.Model):
         return (self.identifier or str(self.id)) + cited
 
 
-class ResourceRelationship(models.Model):
-    name = models.CharField(_('name'), max_length=32)
-    inverse_name = models.CharField(_('inverse name'), max_length=40, blank=True)
-    direction = models.CharField(_('direction'), 
-        max_length=12, choices=DIRECTION_CHOICES, default='in')
-    related_to = models.CharField(_('related to'), 
-        max_length=12, choices=RELATED_CHOICES, default='process')
-    materiality = models.CharField(_('behavior'), 
-        max_length=12, choices=MATERIALITY_CHOICES,
-        default='material',
-        help_text=_('this links Economic Resource Types to Resource Relationships'))
-    event_type = models.ForeignKey(EventType,
-        blank=True, null=True,
-        verbose_name=_('event type'), related_name='resource_relationships')
-    unit = models.ForeignKey(Unit, blank=True, null=True,
-        verbose_name=_('unit'), related_name="relationship_units",
-        help_text=_('optional - overriding the Resource Type unit'))
-
-    class Meta:
-        unique_together = ('related_to', 'direction', 'materiality')
-        ordering = ('name', )
-
-    def __unicode__(self):
-        return self.name
-
-    @classmethod
-    def add_new_form(cls):
-        return None
-
-    def inverse_label(self):
-        if self.inverse_name:
-            return self.inverse_name
-        else:
-            return self.name
-
-    def infer_label(self):
-        #todo: need to consider new direction choices?
-        if self.direction == "out":
-            return self.inverse_name
-        else:
-            return self.name
-
-    def doing_agent(self):
-        if self.direction == "out":
-            return "from"
-        else:
-            return "to"
-
-
 class AgentResourceType(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='resource_types')
@@ -1078,8 +1004,8 @@ class AgentResourceType(models.Model):
     score = models.DecimalField(_('score'), max_digits=8, decimal_places=2, 
         default=Decimal("0.0"),
         help_text=_("the quantity of contributions of this resource type from this agent"))
-    relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
-        verbose_name=_('relationship'), related_name='agent_resource_types')
+    #relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
+    #    verbose_name=_('relationship'), related_name='agent_resource_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='agent_resource_types')
     lead_time = models.IntegerField(_('lead time'), 
@@ -1129,8 +1055,8 @@ class AgentResourceType(models.Model):
     def xbill_class(self):
         return self.xbill_child_object().xbill_class()
 
-    def xbill_category(self):
-        return Category(name="sources")
+    #def xbill_category(self):
+    #    return Category(name="sources")
 
     def xbill_parent_object(self):
         if self.event_type.relationship == 'out':
@@ -1380,8 +1306,8 @@ class ProcessTypeResourceType(models.Model):
         verbose_name=_('process type'), related_name='resource_types')
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='process_types')
-    relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
-        verbose_name=_('relationship'), related_name='process_resource_types')
+    #relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
+    #    verbose_name=_('relationship'), related_name='process_resource_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='process_resource_types')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
@@ -1445,11 +1371,11 @@ class ProcessTypeResourceType(models.Model):
     def xbill_parents(self):
         return [self.resource_type, self]
 
-    def xbill_category(self):
-        if self.event_type.relationship == 'out':
-            return Category(name="processes")
-        else:
-            return self.resource_type.category
+    #def xbill_category(self):
+    #    if self.event_type.relationship == 'out':
+    #        return Category(name="processes")
+    #    else:
+    #        return self.resource_type.category
 
     def node_id(self):
         return "-".join(["ProcessResource", str(self.id)])
@@ -1776,18 +1702,18 @@ class Process(models.Model):
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
-    option_category = models.ForeignKey(Category,
-        verbose_name=_('option category'), related_name='features',
-        blank=True, null=True,
-        help_text=_("option selections will be limited to this category"),
-        limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
+    #option_category = models.ForeignKey(Category,
+    #    verbose_name=_('option category'), related_name='features',
+    #    blank=True, null=True,
+    #    help_text=_("option selections will be limited to this category"),
+    #    limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
     product = models.ForeignKey(EconomicResourceType, 
         related_name="features", verbose_name=_('product'))
     process_type = models.ForeignKey(ProcessType,
         blank=True, null=True,
         verbose_name=_('process type'), related_name='features')
-    relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
-        verbose_name=_('relationship'), related_name='features')
+    #relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
+    #    verbose_name=_('relationship'), related_name='features')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='features')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
@@ -1827,8 +1753,8 @@ class Feature(models.Model):
            abbrev = self.unit_of_quantity.abbrev
         return " ".join([str(self.quantity), abbrev])
 
-    def xbill_category(self):
-        return Category(name="features")
+    #def xbill_category(self):
+    #    return Category(name="features")
 
     def node_id(self):
         return "-".join(["Feature", str(self.id)])
@@ -1891,8 +1817,8 @@ class Option(models.Model):
     def xbill_label(self):
         return ""
 
-    def xbill_category(self):
-        return Category(name="features")
+    #def xbill_category(self):
+    #    return Category(name="features")
 
     def node_id(self):
         return "-".join(["Option", str(self.id)])

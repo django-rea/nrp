@@ -168,9 +168,6 @@ class ProcessOutputForm(forms.ModelForm):
         queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
             attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
-        #widget=SelectWithPopUp(
-        #    model=EconomicResourceType,
-        #    attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity  input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -653,10 +650,12 @@ class OptionsForm(forms.Form):
 
     def __init__(self, feature, *args, **kwargs):
         super(OptionsForm, self).__init__(*args, **kwargs)
-        if feature.option_category:
-            options = EconomicResourceType.objects.filter(category=feature.option_category)
-        else:
-            options = EconomicResourceType.objects.all()
+        #todo: needs another way to limit choices
+        #if feature.option_category:
+        #    options = EconomicResourceType.objects.filter(category=feature.option_category)
+        #else:
+        #    options = EconomicResourceType.objects.all()
+        options = EconomicResourceType.objects.all()
         self.fields["options"].choices = [(rt.id, rt.name) for rt in options]
 
 class EconomicResourceTypeForm(forms.ModelForm):

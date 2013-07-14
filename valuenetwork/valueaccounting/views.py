@@ -23,7 +23,7 @@ from django.utils.datastructures import SortedDict
 from django.contrib.auth.forms import UserCreationForm
 
 from valuenetwork.valueaccounting.models import *
-from valuenetwork.valueaccounting.views import *
+#from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.forms import *
 from valuenetwork.valueaccounting.utils import *
 
@@ -729,8 +729,7 @@ def edit_extended_bill(request, resource_type_id):
     change_process_form = ChangeProcessTypeForm()
     source_form = AgentResourceTypeForm()
     feature_form = FeatureForm()
-    #create_form = EconomicResourceTypeForm()
-    create_formset = create_facet_formset()
+    #create_formset = create_facet_formset()
     facets = Facet.objects.all() 
     return render_to_response("valueaccounting/edit_xbill.html", {
         "resource_type": rt,
@@ -742,8 +741,7 @@ def edit_extended_bill(request, resource_type_id):
         "change_process_form": change_process_form,
         "source_form": source_form,
         "feature_form": feature_form,
-        #"create_form": create_form,
-        "create_formset": create_formset,
+        #"create_formset": create_formset,
         "facets": facets,
         "help": get_help("edit_recipes"),
     }, context_instance=RequestContext(request))

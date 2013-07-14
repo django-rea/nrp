@@ -491,7 +491,8 @@ ul {
 						                <form class="resource-create-form" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
 							                {% csrf_token %}
 							                {{ ptype.xbill_citable_rt_form|as_bootstrap }}
-                                            {{ create_formset.management_form }} 
+                                            {% comment %} {{ create_formset.management_form }} {% endcomment %}
+                                            {{ ptype.xbill_citable_rt_facet_formset.management_form }}
                                             <table>
                                                 {% for form in create_formset %}
                                                     <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>

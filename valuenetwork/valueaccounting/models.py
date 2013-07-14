@@ -868,7 +868,14 @@ class ProcessPattern(models.Model):
     def use_case_list(self):
         ucl = [uc.get_use_case_display() for uc in self.use_cases.all()]
         return ", ".join(ucl)
-        
+
+    def facet_values_for_facet(self, facet):
+        fvs_all = [pfv.facet_value for pfv in pattern_facet_values]
+        fvs_for_facet = []
+        for fv in fvs_all:
+            if fv.facet == facet:
+                fvs_for_facet.append(fv)
+        return fvs_for_facet
         
 class PatternFacetValue(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 
@@ -1290,15 +1297,44 @@ class ProcessType(models.Model):
 
     def xbill_input_rt_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
-        return EconomicResourceTypeForm(process_type=self, prefix=self.xbill_input_rt_prefix())
+        return EconomicResourceTypeForm(prefix=self.xbill_input_rt_prefix())
 
     def xbill_citable_rt_form(self):
         #print "xbill_citable_rt_form"
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
-        return EconomicResourceTypeForm(process_type=self, prefix=self.xbill_citable_rt_prefix())
+        return EconomicResourceTypeForm(prefix=self.xbill_citable_rt_prefix())
+
+    def xbill_citable_rt_facet_formset(self):
+        return create_facet_formset_filtered(pattern=self.process_pattern, slot="cite")
 
     def xbill_class(self):
         return "process-type"
+
+def create_facet_formset_filtered(data=None, pattern=None, slot=None):
+    from django.forms.models import formset_factory
+    from valuenetwork.valueaccounting.forms import ResourceTypeFacetValueForm
+    RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
+    init = []
+    import pdb; pdb.set_trace()
+    if pattern == None:
+        facets = Facet.objects.all()
+    else:
+        facets = pattern.facets_for_relationship(slot)
+    for facet in facets:
+        d = {"facet_id": facet.id,}
+        init.append(d)
+    formset = RtfvFormSet(initial=init, data=data)
+    for form in formset:
+        id = int(form["facet_id"].value())
+        facet = Facet.objects.get(id=id)
+        form.facet_name = facet.name
+        if pattern == None:
+            fvs = facet.values.all()
+        else:
+            fvs = pattern.facet_values_for_facet(facet)
+        choices = [('', '----------')] + [(fv.id, fv.value) for fv in fvs]
+        form.fields["value"].choices = choices
+    return formset
 
 #todo: better name?  Maybe ProcessTypeInputOutput?
 class ProcessTypeResourceType(models.Model):

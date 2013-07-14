@@ -988,55 +988,6 @@ class EconomicResource(models.Model):
         return (self.identifier or str(self.id)) + cited
 
 
-class ResourceRelationship(models.Model):
-    name = models.CharField(_('name'), max_length=32)
-    inverse_name = models.CharField(_('inverse name'), max_length=40, blank=True)
-    direction = models.CharField(_('direction'), 
-        max_length=12, choices=DIRECTION_CHOICES, default='in')
-    related_to = models.CharField(_('related to'), 
-        max_length=12, choices=RELATED_CHOICES, default='process')
-    materiality = models.CharField(_('behavior'), 
-        max_length=12, choices=MATERIALITY_CHOICES,
-        default='material',
-        help_text=_('this links Economic Resource Types to Resource Relationships'))
-    event_type = models.ForeignKey(EventType,
-        blank=True, null=True,
-        verbose_name=_('event type'), related_name='resource_relationships')
-    unit = models.ForeignKey(Unit, blank=True, null=True,
-        verbose_name=_('unit'), related_name="relationship_units",
-        help_text=_('optional - overriding the Resource Type unit'))
-
-    class Meta:
-        unique_together = ('related_to', 'direction', 'materiality')
-        ordering = ('name', )
-
-    def __unicode__(self):
-        return self.name
-
-    @classmethod
-    def add_new_form(cls):
-        return None
-
-    def inverse_label(self):
-        if self.inverse_name:
-            return self.inverse_name
-        else:
-            return self.name
-
-    def infer_label(self):
-        #todo: need to consider new direction choices?
-        if self.direction == "out":
-            return self.inverse_name
-        else:
-            return self.name
-
-    def doing_agent(self):
-        if self.direction == "out":
-            return "from"
-        else:
-            return "to"
-
-
 class AgentResourceType(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='resource_types')
@@ -1045,8 +996,8 @@ class AgentResourceType(models.Model):
     score = models.DecimalField(_('score'), max_digits=8, decimal_places=2, 
         default=Decimal("0.0"),
         help_text=_("the quantity of contributions of this resource type from this agent"))
-    relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
-        verbose_name=_('relationship'), related_name='agent_resource_types')
+    #relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
+    #    verbose_name=_('relationship'), related_name='agent_resource_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='agent_resource_types')
     lead_time = models.IntegerField(_('lead time'), 
@@ -1332,8 +1283,8 @@ class ProcessTypeResourceType(models.Model):
         verbose_name=_('process type'), related_name='resource_types')
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='process_types')
-    relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
-        verbose_name=_('relationship'), related_name='process_resource_types')
+    #relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
+    #    verbose_name=_('relationship'), related_name='process_resource_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='process_resource_types')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
@@ -1738,8 +1689,8 @@ class Feature(models.Model):
     process_type = models.ForeignKey(ProcessType,
         blank=True, null=True,
         verbose_name=_('process type'), related_name='features')
-    relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
-        verbose_name=_('relationship'), related_name='features')
+    #relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
+    #    verbose_name=_('relationship'), related_name='features')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='features')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))

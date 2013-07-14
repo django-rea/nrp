@@ -2679,7 +2679,7 @@ def labnotes_history(request):
 
 def todo_history(request):
     #import pdb; pdb.set_trace()
-    todo_list = Commitment.objects.finished_todos()
+    todo_list = Commitment.objects.finished_todos().order_by('-due_date',)
                    
     paginator = Paginator(todo_list, 25)
     page = request.GET.get('page')

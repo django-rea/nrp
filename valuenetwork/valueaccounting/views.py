@@ -992,8 +992,8 @@ def create_resource_type(request):
             rt = form.save(commit=False)                    
             rt.created_by=request.user
             #todo: get rid of category
-            rt.category = Category.objects.get(id=1)
-            rt.save()
+            #rt.category = Category.objects.get(id=1)
+            #rt.save()
             formset = create_facet_formset(data=request.POST)
             for form_rtfv in formset.forms:
                 if form_rtfv.is_valid():
@@ -1361,8 +1361,8 @@ def json_resource_type_defaults(request, resource_type_id):
 
 @login_required
 def create_order(request):
-    cats = Category.objects.filter(orderable=True)
-    rts = EconomicResourceType.objects.all().filter(category__in=cats)
+    #cats = Category.objects.filter(orderable=True)
+    #rts = EconomicResourceType.objects.all().filter(category__in=cats)
     item_forms = []
     data = request.POST or None
     order_form = OrderForm(data=data)

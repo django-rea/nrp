@@ -428,7 +428,19 @@ ul {
 						          <div class="modal-body">
 								        <form class="input-form" action="{% url create_process_type_input process_type_id=ptype.id %}" method="POST" >
 									        {% csrf_token %}
-									        {{ ptype.xbill_input_form|as_bootstrap }}
+                                            {% with ptype.xbill_input_form as iform %}
+					                            <p class="modal-line">{% trans "Resource Type" %} </p>
+                                                <p>{{ iform.resource_type }} 
+							                    <a href="#createInputResourceForm{{ ptype.node_id }}" role="button" class="add-another" data-toggle="modal">
+								                    <img src="/site_media/static/admin/img/icon_addlink.gif" title="add new"></img>
+							                    </a> </p>                   
+					                            <p class="modal-line">{% trans "Quantity" %} </p>
+                                                <p>{{ iform.quantity }} </p>
+                                                <p class="modal-line">{% trans "Unit of Quantity" %} </p>
+                                                <p>{{ iform.unit_of_quantity }}</p>
+                                                <p class="modal-line">{% trans "Description" %} </p>
+                                                <p class="desc">{{ iform.description }} </p>
+                                            {% endwith %}
 									        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 								          <div class="modal-footer">
 									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -439,6 +451,36 @@ ul {
 						          </div>
 
 						        </div>
+
+				                <div class="modal hide fade" id="createInputResourceForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="resource-input-create-label{{ ptype.node_id }}" aria-hidden="true">
+					                <div class="modal-header">
+						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						                <h3 id="resource-input-create-label{{ ptype.node_id }}">{% trans "Create a new Resource Type" %}</h3>
+					                </div>
+					                <div class="modal-body">
+						                <form class="resource-create-form" id="formin{{ ptype.node_id }}" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
+							                {% csrf_token %}
+							                {{ ptype.xbill_input_rt_form|as_bootstrap }}
+                                            {% with ptype.xbill_input_rt_facet_formset as facet_formset %}
+                                                {{ facet_formset.management_form }}
+                                                <table>
+                                                    {% for form in facet_formset %}
+                                                        <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                                                    {% endfor %}
+                                                </table>
+                                            {% endwith %}
+{% comment %}							                <input type="hidden" name="next" value="{% url edit_extended_bill %}" /> {% endcomment %}
+
+						                  <div class="modal-footer">
+							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+							                <button class="btn btn-primary save-resource-type" id="in~{{ ptype.node_id }}">{% trans "Save changes" %}</button>
+						                  </div>
+
+						                </form>
+
+				                    </div>
+                                </div>
+
 
 						        <div style="display: inline;" >
 							        <a href="#citeForm{{ ptype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
@@ -454,8 +496,6 @@ ul {
 						          <div class="modal-body">
 								        <form class="cite-form" action="{% url create_process_type_citable process_type_id=ptype.id %}" method="POST" >
 									        {% csrf_token %}
-									        {% comment %} {{ ptype.xbill_citable_form|as_bootstrap }} {% endcomment %}
-
                                             {% with ptype.xbill_citable_form as cform %}
 					                            <p class="modal-line">{% trans "Resource Type" %} </p>
                                                 <p>{{ cform.resource_type }} 
@@ -469,8 +509,6 @@ ul {
                                                 <p class="modal-line">{% trans "Description" %} </p>
                                                 <p class="desc">{{ cform.description }} </p>
                                             {% endwith %}
-
-
 									        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
 								          <div class="modal-footer">
 									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -488,20 +526,22 @@ ul {
 						                <h3 id="resource-citable-create-label{{ ptype.node_id }}">{% trans "Create a new Resource Type" %}</h3>
 					                </div>
 					                <div class="modal-body">
-						                <form class="resource-create-form" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
+						                <form class="resource-create-form" id="formcite{{ ptype.node_id }}" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
 							                {% csrf_token %}
 							                {{ ptype.xbill_citable_rt_form|as_bootstrap }}
-                                            {{ create_formset.management_form }} 
-                                            <table>
-                                                {% for form in create_formset %}
-                                                    <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
-                                                {% endfor %}
-                                            </table>
-							                <input type="hidden" name="next" value="{% url resource_types %}" />
+                                            {% with ptype.xbill_citable_rt_facet_formset as facet_formset %}
+                                                {{ facet_formset.management_form }}
+                                                <table>
+                                                    {% for form in facet_formset %}
+                                                        <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                                                    {% endfor %}
+                                                </table>
+                                            {% endwith %}
+{% comment %}							                <input type="hidden" name="next" value="{% url edit_extended_bill %}" /> {% endcomment %}
 
 						                  <div class="modal-footer">
 							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							                <button class="btn btn-primary">{% trans "Save changes" %}</button>
+							                <button class="btn btn-primary save-resource-type" id="cite~{{ ptype.node_id }}">{% trans "Save changes" %}</button>
 						                  </div>
 
 						                </form>
@@ -937,6 +977,27 @@ ul {
 			if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
 				xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
 			}
+		});
+
+        $(".save-resource-type").click(function(event) {
+            event.preventDefault();
+            var btn = event.target;
+            var id = btn.id.split('~')
+            var nodeId = id[1];
+            var slot = id[0];
+		    //var $form = $("#form" + slot + nodeId);
+		    //var formData = $form.serialize();
+            var url = "{%url create_resource_type_ajax %}";
+            alert(url);
+		    var jqxhr = $.post( url,   // { nodeId: nodeId, slot: slot}, //formData,
+			    function( data ) {
+                    //add to resource type drop down
+
+			    })
+			    .fail(function() 
+			    { 
+                    alert("Resource type save failed");
+			    }
 		});
 
 	}); // end document.ready

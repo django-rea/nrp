@@ -846,6 +846,7 @@ class ProcessPattern(models.Model):
         return self.facets.filter(event_type=event_type)
 
     def facets_for_relationship(self, relationship):
+        #todo: rename to reflect returning pattern facet values
         return self.facets.filter(event_type__relationship=relationship)
 
     def output_facets(self):
@@ -885,7 +886,20 @@ class ProcessPattern(models.Model):
     def use_case_list(self):
         ucl = [uc.get_use_case_display() for uc in self.use_cases.all()]
         return ", ".join(ucl)
-        
+
+    def facets_by_relationship(self, relationship):
+        pfvs = self.facets_for_relationship(relationship)
+        facets = [pfv.facet_value.facet for pfv in pfvs]
+        return list(set(facets))
+
+    def facet_values_for_facet(self, facet):
+        #import pdb; pdb.set_trace()
+        fvs_all = [pfv.facet_value for pfv in self.facets.all()]
+        fvs_for_facet = []
+        for fv in fvs_all:
+            if fv.facet == facet:
+                fvs_for_facet.append(fv)
+        return fvs_for_facet
         
 class PatternFacetValue(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 
@@ -1293,6 +1307,12 @@ class ProcessType(models.Model):
     def xbill_citable_rt_prefix(self):
         return "".join(["PTCITERT", str(self.id)])
 
+    def xbill_input_rt_facet_prefix(self):
+        return "".join(["PTINPUTRTF", str(self.id)])
+
+    def xbill_citable_rt_facet_prefix(self):
+        return "".join(["PTCITERTF", str(self.id)])
+
     def xbill_input_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeInputForm
         return ProcessTypeInputForm(process_type=self, prefix=self.xbill_input_prefix())
@@ -1307,15 +1327,49 @@ class ProcessType(models.Model):
 
     def xbill_input_rt_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
-        return EconomicResourceTypeForm(process_type=self, prefix=self.xbill_input_rt_prefix())
+        return EconomicResourceTypeForm(prefix=self.xbill_input_rt_prefix())
 
     def xbill_citable_rt_form(self):
         #print "xbill_citable_rt_form"
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
-        return EconomicResourceTypeForm(process_type=self, prefix=self.xbill_citable_rt_prefix())
+        return EconomicResourceTypeForm(prefix=self.xbill_citable_rt_prefix())
+
+    def xbill_input_rt_facet_formset(self):
+        return self.create_facet_formset_filtered(slot="in", pre=self.xbill_input_rt_facet_prefix())
+
+    def xbill_citable_rt_facet_formset(self):
+        return self.create_facet_formset_filtered(slot="cite", pre=self.xbill_citable_rt_facet_prefix())
+
+    def create_facet_formset_filtered(self, pre, data=None, slot=None):
+        from django.forms.models import formset_factory
+        from valuenetwork.valueaccounting.forms import ResourceTypeFacetValueForm
+        #import pdb; pdb.set_trace()
+        RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
+        init = []
+        if self.process_pattern == None:
+            facets = Facet.objects.all()
+        else:
+            facets = self.process_pattern.facets_by_relationship(slot)
+        for facet in facets:
+            d = {"facet_id": facet.id,}
+            init.append(d)
+        formset = RtfvFormSet(initial=init, data=data, prefix=pre)
+        for form in formset:
+            id = int(form["facet_id"].value())
+            facet = Facet.objects.get(id=id)
+            form.facet_name = facet.name
+            if self.process_pattern == None:
+                fvs = facet.values.all()
+            else:
+                fvs = self.process_pattern.facet_values_for_facet(facet)
+            choices = [('', '----------')] + [(fv.id, fv.value) for fv in fvs]
+            form.fields["value"].choices = choices
+        return formset
 
     def xbill_class(self):
         return "process-type"
+
+
 
 #todo: better name?  Maybe ProcessTypeInputOutput?
 class ProcessTypeResourceType(models.Model):

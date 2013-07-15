@@ -1,0 +1,92 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "Todo History" %}{% endblock %}
+{% block extra_head %}
+
+<style>
+li {
+    list-style-type: none;
+}
+
+.todo {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: .8em;
+}
+
+.section {
+    color:     #008A2E;
+    font-size: 1em;
+}
+
+.deliverable {
+    font-weight: normal;
+
+}
+
+.labnote {
+    background-color: beige;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+}
+
+.name {
+    font-weight: bold;
+}
+
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>
+			{% trans "Todo History" %}
+		</legend>
+        {% if todos %}
+            <ul>
+		        {% for todo in todos %}
+		            <li class="todo" >{% trans "Todo" %}: {% trans "Poster" %}: {{ todo.to_agent }} {% trans "Due" %}: {{ todo.due_date }}</li>
+		            {% if todo.description %}
+		                <p>{{ todo.description|urlize|linebreaks }}</p>
+	                {% endif %}
+	                {% if todo.url %}
+		                <p>{{ todo.url|urlize }}</p>
+	                {% endif %}
+		            <ul>
+		                {% for event in todo.fulfilling_events %}
+	                        <li class="todo" >{% trans "Doer" %}: {{ event.from_agent }} {{ event.event_date }}</li> 
+	                        {% if event.description %}
+	                            <p>{{ event.description|urlize|linebreaks }}</p>
+                            {% endif %}
+		                {% endfor %}
+	                </ul>
+		        {% endfor %}
+	        </ul>
+        {% endif %}
+
+<div class="pagination">
+    <span class="step-links">
+        {% if todos.has_previous %}
+            <a href="?page={{ todos.previous_page_number }}">{% trans "previous" %}</a>
+        {% endif %}
+
+        <span class="current">
+            {% trans "Page" %} {{ todos.number }} {% trans "of" %} {{ todos.paginator.num_pages }}.
+        </span>
+
+        {% if todos.has_next %}
+            <a href="?page={{ todos.next_page_number }}">{% trans "next" %}</a>
+        {% endif %}
+    </span>
+</div>
+
+	</div>
+    </div>
+{% endblock %}

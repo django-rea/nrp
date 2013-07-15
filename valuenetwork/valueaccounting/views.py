@@ -693,7 +693,7 @@ def extended_bill(request, resource_type_id):
                 if select_all:
                     node.show = True
                 else:
-                    import pdb; pdb.set_trace()
+                    #import pdb; pdb.set_trace()
                     rt_fvs = node.facets.all()
                     if node.matches_filter(rt_fvs):
                         node.show = True
@@ -990,8 +990,8 @@ def create_resource_type(request):
             rt = form.save(commit=False)                    
             rt.created_by=request.user
             #todo: get rid of category
-            rt.category = Category.objects.get(id=1)
-            rt.save()
+            #rt.category = Category.objects.get(id=1)
+            #rt.save()
             formset = create_facet_formset(data=request.POST)
             for form_rtfv in formset.forms:
                 if form_rtfv.is_valid():
@@ -1359,8 +1359,11 @@ def json_resource_type_defaults(request, resource_type_id):
 
 @login_required
 def create_order(request):
-    cats = Category.objects.filter(orderable=True)
-    rts = EconomicResourceType.objects.all().filter(category__in=cats)
+    try:
+        pattern = PatternUseCase.objects.get(use_case='cust_orders').pattern
+    except PatternUseCase.DoesNotExist:
+        raise ValidationError("no Customer Order ProcessPattern")
+    rts = pattern.all_resource_types()
     item_forms = []
     data = request.POST or None
     order_form = OrderForm(data=data)
@@ -1405,7 +1408,6 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             process.save()
-                            #todo: replace rel with pattern
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
@@ -1423,18 +1425,20 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             commitment.save()
-                            explode_dependent_demands(commitment, request.user)
+                            #import pdb; pdb.set_trace()
+                            #explode_dependent_demands(commitment, request.user)
+                            recursively_explode_demands(process, order, request.user)
                             
                         else:
-                            #todo: replace rel with pattern
-                            #rel = RR.objects.get(
-                            #    materiality=rt.materiality,
-                            #    related_to="process",
-                            #    direction="out")
+                            #todo: this is certainly wrong! {but won't crash)
+                            ets = EventType.objects.filter(
+                                related_to="process",
+                                relationship="out")
+                            event_type = ets[0]
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
-                                event_type=rel.event_type,
+                                event_type=event_type,
                                 due_date=order.due_date,
                                 from_agent_type=order.provider.agent_type,
                                 from_agent=order.provider,
@@ -2674,6 +2678,26 @@ def labnotes_history(request):
         "photo_size": (128, 128),
         "agent": agent,
     }, context_instance=RequestContext(request))
+
+def todo_history(request):
+    #import pdb; pdb.set_trace()
+    todo_list = Commitment.objects.finished_todos().order_by('-due_date',)
+                   
+    paginator = Paginator(todo_list, 25)
+    page = request.GET.get('page')
+    try:
+        todos = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        todos = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        todos = paginator.page(paginator.num_pages)
+        
+    return render_to_response("valueaccounting/todo_history.html", {
+        "todos": todos,
+    }, context_instance=RequestContext(request))
+
 
 def resource(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)

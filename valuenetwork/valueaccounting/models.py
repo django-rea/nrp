@@ -751,8 +751,6 @@ class ProcessPattern(models.Model):
         single_ids = [s.id for s in singles]
         #import pdb; pdb.set_trace()
         for rt in rts:
-            #if rt.name == "R&D optics":
-            #    import pdb; pdb.set_trace()
             rt_singles = [rtfv.facet_value for rtfv in rt.facets.filter(facet_value_id__in=single_ids)]
             rt_multis = [rtfv.facet_value for rtfv in rt.facets.exclude(facet_value_id__in=single_ids)]
             if set(rt_singles) == set(singles):
@@ -804,6 +802,13 @@ class ProcessPattern(models.Model):
                 return EconomicResourceType.objects.filter(id__in=rt_ids)
         else:
             return EconomicResourceType.objects.none()
+
+    def all_resource_types(self):
+        answer = []
+        ets = self.event_types()
+        for et in ets:
+            answer.extend(self.get_resource_types(et))
+        return answer
         
     def work_resource_types(self):
         return self.resource_types_for_relationship("work")
@@ -1922,13 +1927,18 @@ class Order(models.Model):
         receiver_name = "Unknown"
         if self.receiver:
             receiver_name = self.receiver.name
+        provider_label = ", provider:"
+        receiver_label = ", receiver:"
+        if self.order_type == "customer":
+            provider_label = ", Seller:"
+            receiver_label = ", Buyer:"
         return " ".join(
             [self.get_order_type_display(), 
             str(self.id), 
             process_name,
-            ", provider:", 
+            provider_label, 
             provider_name, 
-            "receiver:", 
+            receiver_label, 
             receiver_name, 
             "due:",
             self.due_date.strftime('%Y-%m-%d'),
@@ -1983,6 +1993,11 @@ class CommitmentManager(models.Manager):
         return Commitment.objects.filter(
             event_type__relationship="todo",
             finished=False)
+
+    def finished_todos(self):
+        return Commitment.objects.filter(
+            event_type__relationship="todo",
+            finished=True)
 
 
 class Commitment(models.Model):

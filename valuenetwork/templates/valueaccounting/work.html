@@ -144,7 +144,7 @@ th, td {
 		        {% trans "Work" %} &nbsp;&nbsp;&nbsp;
 		        <a href="{% url today %}">{% trans "Today" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        <a href="{% url timeline %}">{% trans "Timeline" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
-		        <a href="{% url labnotes_history %}">{% trans "History" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
+		        <a href="{% url labnotes_history %}">{% trans "Labnotes History" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        {% if agent %}
 					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan R&amp;D Work" %}</a>
 			    {% endif %}
@@ -221,8 +221,11 @@ th, td {
 								      </div>
 								    </form>
 						      </div>
+						     </div>
 			            {% endif %}
+			            <a href="{% url todo_history %}">{% trans "Todo History" %}</a>
 		            </h3>
+
 		            <table class="todo-table" >
 		                <thead>
 		                    <tr>

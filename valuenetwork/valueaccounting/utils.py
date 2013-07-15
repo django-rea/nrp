@@ -302,34 +302,38 @@ def recursively_explode_demands(process, order, user):
             created_by=user,
         )
         commitment.save()
-        pptr = ptrt.resource_type.main_producing_process_type_relationship()
-        if pptr:
-            next_pt = pptr.process_type
-            start_date = process.start_date - datetime.timedelta(minutes=next_pt.estimated_duration)
-            next_process = Process(          
-                name=next_pt.name,
-                process_type=next_pt,
-                process_pattern=next_pt.process_pattern,
-                project=next_pt.project,
-                url=next_pt.url,
-                end_date=process.start_date,
-                start_date=start_date,
-            )
-            next_process.save()
-            next_commitment = Commitment(
-                independent_demand=order,
-                event_type=pptr.event_type,
-                description=pptr.description,
-                due_date=process.start_date,
-                resource_type=pptr.resource_type,
-                process=next_process,
-                project=next_pt.project,
-                quantity=output.quantity * pptr.quantity,
-                unit_of_quantity=pptr.resource_type.unit,
-                created_by=user,
-            )
-            next_commitment.save()
-            recursively_explode_demands(next_process, order, user)
+        qty_to_explode = commitment.net()
+        if qty_to_explode:
+            pptr = ptrt.resource_type.main_producing_process_type_relationship()
+            if pptr:
+                next_pt = pptr.process_type
+                start_date = process.start_date - datetime.timedelta(minutes=next_pt.estimated_duration)
+                next_process = Process(          
+                    name=next_pt.name,
+                    process_type=next_pt,
+                    process_pattern=next_pt.process_pattern,
+                    project=next_pt.project,
+                    url=next_pt.url,
+                    end_date=process.start_date,
+                    start_date=start_date,
+                )
+                next_process.save()
+                next_commitment = Commitment(
+                    independent_demand=order,
+                    event_type=pptr.event_type,
+                    description=pptr.description,
+                    due_date=process.start_date,
+                    resource_type=pptr.resource_type,
+                    process=next_process,
+                    project=next_pt.project,
+                    quantity=output.quantity * pptr.quantity,
+                    unit_of_quantity=pptr.resource_type.unit,
+                    created_by=user,
+                )
+                next_commitment.save()
+                qty_to_explode = next_commitment.net()
+                if qty_to_explode:
+                    recursively_explode_demands(next_process, order, user)
 
 class XbillNode(object):
     def __init__(self, node, depth):

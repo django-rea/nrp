@@ -751,8 +751,6 @@ class ProcessPattern(models.Model):
         single_ids = [s.id for s in singles]
         #import pdb; pdb.set_trace()
         for rt in rts:
-            #if rt.name == "R&D optics":
-            #    import pdb; pdb.set_trace()
             rt_singles = [rtfv.facet_value for rtfv in rt.facets.filter(facet_value_id__in=single_ids)]
             rt_multis = [rtfv.facet_value for rtfv in rt.facets.exclude(facet_value_id__in=single_ids)]
             if set(rt_singles) == set(singles):
@@ -804,6 +802,13 @@ class ProcessPattern(models.Model):
                 return EconomicResourceType.objects.filter(id__in=rt_ids)
         else:
             return EconomicResourceType.objects.none()
+
+    def all_resource_types(self):
+        answer = []
+        ets = self.event_types()
+        for et in ets:
+            answer.extend(self.get_resource_types(et))
+        return answer
         
     def work_resource_types(self):
         return self.resource_types_for_relationship("work")

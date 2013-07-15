@@ -693,7 +693,7 @@ def extended_bill(request, resource_type_id):
                 if select_all:
                     node.show = True
                 else:
-                    import pdb; pdb.set_trace()
+                    #import pdb; pdb.set_trace()
                     rt_fvs = node.facets.all()
                     if node.matches_filter(rt_fvs):
                         node.show = True
@@ -1361,8 +1361,11 @@ def json_resource_type_defaults(request, resource_type_id):
 
 @login_required
 def create_order(request):
-    #cats = Category.objects.filter(orderable=True)
-    #rts = EconomicResourceType.objects.all().filter(category__in=cats)
+    try:
+        pattern = PatternUseCase.objects.get(use_case='cust_orders').pattern
+    except PatternUseCase.DoesNotExist:
+        raise ValidationError("no Customer Order ProcessPattern")
+    rts = pattern.all_resource_types()
     item_forms = []
     data = request.POST or None
     order_form = OrderForm(data=data)
@@ -1407,7 +1410,6 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             process.save()
-                            #todo: replace rel with pattern
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
@@ -1425,18 +1427,20 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             commitment.save()
-                            explode_dependent_demands(commitment, request.user)
+                            #import pdb; pdb.set_trace()
+                            #explode_dependent_demands(commitment, request.user)
+                            recursively_explode_demands(process, order, request.user)
                             
                         else:
-                            #todo: replace rel with pattern
-                            #rel = RR.objects.get(
-                            #    materiality=rt.materiality,
-                            #    related_to="process",
-                            #    direction="out")
+                            #todo: this is certainly wrong! {but won't crash)
+                            ets = EventType.objects.filter(
+                                related_to="process",
+                                relationship="out")
+                            event_type = ets[0]
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
-                                event_type=rel.event_type,
+                                event_type=event_type,
                                 due_date=order.due_date,
                                 from_agent_type=order.provider.agent_type,
                                 from_agent=order.provider,

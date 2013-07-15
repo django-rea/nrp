@@ -729,7 +729,6 @@ def edit_extended_bill(request, resource_type_id):
     change_process_form = ChangeProcessTypeForm()
     source_form = AgentResourceTypeForm()
     feature_form = FeatureForm()
-    #create_formset = create_facet_formset()
     facets = Facet.objects.all() 
     return render_to_response("valueaccounting/edit_xbill.html", {
         "resource_type": rt,
@@ -741,7 +740,6 @@ def edit_extended_bill(request, resource_type_id):
         "change_process_form": change_process_form,
         "source_form": source_form,
         "feature_form": feature_form,
-        #"create_formset": create_formset,
         "facets": facets,
         "help": get_help("edit_recipes"),
     }, context_instance=RequestContext(request))
@@ -989,9 +987,6 @@ def create_resource_type(request):
             data = form.cleaned_data
             rt = form.save(commit=False)                    
             rt.created_by=request.user
-            #todo: get rid of category
-            #rt.category = Category.objects.get(id=1)
-            #rt.save()
             formset = create_facet_formset(data=request.POST)
             for form_rtfv in formset.forms:
                 if form_rtfv.is_valid():
@@ -1012,6 +1007,34 @@ def create_resource_type(request):
         else:
             raise ValidationError(form.errors)
 
+@login_required
+def create_resource_type_ajax(request):
+    import pdb; pdb.set_trace()
+    if request.method == "POST":
+        form = EconomicResourceTypeForm(request.POST, request.FILES)
+        if form.is_valid():
+            data = form.cleaned_data
+            rt = form.save(commit=False)                    
+            rt.created_by=request.user
+            formset = create_facet_formset(data=request.POST)
+            for form_rtfv in formset.forms:
+                if form_rtfv.is_valid():
+                    data_rtfv = form_rtfv.cleaned_data
+                    fv = FacetValue.objects.get(id=data_rtfv["value"])
+                    if fv:
+                        rtfv = ResourceTypeFacetValue()
+                        rtfv.resource_type = rt
+                        rtfv.facet_value = fv
+                        rtfv.save()
+
+            next = request.POST.get("next")
+            if next:
+                return HttpResponseRedirect(next)
+            else:
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/resources'))
+        else:
+            raise ValidationError(form.errors)
 
 @login_required
 def create_process_type_input(request, process_type_id):

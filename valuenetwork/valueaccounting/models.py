@@ -1873,13 +1873,18 @@ class Order(models.Model):
         receiver_name = "Unknown"
         if self.receiver:
             receiver_name = self.receiver.name
+        provider_label = ", provider:"
+        receiver_label = ", receiver:"
+        if self.order_type == "customer":
+            provider_label = ", Seller:"
+            receiver_label = ", Buyer:"
         return " ".join(
             [self.get_order_type_display(), 
             str(self.id), 
             process_name,
-            ", provider:", 
+            provider_label, 
             provider_name, 
-            "receiver:", 
+            receiver_label, 
             receiver_name, 
             "due:",
             self.due_date.strftime('%Y-%m-%d'),

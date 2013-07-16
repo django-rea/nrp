@@ -1121,6 +1121,7 @@ class AgentResourceType(models.Model):
 
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=128) 
+    description = models.TextField(_('description'), blank=True, null=True)
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='sub_projects')
     project_team = models.ForeignKey(EconomicAgent,

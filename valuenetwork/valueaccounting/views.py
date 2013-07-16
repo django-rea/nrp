@@ -83,39 +83,90 @@ def create_user_and_agent(request):
         return render_to_response('valueaccounting/no_permission.html')
     user_form = UserCreationForm(data=request.POST or None)
     agent_form = AgentForm(data=request.POST or None)
+    agent_selection_form = AgentSelectionForm()
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        if user_form.is_valid() and agent_form.is_valid():
+        sa_id = request.POST.get("selected_agent")
+        agent = None
+        if sa_id:
+            agent = EconomicAgent.objects.get(id=sa_id)
+        if user_form.is_valid():
             user = user_form.save(commit=False)
-            agent = agent_form.save(commit=False)
-            data = agent_form.cleaned_data
-            user.first_name = data["first_name"]
-            user.last_name = data["last_name"]
-            user.email = data["email"]
-            user.save()
-            name = " ".join([data["first_name"], data["last_name"]])       
-            agent.name = name            
-            agent.save()
-            au = AgentUser(
-                agent = agent,
-                user = user)
-            au.save()
+            user.first_name = request.POST.get("first_name")
+            user.last_name = request.POST.get("last_name")
+            user.email = request.POST.get("email")
+            nick = request.POST.get("nick")
+            description = request.POST.get("description")
+            url = request.POST.get("url")
+            address = request.POST.get("address")
+            email = request.POST.get("email")
+            agent_type_id = request.POST.get("agent_type")
+            errors = False
+            if agent:
+                agent.description = description
+                agent.url = url
+                agent.address = address
+                if agent_type_id:
+                    if agent.agent_type.id != agent_type_id:
+                        agent_type = AgentType.objects.get(id=agent_type_id)
+                        agent.agent_type = agent_type
+                if not agent.email:
+                    agent.email = email
+            else:
+                if nick and user.first_name:
+                    try:
+                        agent = EconomicAgent.objects.get(nick=nick)
+                        errors = True
+                    except EconomicAgent.DoesNotExist:
+                        pass
+                else:
+                    errors = True
+                if not errors:
+                    name = " ".join([user.first_name, user.last_name])
+                    agent_type = AgentType.objects.get(id=agent_type_id)
+                    agent = EconomicAgent(
+                        nick = nick,
+                        name = name,
+                        description = description,
+                        url = url,
+                        address = address,
+                        agent_type = agent_type,
+                    )  
+            if errors:
+                agent_form.is_valid()
+            else:
+                user.save()           
+                agent.save()
+                au = AgentUser(
+                    agent = agent,
+                    user = user)
+                au.save()
             return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
     
     return render_to_response("valueaccounting/create_user_and_agent.html", {
         "user_form": user_form,
         "agent_form": agent_form,
+        "agent_selection_form": agent_selection_form,
     }, context_instance=RequestContext(request))
 
 def projects(request):
     roots = Project.objects.filter(parent=None)
     agent = get_agent(request)
+    project_create_form = ProjectForm()
     
     return render_to_response("valueaccounting/projects.html", {
         "roots": roots,
         "agent": agent,
         "help": get_help("projects"),
+        "project_create_form": project_create_form,
     }, context_instance=RequestContext(request))
+
+def create_project(request):
+    if request.method == "POST":
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            form.save()
+    return HttpResponseRedirect("/accounting/projects/")
 
 @login_required
 def test_patterns(request):
@@ -1366,6 +1417,10 @@ def json_timeline(request):
 
 def json_resource_type_unit(request, resource_type_id):
     data = serializers.serialize("json", EconomicResourceType.objects.filter(id=resource_type_id), fields=('unit',))
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+
+def json_agent(request, agent_id):
+    data = serializers.serialize("json", EconomicAgent.objects.filter(id=agent_id))
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
 def json_directional_unit(request, resource_type_id, direction):

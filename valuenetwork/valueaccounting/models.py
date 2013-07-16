@@ -214,6 +214,17 @@ class AgentType(models.Model):
         return self.name
 
 
+class AgentManager(models.Manager):
+
+    def without_user(self):
+        all_agents = EconomicAgent.objects.all()
+        ua_ids = []
+        for agent in all_agents:
+            if agent.users.all():
+                ua_ids.append(agent.id)
+        return EconomicAgent.objects.exclude(id__in=ua_ids)
+
+
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
     nick = models.CharField(_('ID'), max_length=32, unique=True)
@@ -237,6 +248,7 @@ class EconomicAgent(models.Model):
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='agents_changed', blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    objects = AgentManager()
     
     class Meta:
         ordering = ('nick',)
@@ -1109,6 +1121,7 @@ class AgentResourceType(models.Model):
 
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=128) 
+    description = models.TextField(_('description'), blank=True, null=True)
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='sub_projects')
     project_team = models.ForeignKey(EconomicAgent,

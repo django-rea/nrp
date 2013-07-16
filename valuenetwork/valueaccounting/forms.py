@@ -18,6 +18,11 @@ class FacetedModelChoiceField(forms.ModelChoiceField):
         return ": ".join([obj.name, obj.facet_values_list()])
 
 
+class AgentModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.name
+
+
 class AgentForm(forms.ModelForm):
     first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     last_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
@@ -36,7 +41,25 @@ class AgentForm(forms.ModelForm):
     class Meta:
         model = EconomicAgent
         fields = ('nick', 'agent_type', 'description', 'url', 'address', 'email')
-        
+
+
+class AgentSelectionForm(forms.Form):
+    selected_agent = AgentModelChoiceField(
+        queryset=EconomicAgent.objects.without_user(), 
+        label="Select an existing Agent",
+        required=False)
+
+
+class ProjectForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = Project
+        fields = ('name', 'description')
+
 
 class EconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))

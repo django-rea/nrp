@@ -1,9 +1,26 @@
 {% extends "site_base.html" %}
 
 {% load i18n %}
+{% load bootstrap_tags %}
 
 {% block head_title %}{% trans "Projects" %}{% endblock %}
+
+{% block extra_head %}
+
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.description {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-style: italic;
+}
+
+</style>
+
+{% endblock %}
+
 {% block body_class %}projects{% endblock %}
 
 {% block body_base %}
@@ -11,14 +28,42 @@
         {% include "_messages.html" %}
 	<div>
 
-	    <legend>Projects</legend>
-	    <h4 style="margin-bottom: 1em;">
-	        {% if agent %}
-		        &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a>
-	        {% endif %}
-	        &nbsp;&nbsp;&nbsp;<a href="{% url all_contributions %}">{% trans "All contributions" %}</a>
-	        &nbsp;&nbsp;&nbsp;<a href="{% url project_network %}">{% trans "Project network diagram" %}</a>
-        </h4>
+	    <legend>
+	        {% trans "Projects" %} 
+	        {% if user.is_authenticated %}
+				<div style="display: inline;" >
+					<a href="#createProjectForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create new Project" %}</a>
+				</div>
+			{% endif %}
+
+
+            <div class="modal hide fade" id="createProjectForm" tabindex="-1" role="dialog" aria-labelledby="project-create-label" aria-hidden="true">
+		        <div class="modal-header">
+			        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			        <h3 id="project-create-label">{% trans "Create a new Project" %}</h3>
+		        </div>
+		        <div class="modal-body">
+			        <form class="project-create-form" id="projectCreateForm" enctype="multipart/form-data" action="{% url create_project %}" method="POST" >
+				        {% csrf_token %}
+				        {{ project_create_form|as_bootstrap }}
+
+			          <div class="modal-footer">
+				        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+				        <button class="btn btn-primary">{% trans "Save changes" %}</button>
+			          </div>
+
+			        </form>
+
+	            </div>
+            </div>
+        
+            {% if agent %}
+                &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a>
+            {% endif %}
+            &nbsp;&nbsp;&nbsp;<a href="{% url all_contributions %}">{% trans "All contributions" %}</a>
+            &nbsp;&nbsp;&nbsp;<a href="{% url project_network %}">{% trans "Project network diagram" %}</a>
+                
+        </legend>
         
 		<ul>
 			{% for root in roots %}
@@ -27,6 +72,9 @@
 					<a href="{% url contributions project_id=root.id %}">{% trans "Contributions" %}: {{ root.contributions_count }}</a>
 					{% if root.wip %}
 					    &nbsp;&nbsp;&nbsp;<a href="{% url project_wip project_id=root.id %}">{% trans "Work in process" %}: {{ root.wip.count }}</a>
+					{% endif %}
+					{% if root.description %}
+					    <div class="description" >{{ root.description|urlize|linebreaks }}</div>
 					{% endif %}
 				</li>
 				{% if root.sub_projects.all %}
@@ -38,6 +86,9 @@
 							    {% if kid.wip %}
 					                &nbsp;&nbsp;&nbsp;<a href="{% url project_wip project_id=kid.id %}">{% trans "Work in process" %}: {{ kid.wip.count }}</a>
 					            {% endif %}
+					            {% if kid.description %}
+					                <div class="description" >{{ kid.description|urlize|linebreaks }}</div>
+					            {% endif %}
 					        </li>
 							{% if kid.sub_projects.all %}
 								<ul>
@@ -47,6 +98,9 @@
 											<a href="{% url contributions project_id=grandkid.id %}">{% trans "Contributions" %}: {{ grandkid.contributions_count }}</a>
 											{% if grandkid.wip %}
 					                            &nbsp;&nbsp;&nbsp;<a href="{% url project_wip project_id=grandkid.id %}">{% trans "Work in process" %}: {{ grandkid.wip.count }}</a>
+					                        {% endif %}
+					                        {% if grandkid.description %}
+					                            <div class="description" >{{ grandkid.description|urlize|linebreaks }}</div>
 					                        {% endif %}
 										</li>
 									{% endfor %}

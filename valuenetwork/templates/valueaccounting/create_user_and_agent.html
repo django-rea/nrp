@@ -14,7 +14,10 @@
 
 <style>
 
-
+#or {
+    margin-left: 4em;
+    font-weight: bold;
+}
 
 </style>
 
@@ -29,9 +32,15 @@
 
     <form id="userAgentForm" class="form-horizontal" method="POST" action="">
 	    {% csrf_token %}
-
+	        <div id="agent-selection">
+                {{ agent_selection_form|as_bootstrap }}
+                <p id="or" >...or create a new one</p>
+            </div>
+            
+            <div>
 				{{ agent_form|as_bootstrap }}
 				{{ user_form|as_bootstrap }}
+			</div>
 
         <div class="form-actions">
 		    <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
@@ -69,7 +78,7 @@
 	        }
         });
 
-        $(".chzn-select").chosen();
+        $("select").chosen();
 
 		$( "#userAgentForm" ).validate({
 			rules: {
@@ -85,6 +94,36 @@
 				$(label).closest('.control-group').addClass('error');
 			},
 		});
+
+		$("#id_selected_agent").change(getAgent);
+
+		function getAgent(event)
+		{
+			var agentId = event.target.value;
+			
+			if (agentId)
+			{
+			    var jsonUrl = encodeURI("/accounting/json-agent/" + agentId + "/");
+			    $.get(jsonUrl,
+				    function(data){
+					    var nick = data[0].fields["nick"];
+                        $("#id_nick").val(nick);
+                        var description = data[0].fields["description"];
+                        $("#id_description").val(description);
+                        var url = data[0].fields["url"];
+                        $("#id_url").val(url);
+                        var email = data[0].fields["email"];
+                        $("#id_email").val(email);
+                        var address = data[0].fields["address"];
+                        $("#id_address").val(address);
+                        var agent_type = data[0].fields["agent_type"];
+                        $("#id_agent_type").val(agent_type);
+                        $("#id_agent_type").trigger("liszt:updated");
+                        $("#agent-selection").hide()
+				    });
+		    }
+		    
+		}
 
     }); // end document.ready
 

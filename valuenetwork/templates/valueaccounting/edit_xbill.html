@@ -474,6 +474,8 @@ ul {
 						                  <div class="modal-footer">
 							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 							                <button class="btn btn-primary save-resource-type" id="in~{{ ptype.node_id }}">{% trans "Save changes" %}</button>
+                                            <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
+                                            <input type="hidden" name="slot" value="in" />
 						                  </div>
 
 						                </form>
@@ -542,6 +544,8 @@ ul {
 						                  <div class="modal-footer">
 							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 							                <button class="btn btn-primary save-resource-type" id="cite~{{ ptype.node_id }}">{% trans "Save changes" %}</button>
+                                            <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
+                                            <input type="hidden" name="slot" value="cite" />
 						                  </div>
 
 						                </form>
@@ -985,19 +989,15 @@ ul {
             var id = btn.id.split('~')
             var nodeId = id[1];
             var slot = id[0];
-		    //var $form = $("#form" + slot + nodeId);
-		    //var formData = $form.serialize();
+		    var $form = $("#form" + slot + nodeId);
+		    var formData = $form.serialize();
             var url = "{%url create_resource_type_ajax %}";
-            alert(url);
-		    var jqxhr = $.post( url,   // { nodeId: nodeId, slot: slot}, //formData,
+		    var jqxhr = $.post( url, formData,
 			    function( data ) {
                     //add to resource type drop down
-
+                    $(".save-resource-type").modal('hide');
+                    alert("in function data " + data);
 			    })
-			    .fail(function() 
-			    { 
-                    alert("Resource type save failed");
-			    }
 		});
 
 	}); // end document.ready

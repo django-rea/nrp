@@ -1088,10 +1088,11 @@ def create_resource_type_ajax(request):
                     rtfv.facet_value = fv
                     rtfv.save()
             else:
-                return form_rtfv.errors
-        return "{ name: " + rt.name + ", id: " + rt.id + " }"
+                raise ValidationError(form_rtfv.errors)
+        return_data = serializers.serialize("json", EconomicResourceType.objects.filter(id=rt.id), fields=('id','name',)) 
+        return HttpResponse(return_data, mimetype="text/json-comment-filtered")
     else:
-        return form.errors
+        raise ValidationError(form.errors)
 
 @login_required
 def create_process_type_input(request, process_type_id):

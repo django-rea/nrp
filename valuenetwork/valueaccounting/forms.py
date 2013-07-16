@@ -685,7 +685,7 @@ class EconomicResourceTypeForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('parent', 'created_by', 'changed_by', 'category')
+        exclude = ('parent', 'created_by', 'changed_by')
 
 
 # used in EconomicResourceType.add_new_form(cls), which is used in popups
@@ -821,9 +821,6 @@ class ProcessTypeInputForm(forms.ModelForm):
 class ProcessTypeCitableForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
-        #widget=SelectWithPopUp(
-        #    model=EconomicResourceType,
-        #    attrs={'class': 'resource-type-selector input-xlarge' }))
         widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
     quantity = forms.DecimalField(required=False,

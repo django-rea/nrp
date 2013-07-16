@@ -452,7 +452,7 @@ ul {
 
 						        </div>
 
-				                <div class="modal hide fade" id="createInputResourceForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="resource-input-create-label{{ ptype.node_id }}" aria-hidden="true">
+				                <div class="modal hide fade rtmodal" id="createInputResourceForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="resource-input-create-label{{ ptype.node_id }}" aria-hidden="true">
 					                <div class="modal-header">
 						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 						                <h3 id="resource-input-create-label{{ ptype.node_id }}">{% trans "Create a new Resource Type" %}</h3>
@@ -522,7 +522,7 @@ ul {
 
 						        </div>
 
-				                <div class="modal hide fade" id="createCitableResourceForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="resource-citable-create-label{{ ptype.node_id }}" aria-hidden="true">
+				                <div class="modal hide fade rtmodal" id="createCitableResourceForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="resource-citable-create-label{{ ptype.node_id }}" aria-hidden="true">
 					                <div class="modal-header">
 						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 						                <h3 id="resource-citable-create-label{{ ptype.node_id }}">{% trans "Create a new Resource Type" %}</h3>
@@ -994,9 +994,14 @@ ul {
             var url = "{%url create_resource_type_ajax %}";
 		    var jqxhr = $.post( url, formData,
 			    function( data ) {
-                    //add to resource type drop down
-                    $(".save-resource-type").modal('hide');
-                    alert("in function data " + data);
+                    for(var i=0 ; i<data.length ; i++) //will be only one
+                    {
+                        var id = data[i]['pk'];
+                        var name = data[i].fields['name']; 
+                        $(".resource-type-selector").append('<option value="' + id + '" selected="selected">' + name + '</option>') //
+                    }
+                    //$(".rtmodal").modal('hide');
+                    $("#createCitableResourceFormProcessType-79").modal('hide'); //experiment
 			    })
 		});
 

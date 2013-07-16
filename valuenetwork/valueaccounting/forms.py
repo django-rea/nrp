@@ -46,7 +46,7 @@ class AgentForm(forms.ModelForm):
 class AgentSelectionForm(forms.Form):
     selected_agent = AgentModelChoiceField(
         queryset=EconomicAgent.objects.without_user(), 
-        label="Select existing Agent",
+        label="Select an existing Agent",
         required=False)
         
 

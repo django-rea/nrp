@@ -48,7 +48,18 @@ class AgentSelectionForm(forms.Form):
         queryset=EconomicAgent.objects.without_user(), 
         label="Select an existing Agent",
         required=False)
-        
+
+
+class ProjectForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = Project
+        fields = ('name', 'description')
+
 
 class EconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))

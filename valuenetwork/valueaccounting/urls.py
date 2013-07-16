@@ -4,6 +4,7 @@ from django.conf.urls import patterns, url
 urlpatterns = patterns("",
     url(r"^start/$", 'valuenetwork.valueaccounting.views.start', name="start"),
     url(r"^projects/$", 'valuenetwork.valueaccounting.views.projects', name="projects"),
+    url(r"^create-project/$", 'valuenetwork.valueaccounting.views.create_project', name="create_project"),
     url(r"^resources/$", 'valuenetwork.valueaccounting.views.resource_types', name="resource_types"),
     url(r"^resource-type/(?P<resource_type_id>\d+)/$", 'valuenetwork.valueaccounting.views.resource_type', name="resource_type"),
     url(r"^inventory/$", 'valuenetwork.valueaccounting.views.inventory', name="inventory"),

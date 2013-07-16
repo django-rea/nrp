@@ -152,12 +152,21 @@ def create_user_and_agent(request):
 def projects(request):
     roots = Project.objects.filter(parent=None)
     agent = get_agent(request)
+    project_create_form = ProjectForm()
     
     return render_to_response("valueaccounting/projects.html", {
         "roots": roots,
         "agent": agent,
         "help": get_help("projects"),
+        "project_create_form": project_create_form,
     }, context_instance=RequestContext(request))
+
+def create_project(request):
+    if request.method == "POST":
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            form.save()
+    return HttpResponseRedirect("/accounting/projects/")
 
 @login_required
 def test_patterns(request):

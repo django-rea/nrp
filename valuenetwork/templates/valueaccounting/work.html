@@ -246,7 +246,7 @@ th, td {
 		                </thead>
 		                <tbody>
 		                    {% for todo in todos %}
-		                        {% if agent == todo.from_agent %}
+		                        {% if agent and agent == todo.from_agent %}
 	                                <tr class="my-row" >
                                 {% else %}
                                     <tr class="not-my-row" >
@@ -282,7 +282,7 @@ th, td {
 	                                {% endcomment %}
 	                                <td>
 	                                    
-                                        {% if agent == todo.from_agent %}
+                                        {% if agent and agent == todo.from_agent %}
                                             {% if todo.is_deletable %}
                                                 {% if agent != todo.to_agent %}
                                                     <div class="entry-buttons" >
@@ -334,7 +334,7 @@ th, td {
                                             {% endif %}
 	                                    </td>
                                 </tr>   
-                                {% if agent == todo.from_agent %}
+                                {% if agent and agent == todo.from_agent %}
                                     {% with todo.todo_event as event %}
                                     <tr class="entry-row" >
                                         <th class="entry-label" >{% trans "Did" %}:</td>

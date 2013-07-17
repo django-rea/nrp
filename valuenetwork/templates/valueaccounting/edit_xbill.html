@@ -415,12 +415,12 @@ ul {
 						{% if xb_type == "process-type" %}
 						    {% with xbill_object as ptype %}
 						        <div style="display: inline;" >
-							        <a href="#inputForm{{ ptype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+							        <a href="#inputForm{{ ptype.xbill_input_prefix }}" role="button" class="btn btn-info" data-toggle="modal">
 								        {% trans "Add input" %}
 							        </a>
 						        </div>
 
-						        <div class="modal hide fade" id="inputForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="input-label" aria-hidden="true">
+						        <div class="modal hide fade" id="inputForm{{ ptype.xbill_input_prefix }}" tabindex="-1" role="dialog" aria-labelledby="input-label" aria-hidden="true">
 						          <div class="modal-header">
 							        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 							        <h3 id="input-label">{% blocktrans %}Add an input to {{ ptype }}{% endblocktrans %}</h3>
@@ -431,7 +431,7 @@ ul {
                                             {% with ptype.xbill_input_form as iform %}
 					                            <p class="modal-line">{% trans "Resource Type" %} </p>
                                                 <p>{{ iform.resource_type }} 
-							                    <a href="#createInputResourceForm{{ ptype.node_id }}" role="button" class="add-another" data-toggle="modal">
+							                    <a href="#createResourceForm{{ ptype.xbill_input_prefix }}" role="button" class="add-another" data-toggle="modal">
 								                    <img src="/site_media/static/admin/img/icon_addlink.gif" title="add new"></img>
 							                    </a> </p>                   
 					                            <p class="modal-line">{% trans "Quantity" %} </p>
@@ -452,13 +452,13 @@ ul {
 
 						        </div>
 
-				                <div class="modal hide fade rtmodal" id="createInputResourceForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="resource-input-create-label{{ ptype.node_id }}" aria-hidden="true">
+				                <div class="modal hide fade rtmodal" id="createResourceForm{{ ptype.xbill_input_prefix }}" tabindex="-1" role="dialog" aria-labelledby="resource-input-create-label{{ ptype.xbill_input_prefix }}" aria-hidden="true">
 					                <div class="modal-header">
 						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-						                <h3 id="resource-input-create-label{{ ptype.node_id }}">{% trans "Create a new Resource Type" %}</h3>
+						                <h3 id="resource-input-create-label{{ ptype.xbill_input_prefix }}">{% trans "Create a new Resource Type" %}</h3>
 					                </div>
 					                <div class="modal-body">
-						                <form class="resource-create-form" id="formin{{ ptype.node_id }}" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
+						                <form class="resource-create-form" id="formin{{ ptype.xbill_input_prefix }}" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
 							                {% csrf_token %}
 							                {{ ptype.xbill_input_rt_form|as_bootstrap }}
                                             {% with ptype.xbill_input_rt_facet_formset as facet_formset %}
@@ -473,7 +473,7 @@ ul {
 
 						                  <div class="modal-footer">
 							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							                <button class="btn btn-primary save-resource-type" id="in~{{ ptype.node_id }}">{% trans "Save changes" %}</button>
+							                <button class="btn btn-primary save-resource-type" id="in~{{ ptype.xbill_input_prefix }}">{% trans "Save changes" %}</button>
                                             <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
                                             <input type="hidden" name="slot" value="in" />
 						                  </div>
@@ -485,12 +485,12 @@ ul {
 
 
 						        <div style="display: inline;" >
-							        <a href="#citeForm{{ ptype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+							        <a href="#citeForm{{ ptype.xbill_citable_prefix }}" role="button" class="btn btn-info" data-toggle="modal">
 								        {% trans "Add citable" %}
 							        </a>
 						        </div>
 
-						        <div class="modal hide fade" id="citeForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+						        <div class="modal hide fade" id="citeForm{{ ptype.xbill_citable_prefix }}" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
 						          <div class="modal-header">
 							        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 							        <h3 id="cite-label">{% blocktrans %}Add a citable to {{ ptype }}{% endblocktrans %}</h3>
@@ -501,7 +501,7 @@ ul {
                                             {% with ptype.xbill_citable_form as cform %}
 					                            <p class="modal-line">{% trans "Resource Type" %} </p>
                                                 <p>{{ cform.resource_type }} 
-							                    <a href="#createCitableResourceForm{{ ptype.node_id }}" role="button" class="add-another" data-toggle="modal">
+							                    <a href="#createResourceForm{{ ptype.xbill_citable_prefix }}" role="button" class="add-another" data-toggle="modal">
 								                    <img src="/site_media/static/admin/img/icon_addlink.gif" title="add new"></img>
 							                    </a> </p>                   
 					                            <p class="modal-line">{% trans "Quantity" %} </p>
@@ -522,13 +522,13 @@ ul {
 
 						        </div>
 
-				                <div class="modal hide fade rtmodal" id="createCitableResourceForm{{ ptype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="resource-citable-create-label{{ ptype.node_id }}" aria-hidden="true">
+				                <div class="modal hide fade rtmodal" id="createResourceForm{{ ptype.xbill_citable_prefix }}" tabindex="-1" role="dialog" aria-labelledby="resource-citable-create-label{{ ptype.xbill_citable_prefix }}" aria-hidden="true">
 					                <div class="modal-header">
 						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 						                <h3 id="resource-citable-create-label{{ ptype.node_id }}">{% trans "Create a new Resource Type" %}</h3>
 					                </div>
 					                <div class="modal-body">
-						                <form class="resource-create-form" id="formcite{{ ptype.node_id }}" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
+						                <form class="resource-create-form" id="formcite{{ ptype.xbill_citable_prefix }}" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
 							                {% csrf_token %}
 							                {{ ptype.xbill_citable_rt_form|as_bootstrap }}
                                             {% with ptype.xbill_citable_rt_facet_formset as facet_formset %}
@@ -543,7 +543,7 @@ ul {
 
 						                  <div class="modal-footer">
 							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							                <button class="btn btn-primary save-resource-type" id="cite~{{ ptype.node_id }}">{% trans "Save changes" %}</button>
+							                <button class="btn btn-primary save-resource-type" id="cite~{{ ptype.xbill_citable_prefix }}">{% trans "Save changes" %}</button>
                                             <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
                                             <input type="hidden" name="slot" value="cite" />
 						                  </div>
@@ -724,7 +724,6 @@ ul {
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 
 {% endblock %}
@@ -991,6 +990,9 @@ ul {
             var slot = id[0];
 		    var $form = $("#form" + slot + nodeId);
 		    var formData = $form.serialize();
+		    var selId = "#id_" + nodeId + "-resource_type";
+		    var modalId = "#createResourceForm" + nodeId;
+		    var modal = $(modalId);
             var url = "{%url create_resource_type_ajax %}";
 		    var jqxhr = $.post( url, formData,
 			    function( data ) {
@@ -998,10 +1000,12 @@ ul {
                     {
                         var id = data[i]['pk'];
                         var name = data[i].fields['name']; 
-                        $(".resource-type-selector").append('<option value="' + id + '" selected="selected">' + name + '</option>') //
+                        var selx = $(selId);
+                        selx.append('<option value="' + id + '" selected="selected">' + name + '</option>');
+                        selx.trigger("liszt:updated");
+                        selx.trigger("change");
                     }
-                    //$(".rtmodal").modal('hide');
-                    $("#createCitableResourceFormProcessType-79").modal('hide'); //experiment
+                    $(modalId).modal('hide');
 			    })
 		});
 

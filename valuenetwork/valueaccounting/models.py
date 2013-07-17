@@ -1564,6 +1564,10 @@ class Process(models.Model):
         return self.commitments.exclude(
             event_type__relationship='out')
 
+    def input_commitments(self):
+        return self.commitments.filter(
+            event_type__relationship='in')   
+
     def schedule_requirements(self):
         return self.commitments.exclude(
             event_type__relationship='out')
@@ -2128,6 +2132,9 @@ class Commitment(models.Model):
             self.due_date.strftime('%Y-%m-%d'),
         ])
         unique_slugify(self, slug)
+        #if self.id:
+        #    prev = Commitment.objects.get(id=self.id)
+        #    import pdb; pdb.set_trace()
         super(Commitment, self).save(*args, **kwargs)
 
     def label(self):

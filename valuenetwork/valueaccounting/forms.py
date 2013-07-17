@@ -506,9 +506,21 @@ class ProcessWorkForm(forms.ModelForm):
     def __init__(self, pattern=None, *args, **kwargs):
         #import pdb; pdb.set_trace()
         super(ProcessWorkForm, self).__init__(*args, **kwargs)
+        #if pattern:
+        #    self.pattern = pattern
+        #    self.fields["resource_type"].queryset = pattern.work_resource_types()
+        use_pattern = True
+        if self.instance:
+            if self.instance.id:
+                use_pattern = False
+                ct = Commitment.objects.get(id=self.instance.id)
+                rt = ct.resource_type
+                self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
         if pattern:
-            self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.work_resource_types()
+            if use_pattern:
+                self.pattern = pattern
+                self.fields["resource_type"].queryset = pattern.work_resource_types()
+
 
 
 class WorkEventChangeForm(forms.ModelForm):

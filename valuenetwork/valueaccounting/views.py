@@ -3490,7 +3490,7 @@ def change_process(request, process_id):
         extra=4,
         )
     input_formset = InputFormSet(
-        queryset=process.incoming_commitments(),
+        queryset=process.input_commitments(),
         data=request.POST or None,
         prefix='input',
         pattern=pattern)
@@ -3592,6 +3592,7 @@ def change_process(request, process_id):
                             ct.delete() 
 
             for form in work_formset.forms:
+                #import pdb; pdb.set_trace()
                 if form.is_valid():
                     work_data = form.cleaned_data
                     if work_data:

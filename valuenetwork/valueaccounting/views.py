@@ -3771,15 +3771,16 @@ def propagate_qty_change(commitment, delta, visited):
     if process not in visited:
         visited.append(process)
         for ic in process.incoming_commitments():
-            ratio = ic.quantity / commitment.quantity 
-            new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
-            ic.quantity += new_delta
-            ic.save()
-            rt = ic.resource_type
-            demand = ic.independent_demand
-            for pc in rt.producing_commitments():
-                if pc.independent_demand == demand:
-                    propagate_qty_change(pc, new_delta, visited)
+            if ic.event_type.relationship != "cite":
+                ratio = ic.quantity / commitment.quantity 
+                new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
+                ic.quantity += new_delta
+                ic.save()
+                rt = ic.resource_type
+                demand = ic.independent_demand
+                for pc in rt.producing_commitments():
+                    if pc.independent_demand == demand:
+                        propagate_qty_change(pc, new_delta, visited)
     commitment.quantity += delta
     commitment.save()  
 

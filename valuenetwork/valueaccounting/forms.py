@@ -694,6 +694,8 @@ class OptionsForm(forms.Form):
         self.fields["options"].choices = [(rt.id, rt.name) for rt in options]
 
 class EconomicResourceTypeForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     
     class Meta:
         model = EconomicResourceType

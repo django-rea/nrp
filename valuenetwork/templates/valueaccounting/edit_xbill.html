@@ -734,6 +734,18 @@ ul {
 
 	$(document).ready(function(){
 
+	    function html_unescape(text) {
+            // Unescape a string that was escaped using django.utils.html.escape.
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            text = text.replace(/&amp;/g, '&');
+            return text;
+        }
+
+        var nameArray = html_unescape("{{ resource_names }}").split("~");
+
 	    $("select").chosen();
 
 	    $( "#help" ).toggle( function(){
@@ -741,6 +753,13 @@ ul {
         }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow"); 
         })
+
+        jQuery.validator.addMethod("unique", function(value, element, param) {
+            return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
+        }, "Name is not unique.");
+
+        $.validator.addClassRules("url", { url: true });
+        $.validator.addClassRules("unique-name", { required: true, unique: nameArray });
 
 		$.validator.addClassRules("quantity", { required: true, number: true });
 		$.validator.addClassRules("days", { required: true, number: true });
@@ -782,12 +801,23 @@ ul {
 			}
         });
 
+        $('.resource-create-form').each( function(){
+			var form = $(this);
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				}
+			});
+		});
+        
+
 		$('.resource-change-form').each( function(){
 			var form = $(this);
 			form.validate({
 				rules: {
 					name: {
-						required: true
+						required: true,
+					    unique: nameArray
 					},
 					url: {
 						url: true

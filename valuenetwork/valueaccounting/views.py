@@ -781,6 +781,8 @@ def edit_extended_bill(request, resource_type_id):
     source_form = AgentResourceTypeForm()
     feature_form = FeatureForm()
     facets = Facet.objects.all() 
+    names = EconomicResourceType.objects.values_list('name', flat=True)
+    resource_names = '~'.join(names)
     return render_to_response("valueaccounting/edit_xbill.html", {
         "resource_type": rt,
         "nodes": nodes,
@@ -792,6 +794,7 @@ def edit_extended_bill(request, resource_type_id):
         "source_form": source_form,
         "feature_form": feature_form,
         "facets": facets,
+        "resource_names": resource_names,
         "help": get_help("edit_recipes"),
     }, context_instance=RequestContext(request))
 

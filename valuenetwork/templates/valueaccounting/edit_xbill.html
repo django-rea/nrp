@@ -432,7 +432,7 @@ ul {
 					                            <p class="modal-line">{% trans "Resource Type" %} </p>
                                                 <p>{{ iform.resource_type }} 
 							                    <a href="#createResourceForm{{ ptype.xbill_input_prefix }}" role="button" class="add-another" data-toggle="modal">
-								                    <img src="/site_media/static/admin/img/icon_addlink.gif" title="add new"></img>
+								                    <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
 							                    </a> </p>                   
 					                            <p class="modal-line">{% trans "Quantity" %} </p>
                                                 <p>{{ iform.quantity }} </p>
@@ -502,7 +502,7 @@ ul {
 					                            <p class="modal-line">{% trans "Resource Type" %} </p>
                                                 <p>{{ cform.resource_type }} 
 							                    <a href="#createResourceForm{{ ptype.xbill_citable_prefix }}" role="button" class="add-another" data-toggle="modal">
-								                    <img src="/site_media/static/admin/img/icon_addlink.gif" title="add new"></img>
+								                    <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
 							                    </a> </p>                   
 					                            <p class="modal-line">{% trans "Quantity" %} </p>
                                                 <p>{{ cform.quantity }} </p>

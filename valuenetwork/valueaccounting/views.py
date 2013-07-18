@@ -1074,7 +1074,7 @@ def create_resource_type_ajax(request):
     else: 
         rt_prefix = process_type.xbill_input_rt_prefix()  
         rtf_prefix = process_type.xbill_input_rt_facet_prefix()
-    form = EconomicResourceTypeForm(data=request.POST, prefix=rt_prefix)
+    form = EconomicResourceTypeAjaxForm(request.POST, request.FILES, prefix=rt_prefix)
     if form.is_valid():
         data = form.cleaned_data
         rt = form.save(commit=False)                    

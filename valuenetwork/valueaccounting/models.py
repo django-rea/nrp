@@ -1327,13 +1327,13 @@ class ProcessType(models.Model):
         return ProcessTypeWorkForm(process_type=self, prefix=self.xbill_work_prefix())
 
     def xbill_input_rt_form(self):
-        from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
-        return EconomicResourceTypeForm(prefix=self.xbill_input_rt_prefix())
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
+        return EconomicResourceTypeAjaxForm(prefix=self.xbill_input_rt_prefix())
 
     def xbill_citable_rt_form(self):
         #print "xbill_citable_rt_form"
-        from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
-        return EconomicResourceTypeForm(prefix=self.xbill_citable_rt_prefix())
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
+        return EconomicResourceTypeAjaxForm(prefix=self.xbill_citable_rt_prefix())
 
     def xbill_input_rt_facet_formset(self):
         return self.create_facet_formset_filtered(slot="in", pre=self.xbill_input_rt_facet_prefix())

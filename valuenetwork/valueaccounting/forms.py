@@ -702,6 +702,15 @@ class EconomicResourceTypeForm(forms.ModelForm):
         exclude = ('parent', 'created_by', 'changed_by')
 
 
+class EconomicResourceTypeAjaxForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    
+    class Meta:
+        model = EconomicResourceType
+        exclude = ('parent', 'created_by', 'changed_by', 'photo')
+
+
 # used in EconomicResourceType.add_new_form(cls), which is used in popups
 # does not matter if we disable popups
 class EconomicResourceTypeWithPopupForm(forms.ModelForm):

@@ -305,9 +305,12 @@ def resource_types(request):
 
 def resource_type(request, resource_type_id):
     resource_type = get_object_or_404(EconomicResourceType, id=resource_type_id)
+    names = EconomicResourceType.objects.values_list('name', flat=True)
+    resource_names = '~'.join(names)
     return render_to_response("valueaccounting/resource_type.html", {
         "resource_type": resource_type,
         "photo_size": (128, 128),
+        "resource_names": resource_names,
     }, context_instance=RequestContext(request))
 
 def inventory(request):
@@ -1086,12 +1089,10 @@ def create_resource_type_ajax(request):
                     rtfv.resource_type = rt
                     rtfv.facet_value = fv
                     rtfv.save()
-            #else:
-            #    raise ValidationError(form_rtfv.errors)
         return_data = serializers.serialize("json", EconomicResourceType.objects.filter(id=rt.id), fields=('id','name',)) 
         return HttpResponse(return_data, mimetype="text/json-comment-filtered")
     else:
-        raise ValidationError(form.errors)
+        return HttpResponse(form.errors, mimetype="text/json-comment-filtered")
 
 @login_required
 def create_process_type_input(request, process_type_id):

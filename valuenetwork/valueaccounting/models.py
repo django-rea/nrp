@@ -1367,7 +1367,7 @@ class ProcessType(models.Model):
             else:
                 fvs = self.process_pattern.facet_values_for_facet(facet)
             fvs = list(set(fvs))
-            choices = [('', '----------')] + [(fv.id, fv.value) for fv in fvs]
+            choices = [(fv.id, fv.value) for fv in fvs]
             form.fields["value"].choices = choices
         return formset
 

@@ -473,7 +473,10 @@ ul {
 
 						                  <div class="modal-footer">
 							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+							                <input type="submit" name="submit" id="in~{{ xbill_input_prefix }}" value="{% trans 'Save changes' %}" class="btn btn-primary save-resource-type" /> 
+							                {% comment %}
 							                <button class="btn btn-primary save-resource-type" id="in~{{ xbill_input_prefix }}">{% trans "Save changes" %}</button>
+							                {% endcomment %}
                                             <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
                                             <input type="hidden" name="slot" value="in" />
 						                  </div>
@@ -543,7 +546,7 @@ ul {
 
 						                      <div class="modal-footer">
 							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							                    <button class="btn btn-primary save-resource-type" id="cite~{{ citable_prefix }}">{% trans "Save changes" %}</button>
+							                    <button type="submit" class="btn btn-primary save-resource-type" id="cite~{{ citable_prefix }}">{% trans "Save changes" %}</button>
                                                 <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
                                                 <input type="hidden" name="slot" value="cite" />
 						                      </div>
@@ -1032,29 +1035,40 @@ ul {
         $(".save-resource-type").click(function(event) {
             event.preventDefault();
             var btn = event.target;
+            var form = btn.form;
             var id = btn.id.split('~')
             var nodeId = id[1];
             var slot = id[0];
 		    var $form = $("#form" + slot + nodeId);
-		    var formData = $form.serialize();
-		    var selId = "#id_" + nodeId + "-resource_type";
-		    var modalId = "#createResourceForm" + nodeId;
-		    var modal = $(modalId);
-            var url = "{%url create_resource_type_ajax %}";
-		    var jqxhr = $.post( url, formData,
-			    function( data ) {
-                    for(var i=0 ; i<data.length ; i++) //will be only one
-                    {
-                        var id = data[i]['pk'];
-                        var name = data[i].fields['name']; 
-                        var selx = $(selId);
-                        selx.append('<option value="' + id + '" selected="selected">' + name + '</option>');
-                        selx.trigger("liszt:updated");
-                        selx.trigger("change");
-                    }
-                    $(modalId).modal('hide');
-                    $form.trigger( "reset" );
-			    })
+		    var nameField = $form.find( 'input[name*="name"]' );
+		    var nameValue = nameField.val()
+		    if (nameValue)
+		    {
+		        var formData = $form.serialize();
+		        var selId = "#id_" + nodeId + "-resource_type";
+		        var modalId = "#createResourceForm" + nodeId;
+		        var modal = $(modalId);
+                var url = "{%url create_resource_type_ajax %}";
+		        var jqxhr = $.post( url, formData,
+			        function( data ) {
+                        for(var i=0 ; i<data.length ; i++) //will be only one
+                        {
+                            var id = data[i]['pk'];
+                            var name = data[i].fields['name']; 
+                            var selx = $(selId);
+                            selx.append('<option value="' + id + '" selected="selected">' + name + '</option>');
+                            selx.trigger("liszt:updated");
+                            selx.trigger("change");
+                        }
+                        $(modalId).modal('hide');
+                        $form.trigger( "reset" );
+			        })
+			        .fail(function() 
+			        { 
+				        alert("Check your name field.");
+			        }
+		        );
+	        }
 		});
 
 	}); // end document.ready

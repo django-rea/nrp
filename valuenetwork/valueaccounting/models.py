@@ -604,8 +604,8 @@ class EconomicResourceType(models.Model):
     #    return self.category
 
     def change_form(self):
-        from valuenetwork.valueaccounting.forms import EconomicResourceTypeForm
-        return EconomicResourceTypeForm(instance=self)
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeChangeForm
+        return EconomicResourceTypeChangeForm(instance=self)
 
     def resource_create_form(self, prefix):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm

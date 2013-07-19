@@ -755,6 +755,20 @@ ul {
             $('#help-content').hide("slide", { direction: "right" }, "slow"); 
         })
 
+        $(".existing-name").change(setupUniqueTest);
+
+        function setupUniqueTest(event)
+        {
+            var field = event.target;
+            var oldValue = field.defaultValue;
+            var newValue = field.value;
+            if (newValue != oldValue)
+            {
+                var fieldId = "#" + field.id;
+                $(fieldId).addClass("unique-name");
+            }
+        }
+
         jQuery.validator.addMethod("unique", function(value, element, param) {
             return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
         }, "Name is not unique.");
@@ -815,6 +829,7 @@ ul {
 		$('.resource-change-form').each( function(){
 			var form = $(this);
 			form.validate({
+			/*
 				rules: {
 					name: {
 						required: true,
@@ -827,6 +842,7 @@ ul {
 						number: true
 					},
 				},
+			*/
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
 				}

@@ -701,6 +701,14 @@ class EconomicResourceTypeForm(forms.ModelForm):
         model = EconomicResourceType
         exclude = ('parent', 'created_by', 'changed_by')
 
+class EconomicResourceTypeChangeForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'existing-name input-xlarge',}))
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    
+    class Meta:
+        model = EconomicResourceType
+        exclude = ('parent', 'created_by', 'changed_by')
+
 
 class EconomicResourceTypeAjaxForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))

@@ -777,7 +777,7 @@ def edit_extended_bill(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     #import pdb; pdb.set_trace()
     nodes = generate_xbill(rt)
-    resource_type_form = EconomicResourceTypeForm(instance=rt)
+    resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
     feature_form = FeatureForm()
     names = EconomicResourceType.objects.values_list('name', flat=True)
     resource_names = '~'.join(names)
@@ -799,7 +799,7 @@ def change_resource_type(request, resource_type_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-        form = EconomicResourceTypeForm(request.POST, request.FILES, instance=rt)
+        form = EconomicResourceTypeChangeForm(request.POST, request.FILES, instance=rt)
         if form.is_valid():
             data = form.cleaned_data
             rt = form.save(commit=False)

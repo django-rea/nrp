@@ -4261,36 +4261,55 @@ def process_selections(request, rand=0):
             consumed_rts = []
             used_rts = []
             work_rts = []
-            #todo: several of these key values are user-defined in EventTypes.
-            #they should be replaced with something else that is not.
             for key, value in dict(rp).iteritems():
                 if "selected-project" in key:
                     project_id = key.split("~")[1]
                     selected_project = Project.objects.get(id=project_id)
+                    continue
                 if "selected-pattern" in key:
                     pattern_id = key.split("~")[1]
                     selected_pattern = ProcessPattern.objects.get(id=pattern_id)
-                if "consumes" in key:
+                    continue
+                et = None
+                action = ""
+                try:
+                    label = key.split("~")[0]
+                    et = EventType.objects.get(label=label)
+                except EventType.DoesNotExist:
+                    pass
+                if et:
+                    if et.relationship == "in":
+                        if et.resource_effect == "=":
+                            action = "uses"
+                        else:
+                            action = "consumes"
+                    else:
+                        action = et.relationship
+                if action == "consumes":
                     consumed_id = int(value[0])
                     consumed_rt = EconomicResourceType.objects.get(id=consumed_id)
                     consumed_rts.append(consumed_rt)
-                if "uses" in key:
+                    continue
+                if action == "uses":
                     used_id = int(value[0])
                     used_rt = EconomicResourceType.objects.get(id=used_id)
                     used_rts.append(used_rt)
-                if "cites" in key:
+                    continue
+                if action == "cite":
                     cited_id = int(value[0])
                     cited_rt = EconomicResourceType.objects.get(id=cited_id)
                     cited_rts.append(cited_rt)
-                #import pdb; pdb.set_trace()
-                if "produces" in key:
+                    continue
+                if action == "out":
                     produced_id = int(value[0])
                     produced_rt = EconomicResourceType.objects.get(id=produced_id)
                     produced_rts.append(produced_rt)
-                if "work" in key:
+                    continue
+                if action == "work":
                     work_id = int(value[0])
                     work_rt = EconomicResourceType.objects.get(id=work_id)
                     work_rts.append(work_rt)
+                    continue
 
             if rand: 
                 if not demand:
@@ -4408,6 +4427,7 @@ def process_selections(request, rand=0):
                             created_by=request.user,
                         )
                         commitment.save()
+                        #import pdb; pdb.set_trace()
                         if rand:
                             explode_dependent_demands(commitment, request.user)
             for rt in work_rts:

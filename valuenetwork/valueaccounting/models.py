@@ -464,7 +464,10 @@ class EconomicResourceType(models.Model):
             return Decimal("0")
 
     def scheduled_qty_for_commitment(self, commitment):
-        sked_qty = self.scheduled_qty()
+        #import pdb; pdb.set_trace()
+        due_date = commitment.due_date
+        sked_rcts = self.producing_commitments().filter(due_date__lte=due_date)
+        sked_qty = sum(pc.quantity for pc in sked_rcts)
         due_date = commitment.due_date
         priors = self.consuming_commitments().filter(due_date__lt=due_date)
         remainder = sked_qty - sum(p.quantity for p in priors)

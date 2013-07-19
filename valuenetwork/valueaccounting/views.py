@@ -772,28 +772,24 @@ def extended_bill(request, resource_type_id):
 
 @login_required
 def edit_extended_bill(request, resource_type_id):
+    #import time
+    #start_time = time.time()
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     #import pdb; pdb.set_trace()
     nodes = generate_xbill(rt)
     resource_type_form = EconomicResourceTypeForm(instance=rt)
-    process_form = XbillProcessTypeForm()
-    change_process_form = ChangeProcessTypeForm()
-    source_form = AgentResourceTypeForm()
     feature_form = FeatureForm()
-    facets = Facet.objects.all() 
     names = EconomicResourceType.objects.values_list('name', flat=True)
     resource_names = '~'.join(names)
+    #end_time = time.time()
+    #print("edit_extended_bill view elapsed time was %g seconds" % (end_time - start_time))
     return render_to_response("valueaccounting/edit_xbill.html", {
         "resource_type": rt,
         "nodes": nodes,
         "photo_size": (128, 128),
         "big_photo_size": (200, 200),
         "resource_type_form": resource_type_form,
-        "process_form": process_form,
-        "change_process_form": change_process_form,
-        "source_form": source_form,
         "feature_form": feature_form,
-        "facets": facets,
         "resource_names": resource_names,
         "help": get_help("edit_recipes"),
     }, context_instance=RequestContext(request))

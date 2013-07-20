@@ -747,6 +747,12 @@ class EconomicResourceTypeFacetForm(forms.Form):
 
 
 class AgentResourceTypeForm(forms.ModelForm):
+    lead_time = forms.IntegerField(
+        required=False,
+        widget=forms.TextInput(attrs={'value': '0', 'class': 'numeric'}))
+    value = forms.DecimalField(
+        required=False,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'numeric'}))
 
     def __init__(self, *args, **kwargs):
         super(AgentResourceTypeForm, self).__init__(*args, **kwargs)
@@ -757,7 +763,7 @@ class AgentResourceTypeForm(forms.ModelForm):
 
     class Meta:
         model = AgentResourceType
-        exclude = ('resource_type', 'relationship', 'event_type')
+        exclude = ('resource_type', 'relationship', 'event_type', 'score')
 
 
 class XbillProcessTypeForm(forms.ModelForm):

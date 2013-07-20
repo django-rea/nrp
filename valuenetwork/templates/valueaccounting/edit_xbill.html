@@ -210,7 +210,7 @@ ul {
 				<li  class="xb  {{ xb_type }}" >
 
 {% comment %}
-					<p>xbill node: {{ xbill_node }} Id: {{ node_id }} xb_type: {{ xb_type }}</p>
+					<p>xbill_node: {{ xbill_node }} Id: {{ node_id }} xb_type: {{ xb_type }}</p>
 					<p>xbill_object: {{ xbill_object }} Id: {{ object_node_id }}</p>
 {% endcomment %}
 
@@ -383,30 +383,34 @@ ul {
 							        </div>
 						        {% endif %}
 
-                                {% if not rtype.producing_process_type_relationships %}
-						            <div style="display: inline;" >
-							            <a href="#sourceForm{{ rtype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">Add a source for {{ rtype }}</a>							
-						            </div>
+                                {% if not xbill_node.event_type.relationship == "work" %}
+                                    {% if not rtype.producing_process_type_relationships %}
+						                <div style="display: inline;" >
+							                <a href="#sourceForm{{ rtype.node_id }}" role="button" class="btn btn-info" data-toggle="modal">
+							                    Add a source for {{ rtype }}
+					                        </a>							
+						                </div>
 
-						            <div class="modal hide fade sourceForm" id="sourceForm{{ rtype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="source-label" aria-hidden="true">
-						              <div class="modal-header">
-							            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							            <h3 id="source-label">{% blocktrans %}Add a source for {{ rtype }}{% endblocktrans %}</h3>
-						              </div>
-						              <div class="modal-body">
-								            <form class="source-form form-horizontal" action="{% url create_agent_resource_type resource_type_id=rtype.id %}" method="POST" >
-									            {% csrf_token %}
-									            {{ rtype.source_create_form }}
-									            <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
-								              <div class="modal-footer">
-									            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-									            <button class="btn btn-primary">{% trans "Save changes" %}</button>
-								              </div>
+						                <div class="modal hide fade sourceForm" id="sourceForm{{ rtype.node_id }}" tabindex="-1" role="dialog" aria-labelledby="source-label" aria-hidden="true">
+						                  <div class="modal-header">
+							                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							                <h3 id="source-label">{% blocktrans %}Add a source for {{ rtype }}{% endblocktrans %}</h3>
+						                  </div>
+						                  <div class="modal-body">
+								                <form class="source-form form-horizontal" action="{% url create_agent_resource_type resource_type_id=rtype.id %}" method="POST" >
+									                {% csrf_token %}
+									                {{ rtype.source_create_form }}
+									                <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+								                  <div class="modal-footer">
+									                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									                <button class="btn btn-primary">{% trans "Save changes" %}</button>
+								                  </div>
 
-								            </form>
-						              </div>
+								                </form>
+						                  </div>
 
-						            </div>
+						                </div>
+					                {% endif %}
 						        {% endif %}
 						        
 						    {% endwith %}
@@ -778,6 +782,7 @@ ul {
 
         $.validator.addClassRules("resource-type-selector", { required: true });
 
+        $.validator.addClassRules("numeric", { number: true });
 		$.validator.addClassRules("quantity", { required: true, number: true });
 		$.validator.addClassRules("days", { required: true, number: true });
 		$.validator.addClassRules("hours", { 
@@ -883,17 +888,6 @@ ul {
 		$('.source-form').each( function(){
 			var form = $(this);
 			form.validate({
-				rules: {
-					lead_time: {
-						number: true
-					},
-					value: {
-						number: true
-					},
-					score: {
-						number: true
-					},
-				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
 				}
@@ -903,17 +897,6 @@ ul {
 		$('.change-source-form').each( function(){
 			var form = $(this);
 			form.validate({
-				rules: {
-					lead_time: {
-						number: true
-					},
-					value: {
-						number: true
-					},
-					score: {
-						number: true
-					},
-				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
 				}

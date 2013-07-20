@@ -147,19 +147,17 @@ class NamelessProcessForm(forms.ModelForm):
         fields = ('project', 'start_date', 'end_date', 'notes' )
 
 
-#used in labnotes, create, copy and change_process, and create and change_rand
+
 class ProcessInputForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
             attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
-        #widget=SelectWithPopUp(
-        #    model=EconomicResourceType,
-        #    attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
         queryset=Unit.objects.exclude(unit_type='value'), 
+        label=_("Unit"),
         empty_label=None,
         widget=forms.Select(attrs={'class': 'input-medium',}))
     description = forms.CharField(
@@ -196,6 +194,7 @@ class ProcessOutputForm(forms.ModelForm):
     unit_of_quantity = forms.ModelChoiceField(
         queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'), 
         empty_label=None,
+        label=_("Unit"),
         widget=forms.Select(attrs={'class': 'input-medium',}))
     description = forms.CharField(
         required=False, 
@@ -762,10 +761,18 @@ class AgentResourceTypeForm(forms.ModelForm):
 
 
 class XbillProcessTypeForm(forms.ModelForm):
-    quantity = forms.DecimalField(max_digits=8, decimal_places=2)
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.production_patterns(), 
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 'pattern-selector'}))
+    quantity = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     estimated_duration = forms.IntegerField(required=False,
         widget=DurationWidget,
         help_text="days, hours, minutes")
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
 
     class Meta:
         model = ProcessType
@@ -788,22 +795,19 @@ class FeatureForm(forms.ModelForm):
         exclude = ('product', 'relationship', 'process_type')
 
 
-# used in create_process_type_input(), change_process_type_input(),
-# ProcessType.xbill_input_form() and ProcessTypeResourceType.xbill_input_form()
-# all of those are used in recipes
 class ProcessTypeResourceTypeForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         empty_label=None, 
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
+        widget=forms.Select(
             attrs={'class': 'resource-type-selector'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     unit_of_quantity = forms.ModelChoiceField(
         required = False,
+        label=_("Unit"),
         queryset=Unit.objects.all(),  
-        widget=SelectWithPopUp(model=Unit))
+        widget=forms.Select())
 
     class Meta:
         model = ProcessTypeResourceType
@@ -813,17 +817,15 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
 class ProcessTypeInputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),  
-        #widget=SelectWithPopUp(
-        #    model=EconomicResourceType,
-        #    attrs={'class': 'resource-type-selector input-xlarge' }))
         widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     unit_of_quantity = forms.ModelChoiceField(
         required = False,
-        queryset=Unit.objects.all(),  
-        widget=SelectWithPopUp(model=Unit))
+        label = _("Unit"),
+        queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'),  
+        widget=forms.Select())
 
     class Meta:
         model = ProcessTypeResourceType
@@ -858,8 +860,9 @@ class ProcessTypeCitableForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     unit_of_quantity = forms.ModelChoiceField(
         required = False,
-        queryset=Unit.objects.all(),  
-        widget=SelectWithPopUp(model=Unit))
+        label=_("Unit"),
+        queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'),  
+        widget=forms.Select())
 
     class Meta:
         model = ProcessTypeResourceType
@@ -894,8 +897,9 @@ class ProcessTypeWorkForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     unit_of_quantity = forms.ModelChoiceField(
         required = False,
-        queryset=Unit.objects.all(),  
-        widget=SelectWithPopUp(model=Unit))
+        label=_("Unit"),
+        queryset=Unit.objects.filter(unit_type='time'),  
+        widget=forms.Select())
 
     class Meta:
         model = ProcessTypeResourceType
@@ -931,8 +935,9 @@ class LaborInputForm(forms.ModelForm):
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     unit_of_quantity = forms.ModelChoiceField(
-        queryset=Unit.objects.filter(unit_type='time'),  
-        widget=SelectWithPopUp(model=Unit))
+        queryset=Unit.objects.filter(unit_type='time'), 
+        label=_("Unit"), 
+        widget=forms.Select())
 
     class Meta:
         model = ProcessTypeResourceType

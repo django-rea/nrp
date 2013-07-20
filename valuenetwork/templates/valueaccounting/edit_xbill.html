@@ -107,6 +107,7 @@ ul {
     font-weight: bold;
 }
 
+
 </style>
 {% endblock %}
 
@@ -779,6 +780,8 @@ ul {
         $.validator.addClassRules("url", { url: true });
         $.validator.addClassRules("unique-name", { required: true, unique: nameArray });
 
+        $.validator.addClassRules("resource-type-selector", { required: true });
+
 		$.validator.addClassRules("quantity", { required: true, number: true });
 		$.validator.addClassRules("days", { required: true, number: true });
 		$.validator.addClassRules("hours", { 
@@ -827,25 +830,20 @@ ul {
 				}
 			});
 		});
+
+		$('.work-form').each( function(){
+			var form = $(this);
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				}
+			});
+		});
         
 
 		$('.resource-change-form').each( function(){
 			var form = $(this);
 			form.validate({
-			/*
-				rules: {
-					name: {
-						required: true,
-					    unique: nameArray
-					},
-					url: {
-						url: true
-					},
-					rate: {
-						number: true
-					},
-				},
-			*/
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
 				}
@@ -929,21 +927,6 @@ ul {
 		$('.process-form').each( function(){
 			var form = $(this);
 			form.validate({
-				rules: {
-					name: {
-						required: true
-					},
-					url: {
-						url: true
-					},
-					estimated_duration: {
-						number: true
-					},
-					quantity: {
-						required: true,
-						number: true
-					},
-				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
 				}
@@ -953,17 +936,6 @@ ul {
 		$('.process-change-form').each( function(){
 			var form = $(this);
 			form.validate({
-				rules: {
-					name: {
-						required: true
-					},
-					url: {
-						url: true
-					},
-					estimated_duration: {
-						number: true
-					}
-				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
 				}
@@ -1035,14 +1007,11 @@ ul {
         $(".save-resource-type").click(function(event) {
             event.preventDefault();
             var btn = event.target;
-            var form = btn.form;
             var id = btn.id.split('~')
             var nodeId = id[1];
             var slot = id[0];
 		    var $form = $("#form" + slot + nodeId);
-		    var nameField = $form.find( 'input[name*="name"]' );
-		    var nameValue = nameField.val()
-		    if (nameValue)
+		    if ($form.valid())
 		    {
 		        var formData = $form.serialize();
 		        var selId = "#id_" + nodeId + "-resource_type";

@@ -1293,8 +1293,8 @@ class ProcessType(models.Model):
         return "".join(["PT", str(self.id)])
 
     def xbill_change_form(self):
-        from valuenetwork.valueaccounting.forms import ChangeProcessTypeForm
-        return ChangeProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
+        from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
+        return XbillProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
 
     def xbill_input_prefix(self):
         return "".join(["PTINPUT", str(self.id)])

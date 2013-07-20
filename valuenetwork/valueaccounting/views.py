@@ -1124,7 +1124,9 @@ def create_process_type_citable(request, process_type_id):
         form = ProcessTypeCitableForm(data=request.POST, process_type=pt, prefix=prefix)
         if form.is_valid():
             ptrt = form.save(commit=False)
+            ptrt.quantity = Decimal("1.0")
             rt = form.cleaned_data["resource_type"]
+            ptrt.unit_of_quantity = rt.unit
             ptrt.process_type=pt
             pattern = pt.process_pattern
             event_type = pattern.event_type_for_resource_type("cite", rt)
@@ -1247,10 +1249,24 @@ def change_process_type_input(request, input_id):
     if request.method == "POST":
         ptrt = get_object_or_404(ProcessTypeResourceType, pk=input_id)
         prefix = ptrt.xbill_change_prefix()
-        form = ProcessTypeResourceTypeForm(
-            data=request.POST, 
-            instance=ptrt,
-            prefix=prefix)
+        if ptrt.event_type.relationship == "work":
+            form = ProcessTypeWorkForm(
+                data=request.POST,
+                instance=ptrt, 
+                process_type=ptrt.process_type, 
+                prefix=prefix)
+        elif ptrt.event_type.relationship == "cite":
+            form = ProcessTypeCitableForm(
+                data=request.POST,
+                instance=ptrt, 
+                process_type=ptrt.process_type, 
+                prefix=prefix)
+        else:
+            form = ProcessTypeInputForm(
+                data=request.POST,
+                instance=ptrt, 
+                process_type=ptrt.process_type, 
+                prefix=prefix)
         if form.is_valid():
             inp = form.save(commit=False)
             inp.changed_by=request.user

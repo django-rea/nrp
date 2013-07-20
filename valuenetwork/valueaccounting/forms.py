@@ -856,17 +856,13 @@ class ProcessTypeCitableForm(forms.ModelForm):
         queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
-    quantity = forms.DecimalField(required=False,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
-    unit_of_quantity = forms.ModelChoiceField(
-        required = False,
-        label=_("Unit"),
-        queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'),  
-        widget=forms.Select())
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
 
     class Meta:
         model = ProcessTypeResourceType
-        exclude = ('process_type', 'relationship', 'event_type')
+        fields = ('resource_type', 'description')
 
     def __init__(self, process_type=None, *args, **kwargs):
         super(ProcessTypeCitableForm, self).__init__(*args, **kwargs)

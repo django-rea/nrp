@@ -1460,11 +1460,13 @@ class ProcessTypeResourceType(models.Model):
         return "".join(["PTRT", str(self.id)])
 
     def xbill_change_form(self):
-        from valuenetwork.valueaccounting.forms import ProcessTypeResourceTypeForm, LaborInputForm
+        from valuenetwork.valueaccounting.forms import ProcessTypeInputForm, ProcessTypeCitableForm, ProcessTypeWorkForm
         if self.event_type.relationship == "work":
-            return LaborInputForm(instance=self, prefix=self.xbill_change_prefix())
+            return ProcessTypeWorkForm(instance=self, process_type=self.process_type, prefix=self.xbill_change_prefix())
+        elif self.event_type.relationship == "cite":
+            return ProcessTypeCitableForm(instance=self, process_type=self.process_type, prefix=self.xbill_change_prefix())
         else:
-            return ProcessTypeResourceTypeForm(instance=self, prefix=self.xbill_change_prefix())
+            return ProcessTypeInputForm(instance=self, process_type=self.process_type, prefix=self.xbill_change_prefix())
 
 class ProcessManager(models.Manager):
 

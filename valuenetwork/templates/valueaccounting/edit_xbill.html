@@ -508,10 +508,6 @@ ul {
 							                        <a href="#createResourceForm{{ citable_prefix }}" role="button" class="add-another" data-toggle="modal">
 								                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
 							                        </a> </p>                   
-					                                <p class="modal-line">{% trans "Quantity" %} </p>
-                                                    <p>{{ cform.quantity }} </p>
-                                                    <p class="modal-line">{% trans "Unit of Quantity" %} </p>
-                                                    <p>{{ cform.unit_of_quantity }}</p>
                                                     <p class="modal-line">{% trans "Description" %} </p>
                                                     <p class="desc">{{ cform.description }} </p>
                                                 {% endwith %}

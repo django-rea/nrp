@@ -735,12 +735,12 @@ def extended_bill(request, resource_type_id):
                 select_all = True
             else:
                 select_all = False
-        fvs = []
-        for val in vals:
-            val_split = val.split(":")
-            fname = val_split[0]
-            fvalue = val_split[1].strip()
-            fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+                fvs = []
+                for val in vals:
+                    val_split = val.split(":")
+                    fname = val_split[0]
+                    fvalue = val_split[1].strip()
+                    fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
         for node in nodes:
             node.show = False
             if node.depth <= selected_depth:
@@ -748,8 +748,10 @@ def extended_bill(request, resource_type_id):
                     node.show = True
                 else:
                     #import pdb; pdb.set_trace()
-                    rt_fvs = node.facets.all()
-                    if node.matches_filter(rt_fvs):
+                    if node.xbill_class == "economic-resource-type":
+                        if node.xbill_object().matches_filter(fvs):
+                            node.show = True
+                    else:
                         node.show = True
     else:
         nodes = generate_xbill(rt)

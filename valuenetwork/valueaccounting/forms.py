@@ -856,6 +856,80 @@ class ProcessTypeInputForm(forms.ModelForm):
                 output_ids = [pt.id for pt in process_type.produced_resource_types()]
                 self.fields["resource_type"].queryset = pattern.input_resource_types().exclude(id__in=output_ids)
 
+
+class ProcessTypeConsumableForm(forms.ModelForm):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),  
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector input-xlarge' }))
+    quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        required = False,
+        label = _("Unit"),
+        queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'),  
+        widget=forms.Select())
+
+    class Meta:
+        model = ProcessTypeResourceType
+        exclude = ('process_type', 'relationship', 'event_type')
+
+    def __init__(self, process_type=None, *args, **kwargs):
+        super(ProcessTypeConsumableForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        use_pattern = True
+        pattern = None
+        if process_type:
+            pattern = process_type.process_pattern
+        if self.instance:
+            if self.instance.id:
+                use_pattern = False
+                inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
+                rt = inst.resource_type
+                self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
+        if pattern:
+            if use_pattern:
+                self.pattern = pattern
+                output_ids = [pt.id for pt in process_type.produced_resource_types()]
+                self.fields["resource_type"].queryset = pattern.consumable_resource_types().exclude(id__in=output_ids)
+
+
+class ProcessTypeUsableForm(forms.ModelForm):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),  
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector input-xlarge' }))
+    quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        required = False,
+        label = _("Unit"),
+        queryset=Unit.objects.exclude(unit_type='value'),  
+        widget=forms.Select())
+
+    class Meta:
+        model = ProcessTypeResourceType
+        exclude = ('process_type', 'relationship', 'event_type')
+
+    def __init__(self, process_type=None, *args, **kwargs):
+        super(ProcessTypeUsableForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        use_pattern = True
+        pattern = None
+        if process_type:
+            pattern = process_type.process_pattern
+        if self.instance:
+            if self.instance.id:
+                use_pattern = False
+                inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
+                rt = inst.resource_type
+                self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
+        if pattern:
+            if use_pattern:
+                self.pattern = pattern
+                output_ids = [pt.id for pt in process_type.produced_resource_types()]
+                self.fields["resource_type"].queryset = pattern.usable_resource_types().exclude(id__in=output_ids)
+
         
 class ProcessTypeCitableForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(

@@ -418,78 +418,154 @@ ul {
 						{% endif %}
 
 						{% if xb_type == "process-type" %}
-						    {% with ptype=xbill_object xbill_input_prefix=xbill_object.xbill_input_prefix %}
-						        <div style="display: inline;" >
-							        <a href="#inputForm{{ xbill_input_prefix }}" role="button" class="btn btn-info" data-toggle="modal">
-								        {% trans "Add input" %}
-							        </a>
-						        </div>
+						    {% with ptype=xbill_object %}
+						        {% with xbill_consumable_prefix=ptype.xbill_consumable_prefix %}
+						            <div style="display: inline;" >
+							            <a href="#consumableForm{{ xbill_consumable_prefix }}" role="button" class="btn btn-info" data-toggle="modal">
+								            {% trans "Add consumable" %}
+							            </a>
+						            </div>
 
-						        <div class="modal hide fade" id="inputForm{{ xbill_input_prefix }}" tabindex="-1" role="dialog" aria-labelledby="input-label" aria-hidden="true">
-						          <div class="modal-header">
-							        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							        <h3 id="input-label">{% blocktrans %}Add an input to {{ ptype }}{% endblocktrans %}</h3>
-						          </div>
-						          <div class="modal-body">
-								        <form class="input-form" action="{% url create_process_type_input process_type_id=ptype.id %}" method="POST" >
-									        {% csrf_token %}
-                                            {% with iform=ptype.xbill_input_form %}
-					                            <p class="modal-line">{% trans "Resource Type" %} </p>
-                                                <p>{{ iform.resource_type }} 
-							                    <a href="#createResourceForm{{ xbill_input_prefix }}" role="button" class="add-another" data-toggle="modal">
-								                    <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
-							                    </a> </p>                   
-					                            <p class="modal-line">{% trans "Quantity" %} </p>
-                                                <p>{{ iform.quantity }} </p>
-                                                <p class="modal-line">{% trans "Unit of Quantity" %} </p>
-                                                <p>{{ iform.unit_of_quantity }}</p>
-                                                <p class="modal-line">{% trans "Description" %} </p>
-                                                <p class="desc">{{ iform.description }} </p>
-                                            {% endwith %}
-									        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
-								          <div class="modal-footer">
-									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-									        <button class="btn btn-primary">{% trans "Save changes" %}</button>
-								          </div>
+						            <div class="modal hide fade" id="consumableForm{{ xbill_consumable_prefix }}" tabindex="-1" role="dialog" aria-labelledby="consumable-label" aria-hidden="true">
+						              <div class="modal-header">
+							            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							            <h3 id="consumable-label">{% blocktrans %}Add a consumable input to {{ ptype }}{% endblocktrans %}</h3>
+						              </div>
+						              <div class="modal-body">
+								            <form class="consumable-form" action="{% url create_process_type_input process_type_id=ptype.id slot='c' %}" method="POST" >
+									            {% csrf_token %}
+                                                {% with iform=ptype.xbill_consumable_form %}
+					                                <p class="modal-line">{% trans "Resource Type" %} </p>
+                                                    <p>{{ iform.resource_type }} 
+							                        <a href="#createResourceForm{{ xbill_consumable_prefix }}" role="button" class="add-another" data-toggle="modal">
+								                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
+							                        </a> </p>                   
+					                                <p class="modal-line">{% trans "Quantity" %} </p>
+                                                    <p>{{ iform.quantity }} </p>
+                                                    <p class="modal-line">{% trans "Unit of Quantity" %} </p>
+                                                    <p>{{ iform.unit_of_quantity }}</p>
+                                                    <p class="modal-line">{% trans "Description" %} </p>
+                                                    <p class="desc">{{ iform.description }} </p>
+                                                {% endwith %}
+									            <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+								              <div class="modal-footer">
+									            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									            <button class="btn btn-primary">{% trans "Save changes" %}</button>
+								              </div>
 
-								        </form>
-						          </div>
+								            </form>
+						              </div>
 
-						        </div>
+						            </div>
 
-				                <div class="modal hide fade rtmodal" id="createResourceForm{{ xbill_input_prefix }}" tabindex="-1" role="dialog" aria-labelledby="resource-input-create-label{{ xbill_input_prefix }}" aria-hidden="true">
-					                <div class="modal-header">
-						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-						                <h3 id="resource-input-create-label{{ xbill_input_prefix }}">{% trans "Create a new Resource Type" %}</h3>
-					                </div>
-					                <div class="modal-body">
-						                <form class="resource-create-form" id="formin{{ xbill_input_prefix }}" enctype="multipart/form-data" action="." method="POST" >
-							                {% csrf_token %}
-							                {{ ptype.xbill_input_rt_form }}
-                                            {% with facet_formset=ptype.xbill_input_rt_facet_formset %}
-                                                {{ facet_formset.management_form }}
-                                                <table>
-                                                    {% for form in facet_formset %}
-                                                        <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
-                                                    {% endfor %}
-                                                </table>
-                                            {% endwith %}
-{% comment %}							                <input type="hidden" name="next" value="{% url edit_extended_bill %}" /> {% endcomment %}
+				                    <div class="modal hide fade rtmodal" id="createResourceForm{{ xbill_consumable_prefix }}" tabindex="-1" role="dialog" aria-labelledby="resource-consumable-create-label{{ xbill_consumable_prefix }}" aria-hidden="true">
+					                    <div class="modal-header">
+						                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						                    <h3 id="resource-consumable-create-label{{ xbill_consumable_prefix }}">{% trans "Create a new Resource Type" %}</h3>
+					                    </div>
+					                    <div class="modal-body">
+						                    <form class="resource-create-form" id="formin{{ xbill_consumable_prefix }}" enctype="multipart/form-data" action="." method="POST" >
+							                    {% csrf_token %}
+							                    {{ ptype.xbill_consumable_rt_form }}
+                                                {% with facet_formset=ptype.xbill_consumable_rt_facet_formset %}
+                                                    {{ facet_formset.management_form }}
+                                                    <table>
+                                                        {% for form in facet_formset %}
+                                                            <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                                                        {% endfor %}
+                                                    </table>
+                                                {% endwith %}
+    {% comment %}							                <input type="hidden" name="next" value="{% url edit_extended_bill %}" /> {% endcomment %}
 
-						                  <div class="modal-footer">
-							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							                <input type="submit" name="submit" id="in~{{ xbill_input_prefix }}" value="{% trans 'Save changes' %}" class="btn btn-primary save-resource-type" /> 
-							                {% comment %}
-							                <button class="btn btn-primary save-resource-type" id="in~{{ xbill_input_prefix }}">{% trans "Save changes" %}</button>
-							                {% endcomment %}
-                                            <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
-                                            <input type="hidden" name="slot" value="in" />
-						                  </div>
+						                      <div class="modal-footer">
+							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+							                    <input type="submit" name="submit" id="in~{{ xbill_consumable_prefix }}" value="{% trans 'Save changes' %}" class="btn btn-primary save-resource-type" /> 
+							                    {% comment %}
+							                    <button class="btn btn-primary save-resource-type" id="in~{{ xbill_consumable_prefix }}">{% trans "Save changes" %}</button>
+							                    {% endcomment %}
+                                                <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
+                                                <input type="hidden" name="slot" value="in" />
+						                      </div>
 
-						                </form>
+						                    </form>
 
-				                    </div>
-                                </div>
+				                        </div>
+                                    </div>
+                                {% endwith %}
+
+                                						        {% with xbill_usable_prefix=ptype.xbill_usable_prefix %}
+						            <div style="display: inline;" >
+							            <a href="#usableForm{{ xbill_usable_prefix }}" role="button" class="btn btn-info" data-toggle="modal">
+								            {% trans "Add usable" %}
+							            </a>
+						            </div>
+
+						            <div class="modal hide fade" id="usableForm{{ xbill_usable_prefix }}" tabindex="-1" role="dialog" aria-labelledby="usable-label" aria-hidden="true">
+						              <div class="modal-header">
+							            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							            <h3 id="usable-label">{% blocktrans %}Add a usable input to {{ ptype }}{% endblocktrans %}</h3>
+						              </div>
+						              <div class="modal-body">
+								            <form class="usable-form" action="{% url create_process_type_input process_type_id=ptype.id slot='u' %}" method="POST" >
+									            {% csrf_token %}
+                                                {% with iform=ptype.xbill_usable_form %}
+					                                <p class="modal-line">{% trans "Resource Type" %} </p>
+                                                    <p>{{ iform.resource_type }} 
+							                        <a href="#createResourceForm{{ xbill_usable_prefix }}" role="button" class="add-another" data-toggle="modal">
+								                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
+							                        </a> </p>                   
+					                                <p class="modal-line">{% trans "Quantity" %} </p>
+                                                    <p>{{ iform.quantity }} </p>
+                                                    <p class="modal-line">{% trans "Unit of Quantity" %} </p>
+                                                    <p>{{ iform.unit_of_quantity }}</p>
+                                                    <p class="modal-line">{% trans "Description" %} </p>
+                                                    <p class="desc">{{ iform.description }} </p>
+                                                {% endwith %}
+									            <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+								              <div class="modal-footer">
+									            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+									            <button class="btn btn-primary">{% trans "Save changes" %}</button>
+								              </div>
+
+								            </form>
+						              </div>
+
+						            </div>
+
+				                    <div class="modal hide fade rtmodal" id="createResourceForm{{ xbill_usable_prefix }}" tabindex="-1" role="dialog" aria-labelledby="resource-usable-create-label{{ xbill_usable_prefix }}" aria-hidden="true">
+					                    <div class="modal-header">
+						                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						                    <h3 id="resource-usable-create-label{{ xbill_usable_prefix }}">{% trans "Create a new Resource Type" %}</h3>
+					                    </div>
+					                    <div class="modal-body">
+						                    <form class="resource-create-form" id="formin{{ xbill_usable_prefix }}" enctype="multipart/form-data" action="." method="POST" >
+							                    {% csrf_token %}
+							                    {{ ptype.xbill_usable_rt_form }}
+                                                {% with facet_formset=ptype.xbill_usable_rt_facet_formset %}
+                                                    {{ facet_formset.management_form }}
+                                                    <table>
+                                                        {% for form in facet_formset %}
+                                                            <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                                                        {% endfor %}
+                                                    </table>
+                                                {% endwith %}
+    {% comment %}							                <input type="hidden" name="next" value="{% url edit_extended_bill %}" /> {% endcomment %}
+
+						                      <div class="modal-footer">
+							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+							                    <input type="submit" name="submit" id="in~{{ xbill_usable_prefix }}" value="{% trans 'Save changes' %}" class="btn btn-primary save-resource-type" /> 
+							                    {% comment %}
+							                    <button class="btn btn-primary save-resource-type" id="in~{{ xbill_usable_prefix }}">{% trans "Save changes" %}</button>
+							                    {% endcomment %}
+                                                <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
+                                                <input type="hidden" name="slot" value="in" />
+						                      </div>
+
+						                    </form>
+
+				                        </div>
+                                    </div>
+                                {% endwith %}
 
                                 {% with citable_prefix=ptype.xbill_citable_prefix %}
 						            <div style="display: inline;" >
@@ -922,7 +998,17 @@ ul {
 		});
 
 
-		$('.input-form').each( function(){
+		$('.consumable-form').each( function(){
+			var form = $(this);
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				}
+			});
+
+		});
+
+		$('.usable-form').each( function(){
 			var form = $(this);
 			form.validate({
 				highlight: function(label) {

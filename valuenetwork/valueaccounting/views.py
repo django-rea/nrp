@@ -1095,12 +1095,16 @@ def create_resource_type_ajax(request):
         return HttpResponse(form.errors, mimetype="text/json-comment-filtered")
 
 @login_required
-def create_process_type_input(request, process_type_id):
+def create_process_type_input(request, process_type_id, slot):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
-        prefix = pt.xbill_input_prefix()
-        form = ProcessTypeInputForm(data=request.POST, process_type=pt, prefix=prefix)
+        if slot == "c":
+            prefix = pt.xbill_consumable_prefix()
+            form = ProcessTypeConsumableForm(data=request.POST, process_type=pt, prefix=prefix)
+        elif slot == "u":
+            prefix = pt.xbill_usable_prefix()
+            form = ProcessTypeUsableForm(data=request.POST, process_type=pt, prefix=prefix)
         if form.is_valid():
             ptrt = form.save(commit=False)
             rt = form.cleaned_data["resource_type"]

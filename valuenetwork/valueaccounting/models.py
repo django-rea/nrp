@@ -661,13 +661,14 @@ class EconomicResourceType(models.Model):
 
     def has_facet_value(self, facet_value):
         answer = False
-        for rt_facet in self.facets.all():
-            if rt_facet.facet_value == facet_value:
+        for rt_fv in self.facets.all():
+            if rt_fv.facet_value == facet_value:
                 answer = True
                 break
         return answer
 
     def matches_filter(self, facet_values):
+        #import pdb; pdb.set_trace()
         answer = True
         incoming_facets = []
         for fv in facet_values:
@@ -683,7 +684,7 @@ class EconomicResourceType(models.Model):
         filter_matches = []
         for (i, fac) in enumerate(filter_facets):
             fm = False
-            for fv in filter_facet_value_collections(i):
+            for fv in filter_facet_value_collections[i]:
                 if self.has_facet_value(fv):
                     fm = True
                     break

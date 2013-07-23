@@ -189,13 +189,13 @@
 		{
             var targetId = event.target.id;
             // todo: must change to "use" or "other"
-			if (targetId.search("output") >= 0)
+			if (targetId.search("usable") >= 0)
 			{
-				direction = "out";
+				direction = "use";
 			}
 			else
 			{
-				direction = "in";
+				direction = "other";
 			}
 			var prefix = targetId.split('-')[0] + '-' + targetId.split('-')[1];
 			var resourceId = event.target.value;
@@ -207,6 +207,7 @@
 				    function(data){
 					    var unit = data["unit"];
                         $(unitName).val(unit);
+                        $(unitName).trigger("liszt:updated");
 				    });
 		    }
 		}

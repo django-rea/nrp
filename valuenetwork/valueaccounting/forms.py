@@ -147,6 +147,23 @@ class NamelessProcessForm(forms.ModelForm):
         fields = ('project', 'start_date', 'end_date', 'notes' )
 
 
+class AddProcessFromResourceForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(),
+        required=False,
+        empty_label=None)
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.production_patterns(),
+        required=False,
+        empty_label=None)
+    start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+
+    class Meta:
+        model = Process
+        fields = ('name', 'project', 'process_pattern', 'start_date', 'end_date')
+
 
 class ProcessInputForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(

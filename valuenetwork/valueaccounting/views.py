@@ -565,7 +565,7 @@ def log_simple(request):
                     work_event.process = process
                     work_event.project = output_event.project
                     work_event.is_contribution = True
-                    work_event.unit_of_quantity = work_event.resource_type.directional_unit("in")  
+                    work_event.unit_of_quantity = work_event.resource_type.directional_unit("use")  
                     work_event.from_agent = member
                     work_event.created_by = request.user
                     work_event.save()
@@ -583,7 +583,7 @@ def log_simple(request):
                             citation_event.resource = cr
                             citation_event.resource_type = cr.resource_type
                             citation_event.quantity = 1
-                            citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("in")  
+                            citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
                             citation_event.from_agent = member
                             citation_event.created_by = request.user
                             citation_event.save()
@@ -2086,12 +2086,14 @@ def create_labnotes_context(
         pattern = process.process_pattern
         add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
         add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
-        add_input_form = ProcessInputForm(prefix='input', pattern=pattern)
+        add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
+        add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
         add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
     else:
         add_output_form = ProcessOutputForm(prefix='output')
         add_citation_form = ProcessCitationForm(prefix='citation')
-        add_input_form = ProcessInputForm(prefix='input')
+        add_consumable_form = ProcessConsumableForm(prefix='consumable')
+        add_usable_form = ProcessUsableForm(prefix='usable')
         add_work_form = WorkCommitmentForm(prefix='work')
     cited_ids = [c.resource.id for c in process.citations()]
     return {
@@ -2104,7 +2106,8 @@ def create_labnotes_context(
         "failure_form": failure_form,
         "add_output_form": add_output_form,
         "add_citation_form": add_citation_form,
-        "add_input_form": add_input_form,
+        "add_consumable_form": add_consumable_form,
+        "add_usable_form": add_usable_form,
         "add_work_form": add_work_form,
         "duration": duration,
         "prev": prev,
@@ -2162,7 +2165,7 @@ def new_process_output(request, commitment_id):
         return HttpResponseRedirect('/%s/%s/%s/%s/'
             % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
-def new_process_input(request, commitment_id):
+def new_process_input(request, commitment_id, slot):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     was_running = request.POST["wasRunning"] or 0
     was_retrying = request.POST["wasRetrying"] or 0
@@ -2179,7 +2182,13 @@ def new_process_input(request, commitment_id):
         event_id = event.id
     reload = request.POST["reload"]
     if request.method == "POST":
-        form = ProcessInputForm(data=request.POST, prefix='input')
+        pattern = commitment.process.process_pattern
+        if slot == "c":
+            form = ProcessConsumableForm(data=request.POST, pattern=pattern, prefix='consumable')
+            rel = "consume"
+        elif slot == "u":
+            form = ProcessUsableForm(data=request.POST, pattern=pattern, prefix='usable')
+            rel = "use"
         if form.is_valid():
             input_data = form.cleaned_data
             qty = input_data["quantity"]
@@ -2189,7 +2198,7 @@ def new_process_input(request, commitment_id):
                 ct = form.save(commit=False)
                 rt = input_data["resource_type"]
                 pattern = process.process_pattern
-                event_type = pattern.event_type_for_resource_type("in", rt)
+                event_type = pattern.event_type_for_resource_type(rel, rt)
                 ct.event_type = event_type
                 ct.process = process
                 ct.independent_demand = demand
@@ -2199,7 +2208,8 @@ def new_process_input(request, commitment_id):
                 if ptrt:
                     ct.project = ptrt.process_type.project
                 ct.save()
-                explode_dependent_demands(ct, request.user)                
+                #todo: this is used in labnotes; shd it explode?
+                #explode_dependent_demands(ct, request.user)                
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
             % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))
@@ -2289,7 +2299,7 @@ def new_process_worker(request, commitment_id):
             ct.due_date=process.end_date
             ct.resource_type=rt
             ct.project=process.project
-            ct.unit_of_quantity=rt.directional_unit("in")
+            ct.unit_of_quantity=rt.directional_unit("use")
             ct.created_by=request.user
             ct.save()
                 

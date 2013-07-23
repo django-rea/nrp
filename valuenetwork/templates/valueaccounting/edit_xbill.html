@@ -881,7 +881,14 @@ ul {
 			var prefix = event.target.id.split('-')[0];
 			var resourceId = event.target.value;
 			var unitName = "#" + prefix + "-unit_of_quantity";
-			var direction = "in";
+			if (prefix.search("USE") >= 0)
+		    {
+			    direction = "use";
+		    }
+		    else
+		    {
+			    direction = "other";
+		    }
 			var jsonUrl = encodeURI("/accounting/json-directional-unit/" + resourceId + "/" + direction + "/");
 			$.get(jsonUrl,
 				function(data){

@@ -54,7 +54,12 @@
   height: 200px;
 }
 
-#addInputModal textarea {
+#addConsumableModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
+#addUsableModal textarea {
   width: 400px;
   height: 200px;
 }
@@ -158,7 +163,9 @@
 
 			            <a href="#addCiteModal" role="button" class="btn" data-toggle="modal">{% trans "+ cite" %}</a>
 
-			            <a href="#addInputModal" role="button" class="btn" data-toggle="modal">{% trans "+ input" %}</a>
+			            <a href="#addConsumableModal" role="button" class="btn" data-toggle="modal">{% trans "+ consume" %}</a>
+
+			            <a href="#addUsableModal" role="button" class="btn" data-toggle="modal">{% trans "+ use" %}</a>
 
 			            <a href="#addWorkModal" role="button" class="btn" data-toggle="modal">{% trans "+ work" %}</a>
 			            
@@ -214,25 +221,53 @@
                             </div>
                         </div>
 
-                        <div class="modal hide fade" id="addInputModal" tabindex="-1" role="dialog" aria-labelledby="input-label" aria-hidden="true">
+                        <div class="modal hide fade" id="addConsumableModal" tabindex="-1" role="dialog" aria-labelledby="consumable-label" aria-hidden="true">
 				            <div class="modal-header">
 					            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 
-				                <h3 id="output-label">{% trans "Add an input" %}</h3>
+				                <h3 id="output-label">{% trans "Add a consumable input" %}</h3>
 				                
 				            </div>
 				            <div class="modal-body">
-					            <form class="input-form" enctype="multipart/form-data" id="addInputForm" action="{% url new_process_input commitment_id=commitment.id %}" method="POST" >
+					            <form class="consumable-form" enctype="multipart/form-data" id="addConsumableForm" 
+					                action="{% url new_process_input commitment_id=commitment.id slot='c' %}" method="POST" >
 						            {% csrf_token %}
 
-					                    {{ add_input_form|as_bootstrap }}
+					                    {{ add_consumable_form|as_bootstrap }}
 
-                                	<input type='hidden' id='inputRunning' name='wasRunning' value='' />
-			                        <input type='hidden' id='inputRetrying' name='wasRetrying' value='' />
+                                	<input type='hidden' id='consumableRunning' name='wasRunning' value='' />
+			                        <input type='hidden' id='consumableRetrying' name='wasRetrying' value='' />
 			                        <input type="hidden" name="reload" value="labnotes" />
 					              <div class="modal-footer">
 						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-						            <button class="btn btn-primary">{% trans "Add input" %}</button>
+						            <button class="btn btn-primary">{% trans "Add consumable" %}</button>
+					              </div>
+
+
+					            </form>
+                            </div>
+                        </div>
+
+                        <div class="modal hide fade" id="addUsableModal" tabindex="-1" role="dialog" aria-labelledby="use-label" aria-hidden="true">
+				            <div class="modal-header">
+					            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+				                <h3 id="output-label">{% trans "Add a usable input" %}</h3>
+				                
+				            </div>
+				            <div class="modal-body">
+					            <form class="usable-form" enctype="multipart/form-data" id="addUsableForm" 
+					                action="{% url new_process_input commitment_id=commitment.id  slot='u' %}" method="POST" >
+						            {% csrf_token %}
+
+					                    {{ add_usable_form|as_bootstrap }}
+
+                                	<input type='hidden' id='usableRunning' name='wasRunning' value='' />
+			                        <input type='hidden' id='usableRetrying' name='wasRetrying' value='' />
+			                        <input type="hidden" name="reload" value="labnotes" />
+					              <div class="modal-footer">
+						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						            <button class="btn btn-primary">{% trans "Add usable" %}</button>
 					              </div>
 
 
@@ -669,13 +704,13 @@
 		    if (resourceId)
 		    {
                 var targetId = event.target.id;
-			    if (targetId.search("output") >= 0)
+			    if (targetId.search("usable") >= 0)
 			    {
-				    direction = "out";
+				    direction = "use";
 			    }
 			    else
 			    {
-				    direction = "in";
+				    direction = "other";
 			    }
 			    var prefix = targetId.split('-')[0];
 			    var unitName = "#" + prefix + "-unit_of_quantity";
@@ -767,7 +802,23 @@
 			},
 		});
 
-		$( "#addInputForm" ).validate({
+		$( "#addConsumableForm" ).validate({
+			rules: {
+			    'input-resource_type': {
+                    required: true
+				},
+				'input-quantity': {
+                    required: true,
+					number: true,
+					min: .01
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+		$( "#addUsableForm" ).validate({
 			rules: {
 			    'input-resource_type': {
                     required: true
@@ -900,21 +951,40 @@
             return true;
 		});
 
-		$("#addInputForm").submit(function(event) {
+		$("#addConsumableForm").submit(function(event) {
             if(running)
             {
-                $('#inputRunning').prop('value', 1);
+                $('#consumableRunning').prop('value', 1);
             }
             else
             {
-                $('#inputRunning').prop('value', 0);
+                $('#consumableRunning').prop('value', 0);
             }
             if (retrying)
             {
-                $('#inputRetrying').prop('value', 1);
+                $('#consumableRetrying').prop('value', 1);
             }
             {
-                $('#inputRetrying').prop('value', 0);
+                $('#consumableRetrying').prop('value', 0);
+            }
+            return true;
+		});
+
+		$("#addUsableForm").submit(function(event) {
+            if(running)
+            {
+                $('#usableRunning').prop('value', 1);
+            }
+            else
+            {
+                $('#usableRunning').prop('value', 0);
+            }
+            if (retrying)
+            {
+                $('#usableRetrying').prop('value', 1);
+            }
+            {
+                $('#usableRetrying').prop('value', 0);
             }
             return true;
 		});
@@ -959,7 +1029,7 @@
 		    });
 		{% endfor %}
 
-        $("#addInput").click(function(event) {
+        $("#addConsumable").click(function(event) {
             event.preventDefault();
 		});
 

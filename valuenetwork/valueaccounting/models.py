@@ -325,6 +325,8 @@ class AgentAssociation(models.Model):
 
 DIRECTION_CHOICES = (
     ('in', _('input')),
+    ('consume', _('consume')),
+    ('use', _('use')),
     ('out', _('output')),
     ('cite', _('citation')),
     ('work', _('work')),
@@ -632,7 +634,7 @@ class EconomicResourceType(models.Model):
     def directional_unit(self, direction):
         answer = self.unit
         if self.unit_of_use:
-            if direction == "in":
+            if direction == "use":
                 answer = self.unit_of_use
         return answer
 
@@ -821,6 +823,7 @@ class ProcessPattern(models.Model):
         else:
             return EconomicResourceType.objects.none()
 
+    #todo: delete
     def resource_types_for_relationship_and_effect(self, relationship, effect):
         ets = [f.event_type for f in self.facets.filter(
             event_type__relationship=relationship,
@@ -863,10 +866,10 @@ class ProcessPattern(models.Model):
         return self.resource_types_for_relationship("in")
 
     def consumable_resource_types(self):
-        return self.resource_types_for_relationship_and_effect("in", "-")
+        return self.resource_types_for_relationship("consume")
 
     def usable_resource_types(self):
-        return self.resource_types_for_relationship_and_effect("in", "=")
+        return self.resource_types_for_relationship("use")
 
     def output_resource_types(self):
         return self.resource_types_for_relationship("out")
@@ -876,11 +879,6 @@ class ProcessPattern(models.Model):
 
     def facet_values_for_relationship(self, relationship):
         return self.facets.filter(event_type__relationship=relationship)
-
-    def facet_values_for_relationship_and_effect(self, relationship, effect):
-        return self.facets.filter(
-            event_type__relationship=relationship,
-            event_type__resource_effect=effect)
 
     def output_facet_values(self):
         return self.facet_values_for_relationship("out")
@@ -892,10 +890,10 @@ class ProcessPattern(models.Model):
         return self.facet_values_for_relationship("in")
 
     def consumable_facet_values(self):
-        return self.facet_values_for_relationship_and_effect("in", "-")
+        return self.facet_values_for_relationship("consume")
 
     def usable_facet_values(self):
-        return self.facet_values_for_relationship_and_effect("in", "=")
+        return self.facet_values_for_relationship("use")
 
     def work_facet_values(self):
         return self.facet_values_for_relationship("work")
@@ -1062,11 +1060,10 @@ class EconomicResource(models.Model):
         return self.events.filter(event_type__resource_effect='+')
 
     def consuming_events(self):
-        return self.events.filter(event_type__resource_effect='-')
+        return self.events.filter(event_type__relationship='consume')
 
     def using_events(self):
-        return self.events.filter(event_type__resource_effect='=',
-            event_type__relationship="in")
+        return self.events.filter(event_type__relationship="use")
 
     def demands(self):
         return self.resource_type.commitments.exclude(event_type__relationship="out")
@@ -1295,13 +1292,11 @@ class ProcessType(models.Model):
 
     def consumed_resource_type_relationships(self):
         return self.resource_types.filter(
-            event_type__relationship='in',
-            event_type__resource_effect="-")
+            event_type__relationship='consume')
 
     def used_resource_type_relationships(self):
         return self.resource_types.filter(
-            event_type__relationship='in',
-            event_type__resource_effect="=")
+            event_type__relationship='use')
 
     def cited_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='cite')
@@ -1755,14 +1750,12 @@ class Process(models.Model):
 
     def consumed_input_requirements(self):
         return self.commitments.filter(
-            event_type__relationship='in',
-            event_type__resource_effect='-',
+            event_type__relationship='consume'
         )
 
     def used_input_requirements(self):
         return self.commitments.filter(
-            event_type__relationship='in',
-            event_type__resource_effect='=',
+            event_type__relationship='use'
         )
 
 

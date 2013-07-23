@@ -183,6 +183,76 @@ class ProcessInputForm(forms.ModelForm):
                 self.fields["resource_type"].queryset = pattern.input_resource_types()
 
 
+class ProcessConsumableForm(forms.ModelForm):
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+    quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        queryset=Unit.objects.exclude(unit_type='value'), 
+        label=_("Unit"),
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(ProcessConsumableForm, self).__init__(*args, **kwargs)
+        use_pattern = True
+        if self.instance:
+            if self.instance.id:
+                use_pattern = False
+                ct = Commitment.objects.get(id=self.instance.id)
+                rt = ct.resource_type
+                self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
+        if pattern:
+            if use_pattern:
+                self.pattern = pattern
+                self.fields["resource_type"].queryset = pattern.consumable_resource_types()
+
+
+class ProcessUsableForm(forms.ModelForm):
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+    quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        queryset=Unit.objects.exclude(unit_type='value'), 
+        label=_("Unit"),
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('resource_type', 'quantity', 'unit_of_quantity', 'description')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(ProcessUsableForm, self).__init__(*args, **kwargs)
+        use_pattern = True
+        if self.instance:
+            if self.instance.id:
+                use_pattern = False
+                ct = Commitment.objects.get(id=self.instance.id)
+                rt = ct.resource_type
+                self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
+        if pattern:
+            if use_pattern:
+                self.pattern = pattern
+                self.fields["resource_type"].queryset = pattern.usable_resource_types()
+
+
 #used in labnotes, create, copy and change_process, and create and change_rand
 class ProcessOutputForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(

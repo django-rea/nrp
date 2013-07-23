@@ -274,23 +274,24 @@ def resource_types(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         selected_values = request.POST["categories"]
-        vals = selected_values.split(",")
-        if vals[0] == "all":
-            select_all = True
-            roots = EconomicResourceType.objects.all()
-        else:
-            select_all = False
-            fvs = []
-            for val in vals:
-                val_split = val.split(":")
-                fname = val_split[0]
-                fvalue = val_split[1].strip()
-                fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
-            #rtfvs = ResourceTypeFacetValue.objects.filter(facet_value__in=fvs)
-            #roots = [rtfv.resource_type for rtfv in rtfvs]
-            #roots = list(set(roots))
-            roots = select_resource_types(fvs)
-            roots.sort(key=lambda rt: rt.label())
+        if selected_values:
+            vals = selected_values.split(",")
+            if vals[0] == "all":
+                select_all = True
+                roots = EconomicResourceType.objects.all()
+            else:
+                select_all = False
+                fvs = []
+                for val in vals:
+                    val_split = val.split(":")
+                    fname = val_split[0]
+                    fvalue = val_split[1].strip()
+                    fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+                #rtfvs = ResourceTypeFacetValue.objects.filter(facet_value__in=fvs)
+                #roots = [rtfv.resource_type for rtfv in rtfvs]
+                #roots = list(set(roots))
+                roots = select_resource_types(fvs)
+                roots.sort(key=lambda rt: rt.label())
     return render_to_response("valueaccounting/resource_types.html", {
         "roots": roots,
         "facets": facets,

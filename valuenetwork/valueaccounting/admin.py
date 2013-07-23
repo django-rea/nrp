@@ -20,7 +20,7 @@ class FacetValueInline(admin.TabularInline):
     
 
 class FacetAdmin(admin.ModelAdmin):
-    list_display = ('name', 'value_list')
+    list_display = ('name', 'description', 'value_list')
     inlines = [ FacetValueInline, ]
 
 admin.site.register(Facet, FacetAdmin)

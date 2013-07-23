@@ -744,13 +744,13 @@
 		    if (resourceId)
 		    {
                 var targetId = event.target.id;
-			    if (targetId.search("output") >= 0)
+			    if (targetId.search("usable") >= 0)
 			    {
-				    direction = "out";
+				    direction = "use";
 			    }
 			    else
 			    {
-				    direction = "in";
+				    direction = "other";
 			    }
 			    var prefix = targetId.split('-')[0];
 			    var unitName = "#" + prefix + "-unit_of_quantity";

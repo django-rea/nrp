@@ -127,6 +127,7 @@ class Help(models.Model):
 
 class Facet(models.Model):
     name = models.CharField(_('name'), max_length=32, unique=True)
+    description = models.TextField(_('description'), blank=True, null=True)
 
     class Meta:
         ordering = ('name',)
@@ -142,6 +143,7 @@ class FacetValue(models.Model):
     facet = models.ForeignKey(Facet,
         verbose_name=_('facet'), related_name='values')
     value = models.CharField(_('value'), max_length=32)
+    description = models.TextField(_('description'), blank=True, null=True)
 
     class Meta:
         unique_together = ('facet', 'value')
@@ -323,6 +325,8 @@ class AgentAssociation(models.Model):
 
 DIRECTION_CHOICES = (
     ('in', _('input')),
+    ('consume', _('consume')),
+    ('use', _('use')),
     ('out', _('output')),
     ('cite', _('citation')),
     ('work', _('work')),
@@ -630,7 +634,7 @@ class EconomicResourceType(models.Model):
     def directional_unit(self, direction):
         answer = self.unit
         if self.unit_of_use:
-            if direction == "in":
+            if direction == "use":
                 answer = self.unit_of_use
         return answer
 
@@ -819,6 +823,24 @@ class ProcessPattern(models.Model):
         else:
             return EconomicResourceType.objects.none()
 
+    #todo: delete
+    def resource_types_for_relationship_and_effect(self, relationship, effect):
+        ets = [f.event_type for f in self.facets.filter(
+            event_type__relationship=relationship,
+            event_type__resource_effect=effect)] 
+        if ets:
+            ets = list(set(ets))
+            if len(ets) == 1:
+                return self.get_resource_types(ets[0])
+            else:
+                rts = []
+                for et in ets:
+                    rts.extend(list(self.get_resource_types(et)))
+                rt_ids = [rt.id for rt in rts]
+                return EconomicResourceType.objects.filter(id__in=rt_ids)
+        else:
+            return EconomicResourceType.objects.none()
+
     def all_resource_types(self):
         answer = []
         ets = self.event_types()
@@ -843,31 +865,62 @@ class ProcessPattern(models.Model):
     def input_resource_types(self):
         return self.resource_types_for_relationship("in")
 
+    def consumable_resource_types(self):
+        return self.resource_types_for_relationship("consume")
+
+    def usable_resource_types(self):
+        return self.resource_types_for_relationship("use")
+
     def output_resource_types(self):
         return self.resource_types_for_relationship("out")
 
     def facets_for_event_type(self, event_type):
         return self.facets.filter(event_type=event_type)
 
-    def facets_for_relationship(self, relationship):
-        #todo: rename to reflect returning pattern facet values
+    def facet_values_for_relationship(self, relationship):
         return self.facets.filter(event_type__relationship=relationship)
 
-    def output_facets(self):
-        return self.facets_for_relationship("out")
+    def output_facet_values(self):
+        return self.facet_values_for_relationship("out")
 
-    def citable_facets(self):
-        return self.facets_for_relationship("cite")
+    def citable_facet_values(self):
+        return self.facet_values_for_relationship("cite")
+
+    def input_facet_values(self):
+        return self.facet_values_for_relationship("in")
+
+    def consumable_facet_values(self):
+        return self.facet_values_for_relationship("consume")
+
+    def usable_facet_values(self):
+        return self.facet_values_for_relationship("use")
+
+    def work_facet_values(self):
+        return self.facet_values_for_relationship("work")
 
     def input_facets(self):
-        return self.facets_for_relationship("in")
+        facets = [pfv.facet_value.facet for pfv in self.input_facet_values()]
+        return list(set(facets))
+
+    def consumable_facets(self):
+        facets = [pfv.facet_value.facet for pfv in self.consumable_facet_values()]
+        return list(set(facets))
+
+    def usable_facets(self):
+        facets = [pfv.facet_value.facet for pfv in self.usable_facet_values()]
+        return list(set(facets))
+
+    def citable_facets(self):
+        facets = [pfv.facet_value.facet for pfv in self.citable_facet_values()]
+        return list(set(facets))
 
     def work_facets(self):
-        return self.facets_for_relationship("work")
+        facets = [pfv.facet_value.facet for pfv in self.work_facet_values()]
+        return list(set(facets))
 
     def event_type_for_resource_type(self, relationship, resource_type):
         rt_fvs = [x.facet_value for x in resource_type.facets.all()]
-        pfvs = self.facets_for_relationship(relationship)
+        pfvs = self.facet_values_for_relationship(relationship)
         pat_fvs = [x.facet_value for x in pfvs]
         #import pdb; pdb.set_trace()
         fv_intersect = set(rt_fvs) & set(pat_fvs)
@@ -892,7 +945,7 @@ class ProcessPattern(models.Model):
         return ", ".join(ucl)
 
     def facets_by_relationship(self, relationship):
-        pfvs = self.facets_for_relationship(relationship)
+        pfvs = self.facet_values_for_relationship(relationship)
         facets = [pfv.facet_value.facet for pfv in pfvs]
         return list(set(facets))
 
@@ -1007,11 +1060,10 @@ class EconomicResource(models.Model):
         return self.events.filter(event_type__resource_effect='+')
 
     def consuming_events(self):
-        return self.events.filter(event_type__resource_effect='-')
+        return self.events.filter(event_type__relationship='consume')
 
     def using_events(self):
-        return self.events.filter(event_type__resource_effect='=',
-            event_type__relationship="in")
+        return self.events.filter(event_type__relationship="use")
 
     def demands(self):
         return self.resource_type.commitments.exclude(event_type__relationship="out")
@@ -1039,8 +1091,6 @@ class AgentResourceType(models.Model):
     score = models.DecimalField(_('score'), max_digits=8, decimal_places=2, 
         default=Decimal("0.0"),
         help_text=_("the quantity of contributions of this resource type from this agent"))
-    #relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
-    #    verbose_name=_('relationship'), related_name='agent_resource_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='agent_resource_types')
     lead_time = models.IntegerField(_('lead time'), 
@@ -1079,7 +1129,7 @@ class AgentResourceType(models.Model):
         return ""
 
     def xbill_explanation(self):
-        return "Source"
+        return "Possible source"
 
     def xbill_child_object(self):
         if self.event_type.relationship == 'out':
@@ -1089,9 +1139,6 @@ class AgentResourceType(models.Model):
 
     def xbill_class(self):
         return self.xbill_child_object().xbill_class()
-
-    #def xbill_category(self):
-    #    return Category(name="sources")
 
     def xbill_parent_object(self):
         if self.event_type.relationship == 'out':
@@ -1245,13 +1292,11 @@ class ProcessType(models.Model):
 
     def consumed_resource_type_relationships(self):
         return self.resource_types.filter(
-            event_type__relationship='in',
-            event_type__resource_effect="-")
+            event_type__relationship='consume')
 
     def used_resource_type_relationships(self):
         return self.resource_types.filter(
-            event_type__relationship='in',
-            event_type__resource_effect="=")
+            event_type__relationship='use')
 
     def cited_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='cite')
@@ -1300,6 +1345,12 @@ class ProcessType(models.Model):
     def xbill_input_prefix(self):
         return "".join(["PTINPUT", str(self.id)])
 
+    def xbill_consumable_prefix(self):
+        return "".join(["PTCONS", str(self.id)])
+
+    def xbill_usable_prefix(self):
+        return "".join(["PTUSE", str(self.id)])
+
     def xbill_citable_prefix(self):
         return "".join(["PTCITE", str(self.id)])
 
@@ -1309,11 +1360,23 @@ class ProcessType(models.Model):
     def xbill_input_rt_prefix(self):
         return "".join(["PTINPUTRT", str(self.id)])
 
+    def xbill_consumable_rt_prefix(self):
+        return "".join(["PTCONSRT", str(self.id)])
+
+    def xbill_usable_rt_prefix(self):
+        return "".join(["PTUSERT", str(self.id)])
+
     def xbill_citable_rt_prefix(self):
         return "".join(["PTCITERT", str(self.id)])
 
     def xbill_input_rt_facet_prefix(self):
         return "".join(["PTINPUTRTF", str(self.id)])
+
+    def xbill_consumable_rt_facet_prefix(self):
+        return "".join(["PTCONSRTF", str(self.id)])
+
+    def xbill_usable_rt_facet_prefix(self):
+        return "".join(["PTUSERTF", str(self.id)])
 
     def xbill_citable_rt_facet_prefix(self):
         return "".join(["PTCITERTF", str(self.id)])
@@ -1321,6 +1384,14 @@ class ProcessType(models.Model):
     def xbill_input_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeInputForm
         return ProcessTypeInputForm(process_type=self, prefix=self.xbill_input_prefix())
+
+    def xbill_consumable_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessTypeConsumableForm
+        return ProcessTypeConsumableForm(process_type=self, prefix=self.xbill_consumable_prefix())
+
+    def xbill_usable_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessTypeUsableForm
+        return ProcessTypeUsableForm(process_type=self, prefix=self.xbill_usable_prefix())
 
     def xbill_citable_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeCitableForm
@@ -1334,13 +1405,26 @@ class ProcessType(models.Model):
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
         return EconomicResourceTypeAjaxForm(prefix=self.xbill_input_rt_prefix())
 
+    def xbill_consumable_rt_form(self):
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
+        return EconomicResourceTypeAjaxForm(prefix=self.xbill_consumable_rt_prefix())
+
+    def xbill_usable_rt_form(self):
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
+        return EconomicResourceTypeAjaxForm(prefix=self.xbill_usable_rt_prefix())
+
     def xbill_citable_rt_form(self):
-        #print "xbill_citable_rt_form"
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
         return EconomicResourceTypeAjaxForm(prefix=self.xbill_citable_rt_prefix())
 
     def xbill_input_rt_facet_formset(self):
         return self.create_facet_formset_filtered(slot="in", pre=self.xbill_input_rt_facet_prefix())
+
+    def xbill_consumable_rt_facet_formset(self):
+        return self.create_facet_formset_filtered(slot="consume", pre=self.xbill_consumable_rt_facet_prefix())
+
+    def xbill_usable_rt_facet_formset(self):
+        return self.create_facet_formset_filtered(slot="use", pre=self.xbill_usable_rt_facet_prefix())
 
     def xbill_citable_rt_facet_formset(self):
         return self.create_facet_formset_filtered(slot="cite", pre=self.xbill_citable_rt_facet_prefix())
@@ -1354,7 +1438,13 @@ class ProcessType(models.Model):
         if self.process_pattern == None:
             facets = Facet.objects.all()
         else:
-            facets = self.process_pattern.facets_by_relationship(slot)
+            #facets = self.process_pattern.facets_by_relationship(slot)
+            if slot == "consume":
+                facets = self.process_pattern.consumable_facets()
+            elif slot == "use":
+                facets = self.process_pattern.usable_facets()
+            elif slot == "cite":
+                facets = self.process_pattern.citable_facets()
         for facet in facets:
             d = {"facet_id": facet.id,}
             init.append(d)
@@ -1383,8 +1473,6 @@ class ProcessTypeResourceType(models.Model):
         verbose_name=_('process type'), related_name='resource_types')
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='process_types')
-    #relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
-    #    verbose_name=_('relationship'), related_name='process_resource_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='process_resource_types')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
@@ -1447,12 +1535,6 @@ class ProcessTypeResourceType(models.Model):
 
     def xbill_parents(self):
         return [self.resource_type, self]
-
-    #def xbill_category(self):
-    #    if self.event_type.relationship == 'out':
-    #        return Category(name="processes")
-    #    else:
-    #        return self.resource_type.category
 
     def node_id(self):
         return "-".join(["ProcessResource", str(self.id)])
@@ -1668,14 +1750,12 @@ class Process(models.Model):
 
     def consumed_input_requirements(self):
         return self.commitments.filter(
-            event_type__relationship='in',
-            event_type__resource_effect='-',
+            event_type__relationship='consume'
         )
 
     def used_input_requirements(self):
         return self.commitments.filter(
-            event_type__relationship='in',
-            event_type__resource_effect='=',
+            event_type__relationship='use'
         )
 
 

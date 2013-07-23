@@ -3514,18 +3514,31 @@ def change_process(request, process_id):
         data=request.POST or None,
         prefix='work',
         pattern=pattern)
-    InputFormSet = modelformset_factory(
+    ConsumableFormSet = modelformset_factory(
         Commitment,
-        form=ProcessInputForm,
+        form=ProcessConsumableForm,
         formset=ProcessInputFormSet,
         can_delete=True,
-        extra=4,
+        extra=2,
         )
-    input_formset = InputFormSet(
-        queryset=process.input_commitments(),
+    consumable_formset = ConsumableFormSet(
+        queryset=process.consumed_input_requirements(),
         data=request.POST or None,
-        prefix='input',
+        prefix='consumable',
         pattern=pattern)
+    UsableFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessUsableForm,
+        formset=ProcessInputFormSet,
+        can_delete=True,
+        extra=2,
+        )
+    usable_formset = UsableFormSet(
+        queryset=process.used_input_requirements(),
+        data=request.POST or None,
+        prefix='usable',
+        pattern=pattern)
+        
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         keep_going = request.POST.get("keep-going")
@@ -3756,7 +3769,8 @@ def change_process(request, process_id):
         "process_form": process_form,
         "output_formset": output_formset,
         "citation_formset": citation_formset,
-        "input_formset": input_formset,
+        "consumable_formset": consumable_formset,
+        "usable_formset": usable_formset,
         "work_formset": work_formset,
     }, context_instance=RequestContext(request))
 

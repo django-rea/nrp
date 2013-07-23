@@ -1655,7 +1655,7 @@ class Process(models.Model):
 
     def input_commitments(self):
         return self.commitments.filter(
-            event_type__relationship='in')   
+            event_type__relationship='in')
 
     def schedule_requirements(self):
         return self.commitments.exclude(

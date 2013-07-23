@@ -93,7 +93,7 @@
 					</div>
 				{% endfor %}
 
-				<legend style="margin-top: 1em;"  class="section">{% trans "Citations" %}:</legend>
+				<legend style="margin-top: 1em;"  class="section">{% trans "Citables" %}:</legend>
 				{{ citation_formset.management_form }}
 				{% for form in citation_formset %}
 					{{ form.id }}
@@ -121,9 +121,9 @@
 					</div>
 				{% endfor %}
 
-				<legend style="margin-top: 1em;"  class="section">{% trans "Inputs" %}:</legend>
-				{{ input_formset.management_form }}
-				{% for form in input_formset %}
+				<legend style="margin-top: 1em;"  class="section">{% trans "Consumables" %}:</legend>
+				{{ consumable_formset.management_form }}
+				{% for form in consumable_formset %}
 					{{ form.id }}
 					<div class="row-fluid formset-top">
 						{% trans "Resource Type" %}: {{ form.resource_type }} 
@@ -135,6 +135,22 @@
 						{% trans "Description" %}: {{ form.description }} 
 					</div>
 				{% endfor %}
+
+				<legend style="margin-top: 1em;"  class="section">{% trans "Usables" %}:</legend>
+				{{ usable_formset.management_form }}
+				{% for form in usable_formset %}
+					{{ form.id }}
+					<div class="row-fluid formset-top">
+						{% trans "Resource Type" %}: {{ form.resource_type }} 
+					</div>
+					<div class="row-fluid formset-middle">
+						{% trans "Quantity" %}: {{ form.quantity }} {% trans "Unit" %}: {{ form.unit_of_quantity }} 
+					</div>
+					<div class="row-fluid formset-bottom">
+						{% trans "Description" %}: {{ form.description }} 
+					</div>
+				{% endfor %}
+				
 			</div>
 		</div>
 		</form>

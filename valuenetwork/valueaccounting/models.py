@@ -1665,6 +1665,31 @@ class Process(models.Model):
         return self.commitments.filter(
             event_type__relationship='out')
 
+    def uncommitted_production_events(self):
+        return self.events.filter(
+            event_type__relationship='out',
+            commitment=None)
+
+    def uncommitted_consumption_events(self):
+        return self.events.filter(
+            event_type__relationship='consume',
+            commitment=None)
+
+    def uncommitted_use_events(self):
+        return self.events.filter(
+            event_type__relationship='use',
+            commitment=None)
+
+    def uncommitted_citation_events(self):
+        return self.events.filter(
+            event_type__relationship='cite',
+            commitment=None)
+
+    def uncommitted_work_events(self):
+        return self.events.filter(
+            event_type__relationship='work',
+            commitment=None)
+
     def main_outgoing_commitment(self):
         cts = self.outgoing_commitments()
         if cts:

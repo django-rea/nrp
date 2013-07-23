@@ -44,18 +44,20 @@
 	                    <th style="text-align: right;">{% trans "Quality" %}</th>
 	                    <td>{{ resource.quality }}</td>
                     </tr>
+{% comment %}
                     {% if resource.author %}
                         <tr>
 		                    <th style="text-align: right; vertical-align: top; ">{% trans "Author" %}</th>
 		                    <td>{{ resource.author.name }}</td>
                         </tr>
                     {% endif %}
+{% endcomment %}
                     <tr>
-	                    <th style="text-align: right;">{% trans "Created date" %}</th>
+	                    <th style="text-align: right;">{% trans "Record created date" %}</th>
 	                    <td>{{ resource.created_date }}</td>
                     </tr>
                     <tr>
-	                    <th style="text-align: right;">{% trans "Created by" %}</th>
+	                    <th style="text-align: right;">{% trans "Record created by" %}</th>
 	                    <td>{{ resource.created_by }}</td>
                     </tr>
 		            {% if resource.url %}
@@ -173,10 +175,34 @@
 		                    {% endfor %}
 		                </ul>
 		            </ul>
+
 		            {% endif %}
 		            {% endfor %}
+                   
 		        </ul>	
 		    </div> 
+        {% else %}
+
+            <div >
+				<a href="#processAddForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Add process that created resource" %}</a>
+			</div>
+			<div class="modal hide fade" id="processAddForm" tabindex="-1" role="dialog" aria-labelledby="process-add-label" aria-hidden="true">
+			  <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h3 id="process-add-label">{% trans "Add Process" %}</h3>
+			  </div>
+			  <div class="modal-body">
+					<form class="process-add-form" action="" method="POST" >
+						{% csrf_token %}
+						{{ process_add_form }}
+						
+					  <div class="modal-footer">
+						<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						<button class="btn btn-primary">{% trans "Save" %}</button>
+					  </div>
+					</form>
+			  </div>
+			</div>
 	    {% endif %}
 	    
 	</div>

@@ -546,7 +546,7 @@ def log_simple(request):
                     
                     output_resource.quantity = 1
                     output_resource.unit_of_quantity = output_resource.resource_type.directional_unit("out") 
-                    output_resource.author = member
+                    #output_resource.author = member
                     output_resource.created_by = request.user
                     output_resource.save()
 
@@ -2817,10 +2817,36 @@ def todo_history(request):
 
 
 def resource(request, resource_id):
+    #import pdb; pdb.set_trace()
     resource = get_object_or_404(EconomicResource, id=resource_id)
+    form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
+    process_add_form = AddProcessFromResourceForm(form_data)
+    
+    if request.method == "POST":
+        process_add_form = AddProcessFromResourceForm(data=request.POST)
+        if process_add_form.is_valid():
+            process_data = process_add_form.cleaned_data
+            process = process_add_form.save(commit=False)
+            process.started = process.start_date
+            process.finished = True
+            process.created_by = request.user
+            process.save() 
+            event = EconomicEvent()
+            event.project = process.project
+            event.event_date = process.end_date
+            event.event_type = process.process_pattern.event_type_for_resource_type("out", resource.resource_type)
+            event.process = process
+            event.resource_type = resource.resource_type 
+            event.quantity = resource.quantity 
+            event.unit_of_quantity = resource.unit_of_quantity 
+            event.resource = resource
+            event.created_by = request.user
+            event.save()
+
     return render_to_response("valueaccounting/resource.html", {
         "resource": resource,
         "photo_size": (128, 128),
+        "process_add_form": process_add_form,
     }, context_instance=RequestContext(request))
 
 def get_labnote_context(commitment, request_agent):

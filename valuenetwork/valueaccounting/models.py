@@ -127,6 +127,7 @@ class Help(models.Model):
 
 class Facet(models.Model):
     name = models.CharField(_('name'), max_length=32, unique=True)
+    description = models.TextField(_('description'), blank=True, null=True)
 
     class Meta:
         ordering = ('name',)
@@ -142,6 +143,7 @@ class FacetValue(models.Model):
     facet = models.ForeignKey(Facet,
         verbose_name=_('facet'), related_name='values')
     value = models.CharField(_('value'), max_length=32)
+    description = models.TextField(_('description'), blank=True, null=True)
 
     class Meta:
         unique_together = ('facet', 'value')

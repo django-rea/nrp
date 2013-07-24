@@ -1065,6 +1065,9 @@ class EconomicResource(models.Model):
     def using_events(self):
         return self.events.filter(event_type__relationship="use")
 
+    def all_usage_events(self):
+        return self.events.exclude(event_type__relationship="out")
+
     def demands(self):
         return self.resource_type.commitments.exclude(event_type__relationship="out")
 

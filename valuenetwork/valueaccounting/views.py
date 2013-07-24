@@ -2873,6 +2873,7 @@ def resource(request, resource_id):
                 citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
                 citation_event.created_by = request.user
                 citation_event.save()
+                cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
 
 
                 '''            work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)

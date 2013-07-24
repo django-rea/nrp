@@ -104,137 +104,143 @@
 		    </div>
 
 		</div>
-        {% if resource.producing_events %}
-		    <div style="margin-top: 1em;" >
-		        <h4>{% trans "History" %}:</h4>
-		        <ul>
-		            {% for event in resource.producing_events %}
-		            <li><b>{% trans "Event" %}:</b> {{ event.event_type }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
-		            {% if event.process %}
-		            <ul>
-		                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a>
 
-			            <div style="display: inline;" >
-				            <a href="#citeForm" role="button" class="btn btn-info" data-toggle="modal">
-					            {% trans "Add citation" %}
-				            </a>
-			            </div>
+        <div class="row-fluid" tyle="margin-top: 1em;">
+            {% if resource.producing_events and resource.all_usage_events %}                
+	            <div class="span6">
 
-			            <div class="modal hide fade" id="citeForm" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
-			              <div class="modal-header">
-				            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				            <h3 id="cite-label">{% trans "Add a Citation" %}</h3>
-			              </div>
-			              <div class="modal-body">
-					            <form class="cite-form" action="" method="POST" >
-					              {% csrf_token %}
-                                  {{ cite_form }}  
-						          <div class="modal-footer">
-						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-						            <button class="btn btn-primary" name="cite-save" value="cite">{% trans "Save" %}</button>
-					              </div>
-
-					            </form>
-			              </div>
-			            </div>
-
-
-                        </li>
+	            {% if resource.producing_events %}
+		                <h3>{% trans "Where from" %}:</h3>
 		                <ul>
-		                    {% for req in event.process.work_requirements %}
-		                        <li><b>{% trans "Workers" %}:</b> {{ req.resource_type }} {% trans "from" %}: {{ req.from_agent }} </li>
-	                            {% if req.description %}
-	                                <div class="labnote" ><span class="label">{% trans "Labnotes" %}:</span> {{ req.description|urlize|linebreaks }}</div>
-	                            {% endif %}
+		                    {% for event in resource.producing_events %}
+		                        <li><b>{% trans "Event" %}:</b> {{ event.event_type }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
+		                        {% if event.process %}
+		                            <ul>
+		                                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a>
 
-		                    {% endfor %}
-		                    {% for inp in event.process.citations %}
-		                        {% if inp.resource %}
-		                            <li>{% trans "Event" %}: <b>{{ inp.event_type }}</b> {{ event.event_date }}</li>
-	                                <ul>
-	                                    <li><b>{% trans "Resource" %}:</b> {{ inp.resource }}</li>
-	                                    <ul>
-	                                        {% for pe in inp.resource.producing_events %}
-	                                            <li><b>{% trans "Event" %}:</b> {{ pe.event_type }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
-	                                            <ul>
-	                                                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=pe.process.id %}">{{ pe.process.name }}</a></li>
+			                            <div style="display: inline;" >
+				                            <a href="#citeForm" role="button" class="btn btn-info" data-toggle="modal">
+					                            {% trans "Add citation" %}
+				                            </a>
+			                            </div>
+
+			                            <div class="modal hide fade" id="citeForm" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+			                              <div class="modal-header">
+				                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				                            <h3 id="cite-label">{% trans "Add a Citation" %}</h3>
+			                              </div>
+			                              <div class="modal-body">
+					                            <form class="cite-form" action="" method="POST" >
+					                              {% csrf_token %}
+                                                  {{ cite_form }}  
+						                          <div class="modal-footer">
+						                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						                            <button class="btn btn-primary" name="cite-save" value="cite">{% trans "Save" %}</button>
+					                              </div>
+
+					                            </form>
+			                              </div>
+			                            </div>
+
+
+                                        </li>
+		                                <ul>
+		                                    {% for req in event.process.work_requirements %}
+		                                        <li><b>{% trans "Workers" %}:</b> {{ req.resource_type }} {% trans "from" %}: {{ req.from_agent }} </li>
+	                                            {% if req.description %}
+	                                                <div class="labnote" ><span class="label">{% trans "Labnotes" %}:</span> {{ req.description|urlize|linebreaks }}</div>
+	                                            {% endif %}
+
+		                                    {% endfor %}
+		                                    {% for inp in event.process.citations %}
+		                                        {% if inp.resource %}
+		                                            <li>{% trans "Event" %}: <b>{{ inp.event_type }}</b> {{ inp.resource_type.name }} {{ event.event_date }}</li>
 	                                                <ul>
-	                                                    {% for i in pe.process.inputs %}
-	                                                        {% if i.resource %}
-	                                                        <li><b>{% trans "Event" %}:</b> {{ i.event_type }} {{ event.event_date }}</li>
-	                                                            <ul>
-	                                                                <li><b>{% trans "Resource" %}:</b> {{ i.resource }}</li>
-	                                                            </ul>
-	                                                        
-	                                                        {% endif %}
-	                                                    {% endfor %}
+	                                                    <li><b>{% trans "Resource" %}:</b> <a href="{% url resource resource_id=inp.resource.id %}">{{ inp.resource.label }}</a></li>
 	                                                </ul>
-	                                            </ul>
-	                                        {% endfor %}
-	                                    </ul> 
-	                                </ul>
-	                            {% endif %}
-		                    {% endfor %}
-		                    {% for inp in event.process.inputs %}
-		                        {% if inp.resource %}
-		                            <li>{% trans "Event" %}: <b>{{ inp.event_type }}</b> {{ event.event_date }}</li>
-	                                <ul>
-	                                    <li><b>{% trans "Resource" %}:</b> {{ inp.resource }}</li>
-	                                    <ul>
-	                                        {% for pe in inp.resource.producing_events %}
-	                                            <li>{% trans "Event" %}: <b>{{ pe.event_type }}</b> {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
-	                                            <ul>
-	                                                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=pe.process.id %}">{{ pe.process.name }}</a></li>
+	                                            {% endif %}
+		                                    {% endfor %}
+		                                    {% for inp in event.process.inputs %}
+		                                        {% if inp.resource %}
+		                                            <li>{% trans "Event" %}: <b>{{ inp.event_type }}</b>  {{ inp.resource_type.name }} {{ event.event_date }}</li>
 	                                                <ul>
-	                                                    {% for i in pe.process.inputs %}
-	                                                        {% if i.resource %}
-	                                                        <li><b>{% trans "Event" %}:</b> {{ i.event_type }} {{ event.event_date }}</li>
-	                                                            <ul>
-	                                                                <li><b>{% trans "Resource" %}:</b> {{ i.resource }}</li>
-	                                                            </ul>
-	                                                        
-	                                                        {% endif %}
-	                                                    {% endfor %}
+	                                                    <li><b>{% trans "Resource" %}:</b> <a href="{% url resource resource_id=inp.resource.id %}">{{ inp.resource.label }}</a></li>
 	                                                </ul>
-	                                            </ul>
-	                                        {% endfor %}
-	                                    </ul> 
-	                                </ul>
-	                            {% endif %}
+	                                            {% endif %}
+		                                    {% endfor %}
+		                                </ul>
+		                            </ul>
+		                        {% endif %}
 		                    {% endfor %}
-		                </ul>
-		            </ul>
+		                        
+              
+		            </ul> 
 
-		            {% endif %}
-		            {% endfor %}
-                   
-		        </ul>	
-		    </div> 
-        {% else %}
 
-            <div >
-				<a href="#processAddForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Add process that created resource" %}</a>
-			</div>
-			<div class="modal hide fade" id="processAddForm" tabindex="-1" role="dialog" aria-labelledby="process-add-label" aria-hidden="true">
-			  <div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				<h3 id="process-add-label">{% trans "Add Process" %}</h3>
-			  </div>
-			  <div class="modal-body">
-					<form class="process-add-form" action="" method="POST" >
-						{% csrf_token %}
-						{{ process_add_form }}
+                  
+		        </div> 
+                {% else %}
+
+                    <div >
+				        <a href="#processAddForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Add process that created resource" %}</a>
+			        </div>
+			        <div class="modal hide fade" id="processAddForm" tabindex="-1" role="dialog" aria-labelledby="process-add-label" aria-hidden="true">
+			          <div class="modal-header">
+				        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				        <h3 id="process-add-label">{% trans "Add Process" %}</h3>
+			          </div>
+			          <div class="modal-body">
+					        <form class="process-add-form" action="" method="POST" >
+						        {% csrf_token %}
+						        {{ process_add_form }}
 						
-					  <div class="modal-footer">
-						<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-						<button class="btn btn-primary" name="process-save" value="process">{% trans "Save" %}</button>
-					  </div>
-					</form>
-			  </div>
-			</div>
+					          <div class="modal-footer">
+						        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						        <button class="btn btn-primary" name="process-save" value="process">{% trans "Save" %}</button>
+					          </div>
+					        </form>
+			          </div>
+		          </div>
+            {% endif %}
 	    {% endif %}
-	    
-	</div>
+	    {% if resource.producing_events and resource.all_usage_events %}
+            <div class="span6">
+                {% if resource.all_usage_events %}
+	                <h3>{% trans "Where to" %}:</h3>
+	                <ul>
+	                    {% for event in resource.all_usage_events %}
+	                        <li><b>{% trans "Event" %}:</b> {{ event.resource.label }} {{ event.event_type }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
+	                        {% if event.process %}
+	                            <ul>
+	                                <li>
+	                                    <b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a>
+                                   </li>
+	                                <ul>
+	                                    {% for req in event.process.work_requirements %}
+	                                        <li><b>{% trans "Workers" %}:</b> {{ req.resource_type }} {% trans "from" %}: {{ req.from_agent }} </li>
+                                            {% if req.description %}
+                                                <div class="labnote" ><span class="label">{% trans "Labnotes" %}:</span> {{ req.description|urlize|linebreaks }}</div>
+                                            {% endif %}
+
+	                                    {% endfor %}
+	                                </ul>
+	                                {% for op in event.process.outputs %}
+                                        {% if op.resource %}
+                                            <li>{% trans "Event" %}: <b>{{ op.event_type }}</b>  {{ op.resource_type.name }} {{ event.event_date }}</li>
+                                            <ul>
+                                                <li><b>{% trans "Resource" %}:</b> <a href="{% url resource resource_id=op.resource.id %}">{{ op.resource.label }}</a></li>
+                                            </ul>
+                                        {% endif %}
+                                    {% endfor %}
+	                            </ul>
+	                        {% endif %}
+	                    {% endfor %}
+
+                {% endif %}
+            </div>
+	    {% endif %}
+	    </div>
+
     </div>
 {% endblock %}
 

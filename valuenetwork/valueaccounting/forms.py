@@ -420,14 +420,16 @@ class ProcessCitationCommitmentForm(forms.ModelForm):
 
 
 class SelectCitationResourceForm(forms.Form):
-    resource_type = forms.ChoiceField(
-        widget=forms.Select(attrs={'class': 'input-xlarge', 'onchange': 'getResources();'}))
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        widget=forms.Select(attrs={'class': 'input-xxlarge', 'onchange': 'getResources();'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
 
     def __init__(self, pattern, *args, **kwargs):
+        #import pdb; pdb.set_trace()
         super(SelectCitationResourceForm, self).__init__(*args, **kwargs)
         self.pattern = pattern
-        self.fields["resource_type"].choices = [('', '----------')] + [(rt.id, rt) for rt in pattern.citables_with_resources()]
+        self.fields["resource_type"].queryset = pattern.citables_with_resources()
  
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

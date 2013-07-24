@@ -2817,36 +2817,79 @@ def todo_history(request):
 
 
 def resource(request, resource_id):
-    #import pdb; pdb.set_trace()
     resource = get_object_or_404(EconomicResource, id=resource_id)
-    form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
-    process_add_form = AddProcessFromResourceForm(form_data)
+    process_add_form = None
+    work_form = None
+    cite_form = None
+    process = None
+    pattern = None
+    #import pdb; pdb.set_trace()
+    if resource.producing_events(): 
+        process = resource.producing_events()[0].process
+        pattern = process.process_pattern 
+        #work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
+        cite_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite', pattern=pattern)
+    else:
+        form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
+        process_add_form = AddProcessFromResourceForm(form_data)    
     
     if request.method == "POST":
-        process_add_form = AddProcessFromResourceForm(data=request.POST)
-        if process_add_form.is_valid():
-            process_data = process_add_form.cleaned_data
-            process = process_add_form.save(commit=False)
-            process.started = process.start_date
-            process.finished = True
-            process.created_by = request.user
-            process.save() 
-            event = EconomicEvent()
-            event.project = process.project
-            event.event_date = process.end_date
-            event.event_type = process.process_pattern.event_type_for_resource_type("out", resource.resource_type)
-            event.process = process
-            event.resource_type = resource.resource_type 
-            event.quantity = resource.quantity 
-            event.unit_of_quantity = resource.unit_of_quantity 
-            event.resource = resource
-            event.created_by = request.user
-            event.save()
+        #import pdb; pdb.set_trace()
+        process_save = request.POST.get("process-save")
+        cite_save = request.POST.get("cite-save")
+        #work_save = request.POST.get("work-save")
+        if process_save:
+            process_add_form = AddProcessFromResourceForm(data=request.POST)
+            if process_add_form.is_valid():
+                #process_data = process_add_form.cleaned_data
+                process = process_add_form.save(commit=False)
+                process.started = process.start_date
+                process.finished = True
+                process.created_by = request.user
+                process.save() 
+                event = EconomicEvent()
+                event.project = process.project
+                event.event_date = process.end_date
+                event.event_type = process.process_pattern.event_type_for_resource_type("out", resource.resource_type)
+                event.process = process
+                event.resource_type = resource.resource_type 
+                event.quantity = resource.quantity 
+                event.unit_of_quantity = resource.unit_of_quantity 
+                event.resource = resource
+                event.created_by = request.user
+                event.save()
+        elif cite_save:
+            if request.POST['cite-resource']:
+                cr = EconomicResource.objects.get(id=int(request.POST['cite-resource']))
+                citation_event = EconomicEvent()
+                citation_event.event_type = pattern.event_type_for_resource_type("cite", cr.resource_type)
+                citation_event.event_date = process.end_date
+                citation_event.process = process
+                citation_event.project = process.project
+                citation_event.resource = cr
+                citation_event.resource_type = cr.resource_type
+                citation_event.quantity = 1
+                citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
+                citation_event.created_by = request.user
+                citation_event.save()
+
+
+                '''            work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)
+                work_event.event_date = output_event.event_date
+                work_event.process = process
+                work_event.project = output_event.project
+                work_event.is_contribution = True
+                work_event.unit_of_quantity = work_event.resource_type.directional_unit("use")  
+                work_event.from_agent = member
+                work_event.created_by = request.user
+                work_event.save()'''
 
     return render_to_response("valueaccounting/resource.html", {
         "resource": resource,
         "photo_size": (128, 128),
         "process_add_form": process_add_form,
+        "cite_form": cite_form,
+        "work_form": work_form,
     }, context_instance=RequestContext(request))
 
 def get_labnote_context(commitment, request_agent):

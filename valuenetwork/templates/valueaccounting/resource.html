@@ -15,7 +15,9 @@
     padding: 2px 6px 3px 6px;
     border: 1px solid gainsboro;
 }
-
+.btn-info {
+    margin-left: 10px;
+}
 
 
 </style>
@@ -110,7 +112,34 @@
 		            <li><b>{% trans "Event" %}:</b> {{ event.event_type }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
 		            {% if event.process %}
 		            <ul>
-		                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a></li>
+		                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a>
+
+			            <div style="display: inline;" >
+				            <a href="#citeForm" role="button" class="btn btn-info" data-toggle="modal">
+					            {% trans "Add citation" %}
+				            </a>
+			            </div>
+
+			            <div class="modal hide fade" id="citeForm" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+			              <div class="modal-header">
+				            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				            <h3 id="cite-label">{% trans "Add a Citation" %}</h3>
+			              </div>
+			              <div class="modal-body">
+					            <form class="cite-form" action="" method="POST" >
+					              {% csrf_token %}
+                                  {{ cite_form }}  
+						          <div class="modal-footer">
+						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						            <button class="btn btn-primary" name="cite-save" value="cite">{% trans "Save" %}</button>
+					              </div>
+
+					            </form>
+			              </div>
+			            </div>
+
+
+                        </li>
 		                <ul>
 		                    {% for req in event.process.work_requirements %}
 		                        <li><b>{% trans "Workers" %}:</b> {{ req.resource_type }} {% trans "from" %}: {{ req.from_agent }} </li>
@@ -198,7 +227,7 @@
 						
 					  <div class="modal-footer">
 						<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-						<button class="btn btn-primary">{% trans "Save" %}</button>
+						<button class="btn btn-primary" name="process-save" value="process">{% trans "Save" %}</button>
 					  </div>
 					</form>
 			  </div>
@@ -207,4 +236,29 @@
 	    
 	</div>
     </div>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+    function getResources()
+	{
+        var selectedRT = document.getElementById('id_cite-resource_type').value; 
+        var jsonUrl = encodeURI("/accounting/json-resourcetype-resources/" + selectedRT + "/");
+        $("#id_cite-resource").empty();
+	    $.get(jsonUrl,
+		    function(data){
+                for(var i=0 ; i<data.length ; i++)
+                {
+                    var id = data[i]['pk'];
+                    var name = data[i].fields['identifier']; 
+                    $("#id_cite-resource").append('<option value="' + id + '">' + name + '</option>') 
+                }
+		    });
+	}
+
+    </script>
+    
 {% endblock %}

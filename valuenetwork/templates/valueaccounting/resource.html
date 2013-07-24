@@ -117,7 +117,31 @@
 		                        {% if event.process %}
 		                            <ul>
 		                                <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a>
+{% comment %}
+			                            <div style="display: inline;" >
+				                            <a href="#workForm" role="button" class="btn btn-info" data-toggle="modal">
+					                            {% trans "Add work" %}
+				                            </a>
+			                            </div>
 
+			                            <div class="modal hide fade" id="workForm" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+			                              <div class="modal-header">
+				                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				                            <h3 id="work-label">{% trans "Add Work" %}</h3>
+			                              </div>
+			                              <div class="modal-body">
+					                            <form class="cite-form" action="" method="POST" >
+					                              {% csrf_token %}
+                                                  {{ work_form }}  
+						                          <div class="modal-footer">
+						                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+						                            <button class="btn btn-primary" name="work-save" value="cite">{% trans "Save" %}</button>
+					                              </div>
+
+					                            </form>
+			                              </div>
+			                            </div>
+{% endcomment %}
 			                            <div style="display: inline;" >
 				                            <a href="#citeForm" role="button" class="btn btn-info" data-toggle="modal">
 					                            {% trans "Add citation" %}
@@ -141,7 +165,6 @@
 					                            </form>
 			                              </div>
 			                            </div>
-
 
                                         </li>
 		                                <ul>

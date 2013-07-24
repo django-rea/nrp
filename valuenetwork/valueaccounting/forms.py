@@ -50,6 +50,12 @@ class AgentSelectionForm(forms.Form):
         required=False)
 
 
+class AgentWorkSelectionForm(forms.Form):
+    selected_agent = AgentModelChoiceField(
+        queryset=EconomicAgent.objects(all), 
+        label="The member who did the work",
+        required=True)
+
 class ProjectForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     description = forms.CharField(

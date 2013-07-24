@@ -526,13 +526,13 @@ def log_simple(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if output_form.is_valid():
-            output_data = output_form.cleaned_data
+            #output_data = output_form.cleaned_data
             output_event = output_form.save(commit=False)
             if work_form.is_valid():
-                work_data = work_form.cleaned_data
+                #work_data = work_form.cleaned_data
                 work_event = work_form.save(commit=False)
                 if resource_form.is_valid():
-                    resource_data = resource_form.cleaned_data
+                    #resource_data = resource_form.cleaned_data
                     output_resource = resource_form.save(commit=False)
                     
                     process = Process()
@@ -2828,7 +2828,7 @@ def resource(request, resource_id):
     if resource.producing_events(): 
         process = resource.producing_events()[0].process
         pattern = process.process_pattern 
-        #work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
+        work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
         cite_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite', pattern=pattern)
     else:
         form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
@@ -2838,11 +2838,10 @@ def resource(request, resource_id):
         #import pdb; pdb.set_trace()
         process_save = request.POST.get("process-save")
         cite_save = request.POST.get("cite-save")
-        #work_save = request.POST.get("work-save")
+        work_save = request.POST.get("work-save")
         if process_save:
             process_add_form = AddProcessFromResourceForm(data=request.POST)
             if process_add_form.is_valid():
-                #process_data = process_add_form.cleaned_data
                 process = process_add_form.save(commit=False)
                 process.started = process.start_date
                 process.finished = True
@@ -2874,17 +2873,18 @@ def resource(request, resource_id):
                 citation_event.created_by = request.user
                 citation_event.save()
                 cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
-
-
-                '''            work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)
-                work_event.event_date = output_event.event_date
+        elif work_save:
+            if work_form.is_valid():
+                work_event = work_form.save(commit=False)
+                work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)
+                work_event.event_date = process.end_date
                 work_event.process = process
-                work_event.project = output_event.project
+                work_event.project = process.project
                 work_event.is_contribution = True
                 work_event.unit_of_quantity = work_event.resource_type.directional_unit("use")  
-                work_event.from_agent = member
+                work_event.from_agent = request.
                 work_event.created_by = request.user
-                work_event.save()'''
+                work_event.save()
 
     return render_to_response("valueaccounting/resource.html", {
         "resource": resource,

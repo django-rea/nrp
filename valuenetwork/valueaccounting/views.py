@@ -274,23 +274,24 @@ def resource_types(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         selected_values = request.POST["categories"]
-        vals = selected_values.split(",")
-        if vals[0] == "all":
-            select_all = True
-            roots = EconomicResourceType.objects.all()
-        else:
-            select_all = False
-            fvs = []
-            for val in vals:
-                val_split = val.split(":")
-                fname = val_split[0]
-                fvalue = val_split[1].strip()
-                fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
-            #rtfvs = ResourceTypeFacetValue.objects.filter(facet_value__in=fvs)
-            #roots = [rtfv.resource_type for rtfv in rtfvs]
-            #roots = list(set(roots))
-            roots = select_resource_types(fvs)
-            roots.sort(key=lambda rt: rt.label())
+        if selected_values:
+            vals = selected_values.split(",")
+            if vals[0] == "all":
+                select_all = True
+                roots = EconomicResourceType.objects.all()
+            else:
+                select_all = False
+                fvs = []
+                for val in vals:
+                    val_split = val.split(":")
+                    fname = val_split[0]
+                    fvalue = val_split[1].strip()
+                    fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+                #rtfvs = ResourceTypeFacetValue.objects.filter(facet_value__in=fvs)
+                #roots = [rtfv.resource_type for rtfv in rtfvs]
+                #roots = list(set(roots))
+                roots = select_resource_types(fvs)
+                roots.sort(key=lambda rt: rt.label())
     return render_to_response("valueaccounting/resource_types.html", {
         "roots": roots,
         "facets": facets,
@@ -3583,18 +3584,31 @@ def change_process(request, process_id):
         data=request.POST or None,
         prefix='work',
         pattern=pattern)
-    InputFormSet = modelformset_factory(
+    ConsumableFormSet = modelformset_factory(
         Commitment,
-        form=ProcessInputForm,
+        form=ProcessConsumableForm,
         formset=ProcessInputFormSet,
         can_delete=True,
-        extra=4,
+        extra=2,
         )
-    input_formset = InputFormSet(
-        queryset=process.input_commitments(),
+    consumable_formset = ConsumableFormSet(
+        queryset=process.consumed_input_requirements(),
         data=request.POST or None,
-        prefix='input',
+        prefix='consumable',
         pattern=pattern)
+    UsableFormSet = modelformset_factory(
+        Commitment,
+        form=ProcessUsableForm,
+        formset=ProcessInputFormSet,
+        can_delete=True,
+        extra=2,
+        )
+    usable_formset = UsableFormSet(
+        queryset=process.used_input_requirements(),
+        data=request.POST or None,
+        prefix='usable',
+        pattern=pattern)
+        
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         keep_going = request.POST.get("keep-going")
@@ -3727,7 +3741,7 @@ def change_process(request, process_id):
                             ct = form.save()
                             ct.delete() 
 
-            for form in input_formset.forms:
+            for form in consumable_formset.forms:
                 #import pdb; pdb.set_trace()
                 if form.is_valid():
                     explode = False
@@ -3795,12 +3809,12 @@ def change_process(request, process_id):
                                         propagate_changes(pc, delta, existing_demand, demand, [])                    
                             ct.changed_by = request.user
                             rt = input_data["resource_type"]
-                            event_type = pattern.event_type_for_resource_type("in", rt)
+                            event_type = pattern.event_type_for_resource_type("consume", rt)
                             ct.event_type = event_type
                         else:
                             explode = True
                             rt = input_data["resource_type"]
-                            event_type = pattern.event_type_for_resource_type("in", rt)
+                            event_type = pattern.event_type_for_resource_type("consume", rt)
                             ct.event_type = event_type
                             ct.process = process
                             ct.independent_demand = demand
@@ -3812,6 +3826,101 @@ def change_process(request, process_id):
                         ct.save()
                         if explode:
                             explode_dependent_demands(ct, request.user)
+            for form in usable_formset.forms:
+                #import pdb; pdb.set_trace()
+                if form.is_valid():
+                    #probly not needed for usables
+                    explode = False
+                    input_data = form.cleaned_data
+                    qty = input_data["quantity"]
+                    ct_from_id = input_data["id"]
+                    #import pdb; pdb.set_trace()
+                    if not qty:
+                        if ct_from_id:
+                            ct = form.save()
+                            #probly not needed for usables
+                            trash = []
+                            visited_resources = set()
+                            collect_lower_trash(ct, trash, visited_resources)
+                            for proc in trash:
+                                if proc.outgoing_commitments().count() <= 1:
+                                    proc.delete()
+                            #but ct.delete is needed
+                            ct.delete()
+                    else:
+                        ct = form.save(commit=False)
+                        ct.independent_demand = demand
+                        if ct_from_id:
+                            producers = ct.resource_type.producing_commitments()
+                            propagators = []
+                            old_ct = Commitment.objects.get(id=ct_from_id.id)
+                            old_rt = old_ct.resource_type
+                            #probly not needed for usables
+                            explode = True
+                            for pc in producers:
+                                if demand:
+                                    if pc.independent_demand == demand:
+                                        propagators.append(pc) 
+                                        explode = False
+                                    elif pc.independent_demand == existing_demand:
+                                        propagators.append(pc) 
+                                        explode = False
+                                else:
+                                    if pc.due_date == process.start_date:
+                                        if pc.quantity == old_ct.quantity:
+                                            propagators.append(pc)
+                                            explode = False 
+                            if ct.resource_type != old_rt:
+                                old_ct.delete()
+                                #todo: needed for usables?
+                                for ex_ct in old_rt.producing_commitments():
+                                    if demand == ex_ct.independent_demand:
+                                        trash = []
+                                        visited_resources = set()
+                                        collect_trash(ex_ct, trash, visited_resources)
+                                        for proc in trash:
+                                            #todo: feeder process with >1 outputs 
+                                            # shd find the correct output to delete
+                                            # and keep the others
+                                            if proc.outgoing_commitments().count() <= 1:
+                                                proc.delete()
+                                explode = True                                 
+                            elif qty != old_ct.quantity:
+                                delta = qty - old_ct.quantity
+                                #probly not needed for usables
+                                for pc in propagators:
+                                    if demand != existing_demand:
+                                        propagate_changes(pc, delta, existing_demand, demand, [])
+                                    else:
+                                        propagate_qty_change(pc, delta, []) 
+                            else:
+                                #probly not needed for usables
+                                if demand != existing_demand:
+                                    delta = Decimal("0")
+                                    for pc in propagators:
+                                        propagate_changes(pc, delta, existing_demand, demand, [])                    
+                            ct.changed_by = request.user
+                            rt = input_data["resource_type"]
+                            event_type = pattern.event_type_for_resource_type("use", rt)
+                            ct.event_type = event_type
+                        else:
+                            explode = True
+                            rt = input_data["resource_type"]
+                            event_type = pattern.event_type_for_resource_type("use", rt)
+                            ct.event_type = event_type
+                            ct.process = process
+                            ct.independent_demand = demand
+                            ct.due_date = process.start_date
+                            ct.created_by = request.user
+                            ptrt = ct.resource_type.main_producing_process_type_relationship()
+                            if ptrt:
+                                ct.project = ptrt.process_type.project
+                        ct.save()
+                        #probly not needed for usables
+                        #if explode:
+                        #    explode_dependent_demands(ct, request.user)
+
+                
             if just_save:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/process', process.id))
@@ -3825,7 +3934,8 @@ def change_process(request, process_id):
         "process_form": process_form,
         "output_formset": output_formset,
         "citation_formset": citation_formset,
-        "input_formset": input_formset,
+        "consumable_formset": consumable_formset,
+        "usable_formset": usable_formset,
         "work_formset": work_formset,
     }, context_instance=RequestContext(request))
 

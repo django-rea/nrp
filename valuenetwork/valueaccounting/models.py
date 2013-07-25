@@ -185,7 +185,7 @@ ACTIVITY_CHOICES = (
     ('active', _('active contributor')),
     ('affiliate', _('close affiliate')),
     ('inactive', _('inactive contributor')),
-    ('agent', _('active agent')),
+    #('agent', _('active agent')),
     ('passive', _('passive agent')),
     ('external', _('external agent')),
 )
@@ -226,6 +226,8 @@ class AgentManager(models.Manager):
                 ua_ids.append(agent.id)
         return EconomicAgent.objects.exclude(id__in=ua_ids)
 
+    def active_contributors(self):
+        return EconomicAgent.objects.filter(agent_type__member_type="active")
 
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)

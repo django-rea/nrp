@@ -50,9 +50,9 @@ class AgentSelectionForm(forms.Form):
         required=False)
 
 
-class AgentWorkSelectionForm(forms.Form):
+class AgentContributorSelectionForm(forms.Form):
     selected_agent = AgentModelChoiceField(
-        queryset=EconomicAgent.objects(all), 
+        queryset=EconomicAgent.objects.active_contributors(), 
         label="The member who did the work",
         required=True)
 

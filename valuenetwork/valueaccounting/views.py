@@ -2829,13 +2829,14 @@ def resource(request, resource_id):
         process = resource.producing_events()[0].process
         pattern = process.process_pattern 
         work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
+        agent_form = AgentContributorSelectionForm(data=request.POST or None)
         cite_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite', pattern=pattern)
     else:
         form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
         process_add_form = AddProcessFromResourceForm(form_data)    
     
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         process_save = request.POST.get("process-save")
         cite_save = request.POST.get("cite-save")
         work_save = request.POST.get("work-save")
@@ -2882,7 +2883,7 @@ def resource(request, resource_id):
                 work_event.project = process.project
                 work_event.is_contribution = True
                 work_event.unit_of_quantity = work_event.resource_type.directional_unit("use")  
-                work_event.from_agent = request.
+                work_event.from_agent = EconomicAgent.objects.get(id=int(request.POST['selected_agent']))
                 work_event.created_by = request.user
                 work_event.save()
 
@@ -2892,6 +2893,7 @@ def resource(request, resource_id):
         "process_add_form": process_add_form,
         "cite_form": cite_form,
         "work_form": work_form,
+        "agent_form": agent_form,
     }, context_instance=RequestContext(request))
 
 def get_labnote_context(commitment, request_agent):

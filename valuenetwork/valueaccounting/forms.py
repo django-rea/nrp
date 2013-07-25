@@ -321,7 +321,7 @@ class WorkModelChoiceField(forms.ModelChoiceField):
 class TodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=False,
-        queryset=EconomicAgent.objects.filter(agent_type__member_type='agent'),
+        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
         label="Assigned to",  
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))

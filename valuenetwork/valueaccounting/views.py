@@ -2837,7 +2837,7 @@ def resource(request, resource_id):
         process_add_form = AddProcessFromResourceForm(form_data)    
     
     if request.method == "POST":
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         process_save = request.POST.get("process-save")
         cite_save = request.POST.get("cite-save")
         work_save = request.POST.get("work-save")

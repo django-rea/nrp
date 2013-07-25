@@ -434,8 +434,9 @@ class SelectCitationResourceForm(forms.Form):
     def __init__(self, pattern, *args, **kwargs):
         #import pdb; pdb.set_trace()
         super(SelectCitationResourceForm, self).__init__(*args, **kwargs)
-        self.pattern = pattern
-        self.fields["resource_type"].queryset = pattern.citables_with_resources()
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.citables_with_resources()
  
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

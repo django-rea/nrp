@@ -2820,6 +2820,7 @@ def todo_history(request):
 def resource(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     process_add_form = None
+    agent_form = None
     work_form = None
     cite_form = None
     process = None

@@ -1,12 +1,16 @@
 {% extends "site_base.html" %}
 
+{% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
 {% load thumbnail %}
 
 {% block head_title %}{% trans "Resource Type" %}:  {{ resource_type.name }}{% endblock %}
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
 {% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
 
@@ -160,6 +164,7 @@ container li {
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 {% block extra_body %}
 	{{ block.super }}
@@ -167,7 +172,22 @@ container li {
 
 	$(document).ready(function(){
 
+	    function html_unescape(text) {
+            // Unescape a string that was escaped using django.utils.html.escape.
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            text = text.replace(/&amp;/g, '&');
+            return text;
+        }
+
+        var nameArray = html_unescape("{{ resource_names }}").split("~");
+
+
 		$('#resource-types').addClass('active');
+
+		$("select").chosen();
 
 		$( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
@@ -186,13 +206,34 @@ container li {
 			}
 		});
 
-                jQuery.validator.setDefaults({ 
-                    success: function(label) {
-				        label
-					        .text('').addClass('valid')
-					        .closest('.control-group').addClass('success');
-			        }
-                });
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
+
+        $(".existing-name").change(setupUniqueTest);
+
+        function setupUniqueTest(event)
+        {
+            var field = event.target;
+            var oldValue = field.defaultValue;
+            var newValue = field.value;
+            if (newValue != oldValue)
+            {
+                var fieldId = "#" + field.id;
+                $(fieldId).addClass("unique-name");
+            }
+        }
+
+        jQuery.validator.addMethod("unique", function(value, element, param) {
+            return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
+        }, "Name is not unique.");
+
+        $.validator.addClassRules("url", { url: true });
+        $.validator.addClassRules("unique-name", { required: true, unique: nameArray });
 
 		$('.category').click(function() 
 		{
@@ -245,17 +286,6 @@ container li {
 		$('.resource-change-form').each( function(){
 			var form = $(this);
 			form.validate({
-				rules: {
-					name: {
-						required: true
-					},
-					url: {
-						url: true
-					},
-					rate: {
-						number: true
-					}
-				},
 				highlight: function(label) {
 					$(label).closest('.control-group').addClass('error');
 				}

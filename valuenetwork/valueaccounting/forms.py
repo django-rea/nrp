@@ -797,6 +797,8 @@ class EconomicResourceTypeForm(forms.ModelForm):
 class EconomicResourceTypeChangeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'existing-name input-xlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    unit = forms.ModelChoiceField(
+        queryset=Unit.objects.all())
     
     class Meta:
         model = EconomicResourceType

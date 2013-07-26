@@ -2257,9 +2257,6 @@ class Commitment(models.Model):
             self.due_date.strftime('%Y-%m-%d'),
         ])
         unique_slugify(self, slug)
-        #if self.id:
-        #    prev = Commitment.objects.get(id=self.id)
-        #    import pdb; pdb.set_trace()
         super(Commitment, self).save(*args, **kwargs)
 
     def label(self):

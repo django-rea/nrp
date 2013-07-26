@@ -3584,7 +3584,7 @@ def change_process(request, process_id):
         prefix='citation',
         pattern=pattern)
     WorkFormSet = modelformset_factory(
-        Commitment,
+        model=Commitment,
         form=ProcessWorkForm,
         formset=ProcessWorkFormSet,
         can_delete=True,

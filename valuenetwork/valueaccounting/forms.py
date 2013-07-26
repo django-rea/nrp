@@ -13,8 +13,6 @@ from valuenetwork.valueaccounting.widgets import DurationWidget, DecimalDuration
 
 class FacetedModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        #if obj.name == "Optical - Poke transducer":
-        #    import pdb; pdb.set_trace()
         return ": ".join([obj.name, obj.facet_values_list()])
 
 
@@ -582,7 +580,7 @@ class WorkCommitmentForm(forms.ModelForm):
 
 class ProcessWorkForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.all(),
+        queryset=EconomicResourceType.objects.none(),
         label="Type of work",
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 

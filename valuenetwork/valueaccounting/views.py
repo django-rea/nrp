@@ -2832,7 +2832,9 @@ def resource(request, resource_id):
     #import pdb; pdb.set_trace()
     if resource.producing_events(): 
         process = resource.producing_events()[0].process
-        pattern = process.process_pattern 
+        pattern = None
+        if process:
+            pattern = process.process_pattern 
         work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
         agent_form = AgentContributorSelectionForm(data=request.POST or None)
         cite_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite', pattern=pattern)

@@ -439,7 +439,7 @@ class EconomicResourceType(models.Model):
         return EconomicResourceTypeWithPopupForm
 
     def save(self, *args, **kwargs):
-        unique_slugify(self, self.name)
+        #unique_slugify(self, self.name)
         super(EconomicResourceType, self).save(*args, **kwargs)
 
     def children(self):

@@ -1847,10 +1847,13 @@ class Process(models.Model):
             event_type__relationship='out',
             quality__lt=0)
 
-    def inputs(self):
-        #todo: does not include work. Shd it?
+    def consumed_inputs(self):
         return self.events.filter(
-            event_type__relationship='in')
+            event_type__relationship='consume')
+
+    def used_inputs(self):
+        return self.events.filter(
+            event_type__relationship='use')
 
     def citations(self):
         return self.events.filter(
@@ -1870,13 +1873,18 @@ class Process(models.Model):
                 answer.append(event)
         return answer
 
+    def inputs_consumed_by_agent(self, agent):
+        answer = []
+        for event in self.consumed_inputs():
+            if event.to_agent == agent:
+                answer.append(event)
+        return answer
+
     def inputs_used_by_agent(self, agent):
         answer = []
-        for event in self.inputs():
-            #todo: inputs do not include work anyway
+        for event in self.used_inputs():
             if event.to_agent == agent:
-                if event.event_type.relationship != 'work':
-                    answer.append(event)
+                answer.append(event)
         return answer
 
     def failed_output_qty(self):

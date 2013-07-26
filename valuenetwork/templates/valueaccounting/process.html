@@ -126,7 +126,7 @@
 		{% endif %}
 
         {% if process.consumed_input_requirements or process.uncommitted_consumption_events %}
-		    <h3 style="margin-bottom: 4px;" >{% trans "Consumed Inputs" %}:</h3>
+		    <h3 style="margin-bottom: 4px;" >{% trans "Consumable Inputs" %}:</h3>
 		    {% for item in process.consumed_input_requirements %}
 			    <p>
 				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
@@ -175,7 +175,7 @@
 		{% endif %}
 
 		{% if process.used_input_requirements or process.uncommitted_use_events %}
-		    <h3 style="margin-bottom: 4px;" >{% trans "Used Inputs" %}:</h3>
+		    <h3 style="margin-bottom: 4px;" >{% trans "Usable Inputs" %}:</h3>
 		    {% for item in process.used_input_requirements %}
 			    <p>
 				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}

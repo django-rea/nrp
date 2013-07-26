@@ -2561,17 +2561,20 @@ def create_past_work_context(
                 else:
                     other_work_reqs.append(wrq)
     failure_form = FailedOutputForm()
+
     if process.process_pattern:
         pattern = process.process_pattern
         add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
         add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
-        add_input_form = ProcessInputForm(prefix='input', pattern=pattern)
+        add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
+        add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
         add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
     else:
         add_output_form = ProcessOutputForm(prefix='output')
         add_citation_form = ProcessCitationForm(prefix='citation')
-        add_input_form = ProcessInputForm(prefix='input')
-        add_work_form = WorkCommitmentForm(prefix='work') 
+        add_consumable_form = ProcessConsumableForm(prefix='consumable')
+        add_usable_form = ProcessUsableForm(prefix='usable')
+        add_work_form = WorkCommitmentForm(prefix='work')
     cited_ids = [c.resource.id for c in process.citations()]
     return {
         "commitment": commitment,
@@ -2582,7 +2585,8 @@ def create_past_work_context(
         "failure_form": failure_form,
         "add_output_form": add_output_form,
         "add_citation_form": add_citation_form,
-        "add_input_form": add_input_form,
+        "add_consumable_form": add_consumable_form,
+        "add_usable_form": add_usable_form,
         "add_work_form": add_work_form,
         "duration": duration,
         "prev": prev,
@@ -2906,7 +2910,8 @@ def get_labnote_context(commitment, request_agent):
     work_events = commitment.fulfilling_events()
     outputs = process.outputs_from_agent(agent)
     failures = process.failures_from_agent(agent)
-    inputs = process.inputs_used_by_agent(agent)
+    consumed = process.inputs_consumed_by_agent(agent)
+    used = process.inputs_used_by_agent(agent)
     citations = process.citations_by_agent(agent)
     return {
         "commitment": commitment,
@@ -2915,7 +2920,8 @@ def get_labnote_context(commitment, request_agent):
         "work_events": work_events,
         "outputs": outputs,
         "failures": failures,
-        "inputs": inputs,
+        "consumed": consumed,
+        "used": used,
         "citations": citations,
     }
     
@@ -3075,42 +3081,43 @@ def consumption_event_for_commitment(request):
     agent = get_agent(request)
     #import pdb; pdb.set_trace()
     quantity = Decimal(quantity)
-    event = None
-    events = ct.fulfillment_events.filter(resource=resource)
-    if events:
-        event = events[events.count() - 1]
-    if event:
-        if event.quantity != quantity:
-            delta = event.quantity - quantity
-            event.quantity = quantity
-            event.changed_by = request.user
+    if quantity:
+        event = None
+        events = ct.fulfillment_events.filter(resource=resource)
+        if events:
+            event = events[events.count() - 1]
+        if event:
+            if event.quantity != quantity:
+                delta = event.quantity - quantity
+                event.quantity = quantity
+                event.changed_by = request.user
+                event.save()
+                if event.resource:
+                    if ct.consumes_resources():
+                        resource = event.resource
+                        resource.quantity += delta
+                        resource.changed_by=request.user
+                        resource.save()
+        else:
+            if ct.consumes_resources():    
+                resource.quantity -= quantity
+                resource.changed_by=request.user
+                resource.save()
+            event = EconomicEvent(
+                resource = resource,
+                commitment = ct,
+                event_date = event_date,
+                event_type = ct.event_type,
+                to_agent = agent,
+                resource_type = ct.resource_type,
+                process = ct.process,
+                project = ct.project,
+                quantity = quantity,
+                unit_of_quantity = ct.unit_of_quantity,
+                created_by = request.user,
+                changed_by = request.user,
+            )
             event.save()
-            if event.resource:
-                if ct.consumes_resources():
-                    resource = event.resource
-                    resource.quantity += delta
-                    resource.changed_by=request.user
-                    resource.save()
-    else:
-        if ct.consumes_resources():    
-            resource.quantity -= quantity
-            resource.changed_by=request.user
-            resource.save()
-        event = EconomicEvent(
-            resource = resource,
-            commitment = ct,
-            event_date = event_date,
-            event_type = ct.event_type,
-            to_agent = agent,
-            resource_type = ct.resource_type,
-            process = ct.process,
-            project = ct.project,
-            quantity = quantity,
-            unit_of_quantity = ct.unit_of_quantity,
-            created_by = request.user,
-            changed_by = request.user,
-        )
-        event.save()
 
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")

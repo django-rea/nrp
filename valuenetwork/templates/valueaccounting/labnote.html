@@ -84,9 +84,17 @@
 					{% endfor %}
 				{% endif %}
 
-				{% if inputs %}
+				{% if consumed %}
+					<h3>{% trans "Inputs consumed by " %} {{ commitment.from_agent.name }}:</h3>
+					{% for event in consumed %}
+						<p>{{ event.event_date }} {{ event.resource }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
+					{% endfor %}
+				{% endif %}
+
+
+				{% if used %}
 					<h3>{% trans "Inputs used by " %} {{ commitment.from_agent.name }}:</h3>
-					{% for event in inputs %}
+					{% for event in used %}
 						<p>{{ event.event_date }} {{ event.resource }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}</p>
 					{% endfor %}
 				{% endif %}

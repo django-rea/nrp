@@ -4447,6 +4447,7 @@ def process_selections(request, rand=0):
     selected_pattern = None
     selected_project = None
     pattern_form = PatternProdSelectionForm()
+    #import pdb; pdb.set_trace()
     project_form = ProjectSelectionForm()
     init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
     date_form = DateSelectionForm(data=request.POST or None)

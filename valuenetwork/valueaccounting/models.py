@@ -219,6 +219,7 @@ class AgentType(models.Model):
 class AgentManager(models.Manager):
 
     def without_user(self):
+        #import pdb; pdb.set_trace()
         all_agents = EconomicAgent.objects.all()
         ua_ids = []
         for agent in all_agents:

@@ -132,7 +132,7 @@ class RandOrderForm(forms.ModelForm):
 class ProcessForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.production_patterns(),
+        queryset=ProcessPattern.objects.none(),
         empty_label=None)
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -140,6 +140,10 @@ class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
         fields = ('name', 'project', 'process_pattern', 'start_date', 'end_date', 'notes' )
+
+    def __init__(self, *args, **kwargs):
+        super(ProcessForm, self).__init__(*args, **kwargs)
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()  
 
 
 class NamelessProcessForm(forms.ModelForm):
@@ -158,7 +162,7 @@ class AddProcessFromResourceForm(forms.ModelForm):
         required=False,
         empty_label=None)
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.production_patterns(),
+        queryset=ProcessPattern.objects.none(),
         required=False,
         empty_label=None)
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -167,6 +171,10 @@ class AddProcessFromResourceForm(forms.ModelForm):
     class Meta:
         model = Process
         fields = ('name', 'project', 'process_pattern', 'start_date', 'end_date')
+
+    def __init__(self, *args, **kwargs):
+        super(AddProcessFromResourceForm, self).__init__(*args, **kwargs)
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()
 
 
 class ProcessInputForm(forms.ModelForm):
@@ -697,10 +705,14 @@ class PatternSelectionForm(forms.Form):
 
 class PatternProdSelectionForm(forms.Form):
     pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.production_patterns(),
+        queryset=ProcessPattern.objects.none(),
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
+
+    def __init__(self, *args, **kwargs):
+        super(PatternProdSelectionForm, self).__init__(*args, **kwargs)
+        self.fields["pattern"].queryset = ProcessPattern.objects.production_patterns()    
 
 
 class CasualTimeContributionForm(forms.ModelForm):
@@ -864,7 +876,7 @@ class AgentResourceTypeForm(forms.ModelForm):
 
 class XbillProcessTypeForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.production_patterns(), 
+        queryset=ProcessPattern.objects.none(), 
         empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
@@ -879,6 +891,10 @@ class XbillProcessTypeForm(forms.ModelForm):
     class Meta:
         model = ProcessType
         exclude = ('parent',)
+
+    def __init__(self, *args, **kwargs):
+        super(XbillProcessTypeForm, self).__init__(*args, **kwargs)
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()  
 
 
 class ChangeProcessTypeForm(forms.ModelForm):

@@ -287,9 +287,6 @@ def resource_types(request):
                     fname = val_split[0]
                     fvalue = val_split[1].strip()
                     fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
-                #rtfvs = ResourceTypeFacetValue.objects.filter(facet_value__in=fvs)
-                #roots = [rtfv.resource_type for rtfv in rtfvs]
-                #roots = list(set(roots))
                 roots = select_resource_types(fvs)
                 roots.sort(key=lambda rt: rt.label())
     return render_to_response("valueaccounting/resource_types.html", {
@@ -515,89 +512,90 @@ def log_simple(request):
     if not member:
         return HttpResponseRedirect('/%s/'
             % ('accounting/start')) 
-
     pattern = PatternUseCase.objects.get(use_case='design').pattern  #assumes only one pattern is assigned to design
-
     output_form = SimpleOutputForm(data=request.POST or None)
     resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
     work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
     citations_select_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite', pattern=pattern)
+    rt_create_form = EconomicResourceTypeAjaxForm()
+    rtf_create_formset = create_patterned_facet_formset(pattern=pattern, slot="out")
+    facets = pattern.output_facets()
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        if output_form.is_valid():
-            #output_data = output_form.cleaned_data
-            output_event = output_form.save(commit=False)
-            if work_form.is_valid():
-                #work_data = work_form.cleaned_data
-                work_event = work_form.save(commit=False)
-                if resource_form.is_valid():
-                    #resource_data = resource_form.cleaned_data
-                    output_resource = resource_form.save(commit=False)
-                    
-                    process = Process()
-                    process.name = 'Create ' + output_resource.identifier
-                    process.project = output_event.project
-                    process.start_date = output_event.event_date
-                    process.end_date = output_event.event_date
-                    process.started = output_event.event_date
-                    process.finished = True
-                    process.created_by = request.user
-                    process.save()                    
-                    
-                    output_resource.quantity = 1
-                    output_resource.unit_of_quantity = output_resource.resource_type.directional_unit("out") 
-                    #output_resource.author = member
-                    output_resource.created_by = request.user
-                    output_resource.save()
-
-                    output_event.event_type = pattern.event_type_for_resource_type("out", output_resource.resource_type)
-                    output_event.process = process
-                    output_event.resource_type = output_resource.resource_type 
-                    output_event.quantity = output_resource.quantity 
-                    output_event.unit_of_quantity = output_resource.unit_of_quantity 
-                    output_event.resource = output_resource
-                    output_event.from_agent = member
-                    output_event.created_by = request.user
-                    output_event.save()
-
-                    work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)
-                    work_event.event_date = output_event.event_date
-                    work_event.process = process
-                    work_event.project = output_event.project
-                    work_event.is_contribution = True
-                    work_event.unit_of_quantity = work_event.resource_type.directional_unit("use")  
-                    work_event.from_agent = member
-                    work_event.created_by = request.user
-                    work_event.save()
-
-                    #import pdb; pdb.set_trace()
-                    citation_resources = request.POST.getlist("citation")
-                    if citation_resources:
-                        for cr_id in citation_resources:
-                            cr = EconomicResource.objects.get(id=int(cr_id))
-                            citation_event = EconomicEvent()
-                            citation_event.event_type = pattern.event_type_for_resource_type("cite", cr.resource_type)
-                            citation_event.event_date = output_event.event_date
-                            citation_event.process = process
-                            citation_event.project = output_event.project
-                            citation_event.resource = cr
-                            citation_event.resource_type = cr.resource_type
-                            citation_event.quantity = 1
-                            citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
-                            citation_event.from_agent = member
-                            citation_event.created_by = request.user
-                            citation_event.save()
-
-                    return HttpResponseRedirect('/%s/'
-                        % ('accounting/start'))
-
-                else:
-                    raise ValidationError(resource_form.errors)
-            else:
-                raise ValidationError(work_form.errors)
+        if save-rt:
+            x = request.POST['save-rt']
         else:
-            raise ValidationError(output_form.errors)
+            if output_form.is_valid():
+                output_event = output_form.save(commit=False)
+                if work_form.is_valid():
+                    work_event = work_form.save(commit=False)
+                    if resource_form.is_valid():
+                        output_resource = resource_form.save(commit=False)
+                        
+                        process = Process()
+                        process.name = 'Create ' + output_resource.identifier
+                        process.project = output_event.project
+                        process.start_date = output_event.event_date
+                        process.end_date = output_event.event_date
+                        process.started = output_event.event_date
+                        process.finished = True
+                        process.created_by = request.user
+                        process.save()                    
+                        
+                        output_resource.quantity = 1
+                        output_resource.unit_of_quantity = output_resource.resource_type.directional_unit("out") 
+                        #output_resource.author = member
+                        output_resource.created_by = request.user
+                        output_resource.save()
+
+                        output_event.event_type = pattern.event_type_for_resource_type("out", output_resource.resource_type)
+                        output_event.process = process
+                        output_event.resource_type = output_resource.resource_type 
+                        output_event.quantity = output_resource.quantity 
+                        output_event.unit_of_quantity = output_resource.unit_of_quantity 
+                        output_event.resource = output_resource
+                        output_event.from_agent = member
+                        output_event.created_by = request.user
+                        output_event.save()
+
+                        work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)
+                        work_event.event_date = output_event.event_date
+                        work_event.process = process
+                        work_event.project = output_event.project
+                        work_event.is_contribution = True
+                        work_event.unit_of_quantity = work_event.resource_type.directional_unit("use")  
+                        work_event.from_agent = member
+                        work_event.created_by = request.user
+                        work_event.save()
+
+                        #import pdb; pdb.set_trace()
+                        citation_resources = request.POST.getlist("citation")
+                        if citation_resources:
+                            for cr_id in citation_resources:
+                                cr = EconomicResource.objects.get(id=int(cr_id))
+                                citation_event = EconomicEvent()
+                                citation_event.event_type = pattern.event_type_for_resource_type("cite", cr.resource_type)
+                                citation_event.event_date = output_event.event_date
+                                citation_event.process = process
+                                citation_event.project = output_event.project
+                                citation_event.resource = cr
+                                citation_event.resource_type = cr.resource_type
+                                citation_event.quantity = 1
+                                citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
+                                citation_event.from_agent = member
+                                citation_event.created_by = request.user
+                                citation_event.save()
+
+                        return HttpResponseRedirect('/%s/'
+                            % ('accounting/start'))
+
+                    else:
+                        raise ValidationError(resource_form.errors)
+                else:
+                    raise ValidationError(work_form.errors)
+            else:
+                raise ValidationError(output_form.errors)
 
     return render_to_response("valueaccounting/log_simple.html", {
         "member": member,
@@ -605,6 +603,9 @@ def log_simple(request):
         "work_form": work_form,
         "resource_form":resource_form,
         "citations_select_form": citations_select_form,
+        "rt_create_form": rt_create_form,
+        "rtf_create_formset": rtf_create_formset,
+        "facets": facets,
     }, context_instance=RequestContext(request))
 
 def json_resource_type_resources(request, resource_type_id):
@@ -1083,6 +1084,30 @@ def create_resource_type_ajax(request):
         rt.created_by=request.user
         rt.save()
         formset = process_type.create_facet_formset_filtered(data=request.POST, pre=rtf_prefix, slot=slot)
+        for form_rtfv in formset.forms:
+            if form_rtfv.is_valid():
+                data_rtfv = form_rtfv.cleaned_data
+                fv = FacetValue.objects.get(id=data_rtfv["value"])
+                if fv:
+                    rtfv = ResourceTypeFacetValue()
+                    rtfv.resource_type = rt
+                    rtfv.facet_value = fv
+                    rtfv.save()
+        return_data = serializers.serialize("json", EconomicResourceType.objects.filter(id=rt.id), fields=('id','name',)) 
+        return HttpResponse(return_data, mimetype="text/json-comment-filtered")
+    else:
+        return HttpResponse(form.errors, mimetype="text/json-comment-filtered")
+
+@login_required
+def create_resource_type_simple_patterned_ajax(request):
+    import pdb; pdb.set_trace()
+    form = EconomicResourceTypeAjaxForm(request.POST, request.FILES)
+    if form.is_valid():
+        data = form.cleaned_data
+        rt = form.save(commit=False)                    
+        rt.created_by=request.user
+        rt.save()
+        formset = create_patterned_facet_formset(data=request.POST)
         for form_rtfv in formset.forms:
             if form_rtfv.is_valid():
                 data_rtfv = form_rtfv.cleaned_data
@@ -4773,6 +4798,24 @@ def create_facet_formset(data=None):
         form.facet_name = facet.name
         fvs = facet.values.all()
         choices = [('', '----------')] + [(fv.id, fv.value) for fv in fvs]
+        form.fields["value"].choices = choices
+    return formset
+
+def create_patterned_facet_formset(pattern, slot, data=None):
+    RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
+    init = []
+    facets = pattern.facets_by_relationship(slot)
+    for facet in facets:
+        d = {"facet_id": facet.id,}
+        init.append(d)
+    formset = RtfvFormSet(initial=init, data=data)
+    for form in formset:
+        id = int(form["facet_id"].value())
+        facet = Facet.objects.get(id=id)
+        form.facet_name = facet.name
+        fvs = pattern.facet_values_for_facet(facet)
+        fvs = list(set(fvs))
+        choices = [(fv.id, fv.value) for fv in fvs]
         form.fields["value"].choices = choices
     return formset
     

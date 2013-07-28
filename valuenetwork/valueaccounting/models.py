@@ -921,6 +921,10 @@ class ProcessPattern(models.Model):
         facets = [pfv.facet_value.facet for pfv in self.work_facet_values()]
         return list(set(facets))
 
+    def output_facets(self):
+        facets = [pfv.facet_value.facet for pfv in self.output_facet_values()]
+        return list(set(facets))
+
     def event_type_for_resource_type(self, relationship, resource_type):
         rt_fvs = [x.facet_value for x in resource_type.facets.all()]
         pfvs = self.facet_values_for_relationship(relationship)

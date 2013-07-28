@@ -555,7 +555,7 @@ ul {
 							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 							                    <input type="submit" name="submit" id="in~{{ xbill_usable_prefix }}" value="{% trans 'Save changes' %}" class="btn btn-primary save-resource-type" /> 
 							                    {% comment %}
-							                    <button class="btn btn-primary save-resource-type" id="in~{{ xbill_usable_prefix }}">{% trans "Save changes" %}</button>
+							                    <button class="btn btn-primary save-resource-type" id="in~{{ xbill_usable_prefix }}">{% trans "Save" %}</button>
 							                    {% endcomment %}
                                                 <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
                                                 <input type="hidden" name="slot" value="in" />
@@ -623,7 +623,7 @@ ul {
 
 						                      <div class="modal-footer">
 							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							                    <button type="submit" class="btn btn-primary save-resource-type" id="cite~{{ citable_prefix }}">{% trans "Save changes" %}</button>
+							                    <button type="submit" class="btn btn-primary save-resource-type" id="cite~{{ citable_prefix }}">{% trans "Save" %}</button>
                                                 <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
                                                 <input type="hidden" name="slot" value="cite" />
 						                      </div>

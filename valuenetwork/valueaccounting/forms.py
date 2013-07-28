@@ -506,15 +506,12 @@ class SimpleOutputForm(forms.ModelForm):
 
 # used in log_simple()
 class SimpleOutputResourceForm(forms.ModelForm):
-    resource_type = forms.ModelChoiceField(
+    resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
         label="Type of resource created",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
-        #widget=SelectWithPopUp(
-        #    model=EconomicResourceType,
-        #    attrs={'class': 'resource-type-selector chzn-select'})) 
+            attrs={'class': 'resource-type-selector chzn-select'}))
     identifier = forms.CharField(
         required=True, 
         label="Name",
@@ -536,7 +533,7 @@ class SimpleOutputResourceForm(forms.ModelForm):
     def __init__(self, pattern, *args, **kwargs):
         super(SimpleOutputResourceForm, self).__init__(*args, **kwargs)
         self.pattern = pattern
-        self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.output_resource_types()]
+        self.fields["resource_type"].queryset = pattern.output_resource_types()
 
 class SimpleWorkForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(

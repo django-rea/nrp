@@ -1,7 +1,6 @@
 {% extends "site_base.html" %}
 
 {% load i18n %}
-{% load url from future %}
 {% load bootstrap_tags %}
 {% load staticfiles %}
 
@@ -19,7 +18,7 @@
 	width: 90%;
     height: 4em;
 }
-.url, .item-name
+.url, .item-name, .resource-type-selector
 {
   width: 90%;
 }
@@ -68,8 +67,44 @@
             <div class="span6">
 				<legend class="section">{% trans "Resource Created" %}:</legend>
 				{{ output_form|as_bootstrap }}
-				{{ resource_form|as_bootstrap }}
+                <p>Type of resource created</p>
+				<p>{{ resource_form.resource_type }}
+                <a href="#createResourceForm" role="button" class="add-another" data-toggle="modal">
+                    <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img></a> </p>
+                <p>Name</p>
+                <p>{{ resource_form.identifier }}</p> 
+                <p>URL</p>
+                <p>{{ resource_form.url }}</p>
+                <p>Notes</p>
+                <p>{{ resource_form.notes }}</p>
+
+                <!--modal for adding resource type-->
+				<div class="modal hide fade" id="createResourceForm" tabindex="-1" role="dialog" aria-labelledby="resource-create-label" aria-hidden="true">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						<h3 id="resource-create-label">{% trans "Create a new Resource Type" %}</h3>
+					</div>
+					<div class="modal-body">
+						<form class="resource-create-form" id="rtCreateForm" action="" enctype="multipart/form-data" method="POST" >
+							{% csrf_token %}
+							{{ rt_create_form|as_bootstrap }}
+                            {{ rtf_create_formset.management_form }}
+                            <table>
+                                {% for form in rtf_create_formset %}
+                                    <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                                {% endfor %}
+                            </table>
+                            <input type="hidden" name="slot" value="out" />
+						    <div class="modal-footer">
+							    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+							    <button class="btn btn-primary" id="save-rt">{% trans "Save" %}</button>
+						    </div>
+						</form>
+				    </div>
+                </div>
+                
             </div>
+
             <div class="span6">
 				<legend class="section" >{% trans "Work Done" %}:</legend>
 				{{ work_form|as_bootstrap }}
@@ -168,6 +203,58 @@
 			},
 		});
 
+/*		$('#rtCreateForm').validate(
+		{
+			rules: {
+				name: {
+					required: true,
+					unique: nameArray
+				},
+				url: {
+					url: true
+				},
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			}
+
+		});*/
+
+        $('#save-rt').click(function(event) {
+            event.preventDefault();
+            var btn = event.target;
+		    var $form = $("#rtCreateForm");
+		    //if ($form.valid())
+		    //{
+                alert("valid");
+		        var formData = $form.serialize();
+		        var selId = "#id_resource_type";
+		        var modalId = "#createResourceForm";
+		        var modal = $(modalId);
+                var url = "{%url create_resource_type_simple_patterned_ajax %}";
+                alert(formData);
+		        var jqxhr = $.post( url, formData,
+			        function( data ) {
+                        for(var i=0 ; i<data.length ; i++) //will be only one
+                        {
+                            var id = data[i]['pk'];
+                            var name = data[i].fields['name']; 
+                            var selx = $(selId);
+                            selx.append('<option value="' + id + '" selected="selected">' + name + '</option>');
+                            selx.trigger("liszt:updated");
+                            selx.trigger("change");
+                        }
+                        $(modalId).modal('hide');
+                        $form.trigger( "reset" );
+			        })
+			        .fail(function() 
+			        { 
+				        alert("Check your name field.");
+			        }
+		        );
+	       // }
+		});
+
     }); // end document.ready
 
     function getResources()
@@ -196,7 +283,6 @@
             "' class='btn btn-warning btn-mini' title='remove' onclick='$(this).parent().remove(); return false;'>{% trans 'Remove' %}</button></li>");
         $('#addCiteModal').modal('hide');
     }
-
 
     </script>
     

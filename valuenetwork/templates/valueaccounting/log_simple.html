@@ -77,32 +77,6 @@
                 <p>{{ resource_form.url }}</p>
                 <p>Notes</p>
                 <p>{{ resource_form.notes }}</p>
-
-                <!--modal for adding resource type-->
-				<div class="modal hide fade" id="createResourceForm" tabindex="-1" role="dialog" aria-labelledby="resource-create-label" aria-hidden="true">
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-						<h3 id="resource-create-label">{% trans "Create a new Resource Type" %}</h3>
-					</div>
-					<div class="modal-body">
-						<form class="resource-create-form" id="rtCreateForm" action="" enctype="multipart/form-data" method="POST" >
-							{% csrf_token %}
-							{{ rt_create_form|as_bootstrap }}
-                            {{ rtf_create_formset.management_form }}
-                            <table>
-                                {% for form in rtf_create_formset %}
-                                    <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
-                                {% endfor %}
-                            </table>
-                            <input type="hidden" name="slot" value="out" />
-						    <div class="modal-footer">
-							    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							    <button class="btn btn-primary" id="save-rt">{% trans "Save" %}</button>
-						    </div>
-						</form>
-				    </div>
-                </div>
-                
             </div>
 
             <div class="span6">
@@ -141,12 +115,37 @@
 
     </form>
 
+    <!--modal for adding resource type-->
+	<div class="modal hide fade" id="createResourceForm" tabindex="-1" role="dialog" aria-labelledby="resource-create-label" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h3 id="resource-create-label">{% trans "Create a new Resource Type" %}</h3>
+		</div>
+		<div class="modal-body">
+			<form class="resource-create-form" id="rtCreateForm" action="" enctype="multipart/form-data" method="POST" >
+				{% csrf_token %}
+				{{ rt_create_form|as_bootstrap }}
+                {{ rtf_create_formset.management_form }}
+                <table>
+                    {% for form in rtf_create_formset %}
+                        <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                    {% endfor %}
+                </table>
+                <input type="hidden" name="slot" value="out" />
+                <input type="hidden" name="pattern" value="{{ pattern.id }}" />
+			    <div class="modal-footer">
+				    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+				    <button class="btn btn-primary" id="save-rt">{% trans "Save" %}</button>
+			    </div>
+			</form>
+	    </div>
+    </div>
+
 </div>
 {% endblock %}
 {% block extra_script %}
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
@@ -226,13 +225,11 @@
 		    var $form = $("#rtCreateForm");
 		    //if ($form.valid())
 		    //{
-                alert("valid");
 		        var formData = $form.serialize();
-		        var selId = "#id_resource_type";
+		        var selId = "#id_resource-resource_type";
 		        var modalId = "#createResourceForm";
 		        var modal = $(modalId);
                 var url = "{%url create_resource_type_simple_patterned_ajax %}";
-                alert(formData);
 		        var jqxhr = $.post( url, formData,
 			        function( data ) {
                         for(var i=0 ; i<data.length ; i++) //will be only one

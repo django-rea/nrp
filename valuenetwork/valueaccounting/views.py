@@ -520,6 +520,8 @@ def log_simple(request):
     rt_create_form = EconomicResourceTypeAjaxForm()
     rtf_create_formset = create_patterned_facet_formset(pattern=pattern, slot="out")
     facets = pattern.output_facets()
+    names = EconomicResourceType.objects.values_list('name', flat=True)
+    resource_names = '~'.join(names)
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -584,8 +586,8 @@ def log_simple(request):
                             citation_event.created_by = request.user
                             citation_event.save()
 
-                    return HttpResponseRedirect('/%s/'
-                        % ('accounting/start'))
+                    return HttpResponseRedirect('/%s/%s/'
+                        % ('accounting/resource', output_resource.id ))
 
                 else:
                     raise ValidationError(resource_form.errors)
@@ -604,6 +606,7 @@ def log_simple(request):
         "rtf_create_formset": rtf_create_formset,
         "facets": facets,
         "pattern": pattern,
+        "resource_names": resource_names,
     }, context_instance=RequestContext(request))
 
 def json_resource_type_resources(request, resource_type_id):

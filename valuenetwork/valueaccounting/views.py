@@ -2879,9 +2879,9 @@ def resource(request, resource_id):
         pattern = None
         if process:
             pattern = process.process_pattern 
-        work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
-        agent_form = AgentContributorSelectionForm(data=request.POST or None)
-        cite_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite', pattern=pattern)
+        work_form = SimpleWorkForm(prefix='work', pattern=pattern)
+        agent_form = AgentContributorSelectionForm()
+        cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
     else:
         form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
         process_add_form = AddProcessFromResourceForm(form_data)    
@@ -2910,8 +2910,15 @@ def resource(request, resource_id):
                 event.resource = resource
                 event.created_by = request.user
                 event.save()
+                #pattern = process.process_pattern 
+                #work_form = SimpleWorkForm(prefix='work', pattern=pattern)
+                #agent_form = AgentContributorSelectionForm()
+                #cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/resource', resource.id))
         elif cite_save:
             if request.POST['cite-resource']:
+                cite_form = SelectCitationResourceForm(data=request.POST, prefix='cite', pattern=pattern)
                 cr = EconomicResource.objects.get(id=int(request.POST['cite-resource']))
                 citation_event = EconomicEvent()
                 citation_event.event_type = pattern.event_type_for_resource_type("cite", cr.resource_type)
@@ -2924,9 +2931,15 @@ def resource(request, resource_id):
                 citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
                 citation_event.created_by = request.user
                 citation_event.save()
-                cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
+                #work_form = SimpleWorkForm(prefix='work', pattern=pattern)
+                #agent_form = AgentContributorSelectionForm()
+                #cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/resource', resource.id))
         elif work_save:
+            work_form = SimpleWorkForm(data=request.POST, prefix='work', pattern=pattern)
             if work_form.is_valid():
+                agent_form = AgentContributorSelectionForm(data=request.POST)
                 work_event = work_form.save(commit=False)
                 work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)
                 work_event.event_date = process.end_date
@@ -2937,6 +2950,11 @@ def resource(request, resource_id):
                 work_event.from_agent = EconomicAgent.objects.get(id=int(request.POST['selected_agent']))
                 work_event.created_by = request.user
                 work_event.save()
+                #work_form = SimpleWorkForm(prefix='work', pattern=pattern)
+                #agent_form = AgentContributorSelectionForm()
+                #cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/resource', resource.id))
 
     return render_to_response("valueaccounting/resource.html", {
         "resource": resource,
@@ -2946,6 +2964,7 @@ def resource(request, resource_id):
         "work_form": work_form,
         "agent_form": agent_form,
     }, context_instance=RequestContext(request))
+   
 
 def get_labnote_context(commitment, request_agent):
     author = False

@@ -130,13 +130,13 @@
 		                                <h3 id="work-label">{% trans "Add Work" %}</h3>
 	                                  </div>
 	                                  <div class="modal-body">
-			                                <form class="cite-form" action="" method="POST" >
+			                                <form class="work-form" action="" method="POST" >
 			                                  {% csrf_token %}
                                               {{ agent_form }}
                                               {{ work_form }}  
 				                              <div class="modal-footer">
 				                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-				                                <button class="btn btn-primary" name="work-save" value="cite">{% trans "Save" %}</button>
+				                                <button class="btn btn-primary" name="work-save" value="work">{% trans "Save" %}</button>
 			                                  </div>
 
 			                                </form>

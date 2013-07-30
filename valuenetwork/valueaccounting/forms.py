@@ -40,7 +40,7 @@ class AgentForm(forms.ModelForm):
         model = EconomicAgent
         fields = ('nick', 'agent_type', 'description', 'url', 'address', 'email')
 
-
+#todo: queryset methods cd be cached
 class AgentSelectionForm(forms.Form):
     selected_agent = AgentModelChoiceField(
         queryset=EconomicAgent.objects.without_user(), 

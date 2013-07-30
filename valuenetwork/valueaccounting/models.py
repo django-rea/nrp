@@ -1048,7 +1048,7 @@ class EconomicResource(models.Model):
     
     def __unicode__(self):
         id_str = self.identifier or str(self.id)
-        return " ".join([
+        return ": ".join([
             self.resource_type.name,
             id_str,
         ])

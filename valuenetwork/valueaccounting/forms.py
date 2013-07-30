@@ -73,7 +73,16 @@ class EconomicResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'owner', 'custodian', 'photo')
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo')
+
+class CreateEconomicResourceForm(forms.ModelForm):
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+
+    class Meta:
+        model = EconomicResource
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality')
 
 
 class FailedOutputForm(forms.ModelForm):

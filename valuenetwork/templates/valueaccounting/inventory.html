@@ -44,7 +44,7 @@ container li {
 			    {% trans "Inventory" %}
 		    </legend>
             {% for rt in resource_types %}
-                <div class="rtype">  {{ rt.name }} ( {{ rt.facet_list }} )</div>
+                <div class="rtype"> <a href="{% url resource_type resource_type_id=rt.id %}">{{ rt.name }}</a> ( {{ rt.facet_list }} )</div>
                 {% for resource in rt.onhand %}
                     <div class="res">
                      <a href="{% url resource resource_id=resource.id %}">{{ resource.label }}</a>

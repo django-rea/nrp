@@ -58,6 +58,10 @@ container li {
 				        <a href="{% url delete_resource_type_confirmation resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >{% trans "Delete" %}</a>
 			        </div>
 		        {% endif %}
+		        
+		        <div style="display: inline;" >
+			        <a href="#resourceModal" role="button" class="btn btn-info" data-toggle="modal">{% trans "Create Resource" %}</a>
+		        </div>
 
 		    {% endif %}
 	   
@@ -79,7 +83,24 @@ container li {
 
 		</legend>
 
-        
+        <div class="modal hide fade resourceModal" id="resourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
+	        <div class="modal-header">
+		        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		        <h3 id="resource-label">{% trans "Create Resource of type" %} {{ resource_type.name }}</h3>
+	        </div>
+	        <div class="modal-body">
+		        <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="." method="POST" >
+			        {% csrf_token %}
+			        {{ create_form|as_bootstrap }}
+		          <div class="modal-footer">
+			        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+			        <button class="btn btn-primary">{% trans "Save" %}</button>
+		          </div>
+
+
+		        </form>
+            </div>
+        </div>
 
         <div class="facets" >{{ resource_type.facet_list }}</div>
 
@@ -147,7 +168,7 @@ container li {
 					<form class="resource-change-form" enctype="multipart/form-data" action="{% url change_resource_type resource_type_id=resource_type.id %}" method="POST" >
 						{% csrf_token %}
 						{{ resource_type.change_form|as_bootstrap }}
-						<input type="hidden" name="next" value="{% url resource_types %}" />
+						<input type="hidden" name="next" value="{% url resource_type resource_type_id=resource_type.id %}" />
 					  <div class="modal-footer">
 						<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						<button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -264,16 +285,14 @@ container li {
 			$('#categories').prop('value', checkedVals);
 		});
 
-		$('.resource-create-form').validate(
+		$('#resourceForm').validate(
 		{
 			rules: {
-				name: {
-					required: true
-				},
 				url: {
 					url: true
 				},
-				rate: {
+				quantity: {
+				    required: true,
 					number: true
 				}
 			},

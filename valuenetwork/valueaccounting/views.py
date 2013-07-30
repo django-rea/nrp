@@ -305,10 +305,24 @@ def resource_type(request, resource_type_id):
     resource_type = get_object_or_404(EconomicResourceType, id=resource_type_id)
     names = EconomicResourceType.objects.values_list('name', flat=True)
     resource_names = '~'.join(names)
+    init = {"unit_of_quantity": resource_type.unit,}
+    create_form = CreateEconomicResourceForm(
+        data=request.POST or None, 
+        files=request.FILES or None,
+        initial=init)
+    if request.method == "POST":
+        if create_form.is_valid():
+            resource = create_form.save(commit=False)
+            resource.resource_type = resource_type
+            resource.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/resource', resource.id))
+                       
     return render_to_response("valueaccounting/resource_type.html", {
         "resource_type": resource_type,
         "photo_size": (128, 128),
         "resource_names": resource_names,
+        "create_form": create_form,
     }, context_instance=RequestContext(request))
 
 def inventory(request):

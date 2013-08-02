@@ -66,6 +66,10 @@
   height: 200px;
 }
 
+#createResourceModal textarea {
+  width: 400px;
+  height: 200px;
+}
 
 #saving {
 	color: green;
@@ -176,12 +180,21 @@
 					            <form class="output-form" enctype="multipart/form-data" id="addOutputForm" action="{% url new_process_output commitment_id=commitment.id %}" method="POST" >
 						            {% csrf_token %}
 
-					                    {{ add_output_form|as_bootstrap }}
+					                    <p class="modal-line">{% trans "Resource Type" %} </p>
+                                        <p>{{ add_output_form.resource_type }} 
+				                        <a href="#createResourceModal" role="button" class="add-another" data-toggle="modal">
+					                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
+				                        </a> </p>                   
+		                                <p class="modal-line">{% trans "Quantity" %} </p>
+                                        <p>{{ add_output_form.quantity }} </p>
+                                        <p class="modal-line">{% trans "Unit of Quantity" %} </p>
+                                        <p>{{ add_output_form.unit_of_quantity }}</p>
+                                        <p class="modal-line">{% trans "Description" %} </p>
+                                        <p class="desc">{{ add_output_form.description }} </p>
 
                                 	<input type='hidden' id='outputRunning' name='wasRunning' value='' />
 			                        <input type='hidden' id='outputRetrying' name='wasRetrying' value='' />
-			                        <input type="hidden" name="reload" value="pastwork" />
-			                        <input type="hidden" id="outputDate" name="outputDate" value="{{ event_date|date:'Y-m-d' }}" />
+			                        <input type="hidden" name="reload" value="labnotes" />
 					              <div class="modal-footer">
 						            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						            <button class="btn btn-primary">{% trans "Add output" %}</button>
@@ -190,6 +203,34 @@
 
 					            </form>
                             </div>
+                        </div>
+
+                        <div class="modal hide fade rtmodal" id="createResourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-consumable-create-label" aria-hidden="true">
+		                    <div class="modal-header">
+			                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			                    <h3 id="resource-consumable-create-label">{% trans "Create a new Resource Type" %}</h3>
+		                    </div>
+		                    <div class="modal-body">
+			                    <form class="resource-create-form" id="resource-create-form" enctype="multipart/form-data" action="." method="POST" >
+				                    {% csrf_token %}
+				                    {{ resource_type_form|as_bootstrap }}
+                                    {{ facet_formset.management_form }}
+                                    <table>
+                                        {% for form in facet_formset %}
+                                            <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                                        {% endfor %}
+                                    </table>
+
+			                      <div class="modal-footer">
+				                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+				                    <input type="submit" name="submit" id="save-resource-type" value="{% trans 'Save' %}" class="btn btn-primary save-resource-type" /> 
+                                    <input type="hidden" name="slot" value="out" />
+                                    <input type="hidden" name="pattern" value="{{ process.process_pattern.id }}" />
+			                      </div>
+
+			                    </form>
+
+	                        </div>
                         </div>
 
                         <div class="modal hide fade" id="addConsumableModal" tabindex="-1" role="dialog" aria-labelledby="consumable-label" aria-hidden="true">
@@ -1257,6 +1298,64 @@
 		    $("#start").attr("disabled", "disabled");
 		    $("#stop").removeAttr("disabled");
         }
+
+        function html_unescape(text) {
+            // Unescape a string that was escaped using django.utils.html.escape.
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            text = text.replace(/&amp;/g, '&');
+            return text;
+        }
+
+        var nameArray = html_unescape("{{ resource_names }}").split("~");
+
+        jQuery.validator.addMethod("unique", function(value, element, param) {
+            return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
+        }, "Name is not unique.");
+
+        $.validator.addClassRules("url", { url: true });
+        $.validator.addClassRules("unique-name", { required: true, unique: nameArray });
+
+        $( "#resource-create-form" ).validate({
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+        $("#save-resource-type").click(function(event) {
+            event.preventDefault();
+            var btn = event.target;
+		    var $form = $("#resource-create-form");
+		    if ($form.valid())
+		    {
+		        var formData = $form.serialize();
+		        var selId = "#id_output-resource_type";
+		        var modalId = "#createResourceModal";
+		        var modal = $(modalId);
+                var url = "{%url create_resource_type_simple_patterned_ajax %}";
+		        var jqxhr = $.post( url, formData,
+			        function( data ) {
+                        for(var i=0 ; i<data.length ; i++) //will be only one
+                        {
+                            var id = data[i]['pk'];
+                            var name = data[i].fields['name']; 
+                            var selx = $(selId);
+                            selx.append('<option value="' + id + '" selected="selected">' + name + '</option>');
+                            selx.trigger("liszt:updated");
+                            selx.trigger("change");
+                        }
+                        $(modalId).modal('hide');
+                        $form.trigger( "reset" );
+			        })
+			        .fail(function() 
+			        { 
+				        alert("Check your name field.");
+			        }
+		        );
+	        }
+		});
 
 	}); // end document.ready
 

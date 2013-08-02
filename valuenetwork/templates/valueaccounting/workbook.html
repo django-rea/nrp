@@ -211,32 +211,32 @@
                         </div>
 
                         <div class="modal hide fade rtmodal" id="createResourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-consumable-create-label" aria-hidden="true">
-					                    <div class="modal-header">
-						                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-						                    <h3 id="resource-consumable-create-label">{% trans "Create a new Resource Type" %}</h3>
-					                    </div>
-					                    <div class="modal-body">
-						                    <form class="resource-create-form" id="resource-create-form" enctype="multipart/form-data" action="." method="POST" >
-							                    {% csrf_token %}
-							                    {{ resource_type_form|as_bootstrap }}
-                                                {{ facet_formset.management_form }}
-                                                <table>
-                                                    {% for form in facet_formset %}
-                                                        <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
-                                                    {% endfor %}
-                                                </table>
+		                    <div class="modal-header">
+			                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			                    <h3 id="resource-consumable-create-label">{% trans "Create a new Resource Type" %}</h3>
+		                    </div>
+		                    <div class="modal-body">
+			                    <form class="resource-create-form" id="resource-create-form" enctype="multipart/form-data" action="." method="POST" >
+				                    {% csrf_token %}
+				                    {{ resource_type_form|as_bootstrap }}
+                                    {{ facet_formset.management_form }}
+                                    <table>
+                                        {% for form in facet_formset %}
+                                            <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                                        {% endfor %}
+                                    </table>
 
-						                      <div class="modal-footer">
-							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							                    <input type="submit" name="submit" id="save-resource-type" value="{% trans 'Save' %}" class="btn btn-primary save-resource-type" /> 
-                                                <input type="hidden" name="slot" value="out" />
-                                                <input type="hidden" name="pattern" value="{{ process.process_pattern.id }}" />
-						                      </div>
+			                      <div class="modal-footer">
+				                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+				                    <input type="submit" name="submit" id="save-resource-type" value="{% trans 'Save' %}" class="btn btn-primary save-resource-type" /> 
+                                    <input type="hidden" name="slot" value="out" />
+                                    <input type="hidden" name="pattern" value="{{ process.process_pattern.id }}" />
+			                      </div>
 
-						                    </form>
+			                    </form>
 
-				                        </div>
-                                    </div>
+	                        </div>
+                        </div>
 
                         <div class="modal hide fade" id="addCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
 				            <div class="modal-header">

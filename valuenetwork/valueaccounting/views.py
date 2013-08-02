@@ -2620,13 +2620,18 @@ def create_past_work_context(
         add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
         add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
         add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
+        facet_formset = create_patterned_facet_formset(pattern, "out")
     else:
         add_output_form = ProcessOutputForm(prefix='output')
         add_citation_form = ProcessCitationForm(prefix='citation')
         add_consumable_form = ProcessConsumableForm(prefix='consumable')
         add_usable_form = ProcessUsableForm(prefix='usable')
         add_work_form = WorkCommitmentForm(prefix='work')
+        facet_formset = create_facet_formset()
     cited_ids = [c.resource.id for c in process.citations()]
+    resource_type_form = EconomicResourceTypeAjaxForm()
+    names = EconomicResourceType.objects.values_list('name', flat=True)
+    resource_names = '~'.join(names)
     return {
         "commitment": commitment,
         "process": process,
@@ -2639,6 +2644,8 @@ def create_past_work_context(
         "add_consumable_form": add_consumable_form,
         "add_usable_form": add_usable_form,
         "add_work_form": add_work_form,
+        "resource_type_form": resource_type_form,
+        "facet_formset": facet_formset,
         "duration": duration,
         "prev": prev,
         "was_running": was_running,
@@ -2646,6 +2653,7 @@ def create_past_work_context(
         "event": event,
         "event_date": event_date,
         "cited_ids": cited_ids,
+        "resource_names": resource_names,
         "help": get_help("labnotes"),
     }
 

@@ -951,18 +951,29 @@ class ProcessPattern(models.Model):
         ucl = [uc.get_use_case_display() for uc in self.use_cases.all()]
         return ", ".join(ucl)
 
+
     def facets_by_relationship(self, relationship):
         pfvs = self.facet_values_for_relationship(relationship)
         facets = [pfv.facet_value.facet for pfv in pfvs]
         return list(set(facets))
 
     def facet_values_for_facet(self, facet):
+        """ includes all facets regardless of slot 
+        """
         #import pdb; pdb.set_trace()
         fvs_all = [pfv.facet_value for pfv in self.facets.all()]
         fvs_for_facet = []
         for fv in fvs_all:
             if fv.facet == facet:
                 fvs_for_facet.append(fv)
+        return fvs_for_facet
+
+    def facet_values_for_facet_and_relationship(self, facet, relationship):
+        fvs_all = self.facet_values_for_relationship(relationship)
+        fvs_for_facet = []
+        for fv in fvs_all:
+            if fv.facet_value.facet == facet:
+                fvs_for_facet.append(fv.facet_value)
         return fvs_for_facet
         
 class PatternFacetValue(models.Model):
@@ -1439,7 +1450,7 @@ class ProcessType(models.Model):
     def xbill_citable_rt_facet_formset(self):
         return self.create_facet_formset_filtered(slot="cite", pre=self.xbill_citable_rt_facet_prefix())
 
-    def create_facet_formset_filtered(self, pre, data=None, slot=None):
+    def create_facet_formset_filtered(self, pre, slot, data=None):
         from django.forms.models import formset_factory
         from valuenetwork.valueaccounting.forms import ResourceTypeFacetValueForm
         #import pdb; pdb.set_trace()
@@ -1466,7 +1477,7 @@ class ProcessType(models.Model):
             if self.process_pattern == None:
                 fvs = facet.values.all()
             else:
-                fvs = self.process_pattern.facet_values_for_facet(facet)
+                fvs = self.process_pattern.facet_values_for_facet_and_relationship(facet, slot)
             fvs = list(set(fvs))
             choices = [(fv.id, fv.value) for fv in fvs]
             form.fields["value"].choices = choices

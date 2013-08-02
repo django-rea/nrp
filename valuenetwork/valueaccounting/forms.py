@@ -825,7 +825,17 @@ class EconomicResourceTypeChangeForm(forms.ModelForm):
 
 class EconomicResourceTypeAjaxForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))
+    unit = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.all())
+    unit_of_use = forms.ModelChoiceField(
+        required=False,
+        queryset=Unit.objects.all())
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     
     class Meta:
         model = EconomicResourceType

@@ -1123,7 +1123,6 @@ def create_resource_type_simple_patterned_ajax(request):
         rt.created_by=request.user
         rt.save()
         slot = request.POST["slot"]
-
         pattern_id = request.POST["pattern"]
         pattern = ProcessPattern.objects.get(id=pattern_id)
         formset = create_patterned_facet_formset(pattern, slot, data=request.POST)
@@ -2134,13 +2133,18 @@ def create_labnotes_context(
         add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
         add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
         add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
+        facet_formset = create_patterned_facet_formset(pattern, "out")
     else:
         add_output_form = ProcessOutputForm(prefix='output')
         add_citation_form = ProcessCitationForm(prefix='citation')
         add_consumable_form = ProcessConsumableForm(prefix='consumable')
         add_usable_form = ProcessUsableForm(prefix='usable')
         add_work_form = WorkCommitmentForm(prefix='work')
+        facet_formset = create_facet_formset()
     cited_ids = [c.resource.id for c in process.citations()]
+    resource_type_form = EconomicResourceTypeAjaxForm()
+    names = EconomicResourceType.objects.values_list('name', flat=True)
+    resource_names = '~'.join(names)
     return {
         "commitment": commitment,
         "process": process,
@@ -2154,12 +2158,15 @@ def create_labnotes_context(
         "add_consumable_form": add_consumable_form,
         "add_usable_form": add_usable_form,
         "add_work_form": add_work_form,
+        "resource_type_form": resource_type_form,
+        "facet_formset": facet_formset,
         "duration": duration,
         "prev": prev,
         "was_running": was_running,
         "was_retrying": was_retrying,
         "event": event,
         "cited_ids": cited_ids,
+        "resource_names": resource_names,
         "help": get_help("labnotes"),
     }
 
@@ -4852,7 +4859,7 @@ def create_patterned_facet_formset(pattern, slot, data=None):
         id = int(form["facet_id"].value())
         facet = Facet.objects.get(id=id)
         form.facet_name = facet.name
-        fvs = pattern.facet_values_for_facet(facet)
+        fvs = pattern.facet_values_for_facet_and_relationship(facet, slot)
         fvs = list(set(fvs))
         choices = [(fv.id, fv.value) for fv in fvs]
         form.fields["value"].choices = choices

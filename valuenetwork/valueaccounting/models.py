@@ -925,7 +925,7 @@ class ProcessPattern(models.Model):
         facets = [pfv.facet_value.facet for pfv in self.output_facet_values()]
         return list(set(facets))
 
-    def event_type_for_resource_type(self, relationship, resource_type):
+    def base_event_type_for_resource_type(self, relationship, resource_type):
         rt_fvs = [x.facet_value for x in resource_type.facets.all()]
         pfvs = self.facet_values_for_relationship(relationship)
         pat_fvs = [x.facet_value for x in pfvs]
@@ -936,7 +936,11 @@ class ProcessPattern(models.Model):
             fv = list(fv_intersect)[0]
             pfv = pfvs.get(facet_value=fv)
             event_type = pfv.event_type
-        else:
+        return event_type
+
+    def event_type_for_resource_type(self, relationship, resource_type):
+        event_type = self.base_event_type_for_resource_type(relationship, resource_type)
+        if not event_type:
             ets = self.event_types()
             for et in ets:
                 if et.relationship == relationship:
@@ -950,7 +954,6 @@ class ProcessPattern(models.Model):
     def use_case_list(self):
         ucl = [uc.get_use_case_display() for uc in self.use_cases.all()]
         return ", ".join(ucl)
-
 
     def facets_by_relationship(self, relationship):
         pfvs = self.facet_values_for_relationship(relationship)

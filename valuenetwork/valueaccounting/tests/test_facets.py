@@ -184,8 +184,8 @@ class FacetTest(TestCase):
     def test_electronic_pattern_resource_types(self):
         rts = self.electronic_pattern.get_resource_types(self.event_type)
         self.assertEqual(rts.count(), 2)
-        self.assertEqual(rts[0], self.electronic_product)
-        self.assertEqual(rts[1], self.twofacet_product)
+        self.assertTrue(self.electronic_product in rts)
+        self.assertTrue(self.twofacet_product in rts)
 
     def test_electroptical_pattern_resource_types(self):
         """Pattern-ResourceType FacetValue matching rules:

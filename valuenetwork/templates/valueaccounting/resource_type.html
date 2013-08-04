@@ -116,11 +116,13 @@ container li {
 	        <h3>{% trans "Used in these recipes" %}:</h4>
 	        <ul>
 	            {% for pt in resource_type.wanting_process_types %}
-	                <li>
-	                    {% with pt.main_produced_resource_type as output %}
-	                        <a href="{% url extended_bill resource_type_id=output.id %}">{{ pt }}</a>
-	                    {% endwith %}
-	                </li>
+	                {% with pt.main_produced_resource_type as output %}
+	                    {% if output %}
+	                        <li>
+                                <a href="{% url extended_bill resource_type_id=output.id %}">{{ pt }}</a>
+	                        </li>
+	                    {% endif %}
+	                {% endwith %}
 	            {% endfor %}
 	        </ul>
 

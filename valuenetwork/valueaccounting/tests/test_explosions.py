@@ -8,7 +8,7 @@ from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.utils import *
 
-class Test(TestCase):
+class ExplosionTest(TestCase):
 
     """Testing dependent demand explosion
     """

@@ -182,13 +182,21 @@ class FacetTest(TestCase):
         self.assertEqual(rts[0], self.optical_product)
 
     def test_electronic_pattern_resource_types(self):
+        """Pattern-ResourceType FacetValue matching rules for this test:
+
+            The electronic_pattern has one FacetValue:
+                Facet: Domain, Value: Electronic
+            So the electronic and twofacet_products all match.
+            The fact that the twofacet_product has another facet does not matter.
+            
+        """
         rts = self.electronic_pattern.get_resource_types(self.event_type)
         self.assertEqual(rts.count(), 2)
         self.assertTrue(self.electronic_product in rts)
         self.assertTrue(self.twofacet_product in rts)
 
     def test_electroptical_pattern_resource_types(self):
-        """Pattern-ResourceType FacetValue matching rules:
+        """Pattern-ResourceType FacetValue matching rules for this test:
 
             If a Pattern has more than one FacetValue in the same Facet,
             for a ResourceType to match, it must match one of the FacetValues 
@@ -208,7 +216,7 @@ class FacetTest(TestCase):
         self.assertTrue(self.twofacet_product in rts)
 
     def test_twofacet_pattern_resource_types(self):
-        """Pattern-ResourceType FacetValue matching rules:
+        """Pattern-ResourceType FacetValue matching rules for this test:
 
             If a Pattern has FacetValues in more than one different Facet,
             for a ResourceType to match, it must have FacetValues
@@ -237,6 +245,19 @@ class FacetTest(TestCase):
             "out",
             self.other_product)
         self.assertEqual(et, None)
+
+    def test_fallback_event_type_for_resource_type(self):
+        """If a Pattern does not have a configured EventType for a ResourceType,
+
+            it will do the best it can so the caller gets a working EventType.
+            base_event_type_for_resource_type (in test_no_event_type_for_resource_type)
+            does not try.
+
+        """
+        et = self.electronic_pattern.event_type_for_resource_type(
+            "out",
+            self.other_product)
+        self.assertEqual(et, self.event_type)
 
         
         

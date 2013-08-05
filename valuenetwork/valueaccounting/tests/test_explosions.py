@@ -138,9 +138,10 @@ class ExplosionTest(TestCase):
     def test_explosion(self):
         """Explode dependent demands from order item
 
+            Including netting out inventory:
             Child input will meet onhand inventory of 5
-            reduced by prior demand = 3
-            which reduced the child input demand from 8 to 5.
+            - prior demand of 2 = 3 still available
+            which reduces the child input demand from 8 to 5.
             Which also reduces the grandchild demand from 24 to 15.
 
         """

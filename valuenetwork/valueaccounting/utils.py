@@ -285,6 +285,11 @@ def backschedule_order(order, events):
         backschedule_process(order, pc.process, events)
 
 def recursively_explode_demands(process, order, user):
+    """This method assumes the output commitment from the process 
+
+        has already been created.
+
+    """
     pt = process.process_type
     output = process.main_outgoing_commitment()
     #import pdb; pdb.set_trace()
@@ -326,14 +331,12 @@ def recursively_explode_demands(process, order, user):
                     resource_type=pptr.resource_type,
                     process=next_process,
                     project=next_pt.project,
-                    quantity=output.quantity * pptr.quantity,
+                    quantity=qty_to_explode * pptr.quantity,
                     unit_of_quantity=pptr.resource_type.unit,
                     created_by=user,
                 )
                 next_commitment.save()
-                qty_to_explode = next_commitment.net()
-                if qty_to_explode:
-                    recursively_explode_demands(next_process, order, user)
+                recursively_explode_demands(next_process, order, user)
 
 class XbillNode(object):
     def __init__(self, node, depth):

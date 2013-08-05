@@ -4031,6 +4031,8 @@ def change_process(request, process_id):
     }, context_instance=RequestContext(request))
 
 def explode_dependent_demands(commitment, user):
+    """This method assumes an input commitment"""
+    
     #import pdb; pdb.set_trace()
     qty_to_explode = commitment.net()
     if qty_to_explode:
@@ -4051,7 +4053,7 @@ def explode_dependent_demands(commitment, user):
                 created_by=user,
             )
             feeder_process.save()
-            #todo: get event_type from pattern, remove relationship
+
             output_commitment = Commitment(
                 independent_demand=demand,
                 event_type=ptrt.event_type,

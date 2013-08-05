@@ -2141,6 +2141,26 @@ class Order(models.Model):
                     break
         return answer
 
+    def add_commitment(self,
+            resource_type,
+            quantity,
+            event_type,
+            unit,
+            due=None):
+        if not due:
+            due=self.due_date
+        ct = Commitment(
+            order=self,
+            independent_demand=self,
+            event_type=event_type,
+            resource_type=resource_type,
+            quantity=quantity,
+            unit_of_quantity=unit,
+            due_date=due)
+        ct.save()
+        return ct
+        
+
 
 class CommitmentManager(models.Manager):
 
@@ -2456,6 +2476,32 @@ class Commitment(models.Model):
                 answer = event.resource
         return answer
 
+    def generate_producing_process(self, user):
+        qty_to_explode = self.net()
+        process=None
+        if qty_to_explode:
+            rt = self.resource_type
+            ptrt = rt.main_producing_process_type_relationship()
+            demand = self.independent_demand
+            if ptrt:
+                pt = ptrt.process_type
+                start_date = self.due_date - datetime.timedelta(minutes=pt.estimated_duration)
+                process = Process(
+                    name=pt.name,
+                    process_type=pt,
+                    process_pattern=pt.process_pattern,
+                    project=pt.project,
+                    url=pt.url,
+                    end_date=self.due_date,
+                    start_date=start_date,
+                    created_by=user,
+                )
+                process.save()
+                self.process=process
+                self.save()
+        return process
+
+    
 
 #todo: not used.
 class Reciprocity(models.Model):

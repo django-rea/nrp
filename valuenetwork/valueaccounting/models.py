@@ -2158,6 +2158,7 @@ class Order(models.Model):
             unit_of_quantity=unit,
             due_date=due)
         ct.save()
+        #todo: shd this generate_producing_process?
         return ct
         
 
@@ -2499,6 +2500,8 @@ class Commitment(models.Model):
                 process.save()
                 self.process=process
                 self.save()
+                #todo: shd this explode?
+                #ask process to explode?
         return process
 
     

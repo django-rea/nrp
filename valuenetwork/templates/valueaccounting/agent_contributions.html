@@ -113,6 +113,7 @@
 						        method="POST" >
 			                    {% csrf_token %}
                             	<input type='hidden' class="page" id='deletePage{{ event.id }}' name='page' value='' />
+                            	<input type='hidden' id='next' name='next' value='contributions' />
 			                    <button class="btn btn-warning btn-mini" title="Delete" ><i class="icon-remove icon-white"></button>
 		                    </form>
 					    </td>

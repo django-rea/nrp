@@ -141,7 +141,7 @@ def create_user_and_agent(request):
                     agent = agent,
                     user = user)
                 au.save()
-            return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
+                return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
     
     return render_to_response("valueaccounting/create_user_and_agent.html", {
         "user_form": user_form,
@@ -2437,14 +2437,21 @@ def delete_event(request, event_id):
     if request.method == "POST":
         event = get_object_or_404(EconomicEvent, pk=event_id)
         agent = event.from_agent
-        event.delete()
-        page = request.POST.get("page")
-        if page:
-            return HttpResponseRedirect('/%s/%s/?page=%s'
-                % ('accounting/contributionhistory', agent.id, page))
-        else:
+        event.delete()        
+        next = request.POST.get("next")
+        if next == "resource":
+            resource_id = request.POST.get("resource_id")
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/contributionhistory', agent.id))
+                % ('accounting/resource', resource_id))
+        elif next == "contributions":
+            page = request.POST.get("page")
+            
+            if page:
+                return HttpResponseRedirect('/%s/%s/?page=%s'
+                    % ('accounting/contributionhistory', agent.id, page))
+            else:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/contributionhistory', agent.id))
 
 def work_done(request):
     #import pdb; pdb.set_trace()
@@ -2882,6 +2889,7 @@ def todo_history(request):
 
 def resource(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
+    agent = get_agent(request)
     process_add_form = None
     agent_form = None
     work_form = None
@@ -2978,6 +2986,7 @@ def resource(request, resource_id):
         "cite_form": cite_form,
         "work_form": work_form,
         "agent_form": agent_form,
+        "agent": agent,
     }, context_instance=RequestContext(request))
    
 

@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.test import Client
 
 from valuenetwork.valueaccounting.models import *
+from .objects_for_testing import *
 
 class FacetTest(TestCase):
 
@@ -16,161 +17,19 @@ class FacetTest(TestCase):
 
     def setUp(self):
 
-        self.domain = Facet(
-            name="Domain",
-        )
-        self.domain.save()
-
-        self.source = Facet(
-            name="Source",
-        )
-        self.source.save()
-
-        optical_domain = FacetValue(
-            facet=self.domain,
-            value="Optical"
-        )
-        optical_domain.save()
-
-        electronic_domain = FacetValue(
-            facet=self.domain,
-            value="Electronical"
-        )
-        electronic_domain.save()
-
-        source_us = FacetValue(
-            facet=self.source,
-            value="Us"
-        )
-        source_us.save()
-
-        source_them = FacetValue(
-            facet=self.source,
-            value="Them"
-        )
-        source_them.save()
-
-        self.optical_pattern = ProcessPattern(
-            name="Optics",
-        )
-        self.optical_pattern.save()
-
-        self.electronic_pattern = ProcessPattern(
-            name="Electronics",
-        )
-        self.electronic_pattern.save()
-
-        self.electroptical_pattern = ProcessPattern(
-            name="electro optical",
-        )
-        self.electroptical_pattern.save()
-
-        self.twofacet_pattern = ProcessPattern(
-            name="Two facets",
-        )
-        self.twofacet_pattern.save()
-
-        self.event_type = EventType(
-            name="Production",
-            label="produces",
-            relationship="out",
-            resource_effect="+",
-        )
-        self.event_type.save()
-
-        pfv = PatternFacetValue(
-            pattern=self.optical_pattern,
-            facet_value=optical_domain,
-            event_type=self.event_type,
-        )
-        pfv.save()
-
-        pfv = PatternFacetValue(
-            pattern=self.electronic_pattern,
-            facet_value=electronic_domain,
-            event_type=self.event_type,
-        )
-        pfv.save()
-
-        pfv = PatternFacetValue(
-            pattern=self.electroptical_pattern,
-            facet_value=electronic_domain,
-            event_type=self.event_type,
-        )
-        pfv.save()
-
-        pfv = PatternFacetValue(
-            pattern=self.electroptical_pattern,
-            facet_value=optical_domain,
-            event_type=self.event_type,
-        )
-        pfv.save()
-
-        pfv = PatternFacetValue(
-            pattern=self.twofacet_pattern,
-            facet_value=electronic_domain,
-            event_type=self.event_type,
-        )
-        pfv.save()
-
-        pfv = PatternFacetValue(
-            pattern=self.twofacet_pattern,
-            facet_value=optical_domain,
-            event_type=self.event_type,
-        )
-        pfv.save()
-
-        pfv = PatternFacetValue(
-            pattern=self.twofacet_pattern,
-            facet_value=source_us,
-            event_type=self.event_type,
-        )
-        pfv.save()
-
-        self.optical_product = EconomicResourceType(
-             name="Optical",
-        )
-        self.optical_product.save()
-
-        self.electronic_product = EconomicResourceType(
-             name="Electronic",
-        )
-        self.electronic_product.save()
-
-        self.twofacet_product = EconomicResourceType(
-             name="Two facets",
-        )
-        self.twofacet_product.save()
-
-        self.other_product = EconomicResourceType(
-             name="Other",
-        )
-        self.other_product.save()
-
-        rtfv = ResourceTypeFacetValue(
-            resource_type=self.optical_product,
-            facet_value=optical_domain,
-        )
-        rtfv.save()
-
-        rtfv = ResourceTypeFacetValue(
-            resource_type=self.electronic_product,
-            facet_value=electronic_domain,
-        )
-        rtfv.save()
-
-        rtfv = ResourceTypeFacetValue(
-            resource_type=self.twofacet_product,
-            facet_value=electronic_domain,
-        )
-        rtfv.save()
-
-        rtfv = ResourceTypeFacetValue(
-            resource_type=self.twofacet_product,
-            facet_value=source_us,
-        )
-        rtfv.save()
-
+        facets = Facets()
+        
+        self.domain = facets.domain        
+        self.source = facets.source
+        self.optical_pattern = facets.optical_pattern
+        self.electronic_pattern = facets.electronic_pattern
+        self.electroptical_pattern = facets.electroptical_pattern
+        self.twofacet_pattern = facets.twofacet_pattern
+        self.event_type = facets.event_type
+        self.optical_product = facets.optical_product
+        self.electronic_product = facets.electronic_product
+        self.twofacet_product = facets.twofacet_product
+        self.other_product = facets.other_product
         
     def test_facet_values(self):
         value_list = self.source.value_list()

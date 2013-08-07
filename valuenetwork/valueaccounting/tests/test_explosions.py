@@ -7,6 +7,7 @@ from django.test import Client
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.utils import *
+from .objects_for_testing import *
 
 class ExplosionTest(TestCase):
 
@@ -17,94 +18,12 @@ class ExplosionTest(TestCase):
 
         self.user = User.objects.create_user('alice', 'alice@whatever.com', 'password')
 
-        self.parent = EconomicResourceType(
-            name="parent",
-        )
-        self.parent.save()
-
-        child = EconomicResourceType(
-            name="child",
-        )
-        child.save()
-
-        grandchild = EconomicResourceType(
-            name="grandchild",
-        )
-        grandchild.save()
-
-        parent_pt = ProcessType(
-            name="make parent",
-        )
-        parent_pt.save()
-
-        self.child_pt = ProcessType(
-            name="make child",
-        )
-        self.child_pt.save()
-
-        child_pt = self.child_pt
-
-        production_event_type = EventType(
-            name="production",
-            label="produces",
-            relationship="out",
-            resource_effect="+",
-        )
-        production_event_type.save()
-
-        self.consumption_event_type = EventType(
-            name="consumption",
-            label="consumes",
-            relationship="in",
-            resource_effect="-",
-        )
-        self.consumption_event_type.save()
-
-        consumption_event_type = self.consumption_event_type
-
-        each = Unit(
-            unit_type="quantity",
-            abbrev="EA",
-            name="each",
-        )
-        each.save()
-        self.unit = each
-        
-        parent_output = ProcessTypeResourceType(
-            process_type=parent_pt,
-            resource_type=self.parent,
-            event_type=production_event_type,
-            quantity=Decimal("1"),
-            unit_of_quantity=each,
-        )
-        parent_output.save()
-
-        child_input = ProcessTypeResourceType(
-            process_type=parent_pt,
-            resource_type=child,
-            event_type=consumption_event_type,
-            quantity=Decimal("2"),
-            unit_of_quantity=each,
-        )
-        child_input.save()
-
-        child_output = ProcessTypeResourceType(
-            process_type=child_pt,
-            resource_type=child,
-            event_type=production_event_type,
-            quantity=Decimal("1"),
-            unit_of_quantity=each,
-        )
-        child_output.save()
-
-        grandchild_input = ProcessTypeResourceType(
-            process_type=child_pt,
-            resource_type=grandchild,
-            event_type=consumption_event_type,
-            quantity=Decimal("3"),
-            unit_of_quantity=each,
-        )
-        grandchild_input.save()
+        recipe = Recipe()
+        self.parent = recipe.parent
+        self.child = recipe.child
+        self.grandchild = recipe.grandchild
+        self.unit = recipe.unit
+        self.consumption_event_type = recipe.consumption_event_type
 
         self.order = Order(
             due_date=datetime.date.today(),            
@@ -113,24 +32,24 @@ class ExplosionTest(TestCase):
 
         self.order.add_commitment(
             resource_type=self.parent,
-            event_type=production_event_type,
+            event_type=recipe.production_event_type,
             quantity=Decimal("4"),
-            unit=each,            
+            unit=self.unit,            
         )
 
         self.prior_commitment = Commitment(
-            resource_type=child,
+            resource_type=self.child,
             due_date=self.order.due_date - datetime.timedelta(weeks=4),
             quantity=Decimal(2),
-            event_type=consumption_event_type,
-            unit_of_quantity=each,
+            event_type=self.consumption_event_type,
+            unit_of_quantity=self.unit,
         )
         self.prior_commitment.save()
 
         self.resource = EconomicResource(
-            resource_type=child,
+            resource_type=self.child,
             quantity=Decimal(5),
-            unit_of_quantity=each,
+            unit_of_quantity=self.unit,
         )
         self.resource.save()
 
@@ -177,7 +96,7 @@ class ExplosionTest(TestCase):
 
         """
         
-        child_pt = self.child_pt
+        child_pt = self.child.main_producing_process_type()
         cyclic_input = ProcessTypeResourceType(
             process_type=child_pt,
             resource_type=self.parent,

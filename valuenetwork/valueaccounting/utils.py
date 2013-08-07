@@ -284,16 +284,18 @@ def backschedule_order(order, events):
         events['events'].append(te.dictify())
         backschedule_process(order, pc.process, events)
 
-def recursively_explode_demands(process, order, user):
+def recursively_explode_demands(process, order, user, visited):
     """This method assumes the output commitment from the process 
 
         has already been created.
 
     """
+    #import pdb; pdb.set_trace()
     pt = process.process_type
     output = process.main_outgoing_commitment()
-    #import pdb; pdb.set_trace()
-    for ptrt in pt.all_input_resource_type_relationships():
+    if output.resource_type not in visited:
+        visited.append(output.resource_type)
+    for ptrt in pt.all_input_resource_type_relationships():        
         commitment = Commitment(
             independent_demand=order,
             event_type=ptrt.event_type,
@@ -307,36 +309,38 @@ def recursively_explode_demands(process, order, user):
             created_by=user,
         )
         commitment.save()
-        qty_to_explode = commitment.net()
-        if qty_to_explode:
-            pptr = ptrt.resource_type.main_producing_process_type_relationship()
-            if pptr:
-                next_pt = pptr.process_type
-                start_date = process.start_date - datetime.timedelta(minutes=next_pt.estimated_duration)
-                next_process = Process(          
-                    name=next_pt.name,
-                    process_type=next_pt,
-                    process_pattern=next_pt.process_pattern,
-                    project=next_pt.project,
-                    url=next_pt.url,
-                    end_date=process.start_date,
-                    start_date=start_date,
-                )
-                next_process.save()
-                next_commitment = Commitment(
-                    independent_demand=order,
-                    event_type=pptr.event_type,
-                    description=pptr.description,
-                    due_date=process.start_date,
-                    resource_type=pptr.resource_type,
-                    process=next_process,
-                    project=next_pt.project,
-                    quantity=qty_to_explode * pptr.quantity,
-                    unit_of_quantity=pptr.resource_type.unit,
-                    created_by=user,
-                )
-                next_commitment.save()
-                recursively_explode_demands(next_process, order, user)
+        if ptrt.resource_type not in visited:
+            visited.append(ptrt.resource_type)
+            qty_to_explode = commitment.net()
+            if qty_to_explode:
+                pptr = ptrt.resource_type.main_producing_process_type_relationship()
+                if pptr:
+                    next_pt = pptr.process_type
+                    start_date = process.start_date - datetime.timedelta(minutes=next_pt.estimated_duration)
+                    next_process = Process(          
+                        name=next_pt.name,
+                        process_type=next_pt,
+                        process_pattern=next_pt.process_pattern,
+                        project=next_pt.project,
+                        url=next_pt.url,
+                        end_date=process.start_date,
+                        start_date=start_date,
+                    )
+                    next_process.save()
+                    next_commitment = Commitment(
+                        independent_demand=order,
+                        event_type=pptr.event_type,
+                        description=pptr.description,
+                        due_date=process.start_date,
+                        resource_type=pptr.resource_type,
+                        process=next_process,
+                        project=next_pt.project,
+                        quantity=qty_to_explode * pptr.quantity,
+                        unit_of_quantity=pptr.resource_type.unit,
+                        created_by=user,
+                    )
+                    next_commitment.save()
+                    recursively_explode_demands(next_process, order, user, visited)
 
 class XbillNode(object):
     def __init__(self, node, depth):

@@ -1578,7 +1578,7 @@ def create_order(request):
                             commitment.save()
                             #import pdb; pdb.set_trace()
                             #explode_dependent_demands(commitment, request.user)
-                            recursively_explode_demands(process, order, request.user)
+                            recursively_explode_demands(process, order, request.user, [])
                             
                         else:
                             #todo: this is certainly wrong! {but won't crash)
@@ -4076,7 +4076,7 @@ def explode_dependent_demands(commitment, user):
                 created_by=user,
             )
             output_commitment.save()
-            recursively_explode_demands(feeder_process, demand, user)
+            recursively_explode_demands(feeder_process, demand, user, [])
     
 def propagate_qty_change(commitment, delta, visited):
     #import pdb; pdb.set_trace()

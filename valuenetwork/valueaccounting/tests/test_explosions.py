@@ -37,10 +37,12 @@ class ExplosionTest(TestCase):
         )
         parent_pt.save()
 
-        child_pt = ProcessType(
+        self.child_pt = ProcessType(
             name="make child",
         )
-        child_pt.save()
+        self.child_pt.save()
+
+        child_pt = self.child_pt
 
         production_event_type = EventType(
             name="production",
@@ -50,13 +52,15 @@ class ExplosionTest(TestCase):
         )
         production_event_type.save()
 
-        consumption_event_type = EventType(
+        self.consumption_event_type = EventType(
             name="consumption",
             label="consumes",
             relationship="in",
             resource_effect="-",
         )
-        consumption_event_type.save()
+        self.consumption_event_type.save()
+
+        consumption_event_type = self.consumption_event_type
 
         each = Unit(
             unit_type="quantity",
@@ -64,6 +68,7 @@ class ExplosionTest(TestCase):
             name="each",
         )
         each.save()
+        self.unit = each
         
         parent_output = ProcessTypeResourceType(
             process_type=parent_pt,
@@ -150,7 +155,7 @@ class ExplosionTest(TestCase):
         commitment = cts[0]
         process = commitment.generate_producing_process(self.user)
         if process:
-            recursively_explode_demands(process, self.order, self.user)
+            recursively_explode_demands(process, self.order, self.user, [])
         child_input = process.input_commitments()[0]
         self.assertEqual(child_input.quantity, Decimal("8"))
         rt = child_input.resource_type
@@ -159,7 +164,46 @@ class ExplosionTest(TestCase):
         child_process=child_output.process
         grandchild_input = child_process.input_commitments()[0]
         self.assertEqual(grandchild_input.quantity, Decimal("15"))
+
+    def test_cycle(self):
+        """ cycles occur when an explosion repeats itself:
+
+            when an output resource type re-appears as a input
+            later in the explosion.  
+            In this case, the explosion must not go into 
+            an infinite loop.  
+            As of now, it just stops exploding.
+            Other behaviors may be necessary in the future.
+
+        """
         
+        child_pt = self.child_pt
+        cyclic_input = ProcessTypeResourceType(
+            process_type=child_pt,
+            resource_type=self.parent,
+            event_type=self.consumption_event_type,
+            quantity=Decimal("1"),
+            unit_of_quantity=self.unit,
+        )
+        cyclic_input.save()
+        cts = self.order.order_items()
+        commitment = cts[0]
+        process = commitment.generate_producing_process(self.user)
+        if process:
+            recursively_explode_demands(process, self.order, self.user, [])
+        child_input = process.input_commitments()[0]
+        self.assertEqual(child_input.quantity, Decimal("8"))
+        rt = child_input.resource_type
+        child_output=rt.producing_commitments()[0]
+        self.assertEqual(child_output.quantity, Decimal("5"))
+        child_process=child_output.process
+        grandchild_input = child_process.input_commitments()[0]
+        self.assertEqual(grandchild_input.quantity, Decimal("15"))
+        cyclic_input_commitment = child_process.input_commitments()[1]
+        self.assertEqual(cyclic_input_commitment.quantity, Decimal("5"))
+        crt = cyclic_input_commitment.resource_type
+        self.assertEqual(crt.producing_commitments().count(), 1)
+
         
         
         

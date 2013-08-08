@@ -570,7 +570,7 @@ class EconomicResourceType(models.Model):
 
     def consuming_commitments(self):
         return self.commitments.filter(
-            event_type__relationship='in')
+            event_type__relationship='consume')
 
     def citing_commitments(self):
         return self.commitments.filter(
@@ -1341,10 +1341,7 @@ class ProcessType(models.Model):
         return [ptrt.resource_type for ptrt in self.work_resource_type_relationships()]
 
     def all_input_resource_type_relationships(self):
-        return self.resource_types.filter(
-            Q(event_type__relationship='in')|
-            Q(event_type__relationship='cite')|
-            Q(event_type__relationship='work'))
+        return self.resource_types.exclude(event_type__relationship='out').exclude(event_type__relationship='todo')
 
     def xbill_parents(self):
         return self.produced_resource_type_relationships()

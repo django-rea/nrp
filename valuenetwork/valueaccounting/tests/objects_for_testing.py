@@ -43,19 +43,23 @@ class Recipe(object):
             self.unit.save()
 
         if not production_event_type:
-            self.production_event_type = EventType(
-                name="production",
-                label="produces",
-                relationship="out",
-                resource_effect="+",
-            )
-            self.production_event_type.save()
+            try:
+                et = EventType.objects.get(label="produces")
+                self.production_event_type = et
+            except EventType.DoesNotExist:
+                self.production_event_type = EventType(
+                    name="production",
+                    label="produces",
+                    relationship="out",
+                    resource_effect="+",
+                )
+                self.production_event_type.save()
 
         if not consumption_event_type:
             self.consumption_event_type = EventType(
                 name="consumption",
                 label="consumes",
-                relationship="in",
+                relationship="consume",
                 resource_effect="-",
             )
             self.consumption_event_type.save()
@@ -169,11 +173,19 @@ class Facets(object):
         )
         source_them.save()
 
+        use_case = "rand"
+
         if not optical_pattern:
             self.optical_pattern = ProcessPattern(
                 name="Optics",
             )
             self.optical_pattern.save()
+
+        puc = PatternUseCase(
+            pattern=self.optical_pattern,
+            use_case=use_case,
+        )
+        puc.save()
 
         if not electronic_pattern:
             self.electronic_pattern = ProcessPattern(
@@ -181,11 +193,23 @@ class Facets(object):
             )
             self.electronic_pattern.save()
 
+        puc = PatternUseCase(
+            pattern=self.electronic_pattern,
+            use_case=use_case,
+        )
+        puc.save()
+
         if not electroptical_pattern:
             self.electroptical_pattern = ProcessPattern(
                 name="electro optical",
             )
             self.electroptical_pattern.save()
+
+        puc = PatternUseCase(
+            pattern=self.electroptical_pattern,
+            use_case=use_case,
+        )
+        puc.save()
 
         if not twofacet_pattern:
             self.twofacet_pattern = ProcessPattern(
@@ -193,14 +217,24 @@ class Facets(object):
             )
             self.twofacet_pattern.save()
 
+        puc = PatternUseCase(
+            pattern=self.twofacet_pattern,
+            use_case=use_case,
+        )
+        puc.save()
+
         if not event_type:
-            self.event_type = EventType(
-                name="Production",
-                label="produces",
-                relationship="out",
-                resource_effect="+",
-            )
-            self.event_type.save()
+            try:
+                et = EventType.objects.get(label="produces")
+                self.event_type = et
+            except EventType.DoesNotExist:
+                self.event_type = EventType(
+                    name="Production",
+                    label="produces",
+                    relationship="out",
+                    resource_effect="+",
+                )
+                self.event_type.save()
 
         pfv = PatternFacetValue(
             pattern=self.optical_pattern,
@@ -253,25 +287,25 @@ class Facets(object):
 
         if not optical_product:
             self.optical_product = EconomicResourceType(
-                 name="Optical",
+                 name="Optical Resource Type",
             )
             self.optical_product.save()
 
         if not electronic_product:
             self.electronic_product = EconomicResourceType(
-                 name="Electronic",
+                 name="Electronic Resource Type",
             )
             self.electronic_product.save()
 
         if not twofacet_product:
             self.twofacet_product = EconomicResourceType(
-                 name="Two facets",
+                 name="Two facets Resource Type",
             )
             self.twofacet_product.save()
 
         if not other_product:
             self.other_product = EconomicResourceType(
-                 name="Other",
+                 name="Other Resource Type",
             )
             self.other_product.save()
 

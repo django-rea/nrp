@@ -72,14 +72,15 @@ class ExplosionTest(TestCase):
             
         cts = self.order.order_items()
         commitment = cts[0]
+        #import pdb; pdb.set_trace()
         process = commitment.generate_producing_process(self.user, explode=True)
-        child_input = process.input_commitments()[0]
+        child_input = process.incoming_commitments()[0]
         self.assertEqual(child_input.quantity, Decimal("8"))
         rt = child_input.resource_type
         child_output=rt.producing_commitments()[0]
         self.assertEqual(child_output.quantity, Decimal("5"))
         child_process=child_output.process
-        grandchild_input = child_process.input_commitments()[0]
+        grandchild_input = child_process.incoming_commitments()[0]
         self.assertEqual(grandchild_input.quantity, Decimal("15"))
 
     def test_cycle(self):
@@ -106,15 +107,15 @@ class ExplosionTest(TestCase):
         cts = self.order.order_items()
         commitment = cts[0]
         process = commitment.generate_producing_process(self.user, explode=True)
-        child_input = process.input_commitments()[0]
+        child_input = process.incoming_commitments()[0]
         self.assertEqual(child_input.quantity, Decimal("8"))
         rt = child_input.resource_type
         child_output=rt.producing_commitments()[0]
         self.assertEqual(child_output.quantity, Decimal("5"))
         child_process=child_output.process
-        grandchild_input = child_process.input_commitments()[0]
+        grandchild_input = child_process.incoming_commitments()[0]
         self.assertEqual(grandchild_input.quantity, Decimal("15"))
-        cyclic_input_commitment = child_process.input_commitments()[1]
+        cyclic_input_commitment = child_process.incoming_commitments()[1]
         self.assertEqual(cyclic_input_commitment.quantity, Decimal("5"))
         crt = cyclic_input_commitment.resource_type
         self.assertEqual(crt.producing_commitments().count(), 1)

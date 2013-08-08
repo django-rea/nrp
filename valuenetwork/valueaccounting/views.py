@@ -4588,6 +4588,7 @@ def process_selections(request, rand=0):
                 et = None
                 action = ""
                 try:
+                    #import pdb; pdb.set_trace()
                     label = key.split("~")[0]
                     et = EventType.objects.get(label=label)
                 except EventType.DoesNotExist:
@@ -4707,7 +4708,7 @@ def process_selections(request, rand=0):
                         explode_dependent_demands(commitment, request.user)
             for rt in used_rts:
                 if rt not in resource_types:
-                    et = selected_pattern.event_type_for_resource_type("in", rt)
+                    et = selected_pattern.event_type_for_resource_type("use", rt)
                     if et:
                         commitment = Commitment(
                             process=process,
@@ -4727,7 +4728,7 @@ def process_selections(request, rand=0):
                             explode_dependent_demands(commitment, request.user)
             for rt in consumed_rts:
                 if rt not in resource_types:
-                    et = selected_pattern.event_type_for_resource_type("in", rt)
+                    et = selected_pattern.event_type_for_resource_type("consume", rt)
                     if et:
                         commitment = Commitment(
                             process=process,

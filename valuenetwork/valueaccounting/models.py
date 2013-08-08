@@ -1721,30 +1721,6 @@ class Process(models.Model):
         else:
             return None
 
-    #todo: both prev and next processes need more testing
-    def previous_processes_old(self):
-        answer = []
-        dmnd = None
-        moc = self.main_outgoing_commitment()
-        #import pdb; pdb.set_trace()
-        if moc:
-            dmnd = moc.independent_demand
-        output_rts = [oc.resource_type for oc in self.outgoing_commitments()]
-        for ic in self.incoming_commitments():
-            rt = ic.resource_type
-            # this is to block cycles
-            if rt not in output_rts:
-                for pc in rt.producing_commitments():
-                    if dmnd:
-                        if pc.independent_demand == dmnd:
-                            answer.append(pc.process)
-                    else:
-                        if not pc.independent_demand:
-                            if pc.quantity >= ic.quantity:
-                                if pc.due_date >= self.start_date:
-                                    answer.append(pc.process)
-        return answer
-
     def previous_processes(self):
         answer = []
         dmnd = None
@@ -1918,6 +1894,64 @@ class Process(models.Model):
 
     def order_items(self):
         return []
+
+    def explode_demands(self, demand, user, visited):
+        """This method assumes the output commitment from this process 
+
+            has already been created.
+
+        """
+        #import pdb; pdb.set_trace()
+        pt = self.process_type
+        output = self.main_outgoing_commitment()
+        if output.resource_type not in visited:
+            visited.append(output.resource_type)
+        for ptrt in pt.all_input_resource_type_relationships():        
+            commitment = Commitment(
+                independent_demand=demand,
+                event_type=ptrt.event_type,
+                description=ptrt.description,
+                due_date=self.start_date,
+                resource_type=ptrt.resource_type,
+                process=self,
+                project=pt.project,
+                quantity=output.quantity * ptrt.quantity,
+                unit_of_quantity=ptrt.resource_type.unit,
+                created_by=user,
+            )
+            commitment.save()
+            if ptrt.resource_type not in visited:
+                visited.append(ptrt.resource_type)
+                qty_to_explode = commitment.net()
+                if qty_to_explode:
+                    pptr = ptrt.resource_type.main_producing_process_type_relationship()
+                    if pptr:
+                        next_pt = pptr.process_type
+                        start_date = self.start_date - datetime.timedelta(minutes=next_pt.estimated_duration)
+                        next_process = Process(          
+                            name=next_pt.name,
+                            process_type=next_pt,
+                            process_pattern=next_pt.process_pattern,
+                            project=next_pt.project,
+                            url=next_pt.url,
+                            end_date=self.start_date,
+                            start_date=start_date,
+                        )
+                        next_process.save()
+                        next_commitment = Commitment(
+                            independent_demand=demand,
+                            event_type=pptr.event_type,
+                            description=pptr.description,
+                            due_date=next_process.start_date,
+                            resource_type=pptr.resource_type,
+                            process=next_process,
+                            project=next_pt.project,
+                            quantity=qty_to_explode * pptr.quantity,
+                            unit_of_quantity=pptr.resource_type.unit,
+                            created_by=user,
+                        )
+                        next_commitment.save()
+                        next_process.explode_demands(demand, user, visited)
 
 
 class Feature(models.Model):
@@ -2477,10 +2511,10 @@ class Commitment(models.Model):
                 answer = event.resource
         return answer
 
-    def generate_producing_process(self, user):
-        qty_to_explode = self.net()
+    def generate_producing_process(self, user, explode=False):
+        qty_required = self.net()
         process=None
-        if qty_to_explode:
+        if qty_required:
             rt = self.resource_type
             ptrt = rt.main_producing_process_type_relationship()
             demand = self.independent_demand
@@ -2500,12 +2534,11 @@ class Commitment(models.Model):
                 process.save()
                 self.process=process
                 self.save()
-                #todo: shd this explode?
-                #ask process to explode?
+                if explode:
+                    process.explode_demands(demand, user, [])
         return process
 
     
-
 #todo: not used.
 class Reciprocity(models.Model):
     """One Commitment reciprocating another.

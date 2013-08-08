@@ -284,6 +284,7 @@ def backschedule_order(order, events):
         events['events'].append(te.dictify())
         backschedule_process(order, pc.process, events)
 
+#todo: obsolete, replaced by Process.explode_demands
 def recursively_explode_demands(process, order, user, visited):
     """This method assumes the output commitment from the process 
 

@@ -73,8 +73,6 @@ class ExplosionTest(TestCase):
         cts = self.order.order_items()
         commitment = cts[0]
         process = commitment.generate_producing_process(self.user, explode=True)
-        #if process:
-        #    recursively_explode_demands(process, self.order, self.user, [])
         child_input = process.input_commitments()[0]
         self.assertEqual(child_input.quantity, Decimal("8"))
         rt = child_input.resource_type
@@ -108,8 +106,6 @@ class ExplosionTest(TestCase):
         cts = self.order.order_items()
         commitment = cts[0]
         process = commitment.generate_producing_process(self.user, explode=True)
-        #if process:
-        #    recursively_explode_demands(process, self.order, self.user, [])
         child_input = process.input_commitments()[0]
         self.assertEqual(child_input.quantity, Decimal("8"))
         rt = child_input.resource_type

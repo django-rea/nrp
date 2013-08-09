@@ -1901,6 +1901,8 @@ class Process(models.Model):
         #import pdb; pdb.set_trace()
         pt = self.process_type
         output = self.main_outgoing_commitment()
+        #if not output:
+        #    import pdb; pdb.set_trace()
         if output.resource_type not in visited:
             visited.append(output.resource_type)
         for ptrt in pt.all_input_resource_type_relationships():        
@@ -2178,6 +2180,8 @@ class Order(models.Model):
             event_type,
             unit,
             due=None):
+        #todo: needs process and project. Anything else?
+        #might not be worth refactoring out.
         if not due:
             due=self.due_date
         ct = Commitment(

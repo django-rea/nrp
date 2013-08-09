@@ -3925,6 +3925,7 @@ def change_process(request, process_id):
                                 ct.project = ptrt.process_type.project
                         ct.save()
                         if explode:
+                            #todo: use new commitment.generate_producing_process(request.user, explode=True)
                             explode_dependent_demands(ct, request.user)
             for form in usable_formset.forms:
                 #import pdb; pdb.set_trace()
@@ -4039,6 +4040,7 @@ def change_process(request, process_id):
         "work_formset": work_formset,
     }, context_instance=RequestContext(request))
 
+#todo: soon to be obsolete
 def explode_dependent_demands(commitment, user):
     """This method assumes an input commitment"""
     
@@ -4655,6 +4657,10 @@ def process_selections(request, rand=0):
         
             #import pdb; pdb.set_trace()      
             for rt in produced_rts:
+                #Commitment creation here might not be worth refactoring out.
+                #Wd need to ask order if it exists, else rt,
+                #and pass in all of the variables below.
+                #Might be more repetition rather than less.
                 et = selected_pattern.event_type_for_resource_type("out", rt)
                 if et:
                     commitment = Commitment(
@@ -4673,20 +4679,22 @@ def process_selections(request, rand=0):
                     commitment.save()
                     #import pdb; pdb.set_trace()
                     if rand:
+                        #use recipe
                         pt = rt.main_producing_process_type()
                         if pt:
                             for xrt in pt.cited_resource_types():
-                                if xrt not in cited_rts:
-                                    cited_rts.append(xrt)
+                                if xrt not in resource_types:
+                                    resource_types.append(xrt)
                             for xrt in pt.used_resource_types():
-                                if xrt not in used_rts:
-                                    used_rts.append(xrt)
+                                if xrt not in resource_types:
+                                    resource_types.append(xrt)
                             for xrt in pt.consumed_resource_types():
-                                if xrt not in consumed_rts:
-                                    consumed_rts.append(xrt)
+                                if xrt not in resource_types:
+                                    resource_types.append(xrt)
                             for xrt in pt.work_resource_types():
-                                if xrt not in work_rts:
-                                    work_rts.append(xrt)
+                                if xrt not in resource_types:
+                                    resource_types.append(xrt)
+                        commitment.generate_producing_process(request.user, explode=True)
             for rt in cited_rts:
                 et = selected_pattern.event_type_for_resource_type("cite", rt)
                 if et:
@@ -4704,8 +4712,6 @@ def process_selections(request, rand=0):
                     )
                     commitment.save()
                     resource_types.append(rt)
-                    if rand:
-                        explode_dependent_demands(commitment, request.user)
             for rt in used_rts:
                 if rt not in resource_types:
                     et = selected_pattern.event_type_for_resource_type("use", rt)
@@ -4724,8 +4730,6 @@ def process_selections(request, rand=0):
                         )
                         commitment.save()
                         resource_types.append(rt)
-                        if rand:
-                            explode_dependent_demands(commitment, request.user)
             for rt in consumed_rts:
                 if rt not in resource_types:
                     et = selected_pattern.event_type_for_resource_type("consume", rt)
@@ -4743,9 +4747,6 @@ def process_selections(request, rand=0):
                             created_by=request.user,
                         )
                         commitment.save()
-                        #import pdb; pdb.set_trace()
-                        if rand:
-                            explode_dependent_demands(commitment, request.user)
             for rt in work_rts:
                 #import pdb; pdb.set_trace()
                 agent = None

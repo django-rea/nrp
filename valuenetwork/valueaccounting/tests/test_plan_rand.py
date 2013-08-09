@@ -55,12 +55,12 @@ class PlanRandTest(WebTest):
         response = form.submit("create-process")
         process = self.parent.producing_commitments()[0].process
         child_input = process.incoming_commitments()[0]
-        self.assertEqual(child_input.quantity, Decimal("1"))
+        self.assertEqual(child_input.quantity, Decimal("2"))
         rt = child_input.resource_type
         child_output=rt.producing_commitments()[0]
-        self.assertEqual(child_output.quantity, Decimal("1"))
+        self.assertEqual(child_output.quantity, Decimal("2"))
         child_process=child_output.process
         grandchild_input = child_process.incoming_commitments()[0]
-        self.assertEqual(grandchild_input.quantity, Decimal("3"))
+        self.assertEqual(grandchild_input.quantity, Decimal("6"))
         
         

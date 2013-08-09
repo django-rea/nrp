@@ -1892,6 +1892,28 @@ class Process(models.Model):
     def order_items(self):
         return []
 
+    def add_commitment(self,
+            resource_type,
+            demand,
+            quantity,
+            event_type,
+            unit,
+            user,
+            from_agent=None,
+            to_agent=None):
+        ct = Commitment(
+            independent_demand=demand,
+            process=self,
+            project=self.project,
+            event_type=event_type,
+            resource_type=resource_type,
+            quantity=quantity,
+            unit_of_quantity=unit,
+            due_date=self.start_date,
+            created_by=user)
+        ct.save()
+        return ct
+
     def explode_demands(self, demand, user, visited):
         """This method assumes the output commitment from this process 
 

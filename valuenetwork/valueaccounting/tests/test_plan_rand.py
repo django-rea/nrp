@@ -62,5 +62,11 @@ class PlanRandTest(WebTest):
         child_process=child_output.process
         grandchild_input = child_process.incoming_commitments()[0]
         self.assertEqual(grandchild_input.quantity, Decimal("6"))
+        #import pdb; pdb.set_trace()
+
+    def test_complete_recipe(self):
+        """todo"""
+        pass
+        
         
         

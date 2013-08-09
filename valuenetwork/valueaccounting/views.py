@@ -4657,30 +4657,21 @@ def process_selections(request, rand=0):
         
             #import pdb; pdb.set_trace()      
             for rt in produced_rts:
-                #Commitment creation here might not be worth refactoring out.
-                #Wd need to ask order if it exists, else rt,
-                #and pass in all of the variables below.
-                #Might be more repetition rather than less.
+                resource_types.append(rt)
                 et = selected_pattern.event_type_for_resource_type("out", rt)
                 if et:
-                    commitment = Commitment(
-                        process=process,
-                        order=demand,
-                        independent_demand=demand,
-                        project=process.project,
-                        event_type=et,
-                        start_date=start_date,
-                        due_date=end_date,
-                        resource_type=rt,
+                    commitment = process.add_commitment(
+                        resource_type= rt,
+                        demand=demand,
                         quantity=Decimal("1"),
-                        unit_of_quantity=rt.unit,
-                        created_by=request.user,
-                    )
-                    commitment.save()
-                    #import pdb; pdb.set_trace()
+                        event_type=et,
+                        unit=rt.unit,
+                        user=request.user)
                     if rand:
                         #use recipe
                         pt = rt.main_producing_process_type()
+                        process.process_type=pt
+                        process.save()
                         if pt:
                             for xrt in pt.cited_resource_types():
                                 if xrt not in resource_types:
@@ -4694,10 +4685,11 @@ def process_selections(request, rand=0):
                             for xrt in pt.work_resource_types():
                                 if xrt not in resource_types:
                                     resource_types.append(xrt)
-                        commitment.generate_producing_process(request.user, explode=True)
+                        process.explode_demands(demand, request.user, [])
             for rt in cited_rts:
                 et = selected_pattern.event_type_for_resource_type("cite", rt)
                 if et:
+                    """
                     commitment = Commitment(
                         process=process,
                         independent_demand=demand,
@@ -4711,11 +4703,20 @@ def process_selections(request, rand=0):
                         created_by=request.user,
                     )
                     commitment.save()
-                    resource_types.append(rt)
+                    """
+                    commitment = process.add_commitment(
+                        resource_type= rt,
+                        demand=demand,
+                        quantity=Decimal("1"),
+                        event_type=et,
+                        unit=rt.unit,
+                        user=request.user)
             for rt in used_rts:
                 if rt not in resource_types:
+                    resource_types.append(rt)
                     et = selected_pattern.event_type_for_resource_type("use", rt)
                     if et:
+                        """
                         commitment = Commitment(
                             process=process,
                             independent_demand=demand,
@@ -4729,11 +4730,21 @@ def process_selections(request, rand=0):
                             created_by=request.user,
                         )
                         commitment.save()
-                        resource_types.append(rt)
+                        """
+                        commitment = process.add_commitment(
+                            resource_type= rt,
+                            demand=demand,
+                            quantity=Decimal("1"),
+                            event_type=et,
+                            unit=rt.unit,
+                            user=request.user)
+                        
             for rt in consumed_rts:
                 if rt not in resource_types:
+                    resource_types.append(rt)
                     et = selected_pattern.event_type_for_resource_type("consume", rt)
                     if et:
+                        """
                         commitment = Commitment(
                             process=process,
                             independent_demand=demand,
@@ -4747,6 +4758,15 @@ def process_selections(request, rand=0):
                             created_by=request.user,
                         )
                         commitment.save()
+                        """
+                        commitment = process.add_commitment(
+                            resource_type= rt,
+                            demand=demand,
+                            quantity=Decimal("1"),
+                            event_type=et,
+                            unit=rt.unit,
+                            user=request.user)
+                            
             for rt in work_rts:
                 #import pdb; pdb.set_trace()
                 agent = None
@@ -4754,6 +4774,7 @@ def process_selections(request, rand=0):
                     agent = get_agent(request)
                 et = selected_pattern.event_type_for_resource_type("work", rt)
                 if et:
+                    """
                     work_commitment = Commitment(
                         process=process,
                         independent_demand=demand,
@@ -4768,8 +4789,16 @@ def process_selections(request, rand=0):
                         created_by=request.user,
                     )
                     work_commitment.save()
+                    """
+                    work_commitment = process.add_commitment(
+                        resource_type= rt,
+                        demand=demand,
+                        quantity=Decimal("1"),
+                        event_type=et,
+                        unit=rt.unit,
+                        from_agent=agent,
+                        user=request.user)
 
-            #import pdb; pdb.set_trace()
             if done_process: 
                 return HttpResponseRedirect('/%s/'
                     % ('accounting/process-selections'))                 

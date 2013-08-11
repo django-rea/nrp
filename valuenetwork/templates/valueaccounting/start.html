@@ -424,8 +424,8 @@ th, td {
 														<p style="margin-left: 1em;">
 															{% trans "for order" %}: {{ item.independent_demand }}
 														</p>
-														<h4>{% trans "Material requirements" %}:</h4>
-														{% for reqmt in item.process.material_requirements %}	
+														<h4>{% trans "Consumable Requirements" %}:</h4>
+														{% for reqmt in item.process.consumed_input_requirements %}	
 															<p style="margin-left: 1em;">
 																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
 															</p>
@@ -450,8 +450,8 @@ th, td {
 																{% endfor %}
 															{% endif %}
 														{% endfor %}
-														<h4>{% trans "Tool Requirements" %}:</h4>
-														{% for reqmt in item.process.tool_requirements %}	
+														<h4>{% trans "Usable Requirements" %}:</h4>
+														{% for reqmt in item.process.used_input_requirements %}	
 															<p style="margin-left: 1em;">
 
 																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}
@@ -548,8 +548,8 @@ th, td {
 														<p style="margin-left: 1em;">
 															{% trans "for order" %}: {{ item.independent_demand }}
 														</p>
-														<h4>{% trans "Material requirements" %}:</h4>
-														{% for reqmt in item.process.material_requirements %}	
+														<h4>{% trans "Consumable requirements" %}:</h4>
+														{% for reqmt in item.process.consumed_input_requirements %}	
 															<p style="margin-left: 1em;">
 																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
 															</p>
@@ -574,8 +574,8 @@ th, td {
 																{% endfor %}
 															{% endif %}
 														{% endfor %}
-														<h4>{% trans "Tool Requirements" %}:</h4>
-														{% for reqmt in item.process.tool_requirements %}	
+														<h4>{% trans "Usable Requirements" %}:</h4>
+														{% for reqmt in item.process.used_input_requirements %}	
 															<p style="margin-left: 1em;">
 
 																{{ reqmt.resource_type.name }}: {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}

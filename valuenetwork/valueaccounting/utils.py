@@ -118,23 +118,23 @@ class TimelineEvent(object):
         if self.link:
             d["link"] = self.link
         mrq = []
-        for mreq in self.node.material_requirements():
+        for mreq in self.node.consumed_input_requirements():
             abbrev = mreq.unit_of_quantity.abbrev or ""
             label = " ".join([
                 str(mreq.quantity),
                 abbrev,
                 mreq.resource_type.name])
             mrq.append(label)
-        d["materialReqmts"] = mrq
+        d["consumableReqmts"] = mrq
         trq = []
-        for treq in self.node.tool_requirements():
+        for treq in self.node.used_input_requirements():
             abbrev = treq.unit_of_quantity.abbrev or ""
             label = " ".join([
                 str(treq.quantity),
                 abbrev,
                 treq.resource_type.name])
             trq.append(label)
-        d["toolReqmts"] = trq
+        d["usableReqmts"] = trq
         wrq = []
         for wreq in self.node.work_requirements():
             abbrev = wreq.unit_of_quantity.abbrev or ""

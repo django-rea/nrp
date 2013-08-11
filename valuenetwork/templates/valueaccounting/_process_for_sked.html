@@ -100,10 +100,10 @@
 		</ul>
     {% endif %}
     
-    {% if process.material_requirements %}
-        <li class="section materials-section" >{% trans "Material requirements" %}:</li>
+    {% if process.consumed_input_requirements %}
+        <li class="section materials-section" >{% trans "Consumable Requirements" %}:</li>
         <ul>
-		    {% for reqmt in process.material_requirements %}	
+		    {% for reqmt in process.consumed_input_requirements %}	
 			    <li class="material" >
 				    <span class="name material-name">{{ reqmt.resource_type.name }}:</span>  {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }}
 			    </li>
@@ -145,10 +145,10 @@
 		</ul>
 	{% endif %}
 
-	{% if process.tool_requirements %}	
-		<li class="section tools-section" >{% trans "Tool Requirements" %}:</li>
+	{% if process.used_input_requirements %}	
+		<li class="section tools-section" >{% trans "Usable Requirements" %}:</li>
 		<ul>
-		    {% for reqmt in process.tool_requirements %}	
+		    {% for reqmt in process.used_input_requirements %}	
 			    <li class="subline" >
 
 				    <span class="name tool-name">{{ reqmt.resource_type.name }}:</span> {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }}

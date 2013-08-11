@@ -283,11 +283,11 @@ class EconomicAgent(models.Model):
         return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
 
     def consumed_and_used_resource_type_relationships(self):
-        return self.resource_types.filter(event_type__relationship='in')
+        return self.resource_types.filter(
+            Q(event_type__relationship='consume')|Q(event_type__relationship='use'))
 
     def consumed_and_used_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_and_used_resource_type_relationships()]
-
 
     def xbill_parents(self):
         return self.produced_resource_type_relationships()
@@ -1310,9 +1310,9 @@ class ProcessType(models.Model):
         else:
             return None
 
-    #todo: shd be renamed; filter gets both used and consumed
     def consumed_and_used_resource_type_relationships(self):
-        return self.resource_types.filter(event_type__relationship='in')
+        return self.resource_types.filter(
+            Q(event_type__relationship='consume')|Q(event_type__relationship='use'))
 
     def consumed_resource_type_relationships(self):
         return self.resource_types.filter(
@@ -1674,10 +1674,6 @@ class Process(models.Model):
         return self.commitments.exclude(
             event_type__relationship='out')
 
-    def input_commitments(self):
-        return self.commitments.filter(
-            event_type__relationship='in')
-
     def schedule_requirements(self):
         return self.commitments.exclude(
             event_type__relationship='out')
@@ -1765,11 +1761,6 @@ class Process(models.Model):
                                         answer.append(cc.process)
         return answer
 
-    def material_requirements(self):
-        return self.commitments.filter(
-            event_type__relationship='in',
-        )
-
     def consumed_input_requirements(self):
         return self.commitments.filter(
             event_type__relationship='consume'
@@ -1779,7 +1770,6 @@ class Process(models.Model):
         return self.commitments.filter(
             event_type__relationship='use'
         )
-
 
     def citation_requirements(self):
         return self.commitments.filter(
@@ -2177,10 +2167,10 @@ class Order(models.Model):
     def order_items(self):
         return self.commitments.all()
 
-    def material_requirements(self):
+    def consumed_input_requirements(self):
         return []
 
-    def tool_requirements(self):
+    def used_input_requirements(self):
         return []
 
     def work_requirements(self):

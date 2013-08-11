@@ -5,6 +5,7 @@ Django==1.4.5
 South
 django_debug_toolbar
 django-extensions
+Pillow
 easy_thumbnails
 pinax-theme-bootstrap==2.0.4
 pinax-theme-bootstrap-account==1.0b2
@@ -14,5 +15,4 @@ metron==1.0
 pinax-utils==1.0b1.dev3
 webtest
 django-webtest
-Pillow
 

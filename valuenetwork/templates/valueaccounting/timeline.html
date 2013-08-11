@@ -136,21 +136,21 @@ $(document).ready(function() {
             var obj = eventObject._obj;
             var div = document.createElement("div");
             var innards = "";
-            if(obj.materialReqmts.length)
+            if(obj.consumableReqmts.length)
 			{
-            	innards = "<h4>Material Requirements:</h4>"; 
-				for(i=0;i<obj.materialReqmts.length;i++)
+            	innards = "<h4>Consumable Requirements:</h4>"; 
+				for(i=0;i<obj.consumableReqmts.length;i++)
 				{
-					innards += obj.materialReqmts[i];
+					innards += obj.consumableReqmts[i];
                     innards += "</br>";
 				}
 			}
-            if(obj.toolReqmts.length)
+            if(obj.usableReqmts.length)
 			{
-            	innards += "<h4>Tool Requirements:</h4>"; 
-				for(i=0;i<obj.toolReqmts.length;i++)
+            	innards += "<h4>Usable Requirements:</h4>"; 
+				for(i=0;i<obj.usableReqmts.length;i++)
 				{
-					innards += obj.toolReqmts[i];
+					innards += obj.usableReqmts[i];
                     innards += "</br>";
 				}
 			}

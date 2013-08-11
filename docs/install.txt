@@ -43,9 +43,12 @@ git clone https://github.com/valnet/valuenetwork.git
 9. create the sqlite database
 ./manage.py syncdb
 
-10. crank up the django server
+10. run the tests
+./manage.py test valueaccounting
+
+11. crank up the django server
 ./manage.py runserver
 
-11. point browser at http://127.0.0.1:8000/
+12. point browser at http://127.0.0.1:8000/
 
 

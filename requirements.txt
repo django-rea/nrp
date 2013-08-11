@@ -14,3 +14,5 @@ metron==1.0
 pinax-utils==1.0b1.dev3
 webtest
 django-webtest
+Pillow
+

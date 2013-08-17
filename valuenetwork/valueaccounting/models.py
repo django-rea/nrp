@@ -185,7 +185,6 @@ ACTIVITY_CHOICES = (
     ('active', _('active contributor')),
     ('affiliate', _('close affiliate')),
     ('inactive', _('inactive contributor')),
-    #('agent', _('active agent')),
     ('passive', _('passive agent')),
     ('external', _('external agent')),
 )
@@ -274,8 +273,6 @@ class EconomicAgent(models.Model):
     def color(self):
         return "green"
 
-    #todo: don't think these are used anywhere, but 
-    # they now assume ARTs have event_types
     def produced_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='out')
 
@@ -1719,26 +1716,6 @@ class Process(models.Model):
             event_type__relationship='cite',
         )
     
-    #todo: tool and space requirements won't work anymore
-    def tool_requirements(self):
-        #answer = list(self.commitments.filter(
-        #   event_type__relationship='in',
-        #    resource_type__materiality='tool',
-        #))
-        #answer.extend(list(self.commitments.filter(
-        #   event_type__relationship='in',
-        #    resource_type__materiality='purchtool',
-        #)))
-        #return answer
-        return []
-
-    def space_requirements(self):
-        #return self.commitments.filter(
-        #   event_type__relationship='in',
-        #    resource_type__materiality='space',
-        #)
-        return []
-
     def work_requirements(self):
         return self.commitments.filter(
             event_type__relationship='work',
@@ -1860,7 +1837,8 @@ class Process(models.Model):
         #    import pdb; pdb.set_trace()
         if output.resource_type not in visited:
             visited.append(output.resource_type)
-        for ptrt in pt.all_input_resource_type_relationships():        
+        for ptrt in pt.all_input_resource_type_relationships():   
+            #todo: sub self.add_commitment()     
             commitment = Commitment(
                 independent_demand=demand,
                 event_type=ptrt.event_type,
@@ -1878,6 +1856,7 @@ class Process(models.Model):
                 visited.append(ptrt.resource_type)
                 qty_to_explode = commitment.net()
                 if qty_to_explode:
+                    #todo: sub commitment.generate_producing_process?
                     pptr = ptrt.resource_type.main_producing_process_type_relationship()
                     if pptr:
                         next_pt = pptr.process_type
@@ -1892,6 +1871,7 @@ class Process(models.Model):
                             start_date=start_date,
                         )
                         next_process.save()
+                        #todo: sub self.add_commitment()
                         next_commitment = Commitment(
                             independent_demand=demand,
                             event_type=pptr.event_type,
@@ -2415,8 +2395,7 @@ class Commitment(models.Model):
 
     def quantity_to_buy(self):
         onhand = self.onhand()  
-        #todo: won't work anymore     
-        #if self.resource_type.materiality == "material":
+        #todo: retest     
         if not self.resource_type.producing_commitments():
             qty =  self.unfilled_quantity() - sum(oh.quantity for oh in self.onhand())
             if qty > Decimal("0"):

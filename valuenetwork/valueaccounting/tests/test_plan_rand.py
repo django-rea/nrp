@@ -45,7 +45,7 @@ class PlanRandTest(WebTest):
         form = response.form
         patterns = form["pattern"].options
         projects = form["project"].options
-        self.assertEqual(len(patterns), 4)
+        self.assertEqual(len(patterns), 5)
         self.assertEqual(len(projects), 1)
         form["pattern"] = unicode(self.electronic_pattern.id)
         form["project"] = unicode(self.project.id)

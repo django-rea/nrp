@@ -30,6 +30,11 @@ class FacetTest(TestCase):
         self.electronic_product = facets.electronic_product
         self.twofacet_product = facets.twofacet_product
         self.other_product = facets.other_product
+        self.full_pattern = facets.full_pattern
+        self.event_type_cite = facets.event_type_cite
+        self.event_type_use = facets.event_type_use
+        self.event_type_consume = facets.event_type_consume
+        self.event_type_work = facets.event_type_work
         
     def test_facet_values(self):
         value_list = self.source.value_list()
@@ -92,6 +97,25 @@ class FacetTest(TestCase):
         rts = self.twofacet_pattern.get_resource_types(self.event_type)
         self.assertEqual(rts.count(), 1)
         self.assertEqual(rts[0], self.twofacet_product)
+
+    def test_full_pattern_resource_types(self):
+        """The full pattern has a full set of event types:
+
+            produced, consumed, used, cited and work.
+            The produced facets are the same as the twofacet_pattern.
+            
+        """
+        rts = self.full_pattern.get_resource_types(self.event_type)
+        self.assertEqual(rts.count(), 1)
+        self.assertEqual(rts[0], self.twofacet_product)
+        rts = self.full_pattern.get_resource_types(self.event_type_cite)
+        self.assertEqual(rts.count(), 1)
+        rts = self.full_pattern.get_resource_types(self.event_type_use)
+        self.assertEqual(rts.count(), 2)
+        rts = self.full_pattern.get_resource_types(self.event_type_consume)
+        self.assertEqual(rts.count(), 1)
+        rts = self.full_pattern.get_resource_types(self.event_type_work)
+        self.assertEqual(rts.count(), 1)
 
     def test_event_type_for_resource_type(self):
         et = self.electronic_pattern.base_event_type_for_resource_type(

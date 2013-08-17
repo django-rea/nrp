@@ -451,20 +451,6 @@ def contribution_history(request, agent_id):
         "events": events,
     }, context_instance=RequestContext(request))
 
-
-def log_time(request):
-    member = get_agent(request)
-    form = TimeForm()
-    roots = Project.objects.filter(parent=None)
-    #todo: this whole thing is obsolete
-    resource_types = EconomicResourceType.objects.all()
-    return render_to_response("valueaccounting/log_time.html", {
-        "member": member,
-        "form": form,
-        "roots": roots,
-        "resource_types": resource_types,
-    }, context_instance=RequestContext(request))
-
 @login_required
 def unscheduled_time_contributions(request):
     member = get_agent(request)
@@ -1219,8 +1205,8 @@ def create_process_type_feature(request, process_type_id):
             feature = form.save(commit=False)
             feature.process_type=pt
             rts = pt.produced_resource_types()
-            #todo: assuming the feature applies to the first
-            # produced_resource_type
+            #todo: assumes the feature applies to the first
+            # produced_resource_type, which might be wrong
             if rts:
                 rt = rts[0]
                 feature.product=rt
@@ -1230,7 +1216,6 @@ def create_process_type_feature(request, process_type_id):
             else:
                 #todo: when will we get here? It's a hack.
                 ets = EventType.objects.filter(
-                    relationship="in",
                     resource_effect="-")
                 event_type = ets[0]
                 feature.event_type = event_type
@@ -1559,6 +1544,7 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             process.save()
+                            #todo: sub process.add_commitment()
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
@@ -1581,11 +1567,12 @@ def create_order(request):
                             recursively_explode_demands(process, order, request.user, [])
                             
                         else:
-                            #todo: this is certainly wrong! {but won't crash)
+                            #todo: this is certainly wrong! (but won't crash)
                             ets = EventType.objects.filter(
                                 related_to="process",
                                 relationship="out")
                             event_type = ets[0]
+                            #todo: sub process.add_commitment()
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
@@ -1610,6 +1597,7 @@ def create_order(request):
                                 process_type = feature.process_type
                                 #import pdb; pdb.set_trace()
                                 if process_type:
+                                    #todo: sub process.add_commitment()
                                     commitment = Commitment(
                                         independent_demand=order,
                                         event_type=feature.event_type,
@@ -1625,6 +1613,7 @@ def create_order(request):
                                     commitment.save()
                                     explode_dependent_demands(commitment, request.user)
                                 else:
+                                    #todo: sub process.add_commitment()
                                     commitment = Commitment(
                                         independent_demand=order,
                                         event_type=feature.event_type,
@@ -2297,6 +2286,7 @@ def new_process_citation(request, commitment_id):
             pattern = process.process_pattern
             event_type = pattern.event_type_for_resource_type("cite", rt)
             agent = get_agent(request)
+            #todo: sub process.add_commitment()
             ct = Commitment(
                 process=process,
                 #from_agent=agent,
@@ -4064,7 +4054,7 @@ def explode_dependent_demands(commitment, user):
                 created_by=user,
             )
             feeder_process.save()
-
+            #todo: sub process.add_commitment()
             output_commitment = Commitment(
                 independent_demand=demand,
                 event_type=ptrt.event_type,
@@ -4689,21 +4679,6 @@ def process_selections(request, rand=0):
             for rt in cited_rts:
                 et = selected_pattern.event_type_for_resource_type("cite", rt)
                 if et:
-                    """
-                    commitment = Commitment(
-                        process=process,
-                        independent_demand=demand,
-                        project=process.project,
-                        event_type=et,
-                        start_date=start_date,
-                        due_date=end_date,
-                        resource_type=rt,
-                        quantity=Decimal("1"),
-                        unit_of_quantity=rt.unit,
-                        created_by=request.user,
-                    )
-                    commitment.save()
-                    """
                     commitment = process.add_commitment(
                         resource_type= rt,
                         demand=demand,
@@ -4716,21 +4691,6 @@ def process_selections(request, rand=0):
                     resource_types.append(rt)
                     et = selected_pattern.event_type_for_resource_type("use", rt)
                     if et:
-                        """
-                        commitment = Commitment(
-                            process=process,
-                            independent_demand=demand,
-                            project=process.project,
-                            event_type=et,
-                            start_date=start_date,
-                            due_date=end_date,
-                            resource_type=rt,
-                            quantity=Decimal("1"),
-                            unit_of_quantity=rt.unit,
-                            created_by=request.user,
-                        )
-                        commitment.save()
-                        """
                         commitment = process.add_commitment(
                             resource_type= rt,
                             demand=demand,
@@ -4744,21 +4704,6 @@ def process_selections(request, rand=0):
                     resource_types.append(rt)
                     et = selected_pattern.event_type_for_resource_type("consume", rt)
                     if et:
-                        """
-                        commitment = Commitment(
-                            process=process,
-                            independent_demand=demand,
-                            project=process.project,
-                            event_type=et,
-                            start_date=start_date,
-                            due_date=end_date,
-                            resource_type=rt,
-                            quantity=Decimal("1"),
-                            unit_of_quantity=rt.unit,
-                            created_by=request.user,
-                        )
-                        commitment.save()
-                        """
                         commitment = process.add_commitment(
                             resource_type= rt,
                             demand=demand,
@@ -4774,22 +4719,6 @@ def process_selections(request, rand=0):
                     agent = get_agent(request)
                 et = selected_pattern.event_type_for_resource_type("work", rt)
                 if et:
-                    """
-                    work_commitment = Commitment(
-                        process=process,
-                        independent_demand=demand,
-                        project=process.project,
-                        event_type=et,
-                        from_agent=agent,
-                        start_date=start_date,
-                        due_date=end_date,
-                        resource_type=rt,
-                        quantity=Decimal("1"),
-                        unit_of_quantity=rt.unit,
-                        created_by=request.user,
-                    )
-                    work_commitment.save()
-                    """
                     work_commitment = process.add_commitment(
                         resource_type= rt,
                         demand=demand,

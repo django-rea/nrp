@@ -124,6 +124,11 @@ class Facets(object):
         electronic_product=None,
         twofacet_product=None,
         other_product=None,
+        full_pattern=None,
+        event_type_cite=None,
+        event_type_use=None,
+        event_type_consume=None,
+        event_type_work=None,
     ):
         self.domain = domain
         self.source = source
@@ -136,6 +141,11 @@ class Facets(object):
         self.electronic_product = electronic_product
         self.twofacet_product = twofacet_product
         self.other_product = other_product
+        self.full_pattern = full_pattern
+        self.event_type_cite=event_type_cite
+        self.event_type_use=event_type_use
+        self.event_type_consume=event_type_consume
+        self.event_type_work=event_type_work
         
         if not domain:
             self.domain = Facet(
@@ -160,6 +170,12 @@ class Facets(object):
             value="Electronical"
         )
         electronic_domain.save()
+
+        work_domain = FacetValue(
+            facet=self.domain,
+            value="Work"
+        )
+        work_domain.save()
 
         source_us = FacetValue(
             facet=self.source,
@@ -223,6 +239,18 @@ class Facets(object):
         )
         puc.save()
 
+        if not full_pattern:
+            self.full_pattern = ProcessPattern(
+                name="Full pattern",
+            )
+            self.full_pattern.save()
+
+        puc = PatternUseCase(
+            pattern=self.full_pattern,
+            use_case=use_case,
+        )
+        puc.save()
+
         if not event_type:
             try:
                 et = EventType.objects.get(label="produces")
@@ -235,6 +263,58 @@ class Facets(object):
                     resource_effect="+",
                 )
                 self.event_type.save()
+
+        if not event_type_use:
+            try:
+                et = EventType.objects.get(label="uses")
+                self.event_type_use = et
+            except EventType.DoesNotExist:
+                self.event_type_use = EventType(
+                    name="Use",
+                    label="uses",
+                    relationship="use",
+                    resource_effect="=",
+                )
+                self.event_type_use.save()
+
+        if not event_type_cite:
+            try:
+                et = EventType.objects.get(label="cites")
+                self.event_type_cite = et
+            except EventType.DoesNotExist:
+                self.event_type_cite = EventType(
+                    name="Cite",
+                    label="cites",
+                    relationship="cite",
+                    resource_effect="=",
+                )
+                self.event_type_cite.save()
+
+        if not event_type_consume:
+            try:
+                et = EventType.objects.get(label="consumes")
+                self.event_type_consume = et
+            except EventType.DoesNotExist:
+                self.event_type_consume = EventType(
+                    name="Consume",
+                    label="consumes",
+                    relationship="consume",
+                    resource_effect="-",
+                )
+                self.event_type_consume.save()
+
+        if not event_type_work:
+            try:
+                et = EventType.objects.get(label="work")
+                self.event_type_work = et
+            except EventType.DoesNotExist:
+                self.event_type_work = EventType(
+                    name="Work",
+                    label="work",
+                    relationship="work",
+                    resource_effect="=",
+                )
+                self.event_type_work.save()             
 
         pfv = PatternFacetValue(
             pattern=self.optical_pattern,
@@ -285,6 +365,63 @@ class Facets(object):
         )
         pfv.save()
 
+        pfv = PatternFacetValue(
+            pattern=self.full_pattern,
+            facet_value=electronic_domain,
+            event_type=self.event_type,
+        )
+        pfv.save()
+
+        pfv = PatternFacetValue(
+            pattern=self.full_pattern,
+            facet_value=optical_domain,
+            event_type=self.event_type,
+        )
+        pfv.save()
+
+        pfv = PatternFacetValue(
+            pattern=self.full_pattern,
+            facet_value=source_us,
+            event_type=self.event_type,
+        )
+        pfv.save()
+
+        pfv = PatternFacetValue(
+            pattern=self.full_pattern,
+            facet_value=electronic_domain,
+            event_type=self.event_type_cite,
+        )
+        pfv.save()
+
+        pfv = PatternFacetValue(
+            pattern=self.full_pattern,
+            facet_value=source_us,
+            event_type=self.event_type_cite,
+        )
+        pfv.save()
+
+        pfv = PatternFacetValue(
+            pattern=self.full_pattern,
+            facet_value=optical_domain,
+            event_type=self.event_type_consume,
+        )
+        pfv.save()
+
+        pfv = PatternFacetValue(
+            pattern=self.full_pattern,
+            facet_value=electronic_domain,
+            event_type=self.event_type_use,
+        )
+        pfv.save()
+
+        pfv = PatternFacetValue(
+            pattern=self.full_pattern,
+            facet_value=work_domain,
+            event_type=self.event_type_work,
+        )
+        pfv.save()      
+
+
         if not optical_product:
             self.optical_product = EconomicResourceType(
                  name="Optical Resource Type",
@@ -308,6 +445,17 @@ class Facets(object):
                  name="Other Resource Type",
             )
             self.other_product.save()
+
+        work_rt = EconomicResourceType(
+            name="Work Resource Type",
+        )
+        work_rt.save()
+
+        rtfv = ResourceTypeFacetValue(
+            resource_type=work_rt,
+            facet_value=work_domain,
+        )
+        rtfv.save()
 
         rtfv = ResourceTypeFacetValue(
             resource_type=self.optical_product,

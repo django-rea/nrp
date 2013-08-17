@@ -745,92 +745,45 @@ class ProcessPattern(models.Model):
         return slots
 
     def get_resource_types(self, event_type):
-        """ Logic:
-            Facet values in different Facets are ANDed.
-            Ie, a resource type must have all of those facet values.
-            Facet values in the same Facet are ORed.
-            Ie, a resource type must have at least one of those facet values.
+        """Matching logic:
+
+            A Resource Type must have a matching value
+            for each Facet in the Pattern.
+            If a Pattern has more than one value for the same Facet,
+            the Resource Type only needs to match one of them.
+            And if the Resource Type has other Facets
+            that are not in the Pattern, they do not matter.
         """
-        #import pdb; pdb.set_trace()
-        pattern_facet_values = self.facets.filter(event_type=event_type)
+        pattern_facet_values = self.facets_for_event_type(event_type)
         facet_values = [pfv.facet_value for pfv in pattern_facet_values]
+        facets = {}
+        for fv in facet_values:
+            if fv.facet not in facets:
+                facets[fv.facet] = []
+            facets[fv.facet].append(fv.value)
+        #facets = [fv.facet for fv in facet_values]        
         fv_ids = [fv.id for fv in facet_values]
         rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
         rts = [rtfv.resource_type for rtfv in rt_facet_values]
-        answer = []
-        singles = [] #Facets with only one facet_value in the Pattern
-        multis = []  #Facets with more than one facet_value in the Pattern
-        aspects = {}
-        for pfv in pattern_facet_values:
-            if pfv.facet_value.facet not in aspects:
-                aspects[pfv.facet_value.facet] = []
-            aspects[pfv.facet_value.facet].append(pfv)
-        for facet, pattern_facet_values in aspects.items():
-            if len(pattern_facet_values) > 1:
-                for pfv in pattern_facet_values:
-                    multis.append(pfv.facet_value)
-            else:
-                singles.append(pattern_facet_values[0].facet_value)
-        single_ids = [s.id for s in singles]
-        #import pdb; pdb.set_trace()
+        rts = list(set(rts))
+        matches = []
         for rt in rts:
-            rt_singles = [rtfv.facet_value for rtfv in rt.facets.filter(facet_value_id__in=single_ids)]
-            rt_multis = [rtfv.facet_value for rtfv in rt.facets.exclude(facet_value_id__in=single_ids)]
-            if set(rt_singles) == set(singles):
-                if not rt in answer:
-                    if multis:
-                        # if multis intersect
-                        if set(rt_multis) & set(multis):
-                            rt_matches = True
-                            #break out multis by facet
-                            multi_facets = {}
-                            rt_facets = {}
-                            for mf in multis:
-                                if mf.facet not in multi_facets:
-                                    multi_facets[mf.facet] = []
-                                multi_facets[mf.facet].append(mf.value)
-                            for rf in rt_multis:
-                                if rf.facet not in rt_facets:
-                                    rt_facets[rf.facet] = []
-                                rt_facets[rf.facet].append(rf.value)
-                            for mf, mf_values in multi_facets.iteritems():
-                                #if rt does not have this pattern facet at all
-                                if mf not in rt_facets:
-                                    rt_matches = False
-                                    break
-                                else:
-                                    rt_values = rt_facets[mf]
-                                    #if rt facet values do not intersect with pattern facet values
-                                    if not (set(mf_values) & set(rt_values)):
-                                        rt_matches = False
-                                        break
-                            if rt_matches:
-                                answer.append(rt)
-                    else:
-                        answer.append(rt)
-        answer_ids = [a.id for a in answer]
+            match = True
+            for facet, values in facets.iteritems():
+                rt_fv = rt.facets.filter(facet_value__facet=facet)
+                if rt_fv:
+                    rt_fv = rt_fv[0]
+                    if rt_fv.facet_value.value not in values:
+                        match = False
+                else:
+                    match = False
+            if match:
+                matches.append(rt)
+        answer_ids = [a.id for a in matches]
         return EconomicResourceType.objects.filter(id__in=answer_ids)
 
     def resource_types_for_relationship(self, relationship):
         ets = [f.event_type for f in self.facets.filter(event_type__relationship=relationship)] 
-        if ets:
-            ets = list(set(ets))
-            if len(ets) == 1:
-                return self.get_resource_types(ets[0])
-            else:
-                rts = []
-                for et in ets:
-                    rts.extend(list(self.get_resource_types(et)))
-                rt_ids = [rt.id for rt in rts]
-                return EconomicResourceType.objects.filter(id__in=rt_ids)
-        else:
-            return EconomicResourceType.objects.none()
-
-    #todo: delete
-    def resource_types_for_relationship_and_effect(self, relationship, effect):
-        ets = [f.event_type for f in self.facets.filter(
-            event_type__relationship=relationship,
-            event_type__resource_effect=effect)] 
         if ets:
             ets = list(set(ets))
             if len(ets) == 1:
@@ -960,17 +913,6 @@ class ProcessPattern(models.Model):
         facets = [pfv.facet_value.facet for pfv in pfvs]
         return list(set(facets))
 
-    def facet_values_for_facet(self, facet):
-        """ includes all facets regardless of slot 
-        """
-        #import pdb; pdb.set_trace()
-        fvs_all = [pfv.facet_value for pfv in self.facets.all()]
-        fvs_for_facet = []
-        for fv in fvs_all:
-            if fv.facet == facet:
-                fvs_for_facet.append(fv)
-        return fvs_for_facet
-
     def facet_values_for_facet_and_relationship(self, facet, relationship):
         fvs_all = self.facet_values_for_relationship(relationship)
         fvs_for_facet = []
@@ -978,6 +920,7 @@ class ProcessPattern(models.Model):
             if fv.facet_value.facet == facet:
                 fvs_for_facet.append(fv.facet_value)
         return fvs_for_facet
+
         
 class PatternFacetValue(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 

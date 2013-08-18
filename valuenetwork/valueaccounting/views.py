@@ -4568,6 +4568,7 @@ def process_selections(request, rand=0):
             consumed_rts = []
             used_rts = []
             work_rts = []
+            #import pdb; pdb.set_trace()
             for key, value in dict(rp).iteritems():
                 if "selected-project" in key:
                     project_id = key.split("~")[1]
@@ -4583,22 +4584,15 @@ def process_selections(request, rand=0):
                     #import pdb; pdb.set_trace()
                     label = key.split("~")[0]
                     et = EventType.objects.get(label=label)
+                    action = et.relationship
                 except EventType.DoesNotExist:
                     pass
-                if et:
-                    if et.relationship == "in":
-                        if et.resource_effect == "=":
-                            action = "uses"
-                        else:
-                            action = "consumes"
-                    else:
-                        action = et.relationship
-                if action == "consumes":
+                if action == "consume":
                     consumed_id = int(value[0])
                     consumed_rt = EconomicResourceType.objects.get(id=consumed_id)
                     consumed_rts.append(consumed_rt)
                     continue
-                if action == "uses":
+                if action == "use":
                     used_id = int(value[0])
                     used_rt = EconomicResourceType.objects.get(id=used_id)
                     used_rts.append(used_rt)

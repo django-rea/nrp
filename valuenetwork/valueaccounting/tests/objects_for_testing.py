@@ -56,13 +56,17 @@ class Recipe(object):
                 self.production_event_type.save()
 
         if not consumption_event_type:
-            self.consumption_event_type = EventType(
-                name="consumption",
-                label="consumes",
-                relationship="consume",
-                resource_effect="-",
-            )
-            self.consumption_event_type.save()
+            try:
+                et = EventType.objects.get(label="consumes")
+                self.consumption_event_type = et
+            except EventType.DoesNotExist:
+                self.consumption_event_type = EventType(
+                    name="consumption",
+                    label="consumes",
+                    relationship="consume",
+                    resource_effect="-",
+                )
+                self.consumption_event_type.save()
 
         parent_pt = ProcessType(
             name="make parent",

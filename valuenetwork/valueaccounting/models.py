@@ -1834,29 +1834,27 @@ class Process(models.Model):
         pt = self.process_type
         output = self.main_outgoing_commitment()
         #if not output:
-        #    import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
         if output.resource_type not in visited:
             visited.append(output.resource_type)
         for ptrt in pt.all_input_resource_type_relationships():   
-            #todo: sub self.add_commitment()     
-            commitment = Commitment(
-                independent_demand=demand,
-                event_type=ptrt.event_type,
-                description=ptrt.description,
-                due_date=self.start_date,
+            commitment = self.add_commitment(
                 resource_type=ptrt.resource_type,
-                process=self,
-                project=pt.project,
+                demand=demand,
                 quantity=output.quantity * ptrt.quantity,
-                unit_of_quantity=ptrt.resource_type.unit,
-                created_by=user,
+                event_type=ptrt.event_type,
+                unit=ptrt.resource_type.unit,
+                user=user,
             )
-            commitment.save()
             if ptrt.resource_type not in visited:
                 visited.append(ptrt.resource_type)
                 qty_to_explode = commitment.net()
                 if qty_to_explode:
-                    #todo: sub commitment.generate_producing_process?
+                    #todo: shd commitment.generate_producing_process?
+                    #no, this an input commitment
+                    #shd pt create process?
+                    #shd pptr create next_commitment, and then 
+                    #shd next_commitment.generate_producing_process?
                     pptr = ptrt.resource_type.main_producing_process_type_relationship()
                     if pptr:
                         next_pt = pptr.process_type
@@ -1871,20 +1869,15 @@ class Process(models.Model):
                             start_date=start_date,
                         )
                         next_process.save()
-                        #todo: sub self.add_commitment()
-                        next_commitment = Commitment(
-                            independent_demand=demand,
-                            event_type=pptr.event_type,
-                            description=pptr.description,
-                            due_date=next_process.start_date,
+                        #this is the output commitment
+                        next_commitment = next_process.add_commitment(
                             resource_type=pptr.resource_type,
-                            process=next_process,
-                            project=next_pt.project,
+                            demand=demand,
                             quantity=qty_to_explode * pptr.quantity,
-                            unit_of_quantity=pptr.resource_type.unit,
-                            created_by=user,
+                            event_type=pptr.event_type,
+                            unit=pptr.resource_type.unit,
+                            user=user,
                         )
-                        next_commitment.save()
                         next_process.explode_demands(demand, user, visited)
 
 
@@ -2446,7 +2439,7 @@ class Commitment(models.Model):
                 answer = event.resource
         return answer
 
-    def generate_producing_process(self, user, explode=False):
+    def generate_producing_process(self, user, visited, explode=False):
         qty_required = self.net()
         process=None
         if qty_required:
@@ -2470,7 +2463,7 @@ class Commitment(models.Model):
                 self.process=process
                 self.save()
                 if explode:
-                    process.explode_demands(demand, user, [])
+                    process.explode_demands(demand, user, visited)
         return process
 
     

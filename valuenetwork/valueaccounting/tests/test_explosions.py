@@ -73,7 +73,8 @@ class ExplosionTest(TestCase):
         cts = self.order.order_items()
         commitment = cts[0]
         #import pdb; pdb.set_trace()
-        process = commitment.generate_producing_process(self.user, explode=True)
+        visited = []
+        process = commitment.generate_producing_process(self.user, visited, explode=True)
         child_input = process.incoming_commitments()[0]
         self.assertEqual(child_input.quantity, Decimal("8"))
         rt = child_input.resource_type
@@ -82,6 +83,8 @@ class ExplosionTest(TestCase):
         child_process=child_output.process
         grandchild_input = child_process.incoming_commitments()[0]
         self.assertEqual(grandchild_input.quantity, Decimal("15"))
+        self.assertEqual(child_process.next_processes()[0], process)
+        self.assertEqual(process.previous_processes()[0], child_process)
 
     def test_cycle(self):
         """ cycles occur when an explosion repeats itself:
@@ -106,7 +109,8 @@ class ExplosionTest(TestCase):
         cyclic_input.save()
         cts = self.order.order_items()
         commitment = cts[0]
-        process = commitment.generate_producing_process(self.user, explode=True)
+        visited = []
+        process = commitment.generate_producing_process(self.user, visited, explode=True)
         child_input = process.incoming_commitments()[0]
         self.assertEqual(child_input.quantity, Decimal("8"))
         rt = child_input.resource_type

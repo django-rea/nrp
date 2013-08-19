@@ -41,6 +41,7 @@ urlpatterns = patterns("",
     url(r"^accounting/", include("valuenetwork.valueaccounting.urls")),
     (r'^databrowse/(.*)', databrowse.site.root),
     url(r'^add/(?P<model_name>\w+)/?$', 'valuenetwork.tekextensions.views.add_new_model'),
+    #url(r'^report_builder/', include('report_builder.urls')),
 )
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

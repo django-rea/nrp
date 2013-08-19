@@ -140,6 +140,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'south',
     'easy_thumbnails',
+    #'report_builder',
     
     # project
     'valuenetwork.valueaccounting',

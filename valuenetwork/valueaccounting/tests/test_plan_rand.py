@@ -50,6 +50,7 @@ class PlanRandTest(WebTest):
             and subsequent dependent demand explosion
             
         """
+       
         response = self.app.get('/accounting/process-selections/1/' , user='alice')
         form = response.form
         patterns = form["pattern"].options

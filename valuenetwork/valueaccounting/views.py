@@ -3881,6 +3881,7 @@ def change_process(request, process_id):
                         ct.save()
                         if explode:
                             #todo: use new commitment.generate_producing_process(request.user, explode=True)
+                            #or process.explode_demands?
                             explode_dependent_demands(ct, request.user)
             for form in usable_formset.forms:
                 #import pdb; pdb.set_trace()

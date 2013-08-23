@@ -9,6 +9,8 @@ from webtest import AppError, TestApp
 
 from django_webtest import WebTest
 
+#WebTest doc: http://webtest.pythonpaste.org/en/latest/index.html
+
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.utils import *

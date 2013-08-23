@@ -9,6 +9,8 @@ from webtest import AppError, TestApp
 
 from django_webtest import WebTest
 
+#WebTest doc: http://webtest.pythonpaste.org/en/latest/index.html
+
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.utils import *
@@ -16,7 +18,7 @@ from .objects_for_testing import *
 
 class OrderTest(WebTest):
 
-    """Testing planning R&D work
+    """Testing customer orders
     """
 
     def setUp(self):
@@ -89,7 +91,7 @@ class OrderTest(WebTest):
         due_date = datetime.date.today().strftime('%Y-%m-%d')
         form["due_date"] = due_date
         form["RT-6-quantity"] = 3
-        response = form.submit("submit1")
+        response = form.submit("submit1").follow()
         process = self.parent.producing_commitments()[0].process
         incoming = process.incoming_commitments()
         child_input = incoming.filter(resource_type=self.child)[0]

@@ -1530,21 +1530,6 @@ def create_order(request):
                         pt = rt.main_producing_process_type()
                         if pt:
                             ptrt = rt.main_producing_process_type_relationship()
-
-                            start_date = order.due_date - datetime.timedelta(minutes=pt.estimated_duration)
-                            process = Process(
-                                name=pt.name,
-                                process_type=pt,
-                                project=pt.project,
-                                url=pt.url,
-                                end_date=order.due_date,
-                                start_date=start_date,
-                                owner=order.provider,
-                                managed_by=order.provider,
-                                created_by=request.user,
-                            )
-                            process.save()
-                            #todo: sub process.add_commitment()
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
@@ -1553,7 +1538,6 @@ def create_order(request):
                                 from_agent=order.provider,
                                 to_agent=order.receiver,
                                 resource_type=rt,
-                                process=process,
                                 project=pt.project,
                                 description=data["description"],
                                 quantity=qty,
@@ -1561,18 +1545,13 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             commitment.save()
-                            #import pdb; pdb.set_trace()
-                            #explode_dependent_demands(commitment, request.user)
-                            #todo: replace with process.explode_demands?
-                            recursively_explode_demands(process, order, request.user, [])
-                            
+                            commitment.generate_producing_process(request.user, [], explode=True)                           
                         else:
-                            #todo: this is certainly wrong! (but won't crash)
+                            #todo: this could be wrong (but won't crash)
                             ets = EventType.objects.filter(
                                 related_to="process",
                                 relationship="out")
                             event_type = ets[0]
-                            #todo: sub process.add_commitment()
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
@@ -1594,38 +1573,22 @@ def create_order(request):
                                 option = Option.objects.get(id=option_id)
                                 component = option.component
                                 feature = ftr.feature
-                                process_type = feature.process_type
-                                #import pdb; pdb.set_trace()
-                                if process_type:
-                                    #todo: sub process.add_commitment()
-                                    commitment = Commitment(
-                                        independent_demand=order,
-                                        event_type=feature.event_type,
-                                        due_date=process.start_date,
-                                        to_agent=order.provider,
-                                        resource_type=component,
-                                        process=process,
-                                        project=pt.project,
-                                        quantity=qty * feature.quantity,
-                                        unit_of_quantity=component.unit,
-                                        created_by=request.user,
-                                    )
-                                    commitment.save()
-                                    #todo: replace with process.explode_demands?
-                                    explode_dependent_demands(commitment, request.user)
-                                else:
-                                    #todo: sub process.add_commitment()
-                                    commitment = Commitment(
-                                        independent_demand=order,
-                                        event_type=feature.event_type,
-                                        due_date=process.start_date,
-                                        to_agent=order.provider,
-                                        resource_type=component,
-                                        quantity=qty * feature.quantity,
-                                        unit_of_quantity=component.unit,
-                                        created_by=request.user,
-                                    )
-                                    commitment.save()
+                                commitment = Commitment(
+                                    order=order,
+                                    independent_demand=order,
+                                    event_type=feature.event_type,
+                                    due_date=process.start_date,
+                                    from_agent=order.provider,
+                                    to_agent=order.provider,
+                                    resource_type=component,
+                                    project=pt.project,
+                                    quantity=qty * feature.quantity,
+                                    unit_of_quantity=component.unit,
+                                    created_by=request.user,
+                                )
+                                commitment.save()
+                                commitment.generate_producing_process(request.user, [], explode=True) 
+
                         
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/order-schedule', order.id))

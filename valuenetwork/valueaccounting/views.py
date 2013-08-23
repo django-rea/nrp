@@ -1550,7 +1550,6 @@ def create_order(request):
                                 independent_demand=order,
                                 event_type=ptrt.event_type,
                                 due_date=order.due_date,
-                                from_agent_type=order.provider.agent_type,
                                 from_agent=order.provider,
                                 to_agent=order.receiver,
                                 resource_type=rt,
@@ -1564,6 +1563,7 @@ def create_order(request):
                             commitment.save()
                             #import pdb; pdb.set_trace()
                             #explode_dependent_demands(commitment, request.user)
+                            #todo: replace with process.explode_demands?
                             recursively_explode_demands(process, order, request.user, [])
                             
                         else:
@@ -1611,6 +1611,7 @@ def create_order(request):
                                         created_by=request.user,
                                     )
                                     commitment.save()
+                                    #todo: replace with process.explode_demands?
                                     explode_dependent_demands(commitment, request.user)
                                 else:
                                     #todo: sub process.add_commitment()
@@ -2037,6 +2038,7 @@ def commit_to_task(request, commitment_id):
         if form.is_valid():
             data = form.cleaned_data
             #todo: next line did not work, don't want to take time to figure out why right now
+            #probly form shd have ct as instance.
             #ct = form.save(commit=False)
             start_date = data["start_date"]
             description = data["description"]

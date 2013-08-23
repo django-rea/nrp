@@ -502,9 +502,7 @@ class EconomicResourceType(models.Model):
 
     def is_process_output(self):
         #import pdb; pdb.set_trace()
-        #todo: this is wrong, gets false positives
-        #don't know how to fix it now
-        answer = False
+        #todo: does this still return false positives?
         fvs = self.facets.all()
         for fv in fvs:
             pfvs = fv.facet_value.patterns.filter(
@@ -514,9 +512,8 @@ class EconomicResourceType(models.Model):
                 for pf in pfvs:
                     pattern = pf.pattern
                     if self in pattern.output_resource_types():
-                        answer = True
-                        break
-        return answer
+                        return True
+        return False
         
     def consuming_process_type_relationships(self):
         return self.process_types.filter(event_type__resource_effect='-')
@@ -1428,7 +1425,7 @@ class ProcessType(models.Model):
 
 
 
-#todo: better name?  Maybe ProcessTypeInputOutput?
+#todo: better name?  Maybe ProcessTypeInputOutput? ResourceFlowType?
 class ProcessTypeResourceType(models.Model):
     process_type = models.ForeignKey(ProcessType,
         verbose_name=_('process type'), related_name='resource_types')
@@ -1883,6 +1880,7 @@ class Process(models.Model):
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
+    #todo: replace with ___? something
     #option_category = models.ForeignKey(Category,
     #    verbose_name=_('option category'), related_name='features',
     #    blank=True, null=True,
@@ -1893,8 +1891,6 @@ class Feature(models.Model):
     process_type = models.ForeignKey(ProcessType,
         blank=True, null=True,
         verbose_name=_('process type'), related_name='features')
-    #relationship = models.ForeignKey(ResourceRelationship, blank=True, null=True,
-    #    verbose_name=_('relationship'), related_name='features')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='features')
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))

@@ -319,7 +319,7 @@ class Facets(object):
                     resource_effect="=",
                 )
                 self.event_type_work.save()             
-
+           
         pfv = PatternFacetValue(
             pattern=self.optical_pattern,
             facet_value=optical_domain,
@@ -425,7 +425,6 @@ class Facets(object):
         )
         pfv.save()      
 
-
         if not optical_product:
             self.optical_product = EconomicResourceType(
                  name="Optical Resource Type",
@@ -484,6 +483,4 @@ class Facets(object):
             facet_value=source_us,
         )
         rtfv.save()
-        
-
-         
+     

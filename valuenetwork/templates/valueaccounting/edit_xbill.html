@@ -464,7 +464,7 @@ ul {
 						                    <h3 id="resource-consumable-create-label{{ xbill_consumable_prefix }}">{% trans "Create a new Resource Type" %}</h3>
 					                    </div>
 					                    <div class="modal-body">
-						                    <form class="resource-create-form" id="formin{{ xbill_consumable_prefix }}" enctype="multipart/form-data" action="." method="POST" >
+						                    <form class="resource-create-form" id="formconsume{{ xbill_consumable_prefix }}" enctype="multipart/form-data" action="." method="POST" >
 							                    {% csrf_token %}
 							                    {{ ptype.xbill_consumable_rt_form }}
                                                 {% with facet_formset=ptype.xbill_consumable_rt_facet_formset %}
@@ -479,12 +479,12 @@ ul {
 
 						                      <div class="modal-footer">
 							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							                    <input type="submit" name="submit" id="in~{{ xbill_consumable_prefix }}" value="{% trans 'Save changes' %}" class="btn btn-primary save-resource-type" /> 
+							                    <input type="submit" name="submit" id="consume~{{ xbill_consumable_prefix }}" value="{% trans 'Save changes' %}" class="btn btn-primary save-resource-type" /> 
 							                    {% comment %}
-							                    <button class="btn btn-primary save-resource-type" id="in~{{ xbill_consumable_prefix }}">{% trans "Save changes" %}</button>
+							                    <button class="btn btn-primary save-resource-type" id="consume~{{ xbill_consumable_prefix }}">{% trans "Save changes" %}</button>
 							                    {% endcomment %}
                                                 <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
-                                                <input type="hidden" name="slot" value="in" />
+                                                <input type="hidden" name="slot" value="consume" />
 						                      </div>
 
 						                    </form>
@@ -538,7 +538,7 @@ ul {
 						                    <h3 id="resource-usable-create-label{{ xbill_usable_prefix }}">{% trans "Create a new Resource Type" %}</h3>
 					                    </div>
 					                    <div class="modal-body">
-						                    <form class="resource-create-form" id="formin{{ xbill_usable_prefix }}" enctype="multipart/form-data" action="." method="POST" >
+						                    <form class="resource-create-form" id="formuse{{ xbill_usable_prefix }}" enctype="multipart/form-data" action="." method="POST" >
 							                    {% csrf_token %}
 							                    {{ ptype.xbill_usable_rt_form }}
                                                 {% with facet_formset=ptype.xbill_usable_rt_facet_formset %}
@@ -553,12 +553,12 @@ ul {
 
 						                      <div class="modal-footer">
 							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							                    <input type="submit" name="submit" id="in~{{ xbill_usable_prefix }}" value="{% trans 'Save changes' %}" class="btn btn-primary save-resource-type" /> 
+							                    <input type="submit" name="submit" id="use~{{ xbill_usable_prefix }}" value="{% trans 'Save changes' %}" class="btn btn-primary save-resource-type" /> 
 							                    {% comment %}
-							                    <button class="btn btn-primary save-resource-type" id="in~{{ xbill_usable_prefix }}">{% trans "Save" %}</button>
+							                    <button class="btn btn-primary save-resource-type" id="use~{{ xbill_usable_prefix }}">{% trans "Save" %}</button>
 							                    {% endcomment %}
                                                 <input type="hidden" name="pt-id" value="{{ ptype.node_id }}" />
-                                                <input type="hidden" name="slot" value="in" />
+                                                <input type="hidden" name="slot" value="use" />
 						                      </div>
 
 						                    </form>

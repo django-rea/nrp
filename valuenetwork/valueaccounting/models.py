@@ -1829,6 +1829,8 @@ class Process(models.Model):
             quantity=quantity,
             unit_of_quantity=unit,
             due_date=self.start_date,
+            from_agent=from_agent,
+            to_agent=to_agent,
             created_by=user)
         ct.save()
         return ct

@@ -2478,6 +2478,13 @@ class Commitment(models.Model):
                     process.explode_demands(demand, user, visited)
         return process
 
+    def sources(self):
+        arts = self.resource_type.producing_agent_relationships()
+        for art in arts:
+            art.order_release_date = self.due_date - datetime.timedelta(days=art.lead_time)
+            art.too_late = art.order_release_date < datetime.date.today()
+        return arts
+
     
 #todo: not used.
 class Reciprocity(models.Model):

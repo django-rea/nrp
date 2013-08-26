@@ -15,6 +15,14 @@
     font-style: italic;
 }
 
+.error {
+    color: red;
+}
+
+.reskedForm {
+    display: inline;
+}
+
 </style>
 
 {% endblock %}
@@ -159,9 +167,19 @@
 					    </p>
 				    {% endfor %}
 			    {% else %}
-				    {% for source in item.resource_type.producing_agent_relationships %}
+				    {% for source in item.sources %}
 					    <p style="margin-left: 2em;">
-						    <b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+						    <b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}<br/>
+						    {% if source.too_late %}
+						        <span class="error" >{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span>
+						        <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url forward_schedule commitment_id=item.id source_id=source.id %}" method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url process_details process_id=process.id %}" />
+                                    <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
+                                </form>
+					        {% else %}
+						        {% trans "Purchase by:" %}{{ source.order_release_date }}
+					        {% endif %} 
 					    </p>
 				    {% endfor %}
 			    {% endif %}

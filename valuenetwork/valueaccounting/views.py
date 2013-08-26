@@ -1137,9 +1137,11 @@ def create_process_type_input(request, process_type_id, slot):
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         if slot == "c":
+            et_rel = "consume"
             prefix = pt.xbill_consumable_prefix()
             form = ProcessTypeConsumableForm(data=request.POST, process_type=pt, prefix=prefix)
         elif slot == "u":
+            et_rel = "use"
             prefix = pt.xbill_usable_prefix()
             form = ProcessTypeUsableForm(data=request.POST, process_type=pt, prefix=prefix)
         if form.is_valid():
@@ -1147,7 +1149,7 @@ def create_process_type_input(request, process_type_id, slot):
             rt = form.cleaned_data["resource_type"]
             ptrt.process_type=pt
             pattern = pt.process_pattern
-            event_type = pattern.event_type_for_resource_type("in", rt)
+            event_type = pattern.event_type_for_resource_type(et_rel, rt)
             ptrt.event_type = event_type
             ptrt.created_by=request.user
             ptrt.save()
@@ -2035,6 +2037,14 @@ def commit_to_task(request, commitment_id):
                 % ('accounting/work-commitment', ct.id))
         
         return HttpResponseRedirect(next)
+
+def forward_schedule(request, commitment_id, source_id):
+    if request.method == "POST":
+        ct = get_object_or_404(Commitment, id=commitment_id)
+        source = get_object_or_404(AgentResourceType, id=source_id)
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process', ct.process.id))
+        
 
 def create_labnotes_context(
         request, 

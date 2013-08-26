@@ -4689,8 +4689,8 @@ def process_selections(request, rand=0):
                         user=request.user)
 
             if done_process: 
-                return HttpResponseRedirect('/%s/'
-                    % ('accounting/process-selections'))                 
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/order-schedule', demand.id))                 
             if edit_process:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/change-process', process.id))  

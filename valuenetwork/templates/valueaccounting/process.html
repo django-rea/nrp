@@ -171,10 +171,10 @@
 					    <p style="margin-left: 2em;">
 						    <b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}<br/>
 						    {% if source.too_late %}
-						        <span class="error" >{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span>
 						        <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url forward_schedule commitment_id=item.id source_id=source.id %}" method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" name="next" value="{% url process_details process_id=process.id %}" />
+						            <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;
                                     <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
                                 </form>
 					        {% else %}

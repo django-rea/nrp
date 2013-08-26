@@ -1891,6 +1891,18 @@ class Process(models.Model):
                         )
                         next_process.explode_demands(demand, user, visited)
 
+    def reschedule_forward(self, delta_days, user):
+        self.start_date = self.start_date + datetime.timedelta(days=delta_days)
+        self.end_date = self.end_date + datetime.timedelta(days=delta_days)
+        self.changed_by = user
+        self.save()
+        for ct in self.outgoing_commitments():
+            ct.due_date = ct.due_date + datetime.timedelta(days=delta_days)
+            ct.changed_by = user
+            ct.save()
+        for p in self.next_processes():
+            p.reschedule_forward(delta_days, user)
+
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -2484,6 +2496,12 @@ class Commitment(models.Model):
             art.order_release_date = self.due_date - datetime.timedelta(days=art.lead_time)
             art.too_late = art.order_release_date < datetime.date.today()
         return arts
+
+    def reschedule_forward(self, delta_days, user):
+        self.due_date = self.due_date + datetime.timedelta(days=delta_days)
+        self.changed_by = user
+        self.save()
+        self.process.reschedule_forward(delta_days, user)
 
     
 #todo: not used.

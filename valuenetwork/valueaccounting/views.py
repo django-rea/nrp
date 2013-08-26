@@ -2042,6 +2042,9 @@ def forward_schedule(request, commitment_id, source_id):
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)
         source = get_object_or_404(AgentResourceType, id=source_id)
+        #import pdb; pdb.set_trace()
+        ct.reschedule_forward(source.lead_time, request.user)
+        
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', ct.process.id))
         

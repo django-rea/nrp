@@ -335,27 +335,28 @@ def inventory(request):
     selected_values = "all"
     if request.method == "POST":
         selected_values = request.POST["categories"]
-        vals = selected_values.split(",")
-        if vals[0] == "all":
-            select_all = True
-            #resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type')
-            for rt in rts:
-                if rt.onhand_qty()>0:
-                    resource_types.append(rt)
-        else:
-            select_all = False
-            #resources = EconomicResource.objects.select_related().filter(quantity__gt=0, resource_type__category__name__in=vals).order_by('resource_type')
-            fvs = []
-            for val in vals:
-                val_split = val.split(":")
-                fname = val_split[0]
-                fvalue = val_split[1].strip()
-                fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
-            rts = select_resource_types(fvs)
-            for rt in rts:
-                if rt.onhand_qty()>0:
-                    resource_types.append(rt)
-            resource_types.sort(key=lambda rt: rt.label())
+        if selected_values:
+            vals = selected_values.split(",")
+            if vals[0] == "all":
+                select_all = True
+                #resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type')
+                for rt in rts:
+                    if rt.onhand_qty()>0:
+                        resource_types.append(rt)
+            else:
+                select_all = False
+                #resources = EconomicResource.objects.select_related().filter(quantity__gt=0, resource_type__category__name__in=vals).order_by('resource_type')
+                fvs = []
+                for val in vals:
+                    val_split = val.split(":")
+                    fname = val_split[0]
+                    fvalue = val_split[1].strip()
+                    fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+                rts = select_resource_types(fvs)
+                for rt in rts:
+                    if rt.onhand_qty()>0:
+                        resource_types.append(rt)
+                resource_types.sort(key=lambda rt: rt.label())
     else:
         for rt in rts:
             if rt.onhand_qty()>0:

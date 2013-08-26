@@ -601,8 +601,20 @@ class EconomicResourceType(models.Model):
     def xbill_label(self):
         return ""
 
-    #def xbill_category(self):
-    #    return self.category
+    def generate_xbill(self):
+        from valuenetwork.valueaccounting.utils import explode_xbill_children, xbill_dfs, annotate_tree_properties
+        nodes = []
+        exploded = []
+        for kid in self.xbill_children():
+            explode_xbill_children(kid, nodes, exploded)
+        nodes = list(set(nodes))
+        #import pdb; pdb.set_trace()
+        to_return = []
+        visited = []
+        for kid in self.xbill_children():
+            to_return.extend(xbill_dfs(kid, nodes, visited, 1))
+        annotate_tree_properties(to_return)
+        return to_return
 
     def change_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceTypeChangeForm
@@ -2384,14 +2396,16 @@ class Commitment(models.Model):
 
     def quantity_to_buy(self):
         onhand = self.onhand()  
-        #todo: retest     
+        #todo: makes no obvious sense     
         if not self.resource_type.producing_commitments():
             qty =  self.unfilled_quantity() - sum(oh.quantity for oh in self.onhand())
             if qty > Decimal("0"):
                 return qty
         else:
             if not onhand:
+                #why repeat this?
                 if not self.resource_type.producing_commitments():
+                    #why? might make sense for "uses" events
                     return Decimal("1")
         return Decimal("0")
 

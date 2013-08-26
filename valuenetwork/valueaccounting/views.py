@@ -725,7 +725,7 @@ def extended_bill(request, resource_type_id):
     select_all = True
     facets = Facet.objects.all()
     if request.method == "POST":
-        nodes = generate_xbill(rt)
+        nodes = rt.generate_xbill()
         depth = 1
         for node in nodes:
             depth = max(depth, node.depth)
@@ -757,7 +757,7 @@ def extended_bill(request, resource_type_id):
                     else:
                         node.show = True
     else:
-        nodes = generate_xbill(rt)
+        nodes = rt.generate_xbill()
         depth = 1
         for node in nodes:
             depth = max(depth, node.depth)
@@ -784,7 +784,7 @@ def edit_extended_bill(request, resource_type_id):
     #start_time = time.time()
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     #import pdb; pdb.set_trace()
-    nodes = generate_xbill(rt)
+    nodes = rt.generate_xbill()
     resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
     feature_form = FeatureForm()
     names = EconomicResourceType.objects.values_list('name', flat=True)

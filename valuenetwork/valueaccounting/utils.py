@@ -401,6 +401,7 @@ def explode_xbill_children(node, nodes, exploded):
             for kid in node.xbill_child_object().xbill_children():
                 explode_xbill_children(kid, nodes, exploded)
 
+#todo: obsolete
 def generate_xbill(resource_type):
     nodes = []
     exploded = []

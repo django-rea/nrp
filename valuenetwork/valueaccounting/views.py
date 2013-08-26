@@ -1638,10 +1638,12 @@ def schedule_commitment(
                         if pc.independent_demand == order:
                             schedule_commitment(pc, schedule, reqs, work, tools, visited_resources, depth+1)
                 elif inp.independent_demand == order:
-                    reqs.append(inp)
-                    for art in resource_type.producing_agent_relationships():
-                        art.depth = (depth + 1) * 2
-                        schedule.append(art)
+                    if inp.event_type.relationship != "work":
+                        reqs.append(inp)
+                        #for art in resource_type.producing_agent_relationships():
+                        for art in inp.sources():
+                            art.depth = (depth + 1) * 2
+                            schedule.append(art)
 
     return schedule
 

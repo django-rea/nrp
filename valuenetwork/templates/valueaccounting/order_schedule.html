@@ -4,6 +4,22 @@
 
 {% block head_title %}{% trans "Schedule for " %}{{ order }}{% endblock %}
 
+{% block extra_head %}
+
+<style>
+
+.error {
+    color: red;
+}
+
+.reskedForm {
+    display: inline;
+}
+
+</style>
+
+{% endblock %}
+
 {% block body_class %}projects{% endblock %}
 
 {% block body_base %}
@@ -28,10 +44,55 @@
 					<h3 style="margin-bottom: 4px;" >{% trans "Production Schedule" %}:</h3>
 					{% for item in sked %}
 						<p style="margin-left:{{ item.depth }}em" >
-							<b>{{ item.label }}:</b> 
+							 
 							{% if item.label = "process" %}
+							    <b>{{ item.label }}:</b>
 								<a href="{{ item.get_absolute_url }}">{{ item }}</a>
+							{% elif item.label = "source" %}
+							    {% if item.resource_type.onhand %}
+                                	{% for resource in item.resource_type.onhand %}
+					                    <p style="margin-left: 4em;">
+						                    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }}
+                                            {% for event in resource.consuming_events %}
+                                                {% if event.commitment = item %}
+							                        <p class="use" >
+								                        <b>{% trans "Consumed" %}:</b> {{ event.quantity }} {{ event.event_date }}
+							                        </p>
+							                    {% endif %}
+						                    {% endfor %}
+					                    </p>
+				                    {% endfor %}
+                                {% elif item.fulfilled_quantity %}
+				                    <p style="margin-left: 4em;">
+					                    <b>{% trans "Onhand" %}:</b> 0 {{ item.unit_of_quantity }}
+					                    <p class="use" >
+						                    <b>{% trans "Consumed" %}:</b> {{ item.fulfilled_quantity }}
+					                    </p>
+				                    </p>
+			                    {% elif item.resource_type.producing_commitments %}
+                                	{% for ct in item.resource_type.producing_commitments %}
+					                    <p style="margin-left: 4em;">
+						                    <b>{% trans "Scheduled" %}:</b> 
+						                    <a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a>
+					                    </p>
+				                    {% endfor %}
+			                    {% else %}
+			                        <b>{{ item.label }}:</b>
+							        {{ item.agent.name }} 
+							        {% trans "Lead time" %}: {{ item.lead_time }} {% trans "days" %}<br/>
+						            {% if item.too_late %}
+						                <form class="reskedForm" id="reskedForm-{{ item.id }}" action="{% url forward_schedule commitment_id=item.commitment.id source_id=item.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+						                    <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ item.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;
+                                            <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
+                                        </form>
+					                {% else %}
+						                {% trans "Purchase by:" %}{{ item.order_release_date }}
+					                {% endif %} 
+				                {% endif %}
 							{% else%}
+							    <b>{{ item.label }}:</b>
 								{{ item }} 
 							{% endif %}
 						</p>

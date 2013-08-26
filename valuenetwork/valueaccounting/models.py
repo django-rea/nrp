@@ -2495,6 +2495,7 @@ class Commitment(models.Model):
         for art in arts:
             art.order_release_date = self.due_date - datetime.timedelta(days=art.lead_time)
             art.too_late = art.order_release_date < datetime.date.today()
+            art.commitment = self
         return arts
 
     def reschedule_forward(self, delta_days, user):

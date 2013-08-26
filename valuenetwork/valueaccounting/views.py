@@ -1638,10 +1638,12 @@ def schedule_commitment(
                         if pc.independent_demand == order:
                             schedule_commitment(pc, schedule, reqs, work, tools, visited_resources, depth+1)
                 elif inp.independent_demand == order:
-                    reqs.append(inp)
-                    for art in resource_type.producing_agent_relationships():
-                        art.depth = (depth + 1) * 2
-                        schedule.append(art)
+                    if inp.event_type.relationship != "work":
+                        reqs.append(inp)
+                        #for art in resource_type.producing_agent_relationships():
+                        for art in inp.sources():
+                            art.depth = (depth + 1) * 2
+                            schedule.append(art)
 
     return schedule
 
@@ -2042,6 +2044,9 @@ def forward_schedule(request, commitment_id, source_id):
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)
         source = get_object_or_404(AgentResourceType, id=source_id)
+        #import pdb; pdb.set_trace()
+        ct.reschedule_forward(source.lead_time, request.user)
+        
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', ct.process.id))
         

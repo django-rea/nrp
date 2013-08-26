@@ -861,6 +861,7 @@ def delete_order_confirmation(request, order_id):
     reqs = []
     work = []
     tools = []
+    #import pdb; pdb.set_trace()
     if pcs:
         visited_resources = set()
         for ct in pcs:
@@ -1075,9 +1076,12 @@ def create_resource_type_ajax(request):
     if slot == "cite":
         rt_prefix = process_type.xbill_citable_rt_prefix()
         rtf_prefix = process_type.xbill_citable_rt_facet_prefix()
-    else: 
-        rt_prefix = process_type.xbill_input_rt_prefix()  
-        rtf_prefix = process_type.xbill_input_rt_facet_prefix()
+    elif slot == "use": 
+        rt_prefix = process_type.xbill_usable_rt_prefix()  
+        rtf_prefix = process_type.xbill_usable_rt_facet_prefix()
+    else:
+        rt_prefix = process_type.xbill_consumable_rt_prefix()  
+        rtf_prefix = process_type.xbill_consumable_rt_facet_prefix()
     form = EconomicResourceTypeAjaxForm(request.POST, request.FILES, prefix=rt_prefix)
     if form.is_valid():
         data = form.cleaned_data
@@ -4618,6 +4622,8 @@ def process_selections(request, rand=0):
                         unit=rt.unit,
                         user=request.user)
                     if rand:
+                        commitment.order = demand
+                        commitment.save()
                         #use recipe
                         pt = rt.main_producing_process_type()
                         process.process_type=pt

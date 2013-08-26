@@ -4730,6 +4730,127 @@ def process_selections(request, rand=0):
         "help": get_help("process_selections"),
     }, context_instance=RequestContext(request))
 
+@login_required
+def plan_from_recipe(request):
+    #import pdb; pdb.set_trace()
+    resource_types = []
+    selected_project = None
+    project_form = ProjectSelectionForm()
+    init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
+    date_form = DateSelectionForm(data=request.POST or None)
+    demand_form = DemandSelectionForm(data=request.POST or None)
+    if request.method == "POST":
+        create_order = request.POST.get("create-order")
+        get_related = request.POST.get("get-related")
+        if get_related:
+            selected_project = Project.objects.get(id=request.POST.get("project"))
+            date_form = DateSelectionForm(initial=init)
+            if selected_project:
+                resource_types = selected_project.get_resource_types_with_recipe()
+        else:
+            #import pdb; pdb.set_trace()
+            rp = request.POST
+            today = datetime.date.today()
+            if date_form.is_valid():
+                start_date = date_form.cleaned_data["start_date"]
+                end_date = date_form.cleaned_data["end_date"]
+            else:
+                start_date = today
+                end_date = today
+            demand = None
+            if demand_form.is_valid():
+                demand = demand_form.cleaned_data["demand"]                
+            produced_rts = []
+            for key, value in dict(rp).iteritems():
+                if "selected-project" in key:
+                    project_id = key.split("~")[1]
+                    selected_project = Project.objects.get(id=project_id)
+                    continue
+                et = None
+                action = ""
+                try:
+                    #import pdb; pdb.set_trace()
+                    label = key.split("~")[0]
+                    et = EventType.objects.get(label=label)
+                    action = et.relationship
+                except EventType.DoesNotExist:
+                    pass
+                if action == "out":
+                    produced_id = int(value[0])
+                    produced_rt = EconomicResourceType.objects.get(id=produced_id)
+                    produced_rts.append(produced_rt)
+                    continue
+
+            if not demand:
+                demand = Order(
+                    order_type="rand",
+                    order_date=today,
+                    due_date=end_date,
+                    created_by=request.user)
+                demand.save()
+
+            name = "Make something"
+            if produced_rts:
+                name = " ".join([
+                    "Make",
+                    produced_rts[0].name,
+                ])
+
+            process = Process(
+                name=name,
+                end_date=end_date,
+                start_date=start_date,
+                process_pattern=selected_pattern,
+                created_by=request.user,
+                project=selected_project
+            )
+            process.save()
+        
+            #import pdb; pdb.set_trace()      
+            for rt in produced_rts:
+                resource_types.append(rt)
+                et = selected_pattern.event_type_for_resource_type("out", rt)
+                if et:
+                    commitment = process.add_commitment(
+                        resource_type= rt,
+                        demand=demand,
+                        quantity=Decimal("1"),
+                        event_type=et,
+                        unit=rt.unit,
+                        user=request.user)
+
+                    commitment.order = demand
+                    commitment.save()
+                    #use recipe
+                    pt = rt.main_producing_process_type()
+                    process.process_type=pt
+                    process.save()
+                    if pt:
+                        for xrt in pt.cited_resource_types():
+                            if xrt not in resource_types:
+                                resource_types.append(xrt)
+                        for xrt in pt.used_resource_types():
+                            if xrt not in resource_types:
+                                resource_types.append(xrt)
+                        for xrt in pt.consumed_resource_types():
+                            if xrt not in resource_types:
+                                resource_types.append(xrt)
+                        for xrt in pt.work_resource_types():
+                            if xrt not in resource_types:
+                                resource_types.append(xrt)
+                    process.explode_demands(demand, request.user, [])
+ 
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/order-schedule', demand.id))                 
+                            
+    return render_to_response("valueaccounting/plan_from_recipe.html", {
+        "selected_project": selected_project,
+        "project_form": project_form,
+        "date_form": date_form,
+        "demand_form": demand_form,
+        "help": get_help("process_selections"),
+    }, context_instance=RequestContext(request))
+
 
 @login_required
 def resource_facet_table(request):

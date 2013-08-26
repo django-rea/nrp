@@ -77,7 +77,7 @@
                 {% if selected_pattern %}
                     <p class="selected">
                     <i>Chosen:</i>&nbsp;&nbsp;
-                    {% trans "Process pattern " %} 
+                    {% trans "Type of R&D " %} 
 	                <input type="text" name="selected-pattern~{{ selected_pattern.id }}" value="{{ selected_pattern }}"
                         readonly="readonly" />&nbsp;&nbsp; 
                     {% trans "Project " %} 
@@ -85,7 +85,7 @@
                         readonly="readonly" /> 
                     </p>
                 {% else %}
-                    {% trans "Choose a process pattern " %} {{ pattern_form.pattern }} &nbsp; 
+                    {% trans "Choose type of R&D " %} {{ pattern_form.pattern }} &nbsp; 
                     {% trans "Choose a project " %} {{ project_form.project }} &nbsp;&nbsp; 
 	                <input type="submit" name="get-related" value="{% trans 'Get resource types' %}" class="btn btn-primary" />
                 {% endif %}

@@ -1019,9 +1019,9 @@ class EconomicResource(models.Model):
     def label(self):
         return self.identifier or str(self.id)
 
-    def change_form(self, prefix):
+    def change_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
-        return EconomicResourceForm(prefix=prefix, instance=self)
+        return EconomicResourceForm(instance=self)
 
     def producing_events(self):
         if self.quality:
@@ -1202,6 +1202,9 @@ class Project(models.Model):
 
     def wip(self):
         return self.processes.all()
+
+    def get_resource_types_with_recipe(self):
+        return [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(project=self)]
 
 
 class ProcessType(models.Model):

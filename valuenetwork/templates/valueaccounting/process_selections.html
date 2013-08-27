@@ -28,27 +28,12 @@
 	width: 32em;
     height: 40px;
 }
-/*
-.formset-top
-{
-	padding-top: 1em;
-}
-
-.formset-bottom
-{
-	border-bottom-style:solid;
-	border-width:1px;
-	border-color:lightgrey;
-}*/
 .selected {
     font-size: 1.2em;
 }
 .section {
     color: firebrick;
 }
-/*.select-buttons {
-    margin-left: 75px;
-}*/
 .select-buttons p {
     margin-top: 20px;
 }
@@ -77,7 +62,7 @@
                 {% if selected_pattern %}
                     <p class="selected">
                     <i>Chosen:</i>&nbsp;&nbsp;
-                    {% trans "Process pattern " %} 
+                    {% trans "Type of R&D " %} 
 	                <input type="text" name="selected-pattern~{{ selected_pattern.id }}" value="{{ selected_pattern }}"
                         readonly="readonly" />&nbsp;&nbsp; 
                     {% trans "Project " %} 
@@ -85,7 +70,7 @@
                         readonly="readonly" /> 
                     </p>
                 {% else %}
-                    {% trans "Choose a process pattern " %} {{ pattern_form.pattern }} &nbsp; 
+                    {% trans "Choose type of R&D " %} {{ pattern_form.pattern }} &nbsp; 
                     {% trans "Choose a project " %} {{ project_form.project }} &nbsp;&nbsp; 
 	                <input type="submit" name="get-related" value="{% trans 'Get resource types' %}" class="btn btn-primary" />
                 {% endif %}
@@ -129,10 +114,6 @@
                     
                     <div class="select-buttons">
                         {% if rand %}
-                            <p>
-                                <input type="submit" name="create-process" value="{% trans 'Create plan from recipe' %}" class="btn btn-primary" />
-                                </br>Create R&D planned work using a recipe.
-                            </p>
                             <p>
                                 <input type="submit" name="edit-process" value="{% trans 'Change process' %}" class="btn btn-primary" />
                                 </br>Create R&D planned work and edit the process details.

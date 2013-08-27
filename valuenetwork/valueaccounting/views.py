@@ -2968,10 +2968,6 @@ def resource(request, resource_id):
                 event.resource = resource
                 event.created_by = request.user
                 event.save()
-                #pattern = process.process_pattern 
-                #work_form = SimpleWorkForm(prefix='work', pattern=pattern)
-                #agent_form = AgentContributorSelectionForm()
-                #cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
         elif cite_save:
@@ -2989,9 +2985,6 @@ def resource(request, resource_id):
                 citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
                 citation_event.created_by = request.user
                 citation_event.save()
-                #work_form = SimpleWorkForm(prefix='work', pattern=pattern)
-                #agent_form = AgentContributorSelectionForm()
-                #cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
         elif work_save:
@@ -3008,12 +3001,9 @@ def resource(request, resource_id):
                 work_event.from_agent = EconomicAgent.objects.get(id=int(request.POST['selected_agent']))
                 work_event.created_by = request.user
                 work_event.save()
-                #work_form = SimpleWorkForm(prefix='work', pattern=pattern)
-                #agent_form = AgentContributorSelectionForm()
-                #cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
-
+                       
     return render_to_response("valueaccounting/resource.html", {
         "resource": resource,
         "photo_size": (128, 128),
@@ -3024,6 +3014,23 @@ def resource(request, resource_id):
         "agent": agent,
     }, context_instance=RequestContext(request))
    
+
+@login_required
+def change_resource(request, resource_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        resource = get_object_or_404(EconomicResource, pk=resource_id)
+        form = EconomicResourceForm(request.POST, request.FILES, instance=resource)
+        if form.is_valid():
+            data = form.cleaned_data
+            resource = form.save(commit=False)
+            resource.changed_by=request.user
+            resource.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/resource', resource_id))
+        else:
+            raise ValidationError(form.errors)
+
 
 def get_labnote_context(commitment, request_agent):
     author = False
@@ -4792,6 +4799,87 @@ def process_selections(request, rand=0):
         "date_form": date_form,
         "demand_form": demand_form,
         "rand": rand,
+        "help": get_help("process_selections"),
+    }, context_instance=RequestContext(request))
+
+@login_required
+def plan_from_recipe(request):
+    #import pdb; pdb.set_trace()
+    resource_types = []
+    selected_project = None
+    project_form = ProjectSelectionForm()
+    init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
+    date_form = DateSelectionForm(data=request.POST or None)
+    if request.method == "POST":
+        create_order = request.POST.get("create-order")
+        get_related = request.POST.get("get-related")
+        if get_related:
+            selected_project = Project.objects.get(id=request.POST.get("project"))
+            date_form = DateSelectionForm(initial=init)
+            if selected_project:
+                resource_types = selected_project.get_resource_types_with_recipe()
+        else:
+            #import pdb; pdb.set_trace()
+            rp = request.POST
+            today = datetime.date.today()
+            if date_form.is_valid():
+                start_date = date_form.cleaned_data["start_date"]
+                end_date = date_form.cleaned_data["end_date"]
+            else:
+                start_date = today
+                end_date = today
+            for key, value in dict(rp).iteritems():
+                if "selected-project" in key:
+                    project_id = key.split("~")[1]
+                    selected_project = Project.objects.get(id=project_id)
+                    continue
+                if key == "rt":
+                    produced_id = int(value[0])
+                    produced_rt = EconomicResourceType.objects.get(id=produced_id)
+
+            demand = Order(
+                order_type="rand",
+                order_date=today,
+                due_date=end_date,
+                created_by=request.user)
+            demand.save()
+
+            pt = produced_rt.main_producing_process_type()
+            process = Process(
+                name=" ".join(["Make",produced_rt.name,]),
+                end_date=end_date,
+                start_date=start_date,
+                #process_pattern=selected_pattern,
+                process_type=pt,
+                created_by=request.user,
+                project=selected_project
+            )
+            process.save()
+        
+            #import pdb; pdb.set_trace()      
+            ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=produced_rt)
+            et = ptrt.event_type
+            if et:
+                commitment = process.add_commitment(
+                    resource_type=produced_rt,
+                    demand=demand,
+                    quantity=Decimal("1"),
+                    event_type=et,
+                    unit=produced_rt.unit,
+                    user=request.user)
+                commitment.order = demand
+                commitment.save()
+
+                process.explode_demands(demand, request.user, [])
+ 
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/order-schedule', demand.id))                 
+                            
+    return render_to_response("valueaccounting/plan_from_recipe.html", {
+        "selected_project": selected_project,
+        "project_form": project_form,
+        "date_form": date_form,
+        "resource_types": resource_types,
         "help": get_help("process_selections"),
     }, context_instance=RequestContext(request))
 

@@ -1,0 +1,148 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "R&D Production from Recipe" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+
+<style>
+
+.selected {
+    font-size: 1.2em;
+}
+
+.select-buttons p {
+    margin-top: 20px;
+}
+#div_id_start_date, #rts {
+    margin-top: 20px
+}
+
+</style>
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+      {% include "_messages.html" %}
+	  <div>
+		<legend>{% trans "R&D Planning Using Recipe" %}</legend>
+		<form class="form-horizontal" id="processForm" method="POST" action=".">
+	      {% csrf_token %}
+		  <div class="row-fluid">
+			<div class="span12">
+                {% if selected_project %}
+                    <p class="selected">
+                    <i>Chosen:</i>&nbsp;&nbsp;
+                    {% trans "Project " %} 
+	                <input type="text" name="selected-project~{{ selected_project.id }}" value="{{ selected_project }}"
+                        readonly="readonly" /> 
+                    </p>
+                {% else %}
+                    {% trans "Choose a project " %} {{ project_form.project }} &nbsp;&nbsp; 
+	                <input type="submit" name="get-related" value="{% trans 'Get recipes' %}" class="btn btn-primary" />
+                {% endif %}
+            </div>
+          </div>
+
+		  {% if selected_project %}
+
+		    <div class="row-fluid">
+			  <div class="span6">
+                    <div id="rts">
+                        {% for item in resource_types %}
+	                        <p>
+	                            <input type="radio" id="rt-{{ item.id }}" name="rt" value="{{ item.id }}" />
+	                            {{ item }} ( {{ item.facet_values_list }} )
+                            </p>
+                        {% endfor %}
+                    </div>
+              </div>
+              <div class="span6">
+                    {{ date_form|as_bootstrap }}
+                    <hr />                
+                    <div class="select-buttons">
+                            <p>
+                                <input type="submit" name="create-order" value="{% trans 'Create plan from recipe' %}" class="btn btn-primary" />
+                            </p>
+                    </div>
+               </div>
+            </div>
+   
+	      {% endif %}
+
+		</form>
+      </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+	
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+ 	$(document).ready(function(){
+
+	    $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
+
+        //$(".chzn-select").chosen();
+
+        $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+        $( "#id_end_date" ).datepicker({ 
+			dateFormat: "yy-mm-dd",
+    		onClose: function() {
+      			$( this ).valid();
+			}
+		 });
+
+		jQuery.validator.addMethod("equalToOrGreaterThan", 
+		function(value, element, params) {
+
+			if (!/Invalid|NaN/.test(new Date(value))) {
+				return new Date(value) >= new Date($(params).val());
+			}
+
+			return isNaN(value) && isNaN($(params).val()) 
+				|| (Number(value) >= Number($(params).val())); 
+		},'Must be equal to or greater than start date.');
+
+		$( "#processForm" ).validate({
+			rules: {
+				start_date: {
+					required: true,
+					date: true
+				},
+				end_date: {
+					date: true,
+					equalToOrGreaterThan: '#id_start_date'
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+
+	}); // end document.ready
+
+
+    </script>
+
+{% endblock %}

@@ -170,6 +170,7 @@
 				    {% for source in item.sources %}
 					    <p style="margin-left: 2em;">
 						    <b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}<br/>
+						    {% comment %}
 						    {% if source.too_late %}
 						        <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url forward_schedule_source commitment_id=item.id source_id=source.id %}" method="POST" >
                                     {% csrf_token %}
@@ -179,7 +180,8 @@
                                 </form>
 					        {% else %}
 						        {% trans "Purchase by:" %}{{ source.order_release_date }}
-					        {% endif %} 
+					        {% endif %}
+					        {% endcomment %}
 					    </p>
 				    {% endfor %}
 			    {% endif %}

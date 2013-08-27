@@ -1571,10 +1571,10 @@ class Process(models.Model):
     def __unicode__(self):
         return " ".join([
             self.name,
-            "ending",
-            self.end_date.strftime('%Y-%m-%d'),
             "starting",
             self.start_date.strftime('%Y-%m-%d'),
+            "ending",
+            self.end_date.strftime('%Y-%m-%d'),
             ])
 
     @models.permalink
@@ -1685,6 +1685,18 @@ class Process(models.Model):
                                 if pc.due_date >= self.start_date:
                                     answer.append(pc.process)
         return answer
+
+    def all_previous_processes(self, ordered_processes, visited_resources, depth):
+        self.depth = depth * 2
+        ordered_processes.append(self)
+        output = self.main_outgoing_commitment()
+        #if not output:
+            #import pdb; pdb.set_trace()
+        depth = depth + 1
+        if output.resource_type not in visited_resources:
+            visited_resources.append(output.resource_type)
+            for process in self.previous_processes():
+                process.all_previous_processes(ordered_processes, visited_resources, depth)
 
     def next_processes(self):
         answer = []
@@ -1892,16 +1904,30 @@ class Process(models.Model):
                         next_process.explode_demands(demand, user, visited)
 
     def reschedule_forward(self, delta_days, user):
-        self.start_date = self.start_date + datetime.timedelta(days=delta_days)
-        self.end_date = self.end_date + datetime.timedelta(days=delta_days)
-        self.changed_by = user
-        self.save()
-        for ct in self.outgoing_commitments():
-            ct.due_date = ct.due_date + datetime.timedelta(days=delta_days)
-            ct.changed_by = user
-            ct.save()
-        for p in self.next_processes():
-            p.reschedule_forward(delta_days, user)
+        #import pdb; pdb.set_trace()
+        fps = self.previous_processes()
+        if fps:
+            slack =  99999
+            for fp in fps:
+                slax = self.start_date - fp.end_date
+                slack = min(slack, slax.days)
+            slack = max(slack, 0)
+            delta_days -= slack
+            delta_days = max(delta_days, 0)
+        if delta_days:
+            self.start_date = self.start_date + datetime.timedelta(days=delta_days)
+            self.end_date = self.end_date + datetime.timedelta(days=delta_days)
+            self.changed_by = user
+            self.save()
+            for ct in self.incoming_commitments():
+                ct.reschedule_forward(delta_days, user)
+            for ct in self.outgoing_commitments():
+                ct.reschedule_forward(delta_days, user)
+            for p in self.next_processes():
+                p.reschedule_forward(delta_days, user)
+
+    def too_late(self):
+        return self.start_date < datetime.date.today()
 
 
 class Feature(models.Model):
@@ -2499,11 +2525,21 @@ class Commitment(models.Model):
         return arts
 
     def reschedule_forward(self, delta_days, user):
+        #import pdb; pdb.set_trace()
         self.due_date = self.due_date + datetime.timedelta(days=delta_days)
         self.changed_by = user
         self.save()
-        self.process.reschedule_forward(delta_days, user)
+        order = self.order
+        if order:
+            #import pdb; pdb.set_trace()
+            order.due_date  += datetime.timedelta(days=delta_days)
+            order.save()
 
+    def reschedule_forward_from_source(self, lead_time, user):
+        lag = datetime.date.today() - self.due_date
+        delta_days = lead_time + lag.days
+        #self.reschedule_forward(self, delta_days, user)
+        self.process.reschedule_forward(delta_days, user)
     
 #todo: not used.
 class Reciprocity(models.Model):

@@ -171,7 +171,7 @@
 					    <p style="margin-left: 2em;">
 						    <b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}<br/>
 						    {% if source.too_late %}
-						        <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url forward_schedule commitment_id=item.id source_id=source.id %}" method="POST" >
+						        <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url forward_schedule_source commitment_id=item.id source_id=source.id %}" method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" name="next" value="{% url process_details process_id=process.id %}" />
 						            <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;

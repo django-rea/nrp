@@ -1605,6 +1605,7 @@ def create_order(request):
         "item_forms": item_forms,
     }, context_instance=RequestContext(request))
 
+#todo: s/b refactored in a commitment method
 def schedule_commitment(
         commitment, 
         schedule, 
@@ -1638,6 +1639,7 @@ def schedule_commitment(
                         if pc.independent_demand == order:
                             schedule_commitment(pc, schedule, reqs, work, tools, visited_resources, depth+1)
                 elif inp.independent_demand == order:
+                    #might want to keep, but treat differently in template
                     if inp.event_type.relationship != "work":
                         reqs.append(inp)
                         #for art in resource_type.producing_agent_relationships():
@@ -1647,7 +1649,7 @@ def schedule_commitment(
 
     return schedule
 
-def order_schedule(request, order_id):
+def order_schedule_old(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
     sked = []
     reqs = []
@@ -1669,6 +1671,47 @@ def order_schedule(request, order_id):
         "reqs": reqs,
         "work": work,
         "tools": tools,
+        "error_message": error_message,
+    }, context_instance=RequestContext(request))
+
+def order_schedule_x(request, order_id):
+    order = get_object_or_404(Order, pk=order_id)
+    #import pdb; pdb.set_trace()
+    error_message = ""
+    deliverables = Commitment.objects.filter(independent_demand=order, event_type__relationship="out")
+    processes = [d.process for d in deliverables]
+    roots = []
+    for p in processes:
+        if not p.next_processes():
+            roots.append(p)
+    ordered_processes = []
+    visited_resources = []
+    for root in roots:
+        root.all_previous_processes(ordered_processes, visited_resources, 0)
+    return render_to_response("valueaccounting/order_schedule.html", {
+        "order": order,
+        "processes": ordered_processes,
+        "error_message": error_message,
+    }, context_instance=RequestContext(request))
+
+def order_schedule(request, order_id):
+    order = get_object_or_404(Order, pk=order_id)
+    #import pdb; pdb.set_trace()
+    error_message = ""
+    deliverables = Commitment.objects.filter(independent_demand=order, event_type__relationship="out")
+    processes = [d.process for d in deliverables]
+    roots = []
+    for p in processes:
+        if not p.next_processes():
+            roots.append(p)
+    ordered_processes = []
+    visited_resources = []
+    for root in roots:
+        root.all_previous_processes(ordered_processes, visited_resources, 0)
+    ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
+    return render_to_response("valueaccounting/order_schedule.html", {
+        "order": order,
+        "processes": ordered_processes,
         "error_message": error_message,
     }, context_instance=RequestContext(request))
 
@@ -2040,15 +2083,32 @@ def commit_to_task(request, commitment_id):
         
         return HttpResponseRedirect(next)
 
-def forward_schedule(request, commitment_id, source_id):
+def forward_schedule_source(request, commitment_id, source_id):
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)
         source = get_object_or_404(AgentResourceType, id=source_id)
         #import pdb; pdb.set_trace()
-        ct.reschedule_forward(source.lead_time, request.user)
-        
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', ct.process.id))
+        ct.reschedule_forward_from_source(source.lead_time, request.user)
+        next = request.POST.get("next")
+        if next:
+            return HttpResponseRedirect(next)
+        else:
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/order-schedule', ct.independent_demand.id))
+
+def forward_schedule_process(request, process_id):
+    if request.method == "POST":
+        process = get_object_or_404(Process, id=process_id)
+        #import pdb; pdb.set_trace()
+        lag = datetime.date.today() - process.start_date
+        delta_days = lag.days
+        process.reschedule_forward(delta_days, request.user)
+        next = request.POST.get("next")
+        if next:
+            return HttpResponseRedirect(next)
+        else:
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/order-schedule', ct.independent_demand.id))
         
 
 def create_labnotes_context(

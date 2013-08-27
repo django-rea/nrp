@@ -1,0 +1,168 @@
+{% load i18n %}
+{% load bootstrap_tags %}
+
+<span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process }}</a>
+{% if process.too_late %}
+    <form class="reskedProcessForm" id="reskedProcessForm-{{ process.id }}" action="{% url forward_schedule_process process_id=process.id %}" method="POST" >
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+        <span class="error" style="margin-left: 2em;">{% trans "Should have started" %} {{ process.start_date|timesince }} {% trans "ago" %}</span> &nbsp;
+        <button class="btn btn-warning btn-mini" title="Reschedule forward from today" >{% trans "Reschedule forward" %}</button>
+    </form>
+{% endif %}		
+<ul>
+    {% if process.independent_demand %}
+        {% if process.independent_demand.order_type != 'holder' %}
+            <li class="for" >
+                <span class="prefix for-prefix">{% trans "For" %}:</span> {{ process.independent_demand }}
+            </li>
+        {% endif %}
+    {% endif %}
+    
+    {% if process.outgoing_commitments %}
+        <li class="section deliverables-section">{% trans "Deliverables" %}:</li>
+        <ul>
+		    {% for item in process.outgoing_commitments %}	
+			    <li class="deliverable" >
+				    <span class="name deliverable-name">{{ item.resource_type.name }}:</span> 
+				    {{ item.quantity }} {{ item.unit_of_quantity }} <span class="due">{% trans "due" %} {{ item.due_date }}</span>
+			    </li>
+			    {% if item.fulfilling_events %}
+			        <ul>
+				        {% for event in item.fulfilling_events %}
+					        <li class="subline" >
+						        <span class="prefix created-prefix">{% trans "Created" %}:</span> 
+						        <a href="{% url resource resource_id=event.resource.id %}">{{ event.resource_type.name }} {{ event.resource.label }}</a>
+						        {{ event.quantity }} {{ event.unit_of_quantity }}
+					        </li>
+				        {% endfor %}
+				    </ul>
+			    {% endif %}
+			{% endfor %}
+		</ul>
+	{% endif %}
+
+    {% if process.unfinished_work_requirements %}
+        <li class="section work-section">{% trans "Work requirements" %}:</li>
+		<ul>
+			{% for item in process.unfinished_work_requirements %}
+				<li class="work">
+					<span class="name deliverable-name">{{ item.resource_type.name }}:</span> 
+					    {{ item.quantity }} {{ item.unit_of_quantity }} <span class="due">{% trans "due" %} {{ item.due_date }}</span>
+					
+					{% if item.from_agent %}
+					    <span class="taken">{% trans "Taken by" %} {{ item.from_agent.nick }}</span>
+					    {% if agent == item.from_agent %}
+					        <a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Open Labnotes" %}</a>
+					    {% endif %}
+					{% else %}
+					     <span class="due">{% trans "due" %} {{ item.due_date }}</span>
+					    
+					    {% if item.description %}
+						    <ul>
+	                            <li class="req-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                            </ul>
+                        {% endif %}
+					{% endif %}
+
+				</li>
+
+			{% endfor %}
+		</ul>
+    {% endif %}
+    
+    {% if process.consumed_input_requirements %}
+        <li class="section materials-section" >{% trans "Consumable Requirements" %}:</li>
+        <ul>
+		    {% for reqmt in process.consumed_input_requirements %}	
+			    <li class="material" >
+				    <span class="name material-name">{{ reqmt.resource_type.name }}:</span>  
+				    {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }} <span class="due">{% trans "due" %} {{ reqmt.due_date }}</span>
+			    </li>
+			    {% if reqmt.description %}
+				    <ul>
+                        <li class="req-description">{{ reqmt.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                    </ul>
+                {% endif %}
+			    {% if reqmt.resource_type.onhand %}
+			        <ul>
+				        {% for resource in reqmt.resource_type.onhand %}
+					        <li class="subline" >
+						        <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
+						        <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
+						        {{ resource.quantity }} {{ resource.unit_of_quantity }}
+					        </li>
+				        {% endfor %}
+				    </ul>
+			    {% elif reqmt.sources %}
+			        <ul>
+				        {% for source in reqmt.sources %}
+					        <li class="subline" >
+						        <span class="prefix source-prefix">{% trans "Possible source" %}:</span> {{ source.agent.name }} 
+						        {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+						        {% if source.too_late %}
+					                <form class="reskedSourceForm" id="reskedSourceForm-{{ source.id }}" action="{% url forward_schedule_source commitment_id=source.commitment.id source_id=source.id %}" method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+					                    <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;
+                                        <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
+                                    </form>
+				                {% else %}
+					                {% trans "Purchase by:" %}{{ source.order_release_date }}
+				                {% endif %} 
+					        </li>
+				        {% endfor %}
+				    </ul>
+			    {% endif %}
+		    {% endfor %}
+		</ul>
+	{% endif %}
+
+	{% if process.used_input_requirements %}	
+		<li class="section tools-section" >{% trans "Usable Requirements" %}:</li>
+		<ul>
+		    {% for reqmt in process.used_input_requirements %}	
+			    <li class="subline" >
+
+				    <span class="name tool-name">{{ reqmt.resource_type.name }}:</span> 
+				    {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }} <span class="due">{% trans "due" %} {{ reqmt.due_date }}</span>
+			    </li>
+			    {% if reqmt.description %}
+				    <ul>
+                        <li class="req-description">{{ reqmt.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                    </ul>
+                {% endif %}
+			    {% if reqmt.resource_type.onhand %}
+		            <ul>
+			            {% for resource in reqmt.resource_type.onhand %}
+				            <li class="subline" >
+					            <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
+					            <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
+					            {{ resource.quantity }} {{ resource.unit_of_quantity }}
+				            </li>
+			            {% endfor %}
+			        </ul>
+		        {% elif reqmt.resource_type.producing_commitments %}
+		            <ul>
+			            {% for ct in reqmt.resource_type.producing_commitments %}
+				            <li class="subline" >
+					            <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
+					            {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 
+				            </li>
+			            {% endfor %}
+			        </ul>
+		        {% elif reqmt.resource_type.producing_agent_relationships %}
+		            <ul>
+			            {% for source in reqmt.resource_type.producing_agent_relationships %}
+				            <li class="subline" >
+					            <span class="prefix source-prefix">{% trans "Possible source" %}:</span> {{ source.agent.name }} 
+					            {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+				            </li>
+			            {% endfor %}
+			        </ul>
+		        {% endif %}
+		    {% endfor %}
+		</ul>
+	{% endif %}
+
+</ul>

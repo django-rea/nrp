@@ -1204,8 +1204,8 @@ class Project(models.Model):
         return self.processes.all()
 
     def get_resource_types_with_recipe(self):
-        return self #[pt.main_produced_resource_type for pt in ProcessType.objects.filter(project=self)]
-        #item.producing_process_type_relationships
+        return [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(project=self)]
+
 
 class ProcessType(models.Model):
     name = models.CharField(_('name'), max_length=128)

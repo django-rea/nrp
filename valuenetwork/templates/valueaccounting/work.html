@@ -147,6 +147,7 @@ th, td {
 		        <a href="{% url labnotes_history %}">{% trans "Labnotes History" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        {% if agent %}
 					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan R&amp;D Work" %}</a>
+					<a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan R&amp;D Work from Recipe" %}</a>
 			    {% endif %}
 	        </legend>
 

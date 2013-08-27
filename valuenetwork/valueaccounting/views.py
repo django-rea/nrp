@@ -2908,10 +2908,6 @@ def resource(request, resource_id):
                 event.resource = resource
                 event.created_by = request.user
                 event.save()
-                #pattern = process.process_pattern 
-                #work_form = SimpleWorkForm(prefix='work', pattern=pattern)
-                #agent_form = AgentContributorSelectionForm()
-                #cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
         elif cite_save:
@@ -2929,9 +2925,6 @@ def resource(request, resource_id):
                 citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
                 citation_event.created_by = request.user
                 citation_event.save()
-                #work_form = SimpleWorkForm(prefix='work', pattern=pattern)
-                #agent_form = AgentContributorSelectionForm()
-                #cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
         elif work_save:
@@ -2948,12 +2941,9 @@ def resource(request, resource_id):
                 work_event.from_agent = EconomicAgent.objects.get(id=int(request.POST['selected_agent']))
                 work_event.created_by = request.user
                 work_event.save()
-                #work_form = SimpleWorkForm(prefix='work', pattern=pattern)
-                #agent_form = AgentContributorSelectionForm()
-                #cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
-
+                       
     return render_to_response("valueaccounting/resource.html", {
         "resource": resource,
         "photo_size": (128, 128),
@@ -2964,6 +2954,23 @@ def resource(request, resource_id):
         "agent": agent,
     }, context_instance=RequestContext(request))
    
+
+@login_required
+def change_resource(request, resource_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        resource = get_object_or_404(EconomicResource, pk=resource_id)
+        form = EconomicResourceForm(request.POST, request.FILES, instance=resource)
+        if form.is_valid():
+            data = form.cleaned_data
+            resource = form.save(commit=False)
+            resource.changed_by=request.user
+            resource.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/resource', resource_id))
+        else:
+            raise ValidationError(form.errors)
+
 
 def get_labnote_context(commitment, request_agent):
     author = False

@@ -1019,9 +1019,9 @@ class EconomicResource(models.Model):
     def label(self):
         return self.identifier or str(self.id)
 
-    def change_form(self, prefix):
+    def change_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
-        return EconomicResourceForm(prefix=prefix, instance=self)
+        return EconomicResourceForm(instance=self)
 
     def producing_events(self):
         if self.quality:

@@ -2099,7 +2099,8 @@ def forward_schedule_process(request, process_id):
         process = get_object_or_404(Process, id=process_id)
         #import pdb; pdb.set_trace()
         lag = datetime.date.today() - process.start_date
-        delta_days = lag.days
+        #munge for partial days
+        delta_days = lag.days + 1
         process.reschedule_forward(delta_days, request.user)
         next = request.POST.get("next")
         if next:

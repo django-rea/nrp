@@ -1917,6 +1917,8 @@ class Process(models.Model):
             slack = max(slack, 0)
             delta_days -= slack
             delta_days = max(delta_days, 0)
+            #munge for partial days
+            delta_days += 1
         if delta_days:
             self.start_date = self.start_date + datetime.timedelta(days=delta_days)
             if self.end_date:
@@ -2547,7 +2549,7 @@ class Commitment(models.Model):
 
     def reschedule_forward_from_source(self, lead_time, user):
         lag = datetime.date.today() - self.due_date
-        delta_days = lead_time + lag.days
+        delta_days = lead_time + lag.days + 1
         #self.reschedule_forward(self, delta_days, user)
         self.process.reschedule_forward(delta_days, user)
     

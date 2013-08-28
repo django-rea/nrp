@@ -2066,17 +2066,15 @@ def commit_to_task(request, commitment_id):
             ct.from_agent = agent
             ct.created_by=request.user
             ct.save()
-            #todo: might want to change both start and end dates
             if start_date != process.start_date:
                 if process.work_requirements().count() == 1:
-                    process.start_date = start_date
-                if process.end_date:
-                    if start_date > process.end_date:
-                        process.end_date = start_date
-                else:
-                    process.end_date = start_date
-                process.changed_by=request.user
-                process.save()
+                    if start_date > process.start_date:
+                        delta = start_date - process.start_date
+                        process.reschedule_forward(delta.days, request.user)
+                    else:             
+                        process.start_date = start_date
+                        process.changed_by=request.user
+                        process.save()
             if request.POST.get("start"):
                 return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/work-commitment', ct.id))
@@ -3668,6 +3666,8 @@ class ProcessWorkFormSet(BaseModelFormSet):
 @login_required
 def change_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
+    original_start = process.start_date
+    original_end = process.end_date
     demand = process.independent_demand()
     existing_demand = demand
     if demand:
@@ -3757,9 +3757,22 @@ def change_process(request, process_id):
         just_save = request.POST.get("save")
         if process_form.is_valid():
             process_data = process_form.cleaned_data
+            new_end = process_data["end_date"]
+            new_start = process_data["start_date"]
             process = process_form.save(commit=False)
             process.changed_by=request.user
             process.save()
+            #import pdb; pdb.set_trace()
+            if original_end:
+                if new_end > original_end:
+                    delta = new_end - original_end
+                    process.reschedule_connections(delta.days, request.user)
+            else:
+                if new_start > original_start:
+                    delta = new_start - original_start
+                    process.end_date = new_start
+                    process.save()
+                    process.reschedule_connections(delta.days, request.user)
             pattern = process.process_pattern
             #import pdb; pdb.set_trace()
             #todo: always creates a rand. the form is always valid.
@@ -3903,6 +3916,7 @@ def change_process(request, process_id):
                             ct.delete()
                     else:
                         ct = form.save(commit=False)
+                        ct.due_date = process.start_date
                         ct.independent_demand = demand
                         if ct_from_id:
                             producers = ct.resource_type.producing_commitments()
@@ -3960,7 +3974,6 @@ def change_process(request, process_id):
                             ct.event_type = event_type
                             ct.process = process
                             ct.independent_demand = demand
-                            ct.due_date = process.start_date
                             ct.created_by = request.user
                             ptrt = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
@@ -3993,6 +4006,7 @@ def change_process(request, process_id):
                             ct.delete()
                     else:
                         ct = form.save(commit=False)
+                        ct.due_date = process.start_date
                         ct.independent_demand = demand
                         if ct_from_id:
                             producers = ct.resource_type.producing_commitments()

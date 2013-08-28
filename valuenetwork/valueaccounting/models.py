@@ -1919,15 +1919,22 @@ class Process(models.Model):
             delta_days = max(delta_days, 0)
         if delta_days:
             self.start_date = self.start_date + datetime.timedelta(days=delta_days)
-            self.end_date = self.end_date + datetime.timedelta(days=delta_days)
+            if self.end_date:
+                self.end_date = self.end_date + datetime.timedelta(days=delta_days)
+            else:
+                 self.end_date = self.start_date
             self.changed_by = user
             self.save()
-            for ct in self.incoming_commitments():
-                ct.reschedule_forward(delta_days, user)
-            for ct in self.outgoing_commitments():
-                ct.reschedule_forward(delta_days, user)
-            for p in self.next_processes():
-                p.reschedule_forward(delta_days, user)
+            self.reschedule_connections(delta_days, user)
+
+    def reschedule_connections(self, delta_days, user):
+        for ct in self.incoming_commitments():
+            ct.reschedule_forward(delta_days, user)
+        for ct in self.outgoing_commitments():
+            ct.reschedule_forward(delta_days, user)
+        for p in self.next_processes():
+            p.reschedule_forward(delta_days, user)
+
 
     def too_late(self):
         return self.start_date < datetime.date.today()

@@ -60,12 +60,12 @@
 					     <span class="due">{% trans "due" %} {{ item.due_date }}</span>
 					    {% if agent %}
 						    <div style="display: inline;" >
-							    <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+							    <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 								    {% trans "Take this task" %}
 							    </a>
 						    </div>
 
-						    <div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+						    <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
 							    <div class="modal-header">
 								    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 								    <h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>

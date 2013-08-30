@@ -34,26 +34,30 @@
 
 		<legend>
 			{% trans "Resource" %}: {{ resource }} &nbsp;
-		    <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+			{% if agent %}
+		        <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+	        {% endif %}
 		</legend>
+		
+        {% if agent %}
+		    <div class="modal hide fade" id="resourceChangeForm" tabindex="-1" role="dialog" aria-labelledby="resource-change-label" aria-hidden="true">
+			    <div class="modal-header">
+				    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				    <h3 id="resource-change-label">{% trans "Change" %} {{ resource }}</h3>
+			    </div>
+			    <div class="modal-body">
+				    <form enctype="multipart/form-data" action="{% url change_resource resource_id=resource.id %}" method="POST" >
+					    {% csrf_token %}
+					    {{ resource.change_form|as_bootstrap }}
+				      <div class="modal-footer">
+					    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+					    <button class="btn btn-primary">{% trans "Save changes" %}</button>
+				      </div>
+				    </form>
+		      </div>
 
-		<div class="modal hide fade" id="resourceChangeForm" tabindex="-1" role="dialog" aria-labelledby="resource-change-label" aria-hidden="true">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				<h3 id="resource-change-label">{% trans "Change" %} {{ resource }}</h3>
-			</div>
-			<div class="modal-body">
-				<form enctype="multipart/form-data" action="{% url change_resource resource_id=resource.id %}" method="POST" >
-					{% csrf_token %}
-					{{ resource.change_form|as_bootstrap }}
-				  <div class="modal-footer">
-					<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-					<button class="btn btn-primary">{% trans "Save changes" %}</button>
-				  </div>
-				</form>
-		  </div>
-
-		</div>
+		    </div>
+	    {% endif %}
 
 		<div class="row-fluid">
 		
@@ -137,55 +141,56 @@
                             {% if event.process %}
                                 <ul>
                                     <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a>
-	                                    <div style="display: inline;" >
-		                                    <a href="#workForm" role="button" class="btn btn-info" data-toggle="modal">
-			                                    {% trans "Add work" %}
-		                                    </a>
-	                                    </div>
+                                        {% if agent %}
+	                                        <div style="display: inline;" >
+		                                        <a href="#workForm" role="button" class="btn btn-info" data-toggle="modal">
+			                                        {% trans "Add work" %}
+		                                        </a>
+	                                        </div>
 
-	                                    <div class="modal hide fade" id="workForm" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
-	                                      <div class="modal-header">
-		                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-		                                    <h3 id="work-label">{% trans "Add Work" %}</h3>
-	                                      </div>
-	                                      <div class="modal-body">
-			                                    <form class="work-form" action="" method="POST" >
-			                                      {% csrf_token %}
-                                                  {{ agent_form }}
-                                                  {{ work_form }}  
-				                                  <div class="modal-footer">
-				                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-				                                    <button class="btn btn-primary" name="work-save" value="work">{% trans "Save" %}</button>
-			                                      </div>
+	                                        <div class="modal hide fade" id="workForm" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+	                                          <div class="modal-header">
+		                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		                                        <h3 id="work-label">{% trans "Add Work" %}</h3>
+	                                          </div>
+	                                          <div class="modal-body">
+			                                        <form class="work-form" action="" method="POST" >
+			                                          {% csrf_token %}
+                                                      {{ agent_form }}
+                                                      {{ work_form }}  
+				                                      <div class="modal-footer">
+				                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+				                                        <button class="btn btn-primary" name="work-save" value="work">{% trans "Save" %}</button>
+			                                          </div>
 
-			                                    </form>
-	                                      </div>
-	                                    </div>
+			                                        </form>
+	                                          </div>
+	                                        </div>
 
-	                                    <div style="display: inline;" >
-		                                    <a href="#citeForm" role="button" class="btn btn-info" data-toggle="modal">
-			                                    {% trans "Add citation" %}
-		                                    </a>
-	                                    </div>
+	                                        <div style="display: inline;" >
+		                                        <a href="#citeForm" role="button" class="btn btn-info" data-toggle="modal">
+			                                        {% trans "Add citation" %}
+		                                        </a>
+	                                        </div>
 
-	                                    <div class="modal hide fade" id="citeForm" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
-	                                      <div class="modal-header">
-		                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-		                                    <h3 id="cite-label">{% trans "Add a Citation" %}</h3>
-	                                      </div>
-	                                      <div class="modal-body">
-			                                    <form class="cite-form" action="" method="POST" >
-			                                      {% csrf_token %}
-                                                  {{ cite_form }}  
-				                                  <div class="modal-footer">
-				                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-				                                    <button class="btn btn-primary" name="cite-save" value="cite">{% trans "Save" %}</button>
-			                                      </div>
+	                                        <div class="modal hide fade" id="citeForm" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+	                                          <div class="modal-header">
+		                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		                                        <h3 id="cite-label">{% trans "Add a Citation" %}</h3>
+	                                          </div>
+	                                          <div class="modal-body">
+			                                        <form class="cite-form" action="" method="POST" >
+			                                          {% csrf_token %}
+                                                      {{ cite_form }}  
+				                                      <div class="modal-footer">
+				                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+				                                        <button class="btn btn-primary" name="cite-save" value="cite">{% trans "Save" %}</button>
+			                                          </div>
 
-			                                    </form>
-	                                      </div>
-	                                    </div>
-
+			                                        </form>
+	                                          </div>
+	                                        </div>
+                                        {% endif %}
 
                                     </li>
                                     <ul>
@@ -251,28 +256,31 @@
 	                </ul> 
 
                 {% else %}
-
-                    <p>We don't know!  Create it here!</p>
-                    <div >
-		                <a href="#processAddForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Add process that created resource" %}</a>
-	                </div>
-	                <div class="modal hide fade" id="processAddForm" tabindex="-1" role="dialog" aria-labelledby="process-add-label" aria-hidden="true">
-	                  <div class="modal-header">
-		                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-		                <h3 id="process-add-label">{% trans "Add Process" %}</h3>
-	                  </div>
-	                  <div class="modal-body">
-			                <form class="process-add-form" action="" method="POST" >
-				                {% csrf_token %}
-				                {{ process_add_form }}
+                    {% if agent %}
+                        <p>We don't know!  Create it here!</p>
+                        <div >
+		                    <a href="#processAddForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Add process that created resource" %}</a>
+	                    </div>
+	                    <div class="modal hide fade" id="processAddForm" tabindex="-1" role="dialog" aria-labelledby="process-add-label" aria-hidden="true">
+	                      <div class="modal-header">
+		                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		                    <h3 id="process-add-label">{% trans "Add Process" %}</h3>
+	                      </div>
+	                      <div class="modal-body">
+			                    <form class="process-add-form" action="" method="POST" >
+				                    {% csrf_token %}
+				                    {{ process_add_form }}
 				
-			                  <div class="modal-footer">
-				                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-				                <button class="btn btn-primary" name="process-save" value="process">{% trans "Save" %}</button>
-			                  </div>
-			                </form>
-	                  </div>
-                    </div>
+			                      <div class="modal-footer">
+				                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+				                    <button class="btn btn-primary" name="process-save" value="process">{% trans "Save" %}</button>
+			                      </div>
+			                    </form>
+	                      </div>
+                        </div>
+                    {% else %}
+                        <p>We don't know.</p>
+                    {% endif %}
                 {% endif %}
             </div>
 

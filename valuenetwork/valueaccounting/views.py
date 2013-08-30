@@ -4864,7 +4864,7 @@ def plan_from_recipe(request):
                 name=" ".join(["Make",produced_rt.name,]),
                 end_date=end_date,
                 start_date=start_date,
-                #process_pattern=selected_pattern,
+                process_pattern=pt.process_pattern,
                 process_type=pt,
                 created_by=request.user,
                 project=selected_project

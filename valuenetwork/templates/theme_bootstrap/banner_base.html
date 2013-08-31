@@ -16,6 +16,9 @@
 	        <div class="span4">
 	            {% block column-1 %}
                     <legend>Work to do</legend>
+                    <p style="font-style: italic;" >
+                        Your work will be eligible for income sharing.
+                    </p>
 
                     <ul>
 						{% for item in work_to_do %}
@@ -39,6 +42,9 @@
 	        <div class="span4">
 	            {% block column-2 %}
                     <legend>Resources we need</legend>
+                    <p style="font-style: italic;" >
+                        Your contributions will be eligible for income sharing.
+                    </p>
 
                     <ul>
 						{% for resource_type, qty in stuff_to_buy.items %}
@@ -59,6 +65,9 @@
 	        <div class="span4">
 	            {% block column-3 %}
                     <legend>Value being created</legend>
+                    <p style="font-style: italic;" >
+                        Our designs are open source. We want partners in distributing our products.
+                    </p>
 
                     <ul>
 						{% for item in value_creations %}

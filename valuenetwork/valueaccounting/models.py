@@ -514,6 +514,21 @@ class EconomicResourceType(models.Model):
                     if self in pattern.output_resource_types():
                         return True
         return False
+
+    def is_purchased(self):
+        #import pdb; pdb.set_trace()
+        #todo: does this still return false positives?
+        fvs = self.facets.all()
+        for fv in fvs:
+            pfvs = fv.facet_value.patterns.filter(
+                event_type__related_to="agent",
+                event_type__relationship="in")
+            if pfvs:
+                for pf in pfvs:
+                    pattern = pf.pattern
+                    if self in pattern.input_resource_types():
+                        return True
+        return False
         
     def consuming_process_type_relationships(self):
         return self.process_types.filter(event_type__resource_effect='-')
@@ -2203,6 +2218,18 @@ class CommitmentManager(models.Manager):
         return Commitment.objects.filter(
             event_type__relationship="todo",
             finished=True)
+
+    def to_buy(self):
+        reqs = Commitment.objects.filter(
+            Q(event_type__relationship='consume')|Q(event_type__relationship='use')).order_by("resource_type__name")
+        answer = []
+        for req in reqs:
+            qtb = req.quantity_to_buy()
+            if req.quantity_to_buy():
+                if req.resource_type.is_purchased():
+                    req.purchase_quantity = qtb
+                    answer.append(req)
+        return answer
 
 
 class Commitment(models.Model):

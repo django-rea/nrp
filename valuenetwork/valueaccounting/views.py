@@ -47,20 +47,12 @@ def home(request):
             from_agent=None, 
             event_type__relationship="work")
     #todo: reqs needs a lot of work
-    reqs = Commitment.objects.unfinished().filter(
-        event_type__relationship="in").order_by("resource_type__name")
+    reqs = Commitment.objects.to_buy()
     stuff = SortedDict()
     for req in reqs:
-        if req.quantity_to_buy():
-            if req.resource_type not in stuff:
-                stuff[req.resource_type] = Decimal("0")
-            stuff[req.resource_type] += req.quantity_to_buy()
-    #treqs = Commitment.objects.unfinished().filter(
-    #    event_type__relationship="in").order_by("resource_type__name")
-    #for req in treqs:
-    #    if req.quantity_to_buy():
-    #        if req.resource_type not in stuff:
-    #            stuff[req.resource_type] = req.quantity_to_buy()
+        if req.resource_type not in stuff:
+            stuff[req.resource_type] = Decimal("0")
+        stuff[req.resource_type] += req.purchase_quantity
     vcs = Commitment.objects.filter(event_type__relationship="out")
     value_creations = []
     rts = []
@@ -1727,7 +1719,7 @@ def demand(request):
         "help": help,
     }, context_instance=RequestContext(request))
 
-def supply(request):
+def supply_old(request):
     mreqs = []
     #todo: needs a lot of work
     mrqs = Commitment.objects.unfinished().filter(
@@ -1769,6 +1761,30 @@ def supply(request):
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
 
+
+def supply(request):
+    mreqs = []
+    mrqs = Commitment.objects.to_buy()
+    suppliers = SortedDict()
+    for commitment in mrqs:
+        if not commitment.resource_type.producing_commitments():
+            if not commitment.fulfilling_events():    
+                mreqs.append(commitment)
+                sources = commitment.resource_type.producing_agent_relationships().order_by("resource_type__name")
+                for source in sources:
+                    agent = source.agent
+                    if agent not in suppliers:
+                        suppliers[agent] = SortedDict()
+                    if source not in suppliers[agent]:
+                        suppliers[agent][source] = []
+                    suppliers[agent][source].append(commitment) 
+    treqs = []
+    return render_to_response("valueaccounting/supply.html", {
+        "mreqs": mreqs,
+        "treqs": treqs,
+        "suppliers": suppliers,
+        "help": get_help("supply"),
+    }, context_instance=RequestContext(request))
 
 def assemble_schedule(start, end):
     processes = Process.objects.unfinished().filter(

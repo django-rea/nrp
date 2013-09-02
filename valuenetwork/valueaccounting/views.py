@@ -154,10 +154,15 @@ def projects(request):
     }, context_instance=RequestContext(request))
 
 def create_project(request):
+    agent = get_agent(request)
+    if not agent:
+        return render_to_response('valueaccounting/no_permission.html')
     if request.method == "POST":
         form = ProjectForm(request.POST)
         if form.is_valid():
-            form.save()
+            project = form.save(commit=False)
+            project.created_by=request.user
+            project.save
     return HttpResponseRedirect("/accounting/projects/")
 
 @login_required

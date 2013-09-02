@@ -153,6 +153,7 @@ def projects(request):
         "project_create_form": project_create_form,
     }, context_instance=RequestContext(request))
 
+@login_required
 def create_project(request):
     agent = get_agent(request)
     if not agent:
@@ -162,7 +163,7 @@ def create_project(request):
         if form.is_valid():
             project = form.save(commit=False)
             project.created_by=request.user
-            project.save
+            project.save()
     return HttpResponseRedirect("/accounting/projects/")
 
 @login_required
@@ -298,6 +299,7 @@ def resource_types(request):
         "resource_names": resource_names,
     }, context_instance=RequestContext(request))
 
+@login_required
 def resource_type(request, resource_type_id):
     resource_type = get_object_or_404(EconomicResourceType, id=resource_type_id)
     names = EconomicResourceType.objects.values_list('name', flat=True)
@@ -1847,6 +1849,7 @@ def today(request):
         "events": events,
     }, context_instance=RequestContext(request))
 
+@login_required
 def add_todo(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -1874,6 +1877,7 @@ def add_todo(request):
             
     return HttpResponseRedirect(next)
 
+@login_required
 def create_event_from_todo(todo):
     event = EconomicEvent(
         commitment=todo,
@@ -1890,6 +1894,7 @@ def create_event_from_todo(todo):
     )
     return event
 
+@login_required
 def todo_time(request):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -1911,6 +1916,7 @@ def todo_time(request):
                 event.save()
     return HttpResponse("Ok", mimetype="text/plain")
 
+@login_required
 def todo_description(request):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -1931,6 +1937,7 @@ def todo_description(request):
                 event.save()
     return HttpResponse("Ok", mimetype="text/plain")
 
+@login_required
 def todo_done(request, todo_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -1948,6 +1955,7 @@ def todo_done(request, todo_id):
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
+@login_required
 def todo_mine(request, todo_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -1962,6 +1970,7 @@ def todo_mine(request, todo_id):
     return HttpResponseRedirect('/%s/'
         % ('accounting/work'))
 
+@login_required
 def todo_change(request, todo_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -1978,6 +1987,7 @@ def todo_change(request, todo_id):
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
+@login_required
 def todo_decline(request, todo_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -1991,6 +2001,7 @@ def todo_decline(request, todo_id):
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
+@login_required
 def todo_delete(request, todo_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -2061,7 +2072,7 @@ def agent_stats(request, agent_id):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
-
+@login_required
 def commit_to_task(request, commitment_id):
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)
@@ -2102,6 +2113,7 @@ def commit_to_task(request, commitment_id):
         
         return HttpResponseRedirect(next)
 
+@login_required
 def forward_schedule_source(request, commitment_id, source_id):
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)
@@ -2271,6 +2283,7 @@ def new_process_output(request, commitment_id):
         return HttpResponseRedirect('/%s/%s/%s/%s/'
             % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
+@login_required
 def new_process_input(request, commitment_id, slot):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     was_running = request.POST["wasRunning"] or 0
@@ -2323,6 +2336,7 @@ def new_process_input(request, commitment_id, slot):
         return HttpResponseRedirect('/%s/%s/%s/%s/'
             % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
+@login_required
 def new_process_citation(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     was_running = request.POST["wasRunning"] or 0
@@ -2373,6 +2387,7 @@ def new_process_citation(request, commitment_id):
         return HttpResponseRedirect('/%s/%s/%s/%s/'
             % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
+@login_required
 def new_process_worker(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     was_running = request.POST["wasRunning"] or 0
@@ -2417,6 +2432,7 @@ def new_process_worker(request, commitment_id):
         return HttpResponseRedirect('/%s/%s/%s/%s/'
             % ('accounting/labnotes-reload', commitment.id, was_running, was_retrying))
 
+@login_required
 def delete_commitment(request, commitment_id, labnotes_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     ct = get_object_or_404(Commitment, pk=labnotes_id)
@@ -2442,6 +2458,7 @@ def delete_commitment(request, commitment_id, labnotes_id):
         return HttpResponseRedirect('/%s/%s/%s/%s/'
             % ('accounting/labnotes-reload', labnotes_id, was_running, was_retrying))
 
+@login_required
 def change_event_date(request):
     #import pdb; pdb.set_trace()
     event_id = request.POST.get("eventId")
@@ -2453,6 +2470,7 @@ def change_event_date(request):
 
     return HttpResponse("Ok", mimetype="text/plain")
 
+@login_required
 def change_event_qty(request):
     #import pdb; pdb.set_trace()
     event_id = request.POST.get("eventId")
@@ -2464,6 +2482,7 @@ def change_event_qty(request):
 
     return HttpResponse("Ok", mimetype="text/plain")
 
+@login_required
 def change_event(request, event_id):
     event = get_object_or_404(EconomicEvent, pk=event_id)
     page = request.GET.get("page")
@@ -2486,7 +2505,8 @@ def change_event(request, event_id):
         "event_form": event_form,
         "page": page,
     }, context_instance=RequestContext(request)) 
-        
+
+@login_required        
 def delete_event(request, event_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -2508,6 +2528,7 @@ def delete_event(request, event_id):
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/contributionhistory', agent.id))
 
+@login_required
 def work_done(request):
     #import pdb; pdb.set_trace()
     commitment_id = int(request.POST.get("commitmentId"))
@@ -2524,6 +2545,7 @@ def work_done(request):
 
     return HttpResponse("Ok", mimetype="text/plain")
 
+@login_required
 def process_done(request):
     #import pdb; pdb.set_trace()
     process_id = int(request.POST.get("processId"))
@@ -2551,7 +2573,7 @@ def process_done(request):
 
     return HttpResponse("Ok", mimetype="text/plain")
   
-
+@login_required
 def labnotes_reload(
         request, 
         commitment_id, 
@@ -3051,7 +3073,6 @@ def change_resource(request, resource_id):
         else:
             raise ValidationError(form.errors)
 
-
 def get_labnote_context(commitment, request_agent):
     author = False
     agent = commitment.from_agent
@@ -3076,7 +3097,6 @@ def get_labnote_context(commitment, request_agent):
         "citations": citations,
     }
     
-
 def labnotes(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     agent = get_agent(request)
@@ -3102,6 +3122,7 @@ def labnote(request, commitment_id):
         template_params,
         context_instance=RequestContext(request))
 
+@login_required
 def production_event_for_commitment(request):
     id = request.POST.get("id")
     quantity = request.POST.get("quantity")
@@ -3158,6 +3179,7 @@ def production_event_for_commitment(request):
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
 
+@login_required
 def resource_event_for_commitment(request, commitment_id):
     #todo: bug: resource_event_for_commitment didn't return an HttpResponse object.
     id = request.POST.get("itemId")
@@ -3217,6 +3239,7 @@ def resource_event_for_commitment(request, commitment_id):
 
 
 #todo: how to handle splits?
+@login_required
 def consumption_event_for_commitment(request):
     id = request.POST.get("id")
     resource_id = request.POST.get("resourceId")
@@ -3273,6 +3296,7 @@ def consumption_event_for_commitment(request):
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
 
+@login_required
 def citation_event_for_commitment(request):
     id = request.POST.get("id")
     resource_id = request.POST.get("resourceId")
@@ -3315,6 +3339,7 @@ def citation_event_for_commitment(request):
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
 
+@login_required
 def time_use_event_for_commitment(request):
     id = request.POST.get("id")
     resource_id = request.POST.get("resourceId")
@@ -3370,6 +3395,7 @@ def time_use_event_for_commitment(request):
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
 
+@login_required
 def failed_outputs(request, commitment_id):
     event_date = request.POST.get("eventDate")
     if event_date:

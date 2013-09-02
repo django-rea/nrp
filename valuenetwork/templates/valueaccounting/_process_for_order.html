@@ -2,14 +2,16 @@
 {% load bootstrap_tags %}
 
 <span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process }}</a>
-{% if process.too_late %}
-    <form class="reskedProcessForm" id="reskedProcessForm-{{ process.id }}" action="{% url forward_schedule_process process_id=process.id %}" method="POST" >
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
-        <span class="error" style="margin-left: 2em;">{% trans "Should have started" %} {{ process.start_date|timesince }} {% trans "ago" %}</span> &nbsp;
-        <button class="btn btn-warning btn-mini" title="Reschedule forward from today" >{% trans "Reschedule forward" %}</button>
-    </form>
-{% endif %}		
+{% if agent %}
+    {% if process.too_late %}
+        <form class="reskedProcessForm" id="reskedProcessForm-{{ process.id }}" action="{% url forward_schedule_process process_id=process.id %}" method="POST" >
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+            <span class="error" style="margin-left: 2em;">{% trans "Should have started" %} {{ process.start_date|timesince }} {% trans "ago" %}</span> &nbsp;
+            <button class="btn btn-warning btn-mini" title="Reschedule forward from today" >{% trans "Reschedule forward" %}</button>
+        </form>
+    {% endif %}
+{% endif %}
 <ul>
     {% if process.independent_demand %}
         {% if process.independent_demand.order_type != 'holder' %}
@@ -100,15 +102,17 @@
 					        <li class="subline" >
 						        <span class="prefix source-prefix">{% trans "Possible source" %}:</span> {{ source.agent.name }} 
 						        {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-						        {% if source.too_late %}
-					                <form class="reskedSourceForm" id="reskedSourceForm-{{ source.id }}" action="{% url forward_schedule_source commitment_id=source.commitment.id source_id=source.id %}" method="POST" >
-                                        {% csrf_token %}
-                                        <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
-					                    <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;
-                                        <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
-                                    </form>
-				                {% else %}
-					                {% trans "Purchase by:" %}{{ source.order_release_date }}
+						        {% if agent %}
+						            {% if source.too_late %}
+					                    <form class="reskedSourceForm" id="reskedSourceForm-{{ source.id }}" action="{% url forward_schedule_source commitment_id=source.commitment.id source_id=source.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+					                        <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;
+                                            <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
+                                        </form>
+				                    {% else %}
+					                    {% trans "Purchase by:" %}{{ source.order_release_date }}
+				                    {% endif %}
 				                {% endif %} 
 					        </li>
 				        {% endfor %}

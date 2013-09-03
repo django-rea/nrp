@@ -14,7 +14,7 @@ from django_webtest import WebTest
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.utils import *
-from .objects_for_testing import *
+from valuenetwork.valueaccounting.tests.objects_for_testing import *
 
 class OrderTest(WebTest):
 

@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.test import Client
 
 from valuenetwork.valueaccounting.models import *
-from .objects_for_testing import *
+from valuenetwork.valueaccounting.tests.objects_for_testing import *
 
 class FacetTest(TestCase):
 

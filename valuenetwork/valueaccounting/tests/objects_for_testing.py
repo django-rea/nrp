@@ -70,11 +70,13 @@ class Recipe(object):
 
         parent_pt = ProcessType(
             name="make parent",
+            estimated_duration=7200,
         )
         parent_pt.save()
 
         child_pt = ProcessType(
             name="make child",
+            estimated_duration=14400,
         )
         child_pt.save()
      
@@ -114,6 +116,35 @@ class Recipe(object):
         )
         grandchild_input.save()
 
+        agent_type = AgentType(
+            name="Active",
+        )
+        agent_type.save()
+
+        agent = EconomicAgent(
+            name="Seller",
+            nick="Seller",
+            agent_type=agent_type,
+        )
+        agent.save()
+
+        event_type_receive = EventType(
+            name="supply",
+            label="supplies",
+            relationship="out",
+            related_to="agent",
+            resource_effect="=",
+        )
+        event_type_receive.save()
+
+        source = AgentResourceType(
+            agent=agent,
+            resource_type=self.grandchild,
+            event_type=event_type_receive,
+            lead_time=20,
+        )
+        source.save()
+        
 
 class Facets(object):
     def __init__(self, 

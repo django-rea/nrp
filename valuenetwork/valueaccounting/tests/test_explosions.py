@@ -12,6 +12,9 @@ from valuenetwork.valueaccounting.tests.objects_for_testing import *
 class ExplosionTest(TestCase):
 
     """Testing dependent demand explosion
+
+        Background reading:
+        http://hillside.net/plop/plop97/Proceedings/haugen.pdf
     """
 
     def setUp(self):
@@ -125,12 +128,42 @@ class ExplosionTest(TestCase):
         self.assertEqual(crt.producing_commitments().count(), 1)
 
         
-        
-        
-        
-        
-        
-            
-        
-        
+    def test_scheduling(self):
+        """ dependent demand explosion scheduling:
 
+            The explosion initially schedules everything
+            backwards from the end due date,
+            using ProcessType.estimated_duration.
+            Sometimes this will backschedule into the past,
+            especially if considering purchase lead times.
+            So those elements will need to be forward-scheduled,
+            which will move their successors forward in time
+            by the same duration.
+            
+        """
+        
+        cts = self.order.order_items()
+        commitment = cts[0]
+        visited = []
+        process = commitment.generate_producing_process(self.user, visited, explode=True)
+        child_input = process.incoming_commitments()[0]
+        self.assertEqual(child_input.quantity, Decimal("8"))
+        rt = child_input.resource_type
+        child_output=rt.producing_commitments()[0]
+        self.assertTrue(child_output.quantity, Decimal("5"))
+        child_process=child_output.process
+        self.assertTrue(child_process.too_late())
+        grandchild_input = child_process.incoming_commitments()[0]
+        source = grandchild_input.sources()[0]
+        self.assertTrue(source.too_late)
+        lag = datetime.date.today() - child_process.start_date
+        delta_days = lag.days + 1
+        child_process.reschedule_forward(delta_days, self.user)
+        self.assertFalse(child_process.too_late())
+        parent_process = child_input.process
+        self.assertTrue(parent_process.end_date > datetime.date.today())
+        grandchild_input.reschedule_forward_from_source(source.lead_time, self.user)
+        grandchild_input = child_process.incoming_commitments()[0]
+        source = grandchild_input.sources()[0]
+        self.assertFalse(source.too_late)
+        

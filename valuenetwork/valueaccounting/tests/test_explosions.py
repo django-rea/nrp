@@ -139,31 +139,55 @@ class ExplosionTest(TestCase):
             So those elements will need to be forward-scheduled,
             which will move their successors forward in time
             by the same duration.
+
+            Behavior-Driven procedure description:
+            Given: an order for a ResourceType with a 2-level recipe,
+            due today.
+            
+            When I generate a producing process and explode the dependent demands,
+            then the child process will have been backscheduled into the past,
+            and the purchase lead time will also go into the past.
+            
+            When I reschedule the child process forward,
+            then the child_process will no longer start in the past,
+            and the end item due date will now be in the future.
+
+            When I reschedule forward from the purchase lead time,
+            then the purchase date will no longer be in the past.
             
         """
-        
+
+        #Given: an order for a ResourceType with a recipe (self.parent).
         cts = self.order.order_items()
         commitment = cts[0]
         visited = []
+        #When I generate a producing process and explode the dependent demands,
         process = commitment.generate_producing_process(self.user, visited, explode=True)
         child_input = process.incoming_commitments()[0]
-        self.assertEqual(child_input.quantity, Decimal("8"))
         rt = child_input.resource_type
         child_output=rt.producing_commitments()[0]
-        self.assertTrue(child_output.quantity, Decimal("5"))
         child_process=child_output.process
+        #then the child_process will have been backscheduled into the past,
         self.assertTrue(child_process.too_late())
         grandchild_input = child_process.incoming_commitments()[0]
         source = grandchild_input.sources()[0]
+        #and the purchase lead time will also go into the past.
         self.assertTrue(source.too_late)
         lag = datetime.date.today() - child_process.start_date
         delta_days = lag.days + 1
+        #When I reschedule the child process forward,
         child_process.reschedule_forward(delta_days, self.user)
-        self.assertFalse(child_process.too_late())
+        #(get the parent_process again because it has changed)
         parent_process = child_input.process
+        #then the child_process will no longer start in the past,
+        self.assertFalse(child_process.too_late())
+        #and the end item due date will now be in the future.
         self.assertTrue(parent_process.end_date > datetime.date.today())
+        #When I reschedule forward from the purchase lead time,
         grandchild_input.reschedule_forward_from_source(source.lead_time, self.user)
+        #(get the grandchild_input and source again because they have changed)
         grandchild_input = child_process.incoming_commitments()[0]
         source = grandchild_input.sources()[0]
+        #then the purchase date will no longer be in the past.
         self.assertFalse(source.too_late)
         

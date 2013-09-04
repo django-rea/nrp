@@ -49,7 +49,7 @@ container li {
 		
 		<legend>
 		    {% trans "Resource Type" %}:  {{ resource_type.name }}
-		    {% if user.is_authenticated %}
+		    {% if agent %}
 		        <div style="display: inline;" >
 				    <a href="#resourceChangeForm{{ resource_type.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
 			    </div>
@@ -68,7 +68,7 @@ container li {
             {% if resource_type.producing_process_type_relationships %}
                 <a href="{% url extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
             {% endif %}
-            {% if user.is_authenticated %}
+            {% if agent %}
                 {% if resource_type.is_process_output %}
 			        <a href="{% url edit_extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
 				        {% if resource_type.producing_process_type_relationships %}
@@ -83,24 +83,26 @@ container li {
 
 		</legend>
 
-        <div class="modal hide fade resourceModal" id="resourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
-	        <div class="modal-header">
-		        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-		        <h3 id="resource-label">{% trans "Create Resource of type" %} {{ resource_type.name }}</h3>
-	        </div>
-	        <div class="modal-body">
-		        <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="." method="POST" >
-			        {% csrf_token %}
-			        {{ create_form|as_bootstrap }}
-		          <div class="modal-footer">
-			        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-			        <button class="btn btn-primary">{% trans "Save" %}</button>
-		          </div>
+         {% if agent %}
+            <div class="modal hide fade resourceModal" id="resourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
+	            <div class="modal-header">
+		            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		            <h3 id="resource-label">{% trans "Create Resource of type" %} {{ resource_type.name }}</h3>
+	            </div>
+	            <div class="modal-body">
+		            <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="." method="POST" >
+			            {% csrf_token %}
+			            {{ create_form|as_bootstrap }}
+		              <div class="modal-footer">
+			            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+			            <button class="btn btn-primary">{% trans "Save" %}</button>
+		              </div>
 
 
-		        </form>
+		            </form>
+                </div>
             </div>
-        </div>
+        {% endif %}
 
         <div class="facets" >{{ resource_type.facet_list }}</div>
 
@@ -161,6 +163,7 @@ container li {
 	        </ul>
 	    {% endif %}
 
+         {% if agent %}
 			<div class="modal hide fade" id="resourceChangeForm{{ resource_type.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-change-label" aria-hidden="true">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -181,6 +184,7 @@ container li {
 			  </div>
 
 			</div>
+		{% endif %}
 
 
 {% endblock %}

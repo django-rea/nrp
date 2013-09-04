@@ -84,7 +84,7 @@ def process_graph(processes):
                     "end": n.end_date.strftime('%Y-%m-%d'),
                     }
                 nodes.append(d)
-            edge = Edge(n, n, "project-link")
+            edge = Edge(n, p, "project-link")
             edges.append(edge.dictify())
     big_d = {
         "nodes": nodes,

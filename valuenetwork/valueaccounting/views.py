@@ -2,6 +2,7 @@ import datetime
 import time
 import csv
 from operator import attrgetter
+from sets import Set
 
 from django.db.models import Q
 from django.http import Http404
@@ -1468,9 +1469,17 @@ def json_timeline(request):
     #for order in orders:
     #    backschedule_order(order, events)
     orders = Order.objects.all()
-    processes = Process.objects.all()
+    #processes = Process.objects.all()
+    processes = Process.objects.unfinished()
     create_events(orders, processes, events)
     data = simplejson.dumps(events, ensure_ascii=False)
+    #import pdb; pdb.set_trace()
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+
+def json_processes(request):
+    processes = Process.objects.unfinished()
+    graph = process_graph(processes)
+    data = simplejson.dumps(graph, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
 def json_resource_type_unit(request, resource_type_id):

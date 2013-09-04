@@ -1,5 +1,7 @@
 import datetime
 from itertools import chain, imap
+from sets import Set
+
 from django.contrib.contenttypes.models import ContentType
 from django.utils.html import linebreaks
 
@@ -34,7 +36,49 @@ class Edge(object):
         self.label = label
         self.width = 1
 
+    def dictify(self):
+        d = {
+            "from_node": self.from_node.node_id(),
+            "to_node": self.to_node.node_id(),
+            "label": self.label,
+            "width": self.width,
+        }
+        return d
+            
 
+def process_graph(processes):
+    nodes = []
+    visited = Set()
+    edges = []
+    for p in processes:
+        if p not in visited:
+            visited.add(p)
+            d = {
+                "id": p.node_id(),
+                "name": p.name,
+                "start": p.start_date.strftime('%Y-%m-%d'),
+                "end": p.end_date.strftime('%Y-%m-%d'),
+                }
+            nodes.append(d)
+        next = p.next_processes()
+        for n in next:
+            if n not in visited:
+                visited.add(n)
+                d = {
+                    "id": n.node_id(),
+                    "name": n.name,
+                    "start": n.start_date.strftime('%Y-%m-%d'),
+                    "end": n.end_date.strftime('%Y-%m-%d'),
+                    }
+                nodes.append(d)
+            edge = Edge(p, n, "project")
+            edges.append(edge.dictify())
+    big_d = {
+        "nodes": nodes,
+        "edges": edges,
+    }
+    return big_d
+            
 def project_graph(producers):
     nodes = []
     edges = []

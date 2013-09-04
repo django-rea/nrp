@@ -30,11 +30,11 @@
 
 	    <legend>
 	        {% trans "Projects" %} 
-	        {% if user.is_authenticated %}
+	        {% if agent %}
 				<div style="display: inline;" >
 					<a href="#createProjectForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create new Project" %}</a>
 				</div>
-			{% endif %}
+			
 
 
             <div class="modal hide fade" id="createProjectForm" tabindex="-1" role="dialog" aria-labelledby="project-create-label" aria-hidden="true">
@@ -56,8 +56,7 @@
 
 	            </div>
             </div>
-        
-            {% if agent %}
+
                 &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a>
             {% endif %}
             &nbsp;&nbsp;&nbsp;<a href="{% url all_contributions %}">{% trans "All contributions" %}</a>

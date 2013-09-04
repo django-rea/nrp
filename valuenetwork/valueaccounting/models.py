@@ -1615,6 +1615,9 @@ class Process(models.Model):
     def label(self):
         return "process"
 
+    def node_id(self):
+        return "-".join(["Process", str(self.id)])
+
     def independent_demand(self):
         moc = self.main_outgoing_commitment()
         if moc:

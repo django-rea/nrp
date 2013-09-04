@@ -436,9 +436,12 @@ def project_wip(request, project_id):
         "processes": processes,
     }, context_instance=RequestContext(request))
 
+@login_required
 def contribution_history(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, pk=agent_id)
+    if not agent:
+        return render_to_response('valueaccounting/no_permission.html')
     event_list = agent.contributions()
     paginator = Paginator(event_list, 25)
 
@@ -2028,6 +2031,7 @@ def todo_delete(request, todo_id):
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
+@login_required
 def start(request):
     my_work = []
     my_skillz = []

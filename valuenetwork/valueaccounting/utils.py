@@ -71,7 +71,20 @@ def process_graph(processes):
                     "end": n.end_date.strftime('%Y-%m-%d'),
                     }
                 nodes.append(d)
-            edge = Edge(p, n, "project")
+            edge = Edge(p, n, "project-link")
+            edges.append(edge.dictify())
+        prev = p.previous_processes()
+        for n in prev:
+            if n not in visited:
+                visited.add(n)
+                d = {
+                    "id": n.node_id(),
+                    "name": n.name,
+                    "start": n.start_date.strftime('%Y-%m-%d'),
+                    "end": n.end_date.strftime('%Y-%m-%d'),
+                    }
+                nodes.append(d)
+            edge = Edge(n, n, "project-link")
             edges.append(edge.dictify())
     big_d = {
         "nodes": nodes,

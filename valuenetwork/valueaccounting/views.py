@@ -1894,7 +1894,6 @@ def add_todo(request):
             
     return HttpResponseRedirect(next)
 
-@login_required
 def create_event_from_todo(todo):
     event = EconomicEvent(
         commitment=todo,

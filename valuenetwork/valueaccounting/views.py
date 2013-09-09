@@ -4803,7 +4803,7 @@ def process_selections(request, rand=0):
                             for xrt in pt.work_resource_types():
                                 if xrt not in resource_types:
                                     resource_types.append(xrt)
-                        process.explode_demands(demand, request.user, [])
+                            process.explode_demands(demand, request.user, [])
             for rt in cited_rts:
                 et = selected_pattern.event_type_for_resource_type("cite", rt)
                 if et:
@@ -4948,8 +4948,8 @@ def plan_from_recipe(request):
                     user=request.user)
                 commitment.order = demand
                 commitment.save()
-
-                process.explode_demands(demand, request.user, [])
+                if pt:
+                    process.explode_demands(demand, request.user, [])
  
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/order-schedule', demand.id))                 

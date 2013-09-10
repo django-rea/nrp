@@ -1,6 +1,5 @@
 import datetime
 from itertools import chain, imap
-from sets import Set
 
 from django.contrib.contenttypes.models import ContentType
 from django.utils.html import linebreaks
@@ -48,7 +47,7 @@ class Edge(object):
 
 def process_graph(processes):
     nodes = []
-    visited = Set()
+    visited = set()
     edges = []
     for p in processes:
         if p not in visited:

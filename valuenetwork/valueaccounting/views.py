@@ -2,7 +2,6 @@ import datetime
 import time
 import csv
 from operator import attrgetter
-from sets import Set
 
 from django.db.models import Q
 from django.http import Http404

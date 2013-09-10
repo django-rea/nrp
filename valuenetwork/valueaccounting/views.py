@@ -2115,15 +2115,18 @@ def commit_to_task(request, commitment_id):
             ct.from_agent = agent
             ct.created_by=request.user
             ct.save()
-            if start_date != process.start_date:
-                if process.work_requirements().count() == 1:
-                    if start_date > process.start_date:
-                        delta = start_date - process.start_date
-                        process.reschedule_forward(delta.days, request.user)
-                    else:             
-                        process.start_date = start_date
-                        process.changed_by=request.user
-                        process.save()
+            #todo: commented out for now
+            #might need more logic so it doesn't needlessly 
+            #push the next process out
+            #if start_date != process.start_date:
+            #    if process.work_requirements().count() == 1:
+            #        if start_date > process.start_date:
+            #            delta = start_date - process.start_date
+            #            process.reschedule_forward(delta.days, request.user)
+            #        else:             
+            #            process.start_date = start_date
+            #            process.changed_by=request.user
+            #            process.save()
             if request.POST.get("start"):
                 return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/work-commitment', ct.id))

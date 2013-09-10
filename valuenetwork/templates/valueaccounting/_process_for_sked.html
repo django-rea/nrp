@@ -129,6 +129,7 @@
 					        </li>
 				        {% endfor %}
 				    </ul>
+{% comment %}
 			    {% elif reqmt.resource_type.producing_commitments %}
 			        <ul>
 				        {% for ct in reqmt.resource_type.producing_commitments %}
@@ -138,6 +139,7 @@
 					        </li>
 				        {% endfor %}
 				    </ul>
+{% endcomment %}
 			    {% elif reqmt.resource_type.producing_agent_relationships %}
 			        <ul>
 				        {% for source in reqmt.resource_type.producing_agent_relationships %}
@@ -175,6 +177,7 @@
 				            </li>
 			            {% endfor %}
 			        </ul>
+{% comment %}
 		        {% elif reqmt.resource_type.producing_commitments %}
 		            <ul>
 			            {% for ct in reqmt.resource_type.producing_commitments %}
@@ -184,6 +187,7 @@
 				            </li>
 			            {% endfor %}
 			        </ul>
+{% endcomment %}
 		        {% elif reqmt.resource_type.producing_agent_relationships %}
 		            <ul>
 			            {% for source in reqmt.resource_type.producing_agent_relationships %}

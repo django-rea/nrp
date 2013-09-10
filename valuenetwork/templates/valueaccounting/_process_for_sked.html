@@ -17,6 +17,11 @@
 		    {% for item in process.outgoing_commitments %}	
 			    <li class="deliverable" >
 				    <span class="name deliverable-name">{{ item.resource_type.name }}:</span> {{ item.quantity }} {{ item.unit_of_quantity }}
+				    {% if item.description %}
+					    <ul>
+                            <li class="req-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                        </ul>
+                    {% endif %}
 			    </li>
 			    {% if item.fulfilling_events %}
 			        <ul>
@@ -29,6 +34,7 @@
 				        {% endfor %}
 				    </ul>
 			    {% endif %}
+{% comment %}
 			    {% if item.resource_type.wanting_commitments %}
 			        <ul>
 				        {% for wanter in item.resource_type.wanting_commitments %}
@@ -40,6 +46,7 @@
 				        {% endfor %}
 				    </ul>
 			    {% endif %}
+{% endcomment %}
 			{% endfor %}
 		</ul>
 	{% endif %}

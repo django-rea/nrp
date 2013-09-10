@@ -3869,7 +3869,8 @@ def change_process(request, process_id):
                     ct_from_id = output_data["id"]
                     if qty:
                         ct = form.save(commit=False)
-                        ct.order = demand
+                        #this was wrong. Would it ever be correct?
+                        #ct.order = demand
                         ct.independent_demand = demand
                         ct.project = process.project
                         ct.due_date = process.end_date
@@ -4693,8 +4694,10 @@ def process_selections(request, rand=0):
                 start_date = today
                 end_date = today
             demand = None
+            added_to_order = False
             if demand_form.is_valid():
-                demand = demand_form.cleaned_data["demand"]                
+                demand = demand_form.cleaned_data["demand"] 
+                added_to_order = True               
             produced_rts = []
             cited_rts = []
             consumed_rts = []
@@ -4784,8 +4787,9 @@ def process_selections(request, rand=0):
                         unit=rt.unit,
                         user=request.user)
                     if rand:
-                        commitment.order = demand
-                        commitment.save()
+                        if not added_to_order:
+                            commitment.order = demand
+                            commitment.save()
                         #use recipe
                         pt = rt.main_producing_process_type()
                         process.process_type=pt

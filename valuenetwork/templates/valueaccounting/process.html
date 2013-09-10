@@ -15,6 +15,11 @@
     font-style: italic;
 }
 
+.notes {
+    margin-left: 1em;
+    font-style: italic;
+}
+
 .error {
     color: red;
 }
@@ -57,8 +62,8 @@
 	    {% endif %}
 
 		{% if process.notes %}
-		<h4>{% trans "Notes" %}:</h4>
-		<p>
+		<h4>{% trans "Process Notes" %}:</h4>
+		<p class="notes" >
 			{{ process.notes|urlize|linebreaks }}
 		</p>
 		{% endif %}
@@ -89,6 +94,10 @@
 			<p>
 				<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 			</p>
+				{% if item.description %}
+			       <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		        {% endif %}
+			
 			{% for event in item.fulfilling_events %}
 				<p style="margin-left: 2em;">
 					<b>{% trans "Completed" %}:</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
@@ -139,6 +148,9 @@
 			    <p>
 				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 			    </p>
+			    {% if item.description %}
+			       <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		        {% endif %}
                 {% if item.resource_type.onhand %}
                 	{% for resource in item.resource_type.onhand %}
 					    <p style="margin-left: 2em;">
@@ -200,6 +212,9 @@
 			    <p>
 				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 			    </p>
+			    {% if item.description %}
+			       <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		        {% endif %}
                 {% if item.resource_type.onhand %}
                 	{% for resource in item.resource_type.onhand %}
 					    <p style="margin-left: 2em;">
@@ -282,6 +297,9 @@
 						    </div>
 					    {% endif %}
 				    </p>
+				    {% if item.description and not item.fulfilling_events %}
+			           <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		            {% endif %}
 				    {% for source in item.resource_type.producing_agent_relationships %}
 					    <p style="margin-left: 2em;">
 						    <b>{% trans "Source" %}:</b> {{ source.agent.name }}

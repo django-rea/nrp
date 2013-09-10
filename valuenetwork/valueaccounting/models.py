@@ -1727,7 +1727,7 @@ class Process(models.Model):
             dmnd = oc.independent_demand
             rt = oc.resource_type
             if rt not in input_rts:
-                for cc in rt.consuming_commitments():
+                for cc in rt.wanting_commitments():
                     if dmnd:
                         if cc.independent_demand == dmnd:
                             if cc.process not in answer:

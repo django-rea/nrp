@@ -2935,6 +2935,17 @@ def process_details(request, process_id):
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
+def process_oriented_logging(request, process_id):
+    agent = get_agent(request)
+    process = get_object_or_404(Process, id=process_id)
+    cited_ids = [c.resource.id for c in process.citations()]
+    return render_to_response("valueaccounting/process_oriented_logging.html", {
+        "process": process,
+        "cited_ids": cited_ids,
+        "agent": agent,
+        "help": get_help("process"),
+    }, context_instance=RequestContext(request))
+
 def labnotes_history(request):
     agent = get_agent(request)
     procs = Process.objects.all().order_by("-start_date")

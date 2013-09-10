@@ -1,0 +1,381 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Process" %}: {{ process }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.use {
+    margin-left: 4em;
+    font-style: italic;
+}
+
+.notes {
+    margin-left: 1em;
+    font-style: italic;
+}
+
+.error {
+    color: red;
+}
+
+.reskedForm {
+    display: inline;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>
+			{% trans "Process" %}: {{ process }} {% if process.started %} - {% trans "Started" %} {{ process.started }}{% endif %} 
+			{% if agent %}
+	            <a class="btn btn-info" href="{% url change_process process_id=process.id %}">{% trans "Change" %}</a>
+{% comment %}
+	            <a class="btn btn-info" href="{% url copy_process process_id=process.id %}">{% trans "Copy" %}</a>
+{% endcomment %}
+			{% endif %}
+		</legend>
+
+		{% if labnotes %}
+			<h4>
+				<a href="{% url labnotes process_id=process.id %}">Labnotes for this process</a>
+			</h4>
+		{% endif %}
+        <br />
+
+        {% if process.independent_demand %}
+		    <p>
+			    <b>{% trans "for" %}:</b> {{ process.independent_demand }}
+		    </p>
+	    {% endif %}
+
+		{% if process.notes %}
+		<h4>{% trans "Process Notes" %}:</h4>
+		<p class="notes" >
+			{{ process.notes|urlize|linebreaks }}
+		</p>
+		{% endif %}
+
+		<div class="row-fluid">
+
+				<div class="span6">
+				
+					<h4>{% trans "Previous processes" %}</h4>
+					{% for proc in process.previous_processes %}
+						<p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
+					{% endfor %}
+
+				</div>
+
+				<div class="span6">
+
+					<h4>{% trans "Next processes" %}</h4>
+					{% for proc in process.next_processes %}
+						<p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
+					{% endfor %}
+
+				</div>
+		</div>
+
+		<h3 style="margin-bottom: 4px;" >
+		    {% trans "Outputs" %}:  <button class="btn btn-primary btn-mini" title="Add an output requirement" >{% trans "Add an output requirement" %}</button>
+	    </h3>
+		{% for item in process.outgoing_commitments %}
+			<p>
+				<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
+				<button class="btn btn-info btn-mini" title="Create a resource" >{% trans "Create a resource" %}</button>
+			</p>
+				{% if item.description %}
+			       <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		        {% endif %}
+			
+			{% for event in item.fulfilling_events %}
+				<p style="margin-left: 2em;">
+					<b>{% trans "Completed" %}:</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+				</p>
+			{% endfor %}
+		{% endfor %}
+
+		{% for event in process.uncommitted_production_events %}
+			<p>
+				<b>{% trans "Created" %}: {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+			</p>
+		{% endfor %}
+
+		{% if process.citation_requirements or process.uncommitted_citation_events %}
+			<h4>
+			    {% trans "Citations" %}: <button class="btn btn-primary btn-mini" title="Add a citation requirement" >{% trans "Add a citation requirement" %}</button>
+		    </h4>
+			{% for item in process.citation_requirements %}
+			<ul>
+			    <li><b>{{ item.resource_type }}</b>
+		        </li>
+				<ul>
+				{% if item.onhand %}
+					{% for resource in item.onhand %}
+						<li>
+							<b>{% trans "Onhand" %}:</b> <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
+							{% if resource.id in cited_ids %}
+							    <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
+							{% endif %}
+						</li>
+					{% endfor %}
+				{% endif %}
+				
+				</ul>
+			</ul>
+			{% endfor %}
+
+            {% for event in process.uncommitted_citation_events %}
+			    <p>
+				    <b>{% trans "Cited" %}: {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+			    </p>
+		    {% endfor %}
+			
+						
+		{% endif %}
+
+        {% if process.consumed_input_requirements or process.uncommitted_consumption_events %}
+		    <h3 style="margin-bottom: 4px;" >
+		        {% trans "Consumable Inputs" %}: <button class="btn btn-primary btn-mini" title="Add a consumable input requirement" >{% trans "Add a consumable input requirement" %}</button>
+	        </h3>
+		    {% for item in process.consumed_input_requirements %}
+			    <p>
+				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+			    </p>
+			    {% if item.description %}
+			       <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		        {% endif %}
+                {% if item.resource_type.onhand %}
+                	{% for resource in item.resource_type.onhand %}
+					    <p style="margin-left: 2em;">
+						    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }}
+                            {% for event in resource.consuming_events %}
+                                {% if event.commitment = item %}
+							        <p class="use" >
+								        <b>{% trans "Consumed" %}:</b> {{ event.quantity }} {{ event.event_date }}
+							        </p>
+							    {% endif %}
+						    {% endfor %}
+					    </p>
+				    {% endfor %}
+                {% elif item.fulfilled_quantity %}
+				    <p style="margin-left: 2em;">
+					    <b>{% trans "Onhand" %}:</b> 0 {{ item.unit_of_quantity }}
+					    <p class="use" >
+						    <b>{% trans "Consumed" %}:</b> {{ item.fulfilled_quantity }}
+					    </p>
+				    </p>
+			    {% elif item.resource_type.producing_commitments %}
+                	{% for ct in item.resource_type.producing_commitments %}
+					    <p style="margin-left: 2em;">
+						    <b>{% trans "Scheduled" %}:</b> 
+						    <a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a>
+					    </p>
+				    {% endfor %}
+			    {% else %}
+				    {% for source in item.sources %}
+					    <p style="margin-left: 2em;">
+						    <b>{% trans "Possible source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}<br/>
+						    {% comment %}
+						    {% if source.too_late %}
+						        <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url forward_schedule_source commitment_id=item.id source_id=source.id %}" method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url process_details process_id=process.id %}" />
+						            <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;
+                                    <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
+                                </form>
+					        {% else %}
+						        {% trans "Purchase by:" %}{{ source.order_release_date }}
+					        {% endif %}
+					        {% endcomment %}
+					    </p>
+				    {% endfor %}
+			    {% endif %}
+		    {% endfor %}
+
+		    {% for event in process.uncommitted_consumption_events %}
+			    <p>
+				    <b>{% trans "Consumed" %}: {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+			    </p>
+		    {% endfor %}
+		{% endif %}
+
+		{% if process.used_input_requirements or process.uncommitted_use_events %}
+		    <h3 style="margin-bottom: 4px;" >
+		        {% trans "Usable Inputs" %}: <button class="btn btn-primary btn-mini" title="Add a usable input requirement" >{% trans "Add a usable input requirement" %}</button>
+	        </h3>
+		    {% for item in process.used_input_requirements %}
+			    <p>
+				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
+			    </p>
+			    {% if item.description %}
+			       <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		        {% endif %}
+                {% if item.resource_type.onhand %}
+                	{% for resource in item.resource_type.onhand %}
+					    <p style="margin-left: 2em;">
+						    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }}
+                            {% for event in resource.using_events %}
+                                {% if event.commitment = item %}
+							        <p  class="use" >
+								        <b>{% trans "Used" %}:</b> {{ event.quantity }} {{ item.resource_type.unit_of_use }} {{ event.event_date }}
+							        </p>
+							    {% endif %}
+						    {% endfor %}
+					    </p>
+				    {% endfor %}
+                {% elif item.fulfilled_quantity %}
+				    <p style="margin-left: 2em;">
+					    <b>{% trans "Onhand" %}:</b> 0 {{ item.unit_of_quantity }}
+					    <p class="use" >
+						    <b>{% trans "Used" %}:</b> {{ item.fulfilled_quantity }} {{ item.resource_type.unit_of_use }}
+					    </p>
+				    </p>
+			    {% elif item.resource_type.producing_commitments %}
+                	{% for ct in item.resource_type.producing_commitments %}
+					    <p style="margin-left: 2em;">
+						    <b>{% trans "Scheduled" %}:</b> 
+						    <a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a>
+					    </p>
+				    {% endfor %}
+			    {% else %}
+				    {% for source in item.resource_type.producing_agent_relationships %}
+					    <p style="margin-left: 2em;">
+						    <b>{% trans "Possible source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
+					    </p>
+				    {% endfor %}
+			    {% endif %}
+		    {% endfor %}
+
+		    {% for event in process.uncommitted_use_events %}
+			    <p>
+				    <b>{% trans "Used" %}: {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+			    </p>
+		    {% endfor %}
+		{% endif %}
+
+        {% if process.work_requirements or process.uncommitted_work_events %}
+		    <h3 style="margin-bottom: 4px;" >
+		        {% trans "Work" %}: <button class="btn btn-primary btn-mini" title="Add a work requirement" >{% trans "Add a work requirement" %}</button>
+	        </h3>
+		    {% for item in process.work_requirements %}
+			    <p>
+				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+
+                {% if item.from_agent %}
+					    {% trans "Taken by" %} {{ item.from_agent.nick }}
+				    </p>
+			    {% else %}
+					    {% trans "Unassigned" %} 
+					    {% if agent %}
+						    <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+							    {% trans "Take this task" %}
+						    </a>
+
+						    <div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+							    <div class="modal-header">
+								    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						    <h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
+							    </div>
+							    <div class="modal-body">
+
+								    <form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+									    {% csrf_token %}
+									    {{ item.commitment_form|as_bootstrap }}
+									    <input type="hidden" name="next" value="{% url work %}" />
+								      <div class="modal-footer">
+									    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+									    <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+									    <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+								      </div>
+								    </form>
+							    </div>
+						    </div>
+					    {% endif %}
+				    </p>
+				    {% if item.description and not item.fulfilling_events %}
+			           <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		            {% endif %}
+				    {% for source in item.resource_type.producing_agent_relationships %}
+					    <p style="margin-left: 2em;">
+						    <b>{% trans "Possible source" %}:</b> {{ source.agent.name }}
+					    </p>
+				    {% endfor %}
+			    {% endif %}
+		    {% endfor %}
+
+		    {% for event in process.uncommitted_work_events %}
+			    <p>
+				    <b>{% trans "Done by" %}: {{ event.from_agent.nick }} {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+			    </p>
+		    {% endfor %}
+		    <p>
+		        <button class="btn btn-info btn-mini" title="Log unplanned work" >{% trans "Log unplanned work" %}</button>
+		    </p>
+		{% endif %}
+
+	</div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#work').addClass('active');
+
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+		$.validator.addClassRules("quantity", { required: true, number: true });
+
+                jQuery.validator.setDefaults({ 
+                    success: function(label) {
+				        label
+					        .text('').addClass('valid')
+					        .closest('.control-group').addClass('success');
+			        }
+                });
+
+
+
+		$('.commitmentForm').each( function(){
+			var form = $(this);
+
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				},
+			});
+		});
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
+
+
+	}); // end document.ready
+    </script>
+
+{% endblock %}

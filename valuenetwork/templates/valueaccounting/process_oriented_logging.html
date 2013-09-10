@@ -126,9 +126,11 @@
 				{% if item.onhand %}
 					{% for resource in item.onhand %}
 						<li>
-							<b>{% trans "Onhand" %}:</b> <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
+							<b>{% trans "Onhand" %}:</b> <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
 							{% if resource.id in cited_ids %}
 							    <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
+						    {% else %}
+						        <button class="btn btn-info btn-mini" title="Log citation" >{% trans "Log citation" %}</button>
 							{% endif %}
 						</li>
 					{% endfor %}
@@ -161,7 +163,8 @@
                 {% if item.resource_type.onhand %}
                 	{% for resource in item.resource_type.onhand %}
 					    <p style="margin-left: 2em;">
-						    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }}
+						    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }} 
+						    <button class="btn btn-info btn-mini" title="Log consumption" >{% trans "Log consumption" %}</button>						    
                             {% for event in resource.consuming_events %}
                                 {% if event.commitment = item %}
 							        <p class="use" >
@@ -227,7 +230,8 @@
                 {% if item.resource_type.onhand %}
                 	{% for resource in item.resource_type.onhand %}
 					    <p style="margin-left: 2em;">
-						    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }}
+						    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }} 
+						    <button class="btn btn-info btn-mini" title="Log use" >{% trans "Log use" %}</button>
                             {% for event in resource.using_events %}
                                 {% if event.commitment = item %}
 							        <p  class="use" >
@@ -276,7 +280,7 @@
 				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 
                 {% if item.from_agent %}
-					    {% trans "Taken by" %} {{ item.from_agent.nick }}
+				    {% trans "Taken by" %} {{ item.from_agent.nick }} <button class="btn btn-info btn-mini" title="Log work" >{% trans "Log work" %}</button>
 				    </p>
 			    {% else %}
 					    {% trans "Unassigned" %} 

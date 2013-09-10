@@ -115,6 +115,14 @@
                     <div class="select-buttons">
                         {% if rand %}
                             <p>
+                                <input type="submit" name="create-process" value="{% trans 'Save process & exit' %}" class="btn btn-primary" />
+                                </br>Create R&D planned work using the selected resource types.
+                            </p>
+                            <p>
+                                <input type="submit" name="add-another" value="{% trans 'Save process & add another' %}" class="btn btn-primary" />
+                                </br>Save this process and plan more R&D work.
+                            </p>
+                            <p>
                                 <input type="submit" name="edit-process" value="{% trans 'Change process' %}" class="btn btn-primary" />
                                 </br>Create R&D planned work and edit the process details.
                             </p>

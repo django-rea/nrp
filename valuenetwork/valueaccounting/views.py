@@ -4670,6 +4670,7 @@ def process_selections(request, rand=0):
         input_resource_types = []
         input_process_types = []
         done_process = request.POST.get("create-process")
+        add_another = request.POST.get("add-another")
         edit_process = request.POST.get("edit-process")
         labnotes = request.POST.get("labnotes")
         past = request.POST.get("past")
@@ -4862,7 +4863,10 @@ def process_selections(request, rand=0):
 
             if done_process: 
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/order-schedule', demand.id))                 
+                    % ('accounting/order-schedule', demand.id))
+            if add_another: 
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/process-selections', rand))             
             if edit_process:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/change-process', process.id))  

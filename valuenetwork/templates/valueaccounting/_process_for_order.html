@@ -28,6 +28,11 @@
 			    <li class="deliverable" >
 				    <span class="name deliverable-name">{{ item.resource_type.name }}:</span> 
 				    {{ item.quantity }} {{ item.unit_of_quantity }} <span class="due">{% trans "due" %} {{ item.due_date }}</span>
+				    {% if item.description %}
+		               <ul>
+                            <li class="req-description">{{ item.description|urlize|linebreaks }}</li>
+                        </ul>
+	                {% endif %}
 			    </li>
 			    {% if item.fulfilling_events %}
 			        <ul>
@@ -83,7 +88,7 @@
 			    </li>
 			    {% if reqmt.description %}
 				    <ul>
-                        <li class="req-description">{{ reqmt.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                        <li class="req-description">{{ reqmt.description|urlize|linebreaks }}</li>
                     </ul>
                 {% endif %}
 			    {% if reqmt.resource_type.onhand %}
@@ -133,7 +138,7 @@
 			    </li>
 			    {% if reqmt.description %}
 				    <ul>
-                        <li class="req-description">{{ reqmt.description|urlize|linebreaks|truncatewords_html:15 }}</li>
+                        <li class="req-description">{{ reqmt.description|urlize|linebreaks }}</li>
                     </ul>
                 {% endif %}
 			    {% if reqmt.resource_type.onhand %}

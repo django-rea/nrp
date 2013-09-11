@@ -1725,6 +1725,7 @@ def order_schedule(request, order_id):
     visited_resources = []
     for root in roots:
         root.all_previous_processes(ordered_processes, visited_resources, 0)
+    ordered_processes = list(set(ordered_processes))
     ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,

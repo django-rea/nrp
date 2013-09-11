@@ -3777,7 +3777,10 @@ def change_process(request, process_id):
                 instance=demand,
                 data=request.POST or None,
                 initial=init)
-            demand_form = DemandSelectionForm(data=request.POST or None)
+            demand_init = {"demand": demand,}
+            demand_form = DemandSelectionForm(
+                data=request.POST or None, 
+                initial=demand_init)
         else:
             demand_form = DemandSelectionForm(data=request.POST or None)    
             rand_form = RandOrderForm(data=request.POST or None)

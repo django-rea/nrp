@@ -2,6 +2,7 @@
 {% load bootstrap_tags %}
 
 <span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process }}</a>
+
 {% if agent %}
     {% if process.too_late %}
         <form class="reskedProcessForm" id="reskedProcessForm-{{ process.id }}" action="{% url forward_schedule_process process_id=process.id %}" method="POST" >

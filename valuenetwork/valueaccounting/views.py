@@ -1687,6 +1687,7 @@ def order_schedule_old(request, order_id):
         "work": work,
         "tools": tools,
         "error_message": error_message,
+        
     }, context_instance=RequestContext(request))
 
 def order_schedule_x(request, order_id):
@@ -1710,6 +1711,7 @@ def order_schedule_x(request, order_id):
     }, context_instance=RequestContext(request))
 
 def order_schedule(request, order_id):
+    agent = get_agent(request)
     order = get_object_or_404(Order, pk=order_id)
     #import pdb; pdb.set_trace()
     error_message = ""
@@ -1726,6 +1728,7 @@ def order_schedule(request, order_id):
     ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
+        "agent": agent,
         "processes": ordered_processes,
         "error_message": error_message,
     }, context_instance=RequestContext(request))

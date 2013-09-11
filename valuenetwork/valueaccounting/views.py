@@ -1811,7 +1811,8 @@ def supply(request):
 
 def assemble_schedule(start, end):
     processes = Process.objects.unfinished().filter(
-        Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)))
+        Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)) |
+        Q(start_date__lt=start, end_date__gt=end))
     processes = processes.order_by("project__name", "end_date")
     projects = SortedDict()
     for proc in processes:

@@ -228,7 +228,8 @@ th, td {
 						      </div>
 						     </div>
 			            {% endif %}
-			            <a href="{% url todo_history %}">{% trans "Todo History" %}</a>
+			            <a href="{% url open_todos %}">{% trans "Open Todos" %}</a>&nbsp;&nbsp;
+			            <a href="{% url todo_history %}">{% trans "Done Todos" %}</a>
 		            </h3>
 
 		            <table class="todo-table" >

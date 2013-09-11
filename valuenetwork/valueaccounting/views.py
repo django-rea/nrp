@@ -1839,7 +1839,7 @@ def work(request):
             start = dates["start_date"]
             end = dates["end_date"]
     projects = assemble_schedule(start, end)
-    todos = Commitment.objects.todos()
+    todos = Commitment.objects.todos().filter(due_date__range=(start, end))
     return render_to_response("valueaccounting/work.html", {
         "agent": agent,
         "projects": projects,
@@ -2990,6 +2990,26 @@ def todo_history(request):
         todos = paginator.page(paginator.num_pages)
         
     return render_to_response("valueaccounting/todo_history.html", {
+        "todos": todos,
+    }, context_instance=RequestContext(request))
+
+
+def open_todos(request):
+    #import pdb; pdb.set_trace()
+    todo_list = Commitment.objects.todos().order_by('-due_date',)
+                   
+    paginator = Paginator(todo_list, 25)
+    page = request.GET.get('page')
+    try:
+        todos = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        todos = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        todos = paginator.page(paginator.num_pages)
+        
+    return render_to_response("valueaccounting/open_todos.html", {
         "todos": todos,
     }, context_instance=RequestContext(request))
 

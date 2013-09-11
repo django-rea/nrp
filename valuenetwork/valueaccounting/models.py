@@ -1957,7 +1957,10 @@ class Process(models.Model):
 
 
     def too_late(self):
-        return self.start_date < datetime.date.today()
+        if self.started:
+            return False
+        else:
+            return self.start_date < datetime.date.today()
 
 
 class Feature(models.Model):

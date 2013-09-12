@@ -54,6 +54,7 @@ def process_link_label(from_process, to_process):
 def process_graph(processes):
     nodes = []
     visited = set()
+    connections = set()
     edges = []
     for p in processes:
         if p not in visited:
@@ -76,9 +77,12 @@ def process_graph(processes):
                     "end": n.end_date.strftime('%Y-%m-%d'),
                     }
                 nodes.append(d)
-            label = process_link_label(p, n)
-            edge = Edge(p, n, label)
-            edges.append(edge.dictify())
+            c = "-".join([str(p.id), str(n.id)])
+            if c not in connections:
+                connections.add(c)
+                label = process_link_label(p, n)
+                edge = Edge(p, n, label)
+                edges.append(edge.dictify())
         prev = p.previous_processes()
         for n in prev:
             if n not in visited:
@@ -90,9 +94,12 @@ def process_graph(processes):
                     "end": n.end_date.strftime('%Y-%m-%d'),
                     }
                 nodes.append(d)
-            label = process_link_label(n, p)
-            edge = Edge(n, p, label)
-            edges.append(edge.dictify())
+            c = "-".join([str(n.id), str(n.id)])
+            if c not in connections:
+                connections.add(c)
+                label = process_link_label(n, p)
+                edge = Edge(n, p, label)
+                edges.append(edge.dictify())
     big_d = {
         "nodes": nodes,
         "edges": edges,

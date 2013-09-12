@@ -1483,8 +1483,12 @@ def json_timeline(request):
     #import pdb; pdb.set_trace()
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
-def json_processes(request):
-    processes = Process.objects.unfinished()
+def json_processes(request, order_id=None):
+    if order_id:
+        order = get_object_or_404(Order, pk=order_id)
+        processes = order.all_processes()
+    else:
+        processes = Process.objects.unfinished()
     graph = process_graph(processes)
     data = simplejson.dumps(graph, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
@@ -1664,73 +1668,16 @@ def schedule_commitment(
 
     return schedule
 
-def order_schedule_old(request, order_id):
-    order = get_object_or_404(Order, pk=order_id)
-    sked = []
-    reqs = []
-    work = []
-    tools = []
-    visited_resources = set()
-    #import pdb; pdb.set_trace()
-    pcs = order.producing_commitments()
-    error_message = ""
-    if pcs:
-        for ct in pcs:
-            #visited_resources.add(ct.resource_type)
-            schedule_commitment(ct, sked, reqs, work, tools, visited_resources, 0)
-    else:
-        error_message = "An R&D order needs an output to find its schedule"
-    return render_to_response("valueaccounting/order_schedule.html", {
-        "order": order,
-        "sked": sked,
-        "reqs": reqs,
-        "work": work,
-        "tools": tools,
-        "error_message": error_message,
-        
-    }, context_instance=RequestContext(request))
-
-def order_schedule_x(request, order_id):
-    order = get_object_or_404(Order, pk=order_id)
-    #import pdb; pdb.set_trace()
-    error_message = ""
-    deliverables = Commitment.objects.filter(independent_demand=order, event_type__relationship="out")
-    processes = [d.process for d in deliverables]
-    roots = []
-    for p in processes:
-        if not p.next_processes():
-            roots.append(p)
-    ordered_processes = []
-    visited_resources = []
-    for root in roots:
-        root.all_previous_processes(ordered_processes, visited_resources, 0)
-    return render_to_response("valueaccounting/order_schedule.html", {
-        "order": order,
-        "processes": ordered_processes,
-        "error_message": error_message,
-    }, context_instance=RequestContext(request))
-
 def order_schedule(request, order_id):
     agent = get_agent(request)
     order = get_object_or_404(Order, pk=order_id)
     #import pdb; pdb.set_trace()
     error_message = ""
-    deliverables = Commitment.objects.filter(independent_demand=order, event_type__relationship="out")
-    processes = [d.process for d in deliverables]
-    roots = []
-    for p in processes:
-        if not p.next_processes():
-            roots.append(p)
-    ordered_processes = []
-    visited_resources = []
-    for root in roots:
-        root.all_previous_processes(ordered_processes, visited_resources, 0)
-    ordered_processes = list(set(ordered_processes))
-    ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
+    processes = order.all_processes()
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
         "agent": agent,
-        "processes": ordered_processes,
+        "processes": processes,
         "error_message": error_message,
     }, context_instance=RequestContext(request))
 

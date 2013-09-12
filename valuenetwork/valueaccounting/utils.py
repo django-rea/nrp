@@ -94,7 +94,7 @@ def process_graph(processes):
                     "end": n.end_date.strftime('%Y-%m-%d'),
                     }
                 nodes.append(d)
-            c = "-".join([str(n.id), str(n.id)])
+            c = "-".join([str(n.id), str(p.id)])
             if c not in connections:
                 connections.add(c)
                 label = process_link_label(n, p)

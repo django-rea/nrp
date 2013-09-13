@@ -2897,6 +2897,38 @@ def process_oriented_logging(request, process_id):
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
+@login_required
+def log_resource_for_commitment(request, commitment_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    prefix = ct.form_prefix()
+    form = EconomicResourceForm(prefix=prefix, data=request.POST)
+    if form.is_valid():
+        resource_data = form.cleaned_data
+        agent = get_agent(request)
+        resource = form.save(commit=False)
+        resource.resource_type = ct.resource_type
+        resource.created_by=request.user
+        resource.save()
+        event = EconomicEvent(
+            resource = resource,
+            commitment = ct,
+            event_date = resource.created_date,
+            event_type = ct.event_type,
+            from_agent = agent,
+            resource_type = ct.resource_type,
+            process = ct.process,
+            project = ct.project,
+            quantity = resource.quantity,
+            unit_of_quantity = ct.unit_of_quantity,
+            quality = resource.quality,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process', ct.process.id))
+
+        
 def labnotes_history(request):
     agent = get_agent(request)
     procs = Process.objects.all().order_by("-start_date")
@@ -3237,7 +3269,6 @@ def resource_event_for_commitment(request, commitment_id):
             event.save()
         data = unicode(resource.quantity)
     return HttpResponse(data, mimetype="text/plain")
-
 
 #todo: how to handle splits?
 @login_required

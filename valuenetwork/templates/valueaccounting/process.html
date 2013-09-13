@@ -92,7 +92,29 @@
 		<h3 style="margin-bottom: 4px;" >{% trans "Outputs" %}:</h3>
 		{% for item in process.outgoing_commitments %}
 			<p>
-				<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+				<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
+				{% if agent %}
+		            <a href="#resourceModal" role="button" class="btn btn-info btn-mini" data-toggle="modal">{% trans "Log Resource" %}</a>
+    
+                    <div class="modal hide fade resourceModal" id="resourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
+	                    <div class="modal-header">
+		                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		                    <h3 id="resource-label">{% trans "Create" %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
+	                    </div>
+	                    <div class="modal-body">
+		                    <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >
+			                    {% csrf_token %}
+			                    {{ item.resource_create_form|as_bootstrap }}
+		                      <div class="modal-footer">
+			                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+			                    <button class="btn btn-primary">{% trans "Save" %}</button>
+		                      </div>
+
+
+		                    </form>
+                        </div>
+                    </div>
+                {% endif %}
 			</p>
 				{% if item.description %}
 			       <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
@@ -100,7 +122,8 @@
 			
 			{% for event in item.fulfilling_events %}
 				<p style="margin-left: 2em;">
-					<b>{% trans "Completed" %}:</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+					<b>{% trans "Completed" %}:</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
+					{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a>
 				</p>
 			{% endfor %}
 		{% endfor %}

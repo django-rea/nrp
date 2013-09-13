@@ -3,9 +3,14 @@
 
 <span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process }}</a>
 <ul>
+    {% if process.notes %}
+        <li class="for" >
+            {{ process.notes|urlize|linebreaks }}
+        </li>
+    {% endif %}
     {% if process.independent_demand %}
         {% if process.independent_demand.order_type != 'holder' %}
-            <li class="for" >
+            <li class="req-description" >
                 <span class="prefix for-prefix">{% trans "For" %}:</span> {{ process.independent_demand }}
             </li>
         {% endif %}
@@ -61,7 +66,8 @@
 					{% if item.from_agent %}
 					    <span class="taken">{% trans "Taken by" %} {{ item.from_agent.nick }}</span>
 					    {% if agent == item.from_agent %}
-					        <a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Open Labnotes" %}</a>
+					        <a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
+					        <a href="{% url log_past_work commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Past work" %}</a>
 					    {% endif %}
 					{% else %}
 					     <span class="due">{% trans "due" %} {{ item.due_date }}</span>

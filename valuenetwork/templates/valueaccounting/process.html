@@ -27,6 +27,29 @@
 .reskedForm {
     display: inline;
 }
+textarea {
+    width: 500px;
+    height: 50px;
+}
+body .modal {
+  width: 50%; 
+  left: 25%; /* (100%-width)/2 */
+  /* place center */
+  margin-left:auto;
+  margin-right:auto; 
+}
+.heading {
+    margin-bottom: 4px;
+    color: firebrick;
+}
+.prevnext {
+    color: green;
+}
+.taken {
+    font-style: italic;
+    font-weight: bold;
+    color: #5C8A8A;
+}
 
 </style>
 
@@ -72,7 +95,7 @@
 
 				<div class="span6">
 				
-					<h4>{% trans "Previous processes" %}</h4>
+					<h4 class="prevnext">{% trans "Previous processes" %}</h4>
 					{% for proc in process.previous_processes %}
 						<p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
 					{% endfor %}
@@ -81,7 +104,7 @@
 
 				<div class="span6">
 
-					<h4>{% trans "Next processes" %}</h4>
+					<h4 class="prevnext">{% trans "Next processes" %}</h4>
 					{% for proc in process.next_processes %}
 						<p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
 					{% endfor %}
@@ -89,11 +112,12 @@
 				</div>
 		</div>
 
-		<h3 style="margin-bottom: 4px;" >{% trans "Outputs" %}:</h3>
+		<h3 class="heading" >{% trans "Outputs" %}:</h3>
 		{% for item in process.outgoing_commitments %}
 			<p>
 				<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
 				{% if agent %}
+                    &nbsp;&nbsp;
 		            <a href="#resourceModal" role="button" class="btn btn-info btn-mini" data-toggle="modal">{% trans "Log Resource" %}</a>
     
                     <div class="modal hide fade resourceModal" id="resourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
@@ -135,7 +159,7 @@
 		{% endfor %}
 
 		{% if process.citation_requirements or process.uncommitted_citation_events %}
-			<h4>{% trans "Citations" %}:</h4>
+			<h3 class="heading">{% trans "Citations" %}:</h3>
 			{% for item in process.citation_requirements %}
 			<ul>
 			    <li><b>{{ item.resource_type }}</b>
@@ -166,7 +190,7 @@
 		{% endif %}
 
         {% if process.consumed_input_requirements or process.uncommitted_consumption_events %}
-		    <h3 style="margin-bottom: 4px;" >{% trans "Consumable Inputs" %}:</h3>
+		    <h3 class="heading" >{% trans "Consumable Inputs" %}:</h3>
 		    {% for item in process.consumed_input_requirements %}
 			    <p>
 				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
@@ -177,7 +201,7 @@
                 {% if item.resource_type.onhand %}
                 	{% for resource in item.resource_type.onhand %}
 					    <p style="margin-left: 2em;">
-						    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }}
+						    <b>{% trans "Onhand" %}:</b> {{ resource.label }} {{ resource.quantity }} {{ resource.unit_ofFtake_quantity }}
                             {% for event in resource.consuming_events %}
                                 {% if event.commitment = item %}
 							        <p class="use" >
@@ -230,7 +254,7 @@
 		{% endif %}
 
 		{% if process.used_input_requirements or process.uncommitted_use_events %}
-		    <h3 style="margin-bottom: 4px;" >{% trans "Usable Inputs" %}:</h3>
+		    <h3 class="heading" >{% trans "Usable Inputs" %}:</h3>
 		    {% for item in process.used_input_requirements %}
 			    <p>
 				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
@@ -282,22 +306,22 @@
 		{% endif %}
 
         {% if process.work_requirements or process.uncommitted_work_events %}
-		    <h3 style="margin-bottom: 4px;" >{% trans "Work" %}:</h3>
+		    <h3 class="heading" >{% trans "Work" %}:</h3>
 		    {% for item in process.work_requirements %}
 			    <p>
 				    <b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 
                 {% if item.from_agent %}
-					    {% trans "Taken by" %} {{ item.from_agent.nick }}
+					    <span class="taken">{% trans "Taken by" %} {{ item.from_agent.nick }}</span>
 				    </p>
 			    {% else %}
 					    {% trans "Unassigned" %} 
 					    {% if agent %}
-						    <div style="display: inline;" >
-							    <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+						    <span>&nbsp;&nbsp;
+							    <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 								    {% trans "Take this task" %}
 							    </a>
-						    </div>
+						    </span>
 
 						    <div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
 							    <div class="modal-header">
@@ -311,7 +335,7 @@
 									    {{ item.commitment_form|as_bootstrap }}
 									    <input type="hidden" name="next" value="{% url work %}" />
 								      <div class="modal-footer">
-									    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+									    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									    <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
 									    <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
 								      </div>

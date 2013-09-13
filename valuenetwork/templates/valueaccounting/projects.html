@@ -72,6 +72,7 @@
 					{% if root.wip %}
 					    &nbsp;&nbsp;&nbsp;<a href="{% url project_wip project_id=root.id %}">{% trans "Work in process" %}: {{ root.wip.count }}</a>
 					{% endif %}
+                    &nbsp;&nbsp;&nbsp;<a href="{% url value_equation project_id=root.id %}">{% trans "Value Equation" %}</a>
 					{% if root.description %}
 					    <div class="description" >{{ root.description|urlize|linebreaks }}</div>
 					{% endif %}
@@ -85,6 +86,7 @@
 							    {% if kid.wip %}
 					                &nbsp;&nbsp;&nbsp;<a href="{% url project_wip project_id=kid.id %}">{% trans "Work in process" %}: {{ kid.wip.count }}</a>
 					            {% endif %}
+                                &nbsp;&nbsp;&nbsp;<a href="{% url value_equation project_id=kid.id %}">{% trans "Value Equation" %}</a>
 					            {% if kid.description %}
 					                <div class="description" >{{ kid.description|urlize|linebreaks }}</div>
 					            {% endif %}
@@ -98,6 +100,7 @@
 											{% if grandkid.wip %}
 					                            &nbsp;&nbsp;&nbsp;<a href="{% url project_wip project_id=grandkid.id %}">{% trans "Work in process" %}: {{ grandkid.wip.count }}</a>
 					                        {% endif %}
+                                            &nbsp;&nbsp;&nbsp;<a href="{% url value_equation project_id=grandkid.id %}">{% trans "Value Equation" %}</a>
 					                        {% if grandkid.description %}
 					                            <div class="description" >{{ grandkid.description|urlize|linebreaks }}</div>
 					                        {% endif %}

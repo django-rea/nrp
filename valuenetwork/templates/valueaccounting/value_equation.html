@@ -42,10 +42,11 @@ textarea {
 				</br>{% trans "Please leave a space between each element of the equation." %}
         	</p>
 
+{% comment %}
 			<p>
 				{% trans "Your equation will be saved along with its results, so that the community can decide on which equation to use." %}
 			</p>
-			
+{% endcomment %}			
 			<form method="POST" action="">
 			{% csrf_token %}
 			<div style="float: left;">

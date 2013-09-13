@@ -1583,7 +1583,7 @@ class Process(models.Model):
     objects = ProcessManager()
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('end_date',)
         verbose_name_plural = _("processes")
 
     def __unicode__(self):

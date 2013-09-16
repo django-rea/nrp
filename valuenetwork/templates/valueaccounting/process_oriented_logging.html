@@ -102,7 +102,10 @@
 			
 			{% for event in item.fulfilling_events %}
 				<p style="margin-left: 2em;">
-					<b>{% trans "Completed" %}:</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+					<b>{% trans "Completed" %}:</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
+					<a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+					<a href="" class="btn btn-warning btn-mini" title="Delete" >X</a>
+					
 				</p>
 			{% endfor %}
 		{% endfor %}
@@ -110,6 +113,8 @@
 		{% for event in process.uncommitted_production_events %}
 			<p>
 				<b>{% trans "Created" %}: {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+				<a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+		        <a href="" class="btn btn-warning btn-mini" title="Delete" >X</a>
 			</p>
 		{% endfor %}
 
@@ -128,6 +133,7 @@
 							<b>{% trans "Onhand" %}:</b> <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
 							{% if resource.id in cited_ids %}
 							    <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
+						        <a href="" class="btn btn-warning btn-mini" title="Delete" >X</a>
 						    {% else %}
 						        <button class="btn btn-info btn-mini" title="Log citation" >{% trans "Log citation" %}</button>
 							{% endif %}
@@ -142,6 +148,7 @@
             {% for event in process.uncommitted_citation_events %}
 			    <p>
 				    <b>{% trans "Cited" %}: {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+					<a href="" class="btn btn-warning btn-mini" title="Delete" >X</a>
 			    </p>
 		    {% endfor %}
 			
@@ -167,7 +174,9 @@
                             {% for event in resource.consuming_events %}
                                 {% if event.commitment = item %}
 							        <p class="use" >
-								        <b>{% trans "Consumed" %}:</b> {{ event.quantity }} {{ event.event_date }}
+								        <b>{% trans "Consumed" %}:</b> {{ event.quantity }} {{ event.event_date }} 
+								        <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+								        <a href="" class="btn btn-warning btn-mini" title="Delete" >X</a>
 							        </p>
 							    {% endif %}
 						    {% endfor %}
@@ -211,6 +220,8 @@
 		    {% for event in process.uncommitted_consumption_events %}
 			    <p>
 				    <b>{% trans "Consumed" %}: {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+				    <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+			        <a href="" class="btn btn-warning btn-mini" title="Delete" >X</a>
 			    </p>
 		    {% endfor %}
 		{% endif %}
@@ -235,6 +246,8 @@
                                 {% if event.commitment = item %}
 							        <p  class="use" >
 								        <b>{% trans "Used" %}:</b> {{ event.quantity }} {{ item.resource_type.unit_of_use }} {{ event.event_date }}
+								        <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+								        <a href="" class="btn btn-warning btn-mini" title="Delete" >X</a>
 							        </p>
 							    {% endif %}
 						    {% endfor %}
@@ -266,6 +279,8 @@
 		    {% for event in process.uncommitted_use_events %}
 			    <p>
 				    <b>{% trans "Used" %}: {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+				    <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+			        <a href="" class="btn btn-warning btn-mini" title="Delete" >X</a>
 			    </p>
 		    {% endfor %}
 		{% endif %}
@@ -323,6 +338,8 @@
 		    {% for event in process.uncommitted_work_events %}
 			    <p>
 				    <b>{% trans "Done by" %}: {{ event.from_agent.nick }} {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+				    <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+			        <a href="" class="btn btn-warning btn-mini" title="Delete" >X</a>
 			    </p>
 		    {% endfor %}
 		    <p>

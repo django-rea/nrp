@@ -94,7 +94,7 @@
 		{% for item in process.outgoing_commitments %}
 			<p>
 				<b>{% trans "Scheduled" %}: {{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
-				<button class="btn btn-info btn-mini" title="Create a resource" >{% trans "Create a resource" %}</button>
+				<button class="btn btn-info btn-mini" title="Create a resource" >{% trans "Log resource" %}</button>
 			</p>
 				{% if item.description %}
 			       <div class="notes"> {{ item.description|urlize|linebreaks }}</div>

@@ -55,7 +55,7 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Change Process" %}: {{ process }}</legend>
+		<legend>{% trans "Change Process Plan for " %}: {{ process }}</legend>
 			{% if process.independent_demand %}
 			    <p>{% trans "for" %}: {{ process.independent_demand }}</p>
 		    {% endif %}

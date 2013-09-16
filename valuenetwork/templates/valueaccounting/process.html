@@ -64,7 +64,7 @@ body .modal {
 		<legend>
 			{% trans "Process" %}: {{ process }} {% if process.started %} - {% trans "Started" %} {{ process.started }}{% endif %} 
 			{% if agent %}
-	            <a class="btn btn-info" href="{% url change_process process_id=process.id %}">{% trans "Change" %}</a>
+	            &nbsp;<a class="btn btn-info" href="{% url change_process process_id=process.id %}">{% trans "Change Process Plan" %}</a>
 {% comment %}
 	            <a class="btn btn-info" href="{% url copy_process process_id=process.id %}">{% trans "Copy" %}</a>
 {% endcomment %}

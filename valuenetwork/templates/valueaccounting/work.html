@@ -60,17 +60,17 @@ li {
 
 #todoModal textarea {
   width: 400px;
-  height: 200px;
+  height: 70px;
 }
 
 .changeModal textarea {
   width: 400px;
-  height: 200px;
+  height: 70px;
 }
 
 .commitmentModal textarea {
   width: 400px;
-  height: 200px;
+  height: 70px;
 }
 
 .entry-label {
@@ -221,7 +221,7 @@ th, td {
 									    {{ todo_form|as_bootstrap }}
 									    <input type="hidden" name="next" value="{% url work %}" />
 								      <div class="modal-footer">
-									    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+									    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Add" %}' />
 								      </div>
 								    </form>
@@ -329,7 +329,7 @@ th, td {
 						                                {{ todo.todo_change_form|as_bootstrap }}
 						                                <input type="hidden" name="next" value="{% url work %}" />
 					                                  <div class="modal-footer">
-						                                <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+						                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
 					                                  </div>
 					                                </form>

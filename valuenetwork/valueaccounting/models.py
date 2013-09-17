@@ -1583,7 +1583,7 @@ class Process(models.Model):
     objects = ProcessManager()
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('end_date',)
         verbose_name_plural = _("processes")
 
     def __unicode__(self):
@@ -1727,7 +1727,7 @@ class Process(models.Model):
             dmnd = oc.independent_demand
             rt = oc.resource_type
             if rt not in input_rts:
-                for cc in rt.consuming_commitments():
+                for cc in rt.wanting_commitments():
                     if dmnd:
                         if cc.independent_demand == dmnd:
                             if cc.process not in answer:
@@ -1955,9 +1955,14 @@ class Process(models.Model):
         for p in self.next_processes():
             p.reschedule_forward(delta_days, user)
 
-
     def too_late(self):
-        return self.start_date < datetime.date.today()
+        if self.started:
+            if self.finished:
+                return False
+            else:
+                return self.end_date < datetime.date.today()
+        else:
+            return self.start_date < datetime.date.today()
 
 
 class Feature(models.Model):
@@ -2201,7 +2206,21 @@ class Order(models.Model):
         ct.save()
         #todo: shd this generate_producing_process?
         return ct
-        
+
+    def all_processes(self):
+        deliverables = self.commitments.filter(event_type__relationship="out")
+        processes = [d.process for d in deliverables]
+        roots = []
+        for p in processes:
+            if not p.next_processes():
+                roots.append(p)
+        ordered_processes = []
+        visited_resources = []
+        for root in roots:
+            root.all_previous_processes(ordered_processes, visited_resources, 0)
+        ordered_processes = list(set(ordered_processes))
+        ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
+        return ordered_processes
 
 
 class CommitmentManager(models.Manager):

@@ -2,7 +2,6 @@ import datetime
 import time
 import csv
 from operator import attrgetter
-from sets import Set
 
 from django.db.models import Q
 from django.http import Http404
@@ -1484,8 +1483,12 @@ def json_timeline(request):
     #import pdb; pdb.set_trace()
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
-def json_processes(request):
-    processes = Process.objects.unfinished()
+def json_processes(request, order_id=None):
+    if order_id:
+        order = get_object_or_404(Order, pk=order_id)
+        processes = order.all_processes()
+    else:
+        processes = Process.objects.unfinished()
     graph = process_graph(processes)
     data = simplejson.dumps(graph, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
@@ -1665,69 +1668,16 @@ def schedule_commitment(
 
     return schedule
 
-def order_schedule_old(request, order_id):
-    order = get_object_or_404(Order, pk=order_id)
-    sked = []
-    reqs = []
-    work = []
-    tools = []
-    visited_resources = set()
-    #import pdb; pdb.set_trace()
-    pcs = order.producing_commitments()
-    error_message = ""
-    if pcs:
-        for ct in pcs:
-            #visited_resources.add(ct.resource_type)
-            schedule_commitment(ct, sked, reqs, work, tools, visited_resources, 0)
-    else:
-        error_message = "An R&D order needs an output to find its schedule"
-    return render_to_response("valueaccounting/order_schedule.html", {
-        "order": order,
-        "sked": sked,
-        "reqs": reqs,
-        "work": work,
-        "tools": tools,
-        "error_message": error_message,
-    }, context_instance=RequestContext(request))
-
-def order_schedule_x(request, order_id):
-    order = get_object_or_404(Order, pk=order_id)
-    #import pdb; pdb.set_trace()
-    error_message = ""
-    deliverables = Commitment.objects.filter(independent_demand=order, event_type__relationship="out")
-    processes = [d.process for d in deliverables]
-    roots = []
-    for p in processes:
-        if not p.next_processes():
-            roots.append(p)
-    ordered_processes = []
-    visited_resources = []
-    for root in roots:
-        root.all_previous_processes(ordered_processes, visited_resources, 0)
-    return render_to_response("valueaccounting/order_schedule.html", {
-        "order": order,
-        "processes": ordered_processes,
-        "error_message": error_message,
-    }, context_instance=RequestContext(request))
-
 def order_schedule(request, order_id):
+    agent = get_agent(request)
     order = get_object_or_404(Order, pk=order_id)
     #import pdb; pdb.set_trace()
     error_message = ""
-    deliverables = Commitment.objects.filter(independent_demand=order, event_type__relationship="out")
-    processes = [d.process for d in deliverables]
-    roots = []
-    for p in processes:
-        if not p.next_processes():
-            roots.append(p)
-    ordered_processes = []
-    visited_resources = []
-    for root in roots:
-        root.all_previous_processes(ordered_processes, visited_resources, 0)
-    ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
+    processes = order.all_processes()
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
-        "processes": ordered_processes,
+        "agent": agent,
+        "processes": processes,
         "error_message": error_message,
     }, context_instance=RequestContext(request))
 
@@ -1812,8 +1762,9 @@ def supply(request):
 
 def assemble_schedule(start, end):
     processes = Process.objects.unfinished().filter(
-        Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)))
-    processes = processes.order_by("project__name")
+        Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)) |
+        Q(start_date__lt=start, end_date__gt=end))
+    processes = processes.order_by("project__name", "end_date")
     projects = SortedDict()
     for proc in processes:
         if proc.project not in projects:
@@ -1825,7 +1776,6 @@ def work(request):
     agent = get_agent(request)
     start = datetime.date.today()
     end = start + datetime.timedelta(days=7)
-    #projects = assemble_schedule(start, end)   
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
     try:
@@ -1840,7 +1790,7 @@ def work(request):
             start = dates["start_date"]
             end = dates["end_date"]
     projects = assemble_schedule(start, end)
-    todos = Commitment.objects.todos()
+    todos = Commitment.objects.todos().filter(due_date__range=(start, end))
     return render_to_response("valueaccounting/work.html", {
         "agent": agent,
         "projects": projects,
@@ -1894,7 +1844,6 @@ def add_todo(request):
             
     return HttpResponseRedirect(next)
 
-@login_required
 def create_event_from_todo(todo):
     event = EconomicEvent(
         commitment=todo,
@@ -2116,15 +2065,18 @@ def commit_to_task(request, commitment_id):
             ct.from_agent = agent
             ct.created_by=request.user
             ct.save()
-            if start_date != process.start_date:
-                if process.work_requirements().count() == 1:
-                    if start_date > process.start_date:
-                        delta = start_date - process.start_date
-                        process.reschedule_forward(delta.days, request.user)
-                    else:             
-                        process.start_date = start_date
-                        process.changed_by=request.user
-                        process.save()
+            #todo: commented out for now
+            #might need more logic so it doesn't needlessly 
+            #push the next process out
+            #if start_date != process.start_date:
+            #    if process.work_requirements().count() == 1:
+            #        if start_date > process.start_date:
+            #            delta = start_date - process.start_date
+            #            process.reschedule_forward(delta.days, request.user)
+            #        else:             
+            #            process.start_date = start_date
+            #            process.changed_by=request.user
+            #            process.save()
             if request.POST.get("start"):
                 return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/work-commitment', ct.id))
@@ -2934,6 +2886,49 @@ def process_details(request, process_id):
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
+def process_oriented_logging(request, process_id):
+    agent = get_agent(request)
+    process = get_object_or_404(Process, id=process_id)
+    cited_ids = [c.resource.id for c in process.citations()]
+    return render_to_response("valueaccounting/process_oriented_logging.html", {
+        "process": process,
+        "cited_ids": cited_ids,
+        "agent": agent,
+        "help": get_help("process"),
+    }, context_instance=RequestContext(request))
+
+@login_required
+def log_resource_for_commitment(request, commitment_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    prefix = ct.form_prefix()
+    form = EconomicResourceForm(prefix=prefix, data=request.POST)
+    if form.is_valid():
+        resource_data = form.cleaned_data
+        agent = get_agent(request)
+        resource = form.save(commit=False)
+        resource.resource_type = ct.resource_type
+        resource.created_by=request.user
+        resource.save()
+        event = EconomicEvent(
+            resource = resource,
+            commitment = ct,
+            event_date = resource.created_date,
+            event_type = ct.event_type,
+            from_agent = agent,
+            resource_type = ct.resource_type,
+            process = ct.process,
+            project = ct.project,
+            quantity = resource.quantity,
+            unit_of_quantity = ct.unit_of_quantity,
+            quality = resource.quality,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process', ct.process.id))
+
+        
 def labnotes_history(request):
     agent = get_agent(request)
     procs = Process.objects.all().order_by("-start_date")
@@ -2978,6 +2973,26 @@ def todo_history(request):
         todos = paginator.page(paginator.num_pages)
         
     return render_to_response("valueaccounting/todo_history.html", {
+        "todos": todos,
+    }, context_instance=RequestContext(request))
+
+
+def open_todos(request):
+    #import pdb; pdb.set_trace()
+    todo_list = Commitment.objects.todos().order_by('-due_date',)
+                   
+    paginator = Paginator(todo_list, 25)
+    page = request.GET.get('page')
+    try:
+        todos = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        todos = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        todos = paginator.page(paginator.num_pages)
+        
+    return render_to_response("valueaccounting/open_todos.html", {
         "todos": todos,
     }, context_instance=RequestContext(request))
 
@@ -3254,7 +3269,6 @@ def resource_event_for_commitment(request, commitment_id):
             event.save()
         data = unicode(resource.quantity)
     return HttpResponse(data, mimetype="text/plain")
-
 
 #todo: how to handle splits?
 @login_required
@@ -3745,7 +3759,10 @@ def change_process(request, process_id):
                 instance=demand,
                 data=request.POST or None,
                 initial=init)
-            demand_form = None
+            demand_init = {"demand": demand,}
+            demand_form = DemandSelectionForm(
+                data=request.POST or None, 
+                initial=demand_init)
         else:
             demand_form = DemandSelectionForm(data=request.POST or None)    
             rand_form = RandOrderForm(data=request.POST or None)
@@ -3870,7 +3887,8 @@ def change_process(request, process_id):
                     ct_from_id = output_data["id"]
                     if qty:
                         ct = form.save(commit=False)
-                        ct.order = demand
+                        #this was wrong. Would it ever be correct?
+                        #ct.order = demand
                         ct.independent_demand = demand
                         ct.project = process.project
                         ct.due_date = process.end_date
@@ -4670,6 +4688,7 @@ def process_selections(request, rand=0):
         input_resource_types = []
         input_process_types = []
         done_process = request.POST.get("create-process")
+        add_another = request.POST.get("add-another")
         edit_process = request.POST.get("edit-process")
         labnotes = request.POST.get("labnotes")
         past = request.POST.get("past")
@@ -4694,8 +4713,10 @@ def process_selections(request, rand=0):
                 start_date = today
                 end_date = today
             demand = None
+            added_to_order = False
             if demand_form.is_valid():
-                demand = demand_form.cleaned_data["demand"]                
+                demand = demand_form.cleaned_data["demand"] 
+                added_to_order = True               
             produced_rts = []
             cited_rts = []
             consumed_rts = []
@@ -4785,8 +4806,9 @@ def process_selections(request, rand=0):
                         unit=rt.unit,
                         user=request.user)
                     if rand:
-                        commitment.order = demand
-                        commitment.save()
+                        if not added_to_order:
+                            commitment.order = demand
+                            commitment.save()
                         #use recipe
                         pt = rt.main_producing_process_type()
                         process.process_type=pt
@@ -4804,7 +4826,7 @@ def process_selections(request, rand=0):
                             for xrt in pt.work_resource_types():
                                 if xrt not in resource_types:
                                     resource_types.append(xrt)
-                        process.explode_demands(demand, request.user, [])
+                            process.explode_demands(demand, request.user, [])
             for rt in cited_rts:
                 et = selected_pattern.event_type_for_resource_type("cite", rt)
                 if et:
@@ -4859,7 +4881,10 @@ def process_selections(request, rand=0):
 
             if done_process: 
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/order-schedule', demand.id))                 
+                    % ('accounting/order-schedule', demand.id))
+            if add_another: 
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/process-selections', rand))             
             if edit_process:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/change-process', process.id))  
@@ -4949,8 +4974,8 @@ def plan_from_recipe(request):
                     user=request.user)
                 commitment.order = demand
                 commitment.save()
-
-                process.explode_demands(demand, request.user, [])
+                if pt:
+                    process.explode_demands(demand, request.user, [])
  
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/order-schedule', demand.id))                 

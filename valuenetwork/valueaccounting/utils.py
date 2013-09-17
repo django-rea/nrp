@@ -1,6 +1,5 @@
 import datetime
 from itertools import chain, imap
-from sets import Set
 
 from django.contrib.contenttypes.models import ContentType
 from django.utils.html import linebreaks
@@ -44,11 +43,18 @@ class Edge(object):
             "width": self.width,
         }
         return d
-            
 
+def process_link_label(from_process, to_process):
+    outputs = [oc.resource_type for oc in from_process.outgoing_commitments()]
+    inputs = [ic.resource_type for ic in to_process.incoming_commitments()]
+    intersect = set(outputs) & set(inputs)
+    label = ", ".join(rt.name for rt in intersect)
+    return label
+            
 def process_graph(processes):
     nodes = []
-    visited = Set()
+    visited = set()
+    connections = set()
     edges = []
     for p in processes:
         if p not in visited:
@@ -71,8 +77,12 @@ def process_graph(processes):
                     "end": n.end_date.strftime('%Y-%m-%d'),
                     }
                 nodes.append(d)
-            edge = Edge(p, n, "project-link")
-            edges.append(edge.dictify())
+            c = "-".join([str(p.id), str(n.id)])
+            if c not in connections:
+                connections.add(c)
+                label = process_link_label(p, n)
+                edge = Edge(p, n, label)
+                edges.append(edge.dictify())
         prev = p.previous_processes()
         for n in prev:
             if n not in visited:
@@ -84,8 +94,12 @@ def process_graph(processes):
                     "end": n.end_date.strftime('%Y-%m-%d'),
                     }
                 nodes.append(d)
-            edge = Edge(n, p, "project-link")
-            edges.append(edge.dictify())
+            c = "-".join([str(n.id), str(p.id)])
+            if c not in connections:
+                connections.add(c)
+                label = process_link_label(n, p)
+                edge = Edge(n, p, label)
+                edges.append(edge.dictify())
     big_d = {
         "nodes": nodes,
         "edges": edges,

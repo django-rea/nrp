@@ -1948,12 +1948,14 @@ class Process(models.Model):
             self.reschedule_connections(delta_days, user)
 
     def reschedule_connections(self, delta_days, user):
-        for ct in self.incoming_commitments():
-            ct.reschedule_forward(delta_days, user)
-        for ct in self.outgoing_commitments():
-            ct.reschedule_forward(delta_days, user)
-        for p in self.next_processes():
-            p.reschedule_forward(delta_days, user)
+        pass
+        #todo: revive using Problems and Solutions
+        #for ct in self.incoming_commitments():
+        #    ct.reschedule_forward(delta_days, user)
+        #for ct in self.outgoing_commitments():
+        #    ct.reschedule_forward(delta_days, user)
+        #for p in self.next_processes():
+        #    p.reschedule_forward(delta_days, user)
 
     def too_late(self):
         if self.started:
@@ -1964,6 +1966,9 @@ class Process(models.Model):
         else:
             return self.start_date < datetime.date.today()
 
+    def bumped_processes(self):
+        return [p for p in self.next_processes() if self.end_date > p.start_date]
+        
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)

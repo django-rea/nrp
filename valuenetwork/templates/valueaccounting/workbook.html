@@ -401,16 +401,10 @@
 						            <div class="modal-body">
 							            <form class="detail-form" enctype="multipart/form-data" id="detailForm{{ item.id }}" action="{% url resource_event_for_commitment commitment_id=item.id %}" method="POST" >
 								            {% csrf_token %}
-{% comment %}
-								            {% if resource %}
-							                    {{ resource.change_form|as_bootstrap }}
-						                    {% else %}
-							                    {{ item.resource_type.resource_create_form|as_bootstrap }}
-						                    {% endif %}
-{% endcomment %}
+
 
 								            {% if resource %}
-							                    {{ item.resource_change_form|as_bootstrap }}
+							                    {{ resource.change_form|as_bootstrap }}
 						                    {% else %}
 							                    {{ item.resource_create_form|as_bootstrap }}
 						                    {% endif %}

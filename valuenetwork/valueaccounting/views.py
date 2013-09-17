@@ -2917,7 +2917,7 @@ def log_resource_for_commitment(request, commitment_id):
             project = ct.project,
             quantity = resource.quantity,
             unit_of_quantity = ct.unit_of_quantity,
-            quality = resource.quality,
+            #quality = resource.quality,
             created_by = request.user,
             changed_by = request.user,
         )
@@ -3232,7 +3232,7 @@ def resource_event_for_commitment(request, commitment_id):
         form = EconomicResourceForm(prefix=prefix, data=request.POST)
     if form.is_valid():
         resource_data = form.cleaned_data
-        quality = resource_data["quality"] or Decimal("0")
+        #quality = resource_data["quality"] or Decimal("0")
         agent = get_agent(request)
         if event:
             resource = form.save(commit=False)
@@ -3244,7 +3244,7 @@ def resource_event_for_commitment(request, commitment_id):
             resource.save()
         else:
             resource = form.save(commit=False)
-            resource.quality = quality
+            #resource.quality = quality
             resource.resource_type = ct.resource_type
             resource.created_by=request.user
             resource.save()
@@ -3259,7 +3259,7 @@ def resource_event_for_commitment(request, commitment_id):
                 project = ct.project,
                 quantity = resource.quantity,
                 unit_of_quantity = ct.unit_of_quantity,
-                quality = resource.quality,
+                #quality = resource.quality,
                 created_by = request.user,
                 changed_by = request.user,
             )
@@ -4713,7 +4713,8 @@ def process_selections(request, rand=0):
             added_to_order = False
             if demand_form.is_valid():
                 demand = demand_form.cleaned_data["demand"] 
-                added_to_order = True               
+                if demand:
+                    added_to_order = True               
             produced_rts = []
             cited_rts = []
             consumed_rts = []

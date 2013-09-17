@@ -2920,7 +2920,7 @@ def log_resource_for_commitment(request, commitment_id):
             project = ct.project,
             quantity = resource.quantity,
             unit_of_quantity = ct.unit_of_quantity,
-            quality = resource.quality,
+            #quality = resource.quality,
             created_by = request.user,
             changed_by = request.user,
         )
@@ -3247,7 +3247,7 @@ def resource_event_for_commitment(request, commitment_id):
             resource.save()
         else:
             resource = form.save(commit=False)
-            resource.quality = quality
+            #resource.quality = quality
             resource.resource_type = ct.resource_type
             resource.created_by=request.user
             resource.save()

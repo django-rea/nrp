@@ -3235,7 +3235,7 @@ def resource_event_for_commitment(request, commitment_id):
         form = EconomicResourceForm(prefix=prefix, data=request.POST)
     if form.is_valid():
         resource_data = form.cleaned_data
-        quality = resource_data["quality"] or Decimal("0")
+        #quality = resource_data["quality"] or Decimal("0")
         agent = get_agent(request)
         if event:
             resource = form.save(commit=False)
@@ -3262,7 +3262,7 @@ def resource_event_for_commitment(request, commitment_id):
                 project = ct.project,
                 quantity = resource.quantity,
                 unit_of_quantity = ct.unit_of_quantity,
-                quality = resource.quality,
+                #quality = resource.quality,
                 created_by = request.user,
                 changed_by = request.user,
             )

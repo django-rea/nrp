@@ -1966,6 +1966,9 @@ class Process(models.Model):
         else:
             return self.start_date < datetime.date.today()
 
+    def bumped_processes(self):
+        return [p for p in self.next_processes() if self.end_date > p.start_date]
+        
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)

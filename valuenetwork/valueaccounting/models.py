@@ -2726,6 +2726,22 @@ class EconomicEvent(models.Model):
         ])
 
     def save(self, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        if self.is_contribution:
+            summary, created = CachedEventSummary.objects.get_or_create(
+                agent=self.from_agent,
+                project=self.project,
+                resource_type=self.resource_type)
+            if created:
+                summary.quantity = self.quantity
+            else:
+                delta = self.quantity
+                if self.pk:
+                    prev = EconomicEvent.objects.get(pk=self.pk)
+                    if prev.quantity != self.quantity:
+                        delta = self.quantity - prev.quantity
+                summary.quantity += delta
+            summary.save()                    
         from_agt = 'Unassigned'
         if self.from_agent:
             from_agt = self.from_agent.name

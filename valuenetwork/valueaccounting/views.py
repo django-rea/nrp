@@ -23,7 +23,6 @@ from django.utils.datastructures import SortedDict
 from django.contrib.auth.forms import UserCreationForm
 
 from valuenetwork.valueaccounting.models import *
-#from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.forms import *
 from valuenetwork.valueaccounting.utils import *
 
@@ -652,8 +651,6 @@ class AgentSummary(object):
 
 def value_equation(request, project_id):
     project = get_object_or_404(Project, pk=project_id)    
-    if not CachedEventSummary.objects.all().exists():
-        summaries = CachedEventSummary.summarize_events(project)
     all_subs = project.with_all_sub_projects()
     summaries = CachedEventSummary.objects.select_related(
         'agent', 'project', 'resource_type').filter(project__in=all_subs).order_by(

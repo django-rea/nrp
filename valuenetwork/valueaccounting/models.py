@@ -2890,8 +2890,32 @@ class CachedEventSummary(models.Model):
 
     @classmethod
     def summarize_events(cls, project):
+        #import pdb; pdb.set_trace()
         all_subs = project.with_all_sub_projects()
         event_list = EconomicEvent.objects.filter(project__in=all_subs)
+        summaries = {}
+        for event in event_list:
+            key = "-".join([str(event.from_agent.id), str(event.project.id), str(event.resource_type.id)])
+            if not key in summaries:
+                summaries[key] = EventSummary(event.from_agent, event.project, event.resource_type, Decimal('0.0'))
+            summaries[key].quantity += event.quantity
+        summaries = summaries.values()
+        for summary in summaries:
+            ces = cls(
+                agent=summary.agent,
+                project=summary.project,
+                resource_type=summary.resource_type,
+                resource_type_rate=summary.resource_type.rate,
+                importance=summary.project.importance,
+                quantity=summary.quantity,
+            )
+            ces.save()
+        return cls.objects.all()
+
+    @classmethod
+    def summarize_all_events(cls):
+        import pdb; pdb.set_trace()
+        event_list = EconomicEvent.objects.filter(is_contribution="true")
         summaries = {}
         for event in event_list:
             key = "-".join([str(event.from_agent.id), str(event.project.id), str(event.resource_type.id)])

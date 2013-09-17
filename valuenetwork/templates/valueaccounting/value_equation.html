@@ -13,16 +13,22 @@ textarea {
   width: 800px;
 }
 
-	tr.even td 
-	{
-		color:#000000;
-		background-color:#EAF2D3;
-	}
+tr.even td 
+{
+	color:#000000;
+	background-color:#EAF2D3;
+}
 
-	th
-	{
-		background-color:#C8D6E8;
-	}
+th
+{
+	background-color:#C8D6E8;
+}
+
+.temp { color: red; }
+
+#id_equation {
+    height: 40px;
+}
 
 </style>
 
@@ -32,33 +38,38 @@ textarea {
 
 {% block body_base %}
     <div class="container">
-        {% include "_messages.html" %}
-	<div>
+      {% include "_messages.html" %}
+	  <div>
 		<legend>{% trans "Value Time Contributions for " %} {{ project }}</legend>
-
-			<p>
-				{% trans "Enter an equation using the parameters hours, rate, reputation, seniority, and importance." %} 
-				</br>{% trans "The result will be the value of the time contribution." %}
-				</br>{% trans "Please leave a space between each element of the equation." %}
+		<form method="POST" action=".">
+		    {% csrf_token %}
+            <p class="temp">This page is a demo/prototype page for working on the value equation and the 
+                requirements for the value equation portion of the valnet application. 
+            </p>
+{% comment %}
+            <p><input type="submit" class="btn btn-info" name="resummarize" value="{% trans 'Re-Summarize' %}" /></p>
+{% endcomment %}
+		    <p>
+			    {% trans "Enter an equation using the parameters hours, rate, reputation, seniority, and importance." %} 
+			    </br>{% trans "The result will be the value of the time contribution." %}
+			    </br>{% trans "Please leave a space between each element of the equation." %}
         	</p>
 
 {% comment %}
-			<p>
-				{% trans "Your equation will be saved along with its results, so that the community can decide on which equation to use." %}
-			</p>
-{% endcomment %}			
-			<form method="POST" action="">
-			{% csrf_token %}
-			<div style="float: left;">
-
-		    {{ form|as_bootstrap }}
-			</div>
-
-		    <div class="form-actions" style="float: left;">
-		        <button class="btn btn-primary" type="submit">{% trans "Compute" %}</button>
+		    <p>
+			    {% trans "Your equation will be saved along with its results, so that the community can decide on which equation to use." %}
+		    </p>
+{% endcomment %}
+		    <div style="float: left;">
+	            {{ form|as_bootstrap }}
 		    </div>
-			<div style="clear:both;"></div>
-			</form>
+
+	        <div class="form-actions" style="float: left;">
+	            <button class="btn btn-primary" type="submit">{% trans "Compute" %}</button>
+	        </div>
+
+		    <div style="clear:both;"></div>
+		</form>
 
 
 	<div style="float: left; width: 60%">
@@ -113,7 +124,7 @@ textarea {
 				<th>{% trans "Member" %}</th>
 				<th>{% trans "Total Value" %}</th>
 				<th>{% trans "Percentage" %}</th>
-				<th>{% trans "Amount Distributed" %}</th>
+				<th>{% trans "Distribution Amount" %}</th>
 			</thead>
 			<tbody>	
 				{% for at in agent_totals %}

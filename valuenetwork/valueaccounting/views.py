@@ -4716,7 +4716,8 @@ def process_selections(request, rand=0):
             added_to_order = False
             if demand_form.is_valid():
                 demand = demand_form.cleaned_data["demand"] 
-                added_to_order = True               
+                if demand:
+                    added_to_order = True               
             produced_rts = []
             cited_rts = []
             consumed_rts = []

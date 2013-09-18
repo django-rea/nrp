@@ -2727,32 +2727,38 @@ class EconomicEvent(models.Model):
 
     def save(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
-        if self.is_contribution:
-            summary, created = CachedEventSummary.objects.get_or_create(
-                agent=self.from_agent,
-                project=self.project,
-                resource_type=self.resource_type)
-            if created:
-                summary.quantity = self.quantity
-            else:
-                delta = self.quantity
-                if self.pk:
-                    prev = EconomicEvent.objects.get(pk=self.pk)
-                    if prev.quantity != self.quantity:
-                        delta = self.quantity - prev.quantity
-                summary.quantity += delta
-            summary.save()                    
-        from_agt = 'Unassigned'
-        if self.from_agent:
-            from_agt = self.from_agent.name
-            #todo: suppliers shd also get ART scores
-            if self.event_type.relationship == "work" or self.event_type.related_to == "agent":
-                art, created = AgentResourceType.objects.get_or_create(
+        delta = self.quantity
+        if self.pk:
+            prev = EconomicEvent.objects.get(pk=self.pk)
+            if prev.quantity != self.quantity:
+                delta = self.quantity - prev.quantity
+        if delta:
+            if self.is_contribution:
+                summary, created = CachedEventSummary.objects.get_or_create(
                     agent=self.from_agent,
-                    resource_type=self.resource_type,
-                    event_type=self.event_type)
-                art.score += self.quantity
-                art.save()
+                    project=self.project,
+                    resource_type=self.resource_type)
+                summary.quantity += delta
+                summary.save()                    
+            from_agt = 'Unassigned'
+            if self.from_agent:
+                from_agt = self.from_agent.name
+                #todo: suppliers shd also get ART scores
+                if self.event_type.relationship == "work" or self.event_type.related_to == "agent":
+                    try:
+                        art, created = AgentResourceType.objects.get_or_create(
+                            agent=self.from_agent,
+                            resource_type=self.resource_type,
+                            event_type=self.event_type)
+                    except:
+                        #todo: this shd not happen, but it does...
+                        arts = AgentResourceType.objects.filter(
+                            agent=self.from_agent,
+                            resource_type=self.resource_type,
+                            event_type=self.event_type)
+                        art = arts[0]
+                    art.score += delta
+                    art.save()
         slug = "-".join([
             str(self.event_type.name),
             #str(from_agt.id),
@@ -2935,14 +2941,26 @@ class CachedEventSummary(models.Model):
 
     @classmethod
     def summarize_all_events(cls):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
+        old_summaries = CachedEventSummary.objects.all()
+        old_summaries.delete()
         event_list = EconomicEvent.objects.filter(is_contribution="true")
         summaries = {}
+        #todo: very temporary hack
+        project = Project.objects.get(name="Not defined")
         for event in event_list:
-            key = "-".join([str(event.from_agent.id), str(event.project.id), str(event.resource_type.id)])
-            if not key in summaries:
-                summaries[key] = EventSummary(event.from_agent, event.project, event.resource_type, Decimal('0.0'))
-            summaries[key].quantity += event.quantity
+            #todo: very temporary hack
+            if not event.project:
+                event.project=project
+                event.save()
+            try:
+                key = "-".join([str(event.from_agent.id), str(event.project.id), str(event.resource_type.id)])
+                if not key in summaries:
+                    summaries[key] = EventSummary(event.from_agent, event.project, event.resource_type, Decimal('0.0'))
+                summaries[key].quantity += event.quantity
+            except AttributeError:
+                #todo: the event errors shd be fixed
+                import pdb; pdb.set_trace()
         summaries = summaries.values()
         for summary in summaries:
             ces = cls(

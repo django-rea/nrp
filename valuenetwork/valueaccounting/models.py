@@ -2604,7 +2604,9 @@ class Commitment(models.Model):
     def reschedule_forward_from_source(self, lead_time, user):
         lag = datetime.date.today() - self.due_date
         delta_days = lead_time + lag.days + 1
-        #self.reschedule_forward(self, delta_days, user)
+        #todo: next line may need to be removed
+        #if process.reschedule_connections is revived
+        self.reschedule_forward(delta_days, user)
         self.process.reschedule_forward(delta_days, user)
     
 #todo: not used.
@@ -2728,12 +2730,28 @@ class EconomicEvent(models.Model):
     def save(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
         delta = self.quantity
+        agent_change = False
+        project_change = False
+        resource_type_change = False
         if self.pk:
             prev = EconomicEvent.objects.get(pk=self.pk)
             if prev.quantity != self.quantity:
                 delta = self.quantity - prev.quantity
-        if delta:
+            if prev.from_agent != self.from_agent:
+                agent_change = True
+            if prev.project != self.project:
+                project_change = True
+            if prev.resource_type != self.resource_type:
+                resource_type_change = True
+        if delta or agent_change or project_change or resource_type_change:
             if self.is_contribution:
+                if agent_change or project_change or resource_type_change:
+                    old_summary = CachedEventSummary.objects.get(
+                        agent=prev.from_agent,
+                        project=prev.project,
+                        resource_type=prev.resource_type)
+                    old_summary.quantity -= delta
+                    old_summary.save()
                 summary, created = CachedEventSummary.objects.get_or_create(
                     agent=self.from_agent,
                     project=self.project,

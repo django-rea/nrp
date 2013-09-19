@@ -2746,12 +2746,15 @@ class EconomicEvent(models.Model):
         if delta or agent_change or project_change or resource_type_change:
             if self.is_contribution:
                 if agent_change or project_change or resource_type_change:
-                    old_summary = CachedEventSummary.objects.get(
-                        agent=prev.from_agent,
-                        project=prev.project,
-                        resource_type=prev.resource_type)
-                    old_summary.quantity -= delta
-                    old_summary.save()
+                    try:
+                        old_summary = CachedEventSummary.objects.get(
+                            agent=prev.from_agent,
+                            project=prev.project,
+                            resource_type=prev.resource_type)
+                        old_summary.quantity -= delta
+                        old_summary.save()
+                    except CachedEventSummary.DoesNotExist:
+                        pass
                 summary, created = CachedEventSummary.objects.get_or_create(
                     agent=self.from_agent,
                     project=self.project,

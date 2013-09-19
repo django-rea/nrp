@@ -166,7 +166,40 @@ class EventSavingTest(TestCase):
         pass
 
     def test_changed_quantity(self):
-        pass
+        event = EconomicEvent(
+            from_agent=self.agent1,
+            resource_type=self.optical_work,
+            project=self.project1,
+            event_type=self.event_type_work,
+            quantity=Decimal("1"),
+            event_date=datetime.date.today(),
+            is_contribution=True,
+        )
+        event.save()
+
+        event.quantity = Decimal("3")
+        event.save()
+        
+        summary = CachedEventSummary.objects.get(
+            agent=self.agent1,
+            project=self.project1,
+            resource_type=self.optical_work)
+        self.assertEqual(summary.quantity, Decimal("3"))
+        art = AgentResourceType.objects.get(
+            agent=self.agent1,
+            resource_type=self.optical_work,
+            event_type=self.event_type_work)
+        self.assertEqual(art.score, Decimal("3"))
 
     def test_non_contribution(self):
-        pass
+        event = EconomicEvent(
+            from_agent=self.agent1,
+            resource_type=self.optical_work,
+            project=self.project1,
+            event_type=self.event_type_work,
+            quantity=Decimal("1"),
+            event_date=datetime.date.today(),
+        )
+        event.save()
+        summaries = CachedEventSummary.objects.all()
+        self.assertEqual(summaries.count(), 0)

@@ -2729,7 +2729,7 @@ class EconomicEvent(models.Model):
 
     def save(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
-        """
+        
         delta = self.quantity
         agent_change = False
         project_change = False
@@ -2781,7 +2781,7 @@ class EconomicEvent(models.Model):
                         art = arts[0]
                     art.score += delta
                     art.save()
-        """
+        
         slug = "-".join([
             str(self.event_type.name),
             #str(from_agt.id),

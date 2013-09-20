@@ -176,9 +176,6 @@ class Unit(models.Model):
     def __unicode__(self):
         return self.name
 
-    @classmethod
-    def add_new_form(cls):
-        return None
 
 #todo: rethink?
 ACTIVITY_CHOICES = (
@@ -430,11 +427,6 @@ class EconomicResourceType(models.Model):
 
     def label(self):
         return self.__unicode__()
-    
-    @classmethod
-    def add_new_form(cls):
-        from valuenetwork.valueaccounting.forms import EconomicResourceTypeWithPopupForm
-        return EconomicResourceTypeWithPopupForm
 
     def save(self, *args, **kwargs):
         #unique_slugify(self, self.name)
@@ -1455,7 +1447,7 @@ class ProcessType(models.Model):
 
 
 
-#todo: better name?  Maybe ProcessTypeInputOutput? ResourceFlowType?
+#todo: rename to CommitmentType
 class ProcessTypeResourceType(models.Model):
     process_type = models.ForeignKey(ProcessType,
         verbose_name=_('process type'), related_name='resource_types')

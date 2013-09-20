@@ -144,7 +144,7 @@ INSTALLED_APPS = [
     
     # project
     'valuenetwork.valueaccounting',
-    'valuenetwork.tekextensions',
+
 ]
 
 THUMBNAIL_DEBUG = True

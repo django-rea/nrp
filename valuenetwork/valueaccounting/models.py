@@ -1948,14 +1948,12 @@ class Process(models.Model):
             self.reschedule_connections(delta_days, user)
 
     def reschedule_connections(self, delta_days, user):
-        pass
-        #todo: revive using Problems and Solutions
-        #for ct in self.incoming_commitments():
-        #    ct.reschedule_forward(delta_days, user)
-        #for ct in self.outgoing_commitments():
-        #    ct.reschedule_forward(delta_days, user)
-        #for p in self.next_processes():
-        #    p.reschedule_forward(delta_days, user)
+        for ct in self.incoming_commitments():
+            ct.reschedule_forward(delta_days, user)
+        for ct in self.outgoing_commitments():
+            ct.reschedule_forward(delta_days, user)
+        for p in self.next_processes():
+            p.reschedule_forward(delta_days, user)
 
     def too_late(self):
         if self.started:

@@ -1468,6 +1468,7 @@ class ProcessTypeResourceType(models.Model):
 
     class Meta:
         ordering = ('resource_type',)
+        verbose_name = _('commitment type')
 
     def __unicode__(self):
         relname = ""
@@ -2369,6 +2370,19 @@ class Commitment(models.Model):
     def label(self):
         return self.event_type.get_relationship_display()
 
+    def commitment_type(self):
+        rt = self.resource_type
+        pt = None
+        if self.process:
+            pt = self.process.process_type
+        if pt:
+            try:
+                return ProcessTypeResourceType.objects.get(
+                    resource_type=rt, process_type=pt)
+            except ProcessTypeResourceType.DoesNotExist:
+                return None
+        return None
+
     def feature_label(self):
         if not self.order:
             return ""
@@ -2598,6 +2612,15 @@ class Commitment(models.Model):
         #if process.reschedule_connections is revived
         self.reschedule_forward(delta_days, user)
         self.process.reschedule_forward(delta_days, user)
+
+    def associated_wanting_commitments(self):
+        wanters = self.resource_type.wanting_commitments().exclude(id=self.id)
+        return [ct for ct in wanters if ct.independent_demand == self.independent_demand]
+
+    def associated_producing_commitments(self):
+        producers = self.resource_type.producing_commitments().exclude(id=self.id)
+        return [ct for ct in producers if ct.independent_demand == self.independent_demand]
+        
     
 #todo: not used.
 class Reciprocity(models.Model):

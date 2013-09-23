@@ -176,9 +176,6 @@ class Unit(models.Model):
     def __unicode__(self):
         return self.name
 
-    @classmethod
-    def add_new_form(cls):
-        return None
 
 #todo: rethink?
 ACTIVITY_CHOICES = (
@@ -430,11 +427,6 @@ class EconomicResourceType(models.Model):
 
     def label(self):
         return self.__unicode__()
-    
-    @classmethod
-    def add_new_form(cls):
-        from valuenetwork.valueaccounting.forms import EconomicResourceTypeWithPopupForm
-        return EconomicResourceTypeWithPopupForm
 
     def save(self, *args, **kwargs):
         #unique_slugify(self, self.name)
@@ -1455,7 +1447,7 @@ class ProcessType(models.Model):
 
 
 
-#todo: better name?  Maybe ProcessTypeInputOutput? ResourceFlowType?
+#todo: rename to CommitmentType
 class ProcessTypeResourceType(models.Model):
     process_type = models.ForeignKey(ProcessType,
         verbose_name=_('process type'), related_name='resource_types')
@@ -1948,14 +1940,12 @@ class Process(models.Model):
             self.reschedule_connections(delta_days, user)
 
     def reschedule_connections(self, delta_days, user):
-        pass
-        #todo: revive using Problems and Solutions
-        #for ct in self.incoming_commitments():
-        #    ct.reschedule_forward(delta_days, user)
-        #for ct in self.outgoing_commitments():
-        #    ct.reschedule_forward(delta_days, user)
-        #for p in self.next_processes():
-        #    p.reschedule_forward(delta_days, user)
+        for ct in self.incoming_commitments():
+            ct.reschedule_forward(delta_days, user)
+        for ct in self.outgoing_commitments():
+            ct.reschedule_forward(delta_days, user)
+        for p in self.next_processes():
+            p.reschedule_forward(delta_days, user)
 
     def too_late(self):
         if self.started:
@@ -2604,7 +2594,9 @@ class Commitment(models.Model):
     def reschedule_forward_from_source(self, lead_time, user):
         lag = datetime.date.today() - self.due_date
         delta_days = lead_time + lag.days + 1
-        #self.reschedule_forward(self, delta_days, user)
+        #todo: next line may need to be removed
+        #if process.reschedule_connections is revived
+        self.reschedule_forward(delta_days, user)
         self.process.reschedule_forward(delta_days, user)
     
 #todo: not used.
@@ -2726,17 +2718,60 @@ class EconomicEvent(models.Model):
         ])
 
     def save(self, *args, **kwargs):
-        from_agt = 'Unassigned'
-        if self.from_agent:
-            from_agt = self.from_agent.name
-            #todo: suppliers shd also get ART scores
-            if self.event_type.relationship == "work" or self.event_type.related_to == "agent":
-                art, created = AgentResourceType.objects.get_or_create(
+        #import pdb; pdb.set_trace()
+        
+        delta = self.quantity
+        agent_change = False
+        project_change = False
+        resource_type_change = False
+        if self.pk:
+            prev = EconomicEvent.objects.get(pk=self.pk)
+            if prev.quantity != self.quantity:
+                delta = self.quantity - prev.quantity
+            if prev.from_agent != self.from_agent:
+                agent_change = True
+            if prev.project != self.project:
+                project_change = True
+            if prev.resource_type != self.resource_type:
+                resource_type_change = True
+        if delta or agent_change or project_change or resource_type_change:
+            if self.is_contribution:
+                if agent_change or project_change or resource_type_change:
+                    try:
+                        old_summary = CachedEventSummary.objects.get(
+                            agent=prev.from_agent,
+                            project=prev.project,
+                            resource_type=prev.resource_type)
+                        old_summary.quantity -= delta
+                        old_summary.save()
+                    except CachedEventSummary.DoesNotExist:
+                        pass
+                summary, created = CachedEventSummary.objects.get_or_create(
                     agent=self.from_agent,
-                    resource_type=self.resource_type,
-                    event_type=self.event_type)
-                art.score += self.quantity
-                art.save()
+                    project=self.project,
+                    resource_type=self.resource_type)
+                summary.quantity += delta
+                summary.save()                    
+            from_agt = 'Unassigned'
+            if self.from_agent:
+                from_agt = self.from_agent.name
+                #todo: suppliers shd also get ART scores
+                if self.event_type.relationship == "work" or self.event_type.related_to == "agent":
+                    try:
+                        art, created = AgentResourceType.objects.get_or_create(
+                            agent=self.from_agent,
+                            resource_type=self.resource_type,
+                            event_type=self.event_type)
+                    except:
+                        #todo: this shd not happen, but it does...
+                        arts = AgentResourceType.objects.filter(
+                            agent=self.from_agent,
+                            resource_type=self.resource_type,
+                            event_type=self.event_type)
+                        art = arts[0]
+                    art.score += delta
+                    art.save()
+        
         slug = "-".join([
             str(self.event_type.name),
             #str(from_agt.id),
@@ -2919,14 +2954,26 @@ class CachedEventSummary(models.Model):
 
     @classmethod
     def summarize_all_events(cls):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
+        old_summaries = CachedEventSummary.objects.all()
+        old_summaries.delete()
         event_list = EconomicEvent.objects.filter(is_contribution="true")
         summaries = {}
+        #todo: very temporary hack
+        project = Project.objects.get(name="Not defined")
         for event in event_list:
-            key = "-".join([str(event.from_agent.id), str(event.project.id), str(event.resource_type.id)])
-            if not key in summaries:
-                summaries[key] = EventSummary(event.from_agent, event.project, event.resource_type, Decimal('0.0'))
-            summaries[key].quantity += event.quantity
+            #todo: very temporary hack
+            if not event.project:
+                event.project=project
+                event.save()
+            try:
+                key = "-".join([str(event.from_agent.id), str(event.project.id), str(event.resource_type.id)])
+                if not key in summaries:
+                    summaries[key] = EventSummary(event.from_agent, event.project, event.resource_type, Decimal('0.0'))
+                summaries[key].quantity += event.quantity
+            except AttributeError:
+                #todo: the event errors shd be fixed
+                import pdb; pdb.set_trace()
         summaries = summaries.values()
         for summary in summaries:
             ces = cls(

@@ -4,8 +4,6 @@ from decimal import *
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from valuenetwork.tekextensions.widgets import SelectWithPopUp
-
 from valuenetwork.valueaccounting.models import *
 
 from valuenetwork.valueaccounting.widgets import DurationWidget, DecimalDurationWidget
@@ -101,15 +99,6 @@ class DemandSelectionForm(forms.Form):
         queryset=Order.objects.exclude(order_type="holder"), 
         label="For customer or R&D order (optional)",
         required=False)
-
-# does not appear to be used anywhere
-class OutputResourceTypeSelectionForm(forms.Form):
-    resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.all(), 
-        label="Output Resource Type", 
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
-            attrs={'class': 'resource-type-selector'}))
 
 
 class OrderForm(forms.ModelForm):
@@ -455,7 +444,10 @@ class SelectCitationResourceForm(forms.Form):
  
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
-    quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    quantity = forms.DecimalField(
+        label="Estimated hours (optional)",
+        required=False, 
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
 
     class Meta:
@@ -842,22 +834,6 @@ class EconomicResourceTypeAjaxForm(forms.ModelForm):
         exclude = ('parent', 'created_by', 'changed_by', 'photo')
 
 
-# used in EconomicResourceType.add_new_form(cls), which is used in popups
-# does not matter if we disable popups
-class EconomicResourceTypeWithPopupForm(forms.ModelForm):
-    unit = forms.ModelChoiceField(
-        queryset=Unit.objects.all(),  
-        widget=SelectWithPopUp(model=Unit))
-
-    class Meta:
-        model = EconomicResourceType
-        exclude = ('parent',)
-
-    @classmethod
-    def is_multipart(cls):
-        return True
-
-
 class EconomicResourceTypeFacetForm(forms.Form):
     #coding in process, probably doesn't work
     
@@ -1126,26 +1102,6 @@ class ProcessTypeWorkForm(forms.ModelForm):
             if use_pattern:
                 self.pattern = pattern
                 self.fields["resource_type"].queryset = pattern.work_resource_types()
-
-
-# used in ProcessTypeResourceType.xbill_change_form()
-class LaborInputForm(forms.ModelForm):
-    resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.all(), 
-        empty_label=None, 
-        widget=SelectWithPopUp(
-            model=EconomicResourceType,
-            attrs={'class': 'resource-type-selector'}))
-    quantity = forms.DecimalField(required=False,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
-    unit_of_quantity = forms.ModelChoiceField(
-        queryset=Unit.objects.filter(unit_type='time'), 
-        label=_("Unit"), 
-        widget=forms.Select())
-
-    class Meta:
-        model = ProcessTypeResourceType
-        exclude = ('process_type', 'event_type', 'relationship')
 
 
 class TimeForm(forms.Form):

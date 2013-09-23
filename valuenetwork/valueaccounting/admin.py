@@ -6,7 +6,7 @@ admin.site.add_action(export_as_csv, 'export_selected objects')
 
 admin.site.register(Unit)
 admin.site.register(AgentType)
-#admin.site.register(Stage)
+#admin.site.register(CachedEventSummary)
 
 
 class HelpAdmin(admin.ModelAdmin):

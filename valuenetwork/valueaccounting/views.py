@@ -3846,13 +3846,15 @@ def change_process(request, process_id):
             if original_end:
                 if new_end > original_end:
                     delta = new_end - original_end
-                    process.reschedule_connections(delta.days, request.user)
+                    #todo: revive using Problems and Solutions
+                    #process.reschedule_connections(delta.days, request.user)
             else:
                 if new_start > original_start:
                     delta = new_start - original_start
                     process.end_date = new_start
                     process.save()
-                    process.reschedule_connections(delta.days, request.user)
+                    #todo: revive using Problems and Solutions
+                    #process.reschedule_connections(delta.days, request.user)
             pattern = process.process_pattern
             #import pdb; pdb.set_trace()
             #todo: always creates a rand. the form is always valid.

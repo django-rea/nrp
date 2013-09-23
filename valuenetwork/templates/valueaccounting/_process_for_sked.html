@@ -41,9 +41,9 @@
 				    </ul>
 			    {% endif %}
 {% comment %}
-			    {% if item.resource_type.wanting_commitments %}
+			    {% if item.associated_wanting_commitments %}
 			        <ul>
-				        {% for wanter in item.resource_type.wanting_commitments %}
+				        {% for wanter in item.associated_wanting_commitments %}
 					        <li class="subline" >
 						        <span class="prefix created-prefix">{% trans "Wanted by" %}:</span> 
 						        <a href="{{ wanter.process.get_absolute_url }}">{{ wanter.process.name }}</a> 
@@ -136,17 +136,17 @@
 					        </li>
 				        {% endfor %}
 				    </ul>
-{% comment %}
-			    {% elif reqmt.resource_type.producing_commitments %}
+
+			    {% elif reqmt.associated_producing_commitments %}
 			        <ul>
-				        {% for ct in reqmt.resource_type.producing_commitments %}
+				        {% for ct in reqmt.associated_producing_commitments %}
 					        <li class="subline" >
 						        <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
 						        <a href="{{ ct.process.get_absolute_url }}">{{ ct.quantity }} {{ ct.unit_of_quantity }}</a> <span class="due">{{ ct.due_date }}</span>
 					        </li>
 				        {% endfor %}
 				    </ul>
-{% endcomment %}
+
 			    {% elif reqmt.resource_type.producing_agent_relationships %}
 			        <ul>
 				        {% for source in reqmt.resource_type.producing_agent_relationships %}
@@ -185,9 +185,9 @@
 			            {% endfor %}
 			        </ul>
 {% comment %}
-		        {% elif reqmt.resource_type.producing_commitments %}
+		        {% elif reqmt.associated_producing_commitments %}
 		            <ul>
-			            {% for ct in reqmt.resource_type.producing_commitments %}
+			            {% for ct in reqmt.associated_producing_commitments %}
 				            <li class="subline" >
 					            <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
 					            {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 

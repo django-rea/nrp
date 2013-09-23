@@ -4807,6 +4807,7 @@ def process_selections(request, rand=0):
                         if not added_to_order:
                             commitment.order = demand
                             commitment.save()
+                        '''
                         #use recipe
                         pt = rt.main_producing_process_type()
                         process.process_type=pt
@@ -4825,6 +4826,7 @@ def process_selections(request, rand=0):
                                 if xrt not in resource_types:
                                     resource_types.append(xrt)
                             process.explode_demands(demand, request.user, [])
+                        '''
             for rt in cited_rts:
                 et = selected_pattern.event_type_for_resource_type("cite", rt)
                 if et:

@@ -695,6 +695,14 @@ class ProjectSelectionForm(forms.Form):
             attrs={'class': 'chzn-select'}))
 
 
+class ProjectSelectionFormOptional(forms.Form):
+    project = forms.ChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        super(ProjectSelectionFormOptional, self).__init__(*args, **kwargs)
+        self.fields["project"].choices = [('', '--All Projects--')] + [(proj.id, proj.name) for proj in Project.objects.all()]
+
+
 class PatternSelectionForm(forms.Form):
     pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.all(),

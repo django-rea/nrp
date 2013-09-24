@@ -146,7 +146,9 @@ th, td {
 	    <div>
 		    <legend>
 		        {% trans "Work" %} &nbsp;&nbsp;&nbsp;
+{% comment %}
 		        <a href="{% url today %}">{% trans "Today" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
+{% endcomment %}
 		        <a href="{% url timeline %}">{% trans "Timeline" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        <a href="{% url labnotes_history %}">{% trans "Labnotes History" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        {% if agent %}
@@ -159,7 +161,7 @@ th, td {
                 {% csrf_token %}
                 <div id="div_id_start_date" class="control-group" style="display: inline;" >     
                     <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
-                        Start date
+                        {% trans "Show processes scheduled during " %}
                     </label>
                     <div class="controls" style="display: inline;" >
                         {{ date_form.start_date }}
@@ -167,12 +169,20 @@ th, td {
                 </div>
                 <div id="div_id_end_date" class="control-group" style="display: inline;" >     
                     <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
-                        End date
+                        {% trans " through " %}
                     </label>
                     <div class="controls" style="display: inline;" >
                         {{ date_form.end_date }}
                     </div>
                 </div>
+                <div id="div_id_project" class="control-group" style="display: inline;" >
+                    <label for="id_project" class="control-label" style="display: inline;  vertical-align: text-bottom; " >
+                        {% trans "for project" %}
+                    </label>
+                    <div class="controls" style="display: inline;" >
+                        {{ project_form.project }}
+                    </div>                    
+                </div>&nbsp;
                 <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Reload' %}" />
 	        </form>
 

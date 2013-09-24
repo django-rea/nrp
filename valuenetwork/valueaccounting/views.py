@@ -1757,16 +1757,23 @@ def supply(request):
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
 
-def assemble_schedule(start, end):
+def assemble_schedule(start, end, project=None):
     processes = Process.objects.unfinished().filter(
         Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)) |
         Q(start_date__lt=start, end_date__gt=end))
     processes = processes.order_by("project__name", "end_date")
     projects = SortedDict()
+    #import pdb; pdb.set_trace()
     for proc in processes:
-        if proc.project not in projects:
-            projects[proc.project] = []
-        projects[proc.project].append(proc)
+        if project == None:
+            if proc.project not in projects:
+                projects[proc.project] = []
+            projects[proc.project].append(proc)
+        else:
+            if proc.project == project:
+                if proc.project not in projects:
+                    projects[proc.project] = []
+                projects[proc.project].append(proc)
     return projects
 
 def work(request):
@@ -1775,6 +1782,8 @@ def work(request):
     end = start + datetime.timedelta(days=7)
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
+    project_form = ProjectSelectionFormOptional(data=request.POST or None)
+    chosen_project = None
     try:
         pattern = PatternUseCase.objects.get(use_case='todo').pattern
         todo_form = TodoForm(pattern=pattern)
@@ -1786,13 +1795,20 @@ def work(request):
             dates = date_form.cleaned_data
             start = dates["start_date"]
             end = dates["end_date"]
-    projects = assemble_schedule(start, end)
+            if project_form.is_valid():
+                proj_data = project_form.cleaned_data
+                proj_id = proj_data["project"]
+                if proj_id.isdigit:
+                    chosen_project = Project.objects.get(id=proj_id)
+
+    projects = assemble_schedule(start, end, chosen_project)
     todos = Commitment.objects.todos().filter(due_date__range=(start, end))
     return render_to_response("valueaccounting/work.html", {
         "agent": agent,
         "projects": projects,
         "date_form": date_form,
         "todo_form": todo_form,
+        "project_form": project_form,
         "todos": todos,
         "help": get_help("all_work"),
     }, context_instance=RequestContext(request))

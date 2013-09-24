@@ -1865,8 +1865,9 @@ def add_todo(request):
                         if todo.from_agent != agent:
                             user = todo.from_agent.user()
                             if user:
+                                #import pdb; pdb.set_trace()
                                 notification.send(
-                                    [user,], 
+                                    [user.user,], 
                                     "valnet_new_todo", 
                                     {"description": todo.description,
                                     "creator": agent,

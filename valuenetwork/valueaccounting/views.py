@@ -2449,7 +2449,12 @@ def new_process_worker(request, commitment_id):
                     notification.send(
                         users, 
                         "valnet_help_wanted", 
-                        {"task": ct,
+                        {"resource_type": ct.resource_type,
+                        "due_date": ct.due_date,
+                        "hours": ct.quantity,
+                        "unit": ct.resource_type.unit,
+                        "description": ct.description or "",
+                        "process": ct.process,
                         "creator": agent,
                         }
                     )

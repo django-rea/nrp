@@ -571,10 +571,13 @@ class WorkCommitmentForm(forms.ModelForm):
         widget=DecimalDurationWidget,
         label="Estimated time",
         help_text="hours, minutes")
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
    
     class Meta:
         model = Commitment
-        fields = ('resource_type','quantity')
+        fields = ('resource_type','quantity', 'description')
 
     def __init__(self, pattern=None, *args, **kwargs):
         #import pdb; pdb.set_trace()

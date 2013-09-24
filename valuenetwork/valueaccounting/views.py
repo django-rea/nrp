@@ -2008,6 +2008,20 @@ def todo_delete(request, todo_id):
         except Commitment.DoesNotExist:
             todo = None
         if todo:
+            if notification:
+                if todo.from_agent:
+                    agent = get_agent(request)
+                    if todo.from_agent != agent:
+                        user = todo.from_agent.user()
+                        if user:
+                            #import pdb; pdb.set_trace()
+                            notification.send(
+                                [user.user,], 
+                                "valnet_deleted_todo", 
+                                {"description": todo.description,
+                                "creator": agent,
+                                }
+                            )
             todo.delete()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
@@ -2427,7 +2441,18 @@ def new_process_worker(request, commitment_id):
             ct.unit_of_quantity=rt.directional_unit("use")
             ct.created_by=request.user
             ct.save()
-            #notify_here
+            if notification:
+                import pdb; pdb.set_trace()
+                agent = get_agent(request)
+                users = ct.possible_source_users()
+                if users:
+                    notification.send(
+                        users, 
+                        "valnet_help_wanted", 
+                        {"task": ct,
+                        "creator": agent,
+                        }
+                    )
                 
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'

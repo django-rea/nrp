@@ -1,0 +1,8 @@
+{% load i18n %}{% blocktrans %}{{ creator }} requests help that fits your skills:
+
+{{ task.resource_type }} Due: {{ task.due_date }}
+{{ task.description }}
+for Process: {{ task.process }}
+
+You can see it here:{% endblocktrans %}
+http://{{ current_site }}{{ task.process.get_absolute_url }}

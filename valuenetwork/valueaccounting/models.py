@@ -2602,6 +2602,12 @@ class Commitment(models.Model):
             art.commitment = self
         return arts
 
+    def possible_source_users(self):
+        srcs = self.sources()
+        agents = [src.agent for src in srcs]
+        users = [a.user() for a in agents if a.user()]
+        return [u.user for u in users]
+
     def reschedule_forward(self, delta_days, user):
         #import pdb; pdb.set_trace()
         self.due_date = self.due_date + datetime.timedelta(days=delta_days)

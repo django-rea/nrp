@@ -1,0 +1,4 @@
+{% load i18n %}{% blocktrans %}{{ creator }} deleted a Todo that was assigned to you:{% endblocktrans %}
+
+{{ description }}
+

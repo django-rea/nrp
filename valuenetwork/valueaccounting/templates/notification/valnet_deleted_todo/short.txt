@@ -1,0 +1,1 @@
+{% load i18n %}{% trans  "Todo assigned to you was deleted" %}

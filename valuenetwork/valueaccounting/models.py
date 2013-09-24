@@ -298,6 +298,13 @@ class EconomicAgent(models.Model):
     def contributions(self):
         return self.given_events.filter(is_contribution=True)
 
+    def user(self):
+        users = self.users.all()
+        if users:
+            return users[0]
+        else:
+            return None
+
 
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,
@@ -2365,6 +2372,7 @@ class Commitment(models.Model):
             self.due_date.strftime('%Y-%m-%d'),
         ])
         unique_slugify(self, slug)
+        #notify_here?
         super(Commitment, self).save(*args, **kwargs)
 
     def label(self):
@@ -2593,6 +2601,12 @@ class Commitment(models.Model):
             art.too_late = art.order_release_date < datetime.date.today()
             art.commitment = self
         return arts
+
+    def possible_source_users(self):
+        srcs = self.sources()
+        agents = [src.agent for src in srcs]
+        users = [a.user() for a in agents if a.user()]
+        return [u.user for u in users]
 
     def reschedule_forward(self, delta_days, user):
         #import pdb; pdb.set_trace()

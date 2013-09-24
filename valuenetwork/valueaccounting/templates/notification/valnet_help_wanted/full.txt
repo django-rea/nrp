@@ -1,0 +1,10 @@
+{% load i18n %}{% blocktrans %}{{ creator }} requests help that fits your skills:
+
+{{ resource_type }} {{ hours }} {{ unit }}, Due: {{ due_date }}
+
+{{ description }}
+
+for Process: {{ process }}
+
+You can see it here:{% endblocktrans %}
+http://{{ current_site }}{{ process.get_absolute_url }}

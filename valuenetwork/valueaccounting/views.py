@@ -21,10 +21,16 @@ from django.forms import ValidationError
 from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.contrib.auth.forms import UserCreationForm
+from django.conf import settings
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
 from valuenetwork.valueaccounting.utils import *
+
+if "notification" in settings.INSTALLED_APPS:
+    from notification import models as notification
+else:
+    notification = None
 
 def get_agent(request):
     agent = None
@@ -1838,6 +1844,18 @@ def add_todo(request):
                 todo.quantity = Decimal("1")
                 todo.unit_of_quantity=todo.resource_type.unit
                 todo.save()
+                if notification:
+                    if todo.from_agent:
+                        if todo.from_agent != agent:
+                            user = todo.from_agent.user()
+                            if user:
+                                notification.send(
+                                    [user,], 
+                                    "valnet_new_todo", 
+                                    {"description": todo.description,
+                                    "creator": agent,
+                                    }
+                                )
             
     return HttpResponseRedirect(next)
 
@@ -2087,6 +2105,7 @@ def forward_schedule_source(request, commitment_id, source_id):
         source = get_object_or_404(AgentResourceType, id=source_id)
         #import pdb; pdb.set_trace()
         ct.reschedule_forward_from_source(source.lead_time, request.user)
+        #notify_here
         next = request.POST.get("next")
         if next:
             return HttpResponseRedirect(next)
@@ -2102,6 +2121,7 @@ def forward_schedule_process(request, process_id):
         #munge for partial days
         delta_days = lag.days + 1
         process.reschedule_forward(delta_days, request.user)
+        #notify_here
         next = request.POST.get("next")
         if next:
             return HttpResponseRedirect(next)
@@ -2109,7 +2129,6 @@ def forward_schedule_process(request, process_id):
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/order-schedule', ct.independent_demand.id))
         
-
 def create_labnotes_context(
         request, 
         commitment, 
@@ -2391,6 +2410,7 @@ def new_process_worker(request, commitment_id):
             ct.unit_of_quantity=rt.directional_unit("use")
             ct.created_by=request.user
             ct.save()
+            #notify_here
                 
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
@@ -4880,6 +4900,7 @@ def process_selections(request, rand=0):
                         unit=rt.unit,
                         from_agent=agent,
                         user=request.user)
+                    #notify_here
 
             if done_process: 
                 return HttpResponseRedirect('/%s/%s/'

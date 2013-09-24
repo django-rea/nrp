@@ -141,11 +141,14 @@ INSTALLED_APPS = [
     'south',
     'easy_thumbnails',
     #'report_builder',
+    'notification',
     
     # project
     'valuenetwork.valueaccounting',
 
 ]
+
+NOTIFICATION_QUEUE_ALL = True
 
 THUMBNAIL_DEBUG = True
 

@@ -298,6 +298,13 @@ class EconomicAgent(models.Model):
     def contributions(self):
         return self.given_events.filter(is_contribution=True)
 
+    def user(self):
+        users = self.users.all()
+        if users:
+            return users[0]
+        else:
+            return None
+
 
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,
@@ -2365,6 +2372,7 @@ class Commitment(models.Model):
             self.due_date.strftime('%Y-%m-%d'),
         ])
         unique_slugify(self, slug)
+        #notify_here?
         super(Commitment, self).save(*args, **kwargs)
 
     def label(self):

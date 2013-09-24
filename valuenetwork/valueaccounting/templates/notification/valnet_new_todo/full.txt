@@ -1,0 +1,4 @@
+{% load i18n %}{% blocktrans %}{{ creator }} has added a Todo '{{ description }}' assigned to you.
+
+You can see it here:
+http://{{ current_site }}{%url start %}{% endblocktrans %}

@@ -34,10 +34,10 @@ databrowse.site.register(
 
 urlpatterns = patterns("",
     url(r"^$", 'valuenetwork.valueaccounting.views.home', name="home"),
-    url(r"^admin/", include(admin.site.urls)),
-
-    url(r"^account/", include("account.urls")),
     url(r"^accounting/", include("valuenetwork.valueaccounting.urls")),
+    url(r"^admin/", include(admin.site.urls)),
+    url(r"^account/", include("account.urls")),
+    url(r"^notification/", include("notification.urls")),    
     (r'^databrowse/(.*)', databrowse.site.root),
     #url(r'^report_builder/', include('report_builder.urls')),
 )

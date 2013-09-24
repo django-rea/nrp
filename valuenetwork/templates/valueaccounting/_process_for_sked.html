@@ -1,14 +1,17 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
+{% comment %}
 <span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process }}</a>
+{% endcomment %}
+
 <ul>
+{% comment %}
     {% if process.notes %}
         <li class="for" >
             {{ process.notes|urlize|linebreaks }}
         </li>
     {% endif %}
-{% comment %}
     {% if process.independent_demand %}
         {% if process.independent_demand.order_type != 'holder' %}
             <li class="req-description" >

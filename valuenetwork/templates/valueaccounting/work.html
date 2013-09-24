@@ -17,6 +17,9 @@
 li {
     list-style-type: none;
 }
+h3 {
+    margin-bottom: 0;
+}
 .project-line {
     font-size: 1.2em;
     color: brown;
@@ -27,6 +30,9 @@ li {
     font-weight: bold;
     font-size: 1.1em;
     margin-top: .8em;
+    background-color: #FFFFB2; /*lightyellow*/
+    border: 1px solid gainsboro;
+    padding: 6px;
 }
 .for, .req-description {
     font-size: .8em;
@@ -37,11 +43,12 @@ li {
 .section {
     color:     #008A2E;
     font-size: 1em;
+    margin-left: 0; /*todo: doesn't work !!!*/
 }
 .work, .deliverable, .material, .subline {
     font-weight: normal;
-
 }
+
 .taken {
     font-style: italic;
     font-weight: bold;
@@ -52,10 +59,11 @@ li {
 	margin-right: 2em;
 }
 
-.schedule, .todos {
+.todos {
     background-color: beige;
     padding: 2px 6px 3px 6px;
     border: 1px solid gainsboro;
+    margin-top: 1em;
 }
 
 #todoModal textarea {
@@ -135,6 +143,17 @@ th, td {
     width: 2em;
 }
 
+.prevnext h4 {
+    color: firebrick;
+}
+.prevnext {
+    padding: 10px;
+}
+
+.no-indent {
+    margin-left: 0;
+}
+
 </style>
 {% endblock %}
 
@@ -186,29 +205,53 @@ th, td {
                 <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Reload' %}" />
 	        </form>
 
-	        <div class="row-fluid">
-			    <div class="span6 schedule">
-			        <h3>
-			            {% trans "Work in process" %}
-		            </h3>
-                    {% if projects %}
-                        <ul>
-			                {% for project, processes in projects.items %}
-			                    <li class="project-line"> {% trans "Project" %}: {% if project %} {{ project.name }} {% else %} No project {% endif %}</li>
-			                    <ul>
-			                        {% for process in processes %}
-			                            <li class="process" >{% include  "valueaccounting/_process_for_sked.html" %}</li>
-			                        {% endfor %}
-			                    </ul>			                
-			                {% endfor %}
-			            </ul>
-		            {% else %}
-		                None
-	                {% endif %}
-			        
-			    </div>
+	        <h3>
+	            {% trans "Work in process" %}
+            </h3>
+            {% if projects %}
+                <ul class="no-indent">
+	                {% for project, processes in projects.items %}
+	                    <li class="project-line"> 
+                            {% trans "Project" %}: {% if project %} {{ project.name }} {% else %} No project {% endif %}
+                        </li>
+	                    <ul class="no-indent">
+	                        {% for process in processes %}
+                                <div class="row-fluid">
+                                    <div class="span9 schedule">
+                                        <li class="process no-indent" >
+                                            <span class="prefix process-prefix">{% trans "Process" %}:</span> 
+                                            <a href="{{ process.get_absolute_url }}">{{ process }}</a>
+                                            <div class="row-fluid">
+                                                <div class="span7">
+                                                    {% include  "valueaccounting/_process_for_sked.html" %}
+                                                </div>
+                                                <div class="span2 for">
+                                                    {% if process.notes %}
+                                           
+                                                            {{ process.notes|urlize|linebreaks }}
+                                                 
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </div>
+	                                <div class="span3 prevnext">
+                                        <h4>Previous</h4>
 
-			    <div class="span6 todos">
+                                        <h4>Next</h4>
+
+                                    </div>
+                                </div>
+	                        {% endfor %}
+	                    </ul>			                
+	                {% endfor %}
+	            </ul>
+            {% else %}
+                None
+            {% endif %}
+	   
+	        <div class="row-fluid">
+			    <div class="span12 todos">
 			        <h3>
 			            {% trans "Todo list" %}
 	                    {% if agent %}

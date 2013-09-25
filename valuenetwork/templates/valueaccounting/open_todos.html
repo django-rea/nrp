@@ -52,7 +52,7 @@ li {
         {% if todos %}
             <ul>
 		        {% for todo in todos %}
-		            <li class="todo" >{% trans "Todo" %}: {% trans "Poster" %}: {{ todo.to_agent }} {% trans "Due" %}: {{ todo.due_date }}</li>
+		            <li class="todo" >{% trans "Todo" %}: {% trans "Poster" %}: {{ todo.to_agent }}, {% trans "Doer" %}: {{ todo.from_agent }}, {% trans "Due" %}: {{ todo.due_date }}</li>
 		            {% if todo.description %}
 		                <p>{{ todo.description|urlize|linebreaks }}</p>
 	                {% endif %}

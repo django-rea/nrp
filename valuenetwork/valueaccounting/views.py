@@ -4042,6 +4042,24 @@ def change_process(request, process_id):
                                     unit = rt.unit
                                     ct.unit_of_quantity = unit
                                 ct.save()
+                                if not ct_from_id:
+                                    if notification:
+                                        #import pdb; pdb.set_trace()
+                                        agent = get_agent(request)
+                                        users = ct.possible_source_users()
+                                        if users:
+                                            notification.send(
+                                                users, 
+                                                "valnet_new_task", 
+                                                {"resource_type": ct.resource_type,
+                                                "due_date": ct.due_date,
+                                                "hours": ct.quantity,
+                                                "unit": ct.resource_type.unit,
+                                                "description": ct.description or "",
+                                                "process": ct.process,
+                                                "creator": agent,
+                                                }
+                                            )
                         elif ct_from_id:
                             ct = form.save()
                             ct.delete() 
@@ -4947,7 +4965,24 @@ def process_selections(request, rand=0):
                         unit=rt.unit,
                         from_agent=agent,
                         user=request.user)
-                    #notify_here
+                    if notification:
+                        #import pdb; pdb.set_trace()
+                        if not work_commitment.from_agent:
+                            agent = get_agent(request)
+                            users = work_commitment.possible_source_users()
+                            if users:
+                                notification.send(
+                                    users, 
+                                    "valnet_new_task", 
+                                    {"resource_type": work_commitment.resource_type,
+                                    "due_date": work_commitment.due_date,
+                                    "hours": work_commitment.quantity,
+                                    "unit": work_commitment.resource_type.unit,
+                                    "description": work_commitment.description or "",
+                                    "process": work_commitment.process,
+                                    "creator": agent,
+                                    }
+                                )
 
             if done_process: 
                 return HttpResponseRedirect('/%s/%s/'
@@ -5046,6 +5081,27 @@ def plan_from_recipe(request):
                 commitment.save()
                 if pt:
                     process.explode_demands(demand, request.user, [])
+                if notification:
+                    #import pdb; pdb.set_trace()
+                    agent = get_agent(request)
+                    work_cts = Commitment.objects.filter(
+                        independent_demand=demand, 
+                        event_type__relationship="work")
+                    for ct in work_cts:                           
+                        users = ct.possible_source_users()
+                        if users:
+                            notification.send(
+                                users, 
+                                "valnet_new_task", 
+                                {"resource_type": ct.resource_type,
+                                "due_date": ct.due_date,
+                                "hours": ct.quantity,
+                                "unit": ct.resource_type.unit,
+                                "description": ct.description or "",
+                                "process": ct.process,
+                                "creator": agent,
+                                }
+                            )
  
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/order-schedule', demand.id))                 

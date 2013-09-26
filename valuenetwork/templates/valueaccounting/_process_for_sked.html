@@ -43,7 +43,7 @@
 				        {% endfor %}
 				    </ul>
 			    {% endif %}
-{% comment %}
+
 			    {% if item.associated_wanting_commitments %}
 			        <ul>
 				        {% for wanter in item.associated_wanting_commitments %}
@@ -55,7 +55,7 @@
 				        {% endfor %}
 				    </ul>
 			    {% endif %}
-{% endcomment %}
+
 			{% endfor %}
 		</ul>
 	{% endif %}
@@ -145,7 +145,8 @@
 				        {% for ct in reqmt.associated_producing_commitments %}
 					        <li class="subline" >
 						        <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
-						        <a href="{{ ct.process.get_absolute_url }}">{{ ct.quantity }} {{ ct.unit_of_quantity }}</a> <span class="due">{{ ct.due_date }}</span>
+						         {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 
+						         <a href="{{ ct.process.get_absolute_url }}">{% trans "by Process" %}: {{ ct.process.name }}</a> 
 					        </li>
 				        {% endfor %}
 				    </ul>
@@ -187,17 +188,18 @@
 				            </li>
 			            {% endfor %}
 			        </ul>
-{% comment %}
+
 		        {% elif reqmt.associated_producing_commitments %}
 		            <ul>
 			            {% for ct in reqmt.associated_producing_commitments %}
 				            <li class="subline" >
 					            <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
 					            {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 
+					            <a href="{{ ct.process.get_absolute_url }}">{% trans "by Process" %}: {{ ct.process.name }}</a>
 				            </li>
 			            {% endfor %}
 			        </ul>
-{% endcomment %}
+
 		        {% elif reqmt.resource_type.producing_agent_relationships %}
 		            <ul>
 			            {% for source in reqmt.resource_type.producing_agent_relationships %}

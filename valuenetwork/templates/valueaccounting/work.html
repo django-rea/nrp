@@ -229,7 +229,8 @@ th, td {
                                   <div class="span12">
                                     <span class="prefix process-prefix">{% trans "Process" %}:</span> 
                                     <a href="{{ process.get_absolute_url }}">
-                                        {{ process.name }} starting <span id="start-dt{{ process.id }}">{{ process.start_date }}</span> ending <span id="end-dt{{ process.id }}"> {{ process.end_date }}
+                                        {{ process.name }} {% trans "starting" %} <span id="start-dt{{ process.id }}">{{ process.start_date|date:"Y-m-d" }}</span> 
+                                        {% trans "ending" %} <span id="end-dt{{ process.id }}"> {{ process.end_date|date:"Y-m-d" }}
                                     </a>
 	                                {% if agent %}
     							      <a href="#procModal{{ process.id }}" id="chg-process{{ process.id }}" role="button" class="btn btn-primary btn-mini chg-process" data-toggle="modal">{% trans "Notes and Dates" %}</a>
@@ -555,12 +556,31 @@ th, td {
 		        if ($form.valid())
 		        {
 		            var formData = $form.serialize();
+		            var note = $form.find( 'textarea[name="{{ process.id }}-notes"]' ).val();
+		            var notes = "<p>";
+		            for (var i=0; i < note.length; i++)
+		            {
+                        var code = note.charCodeAt(i); 
+                        if (code==10)
+                        {
+                            notes += "</p><p>";
+                        }
+                        else
+                        {
+                            notes += note[i];
+                        }
+		            }
+		            notes += "</p>";
+		            var startDate = $form.find( 'input[name="{{ process.id }}-start_date"]' ).val();
+		            var endDate = $form.find( 'input[name="{{ process.id }}-end_date"]' ).val();
 		            var modalId = "#procModal{{ process.id }}";
 		            var modal = $(modalId);
                     var url = "{%url change_process_sked_ajax %}";
 		            var jqxhr = $.post( url, formData,
 			            function( data ) {
-                            $("#id_{{ process.id }}-notes").val(formData["notes"])
+                            $("#proc-notes{{ process.id }}").html(notes);
+                            $("#start-dt{{ process.id }}").html(startDate);
+                            $("#end-dt{{ process.id }}").html(endDate);
                             $(modalId).modal('hide');
                             $form.trigger( "reset" );
 			            })

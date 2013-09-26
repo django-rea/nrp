@@ -1767,7 +1767,7 @@ def assemble_schedule(start, end, project=None):
     processes = Process.objects.unfinished().filter(
         Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)) |
         Q(start_date__lt=start, end_date__gt=end))
-    processes = processes.order_by("project__name", "end_date")
+    processes = processes.order_by("project__name", "end_date", "start_date")
     projects = SortedDict()
     #import pdb; pdb.set_trace()
     for proc in processes:
@@ -1781,6 +1781,23 @@ def assemble_schedule(start, end, project=None):
                     projects[proc.project] = []
                 projects[proc.project].append(proc)
     return projects
+
+@login_required
+def change_process_sked_ajax(request):
+    #import pdb; pdb.set_trace()
+    proc_id = request.POST["proc_id"]
+    process = Process.objects.get(id=proc_id)
+    form = ScheduleProcessForm(prefix=proc_id,instance=process,data=request.POST)
+    if form.is_valid():
+        data = form.cleaned_data
+        process.start_date = data["start_date"]
+        process.end_date = data["end_date"]
+        process.notes = data["notes"]
+        process.save()
+        return_data = "OK" 
+        return HttpResponse(return_data, mimetype="text/plain")
+    else:
+        return HttpResponse(form.errors, mimetype="text/json-comment-filtered")
 
 def work(request):
     agent = get_agent(request)

@@ -39,7 +39,14 @@ h3 {
     font-style: italic;
     font-weight: normal;
 }
-
+.notes {
+    font-size: .9em;
+    font-style: italic;
+    font-weight: normal;
+    border: solid 1px gainsboro;
+    background-color: honeydew;
+    padding: 4px;
+}
 .section {
     color:     #008A2E;
     font-size: 1em;
@@ -66,17 +73,7 @@ h3 {
     margin-top: 1em;
 }
 
-#todoModal textarea {
-  width: 400px;
-  height: 70px;
-}
-
-.changeModal textarea {
-  width: 400px;
-  height: 70px;
-}
-
-.commitmentModal textarea {
+#todoModal textarea, .changeModal textarea, .commitmentModal textarea, .procModal textarea {
   width: 400px;
   height: 70px;
 }
@@ -153,6 +150,14 @@ th, td {
 .no-indent {
     margin-left: 0;
 }
+#todolink {
+    float: right;
+    font-size: 14pt;
+    font-weight: bold;
+}
+.chg-process {
+    float: right;
+}
 
 </style>
 {% endblock %}
@@ -164,15 +169,15 @@ th, td {
         {% include "_messages.html" %}
 	    <div>
 		    <legend>
-		        {% trans "Work" %} &nbsp;&nbsp;&nbsp;
+		        {% trans "Work in Process" %} &nbsp;&nbsp;&nbsp;
 {% comment %}
 		        <a href="{% url today %}">{% trans "Today" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 {% endcomment %}
 		        <a href="{% url timeline %}">{% trans "Timeline" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        <a href="{% url labnotes_history %}">{% trans "Labnotes History" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        {% if agent %}
-					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan R&amp;D Work" %}</a>
-					<a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan R&amp;D Work from Recipe" %}</a>
+					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Work" %}</a>
+					<a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan Work Using Recipe" %}</a>
 			    {% endif %}
 	        </legend>
 
@@ -203,54 +208,83 @@ th, td {
                     </div>                    
                 </div>&nbsp;
                 <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Reload' %}" />
+                <a href=#todos id="todolink"> To Do's</a>
 	        </form>
-
+{% comment %}
 	        <h3>
 	            {% trans "Work in process" %}
             </h3>
+{% endcomment %}
             {% if projects %}
-                <ul class="no-indent">
-	                {% for project, processes in projects.items %}
-	                    <li class="project-line"> 
-                            {% trans "Project" %}: {% if project %} {{ project.name }} {% else %} No project {% endif %}
-                        </li>
-	                    <ul class="no-indent">
-	                        {% for process in processes %}
+
+                {% for project, processes in projects.items %}
+                    <div class="project-line"> 
+                        {% trans "Project" %}: {% if project %} {{ project.name }} {% else %} No project {% endif %}
+                    </div>
+
+                    {% for process in processes %}
+                        <div class="row-fluid">
+                            <div class="span9 schedule process">
                                 <div class="row-fluid">
-                                    <div class="span9 schedule">
-                                        <li class="process no-indent" >
-                                            <span class="prefix process-prefix">{% trans "Process" %}:</span> 
-                                            <a href="{{ process.get_absolute_url }}">{{ process }}</a>
-                                            <div class="row-fluid">
-                                                <div class="span7">
-                                                    {% include  "valueaccounting/_process_for_sked.html" %}
-                                                </div>
-                                                <div class="span2 for">
-                                                    {% if process.notes %}
-                                           
-                                                            {{ process.notes|urlize|linebreaks }}
-                                                 
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        </li>
-                                    </div>
-	                                <div class="span3 prevnext">
-                                        <h4>Previous</h4>
+                                  <div class="span12">
+                                    <span class="prefix process-prefix">{% trans "Process" %}:</span> 
+                                    <a href="{{ process.get_absolute_url }}">
+                                        {{ process.name }} starting <span id="start-dt{{ process.id }}">{{ process.start_date }}</span> ending <span id="end-dt{{ process.id }}"> {{ process.end_date }}
+                                    </a>
+	                                {% if agent %}
+    							      <a href="#procModal{{ process.id }}" id="chg-process{{ process.id }}" role="button" class="btn btn-primary btn-mini chg-process" data-toggle="modal">{% trans "Notes and Dates" %}</a>
+                                    {% endif %}
 
-                                        <h4>Next</h4>
+						            <div class="modal hide fade procModal" id="procModal{{ process.id }}" tabindex="-1" role="dialog" aria-labelledby="proc-label" aria-hidden="true">
+							            <div class="modal-header">
+								            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+								            <h3 id="proc-label">{% trans "Add Notes and Change Dates" %}</h3>
+							            </div>
+							            <div class="modal-body">
+								            <form id="procForm{{ process.id }}" enctype="multipart/form-data" action="." method="POST" >
+									          {% csrf_token %}
+									          {{ process.schedule_form|as_bootstrap }}
+                                              <input type="hidden" name="proc_id" value="{{ process.id }}" />
+								              <div class="modal-footer">
+									            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+				                                <button class="btn btn-primary" id="chg-proc{{ process.id }}">{% trans "Save" %}</button>
+								              </div>
+								            </form>
+                                        </div>
+						            </div>
 
-                                    </div>
+                                  </div>
                                 </div>
-	                        {% endfor %}
-	                    </ul>			                
-	                {% endfor %}
-	            </ul>
+                                <div class="row-fluid">
+                                    <div class="span8">
+                                        {% include  "valueaccounting/_process_for_sked.html" %}
+                                    </div>
+                                    <div class="span4 notes" id="proc-notes{{ process.id }}">
+                                        {% if process.notes %}
+                                            {{ process.notes|urlize|linebreaks }}
+                                        {% endif %}
+                                    </div>                                  
+                                </div>
+                            
+                            </div>
+                            <div class="span3 prevnext">
+			                    <h4>{% trans "Previous processes" %}</h4>
+			                    {% for proc in process.previous_processes %}
+				                    <p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
+			                    {% endfor %}
+			                    <h4>{% trans "Next processes" %}</h4>
+			                    {% for proc in process.next_processes %}
+				                    <p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
+			                    {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
             {% else %}
-                None
+                No processes scheduled for this date range and project selection
             {% endif %}
 	   
-	        <div class="row-fluid">
+	        <div class="row-fluid" id="todos">
 			    <div class="span12 todos">
 			        <h3>
 			            {% trans "Todo list" %}
@@ -496,6 +530,50 @@ th, td {
 
 			});
 		});
+
+		$( "#procForm" ).validate({
+			rules: {
+				'end_date': {
+                    required: true,
+					date: true
+                },
+				'start_date': {
+                    required: true,
+					date: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+        {% for project, processes in projects.items %}
+          {% for process in processes %}
+            $('#chg-proc{{ process.id}}').click(function(event) {
+                event.preventDefault();
+		        var $form = $("#procForm{{ process.id }}");
+		        if ($form.valid())
+		        {
+		            var formData = $form.serialize();
+		            var modalId = "#procModal{{ process.id }}";
+		            var modal = $(modalId);
+                    var url = "{%url change_process_sked_ajax %}";
+		            var jqxhr = $.post( url, formData,
+			            function( data ) {
+                            $("#id_{{ process.id }}-notes").val(formData["notes"])
+                            $(modalId).modal('hide');
+                            $form.trigger( "reset" );
+			            })
+			            .fail(function() 
+			            { 
+				            alert("Process save failed.");
+			            }
+		            );
+	           }
+		    });
+          {% endfor %}
+        {% endfor %}
+
 
 		$('.timeForm').each( function(){
 			var form = $(this);

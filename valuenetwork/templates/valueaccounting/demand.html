@@ -18,8 +18,8 @@
 			{% if agent %}
 				<p>
 					<a class="btn btn-primary" href="{% url create_order %}">{% trans "Create Customer Order" %}</a>
-					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan R&amp;D Work" %}</a>
-					<a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan R&amp;D Work Using Recipe" %}</a>
+					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Work" %}</a>
+					<a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan Work Using Recipe" %}</a>
 				</p>
 			{% endif %}
 			{% if orders %}

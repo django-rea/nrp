@@ -152,6 +152,14 @@ class NamelessProcessForm(forms.ModelForm):
         model = Process
         fields = ('project', 'start_date', 'end_date', 'notes' )
 
+class ScheduleProcessForm(forms.ModelForm):
+    start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+
+    class Meta:
+        model = Process
+        fields = ('start_date', 'end_date', 'notes' )
+
 
 class AddProcessFromResourceForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))

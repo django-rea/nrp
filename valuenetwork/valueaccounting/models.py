@@ -1966,6 +1966,11 @@ class Process(models.Model):
 
     def bumped_processes(self):
         return [p for p in self.next_processes() if self.end_date > p.start_date]
+
+    def schedule_form(self):
+        from valuenetwork.valueaccounting.forms import ScheduleProcessForm
+        init = {"start_date": self.start_date, "end_date": self.end_date, "notes": self.notes}
+        return ScheduleProcessForm(prefix=str(self.id),initial=init)
         
 
 class Feature(models.Model):

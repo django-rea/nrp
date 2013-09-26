@@ -1,8 +1,10 @@
 {% load i18n %}{% blocktrans %}{{ creator }} posted a new task that fits your skills:
 
-{{ task.resource_type }} Due: {{ task.due_date }}
-{{ task.description }}
-for Process: {{ task.process }}
+{{ resource_type }} {{ hours }} {{ unit }}, Due: {{ due_date }}
+
+{{ description }}
+
+for Process: {{ process }}
 
 You can see it here:{% endblocktrans %}
-http://{{ current_site }}{{ task.process.get_absolute_url }}
+http://{{ current_site }}{{ process.get_absolute_url }}

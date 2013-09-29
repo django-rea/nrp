@@ -48,7 +48,7 @@
 			        <ul>
 				        {% for wanter in item.associated_wanting_commitments %}
 					        <li class="subline" >
-						        <span class="prefix created-prefix">{% trans "Wanted by" %}:</span> 
+						        <span class="dependency">{% trans "Wanted by" %}:</span> 
 						        <a href="{{ wanter.process.get_absolute_url }}">{{ wanter.process.name }}</a> 
 						        {{ wanter.quantity }} {{ wanter.unit_of_quantity }} {{ wanter.due_date }} 
 					        </li>
@@ -144,7 +144,7 @@
 			        <ul>
 				        {% for ct in reqmt.associated_producing_commitments %}
 					        <li class="subline" >
-						        <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
+						        <span class="dependency">{% trans "Promised by" %}:</span> 
 						         {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 
 						         <a href="{{ ct.process.get_absolute_url }}">{% trans "by Process" %}: {{ ct.process.name }}</a> 
 					        </li>
@@ -193,7 +193,7 @@
 		            <ul>
 			            {% for ct in reqmt.associated_producing_commitments %}
 				            <li class="subline" >
-					            <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
+					            <span class="dependency">{% trans "Promised by" %}:</span> 
 					            {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 
 					            <a href="{{ ct.process.get_absolute_url }}">{% trans "by Process" %}: {{ ct.process.name }}</a>
 				            </li>

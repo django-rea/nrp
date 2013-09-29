@@ -1780,7 +1780,7 @@ def assemble_schedule(start, end, project=None):
                 if proc.project not in projects:
                     projects[proc.project] = []
                 projects[proc.project].append(proc)
-    return projects
+    return processes, projects
 
 @login_required
 def change_process_sked_ajax(request):
@@ -1824,11 +1824,12 @@ def work(request):
                 if proj_id.isdigit:
                     chosen_project = Project.objects.get(id=proj_id)
 
-    projects = assemble_schedule(start, end, chosen_project)
+    processes, projects = assemble_schedule(start, end, chosen_project)
     todos = Commitment.objects.todos().filter(due_date__range=(start, end))
     return render_to_response("valueaccounting/work.html", {
         "agent": agent,
         "projects": projects,
+        "all_processes": processes,
         "date_form": date_form,
         "todo_form": todo_form,
         "project_form": project_form,
@@ -1842,8 +1843,7 @@ def today(request):
     end = start
     #import pdb; pdb.set_trace()
     todos = Commitment.objects.todos().filter(due_date=start)
-    projects = assemble_schedule(start, end)
-    processes = []
+    processes, projects = assemble_schedule(start, end)
     events = EconomicEvent.objects.filter(event_date=start)
     return render_to_response("valueaccounting/today.html", {
         "agent": agent,

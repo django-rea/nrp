@@ -286,14 +286,18 @@ th, td {
 			                    {% for proc in process.previous_processes %}
 				                    <p>
 				                        <a href="{{ proc.get_absolute_url }}">{{ proc }}</a> 
-				                        <a href="#{{ proc.id }}" title="go to" ><i class="icon-search"></i></a>
+				                        {% if proc in all_processes %}
+				                            <a href="#{{ proc.id }}" title="go to" ><i class="icon-search"></i></a>
+				                        {% endif %}
 			                        </p>
 			                    {% endfor %}
 			                    <h4>{% trans "Next processes" %}</h4>
 			                    {% for proc in process.next_processes %}
 				                    <p>
 				                        <a href="{{ proc.get_absolute_url }}">{{ proc }}</a> 
-				                        <a href="#{{ proc.id }}" title="go to" ><i class="icon-search"></i></a>
+				                        {% if proc in all_processes %}
+				                            <a href="#{{ proc.id }}" title="go to" ><i class="icon-search"></i></a>
+				                        {% endif %}
 			                        </p>
 			                    {% endfor %}
                             </div>

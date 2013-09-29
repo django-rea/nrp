@@ -1,25 +1,8 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% comment %}
-<span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process }}</a>
-{% endcomment %}
-
 <ul class="no-indent">
-{% comment %}
-    {% if process.notes %}
-        <li class="for" >
-            {{ process.notes|urlize|linebreaks }}
-        </li>
-    {% endif %}
-    {% if process.independent_demand %}
-        {% if process.independent_demand.order_type != 'holder' %}
-            <li class="req-description" >
-                <span class="prefix for-prefix">{% trans "For" %}:</span> {{ process.independent_demand }}
-            </li>
-        {% endif %}
-    {% endif %}
-{% endcomment %} 
+
     {% if process.outgoing_commitments %}
         <li class="section deliverables-section">{% trans "Deliverables" %}:</li>
         <ul>

@@ -34,6 +34,12 @@ h3 {
     border: 1px solid gainsboro;
     padding: 6px;
 }
+
+#arrow {
+    font-weight: bold;
+    font-size: 2em;
+}
+
 .for, .req-description {
     font-size: .8em;
     font-style: italic;
@@ -213,7 +219,7 @@ th, td {
                     </div>                    
                 </div>&nbsp;
                 <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Reload' %}" />
-                <a href=#todos id="todolink"> To Do's</a>
+                <a href=#todos id="todolink"> To Do's <span id="arrow">&#8595;</span></a>
 	        </form>
 {% comment %}
 	        <h3>
@@ -228,11 +234,13 @@ th, td {
                     </div>
 
                     {% for process in processes %}
-                        <div class="row-fluid">
+                        <div class="row-fluid"  id="{{ process.id }}"  >
                             <div class="span9 schedule process">
                                 <div class="row-fluid">
-                                  <div class="span12">
-                                    <span class="prefix process-prefix">{% trans "Process" %}:</span> 
+                                  <div class="span12" >
+                                    
+                                    <span class="prefix process-prefix"  >{% trans "Process" %}:</span> 
+
                                     <a href="{{ process.get_absolute_url }}">
                                         {{ process.name }} {% trans "starting" %} <span id="start-dt{{ process.id }}">{{ process.start_date|date:"Y-m-d" }}</span> 
                                         {% trans "ending" %} <span id="end-dt{{ process.id }}"> {{ process.end_date|date:"Y-m-d" }}
@@ -276,11 +284,17 @@ th, td {
                             <div class="span3 prevnext">
 			                    <h4>{% trans "Previous processes" %}</h4>
 			                    {% for proc in process.previous_processes %}
-				                    <p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
+				                    <p>
+				                        <a href="{{ proc.get_absolute_url }}">{{ proc }}</a> 
+				                        <a href="#{{ proc.id }}" title="go to" ><i class="icon-search"></i></a>
+			                        </p>
 			                    {% endfor %}
 			                    <h4>{% trans "Next processes" %}</h4>
 			                    {% for proc in process.next_processes %}
-				                    <p><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></p>
+				                    <p>
+				                        <a href="{{ proc.get_absolute_url }}">{{ proc }}</a> 
+				                        <a href="#{{ proc.id }}" title="go to" ><i class="icon-search"></i></a>
+			                        </p>
 			                    {% endfor %}
                             </div>
                         </div>

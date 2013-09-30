@@ -127,7 +127,7 @@
 			        <ul>
 				        {% for ct in reqmt.associated_producing_commitments %}
 					        <li class="subline" >
-						        <span class="dependency">{% trans "Promised by" %}:</span> 
+						        <span class="dependency">{% trans "Promised" %}:</span> 
 						         {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 
 						         <a href="{{ ct.process.get_absolute_url }}">{% trans "by Process" %}: {{ ct.process.name }}</a> 
 					        </li>
@@ -176,7 +176,7 @@
 		            <ul>
 			            {% for ct in reqmt.associated_producing_commitments %}
 				            <li class="subline" >
-					            <span class="dependency">{% trans "Promised by" %}:</span> 
+					            <span class="dependency">{% trans "Promised" %}:</span> 
 					            {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 
 					            <a href="{{ ct.process.get_absolute_url }}">{% trans "by Process" %}: {{ ct.process.name }}</a>
 				            </li>

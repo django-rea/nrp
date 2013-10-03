@@ -2018,7 +2018,7 @@ def todo_decline(request, todo_id):
 
 @login_required
 def todo_delete(request, todo_id):
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     if request.method == "POST":
         try:
             todo = Commitment.objects.get(id=todo_id)

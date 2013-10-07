@@ -20,7 +20,7 @@
 				        {% for event in item.fulfilling_events %}
 					        <li class="subline" >
 						        <span class="prefix created-prefix">{% trans "Created" %}:</span> 
-						        <a href="{% url resource resource_id=event.resource.id %}">{{ event.resource_type.name }} {{ event.resource.label }}</a>
+						        <a href="{% url resource resource_id=event.resource.id %}" target="_blank">{{ event.resource_type.name }} {{ event.resource.label }}</a>
 						        {{ event.quantity }} {{ event.unit_of_quantity }}
 					        </li>
 				        {% endfor %}
@@ -32,7 +32,7 @@
 				        {% for wanter in item.associated_wanting_commitments %}
 					        <li class="subline" >
 						        <span class="dependency">{% trans "Wanted by" %}:</span> 
-						        <a href="{{ wanter.process.get_absolute_url }}">{{ wanter.process.name }}</a> 
+						        <a href="{{ wanter.process.get_absolute_url }}" target="_blank">{{ wanter.process.name }}</a> 
 						        {{ wanter.quantity }} {{ wanter.unit_of_quantity }} {{ wanter.due_date }} 
 					        </li>
 				        {% endfor %}
@@ -53,8 +53,8 @@
 					{% if item.from_agent %}
 					    <span class="taken">{% trans "Taken by" %} {{ item.from_agent.nick }}</span>
 					    {% if agent == item.from_agent %}
-					        <a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
-					        <a href="{% url log_past_work commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Past work" %}</a>
+					        <a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" target="_blank">{% trans "Labnotes" %}</a>
+					        <a href="{% url log_past_work commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" target="_blank">{% trans "Past work" %}</a>
 					    {% endif %}
 					{% else %}
 					     <span class="due">{% trans "due" %} {{ item.due_date }}</span>
@@ -117,7 +117,7 @@
 				        {% for resource in reqmt.resource_type.onhand %}
 					        <li class="subline" >
 						        <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
-						        <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
+						        <a href="{% url resource resource_id=resource.id %}" target="_blank">{{ resource.resource_type.name }} {{ resource.label }}</a> 
 						        {{ resource.quantity }} {{ resource.unit_of_quantity }}
 					        </li>
 				        {% endfor %}
@@ -129,7 +129,7 @@
 					        <li class="subline" >
 						        <span class="dependency">{% trans "Promised" %}:</span> 
 						         {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 
-						         <a href="{{ ct.process.get_absolute_url }}">{% trans "by Process" %}: {{ ct.process.name }}</a> 
+						         <a href="{{ ct.process.get_absolute_url }}" target="_blank">{% trans "by Process" %}: {{ ct.process.name }}</a> 
 					        </li>
 				        {% endfor %}
 				    </ul>
@@ -166,7 +166,7 @@
 			            {% for resource in reqmt.resource_type.onhand %}
 				            <li class="subline" >
 					            <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
-					            <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
+					            <a href="{% url resource resource_id=resource.id %}" target="_blank">{{ resource.resource_type.name }} {{ resource.label }}</a> 
 					            {{ resource.quantity }} {{ resource.unit_of_quantity }}
 				            </li>
 			            {% endfor %}
@@ -178,7 +178,7 @@
 				            <li class="subline" >
 					            <span class="dependency">{% trans "Promised" %}:</span> 
 					            {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 
-					            <a href="{{ ct.process.get_absolute_url }}">{% trans "by Process" %}: {{ ct.process.name }}</a>
+					            <a href="{{ ct.process.get_absolute_url }}" target="_blank">{% trans "by Process" %}: {{ ct.process.name }}</a>
 				            </li>
 			            {% endfor %}
 			        </ul>

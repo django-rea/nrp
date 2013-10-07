@@ -1839,8 +1839,10 @@ def work(request):
         "help": get_help("all_work"),
     }, context_instance=RequestContext(request))
 
-def schedule(request, project_id=None): 
+def schedule(request, project_slug=None): 
     project = None
+    if project_slug:
+        project = get_object_or_404(Project, slug=project_slug)
     start = None
     end = None
     #import pdb; pdb.set_trace()

@@ -140,7 +140,7 @@ class ProcessAdmin(admin.ModelAdmin):
 admin.site.register(Process, ProcessAdmin)
 
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'parent')
+    list_display = ('name', 'parent', 'slug')
     list_filter = ['parent',]
     search_fields = ['name',]
     

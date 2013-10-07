@@ -1,0 +1,237 @@
+{% load staticfiles %}
+{% load i18n %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<title>{% trans "Work in Process" %}</title>
+
+<head>
+
+<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+<link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
+
+<style>
+
+li {
+    list-style-type: none;
+}
+h3 {
+    margin-bottom: 0;
+}
+.project-line {
+    font-size: 1.2em;
+    color: brown;
+    font-weight: bold;
+    margin-top: 1.5em;
+}
+.process {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: .8em;
+    background-color: #FFFFB2; /*lightyellow*/
+    border: 1px solid gainsboro;
+    padding: 6px;
+}
+
+#arrow {
+    font-weight: bold;
+    font-size: 2em;
+}
+
+.for, .req-description {
+    font-size: .8em;
+    font-style: italic;
+    font-weight: normal;
+}
+.notes {
+    font-size: .9em;
+    font-style: italic;
+    font-weight: normal;
+    border: solid 1px gainsboro;
+    background-color: honeydew;
+    padding: 4px;
+}
+.section {
+    color:     #008A2E;
+    font-size: 1em;
+    margin-left: 0; /*todo: doesn't work !!!*/
+}
+.work, .deliverable, .material, .subline {
+    font-weight: normal;
+}
+
+.dependency {
+    color:     #008A2E;
+    font-weight: bold;
+}
+
+.taken {
+    font-style: italic;
+    font-weight: bold;
+    color: #5C8A8A;
+}
+
+.btn {
+	margin-right: 2em;
+}
+
+.todos {
+    background-color: beige;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+    margin-top: 1em;
+}
+
+#todoModal textarea, .changeModal textarea, .commitmentModal textarea, .procModal textarea {
+  width: 400px;
+  height: 70px;
+}
+
+.entry-label {
+    text-align: right;
+    vertical-align: middle;
+}
+
+.entry-buttons {
+    padding-top: 4px;
+    text-align: left;
+}
+.btn-mini {
+    margin-bottom: 3px;
+    margin-right: 0;
+}
+
+.todo-input {
+    vertical-align: bottom;
+}
+
+.todo-table {
+    margin-top: 1em;
+}
+
+th, td {
+    padding-left:10px;
+    padding-right:10px;
+}
+
+.did {
+    padding: 0;
+}
+
+.my-row {
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-color: lightgrey;
+    background-color: #F9F9F7;
+}
+
+.not-my-row {
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-color: lightgrey;
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: lightgrey;
+}
+
+.entry-row {
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: lightgrey;
+    background-color: #F9F9F7;
+}
+
+.who {
+    font-size: 90%;
+    white-space:nowrap;
+}
+.input-mini {
+    width: 2em;
+}
+
+.prevnext h4 {
+    color: firebrick;
+}
+.prevnext {
+    padding: 10px;
+}
+
+.no-indent {
+    margin-left: 0;
+}
+#todolink {
+    float: right;
+    font-size: 14pt;
+    font-weight: bold;
+}
+.chg-process {
+    float: right;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+    <div class="container-fluid">
+
+	    <div>
+		    <legend>
+		        {% trans "Work in Process" %} 
+	        </legend>
+	        
+            {% if projects %}
+
+                {% for project, processes in projects.items %}
+                    <div class="project-line"> 
+                        {% trans "Project" %}: {% if project %} {{ project.name }} {% else %} No project {% endif %}
+                    </div>
+
+                    {% for process in processes %}
+                        <div class="row-fluid"  id="{{ process.id }}"  >
+                            <div class="span12 schedule process">
+                                <div class="row-fluid">
+                                    <div class="span12" >
+
+                                        <span class="prefix process-prefix"  >{% trans "Process" %}:</span> 
+
+                                        <a href="{{ process.get_absolute_url }}" target="_blank">
+                                            {{ process.name }} {% trans "starting" %} <span id="start-dt{{ process.id }}">{{ process.start_date|date:"Y-m-d" }}</span> 
+                                            {% trans "ending" %} <span id="end-dt{{ process.id }}"> {{ process.end_date|date:"Y-m-d" }}
+                                        </a>
+
+                                    </div>
+                                </div>
+                                <div class="row-fluid">
+                                    <div class="span8">
+                                        {% include  "valueaccounting/_process_for_sked.html" %}
+                                    </div>
+                                    {% if process.notes %}
+                                        <div class="span4 notes" id="proc-notes{{ process.id }}">
+                                            {{ process.notes|urlize|linebreaks }}
+                                        </div>
+                                    {% endif %}                              
+                                </div>
+                            
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            {% else %}
+                No work scheduled for this project
+            {% endif %}
+	   
+
+	    </div>
+    </div>
+
+    <script type="text/javascript">
+
+
+    </script>
+
+</body>
+
+</html>

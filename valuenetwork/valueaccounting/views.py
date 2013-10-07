@@ -1765,13 +1765,13 @@ def supply(request):
 
 def assemble_schedule(start, end, project=None):
     processes = Process.objects.unfinished()
+    #import pdb; pdb.set_trace()
     if start:
-        processes.filter(
+        processes = processes.filter(
             Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)) |
             Q(start_date__lt=start, end_date__gt=end))       
     processes = processes.order_by("project__name", "end_date", "start_date")
     projects = SortedDict()
-    #import pdb; pdb.set_trace()
     for proc in processes:
         if project == None:
             if proc.project not in projects:
@@ -2030,7 +2030,7 @@ def todo_decline(request, todo_id):
 
 @login_required
 def todo_delete(request, todo_id):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     if request.method == "POST":
         try:
             todo = Commitment.objects.get(id=todo_id)

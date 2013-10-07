@@ -764,6 +764,9 @@ class ProcessPattern(models.Model):
         slots = sorted(slots, key=attrgetter('relationship'), reverse=True)
         return slots
 
+    def slots(self):
+        return [et.relationship for et in self.event_types()]
+
     def get_resource_types(self, event_type):
         """Matching logic:
 
@@ -2130,18 +2133,20 @@ class Order(models.Model):
         ordering = ('due_date',)
 
     def __unicode__(self):
-        provider_name = "Unknown"
+        provider_name = ""
         process_name = ""
+        provider_label = ""
+        receiver_label = ""
         process = self.process()
         if process:
             process_name = ", " + process.name
         if self.provider:
             provider_name = self.provider.name
-        receiver_name = "Unknown"
+            provider_label = ", provider:"
+        receiver_name = ""
         if self.receiver:
             receiver_name = self.receiver.name
-        provider_label = ", provider:"
-        receiver_label = ", receiver:"
+            receiver_label = ", receiver:"
         if self.order_type == "customer":
             provider_label = ", Seller:"
             receiver_label = ", Buyer:"
@@ -2153,7 +2158,7 @@ class Order(models.Model):
             provider_name, 
             receiver_label, 
             receiver_name, 
-            "due:",
+            ", due:",
             self.due_date.strftime('%Y-%m-%d'),
             ])
 

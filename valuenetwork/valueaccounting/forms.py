@@ -386,7 +386,7 @@ class OldProcessCitationForm(forms.Form):
 class ProcessCitationForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
-        widget=forms.Select(attrs={'class': 'input-xlarge'}))
+        widget=forms.Select(attrs={'class': 'chzn-select input-xlarge'}))
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'item-description',}))

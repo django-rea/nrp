@@ -247,7 +247,7 @@ th, td {
                                     </a>
 	                                {% if agent %}
     							      <a href="#procModal{{ process.id }}" id="chg-process{{ process.id }}" role="button" class="btn btn-primary btn-mini chg-process" data-toggle="modal">{% trans "Notes and Dates" %}</a>
-                                    {% endif %}
+
 
 						            <div class="modal hide fade procModal" id="procModal{{ process.id }}" tabindex="-1" role="dialog" aria-labelledby="proc-label" aria-hidden="true">
 							            <div class="modal-header">
@@ -266,7 +266,8 @@ th, td {
 								            </form>
                                         </div>
 						            </div>
-
+                                    {% endif %}
+                                    
                                   </div>
                                 </div>
                                 <div class="row-fluid">

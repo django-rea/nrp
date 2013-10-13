@@ -1171,3 +1171,37 @@ class EquationForm(forms.Form):
             raise forms.ValidationError(sys.exc_info()[0])
 
         return equation
+
+class FinancialContributionForm(forms.ModelForm):
+    #probably a limited selection of resource type, but not ready to set these up yet
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        empty_label=None,
+        label=_("Type of contribution"),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(), 
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    event_date = forms.DateField(required=True, 
+        label=_("Date of contribution"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    description = forms.CharField(required=False, 
+        label=_("Details and comments"),
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    unit_of_quantity = forms.ChoiceField(label=_("Currency"))
+    quantity = forms.DecimalField(
+        max_digits=10, decimal_places=2,
+        label=_("Total amount"),
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'project', 'resource_type', 'quantity', 'unit_of_quantity', 'url', 'description', 'is_contribution')
+
+    def __init__(self, *args, **kwargs):
+        super(FinancialContributionForm, self).__init__(*args, **kwargs)
+        self.fields["resource_type"].choices = [('1','cash infusion')] + [('2','administrative expenses')] + [('3','production and R&D')] + [('4','sales expenses')] + [('5','capital assets')] + [('6','Other')]
+        self.fields["unit_of_quantity"].choices = [('1','CAD')] + [('2','USD')] 

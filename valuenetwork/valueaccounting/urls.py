@@ -211,5 +211,7 @@ urlpatterns = patterns("",
         name="resource_facet_table"),
     url(r"^change-resource-facet-value/$", 'valuenetwork.valueaccounting.views.change_resource_facet_value', 
         name="change_resource_facet_value"),
+    url(r"^financial-contribution/$", 'valuenetwork.valueaccounting.views.financial_contribution', 
+        name="financial_contribution"),
         
 )

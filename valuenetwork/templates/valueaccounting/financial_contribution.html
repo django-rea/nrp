@@ -1,0 +1,244 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load staticfiles %}
+
+{% block head_title %}{% trans "Log Financial Contribution" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.item-description
+{
+	width: 90%;
+    height: 4em;
+}
+.url, .item-name, .resource-type-selector
+{
+  width: 90%;
+}
+.save {
+    margin-top: 3em;
+}
+.section {
+    color: firebrick;
+}
+#id_cite-resource 
+{
+    width: 35em;
+}
+#citation-list li 
+{
+    list-style-type: none;
+    font-size: 1.3em;
+    width: 100%;
+    margin-top: 10px;
+    padding-left: 0;
+}
+#citation-list
+{
+    width: 90%;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}log{% endblock %}
+
+{% block body_base %}
+<div class="container">
+    {% include "_messages.html" %}
+
+    <form id="fcForm" method="POST" action=".">
+
+	    <legend>
+            {% trans "Log Financial Contribution for " %} {{ member.name }} 
+        </legend>
+
+	    {% csrf_token %}
+        <div class="row-fluid">
+            <div class="span6">
+				<legend class="section">{% trans "Financial Contribution" %}:</legend>
+				{{ financial_form|as_bootstrap }}
+                <div class="save">
+			        <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
+			    </div>
+            </div>
+
+            <div class="span6">
+				<legend class="section" >{% trans "Resources Acquired" %}:</legend>
+				{{ resource_form|as_bootstrap }}
+                <hr />
+				{{ resource_form|as_bootstrap }}
+                <hr />
+				{{ resource_form|as_bootstrap }}
+                
+            </div>
+	   	</div>
+    </form>
+
+</div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        function html_unescape(text) {
+            // Unescape a string that was escaped using django.utils.html.escape.
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            text = text.replace(/&amp;/g, '&');
+            return text;
+        }
+
+        var nameArray = html_unescape("{{ resource_names }}").split("~");
+
+        jQuery.validator.addMethod("unique", function(value, element, param) {
+            return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
+        }, "Name is not unique.");
+
+
+	    $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
+
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
+
+        $(".chzn-select").chosen();
+        $(".resource-type-selector").change(updateList);
+
+        function updateList(event)
+        {
+            $(".chzn-select").trigger("liszt:updated");
+        }
+
+		$( "#simpleForm" ).validate({
+			rules: {
+			    'resource-identifier': {
+                    required: true
+				},
+			    'resource-url': {
+                    required: true
+				},
+			    'resource-notes': {
+                    required: true
+				},
+				'event_date': {
+                    required: true,
+					date: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+		$('#rtCreateForm').validate(
+		{
+			rules: {
+				name: {
+					required: true,
+					unique: nameArray
+				},
+				url: {
+					url: true
+				},
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			}
+
+		});
+
+        $('#save-rt').click(function(event) {
+            event.preventDefault();
+            var btn = event.target;
+		    var $form = $("#rtCreateForm");
+		    if ($form.valid())
+		    {
+		        var formData = $form.serialize();
+		        var selId = "#id_resource-resource_type";
+		        var modalId = "#createResourceForm";
+		        var modal = $(modalId);
+                var url = "{%url create_resource_type_simple_patterned_ajax %}";
+		        var jqxhr = $.post( url, formData,
+			        function( data ) {
+                        for(var i=0 ; i<data.length ; i++) //will be only one
+                        {
+                            var id = data[i]['pk'];
+                            var name = data[i].fields['name']; 
+                            var selx = $(selId);
+                            selx.append('<option value="' + id + '" selected="selected">' + name + '</option>');
+                            selx.trigger("liszt:updated");
+                            selx.trigger("change");
+                        }
+                        $(modalId).modal('hide');
+                        $form.trigger( "reset" );
+			        })
+			        .fail(function() 
+			        { 
+				        alert("Check your name field.");
+			        }
+		        );
+	       }
+		});
+
+    }); // end document.ready
+
+    function getResources()
+	{
+        var selectedRT = document.getElementById('id_cite-resource_type').value; 
+        var jsonUrl = encodeURI("/accounting/json-resourcetype-resources/" + selectedRT + "/");
+        $("#id_cite-resource").empty();
+	    $.get(jsonUrl,
+		    function(data){
+                for(var i=0 ; i<data.length ; i++)
+                {
+                    var id = data[i]['pk'];
+                    var name = data[i].fields['identifier']; 
+                    $("#id_cite-resource").append('<option value="' + id + '">' + name + '</option>') 
+                }
+		    });
+	}
+
+    function addCitation()
+    {
+        var selectedResource = document.getElementById('id_cite-resource');
+        var resourceText = selectedResource.options[selectedResource.selectedIndex].text;
+        var resourceID = selectedResource.options[selectedResource.selectedIndex].value;
+        $("#citation-list").append("<li id='li-" + resourceID + "'>" +  resourceText + 
+            "<input type='hidden' name='citation' value='" + resourceID + "' />&nbsp;&nbsp;<button id='cite-remove-" + resourceID + 
+            "' class='btn btn-warning btn-mini' title='remove' onclick='$(this).parent().remove(); return false;'>{% trans 'Remove' %}</button></li>");
+        $('#addCiteModal').modal('hide');
+    }
+
+    </script>
+    
+{% endblock %}

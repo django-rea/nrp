@@ -971,6 +971,7 @@ USECASE_CHOICES = (
     ('todo', _('Todos')),
     ('cust_orders', _('Customer Orders')),
     ('purchasing', _('Purchasing')),
+    ('financial', _('Financial Contributions')),
 )
 
 class PatternUseCase(models.Model):

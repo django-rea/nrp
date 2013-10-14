@@ -1724,7 +1724,6 @@ class Process(models.Model):
 
     def next_processes(self):
         answer = []
-        #import pdb; pdb.set_trace()
         input_rts = [ic.resource_type for ic in self.incoming_commitments()]
         for oc in self.outgoing_commitments():
             dmnd = oc.independent_demand
@@ -2443,6 +2442,16 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import CommitmentForm
         prefix=self.form_prefix()
         return CommitmentForm(instance=self, prefix=prefix)
+   
+    def change_form(self):
+        from valuenetwork.valueaccounting.forms import ChangeCommitmentForm
+        prefix=self.form_prefix()
+        return ChangeCommitmentForm(instance=self, prefix=prefix)
+
+    def change_work_form(self):
+        from valuenetwork.valueaccounting.forms import ChangeWorkCommitmentForm
+        prefix=self.form_prefix()
+        return ChangeWorkCommitmentForm(instance=self, prefix=prefix)
 
     def resource_create_form(self):
         return self.resource_type.resource_create_form(self.form_prefix())
@@ -2459,6 +2468,11 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import TodoForm
         prefix=self.form_prefix()
         return TodoForm(instance=self, prefix=prefix)
+
+    def work_event_form(self):        
+        from valuenetwork.valueaccounting.forms import WorkEventForm
+        prefix=self.form_prefix()
+        return WorkEventForm(prefix=prefix)
 
     def fulfilling_events(self):
         return self.fulfillment_events.all()

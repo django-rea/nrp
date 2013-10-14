@@ -463,6 +463,31 @@ class CommitmentForm(forms.ModelForm):
         fields = ('start_date', 'quantity', 'unit_of_quantity', 'description')
 
 
+class ChangeCommitmentForm(forms.ModelForm):
+    due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('due_date', 'quantity', 'description')
+
+
+class ChangeWorkCommitmentForm(forms.ModelForm):
+    due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(
+        label="Estimated hours (optional)",
+        required=False, 
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('due_date', 'quantity', 'description')
+
+
+
 class WorkbookForm(forms.ModelForm):
     work_done = forms.BooleanField(
         required=False, 
@@ -639,10 +664,27 @@ class WorkEventChangeForm(forms.ModelForm):
     quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
         help_text="hours, minutes")
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
 	
     class Meta:
         model = EconomicEvent
-        fields = ('id', 'event_date', 'quantity')
+        fields = ('id', 'event_date', 'quantity', 'description')
+
+
+class WorkEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(required=False,
+        widget=DecimalDurationWidget,
+        help_text="hours, minutes")
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+	
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'quantity', 'description')
 
 
 class WorkContributionChangeForm(forms.ModelForm):

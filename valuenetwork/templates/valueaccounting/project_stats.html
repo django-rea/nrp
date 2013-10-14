@@ -1,0 +1,55 @@
+{% load staticfiles %}
+{% load i18n %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<title>{% trans "Project stats" %}</title>
+
+<head>
+
+<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+<link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
+
+<style>
+
+</style>
+
+</head>
+
+<body>
+
+    <div class="container-fluid">
+
+    <div id="chart_div" ></div>
+    
+    </div>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+    <script type="text/javascript">
+
+	    google.load("visualization", "1", {packages:["corechart"]});
+	    
+        google.setOnLoadCallback(drawChart);
+        function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Member', 'Hours'],
+          {% for member, hours in member_hours %}
+              ['{{ member.nick }}',  {{ hours }} ],
+          {% endfor %}
+        ]);
+
+        var options = {
+          vAxis: {title: 'Member',  titleTextStyle: {color: 'red'}},
+          chartArea:{width:"60%",height:"80%"}
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+        }
+
+    </script>
+
+</body>
+
+</html>

@@ -2116,6 +2116,26 @@ def agent_stats(request, agent_id):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
+def project_stats(request, project_slug):
+    project = None
+    if project_slug:
+        project = get_object_or_404(Project, slug=project_slug)
+    if project:
+        subs = project.with_all_sub_projects()
+        ces = CachedEventSummary.objects.filter(project__in=subs)
+        if ces.count():
+            agents = {}
+            for ce in ces:
+                agents.setdefault(ce.agent, Decimal("0"))
+                agents[ce.agent] += ce.quantity
+            member_hours = []
+            for key, value in agents.items():
+                member_hours.append((key, value))
+            member_hours.sort(lambda x, y: cmp(y[1], x[1]))
+    return render_to_response("valueaccounting/project_stats.html", {
+        "member_hours": member_hours,
+    }, context_instance=RequestContext(request))
+
 @login_required
 def commit_to_task(request, commitment_id):
     if request.method == "POST":
@@ -2159,6 +2179,21 @@ def commit_to_task(request, commitment_id):
                 % ('accounting/work-commitment', ct.id))
         
         return HttpResponseRedirect(next)
+
+@login_required
+def change_commitment(request, commitment_id):
+    if request.method == "POST":
+        ct = get_object_or_404(Commitment, id=commitment_id)
+        process = ct.process
+        agent = get_agent(request)
+        prefix = ct.form_prefix()
+        form = ChangeCommitmentForm(instance=ct, data=request.POST, prefix=prefix)
+        next = request.POST.get("next")
+        if form.is_valid():
+            data = form.cleaned_data
+            commitment = form.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/process-logging', process.id))
 
 @login_required
 def forward_schedule_source(request, commitment_id, source_id):
@@ -2664,6 +2699,15 @@ def delete_commitment(request, commitment_id, labnotes_id):
             % ('accounting/labnotes-reload', labnotes_id, was_running, was_retrying))
 
 @login_required
+def delete_process_commitment(request, commitment_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    process = commitment.process
+    commitment.delete()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process-logging', process.id))
+
+
+@login_required
 def change_event_date(request):
     #import pdb; pdb.set_trace()
     event_id = request.POST.get("eventId")
@@ -3140,6 +3184,8 @@ def process_details(request, process_id):
     }, context_instance=RequestContext(request))
 
 def process_oriented_logging(request, process_id):
+    import time
+    start_time = time.time()
     process = get_object_or_404(Process, id=process_id)
     pattern = process.process_pattern
     agent = get_agent(request)
@@ -3150,15 +3196,26 @@ def process_oriented_logging(request, process_id):
         super_logger = True
     work_reqs = process.work_requirements()
     for req in work_reqs:
+        req.changeform = req.change_work_form()
         if agent == req.from_agent:
             logger = True
-            break    
+            break  
+      
+    consume_reqs = process.consumed_input_requirements()
+    for req in consume_reqs:
+        req.changeform = req.change_form()
+    use_reqs = process.used_input_requirements()
+    for req in use_reqs:
+        req.changeform = req.change_form()
+        
     cited_ids = [c.resource.id for c in process.citations()]
     add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
     add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
     add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
     add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
     add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
+    end_time = time.time()
+    print("process_oriented_logging view elapsed time was %g seconds" % (end_time - start_time))
     return render_to_response("valueaccounting/process_oriented_logging.html", {
         "process": process,
         "cited_ids": cited_ids,
@@ -3171,6 +3228,13 @@ def process_oriented_logging(request, process_id):
         "add_usable_form": add_usable_form,
         "add_work_form": add_work_form,
         "slots": pattern.slots(),
+        
+        "work_reqs": work_reqs,        
+        "consume_reqs": consume_reqs,
+        "uncommitted_consumption": process.uncommitted_consumption_events(),
+        "use_reqs": use_reqs,
+        "uncommitted_use": process.uncommitted_use_events(),
+        
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
@@ -3204,6 +3268,50 @@ def log_resource_for_commitment(request, commitment_id):
         event.save()
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', ct.process.id))
+
+@login_required
+def add_work_event(request, commitment_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    prefix = ct.form_prefix()
+    form = WorkEventForm(prefix=prefix, data=request.POST)
+    if form.is_valid():
+        event = form.save(commit=False)
+        event.commitment = ct
+        event.event_type = ct.event_type
+        event.from_agent = ct.from_agent
+        event.resource_type = ct.resource_type
+        event.process = ct.process
+        event.project = ct.project
+        event.unit_of_quantity = ct.unit_of_quantity
+        event.created_by = request.user
+        event.changed_by = request.user
+        event.save()
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process-logging', ct.process.id))
+
+@login_required
+def log_citation(request, commitment_id, resource_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    if request.method == "POST":
+        agent = get_agent(request)
+        event = EconomicEvent(
+            resource = resource,
+            commitment = ct,
+            event_date = datetime.date.today(),
+            event_type = ct.event_type,
+            from_agent = agent,
+            resource_type = ct.resource_type,
+            process = ct.process,
+            project = ct.project,
+            quantity = Decimal("1"),
+            unit_of_quantity = ct.unit_of_quantity,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process-logging', ct.process.id))
 
         
 def labnotes_history(request):
@@ -3962,14 +4070,20 @@ def copy_process(request, process_id):
 def change_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     commitment = event.commitment
+    process = event.process
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         form = WorkEventChangeForm(instance=event, data=request.POST)
         if form.is_valid():
             data = form.cleaned_data
             form.save()
-    return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/labnote', commitment.id))
+    next = request.POST.get("next")
+    if next == "process":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process-logging', process.id))
+    else:
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/labnote', commitment.id))
 
 
 class ProcessOutputFormSet(BaseModelFormSet):

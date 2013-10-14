@@ -5424,9 +5424,10 @@ def financial_contribution(request):
     if not member:
         return HttpResponseRedirect('/%s/'
             % ('accounting/start')) 
-    pattern = PatternUseCase.objects.get(use_case='design').pattern #need a new pattern for this?
+    pattern = PatternUseCase.objects.get(use_case='financial').pattern 
     financial_form = FinancialContributionForm(data=request.POST or None)
     resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
+    #formset = create_resource_formset(pattern)
    
     '''
     if request.method == "POST":
@@ -5506,8 +5507,25 @@ def financial_contribution(request):
     return render_to_response("valueaccounting/financial_contribution.html", {
         "member": member,
         "financial_form": financial_form,
+        #"formset": formset,
         "resource_form": resource_form,
         "pattern": pattern,
     }, context_instance=RequestContext(request))
+
+#not working yet
+def create_resource_formset(pattern):
+    #ResourceFormSet = formset_factory(SimpleOutputResourceForm, extra=3)
+    ResourceFormSet = modelformset_factory(
+        model=EconomicResource,
+        form=SimpleOutputResourceForm,
+        can_delete=False,
+        extra=3,
+        )
+    formset = ResourceFormSet()
+    for form in formset:
+        rts = ResourceTypes.values.all()
+        choices = [(rt.id, rt.name) for rt in rts]
+        form.fields["resource_type"].choices = choices
+    return formset
     
 

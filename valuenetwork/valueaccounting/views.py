@@ -2118,6 +2118,7 @@ def agent_stats(request, agent_id):
 
 def project_stats(request, project_slug):
     project = None
+    member_hours = []
     if project_slug:
         project = get_object_or_404(Project, slug=project_slug)
     if project:
@@ -2128,7 +2129,6 @@ def project_stats(request, project_slug):
             for ce in ces:
                 agents.setdefault(ce.agent, Decimal("0"))
                 agents[ce.agent] += ce.quantity
-            member_hours = []
             for key, value in agents.items():
                 member_hours.append((key, value))
             member_hours.sort(lambda x, y: cmp(y[1], x[1]))

@@ -123,7 +123,7 @@ li {
 		            </span>
 		            {% if logger %}
 
-                        <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change">
+                        <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change output requirement">
 			               <i class="icon-edit"></i>
 		                </a>
 	
@@ -176,7 +176,9 @@ li {
 				    <div class="event" >
 					    <b>{% trans "Completed" %}:</b> <span class="event" >{{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} </span>
 					    {% if logger %}
+					        {% comment %}
 					        <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+					        {% endcomment %}
 					        <form
 					            style="display: inline;" 
                                 class="delete-form" 
@@ -185,7 +187,7 @@ li {
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete production event" >X</button>
                             </form>
 					    {% endif %}
 					    </br>
@@ -201,7 +203,9 @@ li {
 			    <div class="event" >
 				    <b>{% trans "Created" %}: <span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				    {% if logger %}
+				        {% comment %}
 				        <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+				        {% endcomment %}
 		                <form
 				            style="display: inline;" 
                             class="delete-form" 
@@ -210,13 +214,13 @@ li {
                             method="POST" >
                             {% csrf_token %}
                         	<input type="hidden" id="next" name="next" value="process" />
-                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
+                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete production event" >X</button>
                         </form>
 		            {% endif %}
 			    </div>
 		    {% endfor %}
 
-		    {% if process.work_requirements or process.uncommitted_work_events or "work" in slots %}
+		    {% if work_reqs or process.uncommitted_work_events or "work" in slots %}
 		        <h3 style="margin-bottom: 4px;" >
 		            {% trans "Work" %}: 
 		            {% if logger %}
@@ -230,36 +234,39 @@ li {
 		                </p>
 		            {% endif %}
 	            </h3>
-		        {% for item in process.work_requirements %}
+		        {% for item in work_reqs %}
 			        <div class="commitment">
 				        <span class="work-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
+                        {% if logger %}
+				            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change work requirement">
+			                       <i class="icon-edit"></i>
+	                        </a>
+
+	                        <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+		                        <div class="modal-header">
+			                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			                        <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
+		                        </div>
+		                        <div class="modal-body">
+			                        <form class="commitmentForm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+				                        {% csrf_token %}
+				                        {{ item.changeform|as_bootstrap }}
+				                        <input type="hidden" id="next" name="next" value="process" />
+                                        <div class="modal-footer">
+                                            <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+			                        </form>
+		                        </div>
+	                        </div>
+                        {% endif %}
 
                     {% if item.from_agent %}
 				        {% trans "Taken by" %}<span class="agent" > {{ item.from_agent.nick }}</span>
 				        {% with item.fulfilling_events as work_events %}
 				            {% if agent == item.from_agent %} 
 				                
-				                <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change">
-			                       <i class="icon-edit"></i>
-		                        </a>
-	
-		                        <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
-			                        <div class="modal-header">
-				                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				                        <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
-			                        </div>
-			                        <div class="modal-body">
-				                        <form class="commitmentForm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
-					                        {% csrf_token %}
-					                        {{ item.changeform|as_bootstrap }}
-					                        <input type="hidden" id="next" name="next" value="process" />
-                                            <div class="modal-footer">
-                                                <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
-                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
-                                            </div>
-				                        </form>
-			                        </div>
-		                        </div>
+				                
 				                
 				                {% if not work_events %}
 				                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit" >X</button>
@@ -269,7 +276,7 @@ li {
 					                {% trans "Log work" %}
 				                </a>
 			
-				                <div class="modal hide fade eventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+				                <div class="modal hide fade eventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
 					                <div class="modal-header">
 						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 						                <h3 id="event-label">{% trans "Add Time Contribution" %}</h3>
@@ -327,7 +334,7 @@ li {
                                                 method="POST" >
                                                 {% csrf_token %}
                                             	<input type="hidden" id="next" name="next" value="process" />
-                                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
+                                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work contribution!" >X</button>
                                             </form>
 					                    {% endif %}
 					                    {% if event.description %}
@@ -341,8 +348,7 @@ li {
 				        </div>
 			        {% else %}
 					        {% trans "Unassigned" %} 
-					        {% if agent %}
-					            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+					        {% if logger %}
 				                <form
 				                    style="display: inline;" 
                                     class="delete-commitment-form" 
@@ -351,7 +357,7 @@ li {
                                     method="POST" >
                                     {% csrf_token %}
                                 	<input type="hidden" id="next" name="next" value="process" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work requirement" >X</button>
                                 </form>
 						        <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 							        {% trans "Take this task" %}
@@ -404,7 +410,7 @@ li {
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work contribution" >X</button>
                             </form>
 			            {% endif %}
 			        </div>
@@ -426,17 +432,20 @@ li {
 			    {% for item in process.citation_requirements %}
 			    <ul>
 			        <li><span class="citation-requirement" ><b>{{ item.resource_type }}</b></span>
-			            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
-		                <form
-		                    style="display: inline;" 
-                            class="delete-commitment-form" 
-                            id="deleteCommitmentForm{{ item.id }}" 
-                            action="{% url delete_process_commitment commitment_id=item.id %}" 
-                            method="POST" >
-                            {% csrf_token %}
-                        	<input type="hidden" id="next" name="next" value="process" />
-                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
-                        </form>
+			            {% if logger %}
+			                {% if not item.fulfilling_events %}
+		                        <form
+		                            style="display: inline;" 
+                                    class="delete-commitment-form" 
+                                    id="deleteCommitmentForm{{ item.id }}" 
+                                    action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation requirement" >X</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
 			            {% if item.description %}
 			                <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
 		                {% endif %}
@@ -449,7 +458,16 @@ li {
 							    {% if resource.id in cited_ids %}
 							        <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
 							        {% if logger %}
-						                <a href="" class="btn btn-warning btn-mini" title="Delete" >X</a>
+						                <form
+				                            style="display: inline;" 
+                                            class="delete-citation-form" 
+                                            id="deleteForm{{ event.id }}" 
+                                            action="{% url delete_citation_event commitment_id=item.id resource_id=resource.id %}" 
+                                            method="POST" >
+                                            {% csrf_token %}
+                                        	<input type="hidden" id="next" name="next" value="process" />
+                                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
+                                        </form>
 						            {% endif %}
 						        {% else %}
 						            {% if logger %}
@@ -485,8 +503,8 @@ li {
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="process" />
-                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
-                        </form>
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
+                            </form>
 					    {% endif %}
 			        </div>
 		        {% endfor %}
@@ -508,55 +526,79 @@ li {
 		        {% for item in consume_reqs %}
 			        <div class="commitment" >
 				        <span class="consumable-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
-                        <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change">
-			               <i class="icon-edit"></i>
-		                </a>
+				        {% if logger %}
+                            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change consumption requirement">
+			                   <i class="icon-edit"></i>
+		                    </a>
 	
-		                <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
-			                <div class="modal-header">
-				                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				                <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
-			                </div>
-			                <div class="modal-body">
-				                <form class="commitmentForm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
-					                {% csrf_token %}
-					                {{ item.changeform|as_bootstrap }}
-					                <input type="hidden" id="next" name="next" value="process" />
-                                    <div class="modal-footer">
-                                        <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
-                                        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
-                                    </div>
-				                </form>
-			                </div>
-		                </div>
-				        
-		                <form
-		                    style="display: inline;" 
-                            class="delete-commitment-form" 
-                            id="deleteCommitmentForm{{ item.id }}" 
-                            action="{% url delete_process_commitment commitment_id=item.id %}" 
-                            method="POST" >
-                            {% csrf_token %}
-                        	<input type="hidden" id="next" name="next" value="process" />
-                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
-                        </form>
+		                    <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+			                    <div class="modal-header">
+				                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				                    <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
+			                    </div>
+			                    <div class="modal-body">
+				                    <form class="commitmentForm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+					                    {% csrf_token %}
+					                    {{ item.changeform|as_bootstrap }}
+					                    <input type="hidden" id="next" name="next" value="process" />
+                                        <div class="modal-footer">
+                                            <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+				                    </form>
+			                    </div>
+		                    </div>
+				            
+		                    <form
+		                        style="display: inline;" 
+                                class="delete-commitment-form" 
+                                id="deleteCommitmentForm{{ item.id }}" 
+                                action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete consumption requirement" >X</button>
+                            </form>
+                        {% endif %}
 			        </div>
 			        {% if item.description %}
 			           <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
 		            {% endif %}
-                    {% if item.resource_type.onhand %}
-                    	{% for resource in item.resource_type.onhand %}
+                    {% if item.consumable_resources %}
+                    	{% for resource in item.consumable_resources %}
 					        <p style="margin-left: 2em;">
 						        <b>{% trans "Onhand" %}:</b> <span class="event" >{{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
-						        {% if logger %}
-						            <button class="btn btn-info btn-mini" title="Log consumption" >{% trans "Log consumption" %}</button>
+						        {% if resource.quantity and logger %}
+						            <a href="#consumeEventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your consumption of this resource" >
+					                {% trans "Log consumption" %}
+				                    </a>
+			
+				                    <div class="modal hide fade eventModal" id="consumeEventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+					                    <div class="modal-header">
+						                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						                    <h3 id="event-label">{% trans "Log resource consumption" %}</h3>
+					                    </div>
+					                    <div class="modal-body">
+						                    <form class="eventForm{{ item.id }}" enctype="multipart/form-data" 
+						                        action="{% url add_consumption_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
+							                    {% csrf_token %}
+							                    {{ item.consumption_event_form|as_bootstrap }}
+						                      <div class="modal-footer">
+							                    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+							                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+						                      </div>
+						                    </form>
+					                    </div>
+				                    </div>
 					            {% endif %}						    
                                 {% for event in resource.consuming_events %}
                                     {% if event.commitment = item %}
 							            <div class="use" >
 								            <b>{% trans "Consumed" %}:</b> <span class="event" >{{ event.quantity }} {{ event.event_date }} </span>
 								            {% if logger %}
+								                {% comment %}
 								                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+								                {% endcomment %}
 								                <form
 				                                    style="display: inline;" 
                                                     class="delete-form" 
@@ -565,7 +607,7 @@ li {
                                                     method="POST" >
                                                     {% csrf_token %}
                                                 	<input type="hidden" id="next" name="next" value="process" />
-                                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
+                                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete consumption event" >X</button>
                                                 </form>
 								            {% endif %}
 							            </div>
@@ -573,13 +615,6 @@ li {
 						        {% endfor %}
 					        </p>
 				        {% endfor %}
-                    {% elif item.fulfilled_quantity %}
-				        <p style="margin-left: 2em;">
-					        <b>{% trans "Onhand" %}:</b> 0 {{ item.unit_of_quantity }}
-					        <p class="use" >
-						        <b>{% trans "Consumed" %}:</b> {{ item.fulfilled_quantity }}
-					        </p>
-				        </p>
 			        {% elif item.resource_type.producing_commitments %}
                     	{% for ct in item.resource_type.producing_commitments %}
 					        <p style="margin-left: 2em;">
@@ -615,7 +650,9 @@ li {
 			        <div class="event" >
 				        <b>{% trans "Consumed" %}: <span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				        {% if logger %}
+				            {% comment %}
 				            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+				            {% endcomment %}
 		                    <form
 				                style="display: inline;" 
                                 class="delete-form" 
@@ -624,7 +661,7 @@ li {
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete consumption event" >X</button>
                             </form>
 			            {% endif %}
 			        </div>
@@ -645,39 +682,42 @@ li {
 		        {% for item in use_reqs %}
 			        <div class="commitment" >
 				        <span class="usable-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
-				        
-				        <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change">
-			               <i class="icon-edit"></i>
-		                </a>
-	
-		                <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
-			                <div class="modal-header">
-				                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				                <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
-			                </div>
-			                <div class="modal-body">
-				                <form class="commitmentForm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
-					                {% csrf_token %}
-					                {{ item.changeform|as_bootstrap }}
-					                <input type="hidden" id="next" name="next" value="process" />
-                                    <div class="modal-footer">
-                                        <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
-                                        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
-                                    </div>
-				                </form>
-			                </div>
-		                </div>
-		                
-		                <form
-		                    style="display: inline;" 
-                            class="delete-commitment-form" 
-                            id="deleteCommitmentForm{{ item.id }}" 
-                            action="{% url delete_process_commitment commitment_id=item.id %}" 
-                            method="POST" >
-                            {% csrf_token %}
-                        	<input type="hidden" id="next" name="next" value="process" />
-                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
-                        </form>
+
+				        {% if logger %}
+				            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change use requirement">
+			                   <i class="icon-edit"></i>
+		                    </a>
+
+		                    <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+			                    <div class="modal-header">
+				                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				                    <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
+			                    </div>
+			                    <div class="modal-body">
+				                    <form class="commitmentForm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+					                    {% csrf_token %}
+					                    {{ item.changeform|as_bootstrap }}
+					                    <input type="hidden" id="next" name="next" value="process" />
+                                        <div class="modal-footer">
+                                            <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+				                    </form>
+			                    </div>
+		                    </div>
+		                    
+		                    <form
+		                        style="display: inline;" 
+                                class="delete-commitment-form" 
+                                id="deleteCommitmentForm{{ item.id }}" 
+                                action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete use requirement" >X</button>
+                            </form>
+                        {% endif %}
+                        
 			        </div>
 			        {% if item.description %}
 			           <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
@@ -687,14 +727,36 @@ li {
 					        <p style="margin-left: 2em;">
 						        <b>{% trans "Onhand" %}:</b> <span class="resource" >{{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
 						        {% if logger %}
-						            <button class="btn btn-info btn-mini" title="Log use" >{% trans "Log use" %}</button>
+						            <a href="#useEventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your use of this resource" >
+					                {% trans "Log use" %}
+				                    </a>
+			
+				                    <div class="modal hide fade eventModal" id="useEventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+					                    <div class="modal-header">
+						                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						                    <h3 id="event-label">{% trans "Log resource use" %}</h3>
+					                    </div>
+					                    <div class="modal-body">
+						                    <form class="eventForm{{ item.id }}" enctype="multipart/form-data" 
+						                        action="{% url add_use_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
+							                    {% csrf_token %}
+							                    {{ item.use_event_form|as_bootstrap }}
+						                      <div class="modal-footer">
+							                    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+							                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+						                      </div>
+						                    </form>
+					                    </div>
+				                    </div>
 						        {% endif %}
                                 {% for event in resource.using_events %}
                                     {% if event.commitment = item %}
 							            <div  class="use" >
 								            <b>{% trans "Used" %}:</b> <span class="event" >{{ event.quantity }} {{ item.resource_type.unit_of_use }} {{ event.event_date }}</span>
 								            {% if logger %}
+								                {% comment %}
 								                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+								                {% endcomment %}
 								                <form
 				                                    style="display: inline;" 
                                                     class="delete-form" 
@@ -703,7 +765,7 @@ li {
                                                     method="POST" >
                                                     {% csrf_token %}
                                                 	<input type="hidden" id="next" name="next" value="process" />
-                                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
+                                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete use event" >X</button>
                                                 </form>
 								            {% endif %}
 							            </div>
@@ -738,7 +800,9 @@ li {
 			        <div class="event" >
 				        <b>{% trans "Used" %}:<span class="event" > {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				        {% if logger %}
+				            {% comment %}
 				            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+				            {% endcomment %}
 			                <form
 				                style="display: inline;" 
                                 class="delete-form" 
@@ -747,7 +811,7 @@ li {
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete!" >X</button>
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete use event" >X</button>
                             </form>
 			            {% endif %}
 			        </div>

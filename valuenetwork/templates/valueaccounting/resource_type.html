@@ -138,12 +138,12 @@ container li {
 
 	    {% endif %}
 
-	    {% if resource_type.onhand %}
+	    {% if resource_type.all_resources %}
 	        <h3>{% trans "Resources" %}:</h4>
 	        <ul>
-	            {% for r in resource_type.onhand %}
+	            {% for r in resource_type.all_resources %}
 	                <li>
-                        <a href="{% url resource resource_id=r.id %}">{{ r }}</a>
+                        <a href="{% url resource resource_id=r.id %}">{{ r }} {% trans "quantity" %} {{ r.quantity }} {{ r.unit_of_quantity }} </a>
 	                </li>
 	            {% endfor %}
 	        </ul>

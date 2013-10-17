@@ -1,0 +1,71 @@
+{% load staticfiles %}
+{% load i18n %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<title>{% trans "Project roles" %}</title>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<style>
+
+</style>
+
+</head>
+
+<body>
+
+    <div id="chart_div" style="margin-top: 0; height: 800px;" ></div>
+    
+
+</body>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+    <script type="text/javascript">
+
+	    google.load("visualization", "1", {packages:["corechart"]});
+	    
+        google.setOnLoadCallback(drawChart);
+        function drawChart() {
+
+            var data = new google.visualization.DataTable();
+            {% for head in headings %}
+                {% if forloop.first %}
+                    data.addColumn('string','{{ head }}');
+                {% else %}
+                    data.addColumn('number','{{ head|safe }}');
+                {% endif %}
+            {% endfor %}
+            var rows = [];
+            {% for row in member_hours %}
+                var thisRow = [];
+                {% for cell in row %}
+                    {% if forloop.first %}
+                        thisRow.push('{{ cell|safe }}');
+                    {% else %}
+                        thisRow.push({{ cell }});
+                    {% endif %}
+                {% endfor %}
+                rows.push(thisRow);
+            {% endfor %}
+            data.addRows(rows);
+
+            var chart = new google.visualization.BarChart(
+                document.getElementById('chart_div'));
+            chart.draw(data, 
+                {
+                    'isStacked': true, 
+                    'legend': 'top',
+                    'hAxis': {'title': 'Hours'},
+                    'chartArea':{'width': '80%', 'height':'60%'}
+                }
+            );
+        }
+
+
+    </script>
+
+
+</html>

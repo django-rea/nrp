@@ -160,14 +160,9 @@ th, td {
 			<p class="top-buttons">
 				{% if agent %}
 
-				    <a href="{% url log_simple %}" role="button" class="btn btn-primary" 
-					    title="Log time and create design resources." >
-					    {% trans "Log design work" %}
-				    </a> 
-
 				    <a href="{% url process_selections %}" role="button" class="btn btn-primary" 
 				        title="Log time and create R&D resources." >
-				        {% trans "Log unplanned R&D work" %}
+				        {% trans "Create an R&D process" %}
 			        </a>
 
 					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" 
@@ -192,10 +187,9 @@ th, td {
 								<li>
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 									<a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
-									<a href="{% url log_past_work commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Past work" %}</a>
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
-									{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
+									{% trans "for process" %}: {{ item.process }} <a href="{{ item.process.get_absolute_url }}">Log work</a>
 									{% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %}
 								</p>
 								<p style="margin-left: 1em; margin-bottom: 0;">
@@ -644,8 +638,10 @@ th, td {
 
 		$( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
         }, function() {
-            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
         })
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });

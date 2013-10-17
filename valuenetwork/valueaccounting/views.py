@@ -2136,6 +2136,38 @@ def project_stats(request, project_slug):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
+def project_roles(request, project_slug):
+    project = None
+    member_hours = []
+    if project_slug:
+        project = get_object_or_404(Project, slug=project_slug)
+    if project:
+        subs = project.with_all_sub_projects()
+        ces = CachedEventSummary.objects.filter(project__in=subs)
+        if ces.count():
+            agents = {}
+            roles = [ce.resource_type.name for ce in ces]
+            roles = list(set(roles))
+            for ce in ces:
+                if ce.quantity:
+                    nick = ce.agent.nick.capitalize()
+                    row = [nick, ]
+                    for i in range(0, len(roles)):
+                        row.append(Decimal("0.0"))
+                        key = ce.agent.name
+                    agents.setdefault(key, row)
+                    idx = roles.index(ce.resource_type.name) + 1
+                    agents[key][idx] += ce.quantity
+            headings = ["Member",]
+            headings.extend(roles)
+            for row in agents.values():                
+                member_hours.append(row)
+            member_hours.sort(lambda x, y: cmp(x[0], y[0]))
+    return render_to_response("valueaccounting/project_roles.html", {
+        "headings": headings,
+        "member_hours": member_hours,
+    }, context_instance=RequestContext(request))
+
 @login_required
 def commit_to_task(request, commitment_id):
     if request.method == "POST":
@@ -2556,7 +2588,13 @@ def add_process_output(request, process_id):
                                 "Make",
                                 ct.resource_type.name,
                             ])
-                    process.save()
+                else:
+                    process.name = " and ".join([
+                                process.name,
+                                ct.resource_type.name,
+                            ])
+                process.save()
+                    
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process-logging', process.id))
 
@@ -2762,7 +2800,19 @@ def delete_event(request, event_id):
         event = get_object_or_404(EconomicEvent, pk=event_id)
         agent = event.from_agent
         process = event.process
-        event.delete()        
+        resource = event.resource
+        if resource:
+            if event.consumes_resources():
+                resource.quantity += event.quantity
+            if event.creates_resources():
+                resource.quantity -= event.quantity
+            event.delete()
+            if resource.is_deletable():
+                resource.delete()
+            else:
+                resource.save()
+        else:
+            event.delete()        
         next = request.POST.get("next")
         if next == "process":
             return HttpResponseRedirect('/%s/%s/'
@@ -2780,6 +2830,26 @@ def delete_event(request, event_id):
             else:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/contributionhistory', agent.id))
+
+@login_required        
+def delete_citation_event(request, commitment_id, resource_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        ct = get_object_or_404(Commitment, pk=commitment_id)
+        resource = get_object_or_404(EconomicResource, pk=resource_id)
+        process = ct.process
+        events = ct.fulfillment_events.filter(resource=resource)
+        for event in events:                        
+            event.delete()        
+        next = request.POST.get("next")
+        if next == "process":
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/process-logging', process.id))
+        if next == "resource":
+            resource_id = request.POST.get("resource_id")
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/resource', resource_id))
+
 
 @login_required
 def work_done(request):
@@ -3184,38 +3254,50 @@ def process_details(request, process_id):
     }, context_instance=RequestContext(request))
 
 def process_oriented_logging(request, process_id):
-    import time
-    start_time = time.time()
+    
+    #import time
+    #start_time = time.time()
+    
     process = get_object_or_404(Process, id=process_id)
     pattern = process.process_pattern
+    #import pdb; pdb.set_trace()
     agent = get_agent(request)
     logger = False
     super_logger = False
-    if request.user.is_superuser or request.user == process.created_by:
-        logger = True
-        super_logger = True
+    add_output_form = None
+    add_citation_form = None
+    add_consumable_form = None
+    add_usable_form = None
+    add_work_form = None
+    
     work_reqs = process.work_requirements()
-    for req in work_reqs:
-        req.changeform = req.change_work_form()
-        if agent == req.from_agent:
-            logger = True
-            break  
-      
     consume_reqs = process.consumed_input_requirements()
-    for req in consume_reqs:
-        req.changeform = req.change_form()
     use_reqs = process.used_input_requirements()
-    for req in use_reqs:
-        req.changeform = req.change_form()
-        
+    if agent:
+        if request.user.is_superuser or request.user == process.created_by:
+            logger = True
+            super_logger = True
+        for req in work_reqs:
+            #import pdb; pdb.set_trace()
+            req.changeform = req.change_work_form()
+            if agent == req.from_agent:
+                logger = True
+                break  
+        for req in consume_reqs:
+            req.changeform = req.change_form()
+        for req in use_reqs:
+            req.changeform = req.change_form()    
+        add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
+        add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
+        add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
+        add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
+        add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
+
     cited_ids = [c.resource.id for c in process.citations()]
-    add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
-    add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
-    add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
-    add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
-    add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
-    end_time = time.time()
-    print("process_oriented_logging view elapsed time was %g seconds" % (end_time - start_time))
+    
+    #end_time = time.time()
+    #print("process_oriented_logging view elapsed time was %g seconds" % (end_time - start_time))
+    
     return render_to_response("valueaccounting/process_oriented_logging.html", {
         "process": process,
         "cited_ids": cited_ids,
@@ -3286,6 +3368,56 @@ def add_work_event(request, commitment_id):
         event.created_by = request.user
         event.changed_by = request.user
         event.save()
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process-logging', ct.process.id))
+
+@login_required
+def add_use_event(request, commitment_id, resource_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    prefix = ct.form_prefix()
+    form = WorkEventForm(prefix=prefix, data=request.POST)
+    if form.is_valid():
+        agent = get_agent(request)
+        event = form.save(commit=False)
+        event.commitment = ct
+        event.event_type = ct.event_type
+        event.from_agent = agent
+        event.resource_type = ct.resource_type
+        event.resource = resource
+        event.process = ct.process
+        event.project = ct.project
+        event.unit_of_quantity = ct.unit_of_quantity
+        event.created_by = request.user
+        event.changed_by = request.user
+        event.save()
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process-logging', ct.process.id))
+
+@login_required
+def add_consumption_event(request, commitment_id, resource_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    prefix = ct.form_prefix()
+    form = InputEventForm(prefix=prefix, data=request.POST)
+    if form.is_valid():
+        agent = get_agent(request)
+        event = form.save(commit=False)
+        event.commitment = ct
+        event.event_type = ct.event_type
+        event.from_agent = agent
+        event.resource_type = ct.resource_type
+        event.resource = resource
+        event.process = ct.process
+        event.project = ct.project
+        event.unit_of_quantity = ct.unit_of_quantity
+        event.created_by = request.user
+        event.changed_by = request.user
+        event.save()
+        if ct.consumes_resources():    
+            resource.quantity -= event.quantity
+            resource.changed_by=request.user
+            resource.save()
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process-logging', ct.process.id))
 

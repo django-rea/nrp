@@ -453,6 +453,9 @@ class EconomicResourceType(models.Model):
             resource_type=self,
             quantity__gt=0)
 
+    def all_resources(self):
+        return self.resources.all()
+
     def onhand_qty(self):
         return sum(oh.quantity for oh in self.onhand())
 
@@ -1072,6 +1075,13 @@ class EconomicResource(models.Model):
         else:
             cited = ''
         return (self.identifier or str(self.id)) + cited
+
+    def is_deletable(self):
+        if self.events.all():
+            return False
+        if self.quantity != 0:
+            return False
+        return True
 
 
 class AgentResourceType(models.Model):
@@ -2475,6 +2485,16 @@ class Commitment(models.Model):
         prefix=self.form_prefix()
         return WorkEventForm(prefix=prefix)
 
+    def consumption_event_form(self):        
+        from valuenetwork.valueaccounting.forms import InputEventForm
+        prefix=self.form_prefix()
+        return InputEventForm(prefix=prefix)
+
+    def use_event_form(self):        
+        from valuenetwork.valueaccounting.forms import WorkEventForm
+        prefix=self.form_prefix()
+        return WorkEventForm(prefix=prefix)
+
     def fulfilling_events(self):
         return self.fulfillment_events.all()
 
@@ -2536,6 +2556,21 @@ class Commitment(models.Model):
             events = self.fulfillment_events.filter(resource=resource)
             resource.fulfilled_quantity = sum(evt.quantity for evt in events)
         return resources
+
+    def consumable_resources(self):
+        answer = []
+        if self.event_type.consumes_resources():
+            events = self.fulfillment_events.all()
+            event_resources = [event.resource for event in events]
+            event_resources = set(event_resources)
+            resources = self.resource_type.all_resources()
+            for r in resources:
+                if r.quantity:
+                    answer.append(r)
+                else:
+                    if r in event_resources:
+                        answer.append(r)
+        return answer
 
     def quantity_to_buy(self):
         onhand = self.onhand()  
@@ -2892,6 +2927,12 @@ class EconomicEvent(models.Model):
             if self.commitment.event_type.relationship == "todo":
                 return True
         return False
+
+    def creates_resources(self):
+        return self.event_type.creates_resources()
+
+    def consumes_resources(self):
+        return self.event_type.consumes_resources()
 
 
 #todo: not used

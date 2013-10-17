@@ -687,6 +687,18 @@ class WorkEventForm(forms.ModelForm):
         fields = ('event_date', 'quantity', 'description')
 
 
+class InputEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+	
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'quantity', 'description')
+
+
 class WorkContributionChangeForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

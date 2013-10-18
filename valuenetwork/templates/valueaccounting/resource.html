@@ -326,10 +326,29 @@
     </div>
 {% endblock %}
 
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+
 {% block extra_body %}
 	{{ block.super }}
 
     <script type="text/javascript">
+
+    $(document).ready(function(){
+
+		$('#inventory').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+    }); // end document.ready
 
     function getResources()
 	{

@@ -230,8 +230,10 @@ th, td {
 
 		$( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
         }, function() {
-            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
         })
 
 	}); // end document.ready

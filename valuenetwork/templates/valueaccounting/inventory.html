@@ -82,9 +82,11 @@ container li {
 		$('#inventory').addClass('active');
 
 		$( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
+            $( "#help" ).text("Hide Help"); 
         }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+            $( "#help" ).text("Show Help");
         })
 
 		var selectedCats = "{{ selected_values }}";

@@ -830,10 +830,12 @@ ul {
 
 	    $("select").chosen();
 
-	    $( "#help" ).toggle( function(){
+	   $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
         }, function() {
-            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
         })
 
         $(".existing-name").change(setupUniqueTest);

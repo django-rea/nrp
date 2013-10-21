@@ -160,6 +160,11 @@ th, td {
 			<p class="top-buttons">
 				{% if agent %}
 
+				    <a href="{% url log_simple %}" role="button" class="btn btn-primary" 
+					    title="Log time and create design resources." >
+					    {% trans "Log design work" %}
+				    </a> 
+
 				    <a href="{% url process_selections %}" role="button" class="btn btn-primary" 
 				        title="Log time and create R&D resources." >
 				        {% trans "Create an R&D process" %}

@@ -42,6 +42,8 @@ git clone https://github.com/valnet/valuenetwork.git
 
 9. create the sqlite database
 ./manage.py syncdb
+and then
+./manage.py migrate valueaccounting
 
 10. run the tests
 ./manage.py test valueaccounting

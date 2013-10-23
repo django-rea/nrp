@@ -3263,6 +3263,7 @@ def process_oriented_logging(request, process_id):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
     logger = False
+    worker = False
     super_logger = False
     add_output_form = None
     add_citation_form = None
@@ -3282,6 +3283,7 @@ def process_oriented_logging(request, process_id):
             req.changeform = req.change_work_form()
             if agent == req.from_agent:
                 logger = True
+                worker = True
                 break  
         for req in consume_reqs:
             req.changeform = req.change_form()
@@ -3303,6 +3305,7 @@ def process_oriented_logging(request, process_id):
         "cited_ids": cited_ids,
         "agent": agent,
         "logger": logger,
+        "worker": worker,
         "super_logger": super_logger,
         "add_output_form": add_output_form,
         "add_citation_form": add_citation_form,

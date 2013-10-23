@@ -169,15 +169,30 @@
             
                 <div class="row-fluid">
 			        <div class="span12">
-			            <a href="#addOutputModal" role="button" class="btn" data-toggle="modal">{% trans "+ output" %}</a>
+			            <a href="#addOutputModal" role="button" class="btn" data-toggle="modal"
+			                title="Create an output of this process, which is a resource that is created in the course of this process. A process can have more than one output." >
+			                {% trans "+ output" %}
+		                </a>
 
-			            <a href="#addCiteModal" role="button" class="btn" data-toggle="modal">{% trans "+ cite" %}</a>
+			            <a href="#addCiteModal" role="button" class="btn" data-toggle="modal"
+			                title="Cite an idea, a design or a publication that you will reference in this process" >
+			                {% trans "+ cite" %}
+		                </a>
 
-			            <a href="#addConsumableModal" role="button" class="btn" data-toggle="modal">{% trans "+ consume" %}</a>
+			            <a href="#addConsumableModal" role="button" class="btn" data-toggle="modal"
+			                title="Log a consumable material that you will consume in this process" >
+			                {% trans "+ consume" %}
+		                </a>
 
-			            <a href="#addUsableModal" role="button" class="btn" data-toggle="modal">{% trans "+ use" %}</a>
+			            <a href="#addUsableModal" role="button" class="btn" data-toggle="modal"
+			                title="Log a tool or an equipment that you will use in this process." >
+			                {% trans "+ use" %}
+		                </a>
 
-			            <a href="#addWorkModal" role="button" class="btn" data-toggle="modal">{% trans "+ work" %}</a>
+			            <a href="#addWorkModal" role="button" class="btn" data-toggle="modal"
+			                title="Invite a collaborator to this process." >
+			                {% trans "+ work" %}
+		                </a>
 			            
 			            <div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
 				            <div class="modal-header">

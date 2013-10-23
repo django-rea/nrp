@@ -1002,7 +1002,13 @@ li {
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 
-            <h3 id="work-label">{% trans "Invite a helper" %}</h3>
+            <h3 id="work-label">
+                {% if worker %}
+                    {% trans "Invite a helper" %}
+                {% else %}
+                    {% trans "Add a work requirement" %}
+                {% endif %}
+            </h3>
             
         </div>
         <div class="modal-body">
@@ -1013,7 +1019,13 @@ li {
 
               <div class="modal-footer">
 	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-	            <button class="btn btn-primary">{% trans "Invite helper" %}</button>
+	            <button class="btn btn-primary">
+	                {% if worker %}
+                    {% trans "Invite helper" %}
+                {% else %}
+                    {% trans "Add work requirement" %}
+                {% endif %}
+                </button>
               </div>
 
 

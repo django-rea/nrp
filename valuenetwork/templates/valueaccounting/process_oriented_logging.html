@@ -45,6 +45,11 @@
   height: 100px;
 }
 
+.workEventModal textarea, .unplannedWorkModal textarea {
+  width: 500px;
+  height: 400px;
+}
+
 .btn {
     margin-left: 10px;
 }
@@ -229,11 +234,12 @@ li {
 	                    </a>
                     {% endif %}
 		            {% if agent %}
-		                <p style="display:inline;">
-		                    <button class="btn btn-info btn-mini" title="Log unplanned work" >{% trans "Log unplanned work" %}</button>
-		                </p>
-		            {% endif %}
+		                <a href="#unplannedWorkModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned work" >
+			                {% trans "Log unplanned work" %}
+		                </a>
+	                {% endif %}
 	            </h3>
+            
 		        {% for item in work_reqs %}
 			        <div class="commitment">
 				        <span class="work-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
@@ -276,7 +282,7 @@ li {
 					                {% trans "Log work" %}
 				                </a>
 			
-				                <div class="modal hide fade eventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+				                <div class="modal hide fade workEventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
 					                <div class="modal-header">
 						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 						                <h3 id="event-label">{% trans "Add Time Contribution" %}</h3>
@@ -308,7 +314,7 @@ li {
 								               <i class="icon-edit"></i>
 							                </a>
 						
-							                <div class="modal hide fade eventModal" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+							                <div class="modal hide fade workEventModal" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
 								                <div class="modal-header">
 									                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 									                <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
@@ -396,25 +402,57 @@ li {
 				        </p>
 			        {% endfor %}
 		        {% endfor %}
+		        
+                {% if unplanned_work %}
+                    <h4>{% trans "Unplanned Work Events" %}:</h4>
+		            {% for event in unplanned_work %}
+			            <div >
+				            <span class="event" ><b>{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} {% trans "done by" %} 
+				            {{ event.from_agent.nick }}</span>
+                            
+			                {% if agent == event.from_agent  %}
+		                        
+				                <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+					               <i class="icon-edit"></i>
+				                </a>
+			
+				                <div class="modal hide fade workEventModal" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+					                <div class="modal-header">
+						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						                <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
+					                </div>
+					                <div class="modal-body">
+						                <form class="eventForm{{ event.id }}" enctype="multipart/form-data" action="{% url change_unplanned_work_event event_id=event.id %}" method="POST" >
+							                {% csrf_token %}
+							                {{ event.changeform|as_bootstrap }}
+							                <input type="hidden" id="next" name="next" value="process" />
+                                            <div class="modal-footer">
+                                                <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                            </div>
+						                </form>
+					                </div>
+				                </div>
 
-		        {% for event in process.uncommitted_work_events %}
-			        <div class="event" >
-				        <b>{% trans "Done by" %}: <span class="event" >{{ event.from_agent.nick }} {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
-				        {% if logger %}
-				            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
-			                <form
-				                style="display: inline;" 
-                                class="delete-form" 
-                                id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                            	<input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work contribution" >X</button>
-                            </form>
-			            {% endif %}
-			        </div>
-		        {% endfor %}
+				                <form
+	                                style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work contribution!" >X</button>
+                                </form>
+		                    {% endif %}
+
+			                {% if event.description %}
+		                       <div class="notes"> {{ event.description|urlize|linebreaks }}</div>
+	                        {% endif %}
+				            
+			            </div>
+		            {% endfor %}
+		        {% endif %}
 
 		    {% endif %}
           </div>
@@ -1022,13 +1060,30 @@ li {
 	            <button class="btn btn-primary">
 	                {% if worker %}
                     {% trans "Invite helper" %}
-                {% else %}
+                {% else %}u
                     {% trans "Add work requirement" %}
                 {% endif %}
                 </button>
               </div>
 
 
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hide fade unplannedWorkModal" id="unplannedWorkModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-work-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="unplanned-work">{% trans "Log Unplanned Time Contribution" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="unplanned-work-form" enctype="multipart/form-data" action="{% url add_unplanned_work_event process_id=process.id %}" method="POST" >
+                {% csrf_token %}
+                {{ unplanned_work_form|as_bootstrap }}
+              <div class="modal-footer">
+                <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+              </div>
             </form>
         </div>
     </div>

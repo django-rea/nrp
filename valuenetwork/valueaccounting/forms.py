@@ -593,6 +593,35 @@ class SimpleWorkForm(forms.ModelForm):
             self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
 
 
+class UnplannedWorkEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
+        label="Type of work done",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(required=True,
+        widget=DecimalDurationWidget,
+        label="Time spent",
+        help_text="hours, minutes")
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+   
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'resource_type','quantity', 'description')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(UnplannedWorkEventForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
+
+
+
 class WorkCommitmentForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(
         queryset=EconomicResourceType.objects.all(),

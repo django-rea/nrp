@@ -129,15 +129,15 @@
                                 </br>Create R&D planned work and edit the process details.
                             </p>
                         {% else %}
+                            <p>
+                                <input type="submit" name="create-process" value="{% trans 'Save process & exit' %}" class="btn btn-primary" />
+                                </br>Create a process using the selected resource types, where you can log your work.
+                            </p>
+                            <p>
+                                <input id="startNow" type="submit" name="labnotes" value="{% trans 'Open Labnotes' %}" class="btn btn-primary" disabled />
+                                </br>Go to Labnotes to log your work now. (You must select one type of work.)
+                            </p>
 
-                            <p>
-                                <input id="startNow" type="submit" name="labnotes" value="{% trans 'Start now' %}" class="btn btn-primary" disabled />
-                                </br>Go to Labnotes for working now. (You must select one type of work.)
-                            </p>
-                            <p>
-                                <input id="pastWork" type="submit" name="past" value="{% trans 'Log past work' %}"                           class="btn btn-primary" disabled />
-                                </br>Go to Labnotes for past work. (You must select one type of work.)
-                            </p>
                         {% endif %}
 
                     </div>

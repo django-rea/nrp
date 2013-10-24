@@ -3270,10 +3270,12 @@ def process_oriented_logging(request, process_id):
     add_consumable_form = None
     add_usable_form = None
     add_work_form = None
+    unscheduled_work_form = None
     
     work_reqs = process.work_requirements()
     consume_reqs = process.consumed_input_requirements()
     use_reqs = process.used_input_requirements()
+    unplanned_work = process.uncommitted_work_events()
     if agent:
         if request.user.is_superuser or request.user == process.created_by:
             logger = True
@@ -3288,12 +3290,19 @@ def process_oriented_logging(request, process_id):
         for req in consume_reqs:
             req.changeform = req.change_form()
         for req in use_reqs:
-            req.changeform = req.change_form()    
+            req.changeform = req.change_form()
+        for event in unplanned_work:
+            event.changeform = UnplannedWorkEventForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id))
+            
         add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
         add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
         add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
         add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
         add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
+        unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern)
 
     cited_ids = [c.resource.id for c in process.citations()]
     
@@ -3312,6 +3321,7 @@ def process_oriented_logging(request, process_id):
         "add_consumable_form": add_consumable_form,
         "add_usable_form": add_usable_form,
         "add_work_form": add_work_form,
+        "unplanned_work_form": unplanned_work_form,
         "slots": pattern.slots(),
         
         "work_reqs": work_reqs,        
@@ -3319,6 +3329,7 @@ def process_oriented_logging(request, process_id):
         "uncommitted_consumption": process.uncommitted_consumption_events(),
         "use_reqs": use_reqs,
         "uncommitted_use": process.uncommitted_use_events(),
+        "unplanned_work": unplanned_work,
         
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
@@ -3373,6 +3384,27 @@ def add_work_event(request, commitment_id):
         event.save()
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process-logging', ct.process.id))
+
+@login_required
+def add_unplanned_work_event(request, process_id):
+    process = get_object_or_404(Process, pk=process_id)
+    pattern = process.process_pattern
+    if pattern:
+        form = UnplannedWorkEventForm(prefix="unplanned", data=request.POST, pattern=pattern)
+        if form.is_valid():
+            agent = get_agent(request)
+            event = form.save(commit=False)
+            rt = event.resource_type
+            event.event_type = pattern.event_type_for_resource_type("work", rt)
+            event.from_agent = agent
+            event.process = process
+            event.project = process.project
+            event.unit_of_quantity = rt.unit
+            event.created_by = request.user
+            event.changed_by = request.user
+            event.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/process-logging', process.id))
 
 @login_required
 def add_use_event(request, commitment_id, resource_id):
@@ -4220,6 +4252,24 @@ def change_work_event(request, event_id):
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/labnote', commitment.id))
 
+@login_required
+def change_unplanned_work_event(request, event_id):
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    process = event.process
+    pattern = process.process_pattern
+    if pattern:
+        #import pdb; pdb.set_trace()
+        if request.method == "POST":
+            form = UnplannedWorkEventForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id), 
+                data=request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                form.save()
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/process-logging', process.id))
 
 class ProcessOutputFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
@@ -5237,7 +5287,6 @@ def process_selections(request, rand=0):
         add_another = request.POST.get("add-another")
         edit_process = request.POST.get("edit-process")
         labnotes = request.POST.get("labnotes")
-        past = request.POST.get("past")
         get_related = request.POST.get("get-related")
         if get_related:
             #import pdb; pdb.set_trace()
@@ -5415,7 +5464,7 @@ def process_selections(request, rand=0):
             for rt in work_rts:
                 #import pdb; pdb.set_trace()
                 agent = None
-                if past or labnotes:
+                if labnotes:
                     agent = get_agent(request)
                 et = selected_pattern.event_type_for_resource_type("work", rt)
                 if et:
@@ -5447,8 +5496,12 @@ def process_selections(request, rand=0):
                                 )
 
             if done_process: 
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/order-schedule', demand.id))
+                if demand:
+                    return HttpResponseRedirect('/%s/%s/'
+                        % ('accounting/order-schedule', demand.id))
+                else:
+                    return HttpResponseRedirect('/%s/%s/'
+                        % ('accounting/process', process.id))
             if add_another: 
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/process-selections', rand))             
@@ -5458,10 +5511,7 @@ def process_selections(request, rand=0):
             if labnotes:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/work-commitment', work_commitment.id)) 
-            if past:
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/past-work', work_commitment.id))            
-                            
+
     return render_to_response("valueaccounting/process_selections.html", {
         "slots": slots,
         "selected_pattern": selected_pattern,

@@ -3271,12 +3271,14 @@ def process_oriented_logging(request, process_id):
     add_usable_form = None
     add_work_form = None
     unscheduled_work_form = None
+    unplanned_work_form = None
     
     work_reqs = process.work_requirements()
     consume_reqs = process.consumed_input_requirements()
     use_reqs = process.used_input_requirements()
     unplanned_work = process.uncommitted_work_events()
-    if agent:
+    if agent and pattern:
+        slots = pattern.slots()
         if request.user.is_superuser or request.user == process.created_by:
             logger = True
             super_logger = True
@@ -3322,7 +3324,7 @@ def process_oriented_logging(request, process_id):
         "add_usable_form": add_usable_form,
         "add_work_form": add_work_form,
         "unplanned_work_form": unplanned_work_form,
-        "slots": pattern.slots(),
+        "slots": slots,
         
         "work_reqs": work_reqs,        
         "consume_reqs": consume_reqs,

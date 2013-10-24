@@ -3272,6 +3272,7 @@ def process_oriented_logging(request, process_id):
     add_work_form = None
     unscheduled_work_form = None
     unplanned_work_form = None
+    slots = []
     
     work_reqs = process.work_requirements()
     consume_reqs = process.consumed_input_requirements()

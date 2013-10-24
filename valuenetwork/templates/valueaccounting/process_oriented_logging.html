@@ -379,7 +379,7 @@ li {
 								        <form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
 									        {% csrf_token %}
 									        {{ item.commitment_form|as_bootstrap }}
-									        <input type="hidden" name="next" value="{% url process_oriented_logging process_id=process.id %}" />
+									        <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
 								          <div class="modal-footer">
 									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									        <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />

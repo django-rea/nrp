@@ -194,7 +194,7 @@ th, td {
 									<a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
-									{% trans "for process" %}: {{ item.process }} <a href="{{ item.process.get_absolute_url }}">Log work</a>
+									{% trans "for process" %}: {{ item.process }} <a href="{{ item.process.get_absolute_url }}">Log work on process page</a>
 									{% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %}
 								</p>
 								<p style="margin-left: 1em; margin-bottom: 0;">

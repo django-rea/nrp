@@ -2224,8 +2224,8 @@ def change_commitment(request, commitment_id):
         if form.is_valid():
             data = form.cleaned_data
             commitment = form.save()
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process', process.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', process.id))
 
 @login_required
 def uncommit(request, commitment_id):
@@ -2234,8 +2234,8 @@ def uncommit(request, commitment_id):
         process = ct.process
         ct.from_agent = None
         ct.save()
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', process.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', process.id))
 
 @login_required
 def forward_schedule_source(request, commitment_id, source_id):
@@ -2823,23 +2823,23 @@ def delete_event(request, event_id):
                 resource.save()
         else:
             event.delete()        
-        next = request.POST.get("next")
-        if next == "process":
+    next = request.POST.get("next")
+    if next == "process":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process', process.id))
+    if next == "resource":
+        resource_id = request.POST.get("resource_id")
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/resource', resource_id))
+    elif next == "contributions":
+        page = request.POST.get("page")
+        
+        if page:
+            return HttpResponseRedirect('/%s/%s/?page=%s'
+                % ('accounting/contributionhistory', agent.id, page))
+        else:
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process', process.id))
-        if next == "resource":
-            resource_id = request.POST.get("resource_id")
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/resource', resource_id))
-        elif next == "contributions":
-            page = request.POST.get("page")
-            
-            if page:
-                return HttpResponseRedirect('/%s/%s/?page=%s'
-                    % ('accounting/contributionhistory', agent.id, page))
-            else:
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/contributionhistory', agent.id))
+                % ('accounting/contributionhistory', agent.id))
 
 @login_required        
 def delete_citation_event(request, commitment_id, resource_id):
@@ -2851,14 +2851,14 @@ def delete_citation_event(request, commitment_id, resource_id):
         events = ct.fulfillment_events.filter(resource=resource)
         for event in events:                        
             event.delete()        
-        next = request.POST.get("next")
-        if next == "process":
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process', process.id))
-        if next == "resource":
-            resource_id = request.POST.get("resource_id")
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/resource', resource_id))
+    next = request.POST.get("next")
+    if next == "process":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process', process.id))
+    if next == "resource":
+        resource_id = request.POST.get("resource_id")
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/resource', resource_id))
 
 
 @login_required
@@ -3375,8 +3375,8 @@ def log_resource_for_commitment(request, commitment_id):
             changed_by = request.user,
         )
         event.save()
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', ct.process.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', ct.process.id))
 
 @login_required
 def add_work_event(request, commitment_id):
@@ -3395,8 +3395,8 @@ def add_work_event(request, commitment_id):
         event.created_by = request.user
         event.changed_by = request.user
         event.save()
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', ct.process.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', ct.process.id))
 
 @login_required
 def add_unplanned_work_event(request, process_id):
@@ -3416,8 +3416,8 @@ def add_unplanned_work_event(request, process_id):
             event.created_by = request.user
             event.changed_by = request.user
             event.save()
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process', process.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', process.id))
 
 @login_required
 def add_use_event(request, commitment_id, resource_id):
@@ -3439,8 +3439,8 @@ def add_use_event(request, commitment_id, resource_id):
         event.created_by = request.user
         event.changed_by = request.user
         event.save()
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', ct.process.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', ct.process.id))
 
 @login_required
 def add_consumption_event(request, commitment_id, resource_id):
@@ -3466,8 +3466,8 @@ def add_consumption_event(request, commitment_id, resource_id):
             resource.quantity -= event.quantity
             resource.changed_by=request.user
             resource.save()
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', ct.process.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', ct.process.id))
 
 @login_required
 def log_citation(request, commitment_id, resource_id):
@@ -3490,8 +3490,8 @@ def log_citation(request, commitment_id, resource_id):
             changed_by = request.user,
         )
         event.save()
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', ct.process.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', ct.process.id))
 
         
 def labnotes_history(request):
@@ -4281,8 +4281,8 @@ def change_unplanned_work_event(request, event_id):
             if form.is_valid():
                 data = form.cleaned_data
                 form.save()
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/process', process.id))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', process.id))
 
 class ProcessOutputFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):

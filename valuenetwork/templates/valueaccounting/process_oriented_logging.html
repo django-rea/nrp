@@ -149,6 +149,17 @@ li {
 				                </form>
 			                </div>
 		                </div>
+
+		                <form
+		                    style="display: inline;" 
+                            class="delete-commitment-form" 
+                            id="deleteCommitmentForm{{ item.id }}" 
+                            action="{% url delete_process_commitment commitment_id=item.id %}" 
+                            method="POST" >
+                            {% csrf_token %}
+                        	<input type="hidden" id="next" name="next" value="process" />
+                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete output requirement" >X</button>
+                        </form>
 		                
 		                <a href="#resourceModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Create a Resource" >{% trans "Log Resource" %}</a>
         

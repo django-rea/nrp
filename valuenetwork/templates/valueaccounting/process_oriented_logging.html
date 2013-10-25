@@ -383,6 +383,9 @@ li {
                                 	<input type="hidden" id="next" name="next" value="process" />
                                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work requirement" >X</button>
                                 </form>
+                            {% endif %}
+
+                            {% if agent %}                           
 						        <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 							        {% trans "Take this task" %}
 						        </a>

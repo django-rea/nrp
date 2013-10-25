@@ -2225,7 +2225,7 @@ def change_commitment(request, commitment_id):
             data = form.cleaned_data
             commitment = form.save()
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process-logging', process.id))
+                % ('accounting/process', process.id))
 
 @login_required
 def forward_schedule_source(request, commitment_id, source_id):
@@ -2596,7 +2596,7 @@ def add_process_output(request, process_id):
                 process.save()
                     
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process-logging', process.id))
+        % ('accounting/process', process.id))
 
 @login_required
 def add_process_input(request, process_id, slot):
@@ -2631,7 +2631,7 @@ def add_process_input(request, process_id, slot):
                 #todo: this is used in labnotes; shd it explode?
                 #explode_dependent_demands(ct, request.user)                
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process-logging', process.id))
+        % ('accounting/process', process.id))
 
 @login_required
 def add_process_citation(request, process_id):
@@ -2665,7 +2665,7 @@ def add_process_citation(request, process_id):
             ct.save()
                 
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process-logging', process.id))
+        % ('accounting/process', process.id))
 
 @login_required
 def add_process_worker(request, process_id):
@@ -2708,7 +2708,7 @@ def add_process_worker(request, process_id):
                     )
                 
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process-logging', process.id))
+        % ('accounting/process', process.id))
 
 @login_required
 def delete_commitment(request, commitment_id, labnotes_id):
@@ -2742,7 +2742,7 @@ def delete_process_commitment(request, commitment_id):
     process = commitment.process
     commitment.delete()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process-logging', process.id))
+        % ('accounting/process', process.id))
 
 
 @login_required
@@ -2816,7 +2816,7 @@ def delete_event(request, event_id):
         next = request.POST.get("next")
         if next == "process":
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process-logging', process.id))
+                % ('accounting/process', process.id))
         if next == "resource":
             resource_id = request.POST.get("resource_id")
             return HttpResponseRedirect('/%s/%s/'
@@ -2844,7 +2844,7 @@ def delete_citation_event(request, commitment_id, resource_id):
         next = request.POST.get("next")
         if next == "process":
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process-logging', process.id))
+                % ('accounting/process', process.id))
         if next == "resource":
             resource_id = request.POST.get("resource_id")
             return HttpResponseRedirect('/%s/%s/'
@@ -3386,7 +3386,7 @@ def add_work_event(request, commitment_id):
         event.changed_by = request.user
         event.save()
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process-logging', ct.process.id))
+            % ('accounting/process', ct.process.id))
 
 @login_required
 def add_unplanned_work_event(request, process_id):
@@ -3407,7 +3407,7 @@ def add_unplanned_work_event(request, process_id):
             event.changed_by = request.user
             event.save()
             return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/process-logging', process.id))
+                % ('accounting/process', process.id))
 
 @login_required
 def add_use_event(request, commitment_id, resource_id):
@@ -3430,7 +3430,7 @@ def add_use_event(request, commitment_id, resource_id):
         event.changed_by = request.user
         event.save()
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process-logging', ct.process.id))
+            % ('accounting/process', ct.process.id))
 
 @login_required
 def add_consumption_event(request, commitment_id, resource_id):
@@ -3457,7 +3457,7 @@ def add_consumption_event(request, commitment_id, resource_id):
             resource.changed_by=request.user
             resource.save()
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process-logging', ct.process.id))
+            % ('accounting/process', ct.process.id))
 
 @login_required
 def log_citation(request, commitment_id, resource_id):
@@ -3481,7 +3481,7 @@ def log_citation(request, commitment_id, resource_id):
         )
         event.save()
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process-logging', ct.process.id))
+            % ('accounting/process', ct.process.id))
 
         
 def labnotes_history(request):
@@ -4250,7 +4250,7 @@ def change_work_event(request, event_id):
     next = request.POST.get("next")
     if next == "process":
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process-logging', process.id))
+            % ('accounting/process', process.id))
     else:
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/labnote', commitment.id))
@@ -4272,7 +4272,7 @@ def change_unplanned_work_event(request, event_id):
                 data = form.cleaned_data
                 form.save()
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/process-logging', process.id))
+                    % ('accounting/process', process.id))
 
 class ProcessOutputFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):

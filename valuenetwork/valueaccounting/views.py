@@ -2228,6 +2228,16 @@ def change_commitment(request, commitment_id):
                 % ('accounting/process', process.id))
 
 @login_required
+def uncommit(request, commitment_id):
+    if request.method == "POST":
+        ct = get_object_or_404(Commitment, id=commitment_id)
+        process = ct.process
+        ct.from_agent = None
+        ct.save()
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process', process.id))
+
+@login_required
 def forward_schedule_source(request, commitment_id, source_id):
     if request.method == "POST":
         ct = get_object_or_404(Commitment, id=commitment_id)

@@ -282,11 +282,18 @@ li {
 				        {% trans "Taken by" %}<span class="agent" > {{ item.from_agent.nick }}</span>
 				        {% with item.fulfilling_events as work_events %}
 				            {% if agent == item.from_agent %} 
-				                
-				                
-				                
+
 				                {% if not work_events %}
-				                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit" >X</button>
+				                    <form
+	                                    style="display: inline;" 
+                                        class="uncommit-form" 
+                                        id="uncommitForm{{ item.id }}" 
+                                        action="{% url uncommit commitment_id=item.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                    	<input type="hidden" id="next" name="next" value="process" />
+                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit" >X</button>
+                                    </form>
 				                {% endif %}
 
 				                <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your work" >
@@ -407,11 +414,13 @@ li {
 			        {% if item.description and not item.fulfilling_events %}
 		               <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
 	                {% endif %}
-			        {% for source in item.resource_type.producing_agent_relationships %}
-				        <p style="margin-left: 2em;">
-					        <b>{% trans "Possible source" %}:</b><span class="agent" > {{ source.agent.name }}</span>
-				        </p>
-			        {% endfor %}
+	                {% if not item.from_agent %}
+			            {% for source in item.resource_type.producing_agent_relationships %}
+				            <p style="margin-left: 2em;">
+					            <b>{% trans "Possible source" %}:</b><span class="agent" > {{ source.agent.name }}</span>
+				            </p>
+			            {% endfor %}
+			        {% endif %}
 		        {% endfor %}
 		        
                 {% if unplanned_work %}

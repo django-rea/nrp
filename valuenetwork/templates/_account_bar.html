@@ -8,7 +8,6 @@
             </a>
             <ul class="dropdown-menu">
                 <li><a href="{% url account_settings %}"><i class="icon-user"></i> Settings</a></li>
-                <li><a href="/databrowse/"><i class="icon-info-sign"></i> Browse Data</a></li>
 				{% if user.is_staff %}
 	                <li><a href="/admin/"><i class="icon-wrench"></i> Admin</a></li>
 	                <li><a href="{% url test_patterns %}"><i class="icon-cog"></i> Patterns</a></li>

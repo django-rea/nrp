@@ -436,7 +436,7 @@ class ProcessCitationCommitmentForm(forms.ModelForm):
                 self.pattern = pattern
                 self.fields["resource_type"].queryset = pattern.citables_with_resources()
 
-
+#this can go away when log simple goes away
 class SelectCitationResourceForm(forms.Form):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
@@ -446,6 +446,19 @@ class SelectCitationResourceForm(forms.Form):
     def __init__(self, pattern, *args, **kwargs):
         #import pdb; pdb.set_trace()
         super(SelectCitationResourceForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.citables_with_resources()
+
+class UnplannedCiteEventForm(forms.Form):
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        widget=forms.Select(attrs={'class': 'input-xxlarge res-ajax'}))
+    resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
+
+    def __init__(self, pattern, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(UnplannedCiteEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].queryset = pattern.citables_with_resources()

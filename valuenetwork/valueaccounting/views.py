@@ -3316,6 +3316,7 @@ def process_oriented_logging(request, process_id):
         add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
         add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
         unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern)
+        unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)
 
     cited_ids = [c.resource.id for c in process.citations()]
     
@@ -3335,6 +3336,7 @@ def process_oriented_logging(request, process_id):
         "add_usable_form": add_usable_form,
         "add_work_form": add_work_form,
         "unplanned_work_form": unplanned_work_form,
+        "unplanned_cite_form": unplanned_cite_form,
         "slots": slots,
         
         "work_reqs": work_reqs,        
@@ -3346,6 +3348,27 @@ def process_oriented_logging(request, process_id):
         
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
+
+@login_required
+def add_unplanned_cite_event(request, process_id):
+    process = get_object_or_404(Process, pk=process_id)
+    pattern = process.process_pattern
+    if pattern:
+        form = SelectCitationResourceForm(data=request.POST, pattern=pattern)
+        if form.is_valid():
+            agent = get_agent(request)
+            event = form.save(commit=False)
+            rt = event.resource_type
+            event.event_type = pattern.event_type_for_resource_type("cite", rt)
+            event.from_agent = agent
+            event.process = process
+            event.project = process.project
+            event.unit_of_quantity = rt.unit
+            event.created_by = request.user
+            event.changed_by = request.user
+            event.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', process.id))
 
 @login_required
 def log_resource_for_commitment(request, commitment_id):

@@ -489,6 +489,11 @@ li {
 		                    {% trans "Add a citation requirement" %}
 	                    </a>
                      {% endif %}
+                     {% if agent %}
+		                <a href="" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned citation" >
+			                {% trans "Log unplanned citation" %}
+		                </a>
+	                {% endif %}
 		        </h3>
 			    {% for item in process.citation_requirements %}
 			    <ul>
@@ -583,6 +588,11 @@ li {
 		                    {% trans "Add a consumable input requirement" %}
 	                    </a>
 		            {% endif %}
+		            {% if agent %}
+		                <a href="" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned consumption" >
+			                {% trans "Log unplanned consumption" %}
+		                </a>
+	                {% endif %}
 	            </h3>
 		        {% for item in consume_reqs %}
 			        <div class="commitment" >
@@ -739,6 +749,11 @@ li {
 		                    {% trans "Add a usable input requirement" %}
 	                    </a>
 		            {% endif %}
+		            {% if agent %}
+		                <a href="" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned use" >
+			                {% trans "Log unplanned use" %}
+		                </a>
+	                {% endif %}
 	            </h3>
 		        {% for item in use_reqs %}
 			        <div class="commitment" >

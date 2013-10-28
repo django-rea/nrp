@@ -86,6 +86,17 @@ li {
     font-weight: bold;
     color: #5C8A8A;
 }
+.unplanned {
+    color: 	#7D1818;
+}
+.event-label {
+    color: green;
+    font-weight: bold;
+    font-style: normal;
+}
+.indent {
+    margin-left: 3em;
+}
 
 </style>
 
@@ -196,7 +207,7 @@ li {
 			
 			    {% for event in item.fulfilling_events %}
 				    <div class="event" >
-					    <b>{% trans "Completed" %}:</b> <span class="event" >{{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} </span>
+					    <span class="event-label">{% trans "Completed" %}:</span> <span class="event" >{{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} </span>
 					    {% if logger %}
 					        {% comment %}
 					        <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
@@ -213,7 +224,7 @@ li {
                             </form>
 					    {% endif %}
 					    </br>
-					    {% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a>
+					    &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a>
 					
 				    </div>
 			    {% endfor %}
@@ -329,7 +340,7 @@ li {
 			                {% endif %}
 			                {% if work_events %}
 			                    <div class="event">
-			                        <div class="subsection-label" >{% trans "Work events" %}:</div>
+			                        <div class="subsection-label event-label" >{% trans "Work events" %}:</div>
 				                    {% for event in work_events %}
 					                
 					                    {{ event.event_date }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}
@@ -435,10 +446,10 @@ li {
 		        {% endfor %}
 		        
                 {% if unplanned_work %}
-                    <h4>{% trans "Unplanned Work Events" %}:</h4>
+                    <h4 class="unplanned">{% trans "Unplanned Work Events" %}:</h4>
 		            {% for event in unplanned_work %}
 			            <div >
-				            <span class="event" ><b>{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span></span>
+				            <span class="event" ><span class="event-label">{% trans "Work event" %}: </span><b> {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span></span>
                             
 			                {% if agent == event.from_agent  %}
 		                        
@@ -477,7 +488,7 @@ li {
 		                    {% endif %}
 
 			                {% if event.description %}
-		                       <div class="notes"> {{ event.description|urlize|linebreaks }}</div>
+		                       <div class="notes indent"> {{ event.description|urlize|linebreaks }}</div>
 	                        {% endif %}
 				            
 			            </div>
@@ -584,10 +595,10 @@ li {
 			    </ul>
 			    {% endfor %}
                 {% if process.uncommitted_citation_events %}
-                    <h4>{% trans "Unplanned Citations" %}:</h4>
+                    <h4 class="unplanned">{% trans "Unplanned Citations" %}:</h4>
                     {% for event in process.uncommitted_citation_events %}
-			            <div  class="event" >
-				            <b>{% trans "Cited" %}: <span class="event" >{{ event.resource }}</b> {{ event.event_date }}</span>
+			            <div class="event" >
+				            <span class="event-label">{% trans "Cited" %}:</span> <b><span class="event" >{{ event.resource }}</b> {{ event.event_date }}</span>
 				            {% if logger %}
 					            <form
 				                    style="display: inline;" 
@@ -720,7 +731,7 @@ li {
                                 {% for event in resource.consuming_events %}
                                     {% if event.commitment = item %}
 							            <div class="use" >
-								            <b>{% trans "Consumed" %}:</b> <span class="event" >{{ event.quantity }} {{ event.event_date }} </span>
+								            <span class="event-label">{% trans "Consumed" %}:</span> <span class="event" >{{ event.quantity }} {{ event.event_date }} </span>
 								            {% if logger %}
 								                {% comment %}
 								                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
@@ -773,10 +784,10 @@ li {
 		        {% endfor %}
 
                 {% if uncommitted_consumption %}
-                    <h4>{% trans "Unplanned Consumption" %}:</h4>
+                    <h4 class="unplanned">{% trans "Unplanned Consumption" %}:</h4>
 		            {% for event in uncommitted_consumption %}
 			            <div class="event" >
-				            <b>{% trans "Consumed" %}: <span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				            <span class="event-label">{% trans "Consumed" %}:</span> <b><span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				            {% if logger %}
 				                {% comment %}
 				                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
@@ -818,7 +829,7 @@ li {
                     <div class="modal hide fade" id="unplannedUseModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-use-label" aria-hidden="true">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                            <h3 id="unplanned-use-label">{% trans "Add unplanned consumption" %}</h3>
+                            <h3 id="unplanned-use-label">{% trans "Add unplanned use" %}</h3>
                         </div>
                         <div class="modal-body">
                             <form class="use-form" enctype="multipart/form-data" id="addUnplannedUseForm" 
@@ -910,7 +921,7 @@ li {
                                 {% for event in resource.using_events %}
                                     {% if event.commitment = item %}
 							            <div  class="use" >
-								            <b>{% trans "Used" %}:</b> <span class="event" >{{ event.quantity }} {{ item.resource_type.unit_of_use }} {{ event.event_date }}</span>
+								            <span class="event-label">{% trans "Used" %}:</span> <span class="event" >{{ event.quantity }} {{ item.resource_type.unit_of_use }} {{ event.event_date }}</span>
 								            {% if logger %}
 								                {% comment %}
 								                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
@@ -935,7 +946,7 @@ li {
 				        <p style="margin-left: 2em;">
 					        <b>{% trans "Onhand" %}:</b> 0 {{ item.unit_of_quantity }}
 					        <p class="use" >
-						        <b>{% trans "Used" %}:</b> {{ item.fulfilled_quantity }} {{ item.resource_type.unit_of_use }}
+						        <span class="event-label">{% trans "Used" %}:</span> {{ item.fulfilled_quantity }} {{ item.resource_type.unit_of_use }}
 					        </p>
 				        </p>
 			        {% elif item.resource_type.producing_commitments %}
@@ -955,10 +966,10 @@ li {
 		        {% endfor %}
 
                 {% if uncommitted_use %}
-                    <h4>{% trans "Unplanned Use" %}:</h4>
+                    <h4 class="unplanned">{% trans "Unplanned Use" %}:</h4>
 		            {% for event in uncommitted_use %}
 			            <div class="event" >
-				            <b>{% trans "Used" %}:<span class="event" > {{ event.resource }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				            <span class="event-label">{% trans "Used" %}:</span><b><span class="event" > {{ event.resource }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				            {% if logger %}
 				                {% comment %}
 				                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>

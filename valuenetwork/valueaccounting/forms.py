@@ -456,12 +456,15 @@ class UnplannedCiteEventForm(forms.Form):
         widget=forms.Select(attrs={'class': 'input-xxlarge res-ajax'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
 
-    def __init__(self, pattern, *args, **kwargs):
+    def __init__(self, pattern, load_resources=False, *args, **kwargs):
         #import pdb; pdb.set_trace()
         super(UnplannedCiteEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].queryset = pattern.citables_with_resources()
+            if load_resources:
+                resources = EconomicResource.objects.all()
+                self.fields["resource"].choices = [('', '----------')] + [(r.id, r) for r in resources]
  
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

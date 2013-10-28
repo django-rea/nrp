@@ -493,7 +493,9 @@ li {
 		                <a href="#unplannedCiteModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned citation" >
 			                {% trans "Log unplanned citation" %}
 		                </a>
-
+	                {% endif %}
+                </h3>
+                    {% if agent %}
                         <div class="modal hide fade" id="unplannedCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
                             <div class="modal-header">
 	                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -574,24 +576,26 @@ li {
 				    </ul>
 			    </ul>
 			    {% endfor %}
-
-                {% for event in process.uncommitted_citation_events %}
-			        <div  class="event" >
-				        <b>{% trans "Cited" %}: <span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
-				        {% if logger %}
-					        <form
-				                style="display: inline;" 
-                                class="delete-form" 
-                                id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                            	<input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
-                            </form>
-					    {% endif %}
-			        </div>
-		        {% endfor %}
+                {% if process.uncommitted_citation_events %}
+                    <h4>{% trans "Unplanned Citations" %}:</h4>
+                    {% for event in process.uncommitted_citation_events %}
+			            <div  class="event" >
+				            <b>{% trans "Cited" %}: <span class="event" >{{ event.resource }}</b> {{ event.event_date }}</span>
+				            {% if logger %}
+					            <form
+				                    style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
+                                </form>
+					        {% endif %}
+			            </div>
+		            {% endfor %}
+	            {% endif %}
 					
             </div>
 		  {% endif %}

@@ -3353,19 +3353,34 @@ def process_oriented_logging(request, process_id):
 def add_unplanned_cite_event(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
     pattern = process.process_pattern
-    if pattern:
-        form = SelectCitationResourceForm(data=request.POST, pattern=pattern)
+    #import pdb; pdb.set_trace()
+    if pattern:        
+        form = UnplannedCiteEventForm(
+            prefix='unplanned-cite', 
+            data=request.POST, 
+            pattern=pattern,
+            load_resources=True)
         if form.is_valid():
             agent = get_agent(request)
-            event = form.save(commit=False)
-            rt = event.resource_type
-            event.event_type = pattern.event_type_for_resource_type("cite", rt)
-            event.from_agent = agent
-            event.process = process
-            event.project = process.project
-            event.unit_of_quantity = rt.unit
-            event.created_by = request.user
-            event.changed_by = request.user
+            data = form.cleaned_data
+            agent = get_agent(request)
+            rt = data["resource_type"]
+            r_id = data["resource"]
+            resource = EconomicResource.objects.get(id=r_id)
+            event_type = pattern.event_type_for_resource_type("cite", rt)
+            event = EconomicEvent(
+                event_type=event_type,
+                resource_type = rt,
+                resource = resource,
+                from_agent = agent,
+                process = process,
+                project = process.project,
+                event_date = datetime.date.today(),
+                quantity=Decimal("1"),
+                unit_of_quantity = rt.unit,
+                created_by = request.user,
+                changed_by = request.user,
+            )
             event.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))

@@ -843,6 +843,10 @@ class ProcessPattern(models.Model):
         rts = [rt for rt in self.citable_resource_types() if rt.onhand()]
         rt_ids = [rt.id for rt in rts]
         return EconomicResourceType.objects.filter(id__in=rt_ids)
+
+    def citable_resources(self):
+        rts = [rt for rt in self.citable_resource_types() if rt.onhand()]
+        return EconomicResource.objects.filter(resource_type__in=rts)
     
     def input_resource_types(self):
         return self.resource_types_for_relationship("in")

@@ -322,8 +322,10 @@ li {
 						                </form>
 					                </div>
 				                </div>
+			                {% comment %}
 			                {% elif super_logger %}
 			                    <button class="btn btn-info btn-mini" title="Log work for {{ item.from_agent }}" >{% trans "Log work" %}</button>
+		                    {% endcomment %}
 			                {% endif %}
 			                {% if work_events %}
 			                    <div class="event">
@@ -519,7 +521,7 @@ li {
                         </div>
 
 	                {% endif %}
-		        </h3>
+
 			    {% for item in process.citation_requirements %}
 			    <ul>
 			        <li><span class="citation-requirement" ><b>{{ item.resource_type }}</b></span>
@@ -605,8 +607,10 @@ li {
             </div>
 		  {% endif %}
 
-          <div class="log-section">
-            {% if consume_reqs or uncommitted_consumption or "consume" in slots %}
+          
+          {% if consume_reqs or uncommitted_consumption or "consume" in slots %}
+            <div class="log-section">
+            
 		        <h3 style="margin-bottom: 4px;" >
 		            {% trans "Consumable Inputs" %}: 
 		            {% if logger %}
@@ -615,11 +619,34 @@ li {
 	                    </a>
 		            {% endif %}
 		            {% if agent %}
-		                <a href="" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned consumption" >
+		                <a href="#unplannedConsumptionModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned consumption" >
 			                {% trans "Log unplanned consumption" %}
 		                </a>
 	                {% endif %}
 	            </h3>
+
+	             {% if agent %}
+                        <div class="modal hide fade" id="unplannedConsumptionModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-consumption-label" aria-hidden="true">
+                            <div class="modal-header">
+	                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h3 id="unplanned-consumption-label">{% trans "Add unplanned consumption" %}</h3>
+                            </div>
+                            <div class="modal-body">
+                                <form class="consumption-form" enctype="multipart/form-data" id="addUnplannedConsumptionForm" 
+                                    action="{% url add_unplanned_input_event process_id=process.id slot='c' %}" method="POST" >
+	                              {% csrf_token %}
+	                              {{ unplanned_consumption_form|as_bootstrap }}
+	                              <div class="modal-footer">
+		                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+		                            <button id="select-resource" class="btn btn-primary">{% trans "Add consumption" %}</button>
+	                              </div>
+                                </form>
+                            </div>
+                        </div>
+
+	                {% endif %}
+
+	            
 		        {% for item in consume_reqs %}
 			        <div class="commitment" >
 				        <span class="consumable-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
@@ -664,7 +691,9 @@ li {
                     {% if item.consumable_resources %}
                     	{% for resource in item.consumable_resources %}
 					        <p style="margin-left: 2em;">
-						        <b>{% trans "Onhand" %}:</b> <span class="event" >{{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
+						        <b>{% trans "Onhand" %}:</b> <span class="event" >
+						            <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
+						             {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
 						        {% if resource.quantity and logger %}
 						            <a href="#consumeEventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your consumption of this resource" >
 					                {% trans "Log consumption" %}
@@ -743,31 +772,34 @@ li {
 			        {% endif %}
 		        {% endfor %}
 
-		        {% for event in uncommitted_consumption %}
-			        <div class="event" >
-				        <b>{% trans "Consumed" %}: <span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
-				        {% if logger %}
-				            {% comment %}
-				            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
-				            {% endcomment %}
-		                    <form
-				                style="display: inline;" 
-                                class="delete-form" 
-                                id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                            	<input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete consumption event" >X</button>
-                            </form>
-			            {% endif %}
-			        </div>
-		        {% endfor %}
-		    {% endif %}
-          </div>
-
-          <div class="log-section">
-		    {% if use_reqs or uncommitted_use  or "use" in slots %}
+                {% if uncommitted_consumption %}
+                    <h4>{% trans "Unplanned Consumption" %}:</h4>
+		            {% for event in uncommitted_consumption %}
+			            <div class="event" >
+				            <b>{% trans "Consumed" %}: <span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				            {% if logger %}
+				                {% comment %}
+				                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+				                {% endcomment %}
+		                        <form
+				                    style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete consumption event" >X</button>
+                                </form>
+			                {% endif %}
+			            </div>
+		            {% endfor %}
+	            {% endif %}
+	        </div>
+	    {% endif %}
+     
+	    {% if use_reqs or uncommitted_use  or "use" in slots %}
+		    <div class="log-section">
 		        <h3 style="margin-bottom: 4px;" >
 		            {% trans "Usable Inputs" %}:
 		            {% if logger %}
@@ -776,11 +808,33 @@ li {
 	                    </a>
 		            {% endif %}
 		            {% if agent %}
-		                <a href="" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned use" >
+		                <a href="#unplannedUseModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned use" >
 			                {% trans "Log unplanned use" %}
 		                </a>
 	                {% endif %}
 	            </h3>
+
+	            {% if agent %}
+                    <div class="modal hide fade" id="unplannedUseModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-use-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="unplanned-use-label">{% trans "Add unplanned consumption" %}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form class="use-form" enctype="multipart/form-data" id="addUnplannedUseForm" 
+                                action="{% url add_unplanned_input_event process_id=process.id slot='u' %}" method="POST" >
+                              {% csrf_token %}
+                              {{ unplanned_use_form|as_bootstrap }}
+                              <div class="modal-footer">
+	                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	                            <button id="select-resource" class="btn btn-primary">{% trans "Add Use" %}</button>
+                              </div>
+                            </form>
+                        </div>
+                    </div>
+
+                {% endif %}
+
 		        {% for item in use_reqs %}
 			        <div class="commitment" >
 				        <span class="usable-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
@@ -827,7 +881,9 @@ li {
                     {% if item.resource_type.onhand %}
                     	{% for resource in item.resource_type.onhand %}
 					        <p style="margin-left: 2em;">
-						        <b>{% trans "Onhand" %}:</b> <span class="resource" >{{ resource.label }} {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
+						        <b>{% trans "Onhand" %}:</b> <span class="resource" >
+						        <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
+						        {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
 						        {% if logger %}
 						            <a href="#useEventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your use of this resource" >
 					                {% trans "Log use" %}
@@ -898,28 +954,32 @@ li {
 			        {% endif %}
 		        {% endfor %}
 
-		        {% for event in uncommitted_use %}
-			        <div class="event" >
-				        <b>{% trans "Used" %}:<span class="event" > {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
-				        {% if logger %}
-				            {% comment %}
-				            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
-				            {% endcomment %}
-			                <form
-				                style="display: inline;" 
-                                class="delete-form" 
-                                id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                            	<input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete use event" >X</button>
-                            </form>
-			            {% endif %}
-			        </div>
-		        {% endfor %}
-		    {% endif %}
-          </div>
+                {% if uncommitted_use %}
+                    <h4>{% trans "Unplanned Use" %}:</h4>
+		            {% for event in uncommitted_use %}
+			            <div class="event" >
+				            <b>{% trans "Used" %}:<span class="event" > {{ event.resource }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				            {% if logger %}
+				                {% comment %}
+				                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+				                {% endcomment %}
+			                    <form
+				                    style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete use event" >X</button>
+                                </form>
+			                {% endif %}
+			            </div>
+		            {% endfor %}
+	            {% endif %}
+	        </div>
+	    {% endif %}
+          
 	    </div>
 
 	    <div class="span4">
@@ -1301,15 +1361,19 @@ li {
     function getResources(event)
 	{
         var selectedRT = event.target.value;
+        var selectId = event.target.id;
+        var selectSplit = selectId.split("-");
+        var resourcePrefix = selectSplit[0] + "-" + selectSplit[1];
+        var resourceFieldId = "#" + resourcePrefix + "-resource";
         var jsonUrl = encodeURI("/accounting/json-resourcetype-resources/" + selectedRT + "/");
-        $("#id_unplanned-cite-resource").empty();
+        $(resourceFieldId).empty();
 	    $.get(jsonUrl,
 		    function(data){
                 for(var i=0 ; i<data.length ; i++)
                 {
                     var id = data[i]['pk'];
                     var name = data[i].fields['identifier']; 
-                    $("#id_unplanned-cite-resource").append('<option value="' + id + '">' + name + '</option>') 
+                    $(resourceFieldId).append('<option value="' + id + '">' + name + '</option>') 
                 }
 		    });
 	}

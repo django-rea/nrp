@@ -3280,8 +3280,10 @@ def process_oriented_logging(request, process_id):
     add_consumable_form = None
     add_usable_form = None
     add_work_form = None
-    unscheduled_work_form = None
     unplanned_work_form = None
+    unplanned_cite_form = None
+    unplanned_consumption_form = None
+    unplanned_use_form = None
     slots = []
     
     work_reqs = process.work_requirements()
@@ -3317,7 +3319,9 @@ def process_oriented_logging(request, process_id):
         add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
         unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern)
         unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)
-
+        unplanned_consumption_form = UnplannedInputEventForm(prefix='unplanned-consumption', pattern=pattern)
+        unplanned_use_form = UnplannedInputEventForm(prefix='unplanned-use', pattern=pattern)
+        
     cited_ids = [c.resource.id for c in process.citations()]
     
     #end_time = time.time()
@@ -3337,6 +3341,8 @@ def process_oriented_logging(request, process_id):
         "add_work_form": add_work_form,
         "unplanned_work_form": unplanned_work_form,
         "unplanned_cite_form": unplanned_cite_form,
+        "unplanned_consumption_form": unplanned_consumption_form,
+        "unplanned_use_form": unplanned_use_form,
         "slots": slots,
         
         "work_reqs": work_reqs,        
@@ -3378,6 +3384,53 @@ def add_unplanned_cite_event(request, process_id):
                 event_date = datetime.date.today(),
                 quantity=Decimal("1"),
                 unit_of_quantity = rt.unit,
+                created_by = request.user,
+                changed_by = request.user,
+            )
+            event.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', process.id))
+
+@login_required
+def add_unplanned_input_event(request, process_id, slot):
+    process = get_object_or_404(Process, pk=process_id)
+    pattern = process.process_pattern
+    #import pdb; pdb.set_trace()
+    if pattern:
+        if slot == "c":
+            prefix = "unplanned-consumption"  
+            et = "consume"  
+        else:
+            prefix = "unplanned-use"  
+            et = "use" 
+        form = UnplannedInputEventForm(
+            prefix=prefix, 
+            data=request.POST, 
+            pattern=pattern,
+            load_resources=True)
+        if form.is_valid():
+            agent = get_agent(request)
+            data = form.cleaned_data
+            agent = get_agent(request)
+            rt = data["resource_type"]
+            r_id = data["resource"]
+            qty = data["quantity"]
+            event_date = data["event_date"]
+            unit = rt.unit
+            if et == "use":
+                unit = rt.unit_of_use
+            resource = EconomicResource.objects.get(id=r_id)
+            event_type = pattern.event_type_for_resource_type(et, rt)
+            event = EconomicEvent(
+                event_type=event_type,
+                resource_type = rt,
+                resource = resource,
+                from_agent = agent,
+                process = process,
+                project = process.project,
+                event_date = event_date,
+                quantity=qty,
+                unit_of_quantity = unit,
                 created_by = request.user,
                 changed_by = request.user,
             )

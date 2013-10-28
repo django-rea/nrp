@@ -854,8 +854,18 @@ class ProcessPattern(models.Model):
     def consumable_resource_types(self):
         return self.resource_types_for_relationship("consume")
 
+    def consumables_with_resources(self):
+        rts = [rt for rt in self.consumable_resource_types() if rt.onhand()]
+        rt_ids = [rt.id for rt in rts]
+        return EconomicResourceType.objects.filter(id__in=rt_ids)
+
     def usable_resource_types(self):
         return self.resource_types_for_relationship("use")
+
+    def usables_with_resources(self):
+        rts = [rt for rt in self.usable_resource_types() if rt.onhand()]
+        rt_ids = [rt.id for rt in rts]
+        return EconomicResourceType.objects.filter(id__in=rt_ids)
 
     def output_resource_types(self):
         return self.resource_types_for_relationship("out")

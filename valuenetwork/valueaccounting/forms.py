@@ -465,6 +465,31 @@ class UnplannedCiteEventForm(forms.Form):
             if load_resources:
                 resources = EconomicResource.objects.all()
                 self.fields["resource"].choices = [('', '----------')] + [(r.id, r) for r in resources]
+
+
+class UnplannedInputEventForm(forms.Form):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        widget=forms.Select(attrs={'class': 'input-xxlarge res-ajax'}))
+    resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
+    quantity = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+
+    def __init__(self, pattern, load_resources=False, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(UnplannedInputEventForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            prefix = kwargs["prefix"]
+            if prefix == "unplanned-use":
+                self.fields["resource_type"].queryset = pattern.usables_with_resources()
+            else:
+                self.fields["resource_type"].queryset = pattern.consumables_with_resources()
+            if load_resources:
+                resources = EconomicResource.objects.all()
+                self.fields["resource"].choices = [('', '----------')] + [(r.id, r) for r in resources]
+
  
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

@@ -498,26 +498,27 @@ li {
 		                <a href="#unplannedCiteModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned citation" >
 			                {% trans "Log unplanned citation" %}
 		                </a>
-
-                        <div class="modal hide fade" id="unplannedCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
-                            <div class="modal-header">
-	                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                <h3 id="cite-label">{% trans "Add an unplanned citation" %}</h3>
-                            </div>
-                            <div class="modal-body">
-                                <form class="cite-form" enctype="multipart/form-data" id="addUnplannedCiteForm" action="{% url add_unplanned_cite_event process_id=process.id %}" method="POST" >
-	                              {% csrf_token %}
-	                              {{ unplanned_cite_form|as_bootstrap }}
-	                              <div class="modal-footer">
-		                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-		                            <button id="select-resource" class="btn btn-primary">{% trans "Add citation" %}</button>
-	                              </div>
-                                </form>
-                            </div>
-                        </div>
-
 	                {% endif %}
 		        </h3>
+                {% if agent %}
+                    <div class="modal hide fade" id="unplannedCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="cite-label">{% trans "Add an unplanned citation" %}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form class="cite-form" enctype="multipart/form-data" id="addUnplannedCiteForm" action="{% url add_unplanned_cite_event process_id=process.id %}" method="POST" >
+                              {% csrf_token %}
+                              {{ unplanned_cite_form|as_bootstrap }}
+                              <div class="modal-footer">
+	                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	                            <button id="select-resource" class="btn btn-primary">{% trans "Add citation" %}</button>
+                              </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+
 			    {% for item in process.citation_requirements %}
 			    <ul>
 			        <li><span class="citation-requirement" ><b>{{ item.resource_type }}</b></span>

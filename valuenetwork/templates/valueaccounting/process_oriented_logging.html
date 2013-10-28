@@ -39,7 +39,6 @@
 .reskedForm {
     display: inline;
 }
-
 #addCiteModal textarea, #addConsumableModal textarea, #addUsableModal textarea, #addWorkModal textarea, #addOutputModal textarea, .item-description, #resourceModal textarea {
   width: 500px;
   height: 100px;
@@ -76,9 +75,16 @@ li {
 .modal {
     width: 600px;
 }
-
 .subsection-label {
     font-weight: bold;
+}
+.detail-line {
+    margin: 0 0 0 2em;
+}
+.taken {
+    font-style: italic;
+    font-weight: bold;
+    color: #5C8A8A;
 }
 
 </style>
@@ -143,7 +149,7 @@ li {
 					                {{ item.change_form|as_bootstrap }}
 					                <input type="hidden" id="next" name="next" value="process" />
                                     <div class="modal-footer">
-                                        <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                         <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
                                     </div>
 				                </form>
@@ -270,7 +276,7 @@ li {
 				                        {{ item.changeform|as_bootstrap }}
 				                        <input type="hidden" id="next" name="next" value="process" />
                                         <div class="modal-footer">
-                                            <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
                                         </div>
 			                        </form>
@@ -279,7 +285,7 @@ li {
                         {% endif %}
 
                     {% if item.from_agent %}
-				        {% trans "Taken by" %}<span class="agent" > {{ item.from_agent.nick }}</span>
+				        <span class="taken">{% trans "Taken by" %}<span class="agent" > {{ item.from_agent.nick }}</span></span>
 				        {% with item.fulfilling_events as work_events %}
 				            {% if agent == item.from_agent %} 
 
@@ -310,7 +316,7 @@ li {
 							                {% csrf_token %}
 							                {{ item.work_event_form|as_bootstrap }}
 						                  <div class="modal-footer">
-							                <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 							                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
 						                  </div>
 						                </form>
@@ -343,7 +349,7 @@ li {
 										                {{ event.work_event_change_form|as_bootstrap }}
 										                <input type="hidden" id="next" name="next" value="process" />
                                                         <div class="modal-footer">
-                                                            <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
                                                         </div>
 									                </form>
@@ -371,7 +377,7 @@ li {
 			            
 				        </div>
 			        {% else %}
-					        {% trans "Unassigned" %} 
+					        <span class="taken">{% trans "Unassigned" %} </span>
 					        {% if logger %}
 				                <form
 				                    style="display: inline;" 
@@ -419,7 +425,7 @@ li {
 	                {% endif %}
 	                {% if not item.from_agent %}
 			            {% for source in item.resource_type.producing_agent_relationships %}
-				            <p style="margin-left: 2em;">
+				            <p class="detail-line">
 					            <b>{% trans "Possible source" %}:</b><span class="agent" > {{ source.agent.name }}</span>
 				            </p>
 			            {% endfor %}
@@ -430,8 +436,7 @@ li {
                     <h4>{% trans "Unplanned Work Events" %}:</h4>
 		            {% for event in unplanned_work %}
 			            <div >
-				            <span class="event" ><b>{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} {% trans "done by" %} 
-				            {{ event.from_agent.nick }}</span>
+				            <span class="event" ><b>{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span></span>
                             
 			                {% if agent == event.from_agent  %}
 		                        
@@ -450,7 +455,7 @@ li {
 							                {{ event.changeform|as_bootstrap }}
 							                <input type="hidden" id="next" name="next" value="process" />
                                             <div class="modal-footer">
-                                                <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
                                             </div>
 						                </form>
@@ -630,7 +635,7 @@ li {
 					                    {{ item.changeform|as_bootstrap }}
 					                    <input type="hidden" id="next" name="next" value="process" />
                                         <div class="modal-footer">
-                                            <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
                                         </div>
 				                    </form>
@@ -672,7 +677,7 @@ li {
 							                    {% csrf_token %}
 							                    {{ item.consumption_event_form|as_bootstrap }}
 						                      <div class="modal-footer">
-							                    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 							                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
 						                      </div>
 						                    </form>
@@ -705,14 +710,14 @@ li {
 				        {% endfor %}
 			        {% elif item.resource_type.producing_commitments %}
                     	{% for ct in item.resource_type.producing_commitments %}
-					        <p style="margin-left: 2em;">
+					        <p class="detail-line">
 						        <b>{% trans "Scheduled" %}:</b> 
 						        <a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a>
 					        </p>
 				        {% endfor %}
 			        {% else %}
 				        {% for source in item.sources %}
-					        <p style="margin-left: 2em;">
+					        <p class="detail-line">
 						        <b>{% trans "Possible source" %}:</b> <span class="source" >{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}</span>
 						        <br/>
 						        {% comment %}
@@ -792,7 +797,7 @@ li {
 					                    {{ item.changeform|as_bootstrap }}
 					                    <input type="hidden" id="next" name="next" value="process" />
                                         <div class="modal-footer">
-                                            <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
                                         </div>
 				                    </form>
@@ -835,7 +840,7 @@ li {
 							                    {% csrf_token %}
 							                    {{ item.use_event_form|as_bootstrap }}
 						                      <div class="modal-footer">
-							                    <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 							                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
 						                      </div>
 						                    </form>
@@ -875,14 +880,14 @@ li {
 				        </p>
 			        {% elif item.resource_type.producing_commitments %}
                     	{% for ct in item.resource_type.producing_commitments %}
-					        <p style="margin-left: 2em;">
+					        <p class="detail-line">
 						        <b>{% trans "Scheduled" %}:</b> 
 						        <span class="scheduled-receipt" ><a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a></span>
 					        </p>
 				        {% endfor %}
 			        {% else %}
 				        {% for source in item.resource_type.producing_agent_relationships %}
-					        <p style="margin-left: 2em;">
+					        <p class="detail-line">
 						        <b>{% trans "Possible source" %}:</b> <span class="source" >{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}</span>
 					        </p>
 				        {% endfor %}
@@ -1136,7 +1141,7 @@ li {
                 {% csrf_token %}
                 {{ unplanned_work_form|as_bootstrap }}
               <div class="modal-footer">
-                <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                 <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
               </div>
             </form>

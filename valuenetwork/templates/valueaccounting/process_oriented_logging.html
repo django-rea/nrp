@@ -98,6 +98,10 @@ li {
     margin-left: 3em;
 }
 
+.onhand {
+    margin-left: 2em;
+}
+
 </style>
 
 {% endblock %}
@@ -534,8 +538,8 @@ li {
 	                {% endif %}
 
 			    {% for item in process.citation_requirements %}
-			    <ul>
-			        <li><span class="citation-requirement" ><b>{{ item.resource_type }}</b></span>
+			        <div class="commitment" >
+			            <span class="citation-requirement" ><b>{{ item.resource_type }}</b></span>
 			            {% if logger %}
 			                {% if not item.fulfilling_events %}
 		                        <form
@@ -553,11 +557,12 @@ li {
 			            {% if item.description %}
 			                <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
 		                {% endif %}
-		            </li>
-				    <ul>
+
+				    </div>
+				    
 				    {% if item.onhand %}
 					    {% for resource in item.onhand %}
-						    <li>
+						    <div class="onhand" >
 							    <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
 							    {% if resource.id in cited_ids %}
 							        <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
@@ -587,13 +592,11 @@ li {
                                         </form>
 						            {% endif %}
 							    {% endif %}
-						    </li>
+						    </div>
 					    {% endfor %}
 				    {% endif %}
-				
-				    </ul>
-			    </ul>
 			    {% endfor %}
+			    
                 {% if process.uncommitted_citation_events %}
                     <h4 class="unplanned">{% trans "Unplanned Citations" %}:</h4>
                     {% for event in process.uncommitted_citation_events %}
@@ -617,7 +620,6 @@ li {
 					
             </div>
 		  {% endif %}
-
           
           {% if consume_reqs or uncommitted_consumption or "consume" in slots %}
             <div class="log-section">
@@ -701,7 +703,7 @@ li {
 		            {% endif %}
                     {% if item.consumable_resources %}
                     	{% for resource in item.consumable_resources %}
-					        <p style="margin-left: 2em;">
+					        <div class="onhand" >
 						        <b>{% trans "Onhand" %}:</b> <span class="event" >
 						            <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
 						             {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
@@ -750,7 +752,7 @@ li {
 							            </div>
 							        {% endif %}
 						        {% endfor %}
-					        </p>
+					        </div>
 				        {% endfor %}
 			        {% elif item.resource_type.producing_commitments %}
                     	{% for ct in item.resource_type.producing_commitments %}
@@ -891,7 +893,7 @@ li {
 		            {% endif %}
                     {% if item.resource_type.onhand %}
                     	{% for resource in item.resource_type.onhand %}
-					        <p style="margin-left: 2em;">
+					        <div class="onhand" >
 						        <b>{% trans "Onhand" %}:</b> <span class="resource" >
 						        <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
 						        {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
@@ -940,15 +942,15 @@ li {
 							            </div>
 							        {% endif %}
 						        {% endfor %}
-					        </p>
+					        </div>
 				        {% endfor %}
                     {% elif item.fulfilled_quantity %}
-				        <p style="margin-left: 2em;">
+				        <div class="onhand" >
 					        <b>{% trans "Onhand" %}:</b> 0 {{ item.unit_of_quantity }}
 					        <p class="use" >
 						        <span class="event-label">{% trans "Used" %}:</span> {{ item.fulfilled_quantity }} {{ item.resource_type.unit_of_use }}
 					        </p>
-				        </p>
+				        </div>
 			        {% elif item.resource_type.producing_commitments %}
                     	{% for ct in item.resource_type.producing_commitments %}
 					        <p class="detail-line">

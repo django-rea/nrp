@@ -269,7 +269,11 @@ li {
 		            {% trans "Work" %}: 
 		            {% if logger %}
 			            <a href="#addWorkModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a work requirement">
-		                    {% trans "Add a work requirement" %}
+		                    {% if worker %}
+                                {% trans "Invite a collaborator" %}
+                            {% else %}
+                                {% trans "Add a work requirement" %}
+                            {% endif %}
 	                    </a>
                     {% endif %}
 		            {% if agent %}
@@ -1193,7 +1197,7 @@ li {
 
             <h3 id="work-label">
                 {% if worker %}
-                    {% trans "Invite a helper" %}
+                    {% trans "Invite a collaborator" %}
                 {% else %}
                     {% trans "Add a work requirement" %}
                 {% endif %}
@@ -1210,7 +1214,7 @@ li {
 	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 	            <button class="btn btn-primary">
 	                {% if worker %}
-                    {% trans "Invite helper" %}
+                    {% trans "Invite collaborator" %}
                 {% else %}
                     {% trans "Add work requirement" %}
                 {% endif %}

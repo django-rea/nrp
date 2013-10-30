@@ -1011,10 +1011,12 @@ li {
 		    <h4>{% trans "Process context" %}:</h4>
 		    <p>
 		        {{ process.process_pattern }}
+		        <br />
+		        {% trans "Project" %}: {{ process.project }}
 
             {% if process.independent_demand %}
 		        <br />
-		        {% trans "For" %}: 
+		        {% trans "Order" %}: 
 		        <span class="rand-order" >
 		            <a href="{% url order_schedule order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
 	            </span>

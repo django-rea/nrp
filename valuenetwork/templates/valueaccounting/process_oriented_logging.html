@@ -239,7 +239,9 @@ li {
                 <h4 class="unplanned">{% trans "Unplanned Production" %}:</h4>
 		        {% for event in process.uncommitted_production_events %}
 			        <div class="event" >
-				        <b>{% trans "Created" %}: <span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				        <b>{% trans "Created" %}: <span class="event" >
+				            <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+				            {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				        {% if logger %}
 				            {% comment %}
 				            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
@@ -606,7 +608,8 @@ li {
                     <h4 class="unplanned">{% trans "Unplanned Citations" %}:</h4>
                     {% for event in process.uncommitted_citation_events %}
 			            <div class="event" >
-				            <span class="event-label">{% trans "Cited" %}:</span> <b><span class="event" >{{ event.resource }}</b> {{ event.event_date }}</span>
+				            <span class="event-label">{% trans "Cited" %}:</span> <b><span class="event" >
+				                <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b> {{ event.event_date }}</span>
 				            {% if logger %}
 					            <form
 				                    style="display: inline;" 
@@ -794,7 +797,9 @@ li {
                     <h4 class="unplanned">{% trans "Unplanned Consumption" %}:</h4>
 		            {% for event in uncommitted_consumption %}
 			            <div class="event" >
-				            <span class="event-label">{% trans "Consumed" %}:</span> <b><span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				            <span class="event-label">{% trans "Consumed" %}:</span> <b><span class="event" >
+				            <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource.label }}</a> 
+				            </b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				            {% if logger %}
 				                {% comment %}
 				                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
@@ -976,7 +981,9 @@ li {
                     <h4 class="unplanned">{% trans "Unplanned Use" %}:</h4>
 		            {% for event in uncommitted_use %}
 			            <div class="event" >
-				            <span class="event-label">{% trans "Used" %}:</span><b><span class="event" > {{ event.resource }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				            <span class="event-label">{% trans "Used" %}:</span><b><span class="event" > 
+				                <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a>
+				                </b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				            {% if logger %}
 				                {% comment %}
 				                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>

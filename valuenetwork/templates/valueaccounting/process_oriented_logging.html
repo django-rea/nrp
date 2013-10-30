@@ -233,31 +233,36 @@ li {
 				    </div>
 			    {% endfor %}
 		    {% endfor %}
-          </div>
 
-          <div class="log-section">
-		    {% for event in process.uncommitted_production_events %}
-			    <div class="event" >
-				    <b>{% trans "Created" %}: <span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
-				    {% if logger %}
-				        {% comment %}
-				        <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
-				        {% endcomment %}
-		                <form
-				            style="display: inline;" 
-                            class="delete-form" 
-                            id="deleteForm{{ event.id }}" 
-                            action="{% url delete_event event_id=event.id %}" 
-                            method="POST" >
-                            {% csrf_token %}
-                        	<input type="hidden" id="next" name="next" value="process" />
-                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete production event" >X</button>
-                        </form>
-		            {% endif %}
-			    </div>
-		    {% endfor %}
 
-		    {% if work_reqs or process.uncommitted_work_events or "work" in slots %}
+            {% if process.uncommitted_production_events %}
+                <h4 class="unplanned">{% trans "Unplanned Production" %}:</h4>
+		        {% for event in process.uncommitted_production_events %}
+			        <div class="event" >
+				        <b>{% trans "Created" %}: <span class="event" >{{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				        {% if logger %}
+				            {% comment %}
+				            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+				            {% endcomment %}
+		                    <form
+				                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete production event" >X</button>
+                            </form>
+		                {% endif %}
+			        </div>
+		        {% endfor %}
+	        {% endif %}
+        </div>
+
+        
+	    {% if work_reqs or process.uncommitted_work_events or "work" in slots %}
+		    <div class="log-section">
 		        <h3 style="margin-bottom: 4px;" >
 		            {% trans "Work" %}: 
 		            {% if logger %}
@@ -498,9 +503,9 @@ li {
 			            </div>
 		            {% endfor %}
 		        {% endif %}
-
-		    {% endif %}
-          </div>
+            </div>
+	    {% endif %}
+          
 
 		  {% if process.citation_requirements or process.uncommitted_citation_events or "cite" in slots %}
             <div class="log-section">

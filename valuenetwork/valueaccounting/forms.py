@@ -400,7 +400,7 @@ class ProcessCitationForm(forms.ModelForm):
         super(ProcessCitationForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.citables_with_resources()
+            self.fields["resource_type"].queryset = pattern.citable_resource_types()
         else:
             self.fields["resource_type"].queryset = EconomicResourceType.objects.all()        
 

@@ -5600,12 +5600,12 @@ def process_selections(request, rand=0):
                                 )
 
             if done_process: 
-                if demand:
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/order-schedule', demand.id))
-                else:
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/process', process.id))
+                #if demand:
+                #    return HttpResponseRedirect('/%s/%s/'
+                #        % ('accounting/order-schedule', demand.id))
+                #else:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/process', process.id))
             if add_another: 
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/process-selections', rand))             

@@ -1700,6 +1700,10 @@ class Process(models.Model):
             event_type__relationship='cite',
             commitment=None)
 
+    def uncommitted_input_events(self):
+        return self.events.filter(
+            commitment=None).exclude(event_type__relationship='out')
+
     def uncommitted_work_events(self):
         return self.events.filter(
             event_type__relationship='work',
@@ -1719,7 +1723,7 @@ class Process(models.Model):
         #import pdb; pdb.set_trace()
         if moc:
             dmnd = moc.independent_demand
-        output_rts = [oc.resource_type for oc in self.outgoing_commitments()]
+        #output_rts = [oc.resource_type for oc in self.outgoing_commitments()]
         for ic in self.incoming_commitments():
             rt = ic.resource_type
             # this is maybe a better way to block cycles
@@ -1733,6 +1737,12 @@ class Process(models.Model):
                             if pc.quantity >= ic.quantity:
                                 if pc.due_date <= self.start_date:
                                     answer.append(pc.process)
+        for ie in self.uncommitted_input_events():
+            if ie.resource:
+                for evt in ie.resource.producing_events():
+                    if evt.process != self:
+                        if evt.process not in answer:
+                            answer.append(evt.process)
         return answer
 
     def all_previous_processes(self, ordered_processes, visited_resources, depth):
@@ -1749,6 +1759,7 @@ class Process(models.Model):
 
     def next_processes(self):
         answer = []
+        #import pdb; pdb.set_trace()
         input_rts = [ic.resource_type for ic in self.incoming_commitments()]
         for oc in self.outgoing_commitments():
             dmnd = oc.independent_demand
@@ -1768,6 +1779,13 @@ class Process(models.Model):
                                 if cc.due_date >= compare_date:
                                     if cc.process not in answer:
                                         answer.append(cc.process)
+        for oe in self.uncommitted_production_events():
+            rt = oe.resource_type
+            if rt not in input_rts:
+                if oe.resource:
+                    for evt in oe.resource.all_usage_events():
+                        if evt.process not in answer:
+                            answer.append(evt.process)
         return answer
 
     def consumed_input_requirements(self):

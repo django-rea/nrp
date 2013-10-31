@@ -1026,7 +1026,18 @@ li {
 
 		    <h4>{% trans "Process context" %}:</h4>
 		    <p>
-		        {{ process.process_pattern }}
+		        {% if process.process_pattern %}
+		            {{ process.process_pattern }}
+	            {% else %}
+	                {% if agent %}
+	                    <span style="color: red;">
+	                    No process pattern. See help.
+	                    </span>
+	                {% else %}
+	                    None
+	                {% endif %}
+	            {% endif %}
+		        
 		        <br />
 		        {% trans "Project" %}: {{ process.project }}
 

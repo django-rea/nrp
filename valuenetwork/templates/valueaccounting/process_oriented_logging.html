@@ -139,6 +139,11 @@ li {
 		                {% trans "Add an output requirement" %}
 	                </a>
 	             {% endif %}
+	              {% if agent %}
+		                <a href="" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unplanned output" >
+			                {% trans "Log an unplanned output" %}
+		                </a>
+	                {% endif %}
 
 	        </h3>
 		    {% for item in process.outgoing_commitments %}

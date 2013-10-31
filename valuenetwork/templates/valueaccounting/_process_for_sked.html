@@ -99,6 +99,36 @@
 			{% endfor %}
 		</ul>
     {% endif %}
+
+    {% if process.citation_requirements %}
+        <li class="section materials-section">{% trans "Citation requirements" %}: </li>
+            <ul>
+		    {% for item in process.citation_requirements %}
+		        <li class="material" >
+		            <span class="name material-name" ><b>{{ item.resource_type.name }}</b></span>
+		            {% if item.description %}
+		                <ul>
+		                    <li class="req-description"> {{ item.description|urlize|linebreaks }}</li>
+		                </ul>
+	                {% endif %}
+
+			    </li>
+			    
+			    {% if item.onhand %}
+			        <ul>
+				    {% for resource in item.onhand %}
+					    <li class="subline" >
+					        <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
+					        <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource }}</a>
+				        </li>
+					    
+				    {% endfor %}
+				    </ul>
+			    {% endif %}
+		    {% endfor %}	
+		    </ul>				
+        </li>
+    {% endif %}
     
     {% if process.consumed_input_requirements %}
         <li class="section materials-section" >{% trans "Consumable Requirements" %}:</li>

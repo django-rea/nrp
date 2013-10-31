@@ -1731,7 +1731,7 @@ class Process(models.Model):
                     else:
                         if not pc.independent_demand:
                             if pc.quantity >= ic.quantity:
-                                if pc.due_date >= self.start_date:
+                                if pc.due_date <= self.start_date:
                                     answer.append(pc.process)
         return answer
 

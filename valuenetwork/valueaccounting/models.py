@@ -1740,9 +1740,10 @@ class Process(models.Model):
         for ie in self.uncommitted_input_events():
             if ie.resource:
                 for evt in ie.resource.producing_events():
-                    if evt.process != self:
-                        if evt.process not in answer:
-                            answer.append(evt.process)
+                    if evt.process:
+                        if evt.process != self:
+                            if evt.process not in answer:
+                                answer.append(evt.process)
         return answer
 
     def all_previous_processes(self, ordered_processes, visited_resources, depth):
@@ -1784,8 +1785,9 @@ class Process(models.Model):
             if rt not in input_rts:
                 if oe.resource:
                     for evt in oe.resource.all_usage_events():
-                        if evt.process not in answer:
-                            answer.append(evt.process)
+                        if evt.process:
+                            if evt.process not in answer:
+                                answer.append(evt.process)
         return answer
 
     def consumed_input_requirements(self):

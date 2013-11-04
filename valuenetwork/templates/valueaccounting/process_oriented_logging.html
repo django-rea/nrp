@@ -1110,23 +1110,6 @@ li {
         </div>
     </div>
 
-    <div class="modal hide fade unplannedOutputModal" id="unplannedOutputModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-output-label" aria-hidden="true">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="unplanned-output">{% trans "Log Unplanned Output" %}</h3>
-        </div>
-        <div class="modal-body">
-            <form class="unplanned-output-form" enctype="multipart/form-data" action="{% url add_unplanned_output process_id=process.id %}" method="POST" >
-                {% csrf_token %}
-                {{ unplanned_output_form|as_bootstrap }}
-              <div class="modal-footer">
-                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
-              </div>
-            </form>
-        </div>
-    </div>
-
     <div class="modal hide fade rtmodal" id="createResourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-consumable-create-label" aria-hidden="true">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -1264,6 +1247,23 @@ li {
      {% endif %}
 
      {% if agent %}
+
+     <div class="modal hide fade unplannedOutputModal" id="unplannedOutputModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-output-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="unplanned-output">{% trans "Log Unplanned Output" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="unplanned-output-form" enctype="multipart/form-data" action="{% url add_unplanned_output process_id=process.id %}" method="POST" >
+                {% csrf_token %}
+                {{ unplanned_output_form|as_bootstrap }}
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+              </div>
+            </form>
+        </div>
+    </div>
 
      <div class="modal hide fade unplannedWorkModal" id="unplannedWorkModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-work-label" aria-hidden="true">
         <div class="modal-header">

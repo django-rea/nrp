@@ -2608,6 +2608,45 @@ def add_process_output(request, process_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
+def add_unplanned_output(request, process_id):
+    process = get_object_or_404(Process, pk=process_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        form = UnplannedOutputForm(data=request.POST, prefix='unplannedoutput')
+        if form.is_valid():
+            output_data = form.cleaned_data
+            qty = output_data["quantity"] 
+            if qty:
+                event = form.save(commit=False)
+                rt = output_data["resource_type"]
+                identifier = output_data["identifier"]
+                notes = output_data["notes"]
+                url = output_data["url"]
+                photo_url = output_data["photo_url"]
+                resource = EconomicResource(
+                    resource_type=rt,
+                    identifier=identifier,
+                    notes=notes,
+                    url=url,
+                    photo_url=photo_url,
+                    quantity=event.quantity,
+                    unit_of_quantity=event.unit_of_quantity,
+                    created_by=request.user,
+                )
+                resource.save()
+                event.resource = resource
+                pattern = process.process_pattern
+                event_type = pattern.event_type_for_resource_type("out", rt)
+                event.event_type = event_type
+                event.process = process
+                event.project = process.project
+                event.event_date = datetime.date.today()
+                event.created_by = request.user
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', process.id))
+
 @login_required
 def add_process_input(request, process_id, slot):
     process = get_object_or_404(Process, pk=process_id)
@@ -3284,6 +3323,7 @@ def process_oriented_logging(request, process_id):
     unplanned_cite_form = None
     unplanned_consumption_form = None
     unplanned_use_form = None
+    unplanned_output_form = None
     slots = []
     
     work_reqs = process.work_requirements()
@@ -3313,6 +3353,7 @@ def process_oriented_logging(request, process_id):
                 prefix=str(event.id))
             
         add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
+        unplanned_output_form = UnplannedOutputForm(prefix='unplannedoutput', pattern=pattern)
         add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
         add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
         add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
@@ -3343,6 +3384,7 @@ def process_oriented_logging(request, process_id):
         "unplanned_cite_form": unplanned_cite_form,
         "unplanned_consumption_form": unplanned_consumption_form,
         "unplanned_use_form": unplanned_use_form,
+        "unplanned_output_form": unplanned_output_form,
         "slots": slots,
         
         "work_reqs": work_reqs,        

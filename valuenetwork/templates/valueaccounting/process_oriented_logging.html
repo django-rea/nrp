@@ -140,7 +140,7 @@ li {
 	                </a>
 	             {% endif %}
 	              {% if agent %}
-		                <a href="" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unplanned output" >
+		                <a href="#unplannedOutputModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unplanned output" >
 			                {% trans "Log an unplanned output" %}
 		                </a>
 	                {% endif %}
@@ -1073,6 +1073,7 @@ li {
     </div>
 
     {% if logger %}
+    
 	<div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -1086,11 +1087,12 @@ li {
 
                     <p class="modal-line">{% trans "Resource Type" %} </p>
                     <p>{{ add_output_form.resource_type }} 
-                    <a href="#createResourceModal" role="button" class="add-another" data-toggle="modal">
                     {% comment %}
-                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
+                    <a href="#createResourceModal" role="button" class="add-another" data-toggle="modal">
+                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>                    
+                    </a> 
                     {% endcomment %}
-                    </a> </p>                   
+                    </p>                   
                     <p class="modal-line">{% trans "Quantity" %} </p>
                     <p>{{ add_output_form.quantity }} </p>
                     <p class="modal-line">{% trans "Unit of Quantity" %} </p>
@@ -1104,6 +1106,23 @@ li {
               </div>
 
 
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hide fade unplannedOutputModal" id="unplannedOutputModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-output-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="unplanned-output">{% trans "Log Unplanned Output" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="unplanned-output-form" enctype="multipart/form-data" action="{% url add_unplanned_output process_id=process.id %}" method="POST" >
+                {% csrf_token %}
+                {{ unplanned_output_form|as_bootstrap }}
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+              </div>
             </form>
         </div>
     </div>

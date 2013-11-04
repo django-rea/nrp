@@ -325,6 +325,47 @@ class ProcessOutputForm(forms.ModelForm):
                 self.fields["resource_type"].queryset = pattern.output_resource_types()
 
 
+class UnplannedOutputForm(forms.ModelForm):
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+    identifier = forms.CharField(
+        required=False, 
+        label="Identifier",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity  input-small'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'), 
+        empty_label=None,
+        label=_("Unit"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    url = forms.URLField(
+        required=False, 
+        label="URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    photo_url = forms.URLField(
+        required=False, 
+        label="Photo URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    notes = forms.CharField(
+        required=False,
+        label="Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+        
+    class Meta:
+        model = EconomicEvent
+        fields = ('resource_type', 'quantity', 'unit_of_quantity',)
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(UnplannedOutputForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.output_resource_types()
+
+
 class WorkModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.name

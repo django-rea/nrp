@@ -1261,7 +1261,11 @@ li {
         </div>
     </div>
 
-    <div class="modal hide fade unplannedWorkModal" id="unplannedWorkModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-work-label" aria-hidden="true">
+     {% endif %}
+
+     {% if agent %}
+
+     <div class="modal hide fade unplannedWorkModal" id="unplannedWorkModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-work-label" aria-hidden="true">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
             <h3 id="unplanned-work">{% trans "Log Unplanned Time Contribution" %}</h3>
@@ -1278,7 +1282,7 @@ li {
         </div>
     </div>
 
-     {% endif %}
+    {% endif %}
  
 {% endblock %}
 {% block extra_script %}

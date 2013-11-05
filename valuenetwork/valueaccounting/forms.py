@@ -222,7 +222,7 @@ class ProcessConsumableForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
-            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+            attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -257,7 +257,7 @@ class ProcessUsableForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
-            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+            attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -293,7 +293,7 @@ class ProcessOutputForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
-            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+            attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity  input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -329,7 +329,7 @@ class UnplannedOutputForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         widget=forms.Select(
-            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+            attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
     identifier = forms.CharField(
         required=False, 
         label="Identifier",
@@ -492,7 +492,7 @@ class SelectCitationResourceForm(forms.Form):
 class UnplannedCiteEventForm(forms.Form):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
-        widget=forms.Select(attrs={'class': 'input-xxlarge res-ajax'}))
+        widget=forms.Select(attrs={'class': 'input-xxlarge res-ajax resourceType'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
 
     def __init__(self, pattern, load_resources=False, *args, **kwargs):
@@ -510,7 +510,7 @@ class UnplannedInputEventForm(forms.Form):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
-        widget=forms.Select(attrs={'class': 'input-xxlarge res-ajax'}))
+        widget=forms.Select(attrs={'class': 'input-xxlarge resourceType res-ajax'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
     quantity = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))

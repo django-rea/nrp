@@ -791,7 +791,7 @@ def extended_bill(request, resource_type_id):
 
 @login_required
 def edit_extended_bill(request, resource_type_id):
-    #import time
+
     #start_time = time.time()
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     #import pdb; pdb.set_trace()
@@ -3302,11 +3302,7 @@ def process_details(request, process_id):
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
-def process_oriented_logging(request, process_id):
-    
-    #import time
-    #start_time = time.time()
-    
+def process_oriented_logging(request, process_id):   
     process = get_object_or_404(Process, id=process_id)
     pattern = process.process_pattern
     #import pdb; pdb.set_trace()
@@ -3330,13 +3326,13 @@ def process_oriented_logging(request, process_id):
     consume_reqs = process.consumed_input_requirements()
     use_reqs = process.used_input_requirements()
     unplanned_work = process.uncommitted_work_events()
+    
     if agent and pattern:
         slots = pattern.slots()
         if request.user.is_superuser or request.user == process.created_by:
             logger = True
             super_logger = True
         for req in work_reqs:
-            #import pdb; pdb.set_trace()
             req.changeform = req.change_work_form()
             if agent == req.from_agent:
                 logger = True
@@ -3351,22 +3347,34 @@ def process_oriented_logging(request, process_id):
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id))
-            
-        add_output_form = ProcessOutputForm(prefix='output', pattern=pattern)
-        unplanned_output_form = UnplannedOutputForm(prefix='unplannedoutput', pattern=pattern)
-        add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)
-        add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
-        add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
-        add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
-        unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern)
-        unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)
-        unplanned_consumption_form = UnplannedInputEventForm(prefix='unplanned-consumption', pattern=pattern)
-        unplanned_use_form = UnplannedInputEventForm(prefix='unplanned-use', pattern=pattern)
-        
+
+        output_resource_types = pattern.output_resource_types()        
+        unplanned_output_form = UnplannedOutputForm(prefix='unplannedoutput')
+        unplanned_output_form.fields["resource_type"].queryset = output_resource_types
+        if logger:
+            add_output_form = ProcessOutputForm(prefix='output')
+            add_output_form.fields["resource_type"].queryset = output_resource_types
+        if "work" in slots:
+            work_resource_types = pattern.work_resource_types()
+            if logger:
+                add_work_form = WorkCommitmentForm(prefix='work')
+                add_work_form.fields["resource_type"].queryset = work_resource_types           
+            unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned")
+            unplanned_work_form.fields["resource_type"].queryset = work_resource_types 
+        if "cite" in slots:
+            unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)
+            if logger:
+                add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)   
+        if "consume" in slots:
+            unplanned_consumption_form = UnplannedInputEventForm(prefix='unplanned-consumption', pattern=pattern)
+            if logger:
+                add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
+        if "use" in slots:
+            unplanned_use_form = UnplannedInputEventForm(prefix='unplanned-use', pattern=pattern)
+            if logger:
+                add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
+       
     cited_ids = [c.resource.id for c in process.citations()]
-    
-    #end_time = time.time()
-    #print("process_oriented_logging view elapsed time was %g seconds" % (end_time - start_time))
     
     return render_to_response("valueaccounting/process_oriented_logging.html", {
         "process": process,

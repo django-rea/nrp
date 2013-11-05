@@ -442,8 +442,6 @@ class ProcessCitationForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].queryset = pattern.citable_resource_types()
-        else:
-            self.fields["resource_type"].queryset = EconomicResourceType.objects.all()        
 
 
 #used in change_process        
@@ -493,7 +491,7 @@ class SelectCitationResourceForm(forms.Form):
 
 class UnplannedCiteEventForm(forms.Form):
     resource_type = FacetedModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         widget=forms.Select(attrs={'class': 'input-xxlarge res-ajax'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
 

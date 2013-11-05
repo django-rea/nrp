@@ -780,35 +780,47 @@ class ProcessPattern(models.Model):
             And if the Resource Type has other Facets
             that are not in the Pattern, they do not matter.
         """
+        
         pattern_facet_values = self.facets_for_event_type(event_type)
         facet_values = [pfv.facet_value for pfv in pattern_facet_values]
         facets = {}
         for fv in facet_values:
             if fv.facet not in facets:
                 facets[fv.facet] = []
-            facets[fv.facet].append(fv.value)
-        #facets = [fv.facet for fv in facet_values]        
+            facets[fv.facet].append(fv.value)  
+           
         fv_ids = [fv.id for fv in facet_values]
         rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
-        rts = [rtfv.resource_type for rtfv in rt_facet_values]
-        rts = list(set(rts))
+
+        rts = {}
+        for rtfv in rt_facet_values:
+            rt = rtfv.resource_type
+            if rt not in rts:
+                rts[rt] = []
+            rts[rt].append(rtfv.facet_value)
+            
+        #import pdb; pdb.set_trace()
         matches = []
-        for rt in rts:
+        
+        for rt, facet_values in rts.iteritems():
             match = True
             for facet, values in facets.iteritems():
-                rt_fv = rt.facets.filter(facet_value__facet=facet)
+                rt_fv = [fv for fv in facet_values if fv.facet == facet]
                 if rt_fv:
                     rt_fv = rt_fv[0]
-                    if rt_fv.facet_value.value not in values:
+                    if rt_fv.value not in values:
                         match = False
                 else:
                     match = False
             if match:
                 matches.append(rt)
-        answer_ids = [a.id for a in matches]
-        return EconomicResourceType.objects.filter(id__in=answer_ids)
+                
+        answer_ids = [a.id for a in matches]        
+        answer = EconomicResourceType.objects.filter(id__in=answer_ids)       
+        return answer
 
     def resource_types_for_relationship(self, relationship):
+        #import pdb; pdb.set_trace()
         ets = [f.event_type for f in self.facets.filter(event_type__relationship=relationship)] 
         if ets:
             ets = list(set(ets))

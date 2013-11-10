@@ -224,6 +224,20 @@ class TimelineEvent(object):
                 item.resource_type.name])
             items.append(label)
         d["orderItems"] = items
+        prevs = []
+        try:
+            for p in self.node.previous_processes():
+                prevs.append(p.name)
+        except:
+            pass
+        d["previous"] = prevs
+        next = []
+        try:
+            for p in self.node.next_processes():
+                next.append(p.name)
+        except:
+            pass
+        d["next"] = next
         return d
 
 def create_events(orders, processes, events):

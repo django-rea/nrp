@@ -36,6 +36,7 @@
 		<p>{% trans "Double-click on months to slide days. Click on event in day to show details." %}</p>	
 		<div id="my-timeline" style="height: 600px; border: 1px solid #aaa"></div>
 
+{% comment %}
 		{% if unassigned %}
 			<div style="margin-top: 1em;" >
 				<h4>{% trans "Unassigned Tasks" %}</h4>
@@ -84,6 +85,8 @@
 			</div>
 		{% endif %}
     </div>
+{% endcomment %}
+
 
 <script>
 var tl;
@@ -136,9 +139,27 @@ $(document).ready(function() {
             var obj = eventObject._obj;
             var div = document.createElement("div");
             var innards = "";
+            if(obj.previous.length)
+			{
+            	innards += "<h4>Previous processes:</h4>"; 
+				for(i=0;i<obj.previous.length;i++)
+				{
+					innards += obj.previous[i];
+                    innards += "</br>";
+				}
+			}
+			if(obj.next.length)
+			{
+            	innards += "<h4>Next processes:</h4>"; 
+				for(i=0;i<obj.next.length;i++)
+				{
+					innards += obj.next[i];
+                    innards += "</br>";
+				}
+			}
             if(obj.consumableReqmts.length)
 			{
-            	innards = "<h4>Consumable Requirements:</h4>"; 
+            	innards += "<h4>Consumable Requirements:</h4>"; 
 				for(i=0;i<obj.consumableReqmts.length;i++)
 				{
 					innards += obj.consumableReqmts[i];
@@ -165,7 +186,7 @@ $(document).ready(function() {
 			}
             if(obj.orderItems.length)
 			{
-            	innards = "<h4>Order Items:</h4>"; 
+            	innards += "<h4>Order Items:</h4>"; 
 				for(i=0;i<obj.orderItems.length;i++)
 				{
 					innards += obj.orderItems[i];

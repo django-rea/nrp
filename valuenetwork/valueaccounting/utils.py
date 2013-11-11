@@ -227,14 +227,20 @@ class TimelineEvent(object):
         prevs = []
         try:
             for p in self.node.previous_processes():
-                prevs.append(p.name)
+                label = "~".join([
+                    p.get_absolute_url(),
+                    p.name])
+                prevs.append(label)
         except:
             pass
         d["previous"] = prevs
         next = []
         try:
             for p in self.node.next_processes():
-                next.append(p.name)
+                label = "~".join([
+                    p.get_absolute_url(),
+                    p.name])
+                next.append(label)
         except:
             pass
         d["next"] = next

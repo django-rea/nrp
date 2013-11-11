@@ -144,7 +144,10 @@ $(document).ready(function() {
             	innards += "<h4>Previous processes:</h4>"; 
 				for(i=0;i<obj.previous.length;i++)
 				{
-					innards += obj.previous[i];
+					var splt = obj.previous[i].split("~");
+				    var url = splt[0];
+				    var label = splt[1];
+					innards += "<a href='" + url + "' target='_blank' >" + label + "</a>";
                     innards += "</br>";
 				}
 			}
@@ -153,7 +156,10 @@ $(document).ready(function() {
             	innards += "<h4>Next processes:</h4>"; 
 				for(i=0;i<obj.next.length;i++)
 				{
-					innards += obj.next[i];
+				    var splt = obj.next[i].split("~");
+				    var url = splt[0];
+				    var label = splt[1];
+					innards += "<a href='" + url + "' target='_blank' >" + label + "</a>";
                     innards += "</br>";
 				}
 			}

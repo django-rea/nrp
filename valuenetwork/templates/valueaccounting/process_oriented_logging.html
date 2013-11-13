@@ -578,37 +578,39 @@ li {
 				    
 				    {% if item.onhand %}
 					    {% for resource in item.onhand %}
-						    <div class="onhand" >
-							    <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
-							    {% if resource.id in cited_ids %}
-							        <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
-							        {% if logger %}
-						                <form
-				                            style="display: inline;" 
-                                            class="delete-citation-form" 
-                                            id="deleteForm{{ event.id }}" 
-                                            action="{% url delete_citation_event commitment_id=item.id resource_id=resource.id %}" 
-                                            method="POST" >
-                                            {% csrf_token %}
-                                        	<input type="hidden" id="next" name="next" value="process" />
-                                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
-                                        </form>
-						            {% endif %}
-						        {% else %}
-						            {% if logger %}
-						                <form
-		                                    style="display: inline;" 
-                                            class="citation-form" 
-                                            id="citationForm{{ item.id }}" 
-                                            action="{% url log_citation commitment_id=item.id resource_id=resource.id %}" 
-                                            method="POST" >
-                                            {% csrf_token %}
-                                        	<input type="hidden" id="next" name="next" value="process" />
-                                            <button style="display: inline;"  class="btn btn-info btn-mini" title="Log citation" >{% trans "Log citation" %}</button>
-                                        </form>
-						            {% endif %}
-							    {% endif %}
-						    </div>
+					        {% if resource.id not in output_resource_ids %}
+						        <div class="onhand" >
+							        <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
+							        {% if resource.id in cited_ids %}
+							            <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
+							            {% if logger %}
+						                    <form
+				                                style="display: inline;" 
+                                                class="delete-citation-form" 
+                                                id="deleteForm{{ event.id }}" 
+                                                action="{% url delete_citation_event commitment_id=item.id resource_id=resource.id %}" 
+                                                method="POST" >
+                                                {% csrf_token %}
+                                            	<input type="hidden" id="next" name="next" value="process" />
+                                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
+                                            </form>
+						                {% endif %}
+						            {% else %}
+						                {% if logger %}
+						                    <form
+		                                        style="display: inline;" 
+                                                class="citation-form" 
+                                                id="citationForm{{ item.id }}" 
+                                                action="{% url log_citation commitment_id=item.id resource_id=resource.id %}" 
+                                                method="POST" >
+                                                {% csrf_token %}
+                                            	<input type="hidden" id="next" name="next" value="process" />
+                                                <button style="display: inline;"  class="btn btn-info btn-mini" title="Log citation" >{% trans "Log citation" %}</button>
+                                            </form>
+						                {% endif %}
+							        {% endif %}
+						        </div>
+						    {% endif %}
 					    {% endfor %}
 				    {% endif %}
 			    {% endfor %}

@@ -1692,6 +1692,10 @@ class Process(models.Model):
         return self.commitments.filter(
             event_type__relationship='out')
 
+    def production_events(self):
+        return self.events.filter(
+            event_type__relationship='out')
+
     def uncommitted_production_events(self):
         return self.events.filter(
             event_type__relationship='out',

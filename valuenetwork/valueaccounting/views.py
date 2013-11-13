@@ -3375,10 +3375,12 @@ def process_oriented_logging(request, process_id):
                 add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
        
     cited_ids = [c.resource.id for c in process.citations()]
-    
+    output_resource_ids = [e.resource.id for e in process.production_events()]
+    #import pdb; pdb.set_trace()
     return render_to_response("valueaccounting/process_oriented_logging.html", {
         "process": process,
         "cited_ids": cited_ids,
+        "output_resource_ids": output_resource_ids,
         "agent": agent,
         "logger": logger,
         "worker": worker,

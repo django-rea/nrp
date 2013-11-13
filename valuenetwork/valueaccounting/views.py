@@ -5791,7 +5791,7 @@ def resource_facet_table(request):
     for rt in EconomicResourceType.objects.all():
         row = [rt, ]
         for i in range(0, facets.count()):
-            row.append(" ")
+            row.append("")
         for rf in rt.facets.all():
             cell = headings.index(rf.facet_value.facet)
             row[cell] = rf

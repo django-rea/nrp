@@ -2138,6 +2138,7 @@ def project_stats(request, project_slug):
 
 def project_roles(request, project_slug):
     project = None
+    headings = []
     member_hours = []
     if project_slug:
         project = get_object_or_404(Project, slug=project_slug)
@@ -2164,6 +2165,7 @@ def project_roles(request, project_slug):
                 member_hours.append(row)
             member_hours.sort(lambda x, y: cmp(x[0], y[0]))
     return render_to_response("valueaccounting/project_roles.html", {
+        "project": project,
         "headings": headings,
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))

@@ -1109,6 +1109,45 @@ class EconomicResource(models.Model):
             return False
         return True
 
+    def incoming_value_flows(self):
+        flows = []
+        visited = []
+        depth = 0
+        self.depth = depth
+        flows.append(self)
+        self.incoming_value_flows_dfs(flows, visited, depth)
+        return flows
+
+    def incoming_value_flows_dfs(self, flows, visited, depth):
+        #import pdb; pdb.set_trace()
+        if not self in visited:
+            visited.append(self)
+            #self.depth = depth
+            #flows.append(self)
+            depth += 1
+            resources = []
+            for event in self.producing_events():
+                event.depth = depth
+                flows.append(event)
+                p = event.process
+                if not p in visited:
+                    depth += 1
+                    p.depth = depth
+                    flows.append(p)
+                    depth += 1
+                    for evt in p.incoming_events():
+                        evt.depth = depth
+                        flows.append(evt)
+                        if evt.resource:
+                            if evt.resource not in resources:
+                                resources.append(evt.resource)
+            #depth += 1
+            for resource in resources:
+                #resource.depth = depth
+                #flows.append(resource)
+                resource.incoming_value_flows_dfs(flows, visited, depth)
+                
+
 
 class AgentResourceType(models.Model):
     agent = models.ForeignKey(EconomicAgent,
@@ -1719,6 +1758,9 @@ class Process(models.Model):
     def uncommitted_input_events(self):
         return self.events.filter(
             commitment=None).exclude(event_type__relationship='out')
+
+    def incoming_events(self):
+        return self.events.exclude(event_type__relationship='out')
 
     def uncommitted_work_events(self):
         return self.events.filter(
@@ -2846,13 +2888,19 @@ class EconomicEvent(models.Model):
         ordering = ('-event_date',)
 
     def __unicode__(self):
-        quantity_string = str(self.quantity)
+        if self.unit_of_quantity:
+            quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
+        else:
+            quantity_string = str(self.quantity)
         from_agt = 'Unassigned'
         if self.from_agent:
             from_agt = self.from_agent.name
         to_agt = 'Unassigned'
         if self.to_agent:
             to_agt = self.to_agent.name
+        resource_string = self.resource_type.name
+        if self.resource:
+            resource_string = str(self.resource)
         return ' '.join([
             self.event_type.name,
             self.event_date.strftime('%Y-%m-%d'),
@@ -2861,7 +2909,7 @@ class EconomicEvent(models.Model):
             'to',
             to_agt,
             quantity_string,
-            self.resource_type.name,
+            resource_string,
         ])
 
     def save(self, *args, **kwargs):

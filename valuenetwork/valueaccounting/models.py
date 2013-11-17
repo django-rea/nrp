@@ -1766,8 +1766,8 @@ class Process(models.Model):
         self.depth = depth * 2
         ordered_processes.append(self)
         output = self.main_outgoing_commitment()
-        #if not output:
-            #import pdb; pdb.set_trace()
+        if not output:
+            return []
         depth = depth + 1
         if output.resource_type not in visited_resources:
             visited_resources.append(output.resource_type)

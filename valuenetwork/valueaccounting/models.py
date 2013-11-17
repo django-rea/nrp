@@ -1069,6 +1069,9 @@ class EconomicResource(models.Model):
     def flow_type(self):
         return "Resource"
 
+    def flow_class(self):
+        return "resource"
+
     def flow_description(self):
         return self.__unicode__()
 
@@ -1699,6 +1702,9 @@ class Process(models.Model):
 
     def flow_type(self):
         return "Process"
+
+    def flow_class(self):
+        return "process"
 
     def flow_description(self):
         return self.__unicode__()
@@ -2986,6 +2992,9 @@ class EconomicEvent(models.Model):
 
     def flow_type(self):
         return self.event_type.name
+
+    def flow_class(self):
+        return self.event_type.relationship
 
     def flow_description(self):
         quantity_string = ""

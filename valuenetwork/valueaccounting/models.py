@@ -2988,10 +2988,12 @@ class EconomicEvent(models.Model):
         return self.event_type.name
 
     def flow_description(self):
-        if self.unit_of_quantity:
-            quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
-        else:
-            quantity_string = str(self.quantity)
+        quantity_string = ""
+        if self.event_type.relationship != "cite":
+            if self.unit_of_quantity:
+                quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
+            else:
+                quantity_string = str(self.quantity)
         from_agt = ''
         if self.from_agent:
             from_agt = ' '.join(["from", self.from_agent.name])

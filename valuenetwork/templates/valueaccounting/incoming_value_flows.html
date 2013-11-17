@@ -31,7 +31,7 @@
 		<div>
 
           {% for flow in flows %}
-            <p class="{{ flow.flow_type }}" style="margin-left: {{ flow.depth }}em;">
+            <p class="{{ flow.flow_class }}" style="margin-left: {{ flow.depth }}em;">
                 <span class="type" >{{ flow.flow_type }}:</span>
                 {% if flow.flow_type == "Process" %}
                     <a href="{{ flow.get_absolute_url }}">{{ flow.flow_description }}</a>

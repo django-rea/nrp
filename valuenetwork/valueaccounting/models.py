@@ -1152,7 +1152,7 @@ class EconomicResource(models.Model):
                 #resource.depth = depth
                 #flows.append(resource)
                 resource.incoming_value_flows_dfs(flows, visited, depth)
-                
+       
 
 
 class AgentResourceType(models.Model):

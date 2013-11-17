@@ -9,12 +9,28 @@
 <style>
 .type {
     font-weight: bold;
-    color: sienna;
+}
+.work-item {
+    font-style: italic;
+    color: green;
+}
+.process {
+    color: blue;
 }
 .work {
     color: green;
-    font-style: italic;
-    font-weight: bold;
+}
+.resource, .out {
+    color: firebrick;
+}
+.cite, .consume, .use {
+    color: purple;
+}
+.line {
+    margin-bottom: 3px;
+}
+.span9 {
+    margin-left: 0;
 }
 
 </style>
@@ -26,17 +42,17 @@
     <div class="container">
         {% include "_messages.html" %}
 	  <div>
-		<legend>{% trans "Incoming value flows for " %} <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a></legend>
+		<legend>{% trans "Incoming Value Flows for " %} <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a></legend>
 
-		<div>
+		<div class="span9">
 
           {% for flow in flows %}
-            <p class="{{ flow.flow_class }}" style="margin-left: {{ flow.depth }}em;">
-                <span class="type" >{{ flow.flow_type }}:</span>
+            <p style="margin-left: {{ flow.depth }}em;" class="line">
+                <span class="type {{ flow.flow_class }}" >{{ flow.flow_type }}:</span>
                 {% if flow.flow_type == "Process" %}
                     <a href="{{ flow.get_absolute_url }}">{{ flow.flow_description }}</a>
                 {% elif flow.flow_type == "Time Contribution" %}
-                    <span class="work">{{ flow.flow_description }}</span>
+                    <span class="work-item">{{ flow.flow_description }}</span>
                 {% else %}
                     {{ flow.flow_description }}
                 {% endif %}
@@ -45,6 +61,33 @@
 
 		</div>
 
+        <div class="span3">
+
+        </div>
+
 	  </div>
 	</div>
+{% endblock %}
+
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
+            $( "#help" ).text("Hide Help"); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+            $( "#help" ).text("Show Help");
+        })
+
+	}); // end document.ready
+
+    </script>
 {% endblock %}

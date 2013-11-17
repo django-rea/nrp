@@ -3798,7 +3798,14 @@ def resource(request, resource_id):
         "agent_form": agent_form,
         "agent": agent,
     }, context_instance=RequestContext(request))
-   
+
+def incoming_value_flows(request, resource_id):
+    resource = get_object_or_404(EconomicResource, id=resource_id)
+    flows = resource.incoming_value_flows()
+    return render_to_response("valueaccounting/incoming_value_flows.html", {
+        "resource": resource,
+        "flows": flows,
+    }, context_instance=RequestContext(request))
 
 @login_required
 def change_resource(request, resource_id):

@@ -1066,6 +1066,12 @@ class EconomicResource(models.Model):
     def label(self):
         return self.identifier or str(self.id)
 
+    def flow_type(self):
+        return "Resource"
+
+    def flow_description(self):
+        return self.__unicode__()
+
     def change_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
         return EconomicResourceForm(instance=self)
@@ -1691,8 +1697,11 @@ class Process(models.Model):
         unique_slugify(self, slug)
         super(Process, self).save(*args, **kwargs)
 
-    def label(self):
-        return "process"
+    def flow_type(self):
+        return "Process"
+
+    def flow_description(self):
+        return self.__unicode__()
 
     def node_id(self):
         return "-".join(["Process", str(self.id)])
@@ -2975,7 +2984,31 @@ class EconomicEvent(models.Model):
         unique_slugify(self, slug)
         super(EconomicEvent, self).save(*args, **kwargs)
 
+    def flow_type(self):
+        return self.event_type.name
 
+    def flow_description(self):
+        if self.unit_of_quantity:
+            quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
+        else:
+            quantity_string = str(self.quantity)
+        from_agt = ''
+        if self.from_agent:
+            from_agt = ' '.join(["from", self.from_agent.name])
+        to_agt = ''
+        if self.to_agent:
+            to_agt = ' '.join(["to", self.to_agent.name])
+        resource_string = self.resource_type.name
+        if self.resource:
+            resource_string = str(self.resource)
+        return ' '.join([
+            self.event_date.strftime('%Y-%m-%d'),
+            from_agt,
+            to_agt,
+            quantity_string,
+            resource_string,
+        ])
+        
     def my_compensations(self):
         return self.initiated_compensations.all()
 

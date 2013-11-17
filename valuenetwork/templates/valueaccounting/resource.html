@@ -21,6 +21,10 @@
 .hdg {
     color: firebrick;
 }
+.btn {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
 
 
 </style>
@@ -35,8 +39,9 @@
 		<legend>
 			{% trans "Resource" %}: {{ resource }} &nbsp;
 			{% if agent %}
-		        <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+		        <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
 	        {% endif %}
+            <a href="{% url incoming_value_flows resource_id=resource.id %}">{% trans "Incoming Value Flow" %}</a>
 		</legend>
 		
         {% if agent %}

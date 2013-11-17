@@ -6,6 +6,18 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<style>
+.type {
+    font-weight: bold;
+    color: sienna;
+}
+.work {
+    color: green;
+    font-style: italic;
+    font-weight: bold;
+}
+
+</style>
 {% endblock %}
 
 {% block body_class %}demand{% endblock %}
@@ -13,18 +25,26 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-	<div>
-		<legend>{% trans "Incoming value flows for " %} {{ resource }}</legend>
+	  <div>
+		<legend>{% trans "Incoming value flows for " %} <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a></legend>
 
 		<div>
 
-        {% for flow in flows %}
+          {% for flow in flows %}
             <p class="{{ flow.flow_type }}" style="margin-left: {{ flow.depth }}em;">
-                <span class="type" >{{ flow.flow_type }}:</span> {{ flow.flow_description }}
+                <span class="type" >{{ flow.flow_type }}:</span>
+                {% if flow.flow_type == "Process" %}
+                    <a href="{{ flow.get_absolute_url }}">{{ flow.flow_description }}</a>
+                {% elif flow.flow_type == "Time Contribution" %}
+                    <span class="work">{{ flow.flow_description }}</span>
+                {% else %}
+                    {{ flow.flow_description }}
+                {% endif %}
              </p>
-        {% endfor %}
+          {% endfor %}
 
 		</div>
-	</div>
+
+	  </div>
 	</div>
 {% endblock %}

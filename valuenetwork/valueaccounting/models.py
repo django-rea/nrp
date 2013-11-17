@@ -1128,11 +1128,8 @@ class EconomicResource(models.Model):
         return flows
 
     def incoming_value_flows_dfs(self, flows, visited, depth):
-        #import pdb; pdb.set_trace()
         if not self in visited:
             visited.append(self)
-            #self.depth = depth
-            #flows.append(self)
             depth += 1
             resources = []
             for event in self.producing_events():
@@ -1150,10 +1147,7 @@ class EconomicResource(models.Model):
                         if evt.resource:
                             if evt.resource not in resources:
                                 resources.append(evt.resource)
-            #depth += 1
             for resource in resources:
-                #resource.depth = depth
-                #flows.append(resource)
                 resource.incoming_value_flows_dfs(flows, visited, depth)
                 
 

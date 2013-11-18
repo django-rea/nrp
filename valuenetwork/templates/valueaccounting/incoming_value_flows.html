@@ -62,7 +62,8 @@
 		</div>
 
         <div class="span3">
-
+            <div id="chart_div" ></div>           
+            </div>
         </div>
 
 	  </div>
@@ -71,6 +72,7 @@
 
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -86,8 +88,27 @@
             $('#help-content').hide("slide", { direction: "right" }, "slow"); 
             $( "#help" ).text("Show Help");
         })
+    }); // end document.ready
 
-	}); // end document.ready
+    google.load("visualization", "1", {packages:["corechart"]});
+    
+    google.setOnLoadCallback(drawChart);
+    function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Member', 'Hours'],
+          {% for member, hours in member_hours %}
+              ['{{ member.nick }}',  {{ hours }} ],
+          {% endfor %}
+    ]);
+
+    var options = {
+      vAxis: {title: 'Member',  titleTextStyle: {color: 'red'}},
+      chartArea:{width:"100%",height:"100%"}
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+    chart.draw(data, options);
+    }
 
     </script>
 {% endblock %}

@@ -3803,16 +3803,19 @@ def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     flows = resource.incoming_value_flows()
     totals = {}
+    member_hours = []
     for flow in flows:
         if flow.flow_class() == "work":
             if flow.quantity:
                 if not flow.from_agent in totals:
                     totals[flow.from_agent] = Decimal("0")
                 totals[flow.from_agent] += flow.quantity
+    for key, value in totals.items():
+        member_hours.append((key, value))
     return render_to_response("valueaccounting/incoming_value_flows.html", {
         "resource": resource,
         "flows": flows,
-        "totals": totals,
+        "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
 @login_required

@@ -472,9 +472,10 @@ class EconomicResourceType(models.Model):
     def scheduled_qty_for_commitment(self, commitment):
         #import pdb; pdb.set_trace()
         due_date = commitment.due_date
-        sked_rcts = self.producing_commitments().filter(due_date__lte=due_date)
+        sked_rcts = self.producing_commitments().filter(due_date__lte=due_date).exclude(id=commitment.id)
         sked_qty = sum(pc.quantity for pc in sked_rcts)
-        due_date = commitment.due_date
+        if not sked_qty:
+            return Decimal("0")
         priors = self.consuming_commitments().filter(due_date__lt=due_date)
         remainder = sked_qty - sum(p.quantity for p in priors)
         if remainder > 0:
@@ -2332,6 +2333,7 @@ class Order(models.Model):
         return ct
 
     def all_processes(self):
+        #import pdb; pdb.set_trace()
         deliverables = self.commitments.filter(event_type__relationship="out")
         processes = [d.process for d in deliverables]
         roots = []
@@ -2674,19 +2676,7 @@ class Commitment(models.Model):
         return answer
 
     def quantity_to_buy(self):
-        onhand = self.onhand()  
-        #todo: makes no obvious sense     
-        if not self.resource_type.producing_commitments():
-            qty =  self.unfilled_quantity() - sum(oh.quantity for oh in self.onhand())
-            if qty > Decimal("0"):
-                return qty
-        else:
-            if not onhand:
-                #why repeat this?
-                if not self.resource_type.producing_commitments():
-                    #why? might make sense for "uses" events
-                    return Decimal("1")
-        return Decimal("0")
+        return self.net()
 
     def net(self):
         #import pdb; pdb.set_trace()
@@ -2694,16 +2684,18 @@ class Commitment(models.Model):
         oh_qty = rt.onhand_qty_for_commitment(self)
         if oh_qty >= self.quantity:
             return 0
+        sked_qty = rt.scheduled_qty_for_commitment(self)      
         if self.event_type.resource_effect == "-":
             remainder = self.quantity - oh_qty
-            sked_qty = rt.scheduled_qty_for_commitment(self)
             if sked_qty >= remainder:
-                return 0
+                return Decimal("0")
             return remainder - sked_qty
         else:
-            if oh_qty:
-                return 0
-            else:
+            if oh_qty + sked_qty:
+                return Decimal("0")
+            elif self.event_type.resource_effect == "=":   
+                answer =  Decimal("1")
+            else: 
                 return self.quantity
   
     def creates_resources(self):

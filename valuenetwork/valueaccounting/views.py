@@ -1744,17 +1744,16 @@ def supply(request):
     mrqs = Commitment.objects.to_buy()
     suppliers = SortedDict()
     for commitment in mrqs:
-        if not commitment.resource_type.producing_commitments():
-            if not commitment.fulfilling_events():    
-                mreqs.append(commitment)
-                sources = commitment.resource_type.producing_agent_relationships().order_by("resource_type__name")
-                for source in sources:
-                    agent = source.agent
-                    if agent not in suppliers:
-                        suppliers[agent] = SortedDict()
-                    if source not in suppliers[agent]:
-                        suppliers[agent][source] = []
-                    suppliers[agent][source].append(commitment) 
+        if not commitment.fulfilling_events():    
+            mreqs.append(commitment)
+            sources = commitment.resource_type.producing_agent_relationships().order_by("resource_type__name")
+            for source in sources:
+                agent = source.agent
+                if agent not in suppliers:
+                    suppliers[agent] = SortedDict()
+                if source not in suppliers[agent]:
+                    suppliers[agent][source] = []
+                suppliers[agent][source].append(commitment) 
     treqs = []
     return render_to_response("valueaccounting/supply.html", {
         "mreqs": mreqs,

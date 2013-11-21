@@ -1137,17 +1137,18 @@ class EconomicResource(models.Model):
                 event.depth = depth
                 flows.append(event)
                 p = event.process
-                if not p in visited:
-                    depth += 1
-                    p.depth = depth
-                    flows.append(p)
-                    depth += 1
-                    for evt in p.incoming_events():
-                        evt.depth = depth
-                        flows.append(evt)
-                        if evt.resource:
-                            if evt.resource not in resources:
-                                resources.append(evt.resource)
+                if p:
+                    if not p in visited:
+                        depth += 1
+                        p.depth = depth
+                        flows.append(p)
+                        depth += 1
+                        for evt in p.incoming_events():
+                            evt.depth = depth
+                            flows.append(evt)
+                            if evt.resource:
+                                if evt.resource not in resources:
+                                    resources.append(evt.resource)
             for resource in resources:
                 resource.incoming_value_flows_dfs(flows, visited, depth)
        

@@ -160,7 +160,7 @@ admin.site.register(Commitment, CommitmentAdmin)
 class EconomicEventAdmin(admin.ModelAdmin):
     date_hierarchy = 'event_date'
     list_display = ('event_type', 'event_date', 'from_agent', 'project', 
-        'resource_type', 'quantity', 'unit_of_quantity', 'description', 'url', 'quality')
+        'resource_type', 'resource', 'quantity', 'unit_of_quantity', 'description', 'url', 'quality')
     list_filter = ['event_type', 'project', 'resource_type', 'from_agent', ]
     search_fields = ['event_type__name', 'from_agent__name', 'to_agent__name', 'resource_type__name']
     list_editable = ['event_date',]

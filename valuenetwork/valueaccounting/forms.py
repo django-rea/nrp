@@ -1335,6 +1335,7 @@ class EquationForm(forms.Form):
 
         return equation
 
+#todo: can eliminate this when exchagne is done
 class FinancialContributionForm(forms.ModelForm):
     #probably a limited selection of resource type, but not ready to set these up yet
     resource_type = forms.ModelChoiceField(
@@ -1368,3 +1369,32 @@ class FinancialContributionForm(forms.ModelForm):
         super(FinancialContributionForm, self).__init__(*args, **kwargs)
         self.fields["resource_type"].choices = [('1','cash infusion')] + [('2','administrative expenses')] + [('3','production and R&D')] + [('4','sales expenses')] + [('5','capital assets')] + [('6','Other')]
         self.fields["unit_of_quantity"].choices = [('1','CAD')] + [('2','USD')] 
+
+class ExchangeForm(forms.ModelForm):
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.none(), 
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 'pattern-selector'}))
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(), 
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    start_date = forms.DateField(required=True, 
+        label=_("Start date"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    notes = forms.CharField(required=False, 
+        label=_("Comments"),
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    url = forms.CharField(required=False, 
+        label=_("Link to scanned receipt"),
+        widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+
+    class Meta:
+        model = Exchange
+        fields = ('process_pattern', 'project',  'start_date', 'url', 'notes')
+
+    def __init__(self, use_case, *args, **kwargs):
+        super(ExchangeForm, self).__init__(*args, **kwargs)
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
+

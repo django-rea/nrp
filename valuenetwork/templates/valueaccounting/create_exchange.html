@@ -1,0 +1,100 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Create Exchange" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+#id_notes
+{
+  width: 32em;
+}
+
+#id_url
+{
+  width: 32em;
+}
+
+.item-description
+{
+	width: 32em;
+    height: 40px;
+}
+
+</style>
+{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+	<legend>{% trans "Create Contribution" %}</legend>
+		<form id="exchangeForm" method="POST" action="">
+			{% csrf_token %}
+			<div class="span12">
+				{{ exchange_form|as_bootstrap }}
+				<div class="form-actions">
+					<input type="submit" name="save" value="{% trans 'Save and add details' %}" class="btn btn-primary" /> 
+			   	</div>
+			</div>
+
+		</div>
+		</form>
+    </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+				label
+					.text('').addClass('valid')
+					.closest('.control-group').addClass('success');
+			}
+        });
+
+        $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+
+    	$( "#exchangeForm" ).validate({
+			rules: {
+				url: {
+					url: true
+				},
+				project: {
+					required: true
+				},
+				process_pattern: {
+					required: true
+				},
+				start_date: {
+					required: true,
+					date: true
+				},
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+	}); // end document.ready
+    </script>
+
+{% endblock %}

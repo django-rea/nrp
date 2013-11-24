@@ -97,6 +97,7 @@ def _slug_strip(value, separator=None):
 #        return self.name
         
 
+#for help text
 PAGE_CHOICES = (
     ('home', _('Home')),
     ('demand', _('Demand')),
@@ -111,6 +112,7 @@ PAGE_CHOICES = (
     ('labnote', _('Labnote view page')),
     ('all_work', _('All Work')),
     ('process', _('Process')),
+    ('exchange', _('Exchange')),
 )
 
 class Help(models.Model):
@@ -152,7 +154,7 @@ class FacetValue(models.Model):
     def __unicode__(self):
         return ": ".join([self.facet.name, self.value])
 
-
+#todo: not used??
 UNIT_TYPE_CHOICES = (
     ('area', _('area')),
     ('length', _('length')),
@@ -335,11 +337,17 @@ DIRECTION_CHOICES = (
     ('cite', _('citation')),
     ('work', _('work')),
     ('todo', _('todo')),
+    ('pay', _('payment')),
+    ('receive', _('receipt')),
+    ('expense', _('expense')),
+    ('cash', _('cash contribution')),
+    ('resource', _('resource contribution')),
 )
 
 RELATED_CHOICES = (
     ('process', _('process')),
-    ('agent', _('agent')),
+    ('agent', _('agent')), #not used as an event type, rather for agent - resource type relationships
+    ('exchange', _('exchange')),
 )
 
 RESOURCE_EFFECT_CHOICES = (
@@ -748,6 +756,12 @@ class ProcessPatternManager(models.Manager):
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
 
+    def usecase_patterns(self, use_case):
+        #import pdb; pdb.set_trace()
+        use_cases = PatternUseCase.objects.filter(
+            Q(use_case=use_case))
+        pattern_ids = [uc.pattern.id for uc in use_cases]
+        return ProcessPattern.objects.filter(id__in=pattern_ids)
 
 class ProcessPattern(models.Model):
     name = models.CharField(_('name'), max_length=32)
@@ -996,12 +1010,15 @@ class PatternFacetValue(models.Model):
 USECASE_CHOICES = (
     ('design', _('Design logging')),
     ('non_prod', _('Non-production logging')),
-    ('rand', _('R&D logging')),
+    ('rand', _('Process logging')),
     ('recipe', _('Recipes')),
     ('todo', _('Todos')),
     ('cust_orders', _('Customer Orders')),
     ('purchasing', _('Purchasing')),
-    ('financial', _('Financial Contributions')),
+    ('cash_contr', _('Cash Contribution')),
+    ('res_contr', _('Resource Contribution')),
+    ('purch_contr', _('Purchase Contribution')),
+    ('exp_contr', _('Expense Contribution')),
 )
 
 class PatternUseCase(models.Model):
@@ -2087,6 +2104,91 @@ class Process(models.Model):
         from valuenetwork.valueaccounting.forms import ScheduleProcessForm
         init = {"start_date": self.start_date, "end_date": self.end_date, "notes": self.notes}
         return ScheduleProcessForm(prefix=str(self.id),initial=init)
+
+class ExchangeType(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    parent = models.ForeignKey('self', blank=True, null=True, 
+        verbose_name=_('parent'), related_name='sub_exchange_types', editable=False)
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('process pattern'), related_name='exchange_types')
+    project = models.ForeignKey(Project,
+        blank=True, null=True,
+        verbose_name=_('project'), related_name='exchange_types')
+    description = models.TextField(_('description'), blank=True, null=True)
+    url = models.CharField(_('url'), max_length=255, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='exchange_types_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='exchange_types_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    class Meta:
+        ordering = ('name',)
+
+    def __unicode__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        unique_slugify(self, self.name)
+        super(ProcessType, self).save(*args, **kwargs)
+
+
+class Exchange(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('pattern'), related_name='exchanges')
+    exchange_type = models.ForeignKey(ExchangeType,
+        blank=True, null=True,
+        verbose_name=_('exchange type'), related_name='exchanges',
+        on_delete=models.SET_NULL)
+    project = models.ForeignKey(Project,
+        blank=True, null=True,
+        verbose_name=_('project'), related_name='exchanges')
+    url = models.CharField(_('url'), max_length=255, blank=True)
+    start_date = models.DateField(_('start date'))
+    end_date = models.DateField(_('end date'), blank=True, null=True) 
+    notes = models.TextField(_('notes'), blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='exchanges_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='exchanges_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    #objects = ProcessManager()
+
+    class Meta:
+        #ordering = ('end_date',)
+        verbose_name_plural = _("exchanges")
+
+    def __unicode__(self):
+        return " ".join([
+            self.process_pattern.name,
+            "starting",
+            self.start_date.strftime('%Y-%m-%d'),
+            ])
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('exchange_details', (),
+            { 'exchange_id': str(self.id),})
+
+    def save(self, *args, **kwargs):
+        ext_name = ""
+        if self.exchange_type:
+            ext_name = self.exchange_type.name
+        slug = "-".join([
+            ext_name,
+            self.name,
+            self.start_date.strftime('%Y-%m-%d'),
+        ])
+        unique_slugify(self, slug)
+        super(Exchange, self).save(*args, **kwargs)
         
 
 class Feature(models.Model):
@@ -2414,6 +2516,9 @@ class Commitment(models.Model):
     process = models.ForeignKey(Process,
         blank=True, null=True,
         verbose_name=_('process'), related_name='commitments')
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('exchange'), related_name='commitments')
     project = models.ForeignKey(Project,
         blank=True, null=True,
         verbose_name=_('project'), related_name='commitments')
@@ -2860,6 +2965,10 @@ class EconomicEvent(models.Model):
     process = models.ForeignKey(Process,
         blank=True, null=True,
         verbose_name=_('process'), related_name='events',
+        on_delete=models.SET_NULL)
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
     project = models.ForeignKey(Project,
         blank=True, null=True,

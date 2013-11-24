@@ -23,6 +23,11 @@
     margin-bottom: 12px;
     border: 1px solid gainsboro;
 }
+.btn {
+    margin-left: 10px; 
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
 
 </style>
 
@@ -34,7 +39,15 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Supply" %}</legend>
+		<legend>
+            {% trans "Supply" %}
+		    {% if agent %} &nbsp;&nbsp;&nbsp;
+                <a class="btn btn-info" href="{% url create_exchange use_case='purch_contr' %}">{% trans "Purchase contribution" %}</a>
+                <a class="btn btn-info" href="{% url create_exchange use_case='exp_contr' %}">{% trans "Expense contribution" %}</a>
+                <a class="btn btn-info" href="{% url create_exchange use_case='res_contr' %}">{% trans "Resource contribution" %}</a>
+                <a class="btn btn-info" href="{% url create_exchange use_case='cash_contr' %}">{% trans "Cash contribution" %}</a>
+            {% endif %}
+        </legend>
         <div class="reqs-supplier">
 		    <h3 style="margin-bottom: 4px;" >{% trans "Requirements by Supplier" %}:</h3>
 

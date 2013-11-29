@@ -6031,21 +6031,27 @@ def exchange_logging(request, exchange_id):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
     exchange = get_object_or_404(Exchange, id=exchange_id)
-    #cited_ids = [c.resource.id for c in process.citations()]
+    use_case = exchange.use_case
+    exchange_form = ExchangeForm(use_case, data=request.POST or None)
+    #payment_ids = [c.resource.id for c in process.citations()]
     return render_to_response("valueaccounting/exchange_logging.html", {
         "exchange": exchange,
-        #"cited_ids": cited_ids,
+        "exchange_form": exchange_form,
         "agent": agent,
+        #"payment_commitments": payment_commitments,
+        #"uncommitted_payment_events": uncommitted_payment_events,
         "help": get_help("exchange"),
     }, context_instance=RequestContext(request))
 
 @login_required
-def create_exchange(request, use_case):
+def create_exchange(request, use_case_identifier):
     #import pdb; pdb.set_trace()
+    use_case = get_object_or_404(UseCase, identifier=use_case_identifier)
     exchange_form = ExchangeForm(use_case, data=request.POST or None)
     if request.method == "POST":
         if exchange_form.is_valid():
             exchange = exchange_form.save(commit=False)
+            exchange.use_case = use_case
             exchange.created_by = request.user
             exchange.save()
             return HttpResponseRedirect('/%s/%s/'
@@ -6053,8 +6059,6 @@ def create_exchange(request, use_case):
     return render_to_response("valueaccounting/create_exchange.html", {
         "exchange_form": exchange_form,
         "use_case": use_case,
-        "payment_commitments": payment_commitments,
-        "uncommitted_payment_events": uncommitted_payment_events,
     }, context_instance=RequestContext(request))
 
 @login_required

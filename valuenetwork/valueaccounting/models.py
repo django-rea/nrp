@@ -346,7 +346,7 @@ DIRECTION_CHOICES = (
 
 RELATED_CHOICES = (
     ('process', _('process')),
-    ('agent', _('agent')), #not used as an event type, rather for agent - resource type relationships
+    ('agent', _('agent')), #not used logically as an event type, rather for agent - resource type relationships
     ('exchange', _('exchange')),
 )
 
@@ -998,7 +998,6 @@ class PatternFacetValue(models.Model):
         verbose_name=_('event type'), related_name='patterns',
         help_text=_('consumed means gone, used means re-usable'))
 
-
     class Meta:
         unique_together = ('pattern', 'facet_value', 'event_type')
         ordering = ('pattern', 'event_type', 'facet_value')
@@ -1006,7 +1005,7 @@ class PatternFacetValue(models.Model):
     def __unicode__(self):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
 
-
+#todo: will be superceded by the class, retrofit as needed then delete
 USECASE_CHOICES = (
     ('design', _('Design logging')),
     ('non_prod', _('Non-production logging')),
@@ -1016,10 +1015,17 @@ USECASE_CHOICES = (
     ('cust_orders', _('Customer Orders')),
     ('purchasing', _('Purchasing')),
     ('cash_contr', _('Cash Contribution')),
-    ('res_contr', _('Resource Contribution')),
+    ('res_contr', _('Material Contribution')),
     ('purch_contr', _('Purchase Contribution')),
     ('exp_contr', _('Expense Contribution')),
 )
+
+
+class UseCase(models.Model):
+    identifier = models.CharField(_('label'), max_length=12)
+    name = models.CharField(_('name'), max_length=128)
+    restrict_to_one_pattern = models.BooleanField(_('restrict_to_one_pattern'), default=False)    
+
 
 class PatternUseCase(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 
@@ -2105,46 +2111,17 @@ class Process(models.Model):
         init = {"start_date": self.start_date, "end_date": self.end_date, "notes": self.notes}
         return ScheduleProcessForm(prefix=str(self.id),initial=init)
 
-class ExchangeType(models.Model):
-    name = models.CharField(_('name'), max_length=128)
-    parent = models.ForeignKey('self', blank=True, null=True, 
-        verbose_name=_('parent'), related_name='sub_exchange_types', editable=False)
-    process_pattern = models.ForeignKey(ProcessPattern,
-        blank=True, null=True,
-        verbose_name=_('process pattern'), related_name='exchange_types')
-    project = models.ForeignKey(Project,
-        blank=True, null=True,
-        verbose_name=_('project'), related_name='exchange_types')
-    description = models.TextField(_('description'), blank=True, null=True)
-    url = models.CharField(_('url'), max_length=255, blank=True)
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='exchange_types_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='exchange_types_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    slug = models.SlugField(_("Page name"), editable=False)
-
-    class Meta:
-        ordering = ('name',)
-
-    def __unicode__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        unique_slugify(self, self.name)
-        super(ProcessType, self).save(*args, **kwargs)
-
 
 class Exchange(models.Model):
     name = models.CharField(_('name'), max_length=128)
     process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
         verbose_name=_('pattern'), related_name='exchanges')
-    exchange_type = models.ForeignKey(ExchangeType,
+    #use_case = models.CharField(_('use case'), 
+    #    max_length=12, choices=USECASE_CHOICES)
+    use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
-        verbose_name=_('exchange type'), related_name='exchanges',
-        on_delete=models.SET_NULL)
+        verbose_name=_('use case'), related_name='exchanges')
     project = models.ForeignKey(Project,
         blank=True, null=True,
         verbose_name=_('project'), related_name='exchanges')

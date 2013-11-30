@@ -757,7 +757,7 @@ class ProcessPatternManager(models.Manager):
         return ProcessPattern.objects.filter(id__in=pattern_ids)
 
     def usecase_patterns(self, use_case):
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(
             Q(use_case=use_case))
         pattern_ids = [uc.pattern.id for uc in use_cases]
@@ -1022,7 +1022,7 @@ USECASE_CHOICES = (
 
 
 class UseCase(models.Model):
-    identifier = models.CharField(_('label'), max_length=12)
+    identifier = models.CharField(_('identifier'), max_length=12)
     name = models.CharField(_('name'), max_length=128)
     restrict_to_one_pattern = models.BooleanField(_('restrict_to_one_pattern'), default=False)    
 

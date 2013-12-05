@@ -660,10 +660,13 @@ class SimpleWorkForm(forms.ModelForm):
         widget=DecimalDurationWidget,
         label="Time spent",
         help_text="hours, minutes")
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
    
     class Meta:
         model = EconomicEvent
-        fields = ('resource_type','quantity')
+        fields = ('resource_type','quantity', 'description')
 
     def __init__(self, pattern=None, *args, **kwargs):
         #import pdb; pdb.set_trace()

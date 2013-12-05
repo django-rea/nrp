@@ -142,7 +142,7 @@
                 {% if resource.producing_events %}
                     <ul>
                         {% for event in resource.producing_events %}
-                            <li><b>{% trans "Event" %}:</b> {{ event.event_type }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
+                            <li><b>{% trans "Event" %}:</b> {{ event.event_type }} {{ event.quantity }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
                             {% if event.process %}
                                 <ul>
                                     <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a>
@@ -201,7 +201,7 @@
                                     <ul>
                                         {% for evt in event.process.work_events %}
                                             <li>
-                                                <b>{% trans "Workers" %}:</b> {{ evt.resource_type }} {% trans "from" %}: {{ evt.from_agent }} 
+                                                <b>{% trans "Work" %}:</b> {{ evt.resource_type }} {{ evt.quantity }} {{ evt.unit_of_quantity.abbrev }} {% trans "from" %}: {{ evt.from_agent }} 
                                                 {% if user == evt.created_by or agent == evt.from_agent or user.is_superuser %}
                                                     <form
 						                                class="delete-form" 

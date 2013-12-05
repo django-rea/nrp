@@ -295,7 +295,11 @@
               {% if resource.all_usage_events %}
                 <ul>
                     {% for event in resource.all_usage_events %}
-                        <li><b>{% trans "Event" %}:</b> {{ event.resource.label }} {{ event.event_type }} {{ event.quantity }} {{ event.unit_of_quantity.abbrev }} {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
+                        <li><b>{% trans "Event" %}:</b> {{ event.resource.label }} {{ event.event_type }}
+                             {% if event.event_type.relationship != "cite" %}
+                                {{ event.quantity }} {{ event.unit_of_quantity.abbrev }}
+                             {% endif %}
+                             {{ event.event_date }} {% trans "from" %}: {{ event.from_agent }}</li>
                         {% if event.process %}
                             <ul>
                                 <li>

@@ -1321,7 +1321,7 @@ li {
         });
 
         $.validator.addClassRules("quantity", { required: true, number: true, });
-		$.validator.addClassRules("url", { url: true });
+		$.validator.addClassRules("url", { url: true, maxlength: 255 });
         $.validator.addClassRules("resourceType", { required: true});
         $.validator.addClassRules("hours", { 
 			required: true,
@@ -1337,7 +1337,6 @@ li {
 		});
 
 
-        //$( ".validateMe" ).validate();
         $('.validateMe').each( function(){
 			var form = $(this);
 			form.validate({

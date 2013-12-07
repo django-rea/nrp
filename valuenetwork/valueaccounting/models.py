@@ -1024,7 +1024,56 @@ USECASE_CHOICES = (
 class UseCase(models.Model):
     identifier = models.CharField(_('label'), max_length=12)
     name = models.CharField(_('name'), max_length=128)
-    restrict_to_one_pattern = models.BooleanField(_('restrict_to_one_pattern'), default=False)    
+    restrict_to_one_pattern = models.BooleanField(_('restrict_to_one_pattern'), default=False)
+
+    def __unicode__(self):
+        return ", ".join([self.identifier, self.name])
+
+    @classmethod
+    def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=1):
+        """
+        Creates a new UseCase, updates an existing one, or does nothing.
+        
+        This is intended to be used as a post_syncdb manangement step.
+        """
+        try:
+            use_case = cls._default_manager.get(identifier=identifier)
+            updated = False
+            if name != use_case.name:
+                use_case.name = name
+                updated = True
+            if restrict_to_one_pattern != use_case.restrict_to_one_pattern:
+                use_case.restrict_to_one_pattern = restrict_to_one_pattern
+                updated = True
+            if updated:
+                use_case.save()
+                if verbosity > 1:
+                    print "Updated %s UseCase" % identifier
+        except cls.DoesNotExist:
+            cls(identifier=identifier, name=name, restrict_to_one_pattern=restrict_to_one_pattern).save()
+            if verbosity > 1:
+                print "Created %s UseCase" % identifier
+
+
+from south.signals import post_migrate
+
+def create_use_cases(app, **kwargs):
+    if app != "valueaccounting":
+        return
+    UseCase.create('design', _('Design logging'), True)
+    UseCase.create('non_prod', _('Non-production logging'), True)
+    UseCase.create('rand', _('Process logging'))
+    UseCase.create('recipe', _('Recipes'))
+    UseCase.create('todo', _('Todos'), True)
+    UseCase.create('cust_orders', _('Customer Orders'))
+    UseCase.create('purchasing', _('Purchasing'))
+    UseCase.create('cash_contr', _('Cash Contribution'), True)
+    UseCase.create('res_contr', _('Material Contribution'))
+    UseCase.create('purch_contr', _('Purchase Contribution'))
+    UseCase.create('exp_contr', _('Expense Contribution'), True)
+    print "created use cases"
+
+post_migrate.connect(create_use_cases)
 
 
 class PatternUseCase(models.Model):

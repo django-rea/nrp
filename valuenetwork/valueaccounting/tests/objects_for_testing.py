@@ -224,7 +224,7 @@ class Facets(object):
         )
         source_them.save()
 
-        use_case = "rand"
+        use_case = UseCase.objects.get(identifier="rand")
 
         if not optical_pattern:
             self.optical_pattern = ProcessPattern(

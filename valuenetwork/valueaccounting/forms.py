@@ -1373,6 +1373,7 @@ class FinancialContributionForm(forms.ModelForm):
         self.fields["resource_type"].choices = [('1','cash infusion')] + [('2','administrative expenses')] + [('3','production and R&D')] + [('4','sales expenses')] + [('5','capital assets')] + [('6','Other')]
         self.fields["unit_of_quantity"].choices = [('1','CAD')] + [('2','USD')] 
 
+
 class ExchangeForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(), 

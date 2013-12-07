@@ -51,9 +51,11 @@ class OrderTest(WebTest):
         )
         order_pattern.save()
 
+        use_case = UseCase.objects.get(identifier="cust_orders")
+
         puc = PatternUseCase(
             pattern=order_pattern,
-            use_case="cust_orders",
+            use_case=use_case,
         )
         puc.save()
 

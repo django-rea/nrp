@@ -489,7 +489,7 @@ def unscheduled_time_contributions(request):
             events = time_formset.save(commit=False)
             pattern = None
             try:
-                pattern = PatternUseCase.objects.get(use_case='non_prod').pattern
+                pattern = PatternUseCase.objects.get(use_case__identifier='non_prod').pattern
             except PatternUseCase.DoesNotExist:
                 raise ValidationError("no non-production ProcessPattern")
             if pattern:
@@ -525,7 +525,7 @@ def log_simple(request):
     if not member:
         return HttpResponseRedirect('/%s/'
             % ('accounting/start')) 
-    pattern = PatternUseCase.objects.get(use_case='design').pattern  #assumes only one pattern is assigned to design
+    pattern = PatternUseCase.objects.get(use_case__identifier='design').pattern  #assumes only one pattern is assigned to design
     output_form = SimpleOutputForm(data=request.POST or None)
     resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
     work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
@@ -1525,7 +1525,7 @@ def json_resource_type_defaults(request, resource_type_id):
 @login_required
 def create_order(request):
     try:
-        pattern = PatternUseCase.objects.get(use_case='cust_orders').pattern
+        pattern = PatternUseCase.objects.get(use_case__identifier='cust_orders').pattern
     except PatternUseCase.DoesNotExist:
         raise ValidationError("no Customer Order ProcessPattern")
     rts = pattern.all_resource_types()
@@ -1811,7 +1811,7 @@ def work(request):
     project_form = ProjectSelectionFormOptional(data=request.POST or None)
     chosen_project = None
     try:
-        pattern = PatternUseCase.objects.get(use_case='todo').pattern
+        pattern = PatternUseCase.objects.get(use_case__identifier='todo').pattern
         todo_form = TodoForm(pattern=pattern)
     except PatternUseCase.DoesNotExist:
         todo_form = TodoForm()
@@ -1872,7 +1872,7 @@ def add_todo(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         try:
-            pattern = PatternUseCase.objects.get(use_case='todo').pattern
+            pattern = PatternUseCase.objects.get(use_case__identifier='todo').pattern
             form = TodoForm(data=request.POST, pattern=pattern)
         except PatternUseCase.DoesNotExist:
             form = TodoForm(request.POST)
@@ -2083,7 +2083,7 @@ def start(request):
     todos = Commitment.objects.todos().filter(from_agent=agent)
     init = {"from_agent": agent,}
     try:
-        pattern = PatternUseCase.objects.get(use_case='todo').pattern
+        pattern = PatternUseCase.objects.get(use_case__identifier='todo').pattern
         todo_form = TodoForm(pattern=pattern, initial=init)
     except PatternUseCase.DoesNotExist:
         todo_form = TodoForm(initial=init)
@@ -5996,7 +5996,7 @@ def financial_contribution(request):
     if not member:
         return HttpResponseRedirect('/%s/'
             % ('accounting/start')) 
-    pattern = PatternUseCase.objects.get(use_case='financial').pattern 
+    pattern = PatternUseCase.objects.get(use_case__identifier='financial').pattern 
     financial_form = FinancialContributionForm(data=request.POST or None)
     resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
     #formset = create_resource_formset(pattern)

@@ -752,7 +752,7 @@ class ProcessPatternManager(models.Manager):
     def production_patterns(self):
         #import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(
-            Q(use_case='rand')|Q(use_case='design'))
+            Q(use_case__identifier='rand')|Q(use_case__identifier='design'))
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
 
@@ -973,7 +973,7 @@ class ProcessPattern(models.Model):
         return event_type
 
     def use_case_list(self):
-        ucl = [uc.get_use_case_display() for uc in self.use_cases.all()]
+        ucl = [uc.use_case.name for uc in self.use_cases.all()]
         return ", ".join(ucl)
 
     def facets_by_relationship(self, relationship):
@@ -1006,21 +1006,6 @@ class PatternFacetValue(models.Model):
     def __unicode__(self):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
 
-#todo: will be superceded by the class, retrofit as needed then delete
-USECASE_CHOICES = (
-    ('design', _('Design logging')),
-    ('non_prod', _('Non-production logging')),
-    ('rand', _('Process logging')),
-    ('recipe', _('Recipes')),
-    ('todo', _('Todos')),
-    ('cust_orders', _('Customer Orders')),
-    ('purchasing', _('Purchasing')),
-    ('cash_contr', _('Cash Contribution')),
-    ('res_contr', _('Material Contribution')),
-    ('purch_contr', _('Purchase Contribution')),
-    ('exp_contr', _('Expense Contribution')),
-)
-
 
 class UseCase(models.Model):
     identifier = models.CharField(_('identifier'), max_length=12)
@@ -1028,7 +1013,7 @@ class UseCase(models.Model):
     restrict_to_one_pattern = models.BooleanField(_('restrict_to_one_pattern'), default=False)
 
     def __unicode__(self):
-        return ", ".join([self.identifier, self.name])
+        return self.name
 
     @classmethod
     def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=1):
@@ -1080,11 +1065,15 @@ post_migrate.connect(create_use_cases)
 class PatternUseCase(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 
         verbose_name=_('pattern'), related_name='use_cases')
-    use_case = models.CharField(_('use case'), 
-        max_length=12, choices=USECASE_CHOICES)
+    use_case = models.ForeignKey(UseCase,
+        blank=True, null=True,
+        verbose_name=_('use case'), related_name='patterns')
 
     def __unicode__(self):
-        return ": ".join([self.pattern.name, self.get_use_case_display()])
+        use_case_name = ""
+        if self.use_case:
+            use_case_name = self.use_case.name
+        return ": ".join([self.pattern.name, use_case_name])
 
 
 class GoodResourceManager(models.Manager):
@@ -2167,8 +2156,6 @@ class Exchange(models.Model):
     process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
         verbose_name=_('pattern'), related_name='exchanges')
-    #use_case = models.CharField(_('use case'), 
-    #    max_length=12, choices=USECASE_CHOICES)
     use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
         verbose_name=_('use case'), related_name='exchanges')

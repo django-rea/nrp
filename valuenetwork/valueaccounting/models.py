@@ -757,11 +757,12 @@ class ProcessPatternManager(models.Manager):
         return ProcessPattern.objects.filter(id__in=pattern_ids)
 
     def usecase_patterns(self, use_case):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(
             Q(use_case=use_case))
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
+        
 
 class ProcessPattern(models.Model):
     name = models.CharField(_('name'), max_length=32)

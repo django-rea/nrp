@@ -97,6 +97,7 @@ def _slug_strip(value, separator=None):
 #        return self.name
         
 
+#for help text
 PAGE_CHOICES = (
     ('home', _('Home')),
     ('demand', _('Demand')),
@@ -111,6 +112,7 @@ PAGE_CHOICES = (
     ('labnote', _('Labnote view page')),
     ('all_work', _('All Work')),
     ('process', _('Process')),
+    ('exchange', _('Exchange')),
 )
 
 class Help(models.Model):
@@ -152,7 +154,7 @@ class FacetValue(models.Model):
     def __unicode__(self):
         return ": ".join([self.facet.name, self.value])
 
-
+#todo: not used??
 UNIT_TYPE_CHOICES = (
     ('area', _('area')),
     ('length', _('length')),
@@ -335,11 +337,17 @@ DIRECTION_CHOICES = (
     ('cite', _('citation')),
     ('work', _('work')),
     ('todo', _('todo')),
+    ('pay', _('payment')),
+    ('receive', _('receipt')),
+    ('expense', _('expense')),
+    ('cash', _('cash contribution')),
+    ('resource', _('resource contribution')),
 )
 
 RELATED_CHOICES = (
     ('process', _('process')),
-    ('agent', _('agent')),
+    ('agent', _('agent')), #not used logically as an event type, rather for agent - resource type relationships
+    ('exchange', _('exchange')),
 )
 
 RESOURCE_EFFECT_CHOICES = (
@@ -744,10 +752,17 @@ class ProcessPatternManager(models.Manager):
     def production_patterns(self):
         #import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(
-            Q(use_case='rand')|Q(use_case='design'))
+            Q(use_case__identifier='rand')|Q(use_case__identifier='design'))
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
 
+    def usecase_patterns(self, use_case):
+        #import pdb; pdb.set_trace()
+        use_cases = PatternUseCase.objects.filter(
+            Q(use_case=use_case))
+        pattern_ids = [uc.pattern.id for uc in use_cases]
+        return ProcessPattern.objects.filter(id__in=pattern_ids)
+        
 
 class ProcessPattern(models.Model):
     name = models.CharField(_('name'), max_length=32)
@@ -958,7 +973,7 @@ class ProcessPattern(models.Model):
         return event_type
 
     def use_case_list(self):
-        ucl = [uc.get_use_case_display() for uc in self.use_cases.all()]
+        ucl = [uc.use_case.name for uc in self.use_cases.all()]
         return ", ".join(ucl)
 
     def facets_by_relationship(self, relationship):
@@ -984,7 +999,6 @@ class PatternFacetValue(models.Model):
         verbose_name=_('event type'), related_name='patterns',
         help_text=_('consumed means gone, used means re-usable'))
 
-
     class Meta:
         unique_together = ('pattern', 'facet_value', 'event_type')
         ordering = ('pattern', 'event_type', 'facet_value')
@@ -993,25 +1007,73 @@ class PatternFacetValue(models.Model):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
 
 
-USECASE_CHOICES = (
-    ('design', _('Design logging')),
-    ('non_prod', _('Non-production logging')),
-    ('rand', _('R&D logging')),
-    ('recipe', _('Recipes')),
-    ('todo', _('Todos')),
-    ('cust_orders', _('Customer Orders')),
-    ('purchasing', _('Purchasing')),
-    ('financial', _('Financial Contributions')),
-)
+class UseCase(models.Model):
+    identifier = models.CharField(_('identifier'), max_length=12)
+    name = models.CharField(_('name'), max_length=128)
+    restrict_to_one_pattern = models.BooleanField(_('restrict_to_one_pattern'), default=False)
+
+    def __unicode__(self):
+        return self.name
+
+    @classmethod
+    def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=1):
+        """
+        Creates a new UseCase, updates an existing one, or does nothing.
+        
+        This is intended to be used as a post_syncdb manangement step.
+        """
+        try:
+            use_case = cls._default_manager.get(identifier=identifier)
+            updated = False
+            if name != use_case.name:
+                use_case.name = name
+                updated = True
+            if restrict_to_one_pattern != use_case.restrict_to_one_pattern:
+                use_case.restrict_to_one_pattern = restrict_to_one_pattern
+                updated = True
+            if updated:
+                use_case.save()
+                if verbosity > 1:
+                    print "Updated %s UseCase" % identifier
+        except cls.DoesNotExist:
+            cls(identifier=identifier, name=name, restrict_to_one_pattern=restrict_to_one_pattern).save()
+            if verbosity > 1:
+                print "Created %s UseCase" % identifier
+
+
+from south.signals import post_migrate
+
+def create_use_cases(app, **kwargs):
+    if app != "valueaccounting":
+        return
+    UseCase.create('design', _('Design logging'), True)
+    UseCase.create('non_prod', _('Non-production logging'), True)
+    UseCase.create('rand', _('Process logging'))
+    UseCase.create('recipe', _('Recipes'))
+    UseCase.create('todo', _('Todos'), True)
+    UseCase.create('cust_orders', _('Customer Orders'))
+    UseCase.create('purchasing', _('Purchasing'))
+    UseCase.create('cash_contr', _('Cash Contribution'), True)
+    UseCase.create('res_contr', _('Material Contribution'))
+    UseCase.create('purch_contr', _('Purchase Contribution'))
+    UseCase.create('exp_contr', _('Expense Contribution'), True)
+    print "created use cases"
+
+post_migrate.connect(create_use_cases)
+
 
 class PatternUseCase(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 
         verbose_name=_('pattern'), related_name='use_cases')
-    use_case = models.CharField(_('use case'), 
-        max_length=12, choices=USECASE_CHOICES)
+    use_case = models.ForeignKey(UseCase,
+        blank=True, null=True,
+        verbose_name=_('use case'), related_name='patterns')
 
     def __unicode__(self):
-        return ": ".join([self.pattern.name, self.get_use_case_display()])
+        use_case_name = ""
+        if self.use_case:
+            use_case_name = self.use_case.name
+        return ": ".join([self.pattern.name, use_case_name])
 
 
 class GoodResourceManager(models.Manager):
@@ -2087,6 +2149,60 @@ class Process(models.Model):
         from valuenetwork.valueaccounting.forms import ScheduleProcessForm
         init = {"start_date": self.start_date, "end_date": self.end_date, "notes": self.notes}
         return ScheduleProcessForm(prefix=str(self.id),initial=init)
+
+
+class Exchange(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('pattern'), related_name='exchanges')
+    use_case = models.ForeignKey(UseCase,
+        blank=True, null=True,
+        verbose_name=_('use case'), related_name='exchanges')
+    project = models.ForeignKey(Project,
+        blank=True, null=True,
+        verbose_name=_('project'), related_name='exchanges')
+    url = models.CharField(_('url'), max_length=255, blank=True)
+    start_date = models.DateField(_('start date'))
+    end_date = models.DateField(_('end date'), blank=True, null=True) 
+    notes = models.TextField(_('notes'), blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='exchanges_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='exchanges_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    #objects = ProcessManager()
+
+    class Meta:
+        #ordering = ('end_date',)
+        verbose_name_plural = _("exchanges")
+
+    def __unicode__(self):
+        return " ".join([
+            self.process_pattern.name,
+            "starting",
+            self.start_date.strftime('%Y-%m-%d'),
+            ])
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('exchange_details', (),
+            { 'exchange_id': str(self.id),})
+
+    def save(self, *args, **kwargs):
+        ext_name = ""
+        if self.exchange_type:
+            ext_name = self.exchange_type.name
+        slug = "-".join([
+            ext_name,
+            self.name,
+            self.start_date.strftime('%Y-%m-%d'),
+        ])
+        unique_slugify(self, slug)
+        super(Exchange, self).save(*args, **kwargs)
         
 
 class Feature(models.Model):
@@ -2414,6 +2530,9 @@ class Commitment(models.Model):
     process = models.ForeignKey(Process,
         blank=True, null=True,
         verbose_name=_('process'), related_name='commitments')
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('exchange'), related_name='commitments')
     project = models.ForeignKey(Project,
         blank=True, null=True,
         verbose_name=_('project'), related_name='commitments')
@@ -2860,6 +2979,10 @@ class EconomicEvent(models.Model):
     process = models.ForeignKey(Process,
         blank=True, null=True,
         verbose_name=_('process'), related_name='events',
+        on_delete=models.SET_NULL)
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
     project = models.ForeignKey(Project,
         blank=True, null=True,

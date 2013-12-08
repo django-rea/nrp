@@ -243,5 +243,10 @@ urlpatterns = patterns("",
         name="change_resource_facet_value"),
     url(r"^financial-contribution/$", 'valuenetwork.valueaccounting.views.financial_contribution', 
         name="financial_contribution"),
-        
+    url(r"^exchange/(?P<exchange_id>\d+)/$", 'valuenetwork.valueaccounting.views.exchange_logging', name="exchange_logging"), 
+    url(r"^create-exchange/(?P<use_case_identifier>\w+)/$", 'valuenetwork.valueaccounting.views.create_exchange', name="create_exchange"),     
+    url(r'^unplanned-payment-event/(?P<exchange_id>\d+)/$', 'valuenetwork.valueaccounting.views.add_unplanned_payment', 
+        name="add_unplanned_payment"),  
+    url(r'^payment-event/(?P<commitment_id>\d+)/$', 'valuenetwork.valueaccounting.views.payment_event_for_commitment', 
+        name="payment_event_for_commitment"), 
 )

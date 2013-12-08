@@ -1,0 +1,648 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Exchange" %}: {{ exchange }}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.use {
+    margin-left: 4em;
+    font-style: italic;
+}
+
+.event {
+    margin-left: 2em; 
+    margin-bottom: 4px;
+}
+
+.commitment {
+    margin-top: 4px;
+}
+
+.notes {
+    margin-left: 1em;
+    font-style: italic;
+}
+
+.error {
+    color: red;
+}
+
+.reskedForm {
+    display: inline;
+}
+#addCiteModal textarea, #addConsumableModal textarea, #addUsableModal textarea, #addWorkModal textarea, #addOutputModal textarea, .item-description, #resourceModal textarea {
+  width: 500px;
+  height: 100px;
+}
+
+.workEventModal textarea, .unplannedWorkModal textarea {
+  width: 500px;
+  height: 400px;
+}
+
+.btn {
+    margin-left: 10px;
+}
+h3, h4 {
+    color: firebrick;
+}
+li {
+    list-style-type: none;
+}
+.proc-notes {
+    font-style: italic;
+    font-weight: normal;
+    border: solid 1px gainsboro;
+    background-color: honeydew;
+    padding: 4px;
+    margin: 4px 0 10px 0;
+}
+.log-section {
+    border: solid 1px gainsboro;
+    background-color: beige; 
+    padding: 4px;
+    margin-bottom: 7px;   
+}
+.modal {
+    width: 600px;
+}
+.subsection-label {
+    font-weight: bold;
+}
+.detail-line {
+    margin: 0 0 0 2em;
+}
+.taken {
+    font-style: italic;
+    font-weight: bold;
+    color: #5C8A8A;
+}
+.unplanned {
+    color: 	#7D1818;
+}
+.event-label {
+    color: green;
+    font-weight: bold;
+    font-style: normal;
+}
+.indent {
+    margin-left: 3em;
+}
+
+.onhand {
+    margin-left: 2em;
+}
+.btn-mini {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}exchange{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+	<legend>
+		{% trans "Exchange" %}: <span>{{ exchange }}</span>
+	</legend>
+
+	<div class="row-fluid">
+
+		<div class="span7">
+          <div class="log-section">
+		    <h3 style="margin-bottom: 4px;" >
+		        {% trans "Payment" %}:  
+		        {% if logger %}
+		            <a href="#addPaymentModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a payment requirement">
+		                {% trans "Add a payment requirement" %}
+	                </a>
+	             {% endif %}
+	             {% if agent %}
+	                <a href="#unplannedPaymentModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unplanned payment" >
+		                {% trans "Log an unplanned payment" %}
+	                </a>
+	             {% endif %}
+	        </h3>
+		    {% for item in exchange.payment_commitments %}
+			    <div>
+				    <b>{% trans "Scheduled" %}: 
+			        <span class="payment-requirement" >
+			            </b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
+		            </span>
+		            {% if logger %}
+                        <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change payment requirement">
+			               <i class="icon-edit"></i>
+		                </a>
+		                <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+			                <div class="modal-header">
+				                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				                <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
+			                </div>
+			                <div class="modal-body">
+				                <form class="commitmentForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url change_exchange_commitment commitment_id=item.id %}" method="POST" >
+					                {% csrf_token %}
+					                {{ item.change_form|as_bootstrap }}
+					                <input type="hidden" id="next" name="next" value="exchange" />
+                                    <div class="modal-footer">
+                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                    </div>
+				                </form>
+			                </div>
+		                </div>
+
+		                <form
+		                    style="display: inline;" 
+                            class="delete-commitment-form" 
+                            id="deleteCommitmentForm{{ item.id }}" 
+                            action="{% url delete_exchange_commitment commitment_id=item.id %}" 
+                            method="POST" >
+                            {% csrf_token %}
+                        	<input type="hidden" id="next" name="next" value="exchange" />
+                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete payment requirement" >X</button>
+                        </form>
+		                
+		                <a href="#paymentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Pay this" >{% trans "Log Payment" %}</a>
+        
+                        <div class="modal hide fade paymentModal" id="paymentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="payment-label" aria-hidden="true">
+	                        <div class="modal-header">
+		                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		                        <h3 id="payment-label">{% trans "Payment" %}</h3>
+	                        </div>
+	                        <div class="modal-body">
+		                        <form class="payment-form validateMe" id="paymentForm{{ item.id }}" enctype="multipart/form-data" action="{% url log_payment_for_commitment commitment_id=item.id %}" method="POST" >
+			                        {% csrf_token %}
+			                        {{ item.resource_create_form|as_bootstrap }}
+		                          <div class="modal-footer">
+			                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+			                        <button class="btn btn-primary">{% trans "Save" %}</button>
+		                          </div>
+		                        </form>
+                            </div>
+                        </div>
+
+			        {% endif %}
+			    </div>
+			    
+			    {% if item.description %}
+		           <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+	            {% endif %}
+			
+			    {% for event in item.fulfilling_events %}
+				    <div class="event" >
+					    <span class="event-label">{% trans "Paid" %}:</span> <span class="event" >{{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} </span>
+					    {% if logger %}
+					        <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+					        <form
+					            style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete payment" >X</button>
+                            </form>
+					    {% endif %}
+					    </br>
+				    </div>
+			    {% endfor %}
+		    {% endfor %}
+
+            {% if exchange.uncommitted_payment_events %}
+                <h4 class="unplanned">{% trans "Unplanned Payments" %}:</h4>
+		        {% for event in exchange.uncommitted_payment_events %}
+			        <div class="event" >
+				        <b>{% trans "Paid" %}: <span class="event" >
+				            <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+				            {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				        {% if logger %}
+		                    <form
+				                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="exchange" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete payment" >X</button>
+                            </form>
+		                {% endif %}
+			        </div>
+		        {% endfor %}
+	        {% endif %}
+          </div>
+
+
+        
+
+	    </div>
+
+	    <div class="span5">
+            {% csrf_token %}
+            {{ exchange_form|as_bootstrap }}
+            
+	    </div>
+    </div>
+
+    {% if logger %}
+    
+	<div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            <h3 id="output-label">{% trans "Add an output requirement" %}</h3>
+            
+        </div>
+        <div class="modal-body">
+            <form class="output-form validateMe" enctype="multipart/form-data" id="addOutputForm" action="{% url add_process_output process_id=process.id %}" method="POST" >
+	            {% csrf_token %}
+
+                    <p class="modal-line">{% trans "Resource Type" %} </p>
+                    <p>{{ add_output_form.resource_type }} 
+                    {% comment %}
+                    <a href="#createResourceModal" role="button" class="add-another" data-toggle="modal">
+                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>                    
+                    </a> 
+                    {% endcomment %}
+                    </p>                   
+                    <p class="modal-line">{% trans "Quantity" %} </p>
+                    <p>{{ add_output_form.quantity }} </p>
+                    <p class="modal-line">{% trans "Unit of Quantity" %} </p>
+                    <p>{{ add_output_form.unit_of_quantity }}</p>
+                    <p class="modal-line">{% trans "Description" %} </p>
+                    <p class="desc">{{ add_output_form.description }} </p>
+
+              <div class="modal-footer">
+	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	            <button class="btn btn-primary">{% trans "Add output" %}</button>
+              </div>
+
+
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hide fade rtmodal" id="createResourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-consumable-create-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="resource-consumable-create-label">{% trans "Create a new Resource Type" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="resource-create-form validateMe" id="resource-create-form" enctype="multipart/form-data" action="." method="POST" >
+                {% csrf_token %}
+                {{ resource_type_form|as_bootstrap }}
+                {{ facet_formset.management_form }}
+                <table>
+                    {% for form in facet_formset %}
+                        <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                    {% endfor %}
+                </table>
+
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                <input type="submit" name="submit" id="save-resource-type" value="{% trans 'Save' %}" class="btn btn-primary save-resource-type" /> 
+                <input type="hidden" name="slot" value="out" />
+                <input type="hidden" name="pattern" value="{{ process.process_pattern.id }}" />
+              </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <div class="modal hide fade" id="addCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            <h3 id="cite-label">{% trans "Add a citation requirement" %}</h3>
+            
+        </div>
+        <div class="modal-body">
+            <form class="cite-form" enctype="multipart/form-data" id="addCitationForm" action="{% url add_process_citation process_id=process.id %}" method="POST" >
+	            {% csrf_token %}
+
+                    {{ add_citation_form|as_bootstrap }}
+
+              <div class="modal-footer">
+	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	            <button class="btn btn-primary">{% trans "Add citation" %}</button>
+              </div>
+
+
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hide fade" id="addConsumableModal" tabindex="-1" role="dialog" aria-labelledby="consumable-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            <h3 id="output-label">{% trans "Add a consumable input requirement" %}</h3>
+            
+        </div>
+        <div class="modal-body">
+            <form class="consumable-form validateMe" enctype="multipart/form-data" id="addConsumableForm" 
+                action="{% url add_process_input process_id=process.id slot='c' %}" method="POST" >
+	            {% csrf_token %}
+
+                    {{ add_consumable_form|as_bootstrap }}
+
+              <div class="modal-footer">
+	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	            <button class="btn btn-primary">{% trans "Add consumable" %}</button>
+              </div>
+
+
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hide fade" id="addUsableModal" tabindex="-1" role="dialog" aria-labelledby="use-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            <h3 id="output-label">{% trans "Add a usable input requirement" %}</h3>
+            
+        </div>
+        <div class="modal-body">
+            <form class="usable-form validateMe" enctype="multipart/form-data" id="addUsableForm" 
+                action="{% url add_process_input process_id=process.id  slot='u' %}" method="POST" >
+	            {% csrf_token %}
+
+                    {{ add_usable_form|as_bootstrap }}
+
+              <div class="modal-footer">
+	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	            <button class="btn btn-primary">{% trans "Add usable" %}</button>
+              </div>
+
+
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hide fade" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            <h3 id="work-label">
+                {% if worker %}
+                    {% trans "Invite a collaborator" %}
+                {% else %}
+                    {% trans "Add a work requirement" %}
+                {% endif %}
+            </h3>
+            
+        </div>
+        <div class="modal-body">
+            <form class="work-form validateMe" id="addWorkForm" action="{% url add_process_worker process_id=process.id %}" method="POST" >
+	            {% csrf_token %}
+
+                    {{ add_work_form|as_bootstrap }}
+
+              <div class="modal-footer">
+	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	            <button class="btn btn-primary">
+	                {% if worker %}
+                    {% trans "Invite collaborator" %}
+                {% else %}
+                    {% trans "Add work requirement" %}
+                {% endif %}
+                </button>
+              </div>
+
+
+            </form>
+        </div>
+    </div>
+
+     {% endif %}
+
+     {% if agent %}
+
+     <div class="modal hide fade unplannedPaymentModal" id="unplannedPaymentModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-payment-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="unplanned-payment">{% trans "Log Unplanned Payment" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="unplanned-payment-form validateMe" enctype="multipart/form-data" action="{% url add_unplanned_payment exchange_id=exchange.id %}" method="POST" >
+                {% csrf_token %}
+                {{ unplanned_payment_form|as_bootstrap }}
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+              </div>
+            </form>
+        </div>
+    </div>
+
+    {% endif %}
+ 
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#work').addClass('active');
+
+		$(".chzn-select").chosen();
+
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+		$(".res-ajax").change(getResources);
+
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
+
+        $.validator.addClassRules("quantity", { required: true, number: true, });
+		$.validator.addClassRules("url", { url: true });
+        $.validator.addClassRules("resourceType", { required: true});
+        $.validator.addClassRules("hours", { 
+			required: true,
+			number: true,
+			min: 0,
+			max: 24
+		});
+		$.validator.addClassRules("minutes", { 
+			required: true,
+			number: true,
+			min: 0,
+			max: 60
+		});
+
+
+        //$( ".validateMe" ).validate();
+        $('.validateMe').each( function(){
+			var form = $(this);
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				}
+			});
+		});
+
+		
+
+	    $(".resource-type-selector").change(getUnit);
+
+		function getUnit(event)
+		{
+	        $(".chzn-select").trigger("liszt:updated");
+		    var resourceId = event.target.value;
+		    if (resourceId)
+		    {
+                var targetId = event.target.id;
+			    if (targetId.search("usable") >= 0)
+			    {
+				    direction = "use";
+			    }
+			    else
+			    {
+				    direction = "other";
+			    }
+			    var prefix = targetId.split('-')[0];
+			    var unitName = "#" + prefix + "-unit_of_quantity";
+			    var jsonUrl = encodeURI("/accounting/json-directional-unit/" + resourceId + "/" + direction + "/");
+			    $.get(jsonUrl,
+				    function(data){
+					    var unit = data["unit"];
+                        $(unitName).val(unit);
+				    });
+		    }
+	    }
+
+
+        $( "#addOutputForm" ).validate({
+			rules: {
+			    'output-resource_type': {
+                    required: true
+				},
+				'output-quantity': {
+                    required: true,
+					number: true,
+					min: .01
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+		$( "#addConsumableForm" ).validate({
+			rules: {
+			    'input-resource_type': {
+                    required: true
+				},
+				'input-quantity': {
+                    required: true,
+					number: true,
+					min: .01
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+		$( "#addUsableForm" ).validate({
+			rules: {
+			    'input-resource_type': {
+                    required: true
+				},
+				'input-quantity': {
+                    required: true,
+					number: true,
+					min: .01
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+		$( "#addWorkForm" ).validate({
+			rules: {
+			    'input-resource_type': {
+                    required: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+
+		$('.commitmentForm').each( function(){
+			var form = $(this);
+
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				},
+			});
+		});
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+            $( "#help" ).text("Show Help");
+        })
+
+
+	}); // end document.ready
+
+    function getResources(event)
+	{
+        var selectedRT = event.target.value;
+        var selectId = event.target.id;
+        var selectSplit = selectId.split("-");
+        var resourcePrefix = selectSplit[0] + "-" + selectSplit[1];
+        var resourceFieldId = "#" + resourcePrefix + "-resource";
+        var jsonUrl = encodeURI("/accounting/json-resourcetype-resources/" + selectedRT + "/");
+        $(resourceFieldId).empty();
+	    $.get(jsonUrl,
+		    function(data){
+                for(var i=0 ; i<data.length ; i++)
+                {
+                    var id = data[i]['pk'];
+                    var name = data[i].fields['identifier']; 
+                    $(resourceFieldId).append('<option value="' + id + '">' + name + '</option>') 
+                }
+		    });
+	}
+
+    </script>
+
+{% endblock %}

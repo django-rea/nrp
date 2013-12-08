@@ -1006,6 +1006,17 @@ class PatternFacetValue(models.Model):
     def __unicode__(self):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
 
+USECASE_CHOICES = (
+    ('design', _('Design logging')),
+    ('non_prod', _('Non-production logging')),
+    ('rand', _('R&D logging')),
+    ('recipe', _('Recipes')),
+    ('todo', _('Todos')),
+    ('cust_orders', _('Customer Orders')),
+    ('purchasing', _('Purchasing')),
+    ('financial', _('Financial Contributions')),
+)
+
 
 class UseCase(models.Model):
     identifier = models.CharField(_('identifier'), max_length=12)
@@ -1046,6 +1057,7 @@ from south.signals import post_migrate
 def create_use_cases(app, **kwargs):
     if app != "valueaccounting":
         return
+    UseCase.create('financial', _('Financial Contribution'), True)
     UseCase.create('design', _('Design logging'), True)
     UseCase.create('non_prod', _('Non-production logging'), True)
     UseCase.create('rand', _('Process logging'))
@@ -1065,6 +1077,8 @@ post_migrate.connect(create_use_cases)
 class PatternUseCase(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 
         verbose_name=_('pattern'), related_name='use_cases')
+    use_case_temp = models.CharField(_('use case'), 
+        max_length=12, choices=USECASE_CHOICES)
     use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
         verbose_name=_('use case'), related_name='patterns')

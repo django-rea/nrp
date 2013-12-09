@@ -886,6 +886,18 @@ class PatternSelectionForm(forms.Form):
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
 
+    def __init__(self, queryset=None, *args, **kwargs):
+        super(PatternSelectionForm, self).__init__(*args, **kwargs)
+        if queryset:
+            self.fields["pattern"].queryset = queryset
+
+class UseCaseSelectionForm(forms.Form):
+    use_case = forms.ModelChoiceField(
+        queryset=UseCase.objects.all(),
+        label=_("Select Use Case"),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+
 class PatternProdSelectionForm(forms.Form):
     pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(),
@@ -895,9 +907,17 @@ class PatternProdSelectionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(PatternProdSelectionForm, self).__init__(*args, **kwargs)
-        self.fields["pattern"].queryset = ProcessPattern.objects.production_patterns()    
+        self.fields["pattern"].queryset = ProcessPattern.objects.production_patterns()   
 
 
+class PatternFacetValueForm(forms.ModelForm):
+    pattern_id = forms.CharField(widget=forms.HiddenInput)
+    event_type_id = forms.CharField(widget=forms.HiddenInput)
+
+    class Meta:
+        model = PatternFacetValue
+        fields = ('facet_value',)
+        
 class CasualTimeContributionForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
@@ -921,7 +941,7 @@ class CasualTimeContributionForm(forms.ModelForm):
         super(CasualTimeContributionForm, self).__init__(*args, **kwargs)
         pattern = None
         try:
-            pattern = PatternUseCase.objects.get(use_case='non_prod').pattern
+            pattern = PatternUseCase.objects.get(use_case__identifier='non_prod').pattern
         except PatternUseCase.DoesNotExist:
             pass
         if pattern:

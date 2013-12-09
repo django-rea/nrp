@@ -976,6 +976,9 @@ class ProcessPattern(models.Model):
         ucl = [uc.use_case.name for uc in self.use_cases.all()]
         return ", ".join(ucl)
 
+    def use_case_count(self):
+        return self.use_cases.all().count()
+
     def facets_by_relationship(self, relationship):
         pfvs = self.facet_values_for_relationship(relationship)
         facets = [pfv.facet_value.facet for pfv in pfvs]
@@ -3045,6 +3048,7 @@ class EconomicEvent(models.Model):
         agent_change = False
         project_change = False
         resource_type_change = False
+        contribution_change = False
         if self.pk:
             prev = EconomicEvent.objects.get(pk=self.pk)
             if prev.quantity != self.quantity:
@@ -3055,7 +3059,10 @@ class EconomicEvent(models.Model):
                 project_change = True
             if prev.resource_type != self.resource_type:
                 resource_type_change = True
-        if delta or agent_change or project_change or resource_type_change:
+            if prev.is_contribution != self.is_contribution:
+                if self.is_contribution:
+                    contribution_change = True
+        if delta or agent_change or project_change or resource_type_change or contribution_change:
             if self.is_contribution:
                 if agent_change or project_change or resource_type_change:
                     try:

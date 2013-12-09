@@ -192,6 +192,24 @@ def test_patterns(request):
     }, context_instance=RequestContext(request))
 
 @login_required
+def maintain_patterns(request):
+    use_case_form = UseCaseSelectionForm(data=request.POST or None)
+    use_case = None
+    patterns = []
+    if request.method == "POST":
+        if use_case_form.is_valid():
+            use_case = use_case_form.cleaned_data["use_case"]
+            patterns = [puc.pattern for puc in use_case.patterns.all()]
+            #import pdb; pdb.set_trace()
+
+                
+    return render_to_response("valueaccounting/maintain_patterns.html", {
+        "use_case_form": use_case_form,
+        "use_case": use_case,
+        "patterns": patterns,
+    }, context_instance=RequestContext(request))
+
+@login_required
 def sessions(request):
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')
@@ -3636,6 +3654,7 @@ def add_work_event(request, commitment_id):
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
+        event.is_contribution=True
         event.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
@@ -3657,6 +3676,7 @@ def add_unplanned_work_event(request, process_id):
             event.unit_of_quantity = rt.unit
             event.created_by = request.user
             event.changed_by = request.user
+            event.is_contribution=True
             event.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))

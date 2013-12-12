@@ -192,22 +192,166 @@ def test_patterns(request):
     }, context_instance=RequestContext(request))
 
 @login_required
-def maintain_patterns(request):
-    use_case_form = UseCaseSelectionForm(data=request.POST or None)
-    use_case = None
+def maintain_patterns(request, use_case_id=None):
     patterns = []
+    pattern_form = None
+    if use_case_id:
+        use_case = get_object_or_404(UseCase, id=use_case_id)
+        init = {"use_case": use_case,}
+        use_case_form = UseCaseSelectionForm(initial=init, data=request.POST or None)
+        patterns = [puc.pattern for puc in use_case.patterns.all()]
+        pattern_ids = [p.id for p in patterns]
+        #import pdb; pdb.set_trace()
+        if use_case.allows_more_patterns():
+            qs = ProcessPattern.objects.exclude(id__in=pattern_ids)
+            pattern_form = PatternSelectionForm(queryset=qs)
+    else:
+        use_case=None
+        use_case_form = UseCaseSelectionForm(data=request.POST or None)
     if request.method == "POST":
         if use_case_form.is_valid():
             use_case = use_case_form.cleaned_data["use_case"]
             patterns = [puc.pattern for puc in use_case.patterns.all()]
+            pattern_ids = [p.id for p in patterns]
             #import pdb; pdb.set_trace()
-
+            if use_case.allows_more_patterns():
+                qs = ProcessPattern.objects.exclude(id__in=pattern_ids)
+                pattern_form = PatternSelectionForm(queryset=qs)
                 
     return render_to_response("valueaccounting/maintain_patterns.html", {
         "use_case_form": use_case_form,
         "use_case": use_case,
         "patterns": patterns,
+        "pattern_form": pattern_form,
     }, context_instance=RequestContext(request))
+
+
+class AddFacetValueFormFormSet(BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        self.qs = kwargs.pop('qs', None)
+        super(AddFacetValueFormFormSet, self).__init__(*args, **kwargs)
+
+    def _construct_forms(self): 
+        self.forms = []
+        #import pdb; pdb.set_trace()
+        for i in xrange(self.total_form_count()):
+            self.forms.append(self._construct_form(i, qs=self.qs))
+
+
+@login_required
+def change_pattern(request, pattern_id):
+    pattern = get_object_or_404(ProcessPattern, id=pattern_id)
+    slots = pattern.event_types()
+    #import pdb; pdb.set_trace()
+    for slot in slots:
+        slot.resource_types = pattern.get_resource_types(slot)
+        slot.facets = pattern.facets_for_event_type(slot)          
+        FacetValueFormSet = modelformset_factory(
+            PatternFacetValue,
+            form=PatternFacetValueForm,
+            can_delete=True,
+            extra=2,
+            )
+        facet_value_formset = FacetValueFormSet(
+            queryset=slot.facets,
+            data=request.POST or None,
+            prefix=slot.relationship)
+        slot.formset = facet_value_formset
+        slot.rts = ResourceTypeSelectionForm(
+            qs=slot.resource_types,
+            prefix=slot.relationship)
+        #import pdb; pdb.set_trace()
+    slot_ids = [slot.id for slot in slots]
+    qs = EventType.objects.exclude(id__in=slot_ids)   
+    AdditionalFormset = modelformset_factory(
+        PatternFacetValue,
+        form=PatternAddFacetValueForm,
+        formset=AddFacetValueFormFormSet,
+        can_delete=False,
+        extra=4,
+        )
+    additional_formset = AdditionalFormset(
+        queryset=PatternFacetValue.objects.none(),
+        data=request.POST or None,
+        prefix='additional',
+        qs=qs)
+    #todo: add all event_types, not just pattern slots
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        for slot in slots:
+            for form in slot.formset:
+                if form.is_valid():
+                    data = form.cleaned_data
+                    old_value = data.get("id")
+                    new_value = data.get("facet_value")
+                    if old_value:
+                        if data["DELETE"]:
+                            old_value.delete()
+                        elif old_value.facet_value != new_value:
+                            if new_value:
+                                form.save()
+                    elif new_value:
+                        if not data["DELETE"]:
+                            fv = PatternFacetValue(
+                                pattern=pattern,
+                                event_type=slot,
+                                facet_value=new_value)
+                            fv.save()
+        for form in additional_formset:
+            if form.is_valid():
+                data = form.cleaned_data
+                event_type = data.get("event_type")
+                facet_value = data.get("facet_value")
+                if event_type and facet_value:
+                    pfv = form.save(commit=False)
+                    pfv.pattern = pattern
+                    pfv.save()
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/change-pattern', pattern.id))
+                        
+    return render_to_response("valueaccounting/change_pattern.html", {
+        "pattern": pattern,
+        "slots": slots,
+        "additional_formset": additional_formset,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def add_pattern_to_use_case(request, use_case_id):
+    if request.method == "POST":
+        use_case = get_object_or_404(UseCase, id=use_case_id)
+        #import pdb; pdb.set_trace()
+        add_pattern = request.POST.get("add-pattern")
+        new_pattern = request.POST.get("new-pattern")
+        if add_pattern:
+            form = PatternSelectionForm(data=request.POST)
+            if form.is_valid():
+                pattern = form.cleaned_data["pattern"]
+                puc = PatternUseCase(
+                    pattern=pattern,
+                    use_case=use_case)
+                puc.save()
+        if new_pattern:
+            pattern_name = request.POST.get("pattern-name")
+            if pattern_name:
+                pattern = ProcessPattern(name=pattern_name)
+                pattern.save()
+                puc = PatternUseCase(
+                    pattern=pattern,
+                    use_case=use_case)
+                puc.save()
+
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/maintain-patterns', use_case_id))
+
+@login_required          
+def remove_pattern_from_use_case(request, use_case_id, pattern_id):
+    if request.method == "POST":
+        puc = get_object_or_404(PatternUseCase, use_case__id=use_case_id, pattern__id=pattern_id)
+        puc.delete()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/maintain-patterns', use_case_id))
+        
 
 @login_required
 def sessions(request):

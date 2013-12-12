@@ -1043,6 +1043,13 @@ class UseCase(models.Model):
             if verbosity > 1:
                 print "Created %s UseCase" % identifier
 
+    def allows_more_patterns(self):
+        patterns_count = self.patterns.all().count()
+        if patterns_count:
+            if self.restrict_to_one_pattern:
+                return False
+        return True
+
 
 from south.signals import post_migrate
 
@@ -3061,6 +3068,7 @@ class EconomicEvent(models.Model):
                 resource_type_change = True
             if prev.is_contribution != self.is_contribution:
                 if self.is_contribution:
+                    delta = self.quantity
                     contribution_change = True
         if delta or agent_change or project_change or resource_type_change or contribution_change:
             if self.is_contribution:

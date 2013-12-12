@@ -911,12 +911,48 @@ class PatternProdSelectionForm(forms.Form):
 
 
 class PatternFacetValueForm(forms.ModelForm):
-    pattern_id = forms.CharField(widget=forms.HiddenInput)
-    event_type_id = forms.CharField(widget=forms.HiddenInput)
+    facet_value = forms.ModelChoiceField(
+        queryset=FacetValue.objects.all(), 
+        label="",
+        widget=forms.Select(attrs={'class': 'chzn-select input-xlarge'}))
 
     class Meta:
         model = PatternFacetValue
         fields = ('facet_value',)
+
+
+class PatternAddFacetValueForm(forms.ModelForm):
+    event_type = forms.ModelChoiceField(
+        queryset=EventType.objects.all(),
+        label="",
+        widget=forms.Select(attrs={'class': 'chzn-select input-medium'}))
+    facet_value = forms.ModelChoiceField(
+        queryset=FacetValue.objects.all(), 
+        label="",
+        widget=forms.Select(attrs={'class': 'chzn-select input-xlarge'}))
+
+    class Meta:
+        model = PatternFacetValue
+        fields = ('event_type', 'facet_value',)
+
+    def __init__(self, qs=None, *args, **kwargs):
+        super(PatternAddFacetValueForm, self).__init__(*args, **kwargs)
+        if qs:
+            self.fields["event_type"].queryset = qs
+
+
+class ResourceTypeSelectionForm(forms.Form):
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(), 
+        label="Resource Type",
+        widget=forms.Select(attrs={'class': 'chzn-select input-xlarge'}))
+
+    def __init__(self, qs=None, *args, **kwargs):
+        super(ResourceTypeSelectionForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if qs:
+            self.fields["resource_type"].queryset = qs    
+
         
 class CasualTimeContributionForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(

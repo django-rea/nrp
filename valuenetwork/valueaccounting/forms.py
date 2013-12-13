@@ -987,6 +987,12 @@ class CasualTimeContributionForm(forms.ModelForm):
 class DateSelectionForm(forms.Form):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     end_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    
+
+class DateAndNameForm(forms.Form):
+    start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    end_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    process_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
 
 
 class ResourceTypeFacetValueForm(forms.Form):

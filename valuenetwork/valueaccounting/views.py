@@ -5715,7 +5715,7 @@ def process_selections(request, rand=0):
     #import pdb; pdb.set_trace()
     project_form = ProjectSelectionForm()
     init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
-    date_form = DateSelectionForm(data=request.POST or None)
+    process_form = DateAndNameForm(data=request.POST or None)
     demand_form = DemandSelectionForm(data=request.POST or None)
     if request.method == "POST":
         input_resource_types = []
@@ -5733,14 +5733,15 @@ def process_selections(request, rand=0):
                 slots = selected_pattern.event_types()
                 for slot in slots:
                     slot.resource_types = selected_pattern.get_resource_types(slot)
-            date_form = DateSelectionForm(initial=init)
+            process_form = DateAndNameForm(initial=init)
         else:
             #import pdb; pdb.set_trace()
             rp = request.POST
             today = datetime.date.today()
-            if date_form.is_valid():
-                start_date = date_form.cleaned_data["start_date"]
-                end_date = date_form.cleaned_data["end_date"]
+            if process_form.is_valid():
+                start_date = process_form.cleaned_data["start_date"]
+                end_date = process_form.cleaned_data["end_date"]
+                process_name = process_form.cleaned_data["process_name"]
             else:
                 start_date = today
                 end_date = today
@@ -5808,16 +5809,16 @@ def process_selections(request, rand=0):
                         due_date=end_date,
                         created_by=request.user)
                     demand.save()
-
-            name = "Make something"
-            if produced_rts:
-                name = " ".join([
-                    "Make",
-                    produced_rts[0].name,
-                ])
+            if not process_name:
+                process_name = "Make something"
+                if produced_rts:
+                    process_name = " ".join([
+                        "Make",
+                        produced_rts[0].name,
+                    ])
 
             process = Process(
-                name=name,
+                name=process_name,
                 end_date=end_date,
                 start_date=start_date,
                 process_pattern=selected_pattern,
@@ -5955,7 +5956,7 @@ def process_selections(request, rand=0):
         "selected_project": selected_project,
         "project_form": project_form,
         "pattern_form": pattern_form,
-        "date_form": date_form,
+        "process_form": process_form,
         "demand_form": demand_form,
         "rand": rand,
         "help": get_help("process_selections"),

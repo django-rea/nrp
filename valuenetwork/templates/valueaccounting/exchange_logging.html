@@ -177,7 +177,7 @@ li {
                             method="POST" >
                             {% csrf_token %}
                         	<input type="hidden" id="next" name="next" value="exchange" />
-                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete payment requirement" >X</button>
+                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete payment commitment" >X</button>
                         </form>
 		                
 		                <a href="#paymentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Pay this" >{% trans "Log Payment" %}</a>
@@ -269,179 +269,10 @@ li {
 
     {% if logger %}
     
-	<div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 
-            <h3 id="output-label">{% trans "Add an output requirement" %}</h3>
-            
-        </div>
-        <div class="modal-body">
-            <form class="output-form validateMe" enctype="multipart/form-data" id="addOutputForm" action="{% url add_process_output process_id=process.id %}" method="POST" >
-	            {% csrf_token %}
+    {% endif %}
 
-                    <p class="modal-line">{% trans "Resource Type" %} </p>
-                    <p>{{ add_output_form.resource_type }} 
-                    {% comment %}
-                    <a href="#createResourceModal" role="button" class="add-another" data-toggle="modal">
-                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>                    
-                    </a> 
-                    {% endcomment %}
-                    </p>                   
-                    <p class="modal-line">{% trans "Quantity" %} </p>
-                    <p>{{ add_output_form.quantity }} </p>
-                    <p class="modal-line">{% trans "Unit of Quantity" %} </p>
-                    <p>{{ add_output_form.unit_of_quantity }}</p>
-                    <p class="modal-line">{% trans "Description" %} </p>
-                    <p class="desc">{{ add_output_form.description }} </p>
-
-              <div class="modal-footer">
-	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-	            <button class="btn btn-primary">{% trans "Add output" %}</button>
-              </div>
-
-
-            </form>
-        </div>
-    </div>
-
-    <div class="modal hide fade rtmodal" id="createResourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-consumable-create-label" aria-hidden="true">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="resource-consumable-create-label">{% trans "Create a new Resource Type" %}</h3>
-        </div>
-        <div class="modal-body">
-            <form class="resource-create-form validateMe" id="resource-create-form" enctype="multipart/form-data" action="." method="POST" >
-                {% csrf_token %}
-                {{ resource_type_form|as_bootstrap }}
-                {{ facet_formset.management_form }}
-                <table>
-                    {% for form in facet_formset %}
-                        <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
-                    {% endfor %}
-                </table>
-
-              <div class="modal-footer">
-                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                <input type="submit" name="submit" id="save-resource-type" value="{% trans 'Save' %}" class="btn btn-primary save-resource-type" /> 
-                <input type="hidden" name="slot" value="out" />
-                <input type="hidden" name="pattern" value="{{ process.process_pattern.id }}" />
-              </div>
-
-            </form>
-
-        </div>
-    </div>
-
-    <div class="modal hide fade" id="addCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-
-            <h3 id="cite-label">{% trans "Add a citation requirement" %}</h3>
-            
-        </div>
-        <div class="modal-body">
-            <form class="cite-form" enctype="multipart/form-data" id="addCitationForm" action="{% url add_process_citation process_id=process.id %}" method="POST" >
-	            {% csrf_token %}
-
-                    {{ add_citation_form|as_bootstrap }}
-
-              <div class="modal-footer">
-	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-	            <button class="btn btn-primary">{% trans "Add citation" %}</button>
-              </div>
-
-
-            </form>
-        </div>
-    </div>
-
-    <div class="modal hide fade" id="addConsumableModal" tabindex="-1" role="dialog" aria-labelledby="consumable-label" aria-hidden="true">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-
-            <h3 id="output-label">{% trans "Add a consumable input requirement" %}</h3>
-            
-        </div>
-        <div class="modal-body">
-            <form class="consumable-form validateMe" enctype="multipart/form-data" id="addConsumableForm" 
-                action="{% url add_process_input process_id=process.id slot='c' %}" method="POST" >
-	            {% csrf_token %}
-
-                    {{ add_consumable_form|as_bootstrap }}
-
-              <div class="modal-footer">
-	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-	            <button class="btn btn-primary">{% trans "Add consumable" %}</button>
-              </div>
-
-
-            </form>
-        </div>
-    </div>
-
-    <div class="modal hide fade" id="addUsableModal" tabindex="-1" role="dialog" aria-labelledby="use-label" aria-hidden="true">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-
-            <h3 id="output-label">{% trans "Add a usable input requirement" %}</h3>
-            
-        </div>
-        <div class="modal-body">
-            <form class="usable-form validateMe" enctype="multipart/form-data" id="addUsableForm" 
-                action="{% url add_process_input process_id=process.id  slot='u' %}" method="POST" >
-	            {% csrf_token %}
-
-                    {{ add_usable_form|as_bootstrap }}
-
-              <div class="modal-footer">
-	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-	            <button class="btn btn-primary">{% trans "Add usable" %}</button>
-              </div>
-
-
-            </form>
-        </div>
-    </div>
-
-    <div class="modal hide fade" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-
-            <h3 id="work-label">
-                {% if worker %}
-                    {% trans "Invite a collaborator" %}
-                {% else %}
-                    {% trans "Add a work requirement" %}
-                {% endif %}
-            </h3>
-            
-        </div>
-        <div class="modal-body">
-            <form class="work-form validateMe" id="addWorkForm" action="{% url add_process_worker process_id=process.id %}" method="POST" >
-	            {% csrf_token %}
-
-                    {{ add_work_form|as_bootstrap }}
-
-              <div class="modal-footer">
-	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-	            <button class="btn btn-primary">
-	                {% if worker %}
-                    {% trans "Invite collaborator" %}
-                {% else %}
-                    {% trans "Add work requirement" %}
-                {% endif %}
-                </button>
-              </div>
-
-
-            </form>
-        </div>
-    </div>
-
-     {% endif %}
-
-     {% if agent %}
+    {% if agent %}
 
      <div class="modal hide fade unplannedPaymentModal" id="unplannedPaymentModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-payment-label" aria-hidden="true">
         <div class="modal-header">
@@ -458,7 +289,7 @@ li {
               </div>
             </form>
         </div>
-    </div>
+     </div>
 
     {% endif %}
  

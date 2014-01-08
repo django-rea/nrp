@@ -106,6 +106,10 @@ li {
     margin-bottom: 1px;
 }
 
+#id_notes, #id_url {
+    width: 32em;
+}
+
 </style>
 
 {% endblock %}
@@ -127,8 +131,8 @@ li {
 		    <h3 style="margin-bottom: 4px;" >
 		        {% trans "Payment" %}:  
 		        {% if logger %}
-		            <a href="#addPaymentModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a payment requirement">
-		                {% trans "Add a payment requirement" %}
+		            <a href="#addPaymentModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a payment commitment">
+		                {% trans "Add a payment commitment" %}
 	                </a>
 	             {% endif %}
 	             {% if agent %}
@@ -254,8 +258,12 @@ li {
 
 	    <div class="span5">
             {% csrf_token %}
+
             {{ exchange_form|as_bootstrap }}
-            
+
+            <div class="form-actions">
+				<input type="submit" name="save" value="{% trans 'Save changes' %}" class="btn btn-primary" /> 
+			</div>
 	    </div>
     </div>
 
@@ -468,7 +476,7 @@ li {
 
 	$(document).ready(function(){
 
-		$('#work').addClass('active');
+		//$('#work').addClass('active');
 
 		$(".chzn-select").chosen();
 

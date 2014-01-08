@@ -1463,4 +1463,5 @@ class ExchangeForm(forms.ModelForm):
     def __init__(self, use_case, *args, **kwargs):
         super(ExchangeForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
+ 
 

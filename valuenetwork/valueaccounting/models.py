@@ -2204,17 +2204,55 @@ class Exchange(models.Model):
             { 'exchange_id': str(self.id),})
 
     def save(self, *args, **kwargs):
-        ext_name = ""
-        if self.exchange_type:
-            ext_name = self.exchange_type.name
         slug = "-".join([
-            ext_name,
             self.name,
             self.start_date.strftime('%Y-%m-%d'),
         ])
         unique_slugify(self, slug)
         super(Exchange, self).save(*args, **kwargs)
+
+    def receipt_commitments(self):
+        return self.commitments.filter(
+            event_type__relationship='receipt')
+
+    def payment_commitments(self):
+        return self.commitments.filter(
+            event_type__relationship='payment')
+
+    def receipt_events(self):
+        return self.events.filter(
+            event_type__relationship='receipt')
+
+    def uncommitted_receipt_events(self):
+        return self.events.filter(
+            event_type__relationship='receipt',
+            commitment=None)
+
+    def payment_events(self):
+        return self.events.filter(
+            event_type__relationship='payment')
+
+    def uncommitted_payment_events(self):
+        return self.events.filter(
+            event_type__relationship='payment',
+            commitment=None)
+
+    def work_events(self):
+        return self.events.filter(
+            event_type__relationship='work')
+
+    def expense_events(self):
+        return self.events.filter(
+            event_type__relationship='expense')
+
+    def material_contribution_events(self):
+        return self.events.filter(
+            event_type__relationship='resource contribution')
         
+    def cash_contribution_events(self):
+        return self.events.filter(
+            event_type__relationship='cash contribution')
+
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)

@@ -168,11 +168,20 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'PatternFacetValue', fields ['pattern', 'facet_value', 'event_type']
         db.create_unique('valueaccounting_patternfacetvalue', ['pattern_id', 'facet_value_id', 'event_type_id'])
 
+        # Adding model 'UseCase'
+        db.create_table('valueaccounting_usecase', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('identifier', self.gf('django.db.models.fields.CharField')(max_length=12)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
+            ('restrict_to_one_pattern', self.gf('django.db.models.fields.BooleanField')(default=False)),
+        ))
+        db.send_create_signal('valueaccounting', ['UseCase'])
+
         # Adding model 'PatternUseCase'
         db.create_table('valueaccounting_patternusecase', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('pattern', self.gf('django.db.models.fields.related.ForeignKey')(related_name='use_cases', to=orm['valueaccounting.ProcessPattern'])),
-            ('use_case', self.gf('django.db.models.fields.CharField')(max_length=12)),
+            ('use_case', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='patterns', null=True, to=orm['valueaccounting.UseCase'])),
         ))
         db.send_create_signal('valueaccounting', ['PatternUseCase'])
 
@@ -290,6 +299,25 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('valueaccounting', ['Process'])
 
+        # Adding model 'Exchange'
+        db.create_table('valueaccounting_exchange', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
+            ('process_pattern', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges', null=True, to=orm['valueaccounting.ProcessPattern'])),
+            ('use_case', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges', null=True, to=orm['valueaccounting.UseCase'])),
+            ('project', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges', null=True, to=orm['valueaccounting.Project'])),
+            ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
+            ('start_date', self.gf('django.db.models.fields.DateField')()),
+            ('end_date', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
+            ('notes', self.gf('django.db.models.fields.TextField')(blank=True)),
+            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges_created', null=True, to=orm['auth.User'])),
+            ('changed_by', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges_changed', null=True, to=orm['auth.User'])),
+            ('created_date', self.gf('django.db.models.fields.DateField')(auto_now_add=True, null=True, blank=True)),
+            ('changed_date', self.gf('django.db.models.fields.DateField')(auto_now=True, null=True, blank=True)),
+            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
+        ))
+        db.send_create_signal('valueaccounting', ['Exchange'])
+
         # Adding model 'Feature'
         db.create_table('valueaccounting_feature', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -350,6 +378,7 @@ class Migration(SchemaMigration):
             ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.EconomicResourceType'])),
             ('resource', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.EconomicResource'])),
             ('process', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.Process'])),
+            ('exchange', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.Exchange'])),
             ('project', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.Project'])),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
@@ -393,6 +422,7 @@ class Migration(SchemaMigration):
             ('resource_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='events', to=orm['valueaccounting.EconomicResourceType'])),
             ('resource', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events', null=True, to=orm['valueaccounting.EconomicResource'])),
             ('process', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events', null=True, on_delete=models.SET_NULL, to=orm['valueaccounting.Process'])),
+            ('exchange', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events', null=True, on_delete=models.SET_NULL, to=orm['valueaccounting.Exchange'])),
             ('project', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events', null=True, on_delete=models.SET_NULL, to=orm['valueaccounting.Project'])),
             ('url', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
@@ -486,6 +516,9 @@ class Migration(SchemaMigration):
         # Deleting model 'PatternFacetValue'
         db.delete_table('valueaccounting_patternfacetvalue')
 
+        # Deleting model 'UseCase'
+        db.delete_table('valueaccounting_usecase')
+
         # Deleting model 'PatternUseCase'
         db.delete_table('valueaccounting_patternusecase')
 
@@ -506,6 +539,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Process'
         db.delete_table('valueaccounting_process')
+
+        # Deleting model 'Exchange'
+        db.delete_table('valueaccounting_exchange')
 
         # Deleting model 'Feature'
         db.delete_table('valueaccounting_feature')
@@ -637,6 +673,7 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'due_date': ('django.db.models.fields.DateField', [], {}),
             'event_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'commitments'", 'to': "orm['valueaccounting.EventType']"}),
+            'exchange': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments'", 'null': 'True', 'to': "orm['valueaccounting.Exchange']"}),
             'finished': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'from_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'given_commitments'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
             'from_agent_type': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'given_commitments'", 'null': 'True', 'to': "orm['valueaccounting.AgentType']"}),
@@ -694,6 +731,7 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'event_date': ('django.db.models.fields.DateField', [], {}),
             'event_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'events'", 'to': "orm['valueaccounting.EventType']"}),
+            'exchange': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'events'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['valueaccounting.Exchange']"}),
             'from_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'given_events'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_contribution': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -759,6 +797,23 @@ class Migration(SchemaMigration):
             'resource_effect': ('django.db.models.fields.CharField', [], {'max_length': '12'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
             'unit_type': ('django.db.models.fields.CharField', [], {'max_length': '12', 'blank': 'True'})
+        },
+        'valueaccounting.exchange': {
+            'Meta': {'object_name': 'Exchange'},
+            'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
+            'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges_created'", 'null': 'True', 'to': "orm['auth.User']"}),
+            'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
+            'end_date': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'notes': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'process_pattern': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges'", 'null': 'True', 'to': "orm['valueaccounting.ProcessPattern']"}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges'", 'null': 'True', 'to': "orm['valueaccounting.Project']"}),
+            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
+            'start_date': ('django.db.models.fields.DateField', [], {}),
+            'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
+            'use_case': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges'", 'null': 'True', 'to': "orm['valueaccounting.UseCase']"})
         },
         'valueaccounting.facet': {
             'Meta': {'ordering': "('name',)", 'object_name': 'Facet'},
@@ -828,7 +883,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'PatternUseCase'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'pattern': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'use_cases'", 'to': "orm['valueaccounting.ProcessPattern']"}),
-            'use_case': ('django.db.models.fields.CharField', [], {'max_length': '12'})
+            'use_case': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'patterns'", 'null': 'True', 'to': "orm['valueaccounting.UseCase']"})
         },
         'valueaccounting.process': {
             'Meta': {'ordering': "('end_date',)", 'object_name': 'Process'},
@@ -927,6 +982,13 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
             'symbol': ('django.db.models.fields.CharField', [], {'max_length': '1', 'blank': 'True'}),
             'unit_type': ('django.db.models.fields.CharField', [], {'max_length': '12'})
+        },
+        'valueaccounting.usecase': {
+            'Meta': {'object_name': 'UseCase'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'identifier': ('django.db.models.fields.CharField', [], {'max_length': '12'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'restrict_to_one_pattern': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
         }
     }
 

@@ -1335,7 +1335,7 @@ li {
 			min: 0,
 			max: 60
 		});
-
+        $.validator.addClassRules("date-entry", { required: true, date: true, });
 
         $('.validateMe').each( function(){
 			var form = $(this);

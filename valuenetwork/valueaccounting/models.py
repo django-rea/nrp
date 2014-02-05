@@ -588,6 +588,11 @@ class EconomicResourceType(models.Model):
         return self.commitments.filter(
             event_type__relationship='out')
 
+    def active_producing_commitments(self):
+        return self.commitments.filter(
+            event_type__relationship='out',
+            process__finished=False)
+
     def consuming_commitments(self):
         return self.commitments.filter(
             event_type__relationship='consume')
@@ -2247,6 +2252,9 @@ class Exchange(models.Model):
             { 'exchange_id': str(self.id),})
 
     def save(self, *args, **kwargs):
+        ext_name = ""
+        #if self.exchange_type:
+        #    ext_name = self.exchange_type.name
         slug = "-".join([
             self.name,
             self.start_date.strftime('%Y-%m-%d'),

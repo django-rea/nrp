@@ -777,8 +777,8 @@ li {
 						        {% endfor %}
 					        </div>
 				        {% endfor %}
-			        {% elif item.resource_type.producing_commitments %}
-                    	{% for ct in item.resource_type.producing_commitments %}
+			        {% elif item.resource_type.active_producing_commitments %}
+                    	{% for ct in item.resource_type.active_producing_commitments %}
 					        <p class="detail-line">
 						        <b>{% trans "Scheduled" %}:</b> 
 						        <a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a>
@@ -976,8 +976,8 @@ li {
 						        <span class="event-label">{% trans "Used" %}:</span> {{ item.fulfilled_quantity }} {{ item.resource_type.unit_of_use }}
 					        </p>
 				        </div>
-			        {% elif item.resource_type.producing_commitments %}
-                    	{% for ct in item.resource_type.producing_commitments %}
+			        {% elif item.resource_type.active_producing_commitments %}
+                    	{% for ct in item.resource_type.active_producing_commitments %}
 					        <p class="detail-line">
 						        <b>{% trans "Scheduled" %}:</b> 
 						        <span class="scheduled-receipt" ><a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a></span>
@@ -1335,7 +1335,7 @@ li {
 			min: 0,
 			max: 60
 		});
-
+        $.validator.addClassRules("date-entry", { required: true, date: true, });
 
         $('.validateMe').each( function(){
 			var form = $(this);

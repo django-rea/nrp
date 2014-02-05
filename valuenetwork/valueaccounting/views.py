@@ -3070,7 +3070,6 @@ def change_event(request, event_id):
         "page": page,
     }, context_instance=RequestContext(request)) 
 
-#todo: fix this up for exchange payments or create a new one
 @login_required        
 def delete_event(request, event_id):
     #import pdb; pdb.set_trace()
@@ -3078,6 +3077,7 @@ def delete_event(request, event_id):
         event = get_object_or_404(EconomicEvent, pk=event_id)
         agent = event.from_agent
         process = event.process
+        exchange = event.exchange
         resource = event.resource
         if resource:
             if event.consumes_resources():
@@ -3095,6 +3095,9 @@ def delete_event(request, event_id):
     if next == "process":
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', process.id))
+    if next == "exchange":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/exchange', exchange.id))
     if next == "resource":
         resource_id = request.POST.get("resource_id")
         return HttpResponseRedirect('/%s/%s/'
@@ -3824,6 +3827,27 @@ def add_unplanned_work_event(request, process_id):
             event.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
+
+@login_required
+def add_work_for_exchange(request, exchange_id):
+    #import pdb; pdb.set_trace()
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
+    pattern = exchange.process_pattern
+    if pattern:
+        form = WorkEventAgentForm(prefix="work", data=request.POST, pattern=pattern)
+        if form.is_valid():
+            event = form.save(commit=False)
+            rt = event.resource_type
+            event.event_type = pattern.event_type_for_resource_type("work", rt)
+            event.exchange = exchange
+            event.project = exchange.project
+            event.unit_of_quantity = rt.unit
+            event.created_by = request.user
+            event.changed_by = request.user
+            event.is_contribution=True
+            event.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
 
 @login_required
 def add_use_event(request, commitment_id, resource_id):
@@ -6332,15 +6356,29 @@ def exchange_logging(request, exchange_id):
             req.changeform = req.change_form()
         for req in payment_commitments:
             req.changeform = req.change_form()
+        if "payment" in slots:
+            add_payment_form = UnplannedCiteEventForm(prefix='add-pmt', pattern=pattern)
+            if logger:
+                add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern) 
+        if "work" in slots:
+            work_init = {
+                "from_agent": agent,
+                "event_date": datetime.date.today()
+            }      
+            add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern, data=request.POST or None)
 
     if request.method == "POST":
+        import pdb; pdb.set_trace()
         if exchange_form.is_valid():
             exchange = exchange_form.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/exchange', exchange.id))
 
     return render_to_response("valueaccounting/exchange_logging.html", {
         "exchange": exchange,
         "exchange_form": exchange_form,
         "agent": agent,
+        "user": request.user,
         "logger": logger,
         "slots": slots,
         "payment_commitments": payment_commitments,
@@ -6423,3 +6461,6 @@ def payment_event_for_commitment(request):
 
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
+
+
+

@@ -1061,15 +1061,13 @@ from south.signals import post_migrate
 def create_use_cases(app, **kwargs):
     if app != "valueaccounting":
         return
-    UseCase.create('financial', _('Financial Contribution'), True) #dup of cash contr?
-    UseCase.create('design', _('Design logging'), True) #remove when remove page
+    UseCase.create('financial', _('Financial Contribution'), True) 
     UseCase.create('non_prod', _('Non-production logging'), True)
     UseCase.create('rand', _('Process logging'))
     UseCase.create('recipe', _('Recipes'))
     UseCase.create('todo', _('Todos'), True)
     UseCase.create('cust_orders', _('Customer Orders'))
     UseCase.create('purchasing', _('Purchasing')) #might not need?
-    UseCase.create('cash_contr', _('Cash Contribution'), True)
     UseCase.create('res_contr', _('Material Contribution'))
     UseCase.create('purch_contr', _('Purchase Contribution'))
     UseCase.create('exp_contr', _('Expense Contribution'), True)

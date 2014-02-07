@@ -340,6 +340,7 @@ li {
 				                <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your work" >
 					                {% trans "Log work" %}
 				                </a>
+				                <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
 			
 				                <div class="modal hide fade workEventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
 					                <div class="modal-header">
@@ -366,7 +367,7 @@ li {
 			                    <div class="event">
 			                        <div class="subsection-label event-label" >{% trans "Work events" %}:</div>
 				                    {% for event in work_events %}
-					                
+					                    <div>
 					                    {{ event.event_date }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}
 					                    
 					                    {% if agent == item.from_agent  %}
@@ -407,6 +408,7 @@ li {
 					                    {% if event.description %}
 			                               <div class="notes"> {{ event.description|urlize|linebreaks }}</div>
 		                                {% endif %}
+		                                </div>
 				                    {% endfor %}
 				                </div>
 				            {% endif %}

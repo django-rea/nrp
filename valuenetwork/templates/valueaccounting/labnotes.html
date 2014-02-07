@@ -47,7 +47,7 @@
 				        <b>{% trans "From" %}: {{ commitment.from_agent }}</b> {{ commitment.resource_type }}
 			        </a>
 			        {% if commitment.from_agent = agent %}
-			        <a href="{% url work_commitment commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Open" %}</a>
+			        <a href="{% url work_now process_id=process.id commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Open" %}</a>
 			        {% endif %}
 			    </p>
 			    <p style="margin-left: 2em;">

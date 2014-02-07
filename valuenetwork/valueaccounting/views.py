@@ -2480,7 +2480,7 @@ def create_labnotes_context(
         prev_dur = sum(prev.quantity for prev in prev_events)
         unit = ""
         if commitment.unit_of_quantity:
-            unit = commitment.unit_of_quantity.name
+            unit = commitment.unit_of_quantity.abbrev
         prev = " ".join([str(prev_dur), unit])
     others_working = []
     other_work_reqs = []
@@ -2540,6 +2540,8 @@ def create_labnotes_context(
         "resource_names": resource_names,
         "help": get_help("labnotes"),
     }
+
+
 
 def new_process_output(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
@@ -3261,6 +3263,89 @@ def work_commitment(
         template_params,
         context_instance=RequestContext(request))
 
+def create_worknow_context(
+        request, 
+        process,
+        agent,
+        commitment):
+    prev = ""
+    today = datetime.date.today()
+    #todo: will not now handle lack of commitment
+    event = EconomicEvent(
+        event_date=today,
+        from_agent=agent,
+        process=process,
+        project=process.project,
+        quantity=Decimal("0"),
+        is_contribution=True,
+    )
+        
+    if commitment:
+        event.commitment = commitment
+        event.event_type = commitment.event_type
+        event.resource_type = commitment.resource_type
+        event.unit_of_quantity = commitment.resource_type.unit
+        init = {
+            "work_done": commitment.finished,
+            "process_done": commitment.process.finished,
+        }
+        wb_form = WorkbookForm(initial=init)
+        prev_events = commitment.fulfillment_events.filter(event_date__lt=today)
+        if prev_events:
+            prev_dur = sum(prev.quantity for prev in prev_events)
+            unit = ""
+            if commitment.unit_of_quantity:
+                unit = commitment.unit_of_quantity.abbrev
+            prev = " ".join([str(prev_dur), unit])
+    else:
+        wb_form = WorkbookForm()
+    event.save()
+    others_working = []
+    other_work_reqs = []
+    wrqs = process.work_requirements()
+    if wrqs.count() > 1:
+        for wrq in wrqs:
+            if wrq.from_agent != commitment.from_agent:
+                if wrq.from_agent:
+                    wrq.has_labnotes = wrq.agent_has_labnotes(wrq.from_agent)
+                    others_working.append(wrq)
+                else:
+                    other_work_reqs.append(wrq)
+    return {
+        "commitment": commitment,
+        "process": process,
+        "wb_form": wb_form,
+        "others_working": others_working,
+        "other_work_reqs": other_work_reqs,
+        "today": today,
+        "prev": prev,
+        "event": event,
+        "help": get_help("labnotes"),
+    }
+
+@login_required
+def work_now(
+        request,
+        process_id,
+        commitment_id=None):
+    process = get_object_or_404(Process, id=process_id)
+    agent = get_agent(request) 
+    ct = None  
+    if commitment_id:
+        ct = get_object_or_404(Commitment, id=commitment_id)    
+        if not request.user.is_superuser:
+            if agent != ct.from_agent:
+                return render_to_response('valueaccounting/no_permission.html')
+    template_params = create_worknow_context(
+        request, 
+        process,
+        agent,
+        ct, 
+    )
+    return render_to_response("valueaccounting/work_now.html",
+        template_params,
+        context_instance=RequestContext(request))
+
 def create_past_work_context(
         request, 
         commitment, 
@@ -3408,6 +3493,27 @@ def log_past_work(
     return render_to_response("valueaccounting/log_past_work.html",
         template_params,
         context_instance=RequestContext(request))
+
+@login_required
+def save_work_now(request, event_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        event = get_object_or_404(EconomicEvent, id=event_id)      
+        form = WorkbookForm(instance=event, data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            event = form.save(commit=False)
+            event.changed_by = request.user
+            process = event.process
+            event.save()
+            if not process.started:
+                process.started = event_date
+                process.changed_by=request.user
+                process.save()            
+            data = "ok"
+        else:
+            data = form.errors
+        return HttpResponse(data, mimetype="text/plain")
 
 @login_required
 def save_labnotes(request, commitment_id):

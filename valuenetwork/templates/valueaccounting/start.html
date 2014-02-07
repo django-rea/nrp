@@ -191,7 +191,7 @@ th, td {
 							{% for item in my_work %}
 								<li>
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-									<a href="{% url work_commitment commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
+									<a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
 									{% trans "for process" %}: {{ item.process }} <a href="{{ item.process.get_absolute_url }}">Log work on process page</a>

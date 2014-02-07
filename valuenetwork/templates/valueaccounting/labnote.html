@@ -29,7 +29,7 @@
 			    <a href="{{ process.get_absolute_url }}">{{ process.name }}</a>  
 			    {% trans "from " %} {{ commitment.from_agent.name }}
 			{% if author %}
-			    <a href="{% url work_commitment commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Open Labnotes" %}</a> 
+			    <a href="{% url work_now process_id=process.id commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Open Labnotes" %}</a> 
 			    <a class="btn btn-info" href="{% url change_process process_id=commitment.process.id %}">{% trans "Change Process" %}</a>
 			{% endif %}
 		</legend>

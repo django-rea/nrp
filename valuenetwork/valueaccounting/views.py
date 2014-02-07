@@ -3281,6 +3281,7 @@ def create_worknow_context(
         project=process.project,
         quantity=Decimal("0"),
         is_contribution=True,
+        created_by = request.user,
     )
         
     if commitment:

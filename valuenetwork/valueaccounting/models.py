@@ -636,6 +636,7 @@ class EconomicResourceType(models.Model):
         from valuenetwork.valueaccounting.utils import explode_xbill_children, xbill_dfs, annotate_tree_properties
         nodes = []
         exploded = []
+        #import pdb; pdb.set_trace()
         for kid in self.xbill_children():
             explode_xbill_children(kid, nodes, exploded)
         nodes = list(set(nodes))
@@ -644,6 +645,7 @@ class EconomicResourceType(models.Model):
         visited = []
         for kid in self.xbill_children():
             to_return.extend(xbill_dfs(kid, nodes, visited, 1))
+        #import pdb; pdb.set_trace()
         annotate_tree_properties(to_return)
         return to_return
 
@@ -2431,7 +2433,7 @@ class Option(models.Model):
 
 ORDER_TYPE_CHOICES = (
     ('customer', _('Customer order')),
-    ('rand', _('R&D order')),
+    ('rand', _('Work order')),
     ('holder', _('Placeholder order')),
 )
 
@@ -2912,7 +2914,7 @@ class Commitment(models.Model):
             if oh_qty + sked_qty:
                 return Decimal("0")
             elif self.event_type.resource_effect == "=":   
-                answer =  Decimal("1")
+                return Decimal("1")
             else: 
                 return self.quantity
   

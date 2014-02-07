@@ -468,7 +468,7 @@ def xbill_dfs(node, all_nodes, visited, depth):
         for subnode in all_nodes:
             parents = subnode.xbill_parent_object().xbill_parents()
             xclass = subnode.xbill_class()
-            if not subnode is node:
+            if subnode.node_id() != node.node_id():
                 if parents and node in parents:
                     #print "*active node:*", node, "*depth:*", depth, "*subnode:*", subnode, "*parent_object:*", subnode.xbill_parent_object(), "*parents:*", parents
                     #import pdb; pdb.set_trace()

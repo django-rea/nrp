@@ -1025,7 +1025,7 @@ class UseCase(models.Model):
 
     @classmethod
     def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=1):
-        """
+        """  
         Creates a new UseCase, updates an existing one, or does nothing.
         
         This is intended to be used as a post_syncdb manangement step.
@@ -1061,14 +1061,14 @@ from south.signals import post_migrate
 def create_use_cases(app, **kwargs):
     if app != "valueaccounting":
         return
-    UseCase.create('financial', _('Financial Contribution'), True)
-    UseCase.create('design', _('Design logging'), True)
+    UseCase.create('financial', _('Financial Contribution'), True) #dup of cash contr?
+    UseCase.create('design', _('Design logging'), True) #remove when remove page
     UseCase.create('non_prod', _('Non-production logging'), True)
     UseCase.create('rand', _('Process logging'))
     UseCase.create('recipe', _('Recipes'))
     UseCase.create('todo', _('Todos'), True)
     UseCase.create('cust_orders', _('Customer Orders'))
-    UseCase.create('purchasing', _('Purchasing'))
+    UseCase.create('purchasing', _('Purchasing')) #might not need?
     UseCase.create('cash_contr', _('Cash Contribution'), True)
     UseCase.create('res_contr', _('Material Contribution'))
     UseCase.create('purch_contr', _('Purchase Contribution'))
@@ -1077,6 +1077,49 @@ def create_use_cases(app, **kwargs):
 
 post_migrate.connect(create_use_cases)
 
+'''
+class UseCaseEventType(models.Model):
+    use_case = models.ForeignKey(UseCase,
+        verbose_name=_('use case'), related_name='event_types')
+    event_type = models.ForeignKey(EventType, 
+        verbose_name=_('event type'), related_name='use_cases')
+
+    def __unicode__(self):
+        return ": ".join([self.use_case.name, self.event_type.name])
+
+    @classmethod
+    def create(use_case_identifier, event_type_identifier):
+        """  
+        Creates a new UseCaseEventType, updates an existing one, or does nothing.
+        This is intended to be used as a post_syncdb manangement step.
+        """
+        try:
+            use_case = cls._default_manager.get(identifier=use_case_identifier)
+            event_type = cls._default_manager.get(identifier=event_type_identifier)
+            use_case.save()
+        except cls.DoesNotExist:
+            cls(use_case=use_case_identifier, event_type=event_type_identifier).save()
+            print "Created %s UseCaseEventType" % use_case % event_type
+
+def create_usecase_eventtype(app, **kwargs):
+    if app != "valueaccounting":
+        return
+    UseCaseEventType.create('financial', '') 
+    UseCase.create('design', _('Design logging'), True) #remove when remove page
+    UseCase.create('non_prod', _('Non-production logging'), True)
+    UseCase.create('rand', _('Process logging'))
+    UseCase.create('recipe', _('Recipes'))
+    UseCase.create('todo', _('Todos'), True)
+    UseCase.create('cust_orders', _('Customer Orders'))
+    UseCase.create('purchasing', _('Purchasing')) #might not need?
+    UseCase.create('cash_contr', _('Cash Contribution'), True)
+    UseCase.create('res_contr', _('Material Contribution'))
+    UseCase.create('purch_contr', _('Purchase Contribution'))
+    UseCase.create('exp_contr', _('Expense Contribution'), True)
+    print "created use cases event type associations"
+
+post_migrate.connect(create_usecase_eventtype)
+'''
 
 class PatternUseCase(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 
@@ -2213,13 +2256,54 @@ class Exchange(models.Model):
         #if self.exchange_type:
         #    ext_name = self.exchange_type.name
         slug = "-".join([
-            ext_name,
             self.name,
             self.start_date.strftime('%Y-%m-%d'),
         ])
         unique_slugify(self, slug)
         super(Exchange, self).save(*args, **kwargs)
+
+    def receipt_commitments(self):
+        return self.commitments.filter(
+            event_type__relationship='receipt')
+
+    def payment_commitments(self):
+        return self.commitments.filter(
+            event_type__relationship='payment')
+
+    def receipt_events(self):
+        return self.events.filter(
+            event_type__relationship='receipt')
+
+    def uncommitted_receipt_events(self):
+        return self.events.filter(
+            event_type__relationship='receipt',
+            commitment=None)
+
+    def payment_events(self):
+        return self.events.filter(
+            event_type__relationship='payment')
+
+    def uncommitted_payment_events(self):
+        return self.events.filter(
+            event_type__relationship='payment',
+            commitment=None)
+
+    def work_events(self):
+        return self.events.filter(
+            event_type__relationship='work')
+
+    def expense_events(self):
+        return self.events.filter(
+            event_type__relationship='expense')
+
+    def material_contribution_events(self):
+        return self.events.filter(
+            event_type__relationship='resource contribution')
         
+    def cash_contribution_events(self):
+        return self.events.filter(
+            event_type__relationship='cash contribution')
+
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -3184,6 +3268,10 @@ class EconomicEvent(models.Model):
     def unplanned_work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm
         return UnplannedWorkEventForm(instance=self, prefix=str(self.id))
+
+    def exchange_work_event_change_form(self):
+        from valuenetwork.valueaccounting.forms import WorkEventAgentForm
+        return WorkEventAgentForm(instance=self, prefix=str(self.id))
 
     def change_date_form(self):
         from valuenetwork.valueaccounting.forms import EventChangeDateForm

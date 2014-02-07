@@ -529,7 +529,43 @@ class UnplannedInputEventForm(forms.Form):
                 resources = EconomicResource.objects.all()
                 self.fields["resource"].choices = [('', '----------')] + [(r.id, r) for r in resources]
 
+
+class CashEventAgentForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
+        label="Type of cash",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        label="Cash contributed by",  
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))    
+   
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'resource_type','quantity', 'description', 'from_agent')
+
+    def __init__(self, agent=None, date=None, pattern=None, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(CashEventAgentForm, self).__init__(*args, **kwargs)
+        if date:
+            self.event_date = date
+        if agent:
+            self.from_agent = agent
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
  
+
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(
@@ -703,6 +739,40 @@ class UnplannedWorkEventForm(forms.ModelForm):
             self.pattern = pattern
             self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
 
+
+class WorkEventAgentForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
+        label="Type of work done",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(required=True,
+        widget=DecimalDurationWidget,
+        label="Time spent",
+        help_text="hours, minutes")
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        label="Work done by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))    
+   
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'resource_type','quantity', 'description', 'from_agent')
+
+    def __init__(self, pattern, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(WorkEventAgentForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
 
 
 class WorkCommitmentForm(forms.ModelForm):
@@ -1463,4 +1533,5 @@ class ExchangeForm(forms.ModelForm):
     def __init__(self, use_case, *args, **kwargs):
         super(ExchangeForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
+ 
 

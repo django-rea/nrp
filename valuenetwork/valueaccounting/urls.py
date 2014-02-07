@@ -263,4 +263,6 @@ urlpatterns = patterns("",
         name="add_unplanned_payment"),  
     url(r'^payment-event/(?P<commitment_id>\d+)/$', 'valuenetwork.valueaccounting.views.payment_event_for_commitment', 
         name="payment_event_for_commitment"), 
+    url(r'^add-work-for-exchange/(?P<exchange_id>\d+)/$', 'valuenetwork.valueaccounting.views.add_work_for_exchange', 
+        name="add_work_for_exchange"),  
 )

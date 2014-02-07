@@ -51,9 +51,9 @@
       {% include "_messages.html" %}
 	  <div>
         {% if rand %}
-		  <legend>{% trans "R&D Planning" %}</legend>
+		  <legend>{% trans "Production Planning" %}</legend>
         {% else %}
-		  <legend>{% trans "Log Unplanned R&D Work" %}</legend>
+		  <legend>{% trans "Log Unplanned Production Work" %}</legend>
         {% endif %}
 		<form class="form-horizontal" id="processForm" method="POST" action=".">
 	      {% csrf_token %}

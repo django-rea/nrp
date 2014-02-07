@@ -159,15 +159,15 @@ th, td {
 
 			<p class="top-buttons">
 				{% if agent %}
-
+{% comment %}
 				    <a href="{% url log_simple %}" role="button" class="btn btn-primary" 
 					    title="Log time and create design resources." >
 					    {% trans "Log design work" %}
 				    </a> 
-
+{% endcomment %}
 				    <a href="{% url process_selections %}" role="button" class="btn btn-primary" 
-				        title="Log time and create R&D resources." >
-				        {% trans "Create an R&D process" %}
+				        title="Log time and create resources." >
+				        {% trans "Create a production process" %}
 			        </a>
 
 					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" 
@@ -194,8 +194,9 @@ th, td {
 									<a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
-									{% trans "for process" %}: {{ item.process }} <a href="{{ item.process.get_absolute_url }}">Log work on process page</a>
-									{% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %}
+									{% trans "for process" %}: {{ item.process }}
+									{% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %} 
+                                    <a href="{{ item.process.get_absolute_url }}" role="button" class="btn btn-info btn-mini">Log work on process</a>
 								</p>
 								<p style="margin-left: 1em; margin-bottom: 0;">
 									{% trans "for order" %}: {{ item.independent_demand }}
@@ -388,7 +389,7 @@ th, td {
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 									{% if agent %}
 										<div style="display: inline;" >
-											<a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+											<a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 												{% trans "Take this task" %}
 											</a>
 										</div>
@@ -512,7 +513,7 @@ th, td {
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 									{% if agent %}
 										<div style="display: inline;" >
-											<a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info" data-toggle="modal">
+											<a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 												{% trans "Take this task" %}
 											</a>
 										</div>

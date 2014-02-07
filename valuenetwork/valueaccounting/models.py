@@ -547,6 +547,9 @@ class EconomicResourceType(models.Model):
     def citing_process_type_relationships(self):
         return self.process_types.filter(event_type__relationship='cite')
 
+    def wanting_process_type_relationships(self):
+        return self.process_types.exclude(event_type__relationship='out')
+
     def wanting_commitments(self):
         return self.commitments.filter(
             finished=False).exclude(event_type__relationship='out')
@@ -605,8 +608,7 @@ class EconomicResourceType(models.Model):
         return sum(pc.quantity for pc in self.producing_commitments())
 
     def xbill_parents(self):
-        answer = list(self.consuming_process_type_relationships())
-        answer.extend(list(self.citing_process_type_relationships()))
+        answer = list(self.wanting_process_type_relationships())
         answer.extend(list(self.options.all()))
         #answer.append(self)
         return answer

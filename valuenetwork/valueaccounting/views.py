@@ -2372,8 +2372,8 @@ def commit_to_task(request, commitment_id):
             #            process.changed_by=request.user
             #            process.save()
             if request.POST.get("start"):
-                return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/work-commitment', ct.id))
+                return HttpResponseRedirect('/%s/%s/%s/'
+                    % ('accounting/work-now', process.id, ct.id))
         
         return HttpResponseRedirect(next)
 
@@ -6078,8 +6078,8 @@ def process_selections(request, rand=0):
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/change-process', process.id))  
             if labnotes:
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/work-commitment', work_commitment.id)) 
+                return HttpResponseRedirect('/%s/%s/%s/'
+                    % ('accounting/work-now', process.id, work_commitment.id))
 
     return render_to_response("valueaccounting/process_selections.html", {
         "slots": slots,

@@ -1395,7 +1395,7 @@ class ProcessTypeWorkForm(forms.ModelForm):
     unit_of_quantity = forms.ModelChoiceField(
         required = False,
         label=_("Unit"),
-        queryset=Unit.objects.filter(unit_type='time'),  
+        queryset=Unit.objects.all(),  
         widget=forms.Select())
 
     class Meta:

@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "R&D Production" %}{% endblock %}
+{% block head_title %}{% trans "Production" %}{% endblock %}
 
 {% block extra_head %}
 
@@ -111,7 +111,7 @@
 
                     {% if rand %}
                         {{ demand_form|as_bootstrap }}  
-                        (If an R&D order is not selected, a new R&D order will be created automatically.) 
+                        (If a work order is not selected, a new work order will be created automatically.) 
                     {% endif %}
                     <hr />                
                     
@@ -119,15 +119,15 @@
                         {% if rand %}
                             <p>
                                 <input type="submit" name="create-process" value="{% trans 'Save process & exit' %}" class="btn btn-primary" />
-                                </br>Create R&D planned work using the selected resource types.
+                                </br>Create planned work using the selected resource types.
                             </p>
                             <p>
                                 <input type="submit" name="add-another" value="{% trans 'Save process & add another' %}" class="btn btn-primary" />
-                                </br>Save this process and plan more R&D work.
+                                </br>Save this process and plan more work.
                             </p>
                             <p>
                                 <input type="submit" name="edit-process" value="{% trans 'Change process' %}" class="btn btn-primary" />
-                                </br>Create R&D planned work and edit the process details.
+                                </br>Create planned work and edit the process details.
                             </p>
                         {% else %}
                             <p>

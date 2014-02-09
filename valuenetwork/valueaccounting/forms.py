@@ -1523,7 +1523,7 @@ class ExchangeForm(forms.ModelForm):
         label=_("Comments"),
         widget=forms.Textarea(attrs={'class': 'item-description',}))
     url = forms.CharField(required=False, 
-        label=_("Link to scanned receipt"),
+        label=_("Link to scanned receipt(s)"),
         widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
 
     class Meta:

@@ -6482,7 +6482,7 @@ def exchange_logging(request, exchange_id):
             add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern, data=request.POST or None)
 
     if request.method == "POST":
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         if exchange_form.is_valid():
             exchange = exchange_form.save()
             return HttpResponseRedirect('/%s/%s/'

@@ -126,7 +126,11 @@ li {
 
 	<div class="row-fluid">
 
-		<div class="span7">
+	  <div class="span7">
+        {% if exchange.payment_events or "pay" in slots %}
+        {%endif%}
+
+        {% if exchange.payment_events or "pay" in slots %}
           <div class="log-section">
 		    <h3 style="margin-bottom: 4px;" >
 		        {% trans "Payment" %}:  
@@ -250,6 +254,7 @@ li {
 		        {% endfor %}
 	        {% endif %}
           </div>
+	    {% endif %}
 
         {% if exchange.work_events or "work" in slots %}
           <div class="log-section">

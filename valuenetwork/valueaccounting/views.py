@@ -6099,14 +6099,14 @@ def plan_from_recipe(request):
     resource_types = []
     selected_project = None
     project_form = ProjectSelectionForm()
-    init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
-    date_form = DateSelectionForm(data=request.POST or None)
+    init = {"due_date": datetime.date.today(),}
+    date_form = DueDateForm(data=request.POST or None)
     if request.method == "POST":
         create_order = request.POST.get("create-order")
         get_related = request.POST.get("get-related")
         if get_related:
             selected_project = Project.objects.get(id=request.POST.get("project"))
-            date_form = DateSelectionForm(initial=init)
+            date_form = DueDateForm(initial=init)
             if selected_project:
                 resource_types = selected_project.get_resource_types_with_recipe()
         else:
@@ -6114,11 +6114,9 @@ def plan_from_recipe(request):
             rp = request.POST
             today = datetime.date.today()
             if date_form.is_valid():
-                start_date = date_form.cleaned_data["start_date"]
-                end_date = date_form.cleaned_data["end_date"]
+                due_date = date_form.cleaned_data["due_date"]
             else:
-                start_date = today
-                end_date = today
+                due_date = today
             for key, value in dict(rp).iteritems():
                 if "selected-project" in key:
                     project_id = key.split("~")[1]
@@ -6131,37 +6129,46 @@ def plan_from_recipe(request):
             demand = Order(
                 order_type="rand",
                 order_date=today,
-                due_date=end_date,
+                due_date=due_date,
                 created_by=request.user)
             demand.save()
 
             pt = produced_rt.main_producing_process_type()
-            process = Process(
-                name=" ".join(["Make",produced_rt.name,]),
-                end_date=end_date,
-                start_date=start_date,
-                process_pattern=pt.process_pattern,
-                process_type=pt,
-                created_by=request.user,
-                project=selected_project
-            )
-            process.save()
+            
+            #process = Process(
+            #    name=" ".join(["Make",produced_rt.name,]),
+            #    end_date=end_date,
+            #    start_date=start_date,
+            #    process_pattern=pt.process_pattern,
+            #    process_type=pt,
+            #    created_by=request.user,
+            #    project=selected_project
+            #)
+            #process.save()
         
             #import pdb; pdb.set_trace()      
             ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=produced_rt)
             et = ptrt.event_type
             if et:
-                commitment = process.add_commitment(
+                #commitment = process.add_commitment(
+                #    resource_type=produced_rt,
+                #    demand=demand,
+                #    quantity=Decimal("1"),
+                #    event_type=et,
+                #    unit=produced_rt.unit,
+                #    user=request.user)
+                #commitment.order = demand
+                commitment = demand.add_commitment(
                     resource_type=produced_rt,
-                    demand=demand,
                     quantity=Decimal("1"),
                     event_type=et,
-                    unit=produced_rt.unit,
-                    user=request.user)
-                commitment.order = demand
+                    unit=produced_rt.unit)
+                commitment.created_by=request.user
                 commitment.save()
-                if pt:
-                    process.explode_demands(demand, request.user, [])
+                #if pt:
+                #    process.explode_demands(demand, request.user, [])
+                #import pdb; pdb.set_trace()
+                process = commitment.generate_producing_process(request.user, [], explode=True)
                 if notification:
                     #import pdb; pdb.set_trace()
                     agent = get_agent(request)

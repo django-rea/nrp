@@ -1057,7 +1057,11 @@ class CasualTimeContributionForm(forms.ModelForm):
 class DateSelectionForm(forms.Form):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     end_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
-    
+
+
+class DueDateForm(forms.Form):
+    due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+
 
 class DateAndNameForm(forms.Form):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

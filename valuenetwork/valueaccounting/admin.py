@@ -61,10 +61,10 @@ class ResourceTypeFacetInline(admin.TabularInline):
     model = ResourceTypeFacetValue
 
 class EconomicResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('label', 'name', 'rate', 'unit', 'unit_of_use', 'description', 'facet_list')
+    list_display = ('label', 'name', 'rate', 'unit', 'unit_of_use', 'description', 'substitutable', 'facet_list')
     list_filter = ['facets__facet_value']
     search_fields = ['name',]
-    list_editable = ['unit', 'unit_of_use']
+    list_editable = ['unit', 'unit_of_use', 'substitutable',]
     inlines = [ ResourceTypeFacetInline, ]
     
 admin.site.register(EconomicResourceType, EconomicResourceTypeAdmin)

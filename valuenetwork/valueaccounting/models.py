@@ -418,6 +418,8 @@ class EconomicResourceType(models.Model):
     unit_of_use = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of use'), related_name="units_of_use",
         help_text=_('if this resource has different units of use and inventory, this is the unit of use'))
+    substitutable = models.BooleanField(_('substitutable'), default=True,
+        help_text=_('Can any resource of this type be substituted for any other resource of this type?'))
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
@@ -2554,7 +2556,7 @@ class Order(models.Model):
     def all_processes(self):
         #import pdb; pdb.set_trace()
         deliverables = self.commitments.filter(event_type__relationship="out")
-        processes = [d.process for d in deliverables]
+        processes = [d.process for d in deliverables if d.process]
         roots = []
         for p in processes:
             if not p.next_processes():
@@ -2903,6 +2905,8 @@ class Commitment(models.Model):
     def net(self):
         #import pdb; pdb.set_trace()
         rt = self.resource_type
+        if not rt.substitutable:
+            return self.quantity
         oh_qty = rt.onhand_qty_for_commitment(self)
         if oh_qty >= self.quantity:
             return 0
@@ -2943,10 +2947,12 @@ class Commitment(models.Model):
         return answer
 
     def generate_producing_process(self, user, visited, explode=False):
-        qty_required = self.net()
+        qty_required = self.quantity
+        rt = self.resource_type
+        if not self.order:
+            qty_required = self.net()
         process=None
-        if qty_required:
-            rt = self.resource_type
+        if qty_required:            
             ptrt = rt.main_producing_process_type_relationship()
             demand = self.independent_demand
             if ptrt:

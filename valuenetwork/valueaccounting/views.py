@@ -6463,6 +6463,7 @@ def exchange_logging(request, exchange_id):
     matl_contr_events = exchange.material_contribution_events()
 
     if agent and pattern:
+        #import pdb; pdb.set_trace()
         slots = pattern.slots()
         if request.user.is_superuser or request.user == exchange.created_by:
             logger = True

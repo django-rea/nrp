@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "R&D Production from Recipe" %}{% endblock %}
+{% block head_title %}{% trans "Work Order from Recipe" %}{% endblock %}
 
 {% block extra_head %}
 
@@ -33,7 +33,7 @@
     <div class="container">
       {% include "_messages.html" %}
 	  <div>
-		<legend>{% trans "R&D Planning Using Recipe" %}</legend>
+		<legend>{% trans "Plan Work Order Using Recipe" %}</legend>
 		<form class="form-horizontal" id="processForm" method="POST" action=".">
 	      {% csrf_token %}
 		  <div class="row-fluid">
@@ -66,7 +66,7 @@
                     </div>
               </div>
               <div class="span6">
-                    {{ date_form|as_bootstrap }}
+                    {{ date_name_form|as_bootstrap }}
                     <hr />                
                     <div class="select-buttons">
                             <p>

@@ -1059,9 +1059,9 @@ class DateSelectionForm(forms.Form):
     end_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
 
 
-class DueDateForm(forms.Form):
+class DueDateAndNameForm(forms.Form):
     due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
-
+    order_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
 
 class DateAndNameForm(forms.Form):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

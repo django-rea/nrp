@@ -1139,6 +1139,145 @@ class PatternUseCase(models.Model):
         return ": ".join([self.pattern.name, use_case_name])
 
 
+ORDER_TYPE_CHOICES = (
+    ('customer', _('Customer order')),
+    ('rand', _('Work order')),
+    ('holder', _('Placeholder order')),
+)
+
+#todo: Order is used for both of the above types.
+#maybe shd be renamed?
+class Order(models.Model):
+    order_type = models.CharField(_('order type'), max_length=12, 
+        choices=ORDER_TYPE_CHOICES, default='customer')
+    name = models.CharField(_('name'), max_length=255, blank=True,
+        help_text=_("appended to process labels for Work orders"))
+    receiver = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="purchase_orders", verbose_name=_('receiver'))
+    provider = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="sales_orders", verbose_name=_('provider'))
+    order_date = models.DateField(_('order date'), default=datetime.date.today)
+    due_date = models.DateField(_('due date'))
+    description = models.TextField(_('description'), null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='orders_created', blank=True, null=True)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='orders_changed', blank=True, null=True)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
+    class Meta:
+        ordering = ('due_date',)
+
+    def __unicode__(self):
+        provider_name = ""
+        process_name = ""
+        provider_label = ""
+        receiver_label = ""
+        process = self.process()
+        if process:
+            process_name = ", " + process.name
+        if self.name:
+            process_name = " ".join(["for", self.name])
+        if self.provider:
+            provider_name = self.provider.name
+            provider_label = ", provider:"
+        receiver_name = ""
+        if self.receiver:
+            receiver_name = self.receiver.name
+            receiver_label = ", receiver:"
+        if self.order_type == "customer":
+            provider_label = ", Seller:"
+            receiver_label = ", Buyer:"
+        return " ".join(
+            [self.get_order_type_display(), 
+            str(self.id), 
+            process_name,
+            provider_label, 
+            provider_name, 
+            receiver_label, 
+            receiver_name, 
+            ", due:",
+            self.due_date.strftime('%Y-%m-%d'),
+            ])
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('order_schedule', (),
+            { 'order_id': str(self.id),})
+
+    def timeline_title(self):
+        return self.__unicode__()
+
+    def timeline_description(self):
+        return self.description
+
+    def producing_commitments(self):
+        return self.commitments.all()
+
+    def order_items(self):
+        return self.commitments.all()
+
+    def consumed_input_requirements(self):
+        return []
+
+    def used_input_requirements(self):
+        return []
+
+    def work_requirements(self):
+        return []
+
+    def process(self):
+        answer = None
+        if self.order_type == 'rand':
+            process = None
+            for item in self.producing_commitments():
+                if item.process:
+                    answer = item.process
+                    break
+        return answer
+
+    def add_commitment(self,
+            resource_type,
+            quantity,
+            event_type,
+            unit,
+            due=None):
+        #todo: needs process and project. Anything else?
+        #might not be worth refactoring out.
+        if not due:
+            due=self.due_date
+        ct = Commitment(
+            order=self,
+            independent_demand=self,
+            event_type=event_type,
+            resource_type=resource_type,
+            quantity=quantity,
+            unit_of_quantity=unit,
+            due_date=due)
+        ct.save()
+        #todo: shd this generate_producing_process?
+        return ct
+
+    def all_processes(self):
+        #import pdb; pdb.set_trace()
+        deliverables = self.commitments.filter(event_type__relationship="out")
+        processes = [d.process for d in deliverables if d.process]
+        roots = []
+        for p in processes:
+            if not p.next_processes():
+                roots.append(p)
+        ordered_processes = []
+        visited_resources = []
+        for root in roots:
+            root.all_previous_processes(ordered_processes, visited_resources, 0)
+        ordered_processes = list(set(ordered_processes))
+        ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
+        return ordered_processes
+
+
 class GoodResourceManager(models.Manager):
     def get_query_set(self):
         return super(GoodResourceManager, self).get_query_set().exclude(quality__lt=0)
@@ -1151,6 +1290,9 @@ class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='resources')
     identifier = models.CharField(_('identifier'), blank=True, max_length=128)
+    independent_demand = models.ForeignKey(Order,
+        blank=True, null=True,
+        related_name="dependent_resources", verbose_name=_('independent_demand'))
     url = models.CharField(_('url'), max_length=255, blank=True)
     author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
         verbose_name=_('author'), blank=True, null=True)
@@ -1796,14 +1938,30 @@ class Process(models.Model):
         verbose_name_plural = _("processes")
 
     def __unicode__(self):
+        order_name = ""
+        order = self.independent_demand()
+        if order:
+            order_name = order.name
+            if order_name:
+                order_name = " ".join(["for", order_name])
         return " ".join([
             self.name,
+            order_name,
             "starting",
             self.start_date.strftime('%Y-%m-%d'),
             "ending",
             self.end_date.strftime('%Y-%m-%d'),
             ])
 
+    def name_with_order(self):
+        answer = ""
+        order = self.independent_demand()
+        if order:
+            order_name = order.name
+            if order_name:
+                answer = " ".join([self.name, "for", order_name])
+        return answer
+    
     @models.permalink
     def get_absolute_url(self):
         return ('process_details', (),
@@ -2435,141 +2593,6 @@ class Option(models.Model):
         return [self.feature, self]
 
 
-ORDER_TYPE_CHOICES = (
-    ('customer', _('Customer order')),
-    ('rand', _('Work order')),
-    ('holder', _('Placeholder order')),
-)
-
-#todo: Order is used for both of the above types.
-#maybe shd be renamed?
-class Order(models.Model):
-    order_type = models.CharField(_('order type'), max_length=12, 
-        choices=ORDER_TYPE_CHOICES, default='customer')
-    receiver = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        related_name="purchase_orders", verbose_name=_('receiver'))
-    provider = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        related_name="sales_orders", verbose_name=_('provider'))
-    order_date = models.DateField(_('order date'), default=datetime.date.today)
-    due_date = models.DateField(_('due date'))
-    description = models.TextField(_('description'), null=True, blank=True)
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='orders_created', blank=True, null=True)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='orders_changed', blank=True, null=True)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-
-    class Meta:
-        ordering = ('due_date',)
-
-    def __unicode__(self):
-        provider_name = ""
-        process_name = ""
-        provider_label = ""
-        receiver_label = ""
-        process = self.process()
-        if process:
-            process_name = ", " + process.name
-        if self.provider:
-            provider_name = self.provider.name
-            provider_label = ", provider:"
-        receiver_name = ""
-        if self.receiver:
-            receiver_name = self.receiver.name
-            receiver_label = ", receiver:"
-        if self.order_type == "customer":
-            provider_label = ", Seller:"
-            receiver_label = ", Buyer:"
-        return " ".join(
-            [self.get_order_type_display(), 
-            str(self.id), 
-            process_name,
-            provider_label, 
-            provider_name, 
-            receiver_label, 
-            receiver_name, 
-            ", due:",
-            self.due_date.strftime('%Y-%m-%d'),
-            ])
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('order_schedule', (),
-            { 'order_id': str(self.id),})
-
-    def timeline_title(self):
-        return self.__unicode__()
-
-    def timeline_description(self):
-        return self.description
-
-    def producing_commitments(self):
-        return self.commitments.all()
-
-    def order_items(self):
-        return self.commitments.all()
-
-    def consumed_input_requirements(self):
-        return []
-
-    def used_input_requirements(self):
-        return []
-
-    def work_requirements(self):
-        return []
-
-    def process(self):
-        answer = None
-        if self.order_type == 'rand':
-            process = None
-            for item in self.producing_commitments():
-                if item.process:
-                    answer = item.process
-                    break
-        return answer
-
-    def add_commitment(self,
-            resource_type,
-            quantity,
-            event_type,
-            unit,
-            due=None):
-        #todo: needs process and project. Anything else?
-        #might not be worth refactoring out.
-        if not due:
-            due=self.due_date
-        ct = Commitment(
-            order=self,
-            independent_demand=self,
-            event_type=event_type,
-            resource_type=resource_type,
-            quantity=quantity,
-            unit_of_quantity=unit,
-            due_date=due)
-        ct.save()
-        #todo: shd this generate_producing_process?
-        return ct
-
-    def all_processes(self):
-        #import pdb; pdb.set_trace()
-        deliverables = self.commitments.filter(event_type__relationship="out")
-        processes = [d.process for d in deliverables if d.process]
-        roots = []
-        for p in processes:
-            if not p.next_processes():
-                roots.append(p)
-        ordered_processes = []
-        visited_resources = []
-        for root in roots:
-            root.all_previous_processes(ordered_processes, visited_resources, 0)
-        ordered_processes = list(set(ordered_processes))
-        ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
-        return ordered_processes
-
-
 class CommitmentManager(models.Manager):
 
     def unfinished(self):
@@ -2866,8 +2889,13 @@ class Commitment(models.Model):
         return self.quantity - self.fulfilled_quantity()
 
     def onhand(self):
+        #todo: filter resources by r.order==self.independent_demand
+        #if not RT.substitutable
         answer = []
+        rt = self.resource_type
         resources = EconomicResource.goods.filter(resource_type=self.resource_type)
+        if not rt.substitutable:
+            resources = resources.filter(independent_demand=self.independent_demand)
         for resource in resources:
             if resource.quantity > 0:
                 answer.append(resource)
@@ -2906,6 +2934,9 @@ class Commitment(models.Model):
         #import pdb; pdb.set_trace()
         rt = self.resource_type
         if not rt.substitutable:
+            #todo: or, get resources where r.order == self.independent_demand
+            #in rt.ohqfc?
+            #or not rt.substitutable means will never be netted anyway so don't bother?
             return self.quantity
         oh_qty = rt.onhand_qty_for_commitment(self)
         if oh_qty >= self.quantity:
@@ -3015,6 +3046,13 @@ class Commitment(models.Model):
     def associated_producing_commitments(self):
         producers = self.resource_type.producing_commitments().exclude(id=self.id)
         return [ct for ct in producers if ct.independent_demand == self.independent_demand]
+
+    def scheduled_receipts(self):
+        rt = self.resource_type
+        if rt.substitutable:
+            return rt.active_producing_commitments()
+        else:
+            return self.associated_producing_commitments()
         
     
 #todo: not used.

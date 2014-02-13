@@ -2805,9 +2805,16 @@ def add_unplanned_output(request, process_id):
                 notes = output_data["notes"]
                 url = output_data["url"]
                 photo_url = output_data["photo_url"]
+                #todo: add order to resource
+                #if not RT.substitutable
+                #and if process.independent_demand()
+                demand = None
+                if not rt.substitutable:
+                    demand = process.independent_demand()
                 resource = EconomicResource(
                     resource_type=rt,
                     identifier=identifier,
+                    independent_demand=demand,
                     notes=notes,
                     url=url,
                     photo_url=photo_url,
@@ -3511,7 +3518,7 @@ def save_work_now(request, event_id):
             process = event.process
             event.save()
             if not process.started:
-                process.started = event_date
+                process.started = event.event_date
                 process.changed_by=request.user
                 process.save()            
             data = "ok"
@@ -4305,12 +4312,17 @@ def production_event_for_commitment(request):
     else:
         #todo: resource creation shd depend on event_type and maybe rt
         #design docs will need special handling (url)
+        #todo: add order if not RT.substitutable
+        demand = None
+        if not rt.substitutable:
+            demand = ct.independent_demand
         resource = EconomicResource(
             resource_type = ct.resource_type,
             created_date = event_date,
             quantity = quantity,
             unit_of_quantity = ct.unit_of_quantity,
             created_by=request.user,
+            independent_demand=demand,
         )
         resource.save()
         event = EconomicEvent(
@@ -4366,9 +4378,13 @@ def resource_event_for_commitment(request, commitment_id):
             resource.changed_by=request.user
             resource.save()
         else:
+            #todo: add order if not RT.substitutable
             resource = form.save(commit=False)
             #resource.quality = quality
-            resource.resource_type = ct.resource_type
+            rt = ct.resource_type
+            resource.resource_type = rt
+            if not rt.substitutable:
+                resource.independent_demand = ct.independent_demand
             resource.created_by=request.user
             resource.save()
             event = EconomicEvent(
@@ -6100,21 +6116,23 @@ def plan_from_recipe(request):
     selected_project = None
     project_form = ProjectSelectionForm()
     init = {"due_date": datetime.date.today(),}
-    date_form = DueDateForm(data=request.POST or None)
+    date_name_form = DueDateAndNameForm(data=request.POST or None)
     if request.method == "POST":
         create_order = request.POST.get("create-order")
         get_related = request.POST.get("get-related")
         if get_related:
             selected_project = Project.objects.get(id=request.POST.get("project"))
-            date_form = DueDateForm(initial=init)
+            date_name_form = DueDateAndNameForm(initial=init)
             if selected_project:
                 resource_types = selected_project.get_resource_types_with_recipe()
         else:
             #import pdb; pdb.set_trace()
             rp = request.POST
             today = datetime.date.today()
-            if date_form.is_valid():
-                due_date = date_form.cleaned_data["due_date"]
+            order_name = ""
+            if date_name_form.is_valid():
+                due_date = date_name_form.cleaned_data["due_date"]
+                order_name = date_name_form.cleaned_data["order_name"]
             else:
                 due_date = today
             for key, value in dict(rp).iteritems():
@@ -6130,6 +6148,7 @@ def plan_from_recipe(request):
                 order_type="rand",
                 order_date=today,
                 due_date=due_date,
+                name=order_name,
                 created_by=request.user)
             demand.save()
 
@@ -6197,7 +6216,7 @@ def plan_from_recipe(request):
     return render_to_response("valueaccounting/plan_from_recipe.html", {
         "selected_project": selected_project,
         "project_form": project_form,
-        "date_form": date_form,
+        "date_name_form": date_name_form,
         "resource_types": resource_types,
         "help": get_help("process_selections"),
     }, context_instance=RequestContext(request))

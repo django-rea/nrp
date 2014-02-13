@@ -142,9 +142,9 @@
                         <li class="req-description">{{ reqmt.description|urlize|linebreaks|truncatewords_html:15 }}</li>
                     </ul>
                 {% endif %}
-			    {% if reqmt.resource_type.onhand %}
+			    {% if reqmt.onhand %}
 			        <ul>
-				        {% for resource in reqmt.resource_type.onhand %}
+				        {% for resource in reqmt.onhand %}
 					        <li class="subline" >
 						        <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
 						        <a href="{% url resource resource_id=resource.id %}" target="_blank">{{ resource.resource_type.name }} {{ resource.label }}</a> 
@@ -191,9 +191,9 @@
                         <li class="req-description">{{ reqmt.description|urlize|linebreaks|truncatewords_html:15 }}</li>
                     </ul>
                 {% endif %}
-			    {% if reqmt.resource_type.onhand %}
+			    {% if reqmt.onhand %}
 		            <ul>
-			            {% for resource in reqmt.resource_type.onhand %}
+			            {% for resource in reqmt.onhand %}
 				            <li class="subline" >
 					            <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
 					            <a href="{% url resource resource_id=resource.id %}" target="_blank">{{ resource.resource_type.name }} {{ resource.label }}</a> 

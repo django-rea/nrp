@@ -248,7 +248,7 @@ th, td {
                                     <span class="prefix process-prefix"  >{% trans "Process" %}:</span> 
 
                                     <a href="{{ process.get_absolute_url }}">
-                                        {{ process.name }} {% trans "starting" %} <span id="start-dt{{ process.id }}">{{ process.start_date|date:"Y-m-d" }}</span> 
+                                        {{ process.name_with_order }} {% trans "starting" %} <span id="start-dt{{ process.id }}">{{ process.start_date|date:"Y-m-d" }}</span> 
                                         {% trans "ending" %} <span id="end-dt{{ process.id }}"> {{ process.end_date|date:"Y-m-d" }}
                                     </a>
 	                                {% if agent %}

@@ -94,7 +94,7 @@
                 {% endif %}
 			    {% if reqmt.resource_type.onhand %}
 			        <ul>
-				        {% for resource in reqmt.resource_type.onhand %}
+				        {% for resource in reqmt.onhand %}
 					        <li class="subline" >
 						        <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
 						        <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
@@ -135,7 +135,7 @@
 			    <li class="subline" >
 
 				    <span class="name tool-name">{{ reqmt.resource_type.name }}:</span> 
-				    {{ reqmt.quantity }}{{ reqmt.unit_of_quantity }} <span class="due">{% trans "due" %} {{ reqmt.due_date }}</span>
+				    {{ reqmt.quantity }} {{ reqmt.unit_of_quantity }} <span class="due">{% trans "due" %} {{ reqmt.due_date }}</span>
 			    </li>
 			    {% if reqmt.description %}
 				    <ul>
@@ -144,7 +144,7 @@
                 {% endif %}
 			    {% if reqmt.resource_type.onhand %}
 		            <ul>
-			            {% for resource in reqmt.resource_type.onhand %}
+			            {% for resource in reqmt.onhand %}
 				            <li class="subline" >
 					            <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
 					            <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
@@ -152,9 +152,9 @@
 				            </li>
 			            {% endfor %}
 			        </ul>
-		        {% elif reqmt.resource_type.producing_commitments %}
+		        {% elif reqmt.scheduled_receipts %}
 		            <ul>
-			            {% for ct in reqmt.resource_type.producing_commitments %}
+			            {% for ct in reqmt.scheduled_receipts %}
 				            <li class="subline" >
 					            <span class="prefix scheduled-prefix">{% trans "Scheduled" %}:</span> 
 					            {{ ct.quantity }} {{ ct.unit_of_quantity }} <span class="due">{{ ct.due_date }}</span> 

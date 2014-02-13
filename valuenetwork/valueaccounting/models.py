@@ -1954,7 +1954,7 @@ class Process(models.Model):
             ])
 
     def name_with_order(self):
-        answer = ""
+        answer = self.name
         order = self.independent_demand()
         if order:
             order_name = order.name

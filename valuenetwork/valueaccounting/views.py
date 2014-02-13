@@ -6482,6 +6482,7 @@ def exchange_logging(request, exchange_id):
     matl_contr_events = exchange.material_contribution_events()
 
     if agent and pattern:
+        #import pdb; pdb.set_trace()
         slots = pattern.slots()
         if request.user.is_superuser or request.user == exchange.created_by:
             logger = True
@@ -6501,7 +6502,7 @@ def exchange_logging(request, exchange_id):
             add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern, data=request.POST or None)
 
     if request.method == "POST":
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         if exchange_form.is_valid():
             exchange = exchange_form.save()
             return HttpResponseRedirect('/%s/%s/'

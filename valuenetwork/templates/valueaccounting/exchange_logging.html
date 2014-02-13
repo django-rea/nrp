@@ -126,106 +126,50 @@ li {
 
 	<div class="row-fluid">
 
-		<div class="span7">
+	  <div class="span7">
+        {% if exchange.receipt_events or "receive" in slots %}
           <div class="log-section">
 		    <h3 style="margin-bottom: 4px;" >
-		        {% trans "Payment" %}:  
+		        {% trans "Receipt" %}:  
 		        {% if logger %}
-		            <a href="#addPaymentCommitModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a payment commitment">
-		                {% trans "Add a payment commitment" %}
+		            <a href="#addReceiptCommitModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a resource to be received">
+		                {% trans "Add an order line item" %}
 	                </a>
 	             {% endif %}
 	             {% if agent %}
-	                <a href="#unplannedPaymentModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unplanned payment" >
-		                {% trans "Log an unplanned payment" %}
+	                <a href="#unplannedReceiptModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt with no order record" >
+		                {% trans "Log a receipt" %}
 	                </a>
 	             {% endif %}
 	        </h3>
-		    {% for item in exchange.payment_commitments %}
-			    <div>
-				    <b>{% trans "Scheduled" %}: 
-			        <span class="payment-requirement" >
-			            </b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
-		            </span>
-		            {% if logger %}
-                        <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change payment requirement">
-			               <i class="icon-edit"></i>
-		                </a>
-		                <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
-			                <div class="modal-header">
-				                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				                <h3 id="commitment-label">{% trans "Change Commitment" %}</h3>
-			                </div>
-			                <div class="modal-body">
-				                <form class="commitmentForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url change_exchange_commitment commitment_id=item.id %}" method="POST" >
-					                {% csrf_token %}
-					                {{ item.change_form|as_bootstrap }}
-					                <input type="hidden" id="next" name="next" value="exchange" />
-                                    <div class="modal-footer">
-                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
-                                    </div>
-				                </form>
-			                </div>
-		                </div>
 
-		                <form
-		                    style="display: inline;" 
-                            class="delete-commitment-form" 
-                            id="deleteCommitmentForm{{ item.id }}" 
-                            action="{% url delete_exchange_commitment commitment_id=item.id %}" 
-                            method="POST" >
-                            {% csrf_token %}
-                        	<input type="hidden" id="next" name="next" value="exchange" />
-                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete payment commitment" >X</button>
-                        </form>
-		                
-		                <a href="#paymentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Pay this" >{% trans "Log Payment" %}</a>
-        
-                        <div class="modal hide fade paymentModal" id="paymentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="payment-label" aria-hidden="true">
-	                        <div class="modal-header">
-		                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-		                        <h3 id="payment-label">{% trans "Payment" %}</h3>
-	                        </div>
-	                        <div class="modal-body">
-		                        <form class="payment-form validateMe" id="paymentForm{{ item.id }}" enctype="multipart/form-data" action="{% url log_payment_for_commitment commitment_id=item.id %}" method="POST" >
-			                        {% csrf_token %}
-			                        {{ item.resource_create_form|as_bootstrap }}
-		                          <div class="modal-footer">
-			                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-			                        <button class="btn btn-primary">{% trans "Save" %}</button>
-		                          </div>
-		                        </form>
-                            </div>
-                        </div>
+          </div>
+        {%endif%}
 
-			        {% endif %}
-			    </div>
-			    
-			    {% if item.description %}
-		           <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+        {% if exchange.expense_events or "expense" in slots %}
+          <div class="log-section">
+		    <h3 style="margin-bottom: 4px;" >
+		        {% trans "Expense" %}:  
+	            {% if agent %}
+	                <a href="#unplannedExpenseModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an expense (no receipt of resource)" >
+		                {% trans "Log an expense" %}
+	                </a>
 	            {% endif %}
-			
-			    {% for event in item.fulfilling_events %}
-				    <div class="event" >
-					    <span class="event-label">{% trans "Paid" %}:</span> <span class="event" >{{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} </span>
-					    {% if logger %}
-					        <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
-					        <form
-					            style="display: inline;" 
-                                class="delete-form" 
-                                id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                            	<input type="hidden" id="next" name="next" value="exchange" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete payment" >X</button>
-                            </form>
-					    {% endif %}
-					    </br>
-				    </div>
-			    {% endfor %}
-		    {% endfor %}
+	        </h3>
+
+          </div>
+        {%endif%}
+
+        {% if exchange.payment_events or "pay" in slots %}
+          <div class="log-section">
+		    <h3 style="margin-bottom: 4px;" >
+		        {% trans "Payment" %}:  
+	            {% if agent %}
+	                <a href="#unplannedPaymentModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unplanned payment" >
+		                {% trans "Log a payment" %}
+	                </a>
+	             {% endif %}
+	        </h3>
 
             {% if exchange.uncommitted_payment_events %}
                 <h4 class="unplanned">{% trans "Unplanned Payments" %}:</h4>
@@ -250,6 +194,35 @@ li {
 		        {% endfor %}
 	        {% endif %}
           </div>
+	    {% endif %}
+
+        {% if exchange.matl_contr_events or "resource" in slots %}
+          <div class="log-section">
+		    <h3 style="margin-bottom: 4px;" >
+		        {% trans "Material Contribution" %}:  
+	            {% if agent %}
+	                <a href="#unplannedResourceModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt of a material contribution" >
+		                {% trans "Log a contributed resource" %}
+	                </a>
+	             {% endif %}
+	        </h3>
+
+          </div>
+        {%endif%}
+
+        {% if exchange.cash_contr_events or "cash" in slots %}
+          <div class="log-section">
+		    <h3 style="margin-bottom: 4px;" >
+		        {% trans "Cash Contribution" %}:  
+	            {% if agent %}
+	                <a href="#unplannedResourceModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt of a cash contribution" >
+		                {% trans "Log a cash contribution" %}
+	                </a>
+	             {% endif %}
+	        </h3>
+
+          </div>
+        {%endif%}
 
         {% if exchange.work_events or "work" in slots %}
           <div class="log-section">
@@ -257,7 +230,7 @@ li {
 		        {% trans "Work" %}:  
 		        {% if logger %}
 		            <a href="#addWorkModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Add work done for this exchange.">
-		                {% trans "Add a work event" %}
+		                {% trans "Log a work event" %}
 	                </a>
 	             {% endif %}
             </h3>

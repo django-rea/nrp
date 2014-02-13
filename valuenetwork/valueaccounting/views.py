@@ -1991,6 +1991,7 @@ def work(request):
 
     processes, projects = assemble_schedule(start, end, chosen_project)
     todos = Commitment.objects.todos().filter(due_date__range=(start, end))
+    work_now = settings.USE_WORK_NOW
     return render_to_response("valueaccounting/work.html", {
         "agent": agent,
         "projects": projects,
@@ -1999,6 +2000,7 @@ def work(request):
         "todo_form": todo_form,
         "project_form": project_form,
         "todos": todos,
+        "work_now": work_now,
         "help": get_help("all_work"),
     }, context_instance=RequestContext(request))
 
@@ -2249,6 +2251,7 @@ def start(request):
         todo_form = TodoForm(pattern=pattern, initial=init)
     except PatternUseCase.DoesNotExist:
         todo_form = TodoForm(initial=init)
+    work_now = settings.USE_WORK_NOW
     return render_to_response("valueaccounting/start.html", {
         "agent": agent,
         "my_work": my_work,
@@ -2256,6 +2259,7 @@ def start(request):
         "other_unassigned": other_unassigned,
         "todos": todos,
         "todo_form": todo_form,
+        "work_now": work_now,
         "help": get_help("my_work"),
     }, context_instance=RequestContext(request))
 
@@ -3667,6 +3671,7 @@ def process_oriented_logging(request, process_id):
     unplanned_use_form = None
     unplanned_output_form = None
     slots = []
+    work_now = settings.USE_WORK_NOW
     
     work_reqs = process.work_requirements()
     consume_reqs = process.consumed_input_requirements()
@@ -3749,7 +3754,7 @@ def process_oriented_logging(request, process_id):
         "use_reqs": use_reqs,
         "uncommitted_use": process.uncommitted_use_events(),
         "unplanned_work": unplanned_work,
-        
+        "work_now": work_now,
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 

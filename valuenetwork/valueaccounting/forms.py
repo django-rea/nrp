@@ -2,6 +2,7 @@ import sys
 import datetime
 from decimal import *
 from django import forms
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from valuenetwork.valueaccounting.models import *
@@ -569,7 +570,7 @@ class CashEventAgentForm(forms.ModelForm):
 class CommitmentForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(
-        label="Estimated hours (optional)",
+        label="Estimated quantity (optional)",
         required=False, 
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
@@ -1120,10 +1121,19 @@ class OptionsForm(forms.Form):
 class EconomicResourceTypeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    substitutable = forms.BooleanField(
+        required=False,
+        help_text=_('Can any resource of this type be substituted for any other resource of this type?'),
+        widget=forms.CheckboxInput()) 
     
     class Meta:
         model = EconomicResourceType
         exclude = ('parent', 'created_by', 'changed_by')
+
+    def __init__(self, *args, **kwargs):
+        super(EconomicResourceTypeForm, self).__init__(*args, **kwargs)
+        self.fields["substitutable"].initial = settings.SUBSTITUTABLE_DEFAULT
+        
 
 class EconomicResourceTypeChangeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'existing-name input-xlarge',}))

@@ -52,9 +52,8 @@
 					
 					{% if item.from_agent %}
 					    <span class="taken">{% trans "Taken by" %} {{ item.from_agent.nick }}</span>
-					    {% if agent == item.from_agent %}
+					    {% if agent == item.from_agent and work_now %}
 					        <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" target="_blank">{% trans "Labnotes" %}</a>
-
 					    {% endif %}
 					{% else %}
 					     <span class="due">{% trans "due" %} {{ item.due_date }}</span>
@@ -79,7 +78,9 @@
 								      <div class="modal-footer">
 									    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									    <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
-									    <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+									    {% if work_now %}
+									        <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+									    {% endif %}
 								      </div>
 								    </form>
 						      </div>

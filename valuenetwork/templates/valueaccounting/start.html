@@ -191,7 +191,9 @@ th, td {
 							{% for item in my_work %}
 								<li>
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-									<a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
+									{% if work_now %}
+									    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
+									{% endif %}
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
 									{% trans "for process" %}: {{ item.process }}
@@ -410,7 +412,9 @@ th, td {
 														  <div class="modal-footer">
 															<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
 															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
-															<input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+															{% if work_now %}
+															    <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+														    {% endif %}
 														  </div>
 														</form>
 													</div>
@@ -534,7 +538,9 @@ th, td {
 														  <div class="modal-footer">
 															<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
 															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
-															<input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+															{% if work_now %}
+															    <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+														    {% endif %}
 														  </div>
 														</form>
 													</div>

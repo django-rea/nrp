@@ -147,6 +147,10 @@ INSTALLED_APPS = [
 
 ]
 
+# valueaccounting settings
+USE_WORK_NOW = True
+SUBSTITUTABLE_DEFAULT = True
+
 NOTIFICATION_QUEUE_ALL = True
 
 THUMBNAIL_DEBUG = True

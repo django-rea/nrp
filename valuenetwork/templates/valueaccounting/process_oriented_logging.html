@@ -340,7 +340,9 @@ li {
 				                <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your work" >
 					                {% trans "Log work" %}
 				                </a>
-				                <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
+				                {% if work_now %}
+				                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
+			                    {% endif %}
 			
 				                <div class="modal hide fade workEventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
 					                <div class="modal-header">
@@ -449,9 +451,9 @@ li {
 								          <div class="modal-footer">
 									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									        <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
-									        {% comment %}
-									        <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
-									        {% endcomment %}
+									        {% if work_now %}
+									            <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+									        {% endif %}
 								          </div>
 								        </form>
 							        </div>

@@ -912,6 +912,10 @@ class ProcessPattern(models.Model):
     def payment_resource_types(self):
         return self.resource_types_for_relationship("pay")
 
+    def expense_resource_types(self):
+        #import pdb; pdb.set_trace()
+        return self.resource_types_for_relationship("expense")
+
     def facets_for_event_type(self, event_type):
         return self.facets.filter(event_type=event_type)
 
@@ -3510,3 +3514,10 @@ class CachedEventSummary(models.Model):
 
     def value_formatted(self):
         return self.value.quantize(Decimal('.01'), rounding=ROUND_UP)
+
+
+#class AccountingReference(models.Model):
+#    event_type = models.ForeignKey(EventType,
+#        verbose_name=_('event type'), related_name='accounting')
+#    name = models.CharField(_('name'), max_length=128)
+#    code = models.CharField(_('code'), max_length=32)

@@ -965,6 +965,41 @@ class PaymentEventForm(forms.ModelForm):
             self.pattern = pattern
             self.fields["resource_type"].queryset = pattern.payment_resource_types()
 
+class ExpenseEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
+        label="Supplier",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        label="Type of expense",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'resource_type', 'value', 'unit_of_value', 'description')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(ExpenseEventForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            #import pdb; pdb.set_trace()
+            self.fields["resource_type"].queryset = pattern.expense_resource_types()
+
+
+
 
 class WorkSelectionForm(forms.Form):
     type_of_work = forms.ChoiceField()
@@ -1563,12 +1598,13 @@ class FinancialContributionForm(forms.ModelForm):
 class ExchangeForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(), 
+        label=_("Pattern"),
         empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
     project = forms.ModelChoiceField(
         queryset=Project.objects.all(), 
-        empty_label=None, 
+        label=_("Project (optional)"),
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=True, 
         label=_("Start date"),

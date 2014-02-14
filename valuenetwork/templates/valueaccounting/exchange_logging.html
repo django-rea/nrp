@@ -52,6 +52,14 @@ li {
 .unplanned {
     color: 	#7D1818;
 }
+#id_notes, #id_url {
+    width: 32em;
+}
+.notes {
+    margin-left: 4em;
+    padding-right: 2em;
+    font-style: italic;
+}
 
 /*
 .use {
@@ -62,11 +70,6 @@ li {
 
 .commitment {
     margin-top: 4px;
-}
-
-.notes {
-    margin-left: 1em;
-    font-style: italic;
 }
 
 .error {
@@ -112,9 +115,7 @@ li {
     margin-bottom: 1px;
 }
 
-#id_notes, #id_url {
-    width: 32em;
-}
+
 */
 </style>
 
@@ -157,12 +158,57 @@ li {
 		    <h3 style="margin-bottom: 4px;" >
 		        {% trans "Expense" %}:  
 	            {% if agent %}
-	                <a href="#unplannedExpenseModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an expense (no receipt of resource)" >
+	                <a href="#expenseModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an expense (no receipt of resource)" >
 		                {% trans "Log an expense" %}
 	                </a>
 	            {% endif %}
 	        </h3>
 
+            {% if exchange.expense_events %}
+		        {% for event in exchange.expense_events %}
+			        <div>
+				        <span class="event" ><span class="event-label">{% trans "Expense" %}: </span> 
+				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
+     	                {% if user == event.created_by  %}
+                            
+		                    <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+			                   <i class="icon-edit"></i>
+		                    </a>
+	
+		                    <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+			                    <div class="modal-header">
+				                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				                    <h3 id="event-label">{% trans "Change Expense Event" %}</h3>
+			                    </div>
+			                    <div class="modal-body">
+				                    <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_expense_event event_id=event.id %}" method="POST" >
+					                    {% csrf_token %}
+					                    {{ event.changeform|as_bootstrap }}
+					                    <input type="hidden" id="next" name="next" value="exchange" />
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+				                    </form>
+			                    </div>
+		                    </div>
+		                    <form
+				                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="exchange" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete expense" >X</button>
+                            </form>
+		                {% endif %}
+         			    {% if event.description %}
+		                   <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+	                    {% endif %}                       
+			        </div>
+		        {% endfor %}
+	        {% endif %}
           </div>
         {%endif%}
 
@@ -182,14 +228,14 @@ li {
 		        {% for event in exchange.uncommitted_payment_events %}
 			        <div>
 				        <span class="event" ><span class="event-label">{% trans "Paid" %}: </span> 
-				            {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				            <b>{{ event.quantity }} {{ event.unit_of_quantity }}</b> from {{ event.from_agent.nick }} to <b>{{ event.to_agent.nick }}</b> {{ event.event_date }}</span>
      	                {% if agent == event.from_agent or user == event.created_by  %}
                             
 		                    <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 			                   <i class="icon-edit"></i>
 		                    </a>
 	
-		                    <div class="modal hide fade workEventModal" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+		                    <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
 			                    <div class="modal-header">
 				                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 				                    <h3 id="event-label">{% trans "Change Payment Event" %}</h3>
@@ -217,6 +263,9 @@ li {
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete payment" >X</button>
                             </form>
 		                {% endif %}
+         			    {% if event.description %}
+		                   <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+	                    {% endif %}  
 			        </div>
 		        {% endfor %}
 	        {% endif %}
@@ -300,7 +349,9 @@ li {
                             <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work contribution!" >X</button>
                         </form>
                     {% endif %}
-		            
+     			    {% if event.description %}
+	                   <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+                    {% endif %}  		            
 	            </div>
             {% endfor %}
 
@@ -397,9 +448,26 @@ li {
     </div>
 
 
-    {% if agent %} <!-- modals -->
+    {% if logger %} <!-- general modals -->
 
-     <div class="modal hide fade" id="unplannedPaymentModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-payment" aria-hidden="true">
+       <div class="modal hide fade" id="expenseModal" tabindex="-1" role="dialog" aria-labelledby="expense" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="expense">{% trans "Log an Expense" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="validateMe" enctype="multipart/form-data" action="{% url add_expense exchange_id=exchange.id %}" method="POST" >
+                {% csrf_token %}
+                {{ add_expense_form|as_bootstrap }}
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+              </div>
+            </form>
+        </div>
+       </div>
+   
+       <div class="modal hide fade" id="unplannedPaymentModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-payment" aria-hidden="true">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
             <h3 id="unplanned-payment">{% trans "Log a Payment" %}</h3>
@@ -414,11 +482,7 @@ li {
               </div>
             </form>
         </div>
-     </div>
-
-    {% endif %}
-
-    {% if logger %}    
+       </div>
     
         <div class="modal hide fade addWorkModal" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
             <div class="modal-header">

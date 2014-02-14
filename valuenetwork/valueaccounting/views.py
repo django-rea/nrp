@@ -2840,6 +2840,7 @@ def add_unplanned_output(request, process_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
+@login_required
 def add_unplanned_payment(request, exchange_id):
     exchange = get_object_or_404(Exchange, pk=exchange_id)   
     if request.method == "POST":
@@ -2855,8 +2856,34 @@ def add_unplanned_payment(request, exchange_id):
                 event_type = pattern.event_type_for_resource_type("pay", rt)
                 event.event_type = event_type
                 event.exchange = exchange
+                event.project = exchange.project
                 event.unit_of_quantity = rt.unit
                 event.is_contribution = True
+                event.created_by = request.user
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+@login_required
+def add_expense(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        form = ExpenseEventForm(data=request.POST, pattern=pattern, prefix='expense')
+        if form.is_valid():
+            expense_data = form.cleaned_data
+            value = expense_data["value"] 
+            if value:
+                event = form.save(commit=False)
+                rt = expense_data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("expense", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.project = exchange.project
+                event.quantity = 1
+                event.unit_of_quantity = rt.unit
                 event.created_by = request.user
                 event.save()
                 
@@ -4825,7 +4852,6 @@ def change_work_event(request, event_id):
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/labnote', commitment.id))
 
-#todo: make this work for exchanges, or make a new one
 @login_required
 def change_unplanned_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
@@ -4845,9 +4871,29 @@ def change_unplanned_work_event(request, event_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
-#todo: make this work
+#todo: make this work (exchanges only)
 @login_required
 def change_unplanned_payment_event(request, event_id):
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    process = event.process
+    pattern = process.process_pattern
+    if pattern:
+        #import pdb; pdb.set_trace()
+        if request.method == "POST":
+            form = UnplannedWorkEventForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id), 
+                data=request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                form.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', exchange.id))
+
+#todo: make this work (exchanges only)
+@login_required
+def change_expense_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     process = event.process
     pattern = process.process_pattern
@@ -6488,6 +6534,7 @@ def exchange_logging(request, exchange_id):
     payment_commitments = exchange.payment_commitments()
     receipt_events = exchange.receipt_events()
     payment_events = exchange.payment_events()
+    expense_events = exchange.expense_events()
     work_events = exchange.work_events()
     cash_contr_events = exchange.cash_contribution_events()
     matl_contr_events = exchange.material_contribution_events()
@@ -6507,6 +6554,11 @@ def exchange_logging(request, exchange_id):
                 "event_date": datetime.date.today()
             }
             add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, data=request.POST or None)
+        if "expense" in slots:
+            expense_init = {
+                "event_date": datetime.date.today()
+            }
+            add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, data=request.POST or None)
         if "work" in slots:
             work_init = {
                 "from_agent": agent,

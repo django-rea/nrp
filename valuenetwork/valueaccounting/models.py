@@ -154,7 +154,7 @@ class FacetValue(models.Model):
     def __unicode__(self):
         return ": ".join([self.facet.name, self.value])
 
-#todo: not used??
+
 UNIT_TYPE_CHOICES = (
     ('area', _('area')),
     ('length', _('length')),
@@ -908,6 +908,9 @@ class ProcessPattern(models.Model):
 
     def output_resource_types(self):
         return self.resource_types_for_relationship("out")
+
+    def payment_resource_types(self):
+        return self.resource_types_for_relationship("pay")
 
     def facets_for_event_type(self, event_type):
         return self.facets.filter(event_type=event_type)
@@ -2430,7 +2433,7 @@ class Exchange(models.Model):
 
     def payment_commitments(self):
         return self.commitments.filter(
-            event_type__relationship='payment')
+            event_type__relationship='pay')
 
     def receipt_events(self):
         return self.events.filter(
@@ -2443,11 +2446,11 @@ class Exchange(models.Model):
 
     def payment_events(self):
         return self.events.filter(
-            event_type__relationship='payment')
+            event_type__relationship='pay')
 
     def uncommitted_payment_events(self):
         return self.events.filter(
-            event_type__relationship='payment',
+            event_type__relationship='pay',
             commitment=None)
 
     def work_events(self):

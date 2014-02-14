@@ -654,7 +654,7 @@ class SimpleOutputForm(forms.ModelForm):
         super(SimpleOutputForm, self).__init__(*args, **kwargs)
         self.fields["project"].choices = [(p.id, p) for p in Project.objects.all()]
 
-
+'''
 # used in log_simple()
 class SimpleOutputResourceForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
@@ -711,7 +711,7 @@ class SimpleWorkForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
-
+'''
 
 class UnplannedWorkEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -925,6 +925,45 @@ class EventChangeQuantityForm(forms.ModelForm):
     class Meta:
         model = EconomicEvent
         fields = ('id', 'quantity')
+
+class PaymentEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    to_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        label="Payment made to",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        label="Payment made by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(
+        label="Payment amount",
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        label="Unit of payment",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'to_agent', 'from_agent', 'quantity', 'resource_type', 'description')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(PaymentEventForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.payment_resource_types()
 
 
 class WorkSelectionForm(forms.Form):
@@ -1484,6 +1523,7 @@ class EquationForm(forms.Form):
 
         return equation
 
+'''
 #todo: can eliminate this when exchagne is done
 class FinancialContributionForm(forms.ModelForm):
     #probably a limited selection of resource type, but not ready to set these up yet
@@ -1518,7 +1558,7 @@ class FinancialContributionForm(forms.ModelForm):
         super(FinancialContributionForm, self).__init__(*args, **kwargs)
         self.fields["resource_type"].choices = [('1','cash infusion')] + [('2','administrative expenses')] + [('3','production and R&D')] + [('4','sales expenses')] + [('5','capital assets')] + [('6','Other')]
         self.fields["unit_of_quantity"].choices = [('1','CAD')] + [('2','USD')] 
-
+'''
 
 class ExchangeForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(

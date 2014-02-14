@@ -13,15 +13,52 @@
 
 <style>
 
+.event {
+    margin-left: 2em; 
+    margin-bottom: 4px;
+}
+.btn {
+    margin-left: 10px;
+}
+h3, h4 {
+    color: firebrick;
+}
+.modal {
+    width: 600px;
+}
+.subsection-label {
+    font-weight: bold;
+}
+.detail-line {
+    margin: 0 0 0 2em;
+}
+li {
+    list-style-type: none;
+}
+.log-section {
+    border: solid 1px gainsboro;
+    background-color: beige; 
+    padding: 4px;
+    margin-bottom: 7px;   
+}
+.event-label {
+    color: green;
+    font-weight: bold;
+    font-style: normal;
+}
+.indent {
+    margin-left: 3em;
+}
+.unplanned {
+    color: 	#7D1818;
+}
+
+/*
 .use {
     margin-left: 4em;
     font-style: italic;
 }
 
-.event {
-    margin-left: 2em; 
-    margin-bottom: 4px;
-}
 
 .commitment {
     margin-top: 4px;
@@ -49,15 +86,7 @@
   height: 400px;
 }
 
-.btn {
-    margin-left: 10px;
-}
-h3, h4 {
-    color: firebrick;
-}
-li {
-    list-style-type: none;
-}
+
 .proc-notes {
     font-style: italic;
     font-weight: normal;
@@ -66,37 +95,14 @@ li {
     padding: 4px;
     margin: 4px 0 10px 0;
 }
-.log-section {
-    border: solid 1px gainsboro;
-    background-color: beige; 
-    padding: 4px;
-    margin-bottom: 7px;   
-}
-.modal {
-    width: 600px;
-}
-.subsection-label {
-    font-weight: bold;
-}
-.detail-line {
-    margin: 0 0 0 2em;
-}
+
+
 .taken {
     font-style: italic;
     font-weight: bold;
     color: #5C8A8A;
 }
-.unplanned {
-    color: 	#7D1818;
-}
-.event-label {
-    color: green;
-    font-weight: bold;
-    font-style: normal;
-}
-.indent {
-    margin-left: 3em;
-}
+
 
 .onhand {
     margin-left: 2em;
@@ -109,7 +115,7 @@ li {
 #id_notes, #id_url {
     width: 32em;
 }
-
+*/
 </style>
 
 {% endblock %}
@@ -165,20 +171,41 @@ li {
 		    <h3 style="margin-bottom: 4px;" >
 		        {% trans "Payment" %}:  
 	            {% if agent %}
-	                <a href="#unplannedPaymentModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unplanned payment" >
+	                <a href="#unplannedPaymentModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a payment" >
 		                {% trans "Log a payment" %}
 	                </a>
 	             {% endif %}
 	        </h3>
 
             {% if exchange.uncommitted_payment_events %}
-                <h4 class="unplanned">{% trans "Unplanned Payments" %}:</h4>
+                <!--<h4 class="unplanned">{% trans "Payments" %}:</h4>-->
 		        {% for event in exchange.uncommitted_payment_events %}
-			        <div class="event" >
-				        <b>{% trans "Paid" %}: <span class="event" >
-				            <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+			        <div>
+				        <span class="event" ><span class="event-label">{% trans "Paid" %}: </span> 
 				            {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
-				        {% if logger %}
+     	                {% if agent == event.from_agent or user == event.created_by  %}
+                            
+		                    <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+			                   <i class="icon-edit"></i>
+		                    </a>
+	
+		                    <div class="modal hide fade workEventModal" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+			                    <div class="modal-header">
+				                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				                    <h3 id="event-label">{% trans "Change Payment Event" %}</h3>
+			                    </div>
+			                    <div class="modal-body">
+				                    <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_unplanned_payment_event event_id=event.id %}" method="POST" >
+					                    {% csrf_token %}
+					                    {{ event.changeform|as_bootstrap }}
+					                    <input type="hidden" id="next" name="next" value="exchange" />
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+				                    </form>
+			                    </div>
+		                    </div>
 		                    <form
 				                style="display: inline;" 
                                 class="delete-form" 
@@ -234,24 +261,6 @@ li {
 	                </a>
 	             {% endif %}
             </h3>
-            {% if logger %}        
-                <div class="modal hide fade addWorkModal" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                        <h3 id="work-label">{% trans "Add Exchange Work" %}</h3>
-                    </div>
-                    <div class="modal-body">
-                        <form class="work-form validateMe" id="workForm" enctype="multipart/form-data" action="{% url add_work_for_exchange exchange_id=exchange.id %}" method="POST" >
-	                        {% csrf_token %}
-	                        {{ add_work_form|as_bootstrap }}
-                          <div class="modal-footer">
-	                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-	                        <button class="btn btn-primary">{% trans "Save" %}</button>
-                          </div>
-                        </form>
-                    </div>
-                </div>
-            {% endif %}
 
             {% for event in work_events %}
 	            <div >
@@ -387,31 +396,50 @@ li {
 	    </div>
     </div>
 
-    {% if logger %}
-    
 
-    {% endif %}
+    {% if agent %} <!-- modals -->
 
-    {% if agent %}
-
-     <div class="modal hide fade unplannedPaymentModal" id="unplannedPaymentModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-payment-label" aria-hidden="true">
+     <div class="modal hide fade" id="unplannedPaymentModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-payment" aria-hidden="true">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="unplanned-payment">{% trans "Log Unplanned Payment" %}</h3>
+            <h3 id="unplanned-payment">{% trans "Log a Payment" %}</h3>
         </div>
         <div class="modal-body">
-            <form class="unplanned-payment-form validateMe" enctype="multipart/form-data" action="{% url add_unplanned_payment exchange_id=exchange.id %}" method="POST" >
+            <form class="validateMe" enctype="multipart/form-data" action="{% url add_unplanned_payment exchange_id=exchange.id %}" method="POST" >
                 {% csrf_token %}
                 {{ add_payment_form|as_bootstrap }}
               <div class="modal-footer">
                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
               </div>
             </form>
         </div>
      </div>
 
     {% endif %}
+
+    {% if logger %}    
+    
+        <div class="modal hide fade addWorkModal" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="work-label">{% trans "Add Work Done for This Transaction" %}</h3>
+            </div>
+            <div class="modal-body">
+                <form class="validateMe" id="workForm" enctype="multipart/form-data" action="{% url add_work_for_exchange exchange_id=exchange.id %}" method="POST" >
+                    {% csrf_token %}
+                    {{ add_work_form|as_bootstrap }}
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                    <button class="btn btn-primary">{% trans "Save" %}</button>
+                  </div>
+                </form>
+            </div>
+        </div>
+
+    {% endif %}
+
+
  
 {% endblock %}
 {% block extra_script %}

@@ -2841,38 +2841,22 @@ def add_unplanned_output(request, process_id):
         % ('accounting/process', process.id))
 
 def add_unplanned_payment(request, exchange_id):
-    exchange = get_object_or_404(Process, pk=exchange_id)   
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        form = UnplannedPaymentForm(data=request.POST, prefix='unplannedpayment')
+        pattern = exchange.process_pattern
+        form = PaymentEventForm(data=request.POST, pattern=pattern, prefix='pay')
         if form.is_valid():
             payment_data = form.cleaned_data
             qty = payment_data["quantity"] 
             if qty:
                 event = form.save(commit=False)
                 rt = payment_data["resource_type"]
-                identifier = payment_data["identifier"]
-                notes = payment_data["notes"]
-                url = payment_data["url"]
-                photo_url = payment_data["photo_url"]
-                resource = EconomicResource(
-                    resource_type=rt,
-                    identifier=identifier,
-                    notes=notes,
-                    url=url,
-                    photo_url=photo_url,
-                    quantity=event.quantity,
-                    unit_of_quantity=event.unit_of_quantity,
-                    created_by=request.user,
-                )
-                resource.save()
-                event.resource = resource
-                pattern = process.process_pattern
-                event_type = pattern.event_type_for_resource_type("", rt)
+                event_type = pattern.event_type_for_resource_type("pay", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
-                event.event_date = datetime.date.today()
+                event.unit_of_quantity = rt.unit
+                event.is_contribution = True
                 event.created_by = request.user
                 event.save()
                 
@@ -4841,6 +4825,7 @@ def change_work_event(request, event_id):
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/labnote', commitment.id))
 
+#todo: make this work for exchanges, or make a new one
 @login_required
 def change_unplanned_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
@@ -4859,6 +4844,26 @@ def change_unplanned_work_event(request, event_id):
                 form.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
+
+#todo: make this work
+@login_required
+def change_unplanned_payment_event(request, event_id):
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    process = event.process
+    pattern = process.process_pattern
+    if pattern:
+        #import pdb; pdb.set_trace()
+        if request.method == "POST":
+            form = UnplannedWorkEventForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id), 
+                data=request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                form.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', exchange.id))
 
 class ProcessOutputFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
@@ -6337,6 +6342,7 @@ def financial_contribution(request):
         "pattern": pattern,
     }, context_instance=RequestContext(request))
 
+'''
 #todo: not working yet - is this only related to financial contrs? if so, can go away with that
 def create_resource_formset(pattern):
     #ResourceFormSet = formset_factory(SimpleOutputResourceForm, extra=3)
@@ -6353,7 +6359,7 @@ def create_resource_formset(pattern):
         form.fields["resource_type"].choices = choices
     return formset
 
-'''
+
 def process_oriented_logging(request, process_id):   
     process = get_object_or_404(Process, id=process_id)
     pattern = process.process_pattern
@@ -6495,10 +6501,12 @@ def exchange_logging(request, exchange_id):
             req.changeform = req.change_form()
         for req in payment_commitments:
             req.changeform = req.change_form()
-        if "payment" in slots:
-            add_payment_form = UnplannedCiteEventForm(prefix='add-pmt', pattern=pattern)
-            if logger:
-                add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern) 
+        if "pay" in slots:
+            pay_init = {
+                "from_agent": agent,
+                "event_date": datetime.date.today()
+            }
+            add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, data=request.POST or None)
         if "work" in slots:
             work_init = {
                 "from_agent": agent,
@@ -6520,10 +6528,8 @@ def exchange_logging(request, exchange_id):
         "user": request.user,
         "logger": logger,
         "slots": slots,
-        "payment_commitments": payment_commitments,
         "receipt_commitments": receipt_commitments,
-        "receipt_commitments": receipt_commitments,
-        "payment_commitments": payment_commitments,
+        #"payment_commitments": payment_commitments,
         "receipt_events": receipt_events,
         "payment_events": payment_events,
         "work_events": work_events,
@@ -6536,7 +6542,7 @@ def exchange_logging(request, exchange_id):
         "add_contr_cash_form": add_contr_cash_form,
         "add_work_form": add_work_form,
         "add_commit_receipt_form": add_commit_receipt_form,
-        "add_commit_payment_form": add_commit_payment_form,
+        #"add_commit_payment_form": add_commit_payment_form,
         "help": get_help("exchange"),
     }, context_instance=RequestContext(request))
 

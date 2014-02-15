@@ -390,17 +390,27 @@ class EventType(models.Model):
         return self.resource_effect == "-"
 
 
-MATERIALITY_CHOICES = (
-    ('intellectual', _('intellectual')),
-    ('material', _('material')),
-    ('purchmatl', _('purchased material')),
-    ('purchtool', _('purchased tool')),
-    ('space', _('space')),
-    ('tool', _('tool')),
-    ('value', _('value')),
-    ('work', _('work')),
-)
+class AccountingReference(models.Model):
+    code = models.CharField(_('code'), max_length=128, unique=True)
+    name = models.CharField(_('name'), max_length=128)
 
+
+#MATERIALITY_CHOICES = (
+#    ('intellectual', _('intellectual')),
+#    ('material', _('material')),
+#    ('purchmatl', _('purchased material')),
+#    ('purchtool', _('purchased tool')),
+#    ('space', _('space')),
+#    ('tool', _('tool')),
+#    ('value', _('value')),
+#    ('work', _('work')),
+#)
+
+INVENTORY_RULE_CHOICES = (
+    ('yes', _('Keep inventory')),
+    ('no', _('Not worth it')),
+    ('never', _('Does not apply')),
+)
 
 class EconomicResourceType(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
@@ -420,12 +430,17 @@ class EconomicResourceType(models.Model):
         help_text=_('if this resource has different units of use and inventory, this is the unit of use'))
     substitutable = models.BooleanField(_('substitutable'), default=True,
         help_text=_('Can any resource of this type be substituted for any other resource of this type?'))
+    inventory_rule = models.CharField(_('inventory rule'), max_length=5,
+        choices=INVENTORY_RULE_CHOICES, default='yes')
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     description = models.TextField(_('description'), blank=True, null=True)
     rate = models.DecimalField(_('rate'), max_digits=6, decimal_places=2, default=Decimal("0.00"), editable=False)
+    accounting_reference = models.ForeignKey(AccountingReference, blank=True, null=True,
+        verbose_name=_('accounting reference'), related_name="resource_types",
+        help_text=_('optional reference to an external account'))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='resource_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
@@ -911,6 +926,9 @@ class ProcessPattern(models.Model):
 
     def payment_resource_types(self):
         return self.resource_types_for_relationship("pay")
+
+    def receipt_resource_types(self):
+        return self.resource_types_for_relationship("receive")
 
     def expense_resource_types(self):
         #import pdb; pdb.set_trace()
@@ -2441,11 +2459,11 @@ class Exchange(models.Model):
 
     def receipt_events(self):
         return self.events.filter(
-            event_type__relationship='receipt')
+            event_type__relationship='receive')
 
     def uncommitted_receipt_events(self):
         return self.events.filter(
-            event_type__relationship='receipt',
+            event_type__relationship='receive',
             commitment=None)
 
     def payment_events(self):
@@ -3516,8 +3534,3 @@ class CachedEventSummary(models.Model):
         return self.value.quantize(Decimal('.01'), rounding=ROUND_UP)
 
 
-#class AccountingReference(models.Model):
-#    event_type = models.ForeignKey(EventType,
-#        verbose_name=_('event type'), related_name='accounting')
-#    name = models.CharField(_('name'), max_length=128)
-#    code = models.CharField(_('code'), max_length=32)

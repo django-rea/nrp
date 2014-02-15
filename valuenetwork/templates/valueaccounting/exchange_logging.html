@@ -144,12 +144,56 @@ li {
 	                </a>
 	             {% endif %}
 	             {% if agent %}
-	                <a href="#unplannedReceiptModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt with no order record" >
+	                <a href="#unorderedReceiptModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt with no order record" >
 		                {% trans "Log a receipt" %}
 	                </a>
 	             {% endif %}
 	        </h3>
-
+            {% if exchange.receipt_events %}
+		        {% for event in exchange.receipt_events %}
+			        <div>
+				        <span class="event" ><span class="event-label">{% trans "Received" %}: </span> 
+				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
+     	                {% if user == event.created_by  %}
+                            
+		                    <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+			                   <i class="icon-edit"></i>
+		                    </a>
+	
+		                    <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+			                    <div class="modal-header">
+				                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				                    <h3 id="event-label">{% trans "Change Receipt Event" %}</h3>
+			                    </div>
+			                    <div class="modal-body">
+				                    <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_receipt_event event_id=event.id %}" method="POST" >
+					                    {% csrf_token %}
+					                    {{ event.changeform|as_bootstrap }}
+					                    <input type="hidden" id="next" name="next" value="exchange" />
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+				                    </form>
+			                    </div>
+		                    </div>
+		                    <form
+				                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="exchange" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete expense" >X</button>
+                            </form>
+		                {% endif %}
+         			    {% if event.description %}
+		                   <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+	                    {% endif %}          
+			        </div>
+		        {% endfor %}
+            {% endif %}
           </div>
         {%endif%}
 
@@ -167,7 +211,7 @@ li {
             {% if exchange.expense_events %}
 		        {% for event in exchange.expense_events %}
 			        <div>
-				        <span class="event" ><span class="event-label">{% trans "Expense" %}: </span> 
+				        <span class="event" ><span class="event-label">{% trans "Expensed" %}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
      	                {% if user == event.created_by  %}
                             
@@ -449,6 +493,24 @@ li {
 
 
     {% if logger %} <!-- general modals -->
+
+     <div class="modal hide fade" id="unorderedReceiptModal" tabindex="-1" role="dialog" aria-labelledby="unordered-receipt" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="unordered-receipt">{% trans "Log a Receipt (Not Ordered)" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="validateMe" enctype="multipart/form-data" action="{% url add_unordered_receipt exchange_id=exchange.id %}" method="POST" >
+                {% csrf_token %}
+                {{ add_receipt_form|as_bootstrap }}
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+              </div>
+            </form>
+        </div>
+    </div>
+
 
        <div class="modal hide fade" id="expenseModal" tabindex="-1" role="dialog" aria-labelledby="expense" aria-hidden="true">
         <div class="modal-header">

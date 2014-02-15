@@ -2840,6 +2840,48 @@ def add_unplanned_output(request, process_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
+
+@login_required
+def add_unordered_receipt(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        form = UnorderedReceiptForm(data=request.POST, prefix='unorderedreceipt')
+        if form.is_valid():
+            output_data = form.cleaned_data
+            qty = output_data["quantity"] 
+            if qty:
+                event = form.save(commit=False)
+                rt = output_data["resource_type"]
+                identifier = output_data["identifier"]
+                notes = output_data["notes"]
+                url = output_data["url"]
+                photo_url = output_data["photo_url"]
+                if rt.inventory_rule == "yes":
+                    resource = EconomicResource(
+                        resource_type=rt,
+                        identifier=identifier,
+                        notes=notes,
+                        url=url,
+                        photo_url=photo_url,
+                        quantity=event.quantity,
+                        unit_of_quantity=event.unit_of_quantity,
+                        created_by=request.user,
+                    )
+                    resource.save()
+                    event.resource = resource
+                pattern = exchange.process_pattern
+                event_type = pattern.event_type_for_resource_type("receive", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.project = exchange.project
+                event.created_by = request.user
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+
 @login_required
 def add_unplanned_payment(request, exchange_id):
     exchange = get_object_or_404(Exchange, pk=exchange_id)   
@@ -4893,6 +4935,26 @@ def change_unplanned_payment_event(request, event_id):
 
 #todo: make this work (exchanges only)
 @login_required
+def change_receipt_event(request, event_id):
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    process = event.process
+    pattern = process.process_pattern
+    if pattern:
+        #import pdb; pdb.set_trace()
+        if request.method == "POST":
+            form = UnplannedWorkEventForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id), 
+                data=request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                form.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', exchange.id))
+
+#todo: make this work (exchanges only)
+@login_required
 def change_expense_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     process = event.process
@@ -6551,20 +6613,25 @@ def exchange_logging(request, exchange_id):
         if "pay" in slots:
             pay_init = {
                 "from_agent": agent,
-                "event_date": datetime.date.today()
+                "event_date": exchange.start_date
             }
             add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, data=request.POST or None)
         if "expense" in slots:
             expense_init = {
-                "event_date": datetime.date.today()
+                "event_date": exchange.start_date
             }
             add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, data=request.POST or None)
         if "work" in slots:
             work_init = {
                 "from_agent": agent,
-                "event_date": datetime.date.today()
+                "event_date": exchange.start_date
             }      
             add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern, data=request.POST or None)
+        if "receive" in slots:
+            receipt_init = {
+                "event_date": exchange.start_date
+            }      
+            add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=work_init, pattern=pattern, data=request.POST or None)
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()

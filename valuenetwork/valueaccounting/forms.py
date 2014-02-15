@@ -367,6 +367,63 @@ class UnplannedOutputForm(forms.ModelForm):
             self.fields["resource_type"].queryset = pattern.output_resource_types()
 
 
+class UnorderedReceiptForm(forms.ModelForm):
+    event_date = forms.DateField(
+        required=True, 
+        label="Received on",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
+        label="Supplier",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    identifier = forms.CharField(
+        required=False, 
+        label="Identifier",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    quantity = forms.DecimalField(required=False,
+        label="<b>Create the resource:</b><br><br>Quantity",
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity  input-small'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'), 
+        empty_label=None,
+        label=_("Unit"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    url = forms.URLField(
+        required=False, 
+        label="URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    photo_url = forms.URLField(
+        required=False, 
+        label="Photo URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    notes = forms.CharField(
+        required=False,
+        label="Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    #todo: make resource stuff show up or not in javascript, note clearly; notes on event type rather than resource?
+        
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'resource_type', 'value', 'unit_of_value', 'quantity', 'unit_of_quantity',)
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(UnorderedReceiptForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.receipt_resource_types()
+
+
 class WorkModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.name

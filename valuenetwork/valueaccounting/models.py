@@ -2410,8 +2410,10 @@ class Exchange(models.Model):
         verbose_name=_('project'), related_name='exchanges')
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
-    end_date = models.DateField(_('end date'), blank=True, null=True) 
     notes = models.TextField(_('notes'), blank=True)
+    supplier = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="exchange", verbose_name=_('supplier'))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='exchanges_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
@@ -2420,10 +2422,8 @@ class Exchange(models.Model):
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
 
-    #objects = ProcessManager()
-
     class Meta:
-        #ordering = ('end_date',)
+        ordering = ('start_date',)
         verbose_name_plural = _("exchanges")
 
     def __unicode__(self):

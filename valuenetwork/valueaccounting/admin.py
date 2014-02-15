@@ -7,7 +7,6 @@ admin.site.add_action(export_as_csv, 'export_selected objects')
 admin.site.register(Unit)
 admin.site.register(AgentType)
 #admin.site.register(CachedEventSummary)
-admin.site.register(Exchange)
 admin.site.register(UseCase)
 
 
@@ -15,6 +14,19 @@ class HelpAdmin(admin.ModelAdmin):
     list_display = ('page',)
 
 admin.site.register(Help, HelpAdmin)
+
+class EconomicEventInline(admin.TabularInline):
+    model = EconomicEvent
+    fk_name = 'exchange'
+    fields = ('event_type', 'event_date', 'resource_type', 'quantity', 'unit_of_quantity', 'value', 'unit_of_value')
+    
+
+class ExchangeAdmin(admin.ModelAdmin):
+    date_hierarchy = 'start_date'
+    list_display = ('id', 'use_case', 'project')
+    inlines = [ EconomicEventInline, ]
+
+admin.site.register(Exchange, ExchangeAdmin)
 
 
 class FacetValueInline(admin.TabularInline):

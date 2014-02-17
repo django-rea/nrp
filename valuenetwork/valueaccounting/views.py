@@ -4179,12 +4179,14 @@ def resource(request, resource_id):
         pattern = None
         if process:
             pattern = process.process_pattern 
-        work_form = SimpleWorkForm(prefix='work', pattern=pattern)
-        agent_form = AgentContributorSelectionForm()
-        cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
+        if agent:
+            work_form = SimpleWorkForm(prefix='work', pattern=pattern)
+            agent_form = AgentContributorSelectionForm()
+            cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
     else:
-        form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
-        process_add_form = AddProcessFromResourceForm(form_data)    
+        if agent:
+            form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
+            process_add_form = AddProcessFromResourceForm(form_data)    
     
     if request.method == "POST":
         #import pdb; pdb.set_trace()

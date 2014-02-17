@@ -987,7 +987,7 @@ class PaymentEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     to_agent = forms.ModelChoiceField(
         required=True,
-        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
         label="Payment made to",  
         empty_label=None,
         widget=forms.Select(
@@ -1661,11 +1661,16 @@ class ExchangeForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     project = forms.ModelChoiceField(
         queryset=Project.objects.all(), 
-        label=_("Project (optional)"),
+        label=_("Project"),
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=True, 
         label=_("Start date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    supplier = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
+        label="Supplier",  
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
     notes = forms.CharField(required=False, 
         label=_("Comments"),
         widget=forms.Textarea(attrs={'class': 'item-description',}))
@@ -1675,7 +1680,7 @@ class ExchangeForm(forms.ModelForm):
 
     class Meta:
         model = Exchange
-        fields = ('process_pattern', 'project',  'start_date', 'url', 'notes')
+        fields = ('process_pattern', 'project', 'supplier', 'start_date', 'url', 'notes')
 
     def __init__(self, use_case, *args, **kwargs):
         super(ExchangeForm, self).__init__(*args, **kwargs)

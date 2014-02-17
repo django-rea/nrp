@@ -6615,12 +6615,14 @@ def exchange_logging(request, exchange_id):
         if "pay" in slots:
             pay_init = {
                 "from_agent": agent,
+                "to_agent": exchange.supplier,
                 "event_date": exchange.start_date
             }
             add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, data=request.POST or None)
         if "expense" in slots:
             expense_init = {
-                "event_date": exchange.start_date
+                "event_date": exchange.start_date,
+                "from_agent": exchange.supplier
             }
             add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, data=request.POST or None)
         if "work" in slots:
@@ -6631,9 +6633,10 @@ def exchange_logging(request, exchange_id):
             add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern, data=request.POST or None)
         if "receive" in slots:
             receipt_init = {
-                "event_date": exchange.start_date
+                "event_date": exchange.start_date,
+                "from_agent": exchange.supplier
             }      
-            add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=work_init, pattern=pattern, data=request.POST or None)
+            add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern, data=request.POST or None)
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()

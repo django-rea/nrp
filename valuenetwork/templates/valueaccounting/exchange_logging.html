@@ -655,55 +655,7 @@ li {
 	    }
 
 
-        $( "#addOutputForm" ).validate({
-			rules: {
-			    'output-resource_type': {
-                    required: true
-				},
-				'output-quantity': {
-                    required: true,
-					number: true,
-					min: .01
-				}
-			},
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			},
-		});
-
-		$( "#addConsumableForm" ).validate({
-			rules: {
-			    'input-resource_type': {
-                    required: true
-				},
-				'input-quantity': {
-                    required: true,
-					number: true,
-					min: .01
-				}
-			},
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			},
-		});
-
-		$( "#addUsableForm" ).validate({
-			rules: {
-			    'input-resource_type': {
-                    required: true
-				},
-				'input-quantity': {
-                    required: true,
-					number: true,
-					min: .01
-				}
-			},
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			},
-		});
-
-		$( "#addWorkForm" ).validate({
+    	$( "#addWorkForm" ).validate({
 			rules: {
 			    'input-resource_type': {
                     required: true
@@ -715,15 +667,6 @@ li {
 		});
 
 
-		$('.commitmentForm').each( function(){
-			var form = $(this);
-
-			form.validate({
-				highlight: function(label) {
-					$(label).closest('.control-group').addClass('error');
-				},
-			});
-		});
 
 		$( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
@@ -736,26 +679,7 @@ li {
 
 	}); // end document.ready
 
-    function getResources(event)
-	{
-        var selectedRT = event.target.value;
-        var selectId = event.target.id;
-        var selectSplit = selectId.split("-");
-        var resourcePrefix = selectSplit[0] + "-" + selectSplit[1];
-        var resourceFieldId = "#" + resourcePrefix + "-resource";
-        var jsonUrl = encodeURI("/accounting/json-resourcetype-resources/" + selectedRT + "/");
-        $(resourceFieldId).empty();
-	    $.get(jsonUrl,
-		    function(data){
-                for(var i=0 ; i<data.length ; i++)
-                {
-                    var id = data[i]['pk'];
-                    var name = data[i].fields['identifier']; 
-                    $(resourceFieldId).append('<option value="' + id + '">' + name + '</option>') 
-                }
-		    });
-	}
-
+    
     </script>
 
 {% endblock %}

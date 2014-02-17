@@ -4179,10 +4179,7 @@ def resource(request, resource_id):
         pattern = None
         if process:
             pattern = process.process_pattern 
-        if agent:
-            work_form = SimpleWorkForm(prefix='work', pattern=pattern)
-            agent_form = AgentContributorSelectionForm()
-            cite_form = SelectCitationResourceForm(prefix='cite', pattern=pattern)
+
     else:
         if agent:
             form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}

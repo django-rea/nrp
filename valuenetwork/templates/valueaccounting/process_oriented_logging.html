@@ -479,7 +479,7 @@ li {
 			            <div >
 				            <span class="event" ><span class="event-label">{% trans "Work event" %}: </span><b> {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span></span>
                             
-			                {% if agent == event.from_agent  %}
+			                {% if agent == event.from_agent or user == event.created_by  %}
 		                        
 				                <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 					               <i class="icon-edit"></i>

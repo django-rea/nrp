@@ -778,6 +778,13 @@ class UnplannedWorkEventForm(forms.ModelForm):
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        label="Work done by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))   
     quantity = forms.DecimalField(required=True,
         widget=DecimalDurationWidget,
         label="Time spent",
@@ -788,7 +795,7 @@ class UnplannedWorkEventForm(forms.ModelForm):
    
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type','quantity', 'description')
+        fields = ('event_date', 'resource_type', 'from_agent', 'quantity', 'description')
 
     def __init__(self, pattern=None, *args, **kwargs):
         #import pdb; pdb.set_trace()

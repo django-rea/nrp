@@ -3710,6 +3710,7 @@ def process_oriented_logging(request, process_id):
     pattern = process.process_pattern
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
+    user = request.user
     logger = False
     worker = False
     super_logger = False
@@ -3751,7 +3752,6 @@ def process_oriented_logging(request, process_id):
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id))
-
         output_resource_types = pattern.output_resource_types()        
         unplanned_output_form = UnplannedOutputForm(prefix='unplannedoutput')
         unplanned_output_form.fields["resource_type"].queryset = output_resource_types
@@ -3762,8 +3762,11 @@ def process_oriented_logging(request, process_id):
             work_resource_types = pattern.work_resource_types()
             if logger:
                 add_work_form = WorkCommitmentForm(prefix='work')
-                add_work_form.fields["resource_type"].queryset = work_resource_types           
-            unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned")
+                add_work_form.fields["resource_type"].queryset = work_resource_types
+            work_init = {
+                "from_agent": agent,
+            }             
+            unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", initial=work_init)
             unplanned_work_form.fields["resource_type"].queryset = work_resource_types 
         if "cite" in slots:
             unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)
@@ -3786,6 +3789,7 @@ def process_oriented_logging(request, process_id):
         "cited_ids": cited_ids,
         "output_resource_ids": output_resource_ids,
         "agent": agent,
+        "user": user,
         "logger": logger,
         "worker": worker,
         "super_logger": super_logger,
@@ -3985,11 +3989,9 @@ def add_unplanned_work_event(request, process_id):
     if pattern:
         form = UnplannedWorkEventForm(prefix="unplanned", data=request.POST, pattern=pattern)
         if form.is_valid():
-            agent = get_agent(request)
             event = form.save(commit=False)
             rt = event.resource_type
             event.event_type = pattern.event_type_for_resource_type("work", rt)
-            event.from_agent = agent
             event.process = process
             event.project = process.project
             event.unit_of_quantity = rt.unit
@@ -4168,9 +4170,6 @@ def resource(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     agent = get_agent(request)
     process_add_form = None
-    agent_form = None
-    work_form = None
-    cite_form = None
     process = None
     pattern = None
     #import pdb; pdb.set_trace()
@@ -4211,47 +4210,12 @@ def resource(request, resource_id):
                 event.save()
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
-        elif cite_save:
-            if request.POST['cite-resource']:
-                cite_form = SelectCitationResourceForm(data=request.POST, prefix='cite', pattern=pattern)
-                cr = EconomicResource.objects.get(id=int(request.POST['cite-resource']))
-                citation_event = EconomicEvent()
-                citation_event.event_type = pattern.event_type_for_resource_type("cite", cr.resource_type)
-                citation_event.event_date = process.end_date
-                citation_event.process = process
-                citation_event.project = process.project
-                citation_event.resource = cr
-                citation_event.resource_type = cr.resource_type
-                citation_event.quantity = 1
-                citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
-                citation_event.created_by = request.user
-                citation_event.save()
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/resource', resource.id))
-        elif work_save:
-            work_form = SimpleWorkForm(data=request.POST, prefix='work', pattern=pattern)
-            if work_form.is_valid():
-                agent_form = AgentContributorSelectionForm(data=request.POST)
-                work_event = work_form.save(commit=False)
-                work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)
-                work_event.event_date = process.end_date
-                work_event.process = process
-                work_event.project = process.project
-                work_event.is_contribution = True
-                work_event.unit_of_quantity = work_event.resource_type.directional_unit("use")  
-                work_event.from_agent = EconomicAgent.objects.get(id=int(request.POST['selected_agent']))
-                work_event.created_by = request.user
-                work_event.save()
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/resource', resource.id))
+ 
                        
     return render_to_response("valueaccounting/resource.html", {
         "resource": resource,
         "photo_size": (128, 128),
         "process_add_form": process_add_form,
-        "cite_form": cite_form,
-        "work_form": work_form,
-        "agent_form": agent_form,
         "agent": agent,
     }, context_instance=RequestContext(request))
 
@@ -6449,129 +6413,6 @@ def financial_contribution(request):
         "pattern": pattern,
     }, context_instance=RequestContext(request))
 
-'''
-#todo: not working yet - is this only related to financial contrs? if so, can go away with that
-def create_resource_formset(pattern):
-    #ResourceFormSet = formset_factory(SimpleOutputResourceForm, extra=3)
-    ResourceFormSet = modelformset_factory(
-        model=EconomicResource,
-        form=SimpleOutputResourceForm,
-        can_delete=False,
-        extra=3,
-        )
-    formset = ResourceFormSet()
-    for form in formset:
-        rts = ResourceTypes.values.all()
-        choices = [(rt.id, rt.name) for rt in rts]
-        form.fields["resource_type"].choices = choices
-    return formset
-
-
-def process_oriented_logging(request, process_id):   
-    process = get_object_or_404(Process, id=process_id)
-    pattern = process.process_pattern
-    #import pdb; pdb.set_trace()
-    agent = get_agent(request)
-    logger = False
-    worker = False
-    super_logger = False
-    add_output_form = None
-    add_citation_form = None
-    add_consumable_form = None
-    add_usable_form = None
-    add_work_form = None
-    unplanned_work_form = None
-    unplanned_cite_form = None
-    unplanned_consumption_form = None
-    unplanned_use_form = None
-    unplanned_output_form = None
-    slots = []
-    
-    work_reqs = process.work_requirements()
-    consume_reqs = process.consumed_input_requirements()
-    use_reqs = process.used_input_requirements()
-    unplanned_work = process.uncommitted_work_events()
-    
-    if agent and pattern:
-        slots = pattern.slots()
-        if request.user.is_superuser or request.user == process.created_by:
-            logger = True
-            super_logger = True
-        for req in work_reqs:
-            req.changeform = req.change_work_form()
-            if agent == req.from_agent:
-                logger = True
-                worker = True
-                break  
-        for req in consume_reqs:
-            req.changeform = req.change_form()
-        for req in use_reqs:
-            req.changeform = req.change_form()
-        for event in unplanned_work:
-            event.changeform = UnplannedWorkEventForm(
-                pattern=pattern,
-                instance=event, 
-                prefix=str(event.id))
-
-        output_resource_types = pattern.output_resource_types()        
-        unplanned_output_form = UnplannedOutputForm(prefix='unplannedoutput')
-        unplanned_output_form.fields["resource_type"].queryset = output_resource_types
-        if logger:
-            add_output_form = ProcessOutputForm(prefix='output')
-            add_output_form.fields["resource_type"].queryset = output_resource_types
-        if "work" in slots:
-            work_resource_types = pattern.work_resource_types()
-            if logger:
-                add_work_form = WorkCommitmentForm(prefix='work')
-                add_work_form.fields["resource_type"].queryset = work_resource_types           
-            unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned")
-            unplanned_work_form.fields["resource_type"].queryset = work_resource_types 
-        if "cite" in slots:
-            unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)
-            if logger:
-                add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)   
-        if "consume" in slots:
-            unplanned_consumption_form = UnplannedInputEventForm(prefix='unplanned-consumption', pattern=pattern)
-            if logger:
-                add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
-        if "use" in slots:
-            unplanned_use_form = UnplannedInputEventForm(prefix='unplanned-use', pattern=pattern)
-            if logger:
-                add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
-       
-    cited_ids = [c.resource.id for c in process.citations()]
-    output_resource_ids = [e.resource.id for e in process.production_events()]
-    #import pdb; pdb.set_trace()
-    return render_to_response("valueaccounting/process_oriented_logging.html", {
-        "process": process,
-        "cited_ids": cited_ids,
-        "output_resource_ids": output_resource_ids,
-        "agent": agent,
-        "logger": logger,
-        "worker": worker,
-        "super_logger": super_logger,
-        "add_output_form": add_output_form,
-        "add_citation_form": add_citation_form,
-        "add_consumable_form": add_consumable_form,
-        "add_usable_form": add_usable_form,
-        "add_work_form": add_work_form,
-        "unplanned_work_form": unplanned_work_form,
-        "unplanned_cite_form": unplanned_cite_form,
-        "unplanned_consumption_form": unplanned_consumption_form,
-        "unplanned_use_form": unplanned_use_form,
-        "unplanned_output_form": unplanned_output_form,
-        "slots": slots,
-        
-        "work_reqs": work_reqs,        
-        "consume_reqs": consume_reqs,
-        "uncommitted_consumption": process.uncommitted_consumption_events(),
-        "use_reqs": use_reqs,
-        "uncommitted_use": process.uncommitted_use_events(),
-        "unplanned_work": unplanned_work,
-        
-        "help": get_help("process"),
-    }, context_instance=RequestContext(request))
-    '''    
 
 def exchange_logging(request, exchange_id):
     #import pdb; pdb.set_trace()

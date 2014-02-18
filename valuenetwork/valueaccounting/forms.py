@@ -72,7 +72,7 @@ class EconomicResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo',  'quality')
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo',  'quality', 'independent_demand')
 
 class CreateEconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
@@ -81,7 +81,7 @@ class CreateEconomicResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality')
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand')
 
 
 class FailedOutputForm(forms.ModelForm):
@@ -1266,7 +1266,7 @@ class EconomicResourceTypeForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('parent', 'created_by', 'changed_by')
+        exclude = ('parent', 'created_by', 'changed_by',)
 
     def __init__(self, *args, **kwargs):
         super(EconomicResourceTypeForm, self).__init__(*args, **kwargs)

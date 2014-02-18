@@ -1031,13 +1031,6 @@ class PaymentEventForm(forms.ModelForm):
 
 class ExpenseEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
-    from_agent = forms.ModelChoiceField(
-        required=True,
-        queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
-        label="Supplier",  
-        empty_label=None,
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
         label="Type of expense",
@@ -1053,7 +1046,7 @@ class ExpenseEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'resource_type', 'value', 'unit_of_value', 'description')
+        fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'description')
 
     def __init__(self, pattern=None, *args, **kwargs):
         super(ExpenseEventForm, self).__init__(*args, **kwargs)

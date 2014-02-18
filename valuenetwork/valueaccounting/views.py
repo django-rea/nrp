@@ -6460,7 +6460,6 @@ def exchange_logging(request, exchange_id):
         if "expense" in slots:
             expense_init = {
                 "event_date": exchange.start_date,
-                "from_agent": exchange.supplier
             }
             add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, data=request.POST or None)
         if "work" in slots:

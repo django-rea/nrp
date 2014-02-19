@@ -760,7 +760,10 @@ li {
                                 {% for event in resource.consuming_events %}
                                     {% if event.commitment = item %}
 							            <div class="use" >
-								            <span class="event-label">{% trans "Consumed" %}:</span> <span class="event" >{{ event.quantity }} {{ event.event_date }} </span>
+								            <span class="event-label">{% trans "Consumed" %}:</span><span>
+								                {{ event.resource.identifier }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
+								                {% trans "by" %} {{ event.from_agent }}
+							                </span>
 								            {% if logger %}
 								                {% comment %}
 								                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>

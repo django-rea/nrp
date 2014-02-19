@@ -1443,7 +1443,19 @@ class EconomicResource(models.Model):
                                     resources.append(evt.resource)
             for resource in resources:
                 resource.incoming_value_flows_dfs(flows, visited, depth)
-       
+
+    def form_prefix(self):
+        return "-".join(["RES", str(self.id)])
+
+    def consumption_event_form(self):        
+        from valuenetwork.valueaccounting.forms import InputEventForm
+        prefix=self.form_prefix()
+        return InputEventForm(prefix=prefix)
+
+    def use_event_form(self):        
+        from valuenetwork.valueaccounting.forms import WorkEventForm
+        prefix=self.form_prefix()
+        return WorkEventForm(prefix=prefix)
 
 
 class AgentResourceType(models.Model):

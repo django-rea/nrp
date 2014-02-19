@@ -4027,7 +4027,7 @@ def add_work_for_exchange(request, exchange_id):
 def add_use_event(request, commitment_id, resource_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
-    prefix = ct.form_prefix()
+    prefix = resource.form_prefix()
     form = WorkEventForm(prefix=prefix, data=request.POST)
     if form.is_valid():
         agent = get_agent(request)
@@ -4050,7 +4050,7 @@ def add_use_event(request, commitment_id, resource_id):
 def add_consumption_event(request, commitment_id, resource_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
-    prefix = ct.form_prefix()
+    prefix = resource.form_prefix()
     form = InputEventForm(prefix=prefix, data=request.POST)
     if form.is_valid():
         agent = get_agent(request)

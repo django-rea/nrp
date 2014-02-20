@@ -39,6 +39,20 @@ class AgentForm(forms.ModelForm):
         model = EconomicAgent
         fields = ('nick', 'agent_type', 'description', 'url', 'address', 'email')
 
+
+class AgentSupplierForm(forms.ModelForm):
+    email = forms.EmailField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = EconomicAgent
+        fields = ('name', 'nick', 'description', 'url', 'address', 'email')
+
+
 #todo: queryset methods cd be cached
 class AgentSelectionForm(forms.Form):
     selected_agent = AgentModelChoiceField(
@@ -1662,6 +1676,7 @@ class ExchangeForm(forms.ModelForm):
     project = forms.ModelChoiceField(
         queryset=Project.objects.all(), 
         label=_("Project"),
+        empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=True, 
         label=_("Start date"),

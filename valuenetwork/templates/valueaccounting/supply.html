@@ -1,6 +1,7 @@
 {% extends "site_base.html" %}
 
 {% load i18n %}
+{% load bootstrap_tags %}
 
 {% block head_title %}{% trans "Supply" %}{% endblock %}
 
@@ -11,6 +12,7 @@
 
 .reqs-supplier {
     background-color: lightyellow;
+    margin-top: 10px;
 }
 .matl-reqx {
     background-color: beige;
@@ -28,6 +30,9 @@
     margin-top: 1px;
     margin-bottom: 1px;
 }
+.modal {
+    width: 600px;
+}
 
 </style>
 
@@ -42,12 +47,35 @@
 		<legend>
             {% trans "Supply" %}
 		    {% if agent %} &nbsp;&nbsp;&nbsp;
+                <a href="#create-supplier" role="button" class="btn btn-primary" data-toggle="modal">
+	               Create Supplier
+                </a>
+                <div class="modal hide fade" id="create-supplier" tabindex="-1" role="dialog" aria-labelledby="supplier-label" aria-hidden="true">
+	                <div class="modal-header">
+		                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		                <h3 id="supplier-label">{% trans "Create a New Supplier" %}</h3>
+	                </div>
+	                <div class="modal-body">
+		                <form class="validateMe" enctype="multipart/form-data" action="{% url create_supplier %}" method="POST" >
+			                {% csrf_token %}
+			                {{ supplier_form|as_bootstrap }}
+                            <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                            </div>
+		                </form>
+	                </div>
+                </div>
+            {% endif %}
+        </legend>
+        <div>
+		    {% if agent %} 
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='purch_contr' %}">{% trans "Purchase contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='exp_contr' %}">{% trans "Expense contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='res_contr' %}">{% trans "Material contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='cash_contr' %}">{% trans "Cash contribution" %}</a>
             {% endif %}
-        </legend>
+        <div>
         <div class="reqs-supplier">
 		    <h3 style="margin-bottom: 4px;" >{% trans "Requirements by Supplier" %}:</h3>
 

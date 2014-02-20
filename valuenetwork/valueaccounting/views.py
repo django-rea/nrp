@@ -1906,6 +1906,7 @@ def supply(request):
     mreqs = []
     mrqs = Commitment.objects.to_buy()
     suppliers = SortedDict()
+    supplier_form = AgentSupplierForm(prefix="supplier")
     for commitment in mrqs:
         if not commitment.fulfilling_events():    
             mreqs.append(commitment)
@@ -1923,8 +1924,22 @@ def supply(request):
         "treqs": treqs,
         "suppliers": suppliers,
         "agent": agent,
+        "supplier_form": supplier_form,
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
+
+@login_required
+def create_supplier(request):
+    supplier_form = AgentSupplierForm(prefix="supplier", data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if supplier_form.is_valid():
+            supplier = supplier_form.save(commit=False)
+            supplier.agent_type = AgentType.objects.get(name="Supplier")
+            supplier.save()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/supply'))
+
 
 def assemble_schedule(start, end, project=None):
     processes = Process.objects.unfinished()
@@ -6462,6 +6477,9 @@ def exchange_logging(request, exchange_id):
                 "event_date": exchange.start_date,
             }
             add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, data=request.POST or None)
+            expense_total = 0
+            for exp in expense_events:
+                expense_total = expense_total + exp.value
         if "work" in slots:
             work_init = {
                 "from_agent": agent,
@@ -6474,6 +6492,9 @@ def exchange_logging(request, exchange_id):
                 "from_agent": exchange.supplier
             }      
             add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern, data=request.POST or None)
+            receipt_total = 0
+            for rec in receipt_events:
+                receipt_total = receipt_total + rec.value
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -6504,6 +6525,8 @@ def exchange_logging(request, exchange_id):
         "add_work_form": add_work_form,
         "add_commit_receipt_form": add_commit_receipt_form,
         #"add_commit_payment_form": add_commit_payment_form,
+        "expense_total": expense_total,
+        "receipt_total": receipt_total,
         "help": get_help("exchange"),
     }, context_instance=RequestContext(request))
 

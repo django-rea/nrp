@@ -60,63 +60,16 @@ li {
     padding-right: 2em;
     font-style: italic;
 }
-
-/*
-.use {
-    margin-left: 4em;
-    font-style: italic;
-}
-
-
-.commitment {
-    margin-top: 4px;
-}
-
-.error {
-    color: red;
-}
-
-.reskedForm {
-    display: inline;
-}
-#addCiteModal textarea, #addConsumableModal textarea, #addUsableModal textarea, #addWorkModal textarea, #addOutputModal textarea, .item-description, #resourceModal textarea {
-  width: 500px;
-  height: 100px;
-}
-
-.workEventModal textarea, .unplannedWorkModal textarea {
-  width: 500px;
-  height: 400px;
-}
-
-
-.proc-notes {
-    font-style: italic;
-    font-weight: normal;
-    border: solid 1px gainsboro;
-    background-color: honeydew;
-    padding: 4px;
-    margin: 4px 0 10px 0;
-}
-
-
-.taken {
-    font-style: italic;
-    font-weight: bold;
-    color: #5C8A8A;
-}
-
-
-.onhand {
-    margin-left: 2em;
+.total {
+    float: right;
+    color: green;
+    font-size: 10pt;
 }
 .btn-mini {
     margin-top: 1px;
     margin-bottom: 1px;
 }
 
-
-*/
 </style>
 
 {% endblock %}
@@ -142,12 +95,13 @@ li {
 		            <a href="#addReceiptCommitModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a resource to be received">
 		                {% trans "Add an order line item" %}
 	                </a>
-	             {% endif %}
-	             {% if agent %}
+	            {% endif %}
+	            {% if agent %}
 	                <a href="#unorderedReceiptModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt with no order record" >
 		                {% trans "Log a receipt" %}
 	                </a>
-	             {% endif %}
+	            {% endif %}
+                <span class="total">Total: {{ receipt_total }}</span>
 	        </h3>
             {% if exchange.receipt_events %}
 		        {% for event in exchange.receipt_events %}
@@ -206,6 +160,7 @@ li {
 		                {% trans "Log an expense" %}
 	                </a>
 	            {% endif %}
+                <span class="total">Total: {{ expense_total }}</span>
 	        </h3>
 
             {% if exchange.expense_events %}

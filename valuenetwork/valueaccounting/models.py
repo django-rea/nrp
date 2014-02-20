@@ -3282,7 +3282,7 @@ class EconomicEvent(models.Model):
         
         slug = "-".join([
             str(self.event_type.name),
-            #str(from_agt.id),
+            from_agt,
             self.event_date.strftime('%Y-%m-%d'),
         ])
         unique_slugify(self, slug)
@@ -3482,6 +3482,7 @@ class CachedEventSummary(models.Model):
     @classmethod
     def summarize_events(cls, project):
         #import pdb; pdb.set_trace()
+        #todo: this code is obsolete, we don't want to roll up sub-projects anymore
         all_subs = project.with_all_sub_projects()
         event_list = EconomicEvent.objects.filter(project__in=all_subs)
         summaries = {}

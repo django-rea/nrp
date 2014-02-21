@@ -385,7 +385,7 @@ class UnorderedReceiptForm(forms.ModelForm):
     event_date = forms.DateField(
         required=True, 
         label="Received on",
-        widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
     from_agent = forms.ModelChoiceField(
         required=True,
         queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
@@ -395,6 +395,7 @@ class UnorderedReceiptForm(forms.ModelForm):
             attrs={'class': 'chzn-select'})) 
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
+        empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
     unit_of_value = forms.ModelChoiceField(
@@ -424,7 +425,8 @@ class UnorderedReceiptForm(forms.ModelForm):
         required=False,
         label="Notes", 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
-    #todo: make resource stuff show up or not in javascript, note clearly; notes on event type rather than resource?
+    value = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
         
     class Meta:
         model = EconomicEvent
@@ -1057,6 +1059,8 @@ class ExpenseEventForm(forms.ModelForm):
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    value = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
 
     class Meta:
         model = EconomicEvent

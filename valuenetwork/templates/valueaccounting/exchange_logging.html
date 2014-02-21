@@ -447,7 +447,7 @@ li {
     </div>
 
 
-    {% if logger %} <!-- general modals -->
+    {% if logger %} <!-- add modals -->
 
      <div class="modal hide fade" id="unorderedReceiptModal" tabindex="-1" role="dialog" aria-labelledby="unordered-receipt" aria-hidden="true">
         <div class="modal-header">
@@ -455,12 +455,12 @@ li {
             <h3 id="unordered-receipt">{% trans "Log a Receipt (Not Ordered)" %}</h3>
         </div>
         <div class="modal-body">
-            <form class="validateMe" enctype="multipart/form-data" action="{% url add_unordered_receipt exchange_id=exchange.id %}" method="POST" >
+            <form class="validateMe" id="receiptForm" enctype="multipart/form-data" action="{% url add_unordered_receipt exchange_id=exchange.id %}" method="POST" >
                 {% csrf_token %}
                 {{ add_receipt_form|as_bootstrap }}
               <div class="modal-footer">
                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
               </div>
             </form>
         </div>
@@ -473,7 +473,7 @@ li {
             <h3 id="expense">{% trans "Log an Expense" %}</h3>
         </div>
         <div class="modal-body">
-            <form class="validateMe" enctype="multipart/form-data" action="{% url add_expense exchange_id=exchange.id %}" method="POST" >
+            <form class="validateMe" id="expenseForm" enctype="multipart/form-data" action="{% url add_expense exchange_id=exchange.id %}" method="POST" >
                 {% csrf_token %}
                 {{ add_expense_form|as_bootstrap }}
               <div class="modal-footer">
@@ -490,7 +490,7 @@ li {
             <h3 id="unplanned-payment">{% trans "Log a Payment" %}</h3>
         </div>
         <div class="modal-body">
-            <form class="validateMe" enctype="multipart/form-data" action="{% url add_unplanned_payment exchange_id=exchange.id %}" method="POST" >
+            <form class="validateMe" id="paymentForm" enctype="multipart/form-data" action="{% url add_unplanned_payment exchange_id=exchange.id %}" method="POST" >
                 {% csrf_token %}
                 {{ add_payment_form|as_bootstrap }}
               <div class="modal-footer">
@@ -512,7 +512,7 @@ li {
                     {{ add_work_form|as_bootstrap }}
                   <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                    <button class="btn btn-primary">{% trans "Save" %}</button>
+                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
                   </div>
                 </form>
             </div>
@@ -524,8 +524,8 @@ li {
  
 {% endblock %}
 {% block extra_script %}
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
@@ -540,8 +540,6 @@ li {
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
-		$(".res-ajax").change(getResources);
-
         jQuery.validator.setDefaults({ 
             success: function(label) {
 		        label
@@ -551,7 +549,7 @@ li {
         });
 
         $.validator.addClassRules("quantity", { required: true, number: true, });
-        $.validator.addClassRules("value", { required: true, number: true, });
+        $.validator.addClassRules("value", { required: true, number: true });
 		$.validator.addClassRules("url", { url: true });
         $.validator.addClassRules("resourceType", { required: true});
         $.validator.addClassRules("hours", { 
@@ -566,6 +564,7 @@ li {
 			min: 0,
 			max: 60
 		});
+        $.validator.addClassRules("date-entry", { required: true, date: true });
 
         $('.validateMe').each( function(){
 			var form = $(this);
@@ -605,19 +604,33 @@ li {
 		    }
 	    }
 
+        $('#receiptForm').click(function (event) {
+            var isValid = $("#receiptForm").validate();
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
 
-    	$( "#workForm" ).validate({
-			rules: {
-			    'input-resource_type': {
-                    required: true
-				}
-			},
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			},
-		});
+        $('#paymentForm').click(function (event) {
+            var isValid = $("#paymentForm").validate();
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
 
+        $('#expenseForm').click(function (event) {
+            var isValid = $("#expenseForm").validate();
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
 
+        $('#workForm').click(function (event) {
+            var isValid = $("#workForm").validate();
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
 
 		$( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 

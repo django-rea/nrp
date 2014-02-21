@@ -2410,7 +2410,7 @@ class Process(models.Model):
 
 
 class Exchange(models.Model):
-    name = models.CharField(_('name'), max_length=128)
+    name = models.CharField(_('name'), blank=True, max_length=128)
     process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
         verbose_name=_('pattern'), related_name='exchanges')

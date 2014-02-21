@@ -6446,6 +6446,8 @@ def exchange_logging(request, exchange_id):
     add_commit_receipt_form = None
     add_commit_payment_form = None
     slots = []
+    expense_total = 0
+    receipt_total = 0
 
     receipt_commitments = exchange.receipt_commitments()
     payment_commitments = exchange.payment_commitments()
@@ -6477,7 +6479,6 @@ def exchange_logging(request, exchange_id):
                 "event_date": exchange.start_date,
             }
             add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, data=request.POST or None)
-            expense_total = 0
             for exp in expense_events:
                 expense_total = expense_total + exp.value
         if "work" in slots:
@@ -6492,7 +6493,6 @@ def exchange_logging(request, exchange_id):
                 "from_agent": exchange.supplier
             }      
             add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern, data=request.POST or None)
-            receipt_total = 0
             for rec in receipt_events:
                 receipt_total = receipt_total + rec.value
 

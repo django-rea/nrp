@@ -87,15 +87,17 @@ li {
 	<div class="row-fluid">
 
 	  <div class="span7">
-        {% if exchange.receipt_events or "receive" in slots %}
+        {% if receipt_events or "receive" in slots %}
           <div class="log-section">
 		    <h3 style="margin-bottom: 4px;" >
-		        {% trans "Receipt" %}:  
+		        {% trans "Receipt" %}:
+{% comment %}  
 		        {% if logger %}
 		            <a href="#addReceiptCommitModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a resource to be received">
 		                {% trans "Add an order line item" %}
 	                </a>
 	            {% endif %}
+{% endcomment %}
 	            {% if agent %}
 	                <a href="#unorderedReceiptModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt with no order record" >
 		                {% trans "Log a receipt" %}
@@ -103,8 +105,8 @@ li {
 	            {% endif %}
                 <span class="total">Total: {{ receipt_total }}</span>
 	        </h3>
-            {% if exchange.receipt_events %}
-		        {% for event in exchange.receipt_events %}
+            {% if receipt_events %}
+		        {% for event in receipt_events %}
 			        <div>
 				        <span class="event" ><span class="event-label">{% trans "Received" %}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
@@ -120,10 +122,9 @@ li {
 				                    <h3 id="event-label">{% trans "Change Receipt Event" %}</h3>
 			                    </div>
 			                    <div class="modal-body">
-				                    <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_receipt_event event_id=event.id %}" method="POST" >
+				                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_receipt_event event_id=event.id %}" method="POST" >
 					                    {% csrf_token %}
 					                    {{ event.changeform|as_bootstrap }}
-					                    <input type="hidden" id="next" name="next" value="exchange" />
                                         <div class="modal-footer">
                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -139,7 +140,7 @@ li {
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="exchange" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete expense" >X</button>
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete receipt" >X</button>
                             </form>
 		                {% endif %}
          			    {% if event.description %}
@@ -151,7 +152,7 @@ li {
           </div>
         {%endif%}
 
-        {% if exchange.expense_events or "expense" in slots %}
+        {% if expense_events or "expense" in slots %}
           <div class="log-section">
 		    <h3 style="margin-bottom: 4px;" >
 		        {% trans "Expense" %}:  
@@ -163,8 +164,8 @@ li {
                 <span class="total">Total: {{ expense_total }}</span>
 	        </h3>
 
-            {% if exchange.expense_events %}
-		        {% for event in exchange.expense_events %}
+            {% if expense_events %}
+		        {% for event in expense_events %}
 			        <div>
 				        <span class="event" ><span class="event-label">{% trans "Expensed" %}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
@@ -180,7 +181,7 @@ li {
 				                    <h3 id="event-label">{% trans "Change Expense Event" %}</h3>
 			                    </div>
 			                    <div class="modal-body">
-				                    <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_expense_event event_id=event.id %}" method="POST" >
+				                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_expense_event event_id=event.id %}" method="POST" >
 					                    {% csrf_token %}
 					                    {{ event.changeform|as_bootstrap }}
 					                    <input type="hidden" id="next" name="next" value="exchange" />
@@ -222,9 +223,9 @@ li {
 	             {% endif %}
 	        </h3>
 
-            {% if exchange.uncommitted_payment_events %}
+            {% if exchange.payment_events %}
                 <!--<h4 class="unplanned">{% trans "Payments" %}:</h4>-->
-		        {% for event in exchange.uncommitted_payment_events %}
+		        {% for event in payment_events %}
 			        <div>
 				        <span class="event" ><span class="event-label">{% trans "Paid" %}: </span> 
 				            <b>{{ event.quantity }} {{ event.unit_of_quantity }}</b> from {{ event.from_agent.nick }} to <b>{{ event.to_agent.nick }}</b> {{ event.event_date }}</span>
@@ -240,10 +241,9 @@ li {
 				                    <h3 id="event-label">{% trans "Change Payment Event" %}</h3>
 			                    </div>
 			                    <div class="modal-body">
-				                    <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_unplanned_payment_event event_id=event.id %}" method="POST" >
-					                    {% csrf_token %}
+				                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_unplanned_payment_event event_id=event.id %}" method="POST" >
+					                    {% csrf_token %}  
 					                    {{ event.changeform|as_bootstrap }}
-					                    <input type="hidden" id="next" name="next" value="exchange" />
                                         <div class="modal-footer">
                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -319,13 +319,13 @@ li {
 			               <i class="icon-edit"></i>
 		                </a>
 	
-		                <div class="modal hide fade workEventModal" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+		                <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
 			                <div class="modal-header">
 				                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 				                <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
 			                </div>
 			                <div class="modal-body">
-				                <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_unplanned_work_event event_id=event.id %}" method="POST" >
+				                <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_exchange_work_event event_id=event.id %}" method="POST" >
 					                {% csrf_token %}
 					                {{ event.changeform|as_bootstrap }}
 					                <input type="hidden" id="next" name="next" value="exchange" />
@@ -536,8 +536,6 @@ li {
 
 	$(document).ready(function(){
 
-		//$('#work').addClass('active');
-
 		$(".chzn-select").chosen();
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
@@ -553,6 +551,7 @@ li {
         });
 
         $.validator.addClassRules("quantity", { required: true, number: true, });
+        $.validator.addClassRules("value", { required: true, number: true, });
 		$.validator.addClassRules("url", { url: true });
         $.validator.addClassRules("resourceType", { required: true});
         $.validator.addClassRules("hours", { 
@@ -568,8 +567,6 @@ li {
 			max: 60
 		});
 
-
-        //$( ".validateMe" ).validate();
         $('.validateMe').each( function(){
 			var form = $(this);
 			form.validate({
@@ -579,7 +576,6 @@ li {
 			});
 		});
 
-		
 
 	    $(".resource-type-selector").change(getUnit);
 
@@ -610,7 +606,7 @@ li {
 	    }
 
 
-    	$( "#addWorkForm" ).validate({
+    	$( "#workForm" ).validate({
 			rules: {
 			    'input-resource_type': {
                     required: true

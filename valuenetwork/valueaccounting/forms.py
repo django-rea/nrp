@@ -1070,8 +1070,6 @@ class ExpenseEventForm(forms.ModelForm):
             self.fields["resource_type"].queryset = pattern.expense_resource_types()
 
 
-
-
 class WorkSelectionForm(forms.Form):
     type_of_work = forms.ChoiceField()
 

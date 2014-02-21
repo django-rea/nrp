@@ -3944,8 +3944,9 @@ def log_resource_for_commitment(request, commitment_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
 
+'''
 @login_required
-#todo: make this work for payments, check form etc.
+#todo: make this work for payments when we add payment commitments, check form etc.
 def log_payment_for_commitment(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     prefix = ct.form_prefix()
@@ -3975,6 +3976,7 @@ def log_payment_for_commitment(request, commitment_id):
         event.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', ct.exchange.id))
+'''
 
 @login_required
 def add_work_event(request, commitment_id):
@@ -4891,16 +4893,34 @@ def change_unplanned_work_event(request, event_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
-#todo: make this work (exchanges only)
+@login_required
+def change_exchange_work_event(request, event_id):
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    exchange = event.exchange
+    pattern = exchange.process_pattern
+    if pattern:
+        #import pdb; pdb.set_trace()
+        if request.method == "POST":
+            form = WorkEventAgentForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id), 
+                data=request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                form.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
 @login_required
 def change_unplanned_payment_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
-    process = event.process
-    pattern = process.process_pattern
+    exchange = event.exchange
+    pattern = exchange.process_pattern
     if pattern:
         #import pdb; pdb.set_trace()
         if request.method == "POST":
-            form = UnplannedWorkEventForm(
+            form = PaymentEventForm(
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id), 
@@ -4909,18 +4929,17 @@ def change_unplanned_payment_event(request, event_id):
                 data = form.cleaned_data
                 form.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', exchange.id))
+        % ('accounting/exchange', exchange.id))
 
-#todo: make this work (exchanges only)
 @login_required
 def change_receipt_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
-    process = event.process
-    pattern = process.process_pattern
+    exchange = event.exchange
+    pattern = exchange.process_pattern
     if pattern:
         #import pdb; pdb.set_trace()
         if request.method == "POST":
-            form = UnplannedWorkEventForm(
+            form = UnorderedReceiptForm(
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id), 
@@ -4929,18 +4948,17 @@ def change_receipt_event(request, event_id):
                 data = form.cleaned_data
                 form.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', exchange.id))
+        % ('accounting/exchange', exchange.id))
 
-#todo: make this work (exchanges only)
 @login_required
 def change_expense_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
-    process = event.process
-    pattern = process.process_pattern
+    exchange = event.exchange
+    pattern = exchange.process_pattern
     if pattern:
         #import pdb; pdb.set_trace()
         if request.method == "POST":
-            form = UnplannedWorkEventForm(
+            form = ExpenseEventForm(
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id), 
@@ -4949,7 +4967,7 @@ def change_expense_event(request, event_id):
                 data = form.cleaned_data
                 form.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', exchange.id))
+        % ('accounting/exchange', exchange.id))
 
 class ProcessOutputFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
@@ -6408,6 +6426,7 @@ def create_patterned_facet_formset(pattern, slot, data=None):
         form.fields["value"].choices = choices
     return formset
 
+
 #todo: goes away when done with exchange or done looking at it
 def financial_contribution(request):
     member = get_agent(request)
@@ -6443,14 +6462,14 @@ def exchange_logging(request, exchange_id):
     add_contr_resource_form = None
     add_contr_cash_form = None
     add_work_form = None
-    add_commit_receipt_form = None
-    add_commit_payment_form = None
+    #add_commit_receipt_form = None
+    #add_commit_payment_form = None
     slots = []
     expense_total = 0
     receipt_total = 0
 
-    receipt_commitments = exchange.receipt_commitments()
-    payment_commitments = exchange.payment_commitments()
+    #receipt_commitments = exchange.receipt_commitments()
+    #payment_commitments = exchange.payment_commitments()
     receipt_events = exchange.receipt_events()
     payment_events = exchange.payment_events()
     expense_events = exchange.expense_events()
@@ -6463,10 +6482,34 @@ def exchange_logging(request, exchange_id):
         slots = pattern.slots()
         if request.user.is_superuser or request.user == exchange.created_by:
             logger = True
-        for req in receipt_commitments:
-            req.changeform = req.change_form()
-        for req in payment_commitments:
-            req.changeform = req.change_form()
+        #for req in receipt_commitments:
+        #    req.changeform = req.change_form()
+        #for req in payment_commitments:
+        #    req.changeform = req.change_form()
+        for event in payment_events:
+            event.changeform = PaymentEventForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id))
+        for event in expense_events:
+            expense_total = expense_total + event.value
+            event.changeform = ExpenseEventForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id))
+        for event in work_events:
+            event.changeform = WorkEventAgentForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id))
+        for event in receipt_events:
+            receipt_total = receipt_total + event.value
+            event.changeform = UnorderedReceiptForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id))
+        #import pdb; pdb.set_trace()
+
         if "pay" in slots:
             pay_init = {
                 "from_agent": agent,
@@ -6479,8 +6522,6 @@ def exchange_logging(request, exchange_id):
                 "event_date": exchange.start_date,
             }
             add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, data=request.POST or None)
-            for exp in expense_events:
-                expense_total = expense_total + exp.value
         if "work" in slots:
             work_init = {
                 "from_agent": agent,
@@ -6493,8 +6534,6 @@ def exchange_logging(request, exchange_id):
                 "from_agent": exchange.supplier
             }      
             add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern, data=request.POST or None)
-            for rec in receipt_events:
-                receipt_total = receipt_total + rec.value
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -6510,10 +6549,11 @@ def exchange_logging(request, exchange_id):
         "user": request.user,
         "logger": logger,
         "slots": slots,
-        "receipt_commitments": receipt_commitments,
+        #"receipt_commitments": receipt_commitments,
         #"payment_commitments": payment_commitments,
         "receipt_events": receipt_events,
         "payment_events": payment_events,
+        "expense_events": expense_events,
         "work_events": work_events,
         "cash_contr_events": cash_contr_events,
         "matl_contr_events": matl_contr_events,
@@ -6523,7 +6563,7 @@ def exchange_logging(request, exchange_id):
         "add_contr_resource_form": add_contr_resource_form,
         "add_contr_cash_form": add_contr_cash_form,
         "add_work_form": add_work_form,
-        "add_commit_receipt_form": add_commit_receipt_form,
+        #"add_commit_receipt_form": add_commit_receipt_form,
         #"add_commit_payment_form": add_commit_payment_form,
         "expense_total": expense_total,
         "receipt_total": receipt_total,
@@ -6548,6 +6588,8 @@ def create_exchange(request, use_case_identifier):
         "use_case": use_case,
     }, context_instance=RequestContext(request))
 
+'''
+#todo: this is not tested, is for exchange 
 @login_required
 def payment_event_for_commitment(request):
     id = request.POST.get("id")
@@ -6590,6 +6632,6 @@ def payment_event_for_commitment(request):
 
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
-
+'''
 
 

@@ -3352,10 +3352,6 @@ class EconomicEvent(models.Model):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm
         return UnplannedWorkEventForm(instance=self, prefix=str(self.id))
 
-    def exchange_work_event_change_form(self):
-        from valuenetwork.valueaccounting.forms import WorkEventAgentForm
-        return WorkEventAgentForm(instance=self, prefix=str(self.id))
-
     def change_date_form(self):
         from valuenetwork.valueaccounting.forms import EventChangeDateForm
         return EventChangeDateForm(instance=self, prefix=str(self.id))

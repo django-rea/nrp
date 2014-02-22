@@ -956,7 +956,7 @@ li {
                                     {% if event.commitment = item %}
 							            <div  class="use" >
 								            <span class="event-label">{% trans "Used" %}:</span> <span > 
-								                {{ event.resource.identifier }} {{ event.quantity }} {{ item.resource_type.unit_of_use }} {{ event.event_date }} 
+								                {{ event.resource.identifier }} {{ event.quantity }} {{ item.resource_type.unit_for_use }} {{ event.event_date }} 
 								                {% trans "by" %} {{ event.from_agent }}
 							                </span>
 								            {% if logger %}

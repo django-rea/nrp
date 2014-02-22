@@ -4045,7 +4045,13 @@ def add_use_event(request, commitment_id, resource_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     prefix = resource.form_prefix()
-    form = WorkEventForm(prefix=prefix, data=request.POST)
+    unit = ct.resource_type.directional_unit("use")
+    if unit.unit_type == "time":
+        form = TimeEventForm(prefix=prefix, data=request.POST)
+    else:
+        qty_help = " ".join(["unit:", unit.abbrev])
+        form = InputEventForm(qty_help=qty_help, prefix=prefix, data=request.POST)
+    #form = WorkEventForm(prefix=prefix, data=request.POST)
     if form.is_valid():
         agent = get_agent(request)
         event = form.save(commit=False)
@@ -4056,7 +4062,7 @@ def add_use_event(request, commitment_id, resource_id):
         event.resource = resource
         event.process = ct.process
         event.project = ct.project
-        event.unit_of_quantity = ct.unit_of_quantity
+        event.unit_of_quantity = unit
         event.created_by = request.user
         event.changed_by = request.user
         event.save()

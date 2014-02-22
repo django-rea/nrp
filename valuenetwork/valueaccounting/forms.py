@@ -948,6 +948,20 @@ class WorkEventForm(forms.ModelForm):
         fields = ('event_date', 'quantity', 'description')
 
 
+class TimeEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(required=False,
+        widget=DecimalDurationWidget,
+        help_text="hours, minutes")
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+	
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'quantity', 'description')
+
+
 class InputEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
@@ -958,6 +972,11 @@ class InputEventForm(forms.ModelForm):
     class Meta:
         model = EconomicEvent
         fields = ('event_date', 'quantity', 'description')
+
+    def __init__(self, qty_help=None, *args, **kwargs):
+        super(InputEventForm, self).__init__(*args, **kwargs)
+        if qty_help:
+            self.fields["quantity"].help_text = qty_help
 
 
 class WorkContributionChangeForm(forms.ModelForm):

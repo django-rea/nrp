@@ -699,6 +699,9 @@ class EconomicResourceType(models.Model):
                 answer = self.unit_of_use
         return answer
 
+    def unit_for_use(self):
+        return self.directional_unit("use")
+
     def process_input_unit(self):
         answer = self.unit
         if self.unit_of_use:
@@ -1450,12 +1453,18 @@ class EconomicResource(models.Model):
     def consumption_event_form(self):        
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
-        return InputEventForm(prefix=prefix)
+        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev])
+        return InputEventForm(qty_help=qty_help, prefix=prefix)
 
     def use_event_form(self):        
-        from valuenetwork.valueaccounting.forms import WorkEventForm
+        from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
-        return WorkEventForm(prefix=prefix)
+        unit = self.resource_type.directional_unit("use")
+        if unit.unit_type == "time":
+            return TimeEventForm(prefix=prefix)
+        else:
+            qty_help = " ".join(["unit:", unit.abbrev])
+            return InputEventForm(qty_help=qty_help, prefix=prefix)            
 
 
 class AgentResourceType(models.Model):
@@ -2875,12 +2884,18 @@ class Commitment(models.Model):
     def consumption_event_form(self):        
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
-        return InputEventForm(prefix=prefix)
+        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev])
+        return InputEventForm(qty_help=qty_help, prefix=prefix)
 
     def use_event_form(self):        
-        from valuenetwork.valueaccounting.forms import WorkEventForm
+        from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
-        return WorkEventForm(prefix=prefix)
+        unit = self.resource_type.directional_unit("use")
+        if unit.unit_type == "time":
+            return TimeEventForm(prefix=prefix)
+        else:
+            qty_help = " ".join(["unit:", unit.abbrev])
+            return InputEventForm(qty_help=qty_help, prefix=prefix)
 
     def fulfilling_events(self):
         return self.fulfillment_events.all()

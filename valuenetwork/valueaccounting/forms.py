@@ -398,21 +398,27 @@ class UnorderedReceiptForm(forms.ModelForm):
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
+    value = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
         queryset=Unit.objects.filter(unit_type='value'))
-    identifier = forms.CharField(
-        required=False, 
-        label="Identifier",
-        widget=forms.TextInput(attrs={'class': 'item-name',}))
-    quantity = forms.DecimalField(required=False,
-        label="<b>Create the resource:</b><br><br>Quantity",
-        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity  input-small'}))
+    quantity = forms.DecimalField(required=True,
+        label="Quantity",
+        widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
     unit_of_quantity = forms.ModelChoiceField(
         queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'), 
         empty_label=None,
         label=_("Unit"),
         widget=forms.Select(attrs={'class': 'input-medium',}))
+    description = forms.CharField(
+        required=False,
+        label="Event Description", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    identifier = forms.CharField(
+        required=False, 
+        label="<b>Create the resource:</b><br><br>Identifier",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
     url = forms.URLField(
         required=False, 
         label="URL",
@@ -423,14 +429,12 @@ class UnorderedReceiptForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
     notes = forms.CharField(
         required=False,
-        label="Notes", 
+        label="Resource Notes", 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
-    value = forms.DecimalField(
-        widget=forms.TextInput(attrs={'class': 'value input-small',}))
         
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'resource_type', 'value', 'unit_of_value', 'quantity', 'unit_of_quantity',)
+        fields = ('event_date', 'from_agent', 'resource_type', 'value', 'unit_of_value', 'quantity', 'unit_of_quantity', 'description')
 
     def __init__(self, pattern=None, *args, **kwargs):
         super(UnorderedReceiptForm, self).__init__(*args, **kwargs)

@@ -1675,6 +1675,16 @@ def json_directional_unit(request, resource_type_id, direction):
     data = simplejson.dumps(defaults, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
+def json_directional_unit_and_rule(request, resource_type_id, direction):
+    #import pdb; pdb.set_trace()
+    ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    defaults = {
+        "unit": ert.directional_unit(direction).id,
+        "rule": ert.inventory_rule
+    }
+    data = simplejson.dumps(defaults, ensure_ascii=False)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+
 def json_resource_type_defaults(request, resource_type_id):
     ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     defaults = {
@@ -2864,23 +2874,25 @@ def add_unordered_receipt(request, exchange_id):
         form = UnorderedReceiptForm(data=request.POST, prefix='unorderedreceipt')
         if form.is_valid():
             output_data = form.cleaned_data
-            qty = output_data["quantity"] 
-            if qty:
+            value = output_data["value"] 
+            if value:
                 event = form.save(commit=False)
                 rt = output_data["resource_type"]
-                identifier = output_data["identifier"]
-                notes = output_data["notes"]
-                url = output_data["url"]
-                photo_url = output_data["photo_url"]
                 if rt.inventory_rule == "yes":
+                    identifier = output_data["identifier"]
+                    notes = output_data["notes"]
+                    url = output_data["url"]
+                    photo_url = output_data["photo_url"]
+                    quantity = output_data["quantity"]
+                    unit_of_quantity = output_data["unit_of_quantity"]
                     resource = EconomicResource(
                         resource_type=rt,
                         identifier=identifier,
                         notes=notes,
                         url=url,
                         photo_url=photo_url,
-                        quantity=event.quantity,
-                        unit_of_quantity=event.unit_of_quantity,
+                        quantity=quantity,
+                        unit_of_quantity=unit_of_quantity,
                         created_by=request.user,
                     )
                     resource.save()

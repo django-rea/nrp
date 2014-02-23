@@ -69,6 +69,9 @@ li {
     margin-top: 1px;
     margin-bottom: 1px;
 }
+.item-description {
+    height: 100px;
+    width: 480px;
 
 </style>
 
@@ -99,7 +102,7 @@ li {
 	            {% endif %}
 {% endcomment %}
 	            {% if agent %}
-	                <a href="#unorderedReceiptModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt with no order record" >
+	                <a href="#unorderedReceiptModal" role="button" id="btnAddReceipt" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt with no order record" >
 		                {% trans "Log a receipt" %}
 	                </a>
 	            {% endif %}
@@ -109,9 +112,10 @@ li {
 		        {% for event in receipt_events %}
 			        <div>
 				        <span class="event" ><span class="event-label">{% trans "Received" %}: </span> 
-				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
+				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}
+                        </span>
      	                {% if user == event.created_by  %}
-                            
+{% comment%}                            
 		                    <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 			                   <i class="icon-edit"></i>
 		                    </a>
@@ -132,6 +136,7 @@ li {
 				                    </form>
 			                    </div>
 		                    </div>
+{% endcomment %}
 		                    <form
 				                style="display: inline;" 
                                 class="delete-form" 
@@ -143,6 +148,9 @@ li {
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete receipt" >X</button>
                             </form>
 		                {% endif %}
+                        {% if event.resource %} 
+                            <div class = "notes">Resource created quantity = {{ event.quantity }} {{ event.unit_of_quantity }} </div>
+                        {% endif %} 
          			    {% if event.description %}
 		                   <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
 	                    {% endif %}          
@@ -575,32 +583,28 @@ li {
 			});
 		});
 
+        $("#btnAddReceipt").click(setReceiptModal);
 
-	    $(".resource-type-selector").change(getUnit);
+        function setReceiptModal()
+        {
+            var targetId = "id_unorderedreceipt-resource_type";
+            var resourceTypeId = $("#id_unorderedreceipt-resource_type").val()
+            //alert("onload rtid " + resourceTypeId);
+            JsonSetUnitAndRule(resourceTypeId, targetId);
+        }
 
-		function getUnit(event)
+	    $(".resource-type-selector").change(getUnitAndRule);
+
+		function getUnitAndRule(event)
 		{
 	        $(".chzn-select").trigger("liszt:updated");
-		    var resourceId = event.target.value;
-		    if (resourceId)
+		    var resourceTypeId = event.target.value;
+            //alert("rt " + resourceTypeId);
+		    if (resourceTypeId)
 		    {
                 var targetId = event.target.id;
-			    if (targetId.search("usable") >= 0)
-			    {
-				    direction = "use";
-			    }
-			    else
-			    {
-				    direction = "other";
-			    }
-			    var prefix = targetId.split('-')[0];
-			    var unitName = "#" + prefix + "-unit_of_quantity";
-			    var jsonUrl = encodeURI("/accounting/json-directional-unit/" + resourceId + "/" + direction + "/");
-			    $.get(jsonUrl,
-				    function(data){
-					    var unit = data["unit"];
-                        $(unitName).val(unit);
-				    });
+                //alert("targetId " + targetId);
+                JsonSetUnitAndRule(resourceTypeId, targetId);
 		    }
 	    }
 
@@ -643,7 +647,43 @@ li {
 
 	}); // end document.ready
 
-    
+    function JsonSetUnitAndRule(resourceTypeId, targetId)
+    {
+	    if (targetId.search("usable") >= 0)
+	    {
+		    direction = "use";
+	    }
+	    else
+	    {
+		    direction = "other";
+	    }
+	    var prefix = targetId.split('-')[0];
+	    var unitName = "#" + prefix + "-unit_of_quantity";
+	    var jsonUrl = encodeURI("/accounting/json-directional-unit-and-rule/" + resourceTypeId + "/" + direction + "/");
+	    $.get(jsonUrl,
+		    function(data){
+			    var unit = data["unit"];
+                $(unitName).val(unit);
+                var inventory_rule = data["rule"];
+                //alert(inventory_rule);
+                if (inventory_rule == "yes") {
+                    //$('#div_id_unorderedreceipt-quantity').show(); 
+                    //$('#div_id_unorderedreceipt-unit_of_quantity').show(); 
+                    $('#div_id_unorderedreceipt-identifier').show(); 
+                    $('#div_id_unorderedreceipt-url').show(); 
+                    $('#div_id_unorderedreceipt-photo_url').show(); 
+                    $('#div_id_unorderedreceipt-notes').show(); 
+                } else {
+                    //$('#div_id_unorderedreceipt-quantity').hide(); 
+                    //$('#div_id_unorderedreceipt-unit_of_quantity').hide(); 
+                    $('#div_id_unorderedreceipt-identifier').hide(); 
+                    $('#div_id_unorderedreceipt-url').hide(); 
+                    $('#div_id_unorderedreceipt-photo_url').hide(); 
+                    $('#div_id_unorderedreceipt-notes').hide();                             
+                }
+		    });
+    }
+
     </script>
 
 {% endblock %}

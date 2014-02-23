@@ -1,0 +1,34 @@
+body {
+	margin: 0; padding: 0;
+	scroll: none;
+	overflow: hidden;
+}
+.fractaldom_surface {
+	overflow: hidden;
+	position: fixed;
+	width: 100%;
+	height: 100%;	
+}
+.fractaldom_surface canvas {
+	pointer-events: none;
+	position: fixed;
+}
+
+/* TODO use a new class, applied to drawalogs */
+.ui-dialog .ui-dialog-title {
+	width: auto;
+}
+.ui-dialog .ui-dialog-titlebar {
+	padding: 0;
+}
+div.zoomSlider {
+	width: 50px;
+	height: 25px;
+	border: 1px solid black;
+	float: left;
+	cursor: crosshair;
+}
+.fractaldom {
+	overflow: scroll;
+}
+

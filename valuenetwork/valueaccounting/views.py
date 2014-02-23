@@ -2352,6 +2352,12 @@ def project_roles(request, project_slug):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
+def order_graph(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    return render_to_response("valueaccounting/order_graph.html", {
+        "order_id": order_id,
+    }, context_instance=RequestContext(request))
+
 @login_required
 def commit_to_task(request, commitment_id):
     if request.method == "POST":

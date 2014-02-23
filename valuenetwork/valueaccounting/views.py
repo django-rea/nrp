@@ -6543,6 +6543,7 @@ def exchange_logging(request, exchange_id):
             add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, data=request.POST or None)
         if "expense" in slots:
             expense_init = {
+                "from_agent": exchange.supplier,
                 "event_date": exchange.start_date,
             }
             add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, data=request.POST or None)

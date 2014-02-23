@@ -1079,6 +1079,12 @@ class ExpenseEventForm(forms.ModelForm):
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
         queryset=Unit.objects.filter(unit_type='value'))
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
+        label="Supplier",
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
@@ -1087,7 +1093,7 @@ class ExpenseEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'description')
+        fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'from_agent', 'description')
 
     def __init__(self, pattern=None, *args, **kwargs):
         super(ExpenseEventForm, self).__init__(*args, **kwargs)

@@ -105,8 +105,8 @@ function fractaldom(options) {
 
 			if (o.label) {
 				var text = o.label.substring(0,24);
-				ctx.fillStyle = lineColor;
-  				ctx.font = "bold 24px Arial";
+				ctx.fillStyle = '#FFCC66';
+  				ctx.font = "bold 12px Arial";
 			    var metrics = ctx.measureText(text);
 			    var width = metrics.width;
 				var mpx = (x1+x2)/2-width/2;
@@ -138,7 +138,7 @@ function fractaldom(options) {
 	};
 
 	x.layoutFD = function(affectX, affectY, iterations) {
-		var R = 0.5;
+		var R = 0.2;
 		var A = 0.5;
 
 		var nodePosition = { };

@@ -347,7 +347,7 @@ li {
 				                <div class="modal hide fade workEventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
 					                <div class="modal-header">
 						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-						                <h3 id="event-label">{% trans "Add Time Contribution" %}</h3>
+						                <h3 id="event-label">{% trans "Add Work Contribution" %}</h3>
 					                </div>
 					                <div class="modal-body">
 						                <form class="eventForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url add_work_event commitment_id=item.id %}" method="POST" >
@@ -1284,7 +1284,7 @@ li {
      <div class="modal hide fade unplannedWorkModal" id="unplannedWorkModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-work-label" aria-hidden="true">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="unplanned-work">{% trans "Log Unplanned Time Contribution" %}</h3>
+            <h3 id="unplanned-work">{% trans "Log Unplanned Work Contribution" %}</h3>
         </div>
         <div class="modal-body">
             <form class="unplanned-work-form validateMe" enctype="multipart/form-data" action="{% url add_unplanned_work_event process_id=process.id %}" method="POST" >

@@ -3227,8 +3227,7 @@ class EconomicEvent(models.Model):
         agent_change = False
         project_change = False
         resource_type_change = False
-        contribution_change = False               
-        from_agt = 'Unassigned'
+        contribution_change = False  
         if self.pk:
             prev = EconomicEvent.objects.get(pk=self.pk)
             if prev.quantity != self.quantity:
@@ -3260,7 +3259,8 @@ class EconomicEvent(models.Model):
                     project=self.project,
                     resource_type=self.resource_type)
                 summary.quantity += delta
-                summary.save()     
+                summary.save()               
+            from_agt = 'Unassigned'   
             if self.from_agent:
                 from_agt = self.from_agent.name
                 #todo: suppliers shd also get ART scores

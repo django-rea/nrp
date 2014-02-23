@@ -2877,9 +2877,14 @@ class Commitment(models.Model):
         return TodoForm(instance=self, prefix=prefix)
 
     def work_event_form(self):        
-        from valuenetwork.valueaccounting.forms import WorkEventForm
+        from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
-        return WorkEventForm(prefix=prefix)
+        unit = self.resource_type.unit
+        if unit.unit_type == "time":
+            return TimeEventForm(prefix=prefix)
+        else:
+            qty_help = " ".join(["unit:", unit.abbrev])
+            return InputEventForm(qty_help=qty_help, prefix=prefix)
 
     def consumption_event_form(self):        
         from valuenetwork.valueaccounting.forms import InputEventForm

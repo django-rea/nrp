@@ -14,7 +14,7 @@
 	<style>
 		body {
 			background-color: black;
-			font-size: 70%;
+			font-size: 60%;
 		}
 
 	</style>
@@ -49,7 +49,7 @@
 	        }
 
 	        function getX(date) {
-		        return (maxDate!=minDate) ? 2500 * (date - minDate) / (maxDate - minDate) : 0;
+		        return (maxDate!=minDate) ? 1500 * (date - minDate) / (maxDate - minDate) : 0;
 	        }
 
 	        var splitStartEnd = false;
@@ -65,7 +65,7 @@
 			        x.append('Process:<br/><b>' + N.name + '</b><br/>' + N.start + '..' + N.end);
 			        x.position( rx,ry );
 			        x.setWidth( Math.max(150, getX(Date.parse(N.end)) - getX(Date.parse(N.start))) );
-			        x.setHeight( 150 );
+			        x.setHeight( 100 );
 		        }
 		        for (var i = 0; i < data.edges.length; i++) {
 			        var E = data.edges[i];
@@ -82,7 +82,7 @@
 			        xs.append('Process:<br/><b>' + N.name + '</b><br/>' + N.start);
 			        xs.position( getX(Date.parse(N.start)),ry );
 			        xs.setWidth( 150 );
-			        xs.setHeight( 150 );
+			        xs.setHeight( 100 );
 
 			        var xe = d.newNode(N.id+'e', { title: N.name });
 			        xe.append(N.end);

@@ -460,7 +460,7 @@ li {
      <div class="modal hide fade" id="unorderedReceiptModal" tabindex="-1" role="dialog" aria-labelledby="unordered-receipt" aria-hidden="true">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="unordered-receipt">{% trans "Log a Receipt (Not Ordered)" %}</h3>
+            <h3 id="unordered-receipt">{% trans "Log a Receipt" %}</h3>
         </div>
         <div class="modal-body">
             <form class="validateMe" id="receiptForm" enctype="multipart/form-data" action="{% url add_unordered_receipt exchange_id=exchange.id %}" method="POST" >

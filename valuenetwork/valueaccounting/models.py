@@ -699,6 +699,9 @@ class EconomicResourceType(models.Model):
                 answer = self.unit_of_use
         return answer
 
+    def unit_for_use(self):
+        return self.directional_unit("use")
+
     def process_input_unit(self):
         answer = self.unit
         if self.unit_of_use:
@@ -1450,12 +1453,18 @@ class EconomicResource(models.Model):
     def consumption_event_form(self):        
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
-        return InputEventForm(prefix=prefix)
+        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev])
+        return InputEventForm(qty_help=qty_help, prefix=prefix)
 
     def use_event_form(self):        
-        from valuenetwork.valueaccounting.forms import WorkEventForm
+        from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
-        return WorkEventForm(prefix=prefix)
+        unit = self.resource_type.directional_unit("use")
+        if unit.unit_type == "time":
+            return TimeEventForm(prefix=prefix)
+        else:
+            qty_help = " ".join(["unit:", unit.abbrev])
+            return InputEventForm(qty_help=qty_help, prefix=prefix)            
 
 
 class AgentResourceType(models.Model):
@@ -2875,12 +2884,18 @@ class Commitment(models.Model):
     def consumption_event_form(self):        
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
-        return InputEventForm(prefix=prefix)
+        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev])
+        return InputEventForm(qty_help=qty_help, prefix=prefix)
 
     def use_event_form(self):        
-        from valuenetwork.valueaccounting.forms import WorkEventForm
+        from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
-        return WorkEventForm(prefix=prefix)
+        unit = self.resource_type.directional_unit("use")
+        if unit.unit_type == "time":
+            return TimeEventForm(prefix=prefix)
+        else:
+            qty_help = " ".join(["unit:", unit.abbrev])
+            return InputEventForm(qty_help=qty_help, prefix=prefix)
 
     def fulfilling_events(self):
         return self.fulfillment_events.all()
@@ -3144,6 +3159,25 @@ class SelectedOption(models.Model):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
 
 
+def update_summary(agent, project, resource_type):
+    events = EconomicEvent.objects.filter(
+        from_agent=agent,
+        project=project,
+        resource_type=resource_type,
+        is_contribution=True)
+    total = sum(event.quantity for event in events)
+    summary, created = CachedEventSummary.objects.get_or_create(
+        agent=agent,
+        project=project,
+        resource_type=resource_type)
+    summary.quantity = total
+    if summary.quantity:
+        summary.save() 
+    else:
+        if not created:
+            summary.delete()
+
+
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="events", verbose_name=_('event type'))
@@ -3219,62 +3253,48 @@ class EconomicEvent(models.Model):
             quantity_string,
             resource_string,
         ])
-
+        
     def save(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
-        
+        from_agt = 'Unassigned'
+        agent = self.from_agent
+        project = self.project
+        resource_type = self.resource_type
         delta = self.quantity
         agent_change = False
         project_change = False
         resource_type_change = False
-        contribution_change = False  
         if self.pk:
+            prev_agent = self.from_agent
+            prev_project = self.project
+            prev_resource_type = self.resource_type
             prev = EconomicEvent.objects.get(pk=self.pk)
             if prev.quantity != self.quantity:
                 delta = self.quantity - prev.quantity
             if prev.from_agent != self.from_agent:
                 agent_change = True
+                prev_agent = prev.from_agent
             if prev.project != self.project:
                 project_change = True
+                prev_project = prev.project 
             if prev.resource_type != self.resource_type:
                 resource_type_change = True
-            if prev.is_contribution != self.is_contribution:
-                if self.is_contribution:
-                    delta = self.quantity
-                    contribution_change = True
-        if delta or agent_change or project_change or resource_type_change or contribution_change:
-            if self.is_contribution:
-                if agent_change or project_change or resource_type_change:
-                    try:
-                        old_summary = CachedEventSummary.objects.get(
-                            agent=prev.from_agent,
-                            project=prev.project,
-                            resource_type=prev.resource_type)
-                        old_summary.quantity -= delta
-                        old_summary.save()
-                    except CachedEventSummary.DoesNotExist:
-                        pass
-                summary, created = CachedEventSummary.objects.get_or_create(
-                    agent=self.from_agent,
-                    project=self.project,
-                    resource_type=self.resource_type)
-                summary.quantity += delta
-                summary.save()               
-            from_agt = 'Unassigned'   
-            if self.from_agent:
-                from_agt = self.from_agent.name
+                prev_resource_type = prev.resource_type
+        if agent:
+            from_agt = agent.name
+            if delta:
                 #todo: suppliers shd also get ART scores
                 if self.event_type.relationship == "work" or self.event_type.related_to == "agent":
                     try:
                         art, created = AgentResourceType.objects.get_or_create(
-                            agent=self.from_agent,
-                            resource_type=self.resource_type,
+                            agent=agent,
+                            resource_type=resource_type,
                             event_type=self.event_type)
                     except:
                         #todo: this shd not happen, but it does...
                         arts = AgentResourceType.objects.filter(
-                            agent=self.from_agent,
-                            resource_type=self.resource_type,
+                            agent=agent,
+                            resource_type=resource_type,
                             event_type=self.event_type)
                         art = arts[0]
                     art.score += delta
@@ -3287,6 +3307,30 @@ class EconomicEvent(models.Model):
         ])
         unique_slugify(self, slug)
         super(EconomicEvent, self).save(*args, **kwargs)
+        update_summary(agent, project, resource_type)
+        if agent_change or project_change or resource_type_change:
+            update_summary(prev_agent, prev_project, prev_resource_type)
+
+    def delete(self, *args, **kwargs):
+        if self.event_type.relationship == "work":
+            if self.is_contribution:
+                agent = self.from_agent
+                project = self.project
+                resource_type = self.resource_type
+                if agent and project and resource_type:
+                    try:
+                        summary = CachedEventSummary.objects.get(
+                            agent=agent,
+                            project=project,
+                            resource_type=resource_type)
+                        summary.quantity -= self.quantity
+                        if summary.quantity:
+                            summary.save() 
+                        else:
+                            summary.delete()
+                    except CachedEventSummary.DoesNotExist:
+                        pass
+        super(EconomicEvent, self).delete(*args, **kwargs)
 
     def flow_type(self):
         return self.event_type.name

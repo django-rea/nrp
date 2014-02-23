@@ -1706,7 +1706,7 @@ class ExchangeForm(forms.ModelForm):
     start_date = forms.DateField(required=True, 
         label=_("Start date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
-    supplier = forms.ModelChoiceField(
+    supplier = forms.ModelChoiceField(required=False,
         queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
         label="Supplier",  
         widget=forms.Select(

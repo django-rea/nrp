@@ -1102,6 +1102,91 @@ class ExpenseEventForm(forms.ModelForm):
             #import pdb; pdb.set_trace()
             self.fields["resource_type"].queryset = pattern.expense_resource_types()
 
+class CashContributionEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    value = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        label="Unit",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        label="Contributor",
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'value', 'resource_type', 'description', 'is_contribution')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(CashContributionEventForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            #import pdb; pdb.set_trace()
+            self.fields["resource_type"].queryset = pattern.cash_contr_resource_types()
+
+class MaterialContributionEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        label="Resource contributed by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
+    quantity = forms.DecimalField(required=True,
+        label="Quantity",
+        widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'), 
+        empty_label=None,
+        label=_("Unit"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    description = forms.CharField(
+        required=False,
+        label="Event Description", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    identifier = forms.CharField(
+        required=False, 
+        label="<b>Create the resource:</b><br><br>Identifier",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    url = forms.URLField(
+        required=False, 
+        label="URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    photo_url = forms.URLField(
+        required=False, 
+        label="Photo URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    notes = forms.CharField(
+        required=False,
+        label="Resource Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'quantity', 'resource_type', 'unit_of_quantity', 'description')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(MaterialContributionEventForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.material_contr_resource_types()
+
 
 class WorkSelectionForm(forms.Form):
     type_of_work = forms.ChoiceField()

@@ -2965,6 +2965,56 @@ def add_expense(request, exchange_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
+@login_required
+def add_material_contribution(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        form = MaterialContributionEventForm(data=request.POST, pattern=pattern, prefix='expense')
+        if form.is_valid():
+            material_data = form.cleaned_data
+            value = material_data["value"] 
+            if value:
+                event = form.save(commit=False)
+                rt = material_data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("material", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.project = exchange.project
+                event.quantity = 1
+                event.unit_of_quantity = rt.unit
+                event.created_by = request.user
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+@login_required
+def add_cash_contribution(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        form = CashContributionEventForm(data=request.POST, pattern=pattern, prefix='cash')
+        if form.is_valid():
+            cash_data = form.cleaned_data
+            value = cash_data["value"] 
+            if value:
+                event = form.save(commit=False)
+                rt = cash_data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("cash", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.project = exchange.project
+                event.quantity = 1
+                event.unit_of_value = rt.unit
+                event.created_by = request.user
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_process_input(request, process_id, slot):
@@ -6450,7 +6500,7 @@ def create_patterned_facet_formset(pattern, slot, data=None):
         form.fields["value"].choices = choices
     return formset
 
-
+'''
 #todo: goes away when done with exchange or done looking at it
 def financial_contribution(request):
     member = get_agent(request)
@@ -6470,7 +6520,7 @@ def financial_contribution(request):
         "resource_form": resource_form,
         "pattern": pattern,
     }, context_instance=RequestContext(request))
-
+'''
 
 def exchange_logging(request, exchange_id):
     #import pdb; pdb.set_trace()
@@ -6483,8 +6533,8 @@ def exchange_logging(request, exchange_id):
     add_receipt_form = None
     add_payment_form = None
     add_expense_form = None
-    add_contr_resource_form = None
-    add_contr_cash_form = None
+    add_material_form = None
+    add_cash_form = None
     add_work_form = None
     #add_commit_receipt_form = None
     #add_commit_payment_form = None
@@ -6498,8 +6548,8 @@ def exchange_logging(request, exchange_id):
     payment_events = exchange.payment_events()
     expense_events = exchange.expense_events()
     work_events = exchange.work_events()
-    cash_contr_events = exchange.cash_contribution_events()
-    matl_contr_events = exchange.material_contribution_events()
+    cash_events = exchange.cash_contribution_events()
+    material_events = exchange.material_contribution_events()
 
     if agent and pattern:
         #import pdb; pdb.set_trace()
@@ -6532,7 +6582,16 @@ def exchange_logging(request, exchange_id):
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id))
-        #import pdb; pdb.set_trace()
+        #for event in cash_events:
+        #    event.changeform = CashContributionEventForm(
+        #        pattern=pattern,
+        #        instance=event, 
+        #       prefix=str(event.id))
+        #for event in material_events:
+        #    event.changeform = MaterialContributionEventForm(
+        #        pattern=pattern,
+        #        instance=event, 
+        #        prefix=str(event.id))
 
         if "pay" in slots:
             pay_init = {
@@ -6559,6 +6618,19 @@ def exchange_logging(request, exchange_id):
                 "from_agent": exchange.supplier
             }      
             add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern, data=request.POST or None)
+        if "cash" in slots:
+            cash_init = {
+                "event_date": exchange.start_date,
+                "from_agent": agent
+            }      
+            add_cash_form = CashContributionEventForm(prefix='cash', initial=cash_init, pattern=pattern, data=request.POST or None)
+        if "material" in slots:
+            matl_init = {
+                "event_date": exchange.start_date,
+                "from_agent": agent
+            }      
+            add_material_form = MaterialContributionEventForm(prefix='material', initial=matl_init, pattern=pattern, data=request.POST or None)
+
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -6580,13 +6652,13 @@ def exchange_logging(request, exchange_id):
         "payment_events": payment_events,
         "expense_events": expense_events,
         "work_events": work_events,
-        "cash_contr_events": cash_contr_events,
-        "matl_contr_events": matl_contr_events,
+        "cash_events": cash_events,
+        "material_events": material_events,
         "add_receipt_form": add_receipt_form,
         "add_payment_form": add_payment_form,
         "add_expense_form": add_expense_form,
-        "add_contr_resource_form": add_contr_resource_form,
-        "add_contr_cash_form": add_contr_cash_form,
+        "add_material_form": add_material_form,
+        "add_cash_form": add_cash_form,
         "add_work_form": add_work_form,
         #"add_commit_receipt_form": add_commit_receipt_form,
         #"add_commit_payment_form": add_commit_payment_form,

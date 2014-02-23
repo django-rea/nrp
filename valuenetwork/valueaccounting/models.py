@@ -937,6 +937,12 @@ class ProcessPattern(models.Model):
         #import pdb; pdb.set_trace()
         return self.resource_types_for_relationship("expense")
 
+    def cash_contr_resource_types(self):
+        return self.resource_types_for_relationship("cash")
+
+    def material_contr_resource_types(self):
+        return self.resource_types_for_relationship("resource contribution")
+
     def facets_for_event_type(self, event_type):
         return self.facets.filter(event_type=event_type)
 
@@ -2510,7 +2516,7 @@ class Exchange(models.Model):
         
     def cash_contribution_events(self):
         return self.events.filter(
-            event_type__relationship='cash contribution')
+            event_type__relationship='cash')
 
 
 class Feature(models.Model):

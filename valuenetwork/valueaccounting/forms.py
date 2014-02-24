@@ -396,6 +396,7 @@ class UnorderedReceiptForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         empty_label=None,
+        help_text="If you don't see the resource type you want, please contact an admin.",
         widget=forms.Select(
             attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
     value = forms.DecimalField(
@@ -1074,6 +1075,7 @@ class ExpenseEventForm(forms.ModelForm):
         queryset=EconomicResourceType.objects.none(),
         label="Type of expense",
         empty_label=None,
+        help_text="If you don't see the resource type you want, please contact an admin.",
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     unit_of_value = forms.ModelChoiceField(
@@ -1146,6 +1148,7 @@ class MaterialContributionEventForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
         empty_label=None,
+        help_text="If you don't see the resource type you want, please contact an admin.",
         widget=forms.Select(
             attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
     quantity = forms.DecimalField(required=True,
@@ -1800,6 +1803,7 @@ class ExchangeForm(forms.ModelForm):
     supplier = forms.ModelChoiceField(required=False,
         queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
         label="Supplier",  
+        help_text="This is a supplier external to the network.  It is used as a default for individual events in this contribution.",
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     notes = forms.CharField(required=False, 
@@ -1816,5 +1820,5 @@ class ExchangeForm(forms.ModelForm):
     def __init__(self, use_case, *args, **kwargs):
         super(ExchangeForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
- 
+
 

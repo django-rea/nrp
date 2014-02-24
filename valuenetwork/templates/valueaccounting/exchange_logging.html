@@ -84,7 +84,7 @@ li {
         {% include "_messages.html" %}
 	<div>
 	<legend>
-		{% trans "Exchange" %}: <span>{{ exchange }}</span>
+		<span>{{ exchange }}</span>
 	</legend>
 
 	<div class="row-fluid">
@@ -530,6 +530,7 @@ li {
                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                     <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
                   </div>
+                  <input type="hidden" id="use-case" name="next" value= "{{ exchange.use_case.identifier }}" />
                 </form>
             </div>
         </div>
@@ -589,12 +590,20 @@ li {
 		});
 
         $("#btnAddReceipt").click(setReceiptModal);
-        $("#btnAddMaterial").click(setReceiptModal);
+        $("#btnAddMaterial").click(setMaterialModal);
 
         function setReceiptModal()
         {
             var targetId = "id_unorderedreceipt-resource_type";
             var resourceTypeId = $("#id_unorderedreceipt-resource_type").val()
+            //alert("onload rtid " + resourceTypeId);
+            JsonSetUnitAndRule(resourceTypeId, targetId);
+        }
+
+        function setMaterialModal()
+        {
+            var targetId = "id_material-resource_type";
+            var resourceTypeId = $("#id_material-resource_type").val()
             //alert("onload rtid " + resourceTypeId);
             JsonSetUnitAndRule(resourceTypeId, targetId);
         }
@@ -613,6 +622,13 @@ li {
                 JsonSetUnitAndRule(resourceTypeId, targetId);
 		    }
 	    }
+
+        if($( '#use-case' ).val() == 'res_contr' || $( '#use-case' ).val() == 'cash_contr')
+        {
+            $( '#div_id_supplier' ).hide();
+        } else {
+            $( '#div_id_supplier' ).show();
+        }
 
         $('#receiptForm').click(function (event) {
             var isValid = $("#receiptForm").validate();

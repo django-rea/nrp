@@ -41,10 +41,10 @@
 			<div class="span12">
 				{{ exchange_form|as_bootstrap }}
 				<div class="form-actions">
-					<input type="submit" name="save" value="{% trans 'Save and add details' %}" class="btn btn-primary" /> 
+					<input type="submit" name="save" value="{% trans 'Save and go to step 2' %}" class="btn btn-primary" /> 
 			   	</div>
 			</div>
-
+            <input type="hidden" id="use-case" name="next" value= "{{ use_case.identifier }}" />
 		</div>
 		</form>
     </div>
@@ -90,6 +90,13 @@
 				$(label).closest('.control-group').addClass('error');
 			},
 		});
+
+        if($( '#use-case' ).val() == 'res_contr' || $( '#use-case' ).val() == 'cash_contr')
+        {
+            $( '#div_id_supplier' ).hide();
+        } else {
+            $( '#div_id_supplier' ).show();
+        }
 
 	}); // end document.ready
     </script>

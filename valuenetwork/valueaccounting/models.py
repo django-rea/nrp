@@ -941,7 +941,7 @@ class ProcessPattern(models.Model):
         return self.resource_types_for_relationship("cash")
 
     def material_contr_resource_types(self):
-        return self.resource_types_for_relationship("resource contribution")
+        return self.resource_types_for_relationship("resource")
 
     def facets_for_event_type(self, event_type):
         return self.facets.filter(event_type=event_type)
@@ -2512,7 +2512,7 @@ class Exchange(models.Model):
 
     def material_contribution_events(self):
         return self.events.filter(
-            event_type__relationship='resource contribution')
+            event_type__relationship='resource')
         
     def cash_contribution_events(self):
         return self.events.filter(

@@ -279,17 +279,43 @@ li {
           </div>
 	    {% endif %}
 
-        {% if material_events or "material" in slots %}
+        {% if material_events or "resource" in slots %}
           <div class="log-section">
 		    <h3 style="margin-bottom: 4px;" >
 		        {% trans "Material Contribution" %}:  
 	            {% if agent %}
-	                <a href="#unplannedResourceModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt of a material contribution" >
+	                <a href="#addResourceModal" role="button" id="btnAddMaterial" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt of a material contribution" >
 		                {% trans "Log a contributed resource" %}
 	                </a>
 	             {% endif %}
 	        </h3>
-
+            {% if material_events %}
+		        {% for event in material_events %}
+			        <div>
+				        <span class="event" ><span class="event-label">{% trans "Contributed" %}: </span> 
+				            <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}
+                        </span>
+     	                {% if user == event.created_by or event.from_agent = agent  %}
+		                    <form
+				                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="exchange" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete cash contribution" >X</button>
+                            </form>
+		                {% endif %}
+                        {% if event.resource %} 
+                            <div class = "notes">Resource created quantity = {{ event.quantity }} {{ event.unit_of_quantity }} </div>
+                        {% endif %} 
+         			    {% if event.description %}
+		                   <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+	                    {% endif %}                       
+			        </div>
+		        {% endfor %}
+	        {% endif %}
           </div>
         {%endif%}
 
@@ -457,7 +483,7 @@ li {
         </div>
        </div>
     
-        <div class="modal hide fade addWorkModal" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+        <div class="modal hide fade" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 <h3 id="work-label">{% trans "Add Work Done for This Transaction" %}</h3>
@@ -474,7 +500,7 @@ li {
             </div>
         </div>
     
-        <div class="modal hide fade addCashModal" id="addCashModal" tabindex="-1" role="dialog" aria-labelledby="cash-label" aria-hidden="true">
+        <div class="modal hide fade" id="addCashModal" tabindex="-1" role="dialog" aria-labelledby="cash-label" aria-hidden="true">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 <h3 id="cash-label">{% trans "Add Cash Contribution" %}</h3>
@@ -490,10 +516,25 @@ li {
                 </form>
             </div>
         </div>
+    
+        <div class="modal hide fade" id="addResourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="resource-label">{% trans "Add Material Contribution" %}</h3>
+            </div>
+            <div class="modal-body">
+                <form class="validateMe" id="materialForm" enctype="multipart/form-data" action="{% url add_material_contribution exchange_id=exchange.id %}" method="POST" >
+                    {% csrf_token %}
+                    {{ add_material_form|as_bootstrap }}
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                  </div>
+                </form>
+            </div>
+        </div>
     {% endif %}
 
-
- 
 {% endblock %}
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
@@ -548,6 +589,7 @@ li {
 		});
 
         $("#btnAddReceipt").click(setReceiptModal);
+        $("#btnAddMaterial").click(setReceiptModal);
 
         function setReceiptModal()
         {
@@ -595,6 +637,20 @@ li {
 
         $('#workForm').click(function (event) {
             var isValid = $("#workForm").validate();
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+
+        $('#cashForm').click(function (event) {
+            var isValid = $("#cashForm").validate();
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+
+        $('#materialForm').click(function (event) {
+            var isValid = $("#materialForm").validate();
             if (!isValid) {
                 event.preventDefault();
             }

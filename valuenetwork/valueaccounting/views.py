@@ -2971,22 +2971,42 @@ def add_material_contribution(request, exchange_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
-        form = MaterialContributionEventForm(data=request.POST, pattern=pattern, prefix='expense')
+        form = MaterialContributionEventForm(data=request.POST, pattern=pattern, prefix='material')
         if form.is_valid():
             material_data = form.cleaned_data
-            value = material_data["value"] 
-            if value:
+            qty = material_data["quantity"] 
+            if qty:
                 event = form.save(commit=False)
                 rt = material_data["resource_type"]
-                event_type = pattern.event_type_for_resource_type("material", rt)
+                if rt.inventory_rule == "yes":
+                    identifier = material_data["identifier"]
+                    notes = material_data["notes"]
+                    url = material_data["url"]
+                    photo_url = material_data["photo_url"]
+                    quantity = material_data["quantity"]
+                    unit_of_quantity = material_data["unit_of_quantity"]
+                    resource = EconomicResource(
+                        resource_type=rt,
+                        identifier=identifier,
+                        notes=notes,
+                        url=url,
+                        photo_url=photo_url,
+                        quantity=quantity,
+                        unit_of_quantity=unit_of_quantity,
+                        created_by=request.user,
+                    )
+                    resource.save()
+                    event.resource = resource
+                pattern = exchange.process_pattern
+                event_type = pattern.event_type_for_resource_type("resource", rt)
                 event.event_type = event_type
                 event.exchange = exchange
                 event.project = exchange.project
-                event.quantity = 1
-                event.unit_of_quantity = rt.unit
+                event.is_contribution = True
                 event.created_by = request.user
                 event.save()
-                
+
+               
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
@@ -6624,7 +6644,7 @@ def exchange_logging(request, exchange_id):
                 "from_agent": agent
             }      
             add_cash_form = CashContributionEventForm(prefix='cash', initial=cash_init, pattern=pattern, data=request.POST or None)
-        if "material" in slots:
+        if "resource" in slots:
             matl_init = {
                 "event_date": exchange.start_date,
                 "from_agent": agent

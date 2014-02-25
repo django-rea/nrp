@@ -1,0 +1,72 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Exchanges" %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+{% endblock %}
+
+{% block body_class %}supply{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>{% trans "Exchanges" %}</legend>
+
+			{% if exchanges %}
+
+				<ul>
+				    {% for x in exchanges %}
+						<li>
+                            <a href="{% url exchange_logging exchange_id=x.id %}">{{ x }}</a>  {% trans "created by" %} {{ x.created_by }}
+							{% if user = x.created_by or user.is_superuser%}
+                            	<a class="btn btn-info btn-mini" href="">{% trans "Change" %}</a> 
+                            	{% if x.is_deletable %}
+                            	    <a class="btn btn-warning btn-mini" href="">{% trans "Delete" %}</a> 
+                        	    {% endif %}
+							{% endif %}
+                        </li>
+                        {% if x.events.all %}
+                            <ul>
+                                {% for event in x.sorted_events %}
+                                    <li>{{ event }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+					{% endfor %}
+				</ul>
+			{% endif %}
+
+
+	</div>
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#supply').addClass('active');
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+	}); // end document.ready
+    </script>
+
+{% endblock %}

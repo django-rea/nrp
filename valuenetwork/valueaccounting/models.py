@@ -2450,7 +2450,7 @@ class Exchange(models.Model):
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
-        ordering = ('start_date',)
+        ordering = ('-start_date',)
         verbose_name_plural = _("exchanges")
 
     def __unicode__(self):
@@ -2475,6 +2475,16 @@ class Exchange(models.Model):
         ])
         unique_slugify(self, slug)
         super(Exchange, self).save(*args, **kwargs)
+
+    def is_deletable(self):
+        answer = True
+        if self.events.all():
+            answer = False
+        #elif self.resources.all():
+        #    answer = False
+        #elif self.commitments.all():
+        #    answer = False
+        return answer
 
     def receipt_commitments(self):
         return self.commitments.filter(
@@ -2517,6 +2527,10 @@ class Exchange(models.Model):
     def cash_contribution_events(self):
         return self.events.filter(
             event_type__relationship='cash')
+
+    def sorted_events(self):
+        events = self.events.all().order_by("event_type__name")
+        return events
 
 
 class Feature(models.Model):

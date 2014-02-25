@@ -6542,6 +6542,12 @@ def financial_contribution(request):
     }, context_instance=RequestContext(request))
 '''
 
+def exchanges(request):
+    exchanges = Exchange.objects.all()
+    return render_to_response("valueaccounting/exchanges.html", {
+        "exchanges": exchanges,
+    }, context_instance=RequestContext(request))
+    
 def exchange_logging(request, exchange_id):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)

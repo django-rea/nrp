@@ -14,7 +14,7 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Exchanges" %}</legend>
+		<legend>{% trans "Financial and Material Contributions" %}</legend>
 
 			{% if exchanges %}
 
@@ -23,7 +23,7 @@
 						<li>
                             <a href="{% url exchange_logging exchange_id=x.id %}">{{ x }}</a>  {% trans "created by" %} {{ x.created_by }}
 							{% if user = x.created_by or user.is_superuser%}
-                            	<a class="btn btn-info btn-mini" href="">{% trans "Change" %}</a> 
+                            	<a class="btn btn-info btn-mini" href="{% url exchange_logging exchange_id=x.id %}">{% trans "Change" %}</a> 
                             	{% if x.is_deletable %}
                             	    <a class="btn btn-warning btn-mini" href="">{% trans "Delete" %}</a> 
                         	    {% endif %}

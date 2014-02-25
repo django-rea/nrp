@@ -338,7 +338,8 @@ function fractaldom(options) {
 		}
 		//e.dialog({stack:false});
 		e.dialog({ closeOnEscape: false });
-		e.dialog("widget").draggable("option","containment","none");
+		//e.dialog("widget").draggable("option","containment","none");"option", "axis", "x" 
+		e.dialog("widget").draggable("option","axis", "y" );
 		e.dialog({
 			  drag: function( event, ui ) {
 				dragging = false;

@@ -3301,6 +3301,17 @@ def delete_citation_event(request, commitment_id, resource_id):
             % ('accounting/resource', resource_id))
 
 
+@login_required        
+def delete_exchange(request, exchange_id): 
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        exchange = get_object_or_404(Exchange, pk=exchange_id)
+        if exchange.is_deletable:
+            exchange.delete()        
+        return HttpResponseRedirect('/%s/'
+            % ('accounting/exchanges'))
+
+
 @login_required
 def work_done(request):
     #import pdb; pdb.set_trace()

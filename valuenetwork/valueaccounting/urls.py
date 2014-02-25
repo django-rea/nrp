@@ -283,4 +283,6 @@ urlpatterns = patterns("",
         name="change_exchange_work_event"), 
     url(r"^create-supplier/$", 'valuenetwork.valueaccounting.views.create_supplier', 
         name="create_supplier"),
+    url(r'^delete-exchange/(?P<exchange_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_exchange', 
+        name="delete_exchange"),
 )

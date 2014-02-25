@@ -114,7 +114,7 @@ li {
 				        <span class="event" ><span class="event-label">{% trans "Received" %}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}
                         </span>
-     	                {% if user == event.created_by  %}
+     	                {% if agent == event.from_agent or logger  %}
 {% comment%}                            
 		                    <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 			                   <i class="icon-edit"></i>
@@ -177,7 +177,7 @@ li {
 			        <div>
 				        <span class="event" ><span class="event-label">{% trans "Expensed" %}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
-     	                {% if user == event.created_by  %}
+     	                {% if agent == event.from_agent or logger  %}
                             
 		                    <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 			                   <i class="icon-edit"></i>
@@ -237,7 +237,7 @@ li {
 			        <div>
 				        <span class="event" ><span class="event-label">{% trans "Paid" %}: </span> 
 				            <b>{{ event.quantity }} {{ event.unit_of_quantity }}</b> from {{ event.from_agent.nick }} to <b>{{ event.to_agent.nick }}</b> {{ event.event_date }}</span>
-     	                {% if agent == event.from_agent or user == event.created_by  %}
+     	                {% if agent == event.from_agent or logger  %}
                             
 		                    <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 			                   <i class="icon-edit"></i>
@@ -295,7 +295,7 @@ li {
 				        <span class="event" ><span class="event-label">{% trans "Contributed" %}: </span> 
 				            <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}
                         </span>
-     	                {% if user == event.created_by or event.from_agent = agent  %}
+     	                {% if logger or event.from_agent = agent  %}
 		                    <form
 				                style="display: inline;" 
                                 class="delete-form" 
@@ -334,7 +334,7 @@ li {
 			        <div>
 				        <span class="event" ><span class="event-label">{% trans "Contributed" %}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> from <b>{{ event.from_agent.nick }}</b> {{ event.event_date }}</span>
-     	                {% if user == event.created_by or event.from_agent = agent  %}
+     	                {% if logger or event.from_agent = agent  %}
 		                    <form
 				                style="display: inline;" 
                                 class="delete-form" 
@@ -369,7 +369,7 @@ li {
             {% for event in work_events %}
 	            <div >
 		            <span class="event" ><span class="event-label">{% trans "Work event" %}: </span><b> {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span></span>
- 	                {% if agent == event.from_agent or user == event.created_by  %}
+ 	                {% if agent == event.from_agent or logger  %}
                         
 		                <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 			               <i class="icon-edit"></i>

@@ -17,9 +17,12 @@
 		body {
 			background-color: white;
 			font-size: 70%;
+			overflow: hidden;
 		}
 			
         .ui-dialog-titlebar-close { display:none; }
+
+        .ui-dialog-content .process-link a { color:blue; }
 
 	</style>
 </head>
@@ -70,7 +73,7 @@
 			        var id = N.id.split("-")[1];
 			        var pageUrl = encodeURI("/accounting/process/" + id + "/");
 			        var pageLink = '<a href="' + pageUrl + '" target="_blank" >' + N.name + '</a>';
-			        var pageSpan = '<span style="color:blue" >' + pageLink + '</span>';
+			        var pageSpan = '<span class="process-link" >' + pageLink + '</span>';
 			        x.append(pageSpan + '</b><br/>' + N.start + '..' + N.end);
 			        x.position( rx,ry );
 			        x.setWidth( Math.max(150, getX(Date.parse(N.end)) - getX(Date.parse(N.start))) );

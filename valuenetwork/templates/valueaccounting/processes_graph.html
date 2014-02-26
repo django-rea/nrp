@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>Process Graph for Order {{ order_id }}</title>
+	<title>Process Graph</title>
     <script src="http://code.jquery.com/jquery.min.js" type="text/javascript"></script>
     <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js" type="text/javascript"></script>
     <script src="{% static 'js/jMouseWheel-1.0.min.js' %}" type="text/javascript"></script>
@@ -21,8 +21,6 @@
 			
         .ui-dialog-titlebar-close { display:none; }
 
-        .ui-dialog-content .process-link { color:blue; }
-
 	</style>
 </head>
 
@@ -32,8 +30,8 @@
 <script>
 
     $(document).ready(function(){
-        var jsonUrl = encodeURI("/accounting/json-processes/" + {{ order_id }} + "/");
-
+        var jsonUrl = encodeURI("/accounting/json-processes/");
+        
         $("body").css("cursor", "wait");
         $.getJSON( jsonUrl, function( data ) {
             var d = fractaldom();
@@ -72,11 +70,11 @@
 			        var id = N.id.split("-")[1];
 			        var pageUrl = encodeURI("/accounting/process/" + id + "/");
 			        var pageLink = '<a href="' + pageUrl + '" target="_blank" >' + N.name + '</a>';
-			        var pageSpan = '<span class="process-link" >' + pageLink + '</span>';
+			        var pageSpan = '<span style="color:blue" >' + pageLink + '</span>';
 			        x.append(pageSpan + '</b><br/>' + N.start + '..' + N.end);
 			        x.position( rx,ry );
 			        x.setWidth( Math.max(150, getX(Date.parse(N.end)) - getX(Date.parse(N.start))) );
-			        x.setHeight( 64 );
+			        x.setHeight( 50 );
 		        }
 		        for (var i = 0; i < data.edges.length; i++) {
 			        var E = data.edges[i];
@@ -93,13 +91,13 @@
 			        xs.append(N.name + '</b><br/>' + N.start);
 			        xs.position( getX(Date.parse(N.start)),ry );
 			        xs.setWidth( 150 );
-			        xs.setHeight( 64 );
+			        xs.setHeight( 50 );
 
 			        var xe = d.newNode(N.id+'e', { title: N.name });
 			        xe.append(N.end);
 			        xe.position( getX(Date.parse(N.end)), ry );
 			        xe.setWidth( 150 );
-			        xe.setHeight( 64 );
+			        xe.setHeight( 50 );
 
 			        d.newEdge(N.id + 's', N.id + 'e', { lineWidth: 15 })
 
@@ -111,8 +109,9 @@
 	        }
 
 	        d.layoutFD(false, true, 50);
-
+	        
 	        $("body").css("cursor", "default");
+	        
         });
 
 	}); // end document.ready

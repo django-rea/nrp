@@ -5,17 +5,21 @@
 	<title>Process Graph for Order {{ order_id }}</title>
     <script src="http://code.jquery.com/jquery.min.js" type="text/javascript"></script>
     <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js" type="text/javascript"></script>
+    <script src="{% static 'js/jMouseWheel-1.0.min.js' %}" type="text/javascript"></script>
+    <script src="{% static 'js/jquery.svg.min.js' %}" type="text/javascript"></script> 
     <script src="{% static 'js/underscore-min.js' %}" type="text/javascript"></script> 
 	<link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.min.css">
-
+    
     <script src="{% static 'js/fractaldom.js' %}" type="text/javascript"></script>
 	<link rel="stylesheet" type="text/css" href="{% static 'css/fractaldom.css' %}">
 
 	<style>
 		body {
-			background-color: black;
-			font-size: 60%;
+			background-color: white;
+			font-size: 70%;
 		}
+			
+        .ui-dialog-titlebar-close { display:none; }
 
 	</style>
 </head>
@@ -62,10 +66,10 @@
 
 			        var ry = 500 * Math.random();
 			        var x = d.newNode(N.id, { title: N.name });
-			        x.append('Process:<br/><b>' + N.name + '</b><br/>' + N.start + '..' + N.end);
+			        x.append(N.name + '</b><br/>' + N.start + '..' + N.end);
 			        x.position( rx,ry );
 			        x.setWidth( Math.max(150, getX(Date.parse(N.end)) - getX(Date.parse(N.start))) );
-			        x.setHeight( 100 );
+			        x.setHeight( 64 );
 		        }
 		        for (var i = 0; i < data.edges.length; i++) {
 			        var E = data.edges[i];
@@ -79,7 +83,7 @@
 			        var ry = 500 * Math.random();
 
 			        var xs = d.newNode(N.id+'s', { title: N.name });
-			        xs.append('Process:<br/><b>' + N.name + '</b><br/>' + N.start);
+			        xs.append(N.name + '</b><br/>' + N.start);
 			        xs.position( getX(Date.parse(N.start)),ry );
 			        xs.setWidth( 150 );
 			        xs.setHeight( 100 );
@@ -88,7 +92,7 @@
 			        xe.append(N.end);
 			        xe.position( getX(Date.parse(N.end)), ry );
 			        xe.setWidth( 150 );
-			        xe.setHeight( 70 );
+			        xe.setHeight( 100 );
 
 			        d.newEdge(N.id + 's', N.id + 'e', { lineWidth: 15 })
 

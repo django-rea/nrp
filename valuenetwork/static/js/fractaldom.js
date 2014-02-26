@@ -1,9 +1,10 @@
-/*$.widget( "ui.dialog", { _moveToTop: function() { console.log('x'); } });
-$.widget( "ui.dialog", { moveToTop: function() { console.log('x'); } });*/
-
 var updateUnderlayFPS = 25;
 
 function fractaldom(options) {
+	function later(f) {
+		setTimeout(f,0);
+	}
+
 	var nodes = { };
 	var edges = [ ];
 
@@ -56,20 +57,47 @@ function fractaldom(options) {
 		}
 	});
 
-	var underlayCanvas = $('<canvas width="200" height="200"/>');
-	x.append(underlayCanvas);
+	//var underlayCanvas = $('<canvas width="200" height="200"/>');
+	//x.append(underlayCanvas);
+
+	var underlayCanvas = $('<div/>').appendTo(x);
+	underlayCanvas.addClass('underlaySVG');
+	underlayCanvas.svg();
+	underlayCanvas.find("svg").attr('width','100%').attr('height','100%');
+
+	var svg = underlayCanvas.svg('get');
+	
+	var defs = svg.defs('myDefs');
+	/*
+	   <marker id="Triangle"
+                viewBox="0 0 10 10" 
+                refX="1" refY="5"
+                markerWidth="6" 
+                markerHeight="6"
+                orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" />
+	    </marker>
+
+		 <polyline points="10,90 50,80 90,20"
+              fill="none" stroke="black" 
+              stroke-width="2"
+              marker-end="url(#Triangle)" />
+	*/
+	var triangle = svg.marker(defs, 'Triangle', 1, 5, 6, 6, 'auto', {
+		viewBox: "0 0 10 10" 
+	});
+	svg.path(triangle, "M 0 0 L 10 5 L 0 10 z");
 
 	function resizeUnderlayCanvas() {
-		underlayCanvas.attr('width', x.width());
-		underlayCanvas.attr('height', x.height());
+		underlayCanvas.css('width', x.width());
+		underlayCanvas.css('height', x.height());
 	}
 
-	function __updateUnderlayCanvas() {
-		var c = underlayCanvas.get(0);
-		var ctx = c.getContext("2d");
-		
+	function _updateUnderlayCanvas() {
+
+		//var c = underlayCanvas.get(0);		
 		//ctx.clearRect(0,0,c.width,c.height);
-		c.width = c.width; //clears the canvas
+		//c.width = c.width; //clears the canvas
 
 		var labels = [];
 		for (var i = 0; i < edges.length; i++) {
@@ -80,47 +108,81 @@ function fractaldom(options) {
 			var docScrollTop = $(document).scrollTop();
 
 			var npa = nA.offset();
+			var npb = nB.offset();
+			if ((!npa) || (!npb))
+				continue;
+
 			var npaw = nA.width();
 			var npah = nA.height();
-			var npb = nB.offset();
 			var npbw = nB.width();
 			var npbh = nB.height();
 
 			var lineWidth = 5;
-			var lineColor = '#ffffff';
+			var lineColor = 'lightgrey';
 			var o = E[2];
 			if (o) {
 				lineWidth = o.lineWidth || lineWidth;
 				lineColor = o.lineColor || lineColor;
 			}
-			ctx.lineWidth = lineWidth;
-			ctx.strokeStyle = lineColor;
 
 			var x1 = Math.round(npa.left + (npaw/2));
 			var y1 = Math.round(npa.top - docScrollTop + (npah/2));
 			var x2 = Math.round(npb.left + (npbw/2));
 			var y2 = Math.round(npb.top - docScrollTop + (npbh/2));
-			ctx.moveTo(x1,y1);
-			ctx.lineTo(x2,y2);
 
-			if (o.label) {
+			var mx = (x1+x2)/2;
+			var my = (y1+y2)/2;
+
+			var existingLine = E.svgLine;
+			var existingLabel = E.svgLabel;
+			if (!existingLine) {
+				E.svgLine = svg.line(x1, y1, x2, y2,{
+					'stroke': lineColor, 
+					'stroke-width': lineWidth,
+					'marker-segment': "url(#Triangle)",
+					'marker-end': "url(#Triangle)",
+					//'marker-pattern': "40 url(#Triangle) 40 url(#Triangle)"
+				});
+				if (o.label) {					
+					E.svgLabel = svg.text(mx, my, o.label, { fontFamily: 'Verdana', fontSize: '12', fill: 'blue' });
+				}
+ 
+				/*E.svgLine = svg.polyline([[x1,y1],[x2,y2]], {
+					'stroke': lineColor, 
+					'stroke-width': lineWidth,
+					//'marker-pattern': "40 url(#Triangle) 40 url(#Triangle)",
+					'marker-segment': "url(#Triangle)",
+					'marker-end': "url(#Triangle)",
+					'marker-start': "url(#Triangle)",
+					'marker': "url(#Triangle)",
+				});*/
+
+			}
+			else {
+				existingLine.setAttribute('x1',x1);
+				existingLine.setAttribute('y1',y1);
+				existingLine.setAttribute('x2',x2);
+				existingLine.setAttribute('y2',y2);
+				if (existingLabel) {
+					existingLabel.setAttribute('x', mx);
+					existingLabel.setAttribute('y', my);
+				}
+			}
+
+			/*if (o.label) {
 				var text = o.label.substring(0,24);
-				ctx.fillStyle = '#FFCC66';
-  				ctx.font = "bold 12px Arial";
+				ctx.fillStyle = lineColor;
+  				ctx.font = "bold 24px Arial";
 			    var metrics = ctx.measureText(text);
 			    var width = metrics.width;
 				var mpx = (x1+x2)/2-width/2;
 				var mpy = (y1+y2)/2;
   				ctx.fillText(text, mpx, mpy);
-			}
+			}*/
 		}
-		ctx.stroke();		
 	}
-	var _updateUnderlayCanvas = _.throttle( __updateUnderlayCanvas, Math.floor(1000.0 / parseFloat(updateUnderlayFPS)) );
+	var updateUnderlayCanvas = _.throttle( _updateUnderlayCanvas, Math.floor(1000.0 / parseFloat(updateUnderlayFPS)) );
 
-	function updateUnderlayCanvas() {
-		_updateUnderlayCanvas();
-	}
 
 	$(window).resize(function() {
 		resizeUnderlayCanvas();
@@ -131,6 +193,13 @@ function fractaldom(options) {
 		resizeUnderlayCanvas();
 		updateUnderlayCanvas();
 	}
+
+	x.removeNodes = function() {
+		for (var n in nodes) {
+			var N = nodes[n];
+			N.dialog( "destroy" );
+		}
+	};
 
 	x.newEdge = function(a, b, opt) {
 		edges.push([a,b,opt]);
@@ -252,34 +321,37 @@ function fractaldom(options) {
 			var tb = e.parent().find(".ui-dialog-titlebar");
 			var content = e.parent().find(".ui-dialog-content");
 			var slider = e.parent().find(".zoomSlider");
+			var close = e.parent().find(".ui-dialog-titlebar-close");
 
 			if ((w < 1.25 * options.iconSize) || (h < 1.25 * options.iconSize)) {
 				content.hide();
 				slider.hide();
+				close.hide();
 				tb.css('height', '100%');
 			}
 			else {
 				content.show();
 				slider.show();
+				close.hide();
 				tb.css('height', 'auto');
 			}
 		}
 		//e.dialog({stack:false});
 		e.dialog({ closeOnEscape: false });
-		e.dialog("widget").draggable("option","containment","none");
+		//e.dialog("widget").draggable("option","containment","none");"option", "axis", "x" 
+		e.dialog("widget").draggable("option","axis", "y" );
 		e.dialog({
 			  drag: function( event, ui ) {
 				dragging = false;
 				lastPoint = null;
-
-				updateUnderlayCanvas();				
+				later(updateUnderlayCanvas);				
 			  },
 			  resize: function( event, ui ) {
 				dragging = false;
 				lastPoint = null;
 
 				updateSize();
-				updateUnderlayCanvas();
+				later(updateUnderlayCanvas);
 				return false;
 			  },
 			  close: function( event, ui ) {
@@ -287,7 +359,9 @@ function fractaldom(options) {
 			  }
 		});
 
-		var titlebar = e.parent().find(".ui-dialog-titlebar span");
+		e.parent().addClass("fractal-dialog");
+
+		var titlebar = e.parent().find(".ui-dialog-titlebar span").first();
 
 		var minZoom = 0.2;
 		var maxZoom = 2.5;
@@ -302,6 +376,17 @@ function fractaldom(options) {
 			
 			e.css('width', newWidth);
 			e.css('height', newHeight);
+		}
+
+		function scaleNode(m) {
+			var E = resized.parent().parent();
+			var w = E.width() * m;
+			var h = E.height() * m;
+			resized.parent().parent().css('width', w).css('height', h);
+			resized.parent().css('width', w).css('height', h);
+
+			updateSize();
+			updateUnderlayCanvas();
 		}
 
 		function setZoom(fs) {
@@ -329,7 +414,7 @@ function fractaldom(options) {
 			}
 			resized.attr('zoom', fs);
 
-			updateUnderlayCanvas();
+			later(updateUnderlayCanvas);
 		}
 		function getZoom() {
 			return parseFloat(e.attr('zoom'));
@@ -345,7 +430,21 @@ function fractaldom(options) {
 		var slider = $('<div>&nbsp;</div>');
 		var mousedown = false;
 		var startZoom = null;
+
+		function handleSliderClick(s, e) {
+			var px = s.offset().left;
+			var x = e.clientX - px;
+			
+
+			var p = (parseFloat(x) / parseFloat(s.width()));
+			//var z = minZoom + p * (maxZoom - minZoom);
+			var z = minZoom + (p*p) * (maxZoom - minZoom);
+
+			setZoom(z);
+		}
+
 		slider.mouseup(function(e) {
+			handleSliderClick($(this), e);
 			mousedown = false;
 			return false;
 		});
@@ -359,22 +458,24 @@ function fractaldom(options) {
 		slider.mousemove(function(e) {
 			if (e.which == 0) mousedown = false;
 			if (mousedown) {
-				var px = $(this).offset().left;
-				var x = e.clientX - px;
-				
-
-				var p = (parseFloat(x) / parseFloat($(this).width()));
-				//var z = minZoom + p * (maxZoom - minZoom);
-				var z = minZoom + (p*p) * (maxZoom - minZoom);
-
-				setZoom(z);
+				handleSliderClick($(this), e);
 			}
 		});
+		slider.mousewheel(function(evt){
+	       var direction = evt.deltaY;
+			if (direction < 0) {	
+				scaleNode(1.2);
+			}
+			else {
+				scaleNode(1.0/1.2);
+			}
+			return false;
+    	});
+
 		//slider.mouseleave(function(e) { mousedown = false; });
 		slider.addClass('zoomSlider');
 
-		titlebar.prepend("&nbsp;");
-		titlebar.prepend(slider);
+		//titlebar.prepend("&nbsp;").prepend(slider);
 
 		nodes[id] = e;		
 

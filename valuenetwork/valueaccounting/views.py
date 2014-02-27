@@ -1649,6 +1649,7 @@ def json_timeline(request):
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
 def json_processes(request, order_id=None):
+    #import pdb; pdb.set_trace()
     if order_id:
         order = get_object_or_404(Order, pk=order_id)
         processes = order.all_processes()
@@ -2366,6 +2367,11 @@ def order_graph(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render_to_response("valueaccounting/order_graph.html", {
         "order_id": order_id,
+    }, context_instance=RequestContext(request))
+
+def processes_graph(request):
+
+    return render_to_response("valueaccounting/processes_graph.html", {
     }, context_instance=RequestContext(request))
 
 @login_required

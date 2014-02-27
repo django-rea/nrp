@@ -44,10 +44,27 @@ function fractaldom(options) {
 				var dy = m.clientY - lastPoint[1];
 				for (var n in nodes) {
 					var W = nodes[n];
-					var p = W.parent().position();
-					var P = W.parent();
-					P.css('left', p.left + dx );
-					P.css('top', p.top + dy );
+					
+                    var P = W.parentNode;
+					if (!P) {
+						W.parentJQueryNode = W.parent();
+						W.parentNode = P = W.parentJQueryNode[0];
+					}
+
+					var pleft = P.style.left;
+					var ptop = P.style.top;
+					if (!pleft) {
+						var ps = P.position();
+						pleft = ps.left;
+						ptop = ps.top;
+					}
+					else {
+						pleft = parseInt(pleft.substring(0, pleft.length-2));
+						ptop = parseInt(ptop.substring(0, ptop.length-2));
+					}
+										
+					W.parentJQueryNode.css( { 'left': pleft+dx, 'top': ptop+dy });			
+
 				}
 			}
 
@@ -55,6 +72,7 @@ function fractaldom(options) {
 
 			updateUnderlayCanvas();
 		}
+
 	});
 
 	//var underlayCanvas = $('<canvas width="200" height="200"/>');
@@ -144,7 +162,7 @@ function fractaldom(options) {
 					//'marker-pattern': "40 url(#Triangle) 40 url(#Triangle)"
 				});
 				if (o.label) {					
-					E.svgLabel = svg.text(mx, my, o.label, { fontFamily: 'Verdana', fontSize: '12', fill: 'blue' });
+					E.svgLabel = svg.text(mx, my, o.label, { fontFamily: 'Verdana', fontSize: '12', fill: 'darkgreen' });
 				}
  
 				/*E.svgLine = svg.polyline([[x1,y1],[x2,y2]], {
@@ -207,7 +225,7 @@ function fractaldom(options) {
 	};
 
 	x.layoutFD = function(affectX, affectY, iterations) {
-		var R = 0.2;
+		var R = 0.7;
 		var A = 0.5;
 
 		var nodePosition = { };
@@ -224,7 +242,7 @@ function fractaldom(options) {
 
 				for (var j in nodes) {
 
-					if (i == j) continue;
+					if (i <= j) continue; //skip the lower triangle of the matrix
 
 					var jp = nodePosition[j];
 
@@ -244,6 +262,7 @@ function fractaldom(options) {
 					if (!affectY) dy = 0;
 
 					nodePosition[j] = [ jp[0] - dx, jp[1] - dy ];
+					nodePosition[i] = [ ip[0] + dx, ip[1] + dy ];
 				}	
 			}
 
@@ -338,7 +357,7 @@ function fractaldom(options) {
 		}
 		//e.dialog({stack:false});
 		e.dialog({ closeOnEscape: false });
-		//e.dialog("widget").draggable("option","containment","none");"option", "axis", "x" 
+		//e.dialog("widget").draggable("option","containment","none");
 		e.dialog("widget").draggable("option","axis", "y" );
 		e.dialog({
 			  drag: function( event, ui ) {

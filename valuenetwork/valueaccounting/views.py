@@ -6531,32 +6531,72 @@ def create_patterned_facet_formset(pattern, slot, data=None):
         form.fields["value"].choices = choices
     return formset
 
-'''
-#todo: goes away when done with exchange or done looking at it
-def financial_contribution(request):
-    member = get_agent(request)
-    if not member:
-        return HttpResponseRedirect('/%s/'
-            % ('accounting/start')) 
-    pattern = PatternUseCase.objects.get(use_case__identifier='financial').pattern 
-    financial_form = FinancialContributionForm(data=request.POST or None)
-    resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
-    #formset = create_resource_formset(pattern)
- 
-
-    return render_to_response("valueaccounting/financial_contribution.html", {
-        "member": member,
-        "financial_form": financial_form,
-        #"formset": formset,
-        "resource_form": resource_form,
-        "pattern": pattern,
-    }, context_instance=RequestContext(request))
-'''
 
 def exchanges(request):
-    exchanges = Exchange.objects.all()
+    #import pdb; pdb.set_trace()
+    end = datetime.date.today()
+    start = datetime.date(end.year, 1, 1)
+    init = {"start_date": start, "end_date": end}
+    dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
+    et_cash = EventType.objects.get(name="Cash Contribution")
+    et_pay = EventType.objects.get(name="Payment")   
+    et_receive = EventType.objects.get(name="Receipt")
+    et_expense = EventType.objects.get(name="Expense")
+    categories = []
+
+    select_all = True
+    selected_values = "all"
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        dt_selection_form = DateSelectionForm(data=request.POST)
+        if dt_selection_form.is_valid():
+            start = dt_selection_form.cleaned_data["start_date"]
+            end = dt_selection_form.cleaned_data["end_date"]
+        selected_values = request.POST["categories"]
+        if selected_values:
+            vals = selected_values.split(",")
+            if vals[0] == "all":
+                select_all = True
+            else:
+                select_all = False
+                rts = []
+                for val in vals:
+                    val_split = val.split(":")
+                    #fname = val_split[0]
+                    #fvalue = val_split[1].strip()
+                    #rts.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+
+        exchanges = Exchange.objects.filter(start_date__range=[start, end])
+
+    else:
+        exchanges = Exchange.objects.filter(start_date__range=[start, end])
+
+    total_cash = 0
+    total_receipts = 0
+    total_expenses = 0
+    total_payments = 0
+    for x in exchanges:
+        for event in x.events.all():
+            if event.event_type == et_pay:
+                total_payments = total_payments + event.quantity
+            elif event.event_type == et_cash:
+                total_cash = total_cash + event.quantity
+            elif event.event_type == et_expense:
+                total_expenses = total_expenses + event.value
+            elif event.event_type == et_receive:
+                total_receipts = total_receipts + event.value
+
+
     return render_to_response("valueaccounting/exchanges.html", {
         "exchanges": exchanges,
+        "dt_selection_form": dt_selection_form,
+        "total_cash": total_cash,
+        "total_receipts": total_receipts,
+        "total_expenses": total_expenses,
+        "total_payments": total_payments,
+        "select_all": select_all,
+        "selected_values": selected_values,
+        "categories": categories,
     }, context_instance=RequestContext(request))
     
 def exchange_logging(request, exchange_id):

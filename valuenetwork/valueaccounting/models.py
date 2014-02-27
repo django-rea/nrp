@@ -2423,6 +2423,11 @@ class Process(models.Model):
         return ScheduleProcessForm(prefix=str(self.id),initial=init)
 
 
+#class ExchangeManager(models.Manager):
+
+#    def date_range(self, start, end):
+#        return Exchange.objects.filter(start_date__gte=start).filter(start_date__lte=end)
+
 class Exchange(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
     process_pattern = models.ForeignKey(ProcessPattern,
@@ -2447,6 +2452,8 @@ class Exchange(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
+
+    #objects = ExchangeManager()
 
     class Meta:
         ordering = ('-start_date',)
@@ -2487,7 +2494,7 @@ class Exchange(models.Model):
 
     def receipt_commitments(self):
         return self.commitments.filter(
-            event_type__relationship='receipt')
+            event_type__relationship='receive')
 
     def payment_commitments(self):
         return self.commitments.filter(

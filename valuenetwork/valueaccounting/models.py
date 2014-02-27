@@ -2423,10 +2423,10 @@ class Process(models.Model):
         return ScheduleProcessForm(prefix=str(self.id),initial=init)
 
 
-#class ExchangeManager(models.Manager):
+class ExchangeManager(models.Manager):
 
-#    def date_range(self, start, end):
-#        return Exchange.objects.filter(start_date__gte=start).filter(start_date__lte=end)
+    def financial_contributions(self):
+        return Exchange.objects.exclude(use_case__identifier="res_contr")
 
 class Exchange(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
@@ -2453,7 +2453,7 @@ class Exchange(models.Model):
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
 
-    #objects = ExchangeManager()
+    objects = ExchangeManager()
 
     class Meta:
         ordering = ('-start_date',)

@@ -101,7 +101,7 @@
                     </div>
                 </div>
 	            <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All" %}</p>
-                <p class="title"> Resource Types </p>
+                <p class="title"> Accounting Reference </p>
 	            {% for cat in categories %}
 	                <p><input type="checkbox" class="category" id="{{ cat }}" name="{{ cat }}" value="{{ cat }}" /> {{ cat.value }}</p>
 	            {% endfor %}

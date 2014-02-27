@@ -6572,10 +6572,10 @@ def exchanges(request):
                     #fvalue = val_split[1].strip()
                     #rts.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
 
-        exchanges = Exchange.objects.filter(start_date__range=[start, end])
+        exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
 
     else:
-        exchanges = Exchange.objects.filter(start_date__range=[start, end])
+        exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
 
     total_cash = 0
     total_receipts = 0

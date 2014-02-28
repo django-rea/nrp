@@ -37,7 +37,9 @@
         
         $("body").css("cursor", "wait");
         $.getJSON( jsonUrl, function( data ) {
-            var d = fractaldom();
+            var d = fractaldom({
+		        iconSize: true
+	        });
 	        d.appendTo($('body'));
 	        d.init();
 
@@ -78,6 +80,7 @@
 			        x.position( rx,ry );
 			        x.setWidth( Math.max(150, getX(Date.parse(N.end)) - getX(Date.parse(N.start))) );
 			        x.setHeight( 50 );
+			        x.setCloseable(false);
 		        }
 		        for (var i = 0; i < data.edges.length; i++) {
 			        var E = data.edges[i];
@@ -90,8 +93,7 @@
 
 			        var ry = 500 * Math.random();
 
-			        var xs = d.newNode(N.id+'s', { title: N.name });
-			        xs.append(N.name + '</b><br/>' + N.start);
+			        var xs = d.newNode(N.id+'s', { title: (N.name + '<br/>' + N.start) });
 			        xs.position( getX(Date.parse(N.start)),ry );
 			        xs.setWidth( 150 );
 			        xs.setHeight( 50 );
@@ -111,7 +113,7 @@
 		        }
 	        }
 
-	        d.layoutFD(false, true, 50);
+	        d.layoutFD(0.25, 0.5, false, true, 150, 3200);
 	        
 	        $("body").css("cursor", "default");
 	        

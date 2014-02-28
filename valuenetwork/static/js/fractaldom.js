@@ -17,6 +17,64 @@ function fractaldom(options) {
 
 	x.addClass('fractaldom_surface');
 
+
+	function globalZoom(mx, my, distScale, nodeScale) {
+		for (var n in nodes) {
+			var W = nodes[n];
+
+			var wn = W.parent()[0];
+			var pleft = wn.style.left;
+			var pwidth = wn.style.width;
+			var ptop = wn.style.top;
+			var pheight = wn.style.height;
+
+			pleft = parseInt(pleft.substring(0, pleft.length-2));
+			ptop = parseInt(ptop.substring(0, ptop.length-2));
+			if (pwidth=="auto")
+				pwidth = W.parent().width();
+			else
+				pwidth = parseInt(pwidth.substring(0, pwidth.length-2));
+			if (pheight=="auto")
+				pheight = W.parent().height();
+			else
+				pheight = parseInt(pheight.substring(0, pheight.length-2));
+
+			var px = pleft + pwidth/2;
+			var py = ptop + pheight/2;
+			
+			var dx = px - mx;
+			var dy = py - my;
+			var nd = Math.sqrt(dx*dx+dy*dy);
+
+			var x, y;
+			if (nd == 0) {
+				x = px; y = py;
+			}
+			else {
+				x = px + dx/nd * distScale;
+				y = py + dy/nd * distScale;
+			}
+			x-= pwidth/2;
+			y-= pheight/2;
+
+			W.parent().css( { left: x, top: y });
+			W.scaleNode(nodeScale);
+			W.setZoom(nodeScale);
+		}
+	}
+
+	x.mousewheel(function(evt){
+	    var direction = evt.deltaY;
+		var mx = evt.originalEvent.clientX;
+		var my = evt.originalEvent.clientY;
+		if (direction > 0) {	
+			globalZoom(mx, my, 10, 0.9);
+		}
+		else {
+			globalZoom(mx, my, -10, 1.1);
+		}
+	});
+
 	var dragging = false;
 	var lastPoint = null;
 	var startDragPoint = null;
@@ -37,15 +95,14 @@ function fractaldom(options) {
 			return;
 		}
 
-
 		if (dragging) {
 			if (lastPoint) {
 				var dx = m.clientX - lastPoint[0];
 				var dy = m.clientY - lastPoint[1];
 				for (var n in nodes) {
 					var W = nodes[n];
-					
-                    var P = W.parentNode;
+						
+					var P = W.parentNode;
 					if (!P) {
 						W.parentJQueryNode = W.parent();
 						W.parentNode = P = W.parentJQueryNode[0];
@@ -63,8 +120,7 @@ function fractaldom(options) {
 						ptop = parseInt(ptop.substring(0, ptop.length-2));
 					}
 										
-					W.parentJQueryNode.css( { 'left': pleft+dx, 'top': ptop+dy });			
-
+					W.parentJQueryNode.css( { 'left': pleft+dx, 'top': ptop+dy });
 				}
 			}
 
@@ -72,7 +128,6 @@ function fractaldom(options) {
 
 			updateUnderlayCanvas();
 		}
-
 	});
 
 	//var underlayCanvas = $('<canvas width="200" height="200"/>');
@@ -136,7 +191,7 @@ function fractaldom(options) {
 			var npbh = nB.height();
 
 			var lineWidth = 5;
-			var lineColor = 'lightgrey';
+			var lineColor = 'black';
 			var o = E[2];
 			if (o) {
 				lineWidth = o.lineWidth || lineWidth;
@@ -162,7 +217,7 @@ function fractaldom(options) {
 					//'marker-pattern': "40 url(#Triangle) 40 url(#Triangle)"
 				});
 				if (o.label) {					
-					E.svgLabel = svg.text(mx, my, o.label, { fontFamily: 'Verdana', fontSize: '12', fill: 'darkgreen' });
+					E.svgLabel = svg.text(mx, my, o.label, { });
 				}
  
 				/*E.svgLine = svg.polyline([[x1,y1],[x2,y2]], {
@@ -224,9 +279,7 @@ function fractaldom(options) {
 		updateUnderlayCanvas();
 	};
 
-	x.layoutFD = function(affectX, affectY, iterations) {
-		var R = 0.7;
-		var A = 0.5;
+	x.layoutFD = function(A, R, affectX, affectY, iterations, normY) {
 
 		var nodePosition = { };
 
@@ -242,7 +295,7 @@ function fractaldom(options) {
 
 				for (var j in nodes) {
 
-					if (i <= j) continue; //skip the lower triangle of the matrix
+					if (i <= j) continue; //skip the lower triangle of the matrix					
 
 					var jp = nodePosition[j];
 
@@ -252,7 +305,7 @@ function fractaldom(options) {
 					var dist = 0;
 					if (affectX) dist+=dx*dx;
 					if (affectY) dist+=dy*dy;
-					var D = Math.sqrt( dist );
+					var D = (affectX && affectY) ? Math.sqrt( dist ) : dist;
 					if (D == 0) continue;
 
 					D = R / D;	
@@ -279,7 +332,7 @@ function fractaldom(options) {
 				var dist = 0;
 				if (affectX) dist+=dx*dx;
 				if (affectY) dist+=dy*dy;
-				var D = Math.sqrt( dist );
+				var D = (affectX && affectY) ? Math.sqrt( dist ) : dist;
 				if (D == 0) continue;
 
 				D = A / D;
@@ -289,7 +342,28 @@ function fractaldom(options) {
 				if (!affectY) dy = 0;
 
 				nodePosition[b] = [ bp[0] + dx, bp[1] + dy ];
+				nodePosition[a] = [ ap[0] - dx, ap[1] - dy ];
 			}			
+		}
+
+		if (normY) {
+			var minY=-1, maxY=-1;
+			for (var i in nodes) {
+				var ip = nodePosition[i];
+				var x = ip[0], y = ip[1];
+				if ((minY==-1) || (y < minY))
+					minY = y;
+				if ((maxY==-1) || (y > maxY))
+					maxY = y;
+			}
+
+			if (minY < maxY) {
+				for (var i in nodes) {
+					var ip = nodePosition[i];
+					nodePosition[i][1] = ((ip[1] - minY) / (maxY - minY)) * normY;					
+				}
+			}
+			
 		}
 
 		for (var i in nodes) {
@@ -297,6 +371,7 @@ function fractaldom(options) {
 			nodes[i].position( ip[0], ip[1]);
 		}
 
+		
 		updateUnderlayCanvas();
 	};
 
@@ -340,25 +415,26 @@ function fractaldom(options) {
 			var tb = e.parent().find(".ui-dialog-titlebar");
 			var content = e.parent().find(".ui-dialog-content");
 			var slider = e.parent().find(".zoomSlider");
-			var close = e.parent().find(".ui-dialog-titlebar-close");
 
-			if ((w < 1.25 * options.iconSize) || (h < 1.25 * options.iconSize)) {
+
+			if ((options.iconSize === true) || ((w < 1.25 * options.iconSize) || (h < 1.25 * options.iconSize))) {
 				content.hide();
 				slider.hide();
-				close.hide();
 				tb.css('height', '100%');
+				//title.css('whiteSpace', 'auto');
+				tb.children().addClass('iconized');
 			}
 			else {
 				content.show();
 				slider.show();
-				close.hide();
 				tb.css('height', 'auto');
+				//title.css('whiteSpace', 'nowrap');
+				tb.children().removeClass('iconized');
 			}
 		}
 		//e.dialog({stack:false});
 		e.dialog({ closeOnEscape: false });
-		//e.dialog("widget").draggable("option","containment","none");
-		e.dialog("widget").draggable("option","axis", "y" );
+		e.dialog("widget").draggable("option","containment","none");
 		e.dialog({
 			  drag: function( event, ui ) {
 				dragging = false;
@@ -399,8 +475,9 @@ function fractaldom(options) {
 
 		function scaleNode(m) {
 			var E = resized.parent().parent();
-			var w = E.width() * m;
-			var h = E.height() * m;
+			var w = Math.max(options.iconSize,E.width() * m);
+			var h = Math.max(options.iconSize,E.height() * m);
+				
 			resized.parent().parent().css('width', w).css('height', h);
 			resized.parent().css('width', w).css('height', h);
 
@@ -494,7 +571,7 @@ function fractaldom(options) {
 		//slider.mouseleave(function(e) { mousedown = false; });
 		slider.addClass('zoomSlider');
 
-		//titlebar.prepend("&nbsp;").prepend(slider);
+		titlebar.prepend("&nbsp;").prepend(slider);
 
 		nodes[id] = e;		
 
@@ -507,11 +584,22 @@ function fractaldom(options) {
 		}
 
 		e.position = returnable.position = function(x, y) {	
-			e.parent().css('top', y);
-			e.parent().css('left', x);
+			e.parent().css( {'top': y, 'left': x });
 		};
 		e.setWidth = returnable.setWidth = function(w) {	e.parent().css('width', w);		}
 		e.setHeight = returnable.setHeight = function(h) {	e.parent().css('height', h);		}
+		e.scaleNode = returnable.scaleNode = scaleNode;
+		e.setZoom = returnable.setZoom = setZoom;
+		e.setCloseable = returnable.setCloseable = function(c) {
+			if (c) {
+				e.parent().find(".ui-dialog-titlebar .ui-dialog-titlebar-close").show();
+			}
+			else {
+				e.parent().find(".ui-dialog-titlebar .ui-dialog-titlebar-close").hide();				
+			}
+		}
+
+		updateSize();
 
 		return returnable;
 	};

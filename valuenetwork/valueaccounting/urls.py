@@ -286,4 +286,6 @@ urlpatterns = patterns("",
         name="create_supplier"),
     url(r'^delete-exchange/(?P<exchange_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_exchange', 
         name="delete_exchange"),
+    url(r'^financial-contributions-csv/$', 'valuenetwork.valueaccounting.views.financial_contributions_csv', 
+        name="financial_contributions_csv"),
 )

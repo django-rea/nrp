@@ -1659,6 +1659,22 @@ def json_processes(request, order_id=None):
     data = simplejson.dumps(graph, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
+def json_project_processes(request, project_id=None):
+    #import pdb; pdb.set_trace()
+    if project_id:
+        project = get_object_or_404(Project, pk=project_id)
+        processes = project.active_processes()
+        projects = [project,]
+    else:
+        processes = Process.objects.unfinished()
+        projects = [p.project for p in processes if p.project]
+        projects = list(set(projects))
+    import pdb; pdb.set_trace()
+    graph = project_process_graph(projects, processes)
+    data = simplejson.dumps(graph, ensure_ascii=False)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+
+
 def json_resource_type_unit(request, resource_type_id):
     data = serializers.serialize("json", EconomicResourceType.objects.filter(id=resource_type_id), fields=('unit',))
     return HttpResponse(data, mimetype="text/json-comment-filtered")
@@ -4086,8 +4102,7 @@ def log_payment_for_commitment(request, commitment_id):
 @login_required
 def add_work_event(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
-    prefix = ct.form_prefix()
-    form = WorkEventForm(prefix=prefix, data=request.POST)
+    form = ct.work_event_form(data=request.POST)
     if form.is_valid():
         event = form.save(commit=False)
         event.commitment = ct

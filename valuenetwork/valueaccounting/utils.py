@@ -59,9 +59,13 @@ def process_graph(processes):
     for p in processes:
         if p not in visited:
             visited.add(p)
+            project_id = ""
+            if p.project:
+                project_id = p.project.node_id()
             d = {
                 "id": p.node_id(),
                 "name": p.name,
+                "project-id": project_id,
                 "start": p.start_date.strftime('%Y-%m-%d'),
                 "end": p.end_date.strftime('%Y-%m-%d'),
                 }
@@ -70,9 +74,13 @@ def process_graph(processes):
         for n in next:
             if n not in visited:
                 visited.add(n)
+                project_id = ""
+                if p.project:
+                    project_id = p.project.node_id()
                 d = {
                     "id": n.node_id(),
                     "name": n.name,
+                    "project-id": project_id,
                     "start": n.start_date.strftime('%Y-%m-%d'),
                     "end": n.end_date.strftime('%Y-%m-%d'),
                     }
@@ -87,9 +95,90 @@ def process_graph(processes):
         for n in prev:
             if n not in visited:
                 visited.add(n)
+                project_id = ""
+                if p.project:
+                    project_id = p.project.node_id()
                 d = {
                     "id": n.node_id(),
                     "name": n.name,
+                    "project-id": project_id,
+                    "start": n.start_date.strftime('%Y-%m-%d'),
+                    "end": n.end_date.strftime('%Y-%m-%d'),
+                    }
+                nodes.append(d)
+            c = "-".join([str(n.id), str(p.id)])
+            if c not in connections:
+                connections.add(c)
+                label = process_link_label(n, p)
+                edge = Edge(n, p, label)
+                edges.append(edge.dictify())
+    big_d = {
+        "nodes": nodes,
+        "edges": edges,
+    }
+    return big_d
+
+def project_process_graph(projects, processes):
+    nodes = []
+    visited = set()
+    connections = set()
+    edges = []
+    for p in projects:
+        d = {
+            "id": p.node_id(),
+            "type": "Project",
+            "name": p.name,
+            }
+        nodes.append(d)
+    for p in processes:
+        if p not in visited:
+            visited.add(p)
+            project_id = ""
+            if p.project:
+                project_id = p.project.node_id()
+            d = {
+                "id": p.node_id(),
+                "type": "Process",
+                "name": p.name,
+                "project-id": project_id,
+                "start": p.start_date.strftime('%Y-%m-%d'),
+                "end": p.end_date.strftime('%Y-%m-%d'),
+                }
+            nodes.append(d)
+        next = p.next_processes()
+        for n in next:
+            if n not in visited:
+                visited.add(n)
+                project_id = ""
+                if p.project:
+                    project_id = p.project.node_id()
+                d = {
+                    "id": n.node_id(),
+                    "type": "Process",
+                    "name": n.name,
+                    "project-id": project_id,
+                    "start": n.start_date.strftime('%Y-%m-%d'),
+                    "end": n.end_date.strftime('%Y-%m-%d'),
+                    }
+                nodes.append(d)
+            c = "-".join([str(p.id), str(n.id)])
+            if c not in connections:
+                connections.add(c)
+                label = process_link_label(p, n)
+                edge = Edge(p, n, label)
+                edges.append(edge.dictify())
+        prev = p.previous_processes()
+        for n in prev:
+            if n not in visited:
+                visited.add(n)
+                project_id = ""
+                if p.project:
+                    project_id = p.project.node_id()
+                d = {
+                    "id": n.node_id(),
+                    "type": "Process",
+                    "name": n.name,
+                    "project-id": project_id,
                     "start": n.start_date.strftime('%Y-%m-%d'),
                     "end": n.end_date.strftime('%Y-%m-%d'),
                     }

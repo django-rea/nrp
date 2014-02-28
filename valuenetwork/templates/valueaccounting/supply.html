@@ -78,9 +78,9 @@ h3 {
 		    {% if agent %} 
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='purch_contr' %}">{% trans "Purchase contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='exp_contr' %}">{% trans "Expense contribution" %}</a>
-                <a class="btn btn-info" href="{% url create_exchange use_case_identifier='res_contr' %}">{% trans "Material contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='cash_contr' %}">{% trans "Cash contribution" %}</a>
-                <a class="report" href="{% url exchanges %}">{% trans "All contributions" %}</a>
+                <a class="btn btn-info" href="{% url create_exchange use_case_identifier='res_contr' %}">{% trans "Material contribution" %}</a>
+                <a class="report" href="{% url exchanges %}">{% trans "Financial contributions" %}</a>
             {% endif %}
         <div>
         <div class="reqs-supplier">

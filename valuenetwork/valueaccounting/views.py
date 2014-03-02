@@ -6578,8 +6578,11 @@ def exchanges(request):
             exchanges = Exchange.objects.financial_contributions()            
         selected_values = request.POST["categories"]
         if selected_values:
-            vals = selected_values.split(",")
-            if vals[0].strip() == "all":
+            sv = selected_values.split(",")
+            vals = []
+            for v in sv:
+                vals.append(v.strip())
+            if vals[0] == "all":
                 select_all = True
             else:
                 select_all = False
@@ -6603,8 +6606,13 @@ def exchanges(request):
     total_expenses = 0
     total_payments = 0
     comma = ""
+    #import pdb; pdb.set_trace()
     for x in exchanges:
-        for event in x.events.all():
+        try:
+            xx = x.event_list
+        except AttributeError:
+            x.event_list = x.events.all()
+        for event in x.event_list:
             if event.event_type == et_pay:
                 total_payments = total_payments + event.quantity
             elif event.event_type == et_cash:

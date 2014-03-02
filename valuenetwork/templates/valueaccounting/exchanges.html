@@ -72,14 +72,6 @@
                                 <li>{{ event }}</li>
                             {% endfor %}
                         </ul>
-                    {% else %}
-                        {% if x.events.all %}
-                            <ul>
-                                {% for event in x.sorted_events %}
-                                    <li>{{ event }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
                     {% endif %}
 				{% endfor %}
 			</ul>

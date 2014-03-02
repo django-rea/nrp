@@ -6563,9 +6563,8 @@ def exchanges(request):
     et_pay = EventType.objects.get(name="Payment")   
     et_receive = EventType.objects.get(name="Receipt")
     et_expense = EventType.objects.get(name="Expense")
-    categories = []
+    references = AccountingReference.objects.all()
     event_ids = ""
-
     select_all = True
     selected_values = "all"
     if request.method == "POST":
@@ -6574,6 +6573,9 @@ def exchanges(request):
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
+            exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.financial_contributions()            
         selected_values = request.POST["categories"]
         if selected_values:
             vals = selected_values.split(",")
@@ -6581,15 +6583,18 @@ def exchanges(request):
                 select_all = True
             else:
                 select_all = False
-                rts = []
-                for val in vals:
-                    val_split = val.split(":")
-                    #fname = val_split[0]
-                    #fvalue = val_split[1].strip()
-                    #rts.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
-
-        exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
-
+                events_included = []
+                exchanges_included = []
+                for ex in exchanges:
+                    for event in ex.events.all():
+                        if event.resource_type.accounting_reference:
+                            if event.resource_type.accounting_reference.code in vals:
+                                events_included.append(event)
+                    if events_included != []:   
+                        ex.event_list = events_included
+                        exchanges_included.append(ex)
+                        events_included = []
+                exchanges = exchanges_included
     else:
         exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
 
@@ -6621,7 +6626,7 @@ def exchanges(request):
         "total_payments": total_payments,
         "select_all": select_all,
         "selected_values": selected_values,
-        "categories": categories,
+        "references": references,
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 

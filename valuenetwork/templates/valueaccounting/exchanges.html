@@ -29,7 +29,7 @@
 
 {% endblock %}
 
-{% block body_class %}supply{% endblock %}
+{% block body_class %}exchange{% endblock %}
 
 {% block body_base %}
     <div class="container">
@@ -66,12 +66,20 @@
                     	    {% endif %}
 						{% endif %}
                     </li>
-                    {% if x.events.all %}
+                    {% if x.event_list %}
                         <ul>
-                            {% for event in x.sorted_events %}
+                            {% for event in x.event_list %}
                                 <li>{{ event }}</li>
                             {% endfor %}
                         </ul>
+                    {% else %}
+                        {% if x.events.all %}
+                            <ul>
+                                {% for event in x.sorted_events %}
+                                    <li>{{ event }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
                     {% endif %}
 				{% endfor %}
 			</ul>
@@ -79,7 +87,7 @@
         </div>
         <div class="span3 filter">
             <div>
-                <a href=" {% url financial_contributions_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >Export to CSV</a>
+                <a href=" {% url financial_contributions_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
             </div>
             <h3>{% trans "Filter the List" %}</h3>
             <form id="filter-form" action="." method="POST">
@@ -100,12 +108,12 @@
                         {{ dt_selection_form.end_date }}
                     </div>
                 </div>
-	            <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All" %}</p>
-                <p class="title"> Accounting Reference </p>
-	            {% for cat in categories %}
-	                <p><input type="checkbox" class="category" id="{{ cat }}" name="{{ cat }}" value="{{ cat }}" /> {{ cat.value }}</p>
+	            <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All in the date range" %}</p>
+                <p class="title"> {% trans "Accounting Reference" %} </p>
+	            {% for ar in references %}
+	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
 	            {% endfor %}
-	            <input type='hidden' id='categories' name='categories' value='' />
+	            <input type='hidden' id='categories' name='categories' value=' {{ selected_values }} ' />
 	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
             </form>
         </div>
@@ -123,8 +131,6 @@
     <script type="text/javascript">
 
 	$(document).ready(function(){
-
-		$('#supply').addClass('active');
 
         $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 

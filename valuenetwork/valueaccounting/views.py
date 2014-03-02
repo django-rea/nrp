@@ -6579,7 +6579,7 @@ def exchanges(request):
         selected_values = request.POST["categories"]
         if selected_values:
             vals = selected_values.split(",")
-            if vals[0] == "all":
+            if vals[0].strip() == "all":
                 select_all = True
             else:
                 select_all = False

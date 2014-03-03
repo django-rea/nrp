@@ -69,7 +69,7 @@
                     {% if x.event_list %}
                         <ul>
                             {% for event in x.event_list %}
-                                <li>{{ event }}</li>
+                                <li>{{ event }} {% if event.value %} {{ event.value }} {{ event.unit_of_value }} {% endif %}</li>
                             {% endfor %}
                         </ul>
                     {% endif %}

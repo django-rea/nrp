@@ -99,6 +99,14 @@ class CreateEconomicResourceForm(forms.ModelForm):
         model = EconomicResource
         exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand')
 
+class ResourceRoleAgentForm(forms.Form):
+    role = forms.ModelChoiceField(
+        queryset=AgentResourceRoleType.objects.all(), 
+        required=False)
+    agent = AgentModelChoiceField(
+        queryset=EconomicAgent.objects.active_contributors(), 
+        required=False)
+
 
 class FailedOutputForm(forms.ModelForm):
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'failed-quantity input-small',}))
@@ -1445,19 +1453,6 @@ class EconomicResourceTypeAjaxForm(forms.ModelForm):
     class Meta:
         model = EconomicResourceType
         exclude = ('parent', 'created_by', 'changed_by', 'photo')
-
-
-class EconomicResourceTypeFacetForm(forms.Form):
-    #coding in process, probably doesn't work
-    
-    facet_value = forms.ChoiceField()
-
-    def __init__(self, rt, facet, *args, **kwargs):
-        super(EconomicResourceTypeFacetForm, self).__init__(*args, **kwargs)
-        self.rt = rt
-        self.facet = facet
-        self.fields["facet_value"].choices = [('', '----------')] + [(fv.value, fv.value) for fv in facet.value_list()]
-
 
 class AgentResourceTypeForm(forms.ModelForm):
     lead_time = forms.IntegerField(

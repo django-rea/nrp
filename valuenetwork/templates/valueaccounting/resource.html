@@ -91,14 +91,6 @@
                         </tr>
                     {% endif %}
 {% endcomment %}
-                    <tr>
-                        <th style="text-align: right;">{% trans "Record created date" %}</th>
-                        <td>{{ resource.created_date }}</td>
-                    </tr>
-                    <tr>
-                        <th style="text-align: right;">{% trans "Record created by" %}</th>
-                        <td>{{ resource.created_by }}</td>
-                    </tr>
 	                {% if resource.url %}
 	                    <tr>
 	                        <th style="text-align: right;">{% trans "URL" %}</th>
@@ -134,6 +126,20 @@
 	                        <td><img src="{{ resource.photo_url }}" width="128" height="96" /></td>
                         </tr>
 	                {% endif %}
+                    {% if resource.agent_resource_roles.all %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Assignments" %}</th>
+	                        <td>{{ resource.agent_resource_roles_formatted }}</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <th style="text-align: right;">{% trans "Record created date" %}</th>
+                        <td>{{ resource.created_date }}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right;">{% trans "Record created by" %}</th>
+                        <td>{{ resource.created_by }}</td>
+                    </tr>
 
 	            </table>
 	        

@@ -1412,7 +1412,7 @@ class EconomicResource(models.Model):
         return self.events.filter(event_type__relationship="use")
 
     def all_usage_events(self):
-        return self.events.exclude(event_type__relationship="out")
+        return self.events.exclude(event_type__relationship="out").exclude(event_type__relationship="receive").exclude(event_type__relationship="resource")
 
     def demands(self):
         return self.resource_type.commitments.exclude(event_type__relationship="out")
@@ -1488,7 +1488,17 @@ class EconomicResource(models.Model):
             return TimeEventForm(prefix=prefix)
         else:
             qty_help = " ".join(["unit:", unit.abbrev])
-            return InputEventForm(qty_help=qty_help, prefix=prefix)            
+            return InputEventForm(qty_help=qty_help, prefix=prefix)  
+
+    def agent_resource_roles_formatted(self):
+        formatted = ""
+        brk = ""
+        #import pdb; pdb.set_trace()
+        arrs = self.agent_resource_roles.all()
+        for arr in arrs:
+            formatted = formatted + brk + arr.role + ": " + arr.agent.nick
+            brk = "<br />"
+        return formatted
 
 
 class AgentResourceType(models.Model):
@@ -1593,6 +1603,7 @@ class AgentResourceRole(models.Model):
         verbose_name=_('resource'), related_name='agent_resource_roles')
     role = models.ForeignKey(AgentResourceRoleType, 
         verbose_name=_('role'), related_name='agent_resource_roles')
+    is_contact = models.BooleanField(_('is contact'), default=False)
 
 
 class Project(models.Model):

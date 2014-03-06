@@ -480,6 +480,7 @@ def resource_type(request, resource_type_id):
             data=request.POST or None, 
             files=request.FILES or None,
             initial=init)
+        create_role_formset = create_resource_role_agent_formset()
         if request.method == "POST":
             if create_form.is_valid():
                 resource = create_form.save(commit=False)
@@ -494,6 +495,7 @@ def resource_type(request, resource_type_id):
         "resource_names": resource_names,
         "agent": agent,
         "create_form": create_form,
+        "create_role_formset": create_role_formset,
     }, context_instance=RequestContext(request))
 
 def inventory(request):
@@ -4370,6 +4372,20 @@ def resource(request, resource_id):
         "agent": agent,
     }, context_instance=RequestContext(request))
 
+
+def create_resource_role_agent_formset(data=None):
+    RraFormSet = formset_factory(ResourceRoleAgentForm, extra=6)
+    formset = RraFormSet(data=data)
+    #for form in formset:
+    #    id = int(form["facet_id"].value())
+    #    facet = Facet.objects.get(id=id)
+    #    form.facet_name = facet.name
+    #    fvs = facet.values.all()
+    #    choices = [('', '----------')] + [(fv.id, fv.value) for fv in fvs]
+    #    form.fields["value"].choices = choices
+    return formset
+
+
 def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     flows = resource.incoming_value_flows()
@@ -6705,6 +6721,8 @@ def exchange_logging(request, exchange_id):
     add_material_form = None
     add_cash_form = None
     add_work_form = None
+    create_material_role_formset = None
+    create_receipt_role_formset = None
     #add_commit_receipt_form = None
     #add_commit_payment_form = None
     slots = []
@@ -6787,6 +6805,7 @@ def exchange_logging(request, exchange_id):
                 "from_agent": exchange.supplier
             }      
             add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern, data=request.POST or None)
+            create_receipt_role_formset = create_resource_role_agent_formset()
         if "cash" in slots:
             cash_init = {
                 "event_date": exchange.start_date,
@@ -6799,7 +6818,7 @@ def exchange_logging(request, exchange_id):
                 "from_agent": agent
             }      
             add_material_form = MaterialContributionEventForm(prefix='material', initial=matl_init, pattern=pattern, data=request.POST or None)
-
+            create_material_role_formset = create_resource_role_agent_formset()
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -6829,6 +6848,8 @@ def exchange_logging(request, exchange_id):
         "add_material_form": add_material_form,
         "add_cash_form": add_cash_form,
         "add_work_form": add_work_form,
+        "create_material_role_formset": create_material_role_formset,
+        "create_receipt_role_formset": create_receipt_role_formset,
         #"add_commit_receipt_form": add_commit_receipt_form,
         #"add_commit_payment_form": add_commit_payment_form,
         "expense_total": expense_total,

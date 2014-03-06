@@ -6567,8 +6567,8 @@ def exchanges(request):
     et_pay = EventType.objects.get(name="Payment")   
     et_receive = EventType.objects.get(name="Receipt")
     et_expense = EventType.objects.get(name="Expense")
-    categories = []
-
+    references = AccountingReference.objects.all()
+    event_ids = ""
     select_all = True
     selected_values = "all"
     if request.method == "POST":
@@ -6577,22 +6577,31 @@ def exchanges(request):
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
+            exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.financial_contributions()            
         selected_values = request.POST["categories"]
         if selected_values:
-            vals = selected_values.split(",")
+            sv = selected_values.split(",")
+            vals = []
+            for v in sv:
+                vals.append(v.strip())
             if vals[0] == "all":
                 select_all = True
             else:
                 select_all = False
-                rts = []
-                for val in vals:
-                    val_split = val.split(":")
-                    #fname = val_split[0]
-                    #fvalue = val_split[1].strip()
-                    #rts.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
-
-        exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
-
+                events_included = []
+                exchanges_included = []
+                for ex in exchanges:
+                    for event in ex.events.all():
+                        if event.resource_type.accounting_reference:
+                            if event.resource_type.accounting_reference.code in vals:
+                                events_included.append(event)
+                    if events_included != []:   
+                        ex.event_list = events_included
+                        exchanges_included.append(ex)
+                        events_included = []
+                exchanges = exchanges_included
     else:
         exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
 
@@ -6600,8 +6609,14 @@ def exchanges(request):
     total_receipts = 0
     total_expenses = 0
     total_payments = 0
+    comma = ""
+    #import pdb; pdb.set_trace()
     for x in exchanges:
-        for event in x.events.all():
+        try:
+            xx = x.event_list
+        except AttributeError:
+            x.event_list = x.events.all()
+        for event in x.event_list:
             if event.event_type == et_pay:
                 total_payments = total_payments + event.quantity
             elif event.event_type == et_cash:
@@ -6610,7 +6625,9 @@ def exchanges(request):
                 total_expenses = total_expenses + event.value
             elif event.event_type == et_receive:
                 total_receipts = total_receipts + event.value
-
+            event_ids = event_ids + comma + str(event.id)
+            comma = ","
+    #import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/exchanges.html", {
         "exchanges": exchanges,
@@ -6621,8 +6638,54 @@ def exchanges(request):
         "total_payments": total_payments,
         "select_all": select_all,
         "selected_values": selected_values,
-        "categories": categories,
+        "references": references,
+        "event_ids": event_ids,
     }, context_instance=RequestContext(request))
+
+def financial_contributions_csv(request):
+    #import pdb; pdb.set_trace()
+    event_ids = request.GET.get("event-ids")
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=contributions.csv'
+    writer = csv.writer(response)
+    writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
+    event_ids_split = event_ids.split(",")
+    for event_id in event_ids_split:
+        event = EconomicEvent.objects.get(pk=event_id)
+        if event.from_agent == None:
+            from_agent = ""
+        else:
+            from_agent = event.from_agent.nick
+        if event.to_agent == None:
+            to_agent = ""
+        else:
+            to_agent = event.to_agent.nick  
+        if event.url == "":
+            if event.exchange.url == "":
+                url = "" 
+            else:
+                url = event.exchange.url
+        else:
+            url = ""     
+        writer.writerow(
+            [event.event_date,
+             event.event_type.name,
+             event.resource_type.name,
+             event.quantity,
+             event.unit_of_quantity,
+             event.value,
+             event.unit_of_value,
+             from_agent,
+             to_agent,
+             event.project.name,
+             event.description,
+             url,
+             event.exchange.use_case,
+             event.id,
+             event.exchange.id   
+            ]
+        )
+    return response
     
 def exchange_logging(request, exchange_id):
     #import pdb; pdb.set_trace()

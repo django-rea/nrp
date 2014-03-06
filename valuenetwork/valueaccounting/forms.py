@@ -41,6 +41,8 @@ class AgentForm(forms.ModelForm):
 
 
 class AgentSupplierForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'required-field input-xlarge',}))   
+    nick = forms.CharField(label="ID", widget=forms.TextInput(attrs={'class': 'required-field',}))   
     email = forms.EmailField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
     address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
@@ -1798,7 +1800,7 @@ class ExchangeForm(forms.ModelForm):
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=True, 
-        label=_("Start date"),
+        label=_("Date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     supplier = forms.ModelChoiceField(required=False,
         queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),

@@ -8,6 +8,7 @@ admin.site.register(Unit)
 admin.site.register(AgentType)
 #admin.site.register(CachedEventSummary)
 admin.site.register(UseCase)
+admin.site.register(AccountingReference)
 
 
 class HelpAdmin(admin.ModelAdmin):

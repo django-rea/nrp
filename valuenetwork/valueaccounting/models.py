@@ -394,6 +394,9 @@ class AccountingReference(models.Model):
     code = models.CharField(_('code'), max_length=128, unique=True)
     name = models.CharField(_('name'), max_length=128)
 
+    def __unicode__(self):
+        return self.name
+
 
 #MATERIALITY_CHOICES = (
 #    ('intellectual', _('intellectual')),

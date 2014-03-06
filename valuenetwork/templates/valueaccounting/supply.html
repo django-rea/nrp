@@ -62,7 +62,7 @@ h3 {
 		                <h3 id="supplier-label">{% trans "Create a New Supplier" %}</h3>
 	                </div>
 	                <div class="modal-body">
-		                <form class="validateMe" enctype="multipart/form-data" action="{% url create_supplier %}" method="POST" >
+		                <form class="validateMe" id="supplierForm" enctype="multipart/form-data" action="{% url create_supplier %}" method="POST" >
 			                {% csrf_token %}
 			                {{ supplier_form|as_bootstrap }}
                             <div class="modal-footer">
@@ -177,6 +177,7 @@ h3 {
 
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -196,6 +197,32 @@ h3 {
             $( "#help" ).text("Show Help");
         })
 
+        $.validator.addClassRules("required-field", { required: true});
+
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
+
+        $('.validateMe').each( function(){
+			var form = $(this);
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				}
+			});
+		});
+/*
+        $('#supplierForm').click(function (event) {
+            var isValid = $("#supplierForm").validate();
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+*/
 	}); // end document.ready
     </script>
 

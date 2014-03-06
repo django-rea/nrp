@@ -25,9 +25,15 @@
     margin-top: 1px;
     margin-bottom: 1px;
 }
-
-
+#id_notes, #id_access_rules {
+  width: 500px;
+  height: 100px;    
+}
+.modal {
+    width: 600px;
+}
 </style>
+
 {% endblock %}
 
 {% block body_class %}work{% endblock %}
@@ -99,10 +105,22 @@
 	                        <td>{{ resource.url|urlize }}</td>
                         </tr>
                     {% endif %}
+	                {% if resource.current_location %}
+	                    <tr>
+	                        <th style="text-align: right;">{% trans "Current Location" %}</th>
+	                        <td>{{ resource.current_location }}</td>
+                        </tr>
+                    {% endif %}
                     {% if resource.notes %}
                         <tr>
 	                        <th style="text-align: right; vertical-align: top; ">{% trans "Notes" %}</th>
 	                        <td>{{ resource.notes|urlize|linebreaks }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if resource.access_rules %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Access Rules" %}</th>
+	                        <td>{{ resource.access_rules|urlize|linebreaks }}</td>
                         </tr>
                     {% endif %}
                     {% if resource.photo %}

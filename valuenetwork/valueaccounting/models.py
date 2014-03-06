@@ -196,6 +196,18 @@ SIZE_CHOICES = (
     ('community', _('community')),
 )
 
+
+class Location(models.Model):
+    name = models.CharField(_('name'), max_length=128, unique=True)
+    description = models.TextField(_('description'), blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True)
+    latitude = models.FloatField(default=0.0, blank=True, null=True)
+    longitude = models.FloatField(default=0.0, blank=True, null=True)
+
+    def __unicode__(self):
+        return self.name
+
+
 class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
@@ -1332,10 +1344,10 @@ class EconomicResource(models.Model):
     url = models.CharField(_('url'), max_length=255, blank=True)
     author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
         verbose_name=_('author'), blank=True, null=True)
-    owner = models.ForeignKey(EconomicAgent, related_name="owned_resources",
-        verbose_name=_('owner'), blank=True, null=True)
-    custodian = models.ForeignKey(EconomicAgent, related_name="custody_resources",
-        verbose_name=_('custodian'), blank=True, null=True)
+    #owner = models.ForeignKey(EconomicAgent, related_name="owned_resources",
+    #    verbose_name=_('owner'), blank=True, null=True)
+    #custodian = models.ForeignKey(EconomicAgent, related_name="custody_resources",
+    #    verbose_name=_('custodian'), blank=True, null=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
         default=Decimal("1.00"))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
@@ -1346,6 +1358,10 @@ class EconomicResource(models.Model):
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
+    access_rules = models.TextField(_('access rules'), blank=True, null=True)
+    current_location = models.ForeignKey(Location, 
+        verbose_name=_('current location'), related_name='resources_at_location', 
+        blank=True, null=True)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='resources_created', blank=True, null=True, editable=False)
@@ -1560,7 +1576,24 @@ class AgentResourceType(models.Model):
             ", Average: ", average, 
             ", Max: ", str(max(scores).quantize(Decimal('.01'), rounding=ROUND_UP)),
             ]) 
-        
+   
+
+class AgentResourceRoleType(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    description = models.TextField(_('description'), blank=True, null=True)
+
+    def __unicode__(self):
+        return self.name
+
+
+class AgentResourceRole(models.Model):     
+    agent = models.ForeignKey(EconomicAgent,
+        verbose_name=_('agent'), related_name='agent_resource_roles')
+    resource = models.ForeignKey(EconomicResource, 
+        verbose_name=_('resource'), related_name='agent_resource_roles')
+    role = models.ForeignKey(AgentResourceRoleType, 
+        verbose_name=_('role'), related_name='agent_resource_roles')
+
 
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=128) 

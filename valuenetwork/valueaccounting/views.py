@@ -2913,6 +2913,8 @@ def add_unordered_receipt(request, exchange_id):
                     photo_url = output_data["photo_url"]
                     quantity = output_data["quantity"]
                     unit_of_quantity = output_data["unit_of_quantity"]
+                    access_rules = output_data["access_rules"]
+                    location = output_data["current_location"]
                     resource = EconomicResource(
                         resource_type=rt,
                         identifier=identifier,
@@ -2921,6 +2923,8 @@ def add_unordered_receipt(request, exchange_id):
                         photo_url=photo_url,
                         quantity=quantity,
                         unit_of_quantity=unit_of_quantity,
+                        current_location=location,
+                        access_rules=access_rules,
                         created_by=request.user,
                     )
                     resource.save()
@@ -3007,6 +3011,8 @@ def add_material_contribution(request, exchange_id):
                     photo_url = material_data["photo_url"]
                     quantity = material_data["quantity"]
                     unit_of_quantity = material_data["unit_of_quantity"]
+                    access_rules = material_data["access_rules"]
+                    location = material_data["current_location"]
                     resource = EconomicResource(
                         resource_type=rt,
                         identifier=identifier,
@@ -3015,6 +3021,8 @@ def add_material_contribution(request, exchange_id):
                         photo_url=photo_url,
                         quantity=quantity,
                         unit_of_quantity=unit_of_quantity,
+                        current_location=location,
+                        access_rules=access_rules,
                         created_by=request.user,
                     )
                     resource.save()

@@ -9,6 +9,8 @@ admin.site.register(AgentType)
 #admin.site.register(CachedEventSummary)
 admin.site.register(UseCase)
 admin.site.register(AccountingReference)
+admin.site.register(AgentResourceRoleType)
+admin.site.register(Location)
 
 
 class HelpAdmin(admin.ModelAdmin):
@@ -120,8 +122,8 @@ admin.site.register(EventType, EventTypeAdmin)
 
 
 class EconomicResourceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'identifier', 'resource_type', 'quantity', 'unit_of_quantity', 'quality', 'notes', 'owner', 'custodian')
-    list_filter = ['resource_type', 'author', 'owner']
+    list_display = ('id', 'identifier', 'resource_type', 'quantity', 'unit_of_quantity', 'quality', 'notes')
+    list_filter = ['resource_type', 'author']
     search_fields = ['identifier', 'resource_type__name']
     date_hierarchy = 'created_date'
     

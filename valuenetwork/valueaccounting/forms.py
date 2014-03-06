@@ -430,9 +430,17 @@ class UnorderedReceiptForm(forms.ModelForm):
         required=False, 
         label="Photo URL",
         widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    current_location = forms.ModelChoiceField(
+        queryset=Location.objects.all(), 
+        label=_("Current Resource Location"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
     notes = forms.CharField(
         required=False,
         label="Resource Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    access_rules = forms.CharField(
+        required=False,
+        label="Resource Access Rules", 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
         
     class Meta:
@@ -1177,9 +1185,17 @@ class MaterialContributionEventForm(forms.ModelForm):
         required=False, 
         label="Photo URL",
         widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    current_location = forms.ModelChoiceField(
+        queryset=Location.objects.all(), 
+        label=_("Current Resource Location"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
     notes = forms.CharField(
         required=False,
         label="Resource Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    access_rules = forms.CharField(
+        required=False,
+        label="Resource Access Rules", 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
 
     class Meta:

@@ -1656,7 +1656,7 @@ def json_processes(request, order_id=None):
     else:
         processes = Process.objects.unfinished()
     graph = process_graph(processes)
-    data = simplejson.dumps(graph, ensure_ascii=False)
+    data = simplejson.dumps(graph)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
 def json_project_processes(request, project_id=None):
@@ -1669,9 +1669,9 @@ def json_project_processes(request, project_id=None):
         processes = Process.objects.unfinished()
         projects = [p.project for p in processes if p.project]
         projects = list(set(projects))
-    import pdb; pdb.set_trace()
-    graph = project_process_graph(projects, processes)
-    data = simplejson.dumps(graph, ensure_ascii=False)
+    #import pdb; pdb.set_trace()
+    graph = project_process_resource_agent_graph(projects, processes)
+    data = simplejson.dumps(graph)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
 
@@ -1710,6 +1710,10 @@ def json_resource_type_defaults(request, resource_type_id):
     #import pdb; pdb.set_trace()
     data = simplejson.dumps(defaults, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
+
+def explore(request):
+    return render_to_response("valueaccounting/explore.html", {
+    }, context_instance=RequestContext(request))
 
 @login_required
 def create_order(request):

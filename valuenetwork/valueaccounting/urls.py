@@ -288,4 +288,5 @@ urlpatterns = patterns("",
         name="create_supplier"),
     url(r'^delete-exchange/(?P<exchange_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_exchange', 
         name="delete_exchange"),
+    url(r"^explore/$", 'valuenetwork.valueaccounting.views.explore', name="explore"),
 )

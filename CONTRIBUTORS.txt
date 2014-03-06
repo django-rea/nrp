@@ -1,0 +1,13 @@
+Code Contributors
+=================
+
+Bob Haugen
+Lynn Foster
+Seth Horne
+
+Ideas, testing, issue and bug reporting
+=======================================
+
+Tiberius Brastaviceanu
+Francois Bergeron
+Jonathan Olesik

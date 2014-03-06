@@ -457,6 +457,11 @@ class EconomicResourceType(models.Model):
     def __unicode__(self):
         return self.name
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('resource_type', (),
+            { 'resource_type_id': str(self.id),})
+
     def label(self):
         return self.__unicode__()
 
@@ -570,6 +575,12 @@ class EconomicResourceType(models.Model):
     def wanting_commitments(self):
         return self.commitments.filter(
             finished=False).exclude(event_type__relationship='out')
+
+    def wanting_processes(self):
+        processes = [c.process for c in self.wanting_commitments() if c.process]
+        events = self.events.filter(quantity__gt=0).exclude(event_type__relationship='out')
+        processes.extend([e.process for e in events if e.process])
+        return list(set(processes))
 
     def consuming_commitments(self):
         return self.commitments.filter(
@@ -1240,6 +1251,9 @@ class Order(models.Model):
     def get_absolute_url(self):
         return ('order_schedule', (),
             { 'order_id': str(self.id),})
+
+    def node_id(self):
+        return "-".join(["Order", str(self.id)])
 
     def timeline_title(self):
         return self.__unicode__()
@@ -2064,6 +2078,15 @@ class Process(models.Model):
         else:
             return ""
 
+    def is_orphan(self):
+        #todo: if agents on graph, stop excluding work
+        answer = True
+        if self.commitments.exclude(event_type__relationship='work').count():
+            answer = False
+        if self.events.exclude(event_type__relationship='work').count():
+            answer = False
+        return answer
+
     def incoming_commitments(self):
         return self.commitments.exclude(
             event_type__relationship='out')
@@ -2075,6 +2098,9 @@ class Process(models.Model):
     def outgoing_commitments(self):
         return self.commitments.filter(
             event_type__relationship='out')
+
+    def output_resource_types(self):
+        return [c.resource_type for c in self.outgoing_commitments()]
 
     def production_events(self):
         return self.events.filter(
@@ -2223,6 +2249,10 @@ class Process(models.Model):
         return self.commitments.exclude(
             event_type__relationship='work',
         )
+
+    def working_agents(self):
+        reqs = self.work_requirements()
+        return [req.from_agent for req in reqs if req.from_agent]
 
     def work_events(self):
         return self.events.filter(

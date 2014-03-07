@@ -3,6 +3,7 @@ from itertools import chain, imap
 
 from django.contrib.contenttypes.models import ContentType
 from django.utils.html import linebreaks
+from django.contrib.sites.models import Site
 
 from valuenetwork.valueaccounting.models import Commitment, Process
 
@@ -118,82 +119,143 @@ def process_graph(processes):
     }
     return big_d
 
-def project_process_graph(projects, processes):
-    nodes = []
-    visited = set()
-    connections = set()
-    edges = []
-    for p in projects:
+def project_process_resource_agent_graph(project_list, process_list):
+    projects = {}
+    processes = {}
+    resource_types = {}
+    rt_set = set()
+    orders = {}
+    order_set = set()
+    agents = {}
+    agent_dict = {}
+    #current_site = Site.objects.get_current()
+    #url_starter = "".join(["http://", current_site.domain])
+    #url_starter = "http://valnet.webfactional.com"
+    url_starter = ""
+    for p in project_list:
         d = {
-            "id": p.node_id(),
-            "type": "Project",
             "name": p.name,
             }
-        nodes.append(d)
-    for p in processes:
-        if p not in visited:
-            visited.add(p)
-            project_id = ""
-            if p.project:
-                project_id = p.project.node_id()
-            d = {
-                "id": p.node_id(),
-                "type": "Process",
-                "name": p.name,
-                "project-id": project_id,
-                "start": p.start_date.strftime('%Y-%m-%d'),
-                "end": p.end_date.strftime('%Y-%m-%d'),
-                }
-            nodes.append(d)
-        next = p.next_processes()
-        for n in next:
-            if n not in visited:
-                visited.add(n)
-                project_id = ""
-                if p.project:
-                    project_id = p.project.node_id()
-                d = {
-                    "id": n.node_id(),
-                    "type": "Process",
-                    "name": n.name,
-                    "project-id": project_id,
-                    "start": n.start_date.strftime('%Y-%m-%d'),
-                    "end": n.end_date.strftime('%Y-%m-%d'),
-                    }
-                nodes.append(d)
-            c = "-".join([str(p.id), str(n.id)])
-            if c not in connections:
-                connections.add(c)
-                label = process_link_label(p, n)
-                edge = Edge(p, n, label)
-                edges.append(edge.dictify())
-        prev = p.previous_processes()
-        for n in prev:
-            if n not in visited:
-                visited.add(n)
-                project_id = ""
-                if p.project:
-                    project_id = p.project.node_id()
-                d = {
-                    "id": n.node_id(),
-                    "type": "Process",
-                    "name": n.name,
-                    "project-id": project_id,
-                    "start": n.start_date.strftime('%Y-%m-%d'),
-                    "end": n.end_date.strftime('%Y-%m-%d'),
-                    }
-                nodes.append(d)
-            c = "-".join([str(n.id), str(p.id)])
-            if c not in connections:
-                connections.add(c)
-                label = process_link_label(n, p)
-                edge = Edge(n, p, label)
-                edges.append(edge.dictify())
+        projects[p.node_id()] = d   
+    for p in process_list:
+        project_id = ""
+        if p.project:
+            project_id = p.project.node_id()
+        order_id = ""
+        order = p.independent_demand()
+        if order:
+            order_id = order.node_id()
+            if order not in order_set:
+                order_set.add(order)
+        dp = {
+            "name": p.name,
+            "url": "".join([url_starter, p.get_absolute_url()]),
+            "project-id": project_id,
+            "order-id": order_id,
+            "start": p.start_date.strftime('%Y-%m-%d'),
+            "end": p.end_date.strftime('%Y-%m-%d'),
+            "orphan": p.is_orphan(),
+            "next": []
+            }
+        processes[p.node_id()] = dp
+        p.dp = dp
+        rts = p.output_resource_types()
+        for rt in rts:
+            if rt not in rt_set:
+                rt_set.add(rt)
+        next_ids = [rt.node_id() for rt in p.output_resource_types()]
+        dp["next"].extend(next_ids)       
+        agnts = p.working_agents()
+        for a in agnts:
+            if a not in agent_dict:
+                agent_dict[a] = []
+            agent_dict[a].append(p)
+    for rt in rt_set:
+        drt = {
+            "name": rt.name,
+            "url": "".join([url_starter, rt.get_absolute_url()]),
+            "photo-url": rt.photo_url,
+            "next": []
+            }
+        for p in rt.wanting_processes():
+            p_id = p.node_id()
+            if p_id in processes:
+                drt["next"].append(p_id)
+        resource_types[rt.node_id()] = drt
+    for order in order_set:
+        receiver_name = ""
+        if order.receiver:
+            receiver_name = order.receiver.name
+        dord = {
+            "name": order.name,
+            "for": receiver_name,
+            "due": order.due_date.strftime('%Y-%m-%d'),
+            "url": "".join([url_starter, order.get_absolute_url()]),
+            "next": []
+            }
+        orders[order.node_id()] = dord
+    for agnt, procs in agent_dict.items():
+        da = {
+            "name": agnt.name,
+            "processes": []
+            }
+        for p in procs:
+            da["processes"].append(p.node_id())
+        agents[agnt.node_id()] = da
     big_d = {
-        "nodes": nodes,
-        "edges": edges,
+        "projects": projects,
+        "processes": processes,
+        "agents": agents,
+        "resource_types": resource_types,
+        "orders": orders,
     }
     return big_d
+
+def project_process_graph(project_list, process_list):
+    projects = {}
+    processes = {}
+    agents = {}
+    agent_dict = {}
+    for p in project_list:
+        d = {
+            "name": p.name,
+            }
+        projects[p.node_id()] = d   
+    for p in process_list:
+        project_id = ""
+        if p.project:
+            project_id = p.project.node_id()
+        dp = {
+            "name": p.name,
+            "project-id": project_id,
+            "start": p.start_date.strftime('%Y-%m-%d'),
+            "end": p.end_date.strftime('%Y-%m-%d'),
+            "next": []
+            }
+        processes[p.node_id()] = dp
+        p.dp = dp
+        agnts = p.working_agents()
+        for a in agnts:
+            if a not in agent_dict:
+                agent_dict[a] = []
+            agent_dict[a].append(p)
+    for p in process_list:
+        next_ids = [n.node_id() for n in p.next_processes()]
+        p.dp["next"].extend(next_ids)
+    for agnt, procs in agent_dict.items():
+        da = {
+            "name": agnt.name,
+            "processes": []
+            }
+        for p in procs:
+            da["processes"].append(p.node_id())
+        agents[agnt.node_id()] = da
+    big_d = {
+        "projects": projects,
+        "processes": processes,
+        "agents": agents,
+    }
+    return big_d      
             
 def project_graph(producers):
     nodes = []

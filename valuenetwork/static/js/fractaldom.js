@@ -586,8 +586,9 @@ function fractaldom(options) {
 		e.position = returnable.position = function(x, y) {	
 			e.parent().css( {'top': y, 'left': x });
 		};
-		e.setWidth = returnable.setWidth = function(w) {	e.parent().css('width', w);		}
-		e.setHeight = returnable.setHeight = function(h) {	e.parent().css('height', h);		}
+		e.setWidth = returnable.setWidth = function(w) {	e.parent().css('width', w);	updateSize();	}
+		e.setHeight = returnable.setHeight = function(h) {	e.parent().css('height', h);	updateSize();	}
+		e.setSize = returnable.setSize = function(w, h) { e.parent().css( { width: w, height: h}); updateSize(); }
 		e.scaleNode = returnable.scaleNode = scaleNode;
 		e.setZoom = returnable.setZoom = setZoom;
 		e.setCloseable = returnable.setCloseable = function(c) {

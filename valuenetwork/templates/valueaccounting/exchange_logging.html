@@ -440,13 +440,17 @@ li {
             <form class="validateMe" id="receiptForm" enctype="multipart/form-data" action="{% url add_unordered_receipt exchange_id=exchange.id %}" method="POST" >
                 {% csrf_token %}
                 {{ add_receipt_form|as_bootstrap }}
-                Resource access roles<br />
-                {% for form in create_receipt_role_formset %}
-                    <tr>
-                        <td>{{ form.role }}</td>
-                        <td>{{ form.agent }}</td>
-                    </tr>
-               	{% endfor %}
+                <div class="hideShow">    
+                    {{ create_receipt_role_formset.management_form }}
+                    Resource access roles<br />
+                    {% for form in create_receipt_role_formset %}
+                        <tr>
+                            <td>{{ form.role }}</td>
+                            <td>{{ form.agent }}</td>
+	                        <td>{{ form.is_contact }} Is contact</td>
+                        </tr>
+                   	{% endfor %}
+                </div>
               <div class="modal-footer">
                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                 <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
@@ -533,13 +537,17 @@ li {
                 <form class="validateMe" id="materialForm" enctype="multipart/form-data" action="{% url add_material_contribution exchange_id=exchange.id %}" method="POST" >
                     {% csrf_token %}
                     {{ add_material_form|as_bootstrap }}
-                    Resource access roles<br />
-                    {% for form in create_material_role_formset %}
-                        <tr>
-                            <td>{{ form.role }}</td>
-                            <td>{{ form.agent }}</td>
-                        </tr>
-                   	{% endfor %}
+                    <div class="hideShow">
+                        {{ create_material_role_formset.management_form }}
+                        Resource access roles<br />
+                        {% for form in create_material_role_formset %}
+                            <tr>
+                                <td>{{ form.role }}</td>
+                                <td>{{ form.agent }}</td>
+	                            <td>{{ form.is_contact }} Is contact</td>
+                            </tr>
+                       	{% endfor %}
+                    </div>
                   <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                     <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
@@ -723,13 +731,19 @@ li {
                     $('#div_id_unorderedreceipt-url').show(); 
                     $('#div_id_unorderedreceipt-photo_url').show(); 
                     $('#div_id_unorderedreceipt-notes').show(); 
+                    $('#div_id_unorderedreceipt-current_location').show(); 
+                    $('#div_id_unorderedreceipt-access_rules').show(); 
+                    $('.hideShow').show(); 
                 } else {
                     //$('#div_id_unorderedreceipt-quantity').hide(); 
                     //$('#div_id_unorderedreceipt-unit_of_quantity').hide(); 
                     $('#div_id_unorderedreceipt-identifier').hide(); 
                     $('#div_id_unorderedreceipt-url').hide(); 
                     $('#div_id_unorderedreceipt-photo_url').hide(); 
-                    $('#div_id_unorderedreceipt-notes').hide();                             
+                    $('#div_id_unorderedreceipt-notes').hide();  
+                    $('#div_id_unorderedreceipt-current_location').hide(); 
+                    $('#div_id_unorderedreceipt-access_rules').hide(); 
+                    $('.hideShow').hide();                            
                 }                    
 		    });
     }

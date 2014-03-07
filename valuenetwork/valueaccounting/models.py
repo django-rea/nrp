@@ -1490,16 +1490,6 @@ class EconomicResource(models.Model):
             qty_help = " ".join(["unit:", unit.abbrev])
             return InputEventForm(qty_help=qty_help, prefix=prefix)  
 
-    def agent_resource_roles_formatted(self):
-        formatted = ""
-        brk = ""
-        #import pdb; pdb.set_trace()
-        arrs = self.agent_resource_roles.all()
-        for arr in arrs:
-            formatted = formatted + brk + arr.role + ": " + arr.agent.nick
-            brk = "<br />"
-        return formatted
-
 
 class AgentResourceType(models.Model):
     agent = models.ForeignKey(EconomicAgent,

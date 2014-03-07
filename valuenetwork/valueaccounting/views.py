@@ -480,12 +480,26 @@ def resource_type(request, resource_type_id):
             data=request.POST or None, 
             files=request.FILES or None,
             initial=init)
-        create_role_formset = create_resource_role_agent_formset()
+        create_role_formset = resource_role_agent_formset(prefix="resource")
         if request.method == "POST":
             if create_form.is_valid():
                 resource = create_form.save(commit=False)
                 resource.resource_type = resource_type
                 resource.save()
+                role_formset =  resource_role_agent_formset(prefix="resource", data=request.POST)
+                for form_rra in role_formset.forms:
+                    if form_rra.is_valid():
+                        data_rra = form_rra.cleaned_data
+                        if data_rra:
+                            role = data_rra["role"]
+                            agent = data_rra["agent"]
+                            if role and agent:
+                                rra = AgentResourceRole()
+                                rra.agent = agent
+                                rra.role = role
+                                rra.resource = resource
+                                rra.is_contact = data_rra["is_contact"]
+                                rra.save()
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
                        
@@ -2931,6 +2945,21 @@ def add_unordered_receipt(request, exchange_id):
                     )
                     resource.save()
                     event.resource = resource
+                    #import pdb; pdb.set_trace()
+                    role_formset =  resource_role_agent_formset(prefix="receiptrole", data=request.POST)
+                    for form_rra in role_formset.forms:
+                        if form_rra.is_valid():
+                            data_rra = form_rra.cleaned_data
+                            if data_rra:
+                                role = data_rra["role"]
+                                agent = data_rra["agent"]
+                                if role and agent:
+                                    rra = AgentResourceRole()
+                                    rra.agent = agent
+                                    rra.role = role
+                                    rra.resource = resource
+                                    rra.is_contact = data_rra["is_contact"]
+                                    rra.save()
                 pattern = exchange.process_pattern
                 event_type = pattern.event_type_for_resource_type("receive", rt)
                 event.event_type = event_type
@@ -3029,6 +3058,20 @@ def add_material_contribution(request, exchange_id):
                     )
                     resource.save()
                     event.resource = resource
+                    role_formset =  resource_role_agent_formset(prefix="materialrole", data=request.POST)
+                    for form_rra in role_formset.forms:
+                        if form_rra.is_valid():
+                            data_rra = form_rra.cleaned_data
+                            if data_rra:
+                                role = data_rra["role"]
+                                agent = data_rra["agent"]
+                                if role and agent:
+                                    rra = AgentResourceRole()
+                                    rra.agent = agent
+                                    rra.role = role
+                                    rra.resource = resource
+                                    rra.is_contact = data_rra["is_contact"]
+                                    rra.save()
                 pattern = exchange.process_pattern
                 event_type = pattern.event_type_for_resource_type("resource", rt)
                 event.event_type = event_type
@@ -4373,16 +4416,15 @@ def resource(request, resource_id):
     }, context_instance=RequestContext(request))
 
 
-def create_resource_role_agent_formset(data=None):
-    RraFormSet = formset_factory(ResourceRoleAgentForm, extra=6)
-    formset = RraFormSet(data=data)
-    #for form in formset:
-    #    id = int(form["facet_id"].value())
-    #    facet = Facet.objects.get(id=id)
-    #    form.facet_name = facet.name
-    #    fvs = facet.values.all()
-    #    choices = [('', '----------')] + [(fv.id, fv.value) for fv in fvs]
-    #    form.fields["value"].choices = choices
+def resource_role_agent_formset(prefix, data=None):
+    #import pdb; pdb.set_trace()
+    RraFormSet = modelformset_factory(
+        AgentResourceRole,
+        form=ResourceRoleAgentForm,
+        can_delete=True,
+        extra=6,
+        )
+    formset = RraFormSet(prefix=prefix, queryset=AgentResourceRole.objects.none(), data=data)
     return formset
 
 
@@ -6792,33 +6834,35 @@ def exchange_logging(request, exchange_id):
                 "from_agent": exchange.supplier,
                 "event_date": exchange.start_date,
             }
-            add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, data=request.POST or None)
+            add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern)
         if "work" in slots:
             work_init = {
                 "from_agent": agent,
                 "event_date": exchange.start_date
             }      
-            add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern, data=request.POST or None)
+            add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern)
         if "receive" in slots:
             receipt_init = {
                 "event_date": exchange.start_date,
                 "from_agent": exchange.supplier
             }      
-            add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern, data=request.POST or None)
-            create_receipt_role_formset = create_resource_role_agent_formset()
+            add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern)
+            #import pdb; pdb.set_trace()
+            create_receipt_role_formset = resource_role_agent_formset(prefix='receiptrole')
         if "cash" in slots:
             cash_init = {
                 "event_date": exchange.start_date,
                 "from_agent": agent
             }      
-            add_cash_form = CashContributionEventForm(prefix='cash', initial=cash_init, pattern=pattern, data=request.POST or None)
+            add_cash_form = CashContributionEventForm(prefix='cash', initial=cash_init, pattern=pattern)
         if "resource" in slots:
             matl_init = {
                 "event_date": exchange.start_date,
                 "from_agent": agent
             }      
-            add_material_form = MaterialContributionEventForm(prefix='material', initial=matl_init, pattern=pattern, data=request.POST or None)
-            create_material_role_formset = create_resource_role_agent_formset()
+            add_material_form = MaterialContributionEventForm(prefix='material', initial=matl_init, pattern=pattern)
+            #import pdb; pdb.set_trace()
+            create_material_role_formset = resource_role_agent_formset(prefix='materialrole')
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()

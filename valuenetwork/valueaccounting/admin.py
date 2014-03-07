@@ -121,12 +121,18 @@ class EventTypeAdmin(admin.ModelAdmin):
 admin.site.register(EventType, EventTypeAdmin)
 
 
+class AgentRoleInline(admin.TabularInline):
+    model = AgentResourceRole
+    fk_name = 'resource'
+    fields = ('role', 'agent')
+    
 class EconomicResourceAdmin(admin.ModelAdmin):
     list_display = ('id', 'identifier', 'resource_type', 'quantity', 'unit_of_quantity', 'quality', 'notes')
     list_filter = ['resource_type', 'author']
     search_fields = ['identifier', 'resource_type__name']
     date_hierarchy = 'created_date'
-    
+    inlines = [ AgentRoleInline, ]
+
 admin.site.register(EconomicResource, EconomicResourceAdmin)
 
 

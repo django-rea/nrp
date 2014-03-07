@@ -129,7 +129,9 @@
                     {% if resource.agent_resource_roles.all %}
                         <tr>
 	                        <th style="text-align: right; vertical-align: top; ">{% trans "Assignments" %}</th>
-	                        <td>{{ resource.agent_resource_roles_formatted }}</td>
+	                        <td>{% for item in resource.agent_resource_roles.all %}
+                                {{ item.role.name }} : {{ item.agent.nick }} <br />
+                            {% endfor %}</td>
                         </tr>
                     {% endif %}
                     <tr>

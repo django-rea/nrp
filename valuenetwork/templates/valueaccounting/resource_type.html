@@ -101,11 +101,13 @@ container li {
 		            <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="." method="POST" >
 			            {% csrf_token %}
 			            {{ create_form|as_bootstrap }}
+                        {{ create_role_formset.management_form }}
                         Resource access roles<br />
 	                    {% for form in create_role_formset %}
 	                        <tr>
 	                            <td>{{ form.role }}</td>
 	                            <td>{{ form.agent }}</td>
+	                            <td>{{ form.is_contact }} Is contact</td>
 	                        </tr>
                        	{% endfor %}
 		              <div class="modal-footer">

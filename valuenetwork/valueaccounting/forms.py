@@ -99,14 +99,20 @@ class CreateEconomicResourceForm(forms.ModelForm):
         model = EconomicResource
         exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand')
 
-class ResourceRoleAgentForm(forms.Form):
+class ResourceRoleAgentForm(forms.ModelForm):
     role = forms.ModelChoiceField(
         queryset=AgentResourceRoleType.objects.all(), 
         required=False)
     agent = AgentModelChoiceField(
         queryset=EconomicAgent.objects.active_contributors(), 
         required=False)
+    is_contact = forms.BooleanField(
+        required=False, 
+        widget=forms.CheckboxInput())
 
+    class Meta:
+        model = AgentResourceRole
+        fields = ('role', 'agent', 'is_contact')
 
 class FailedOutputForm(forms.ModelForm):
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'failed-quantity input-small',}))
@@ -440,6 +446,7 @@ class UnorderedReceiptForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
     current_location = forms.ModelChoiceField(
         queryset=Location.objects.all(), 
+        required=False,
         label=_("Current Resource Location"),
         widget=forms.Select(attrs={'class': 'input-medium',}))
     notes = forms.CharField(
@@ -1195,6 +1202,7 @@ class MaterialContributionEventForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
     current_location = forms.ModelChoiceField(
         queryset=Location.objects.all(), 
+        required=False,
         label=_("Current Resource Location"),
         widget=forms.Select(attrs={'class': 'input-medium',}))
     notes = forms.CharField(

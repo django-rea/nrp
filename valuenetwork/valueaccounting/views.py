@@ -4363,28 +4363,35 @@ def open_todos(request):
 
 
 def resource(request, resource_id):
+    #import pdb; pdb.set_trace()
     resource = get_object_or_404(EconomicResource, id=resource_id)
     agent = get_agent(request)
     process_add_form = None
+    RraFormSet = modelformset_factory(
+        AgentResourceRole,
+        form=ResourceRoleAgentForm,
+        can_delete=True,
+        extra=4,
+        )
+    role_formset = RraFormSet(
+        prefix="role", 
+        queryset=resource.agent_resource_roles.all()
+        )
     process = None
     pattern = None
-    #import pdb; pdb.set_trace()
     if resource.producing_events(): 
         process = resource.producing_events()[0].process
         pattern = None
         if process:
             pattern = process.process_pattern 
-
     else:
         if agent:
             form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
             process_add_form = AddProcessFromResourceForm(form_data)    
-    
+       
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         process_save = request.POST.get("process-save")
-        cite_save = request.POST.get("cite-save")
-        work_save = request.POST.get("work-save")
         if process_save:
             process_add_form = AddProcessFromResourceForm(data=request.POST)
             if process_add_form.is_valid():
@@ -4406,12 +4413,12 @@ def resource(request, resource_id):
                 event.save()
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
- 
                        
     return render_to_response("valueaccounting/resource.html", {
         "resource": resource,
         "photo_size": (128, 128),
         "process_add_form": process_add_form,
+        "role_formset": role_formset,
         "agent": agent,
     }, context_instance=RequestContext(request))
 
@@ -4422,7 +4429,7 @@ def resource_role_agent_formset(prefix, data=None):
         AgentResourceRole,
         form=ResourceRoleAgentForm,
         can_delete=True,
-        extra=6,
+        extra=4,
         )
     formset = RraFormSet(prefix=prefix, queryset=AgentResourceRole.objects.none(), data=data)
     return formset
@@ -4458,6 +4465,9 @@ def change_resource(request, resource_id):
             resource = form.save(commit=False)
             resource.changed_by=request.user
             resource.save()
+            formset = resource_role_agent_formset(prefix="role", data=request.POST)
+            if formset.is_valid():
+                formset.save()
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/resource', resource_id))
         else:

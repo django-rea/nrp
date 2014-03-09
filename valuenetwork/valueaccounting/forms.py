@@ -112,7 +112,7 @@ class ResourceRoleAgentForm(forms.ModelForm):
 
     class Meta:
         model = AgentResourceRole
-        fields = ('role', 'agent', 'is_contact')
+        fields = ('id', 'role', 'agent', 'is_contact')
 
 class FailedOutputForm(forms.ModelForm):
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'failed-quantity input-small',}))

@@ -1344,10 +1344,6 @@ class EconomicResource(models.Model):
     url = models.CharField(_('url'), max_length=255, blank=True)
     author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
         verbose_name=_('author'), blank=True, null=True)
-    #owner = models.ForeignKey(EconomicAgent, related_name="owned_resources",
-    #    verbose_name=_('owner'), blank=True, null=True)
-    #custodian = models.ForeignKey(EconomicAgent, related_name="custody_resources",
-    #    verbose_name=_('custodian'), blank=True, null=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
         default=Decimal("1.00"))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
@@ -1398,6 +1394,10 @@ class EconomicResource(models.Model):
     def change_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
         return EconomicResourceForm(instance=self)
+
+    #def change_role_formset(self):
+    #    from valuenetwork.valueaccounting.forms import ResourceRoleAgentForm
+    #    return EconomicResourceForm(instance=self)
 
     def producing_events(self):
         if self.quality:

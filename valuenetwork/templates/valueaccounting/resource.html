@@ -60,6 +60,16 @@
 				    <form enctype="multipart/form-data" action="{% url change_resource resource_id=resource.id %}" method="POST" >
 					    {% csrf_token %}
 					    {{ resource.change_form|as_bootstrap }}
+                        {{ role_formset.management_form }}
+                        Resource access roles<br />
+	                    {% for form in role_formset %}
+	                        <tr>
+                                <td class="hidden">{{ form.id }}</td>
+	                            <td>{{ form.role }}</td>
+	                            <td>{{ form.agent }}</td>
+	                            <td>{{ form.is_contact }} Is contact</td>
+	                        </tr>
+                       	{% endfor %}
 				      <div class="modal-footer">
 					    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 					    <button class="btn btn-primary">{% trans "Save changes" %}</button>

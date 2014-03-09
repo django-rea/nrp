@@ -471,6 +471,7 @@ def resource_type(request, resource_type_id):
     resource_type = get_object_or_404(EconomicResourceType, id=resource_type_id)
     create_form = []
     resource_names = []
+    create_role_formset = None
     agent = get_agent(request)
     if agent:
         names = EconomicResourceType.objects.values_list('name', flat=True)

@@ -40,7 +40,7 @@ container li {
 .modal {
     width: 600px;
 }
-#id_description, #id_notes {
+#id_description, #id_notes, #id_access_rules {
   width: 500px;
   height: 100px;
 }
@@ -101,6 +101,15 @@ container li {
 		            <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="." method="POST" >
 			            {% csrf_token %}
 			            {{ create_form|as_bootstrap }}
+                        {{ create_role_formset.management_form }}
+                        Resource access roles<br />
+	                    {% for form in create_role_formset %}
+	                        <tr>
+	                            <td>{{ form.role }}</td>
+	                            <td>{{ form.agent }}</td>
+	                            <td>{{ form.is_contact }} Is contact</td>
+	                        </tr>
+                       	{% endfor %}
 		              <div class="modal-footer">
 			            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 			            <button class="btn btn-primary">{% trans "Save" %}</button>

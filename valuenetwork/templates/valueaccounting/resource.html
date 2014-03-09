@@ -25,9 +25,18 @@
     margin-top: 1px;
     margin-bottom: 1px;
 }
-
-
+#id_notes, #id_access_rules {
+  width: 500px;
+  height: 100px;    
+}
+.modal {
+    width: 600px;
+}
+.text-center {
+    text-align: center;
+}
 </style>
+
 {% endblock %}
 
 {% block body_class %}work{% endblock %}
@@ -54,10 +63,28 @@
 				    <form enctype="multipart/form-data" action="{% url change_resource resource_id=resource.id %}" method="POST" >
 					    {% csrf_token %}
 					    {{ resource.change_form|as_bootstrap }}
-				      <div class="modal-footer">
-					    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-					    <button class="btn btn-primary">{% trans "Save changes" %}</button>
-				      </div>
+                        {{ role_formset.management_form }}
+                        <table>
+                            <tr>
+                                <td>Resource access role</td>
+                                <td>Assignment</td>
+                                <td>Is contact &nbsp;</td>
+                                <td>Delete</td>
+                            </tr>
+	                        {% for form in role_formset %}
+                                {{ form.id }}  
+	                            <tr>
+	                                <td>{{ form.role }}</td>
+	                                <td>{{ form.agent }}</td>
+	                                <td class="text-center">{{ form.is_contact }}</td>
+                                    <td class="text-center">{{ form.DELETE }}</td>
+	                            </tr>
+                           	{% endfor %}
+                        </table>
+				        <div class="modal-footer">
+					      <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+					      <button class="btn btn-primary">{% trans "Save changes" %}</button>
+				        </div>
 				    </form>
 		      </div>
 
@@ -85,24 +112,28 @@
                         </tr>
                     {% endif %}
 {% endcomment %}
-                    <tr>
-                        <th style="text-align: right;">{% trans "Record created date" %}</th>
-                        <td>{{ resource.created_date }}</td>
-                    </tr>
-                    <tr>
-                        <th style="text-align: right;">{% trans "Record created by" %}</th>
-                        <td>{{ resource.created_by }}</td>
-                    </tr>
 	                {% if resource.url %}
 	                    <tr>
 	                        <th style="text-align: right;">{% trans "URL" %}</th>
 	                        <td>{{ resource.url|urlize }}</td>
                         </tr>
                     {% endif %}
+	                {% if resource.current_location %}
+	                    <tr>
+	                        <th style="text-align: right;">{% trans "Current Location" %}</th>
+	                        <td>{{ resource.current_location }}</td>
+                        </tr>
+                    {% endif %}
                     {% if resource.notes %}
                         <tr>
 	                        <th style="text-align: right; vertical-align: top; ">{% trans "Notes" %}</th>
 	                        <td>{{ resource.notes|urlize|linebreaks }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if resource.access_rules %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Access Rules" %}</th>
+	                        <td>{{ resource.access_rules|urlize|linebreaks }}</td>
                         </tr>
                     {% endif %}
                     {% if resource.photo %}
@@ -116,6 +147,25 @@
 	                        <td><img src="{{ resource.photo_url }}" width="128" height="96" /></td>
                         </tr>
 	                {% endif %}
+                    {% if resource.agent_resource_roles.all %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Assignments" %}</th>
+	                        <td>
+                                {% for item in resource.agent_resource_roles.all %}
+                                    {{ item.role.name }} : {{ item.agent.nick }} 
+                                    {% if item.is_contact %} (Contact) {% endif %} <br />
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <th style="text-align: right;">{% trans "Record created date" %}</th>
+                        <td>{{ resource.created_date }}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right;">{% trans "Record created by" %}</th>
+                        <td>{{ resource.created_by }}</td>
+                    </tr>
 
 	            </table>
 	        
@@ -255,22 +305,6 @@
         })
 
     }); // end document.ready
-
-    function getResources()
-	{
-        var selectedRT = document.getElementById('id_cite-resource_type').value; 
-        var jsonUrl = encodeURI("/accounting/json-resourcetype-resources/" + selectedRT + "/");
-        $("#id_cite-resource").empty();
-	    $.get(jsonUrl,
-		    function(data){
-                for(var i=0 ; i<data.length ; i++)
-                {
-                    var id = data[i]['pk'];
-                    var name = data[i].fields['identifier']; 
-                    $("#id_cite-resource").append('<option value="' + id + '">' + name + '</option>') 
-                }
-		    });
-	}
 
 		$('.resource-change-form').each( function(){
 			var form = $(this);

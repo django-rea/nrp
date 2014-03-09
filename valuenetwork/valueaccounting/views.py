@@ -4465,9 +4465,20 @@ def change_resource(request, resource_id):
             resource = form.save(commit=False)
             resource.changed_by=request.user
             resource.save()
-            formset = resource_role_agent_formset(prefix="role", data=request.POST)
-            if formset.is_valid():
-                formset.save()
+            #formset = resource_role_agent_formset(prefix="role", data=request.POST)
+            RraFormSet = modelformset_factory(
+                AgentResourceRole,
+                form=ResourceRoleAgentForm,
+                can_delete=True,
+                extra=4,
+                )
+            role_formset = RraFormSet(
+                prefix="role", 
+                queryset=resource.agent_resource_roles.all(),
+                data=request.POST
+                )
+            if role_formset.is_valid():
+                role_formset.save()
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/resource', resource_id))
         else:

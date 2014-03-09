@@ -100,6 +100,7 @@ class CreateEconomicResourceForm(forms.ModelForm):
         exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand')
 
 class ResourceRoleAgentForm(forms.ModelForm):
+    id = forms.CharField(required=False, widget=forms.HiddenInput)
     role = forms.ModelChoiceField(
         queryset=AgentResourceRoleType.objects.all(), 
         required=False)

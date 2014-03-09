@@ -4479,7 +4479,10 @@ def change_resource(request, resource_id):
                 data=request.POST
                 )
             if role_formset.is_valid():
-                role_formset.save()
+                saved_formset = role_formset.save(commit=False)
+                for role in saved_formset:
+                    role.resource = resource
+                    role.save()
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/resource', resource_id))
         else:

@@ -747,6 +747,14 @@ class EconomicResourceType(models.Model):
             answer = False
         return answer
 
+    def is_orphan(self):
+        answer = True
+        if not self.is_deletable():
+            answer = False
+        if self.process_types.all():
+            answer = False
+        return answer
+
     def facet_list(self):
         return ", ".join([facet.facet_value.__unicode__() for facet in self.facets.all()])
 
@@ -2036,7 +2044,7 @@ class Process(models.Model):
     objects = ProcessManager()
 
     class Meta:
-        ordering = ('end_date',)
+        ordering = ('-end_date',)
         verbose_name_plural = _("processes")
 
     def __unicode__(self):
@@ -2080,6 +2088,11 @@ class Process(models.Model):
         ])
         unique_slugify(self, slug)
         super(Process, self).save(*args, **kwargs)
+
+    def is_deletable(self):
+        if self.events.all():
+            return False
+        return True
 
     def flow_type(self):
         return "Process"
@@ -3608,13 +3621,22 @@ class CachedEventSummary(models.Model):
         ordering = ('agent', 'project', 'resource_type')
 
     def __unicode__(self):
+        agent_name = "Unknown"
+        if self.agent:
+            agent_name = self.agent.name
+        project_name = "Unknown"
+        if self.project:
+            project_name = self.project.name
+        resource_type_name = "Unknown"
+        if self.resource_type:
+            resource_type_name = self.resource_type.name
         return ' '.join([
             'Agent:',
-            self.agent.name,
+            agent_name,
             'Project:',
-            self.project.name,
+            project_name,
             'Resource Type:',
-            self.resource_type.name,
+            resource_type_name,
         ])
 
     @classmethod

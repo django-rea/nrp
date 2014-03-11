@@ -1038,7 +1038,11 @@ def delete_resource_type(request, resource_type_id):
             pt.delete()
         next = request.POST.get("next")
         if next:
-            return HttpResponseRedirect(next)
+            if next == "cleanup-resourcetypes":
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/cleanup-resourcetypes'))
+            else:
+                return HttpResponseRedirect(next)
         else:
             return HttpResponseRedirect('/%s/'
                 % ('accounting/resources'))
@@ -1730,6 +1734,36 @@ def json_resource_type_defaults(request, resource_type_id):
 
 def explore(request):
     return render_to_response("valueaccounting/explore.html", {
+    }, context_instance=RequestContext(request))
+
+@login_required
+def cleanup(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    orphans = [p for p in Process.objects.all() if p.is_orphan()]           
+
+    return render_to_response("valueaccounting/cleanup.html", {
+        "orphans": orphans,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def cleanup_processes(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    orphans = [p for p in Process.objects.all() if p.is_orphan()]           
+
+    return render_to_response("valueaccounting/cleanup_processes.html", {
+        "orphans": orphans,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def cleanup_resourcetypes(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    orphans = [rt for rt in EconomicResourceType.objects.all() if rt.is_orphan()]           
+
+    return render_to_response("valueaccounting/cleanup_resourcetypes.html", {
+        "orphans": orphans,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -2863,6 +2897,8 @@ def add_process_output(request, process_id):
                                 process.name,
                                 ct.resource_type.name,
                             ])
+                if len(process.name) > 128:
+                    process.name = process.name[0:128]
                 process.save()
                     
     return HttpResponseRedirect('/%s/%s/'
@@ -3344,6 +3380,9 @@ def delete_event(request, event_id):
     if next == "process":
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', process.id))
+    if next == "cleanup-processes":
+        return HttpResponseRedirect('/%s/'
+            % ('accounting/cleanup-processes'))
     if next == "exchange":
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/exchange', exchange.id))
@@ -3437,6 +3476,7 @@ def process_done(request):
 
     return HttpResponse("Ok", mimetype="text/plain")
 
+@login_required
 def process_finished(request, process_id):
     #import pdb; pdb.set_trace()
     process = get_object_or_404(Process, pk=process_id)
@@ -3447,9 +3487,26 @@ def process_finished(request, process_id):
         if process.finished:
             process.finished = False
             process.save()
-
+    next = request.POST.get("next")
+    if next:
+        if next == "cleanup-processes":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/cleanup-processes'))
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process_id))
+
+@login_required
+def delete_process(request, process_id):
+    #import pdb; pdb.set_trace()
+    process = get_object_or_404(Process, pk=process_id)
+    process.delete()
+    next = request.POST.get("next")
+    if next:
+        if next == "cleanup-processes":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/cleanup-processes'))
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/cleanup-processes'))
   
 @login_required
 def labnotes_reload(

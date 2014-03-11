@@ -73,9 +73,9 @@
                             </tr>
 	                        {% for form in role_formset %}
                                 {{ form.id }}  
-	                            <tr>
-	                                <td>{{ form.role }}</td>
-	                                <td>{{ form.agent }}</td>
+	                            <tr class="role-row">
+	                                <td class="td-role">{{ form.role }}</td>
+	                                <td class="td-agent">{{ form.agent }}</td>
 	                                <td class="text-center">{{ form.is_contact }}</td>
                                     <td class="text-center">{{ form.DELETE }}</td>
 	                            </tr>
@@ -284,6 +284,7 @@
 
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 {% endblock %}
 
 
@@ -304,18 +305,38 @@
             $( "#help" ).text("Show Help");
         })
 
+        $('td.td-role > select').addClass('select-role');   
+        $('td.td-agent > select').addClass('select-agent');  
+
+        $.validator.addMethod("agentRequired", function (value, element) {
+            alert("value " + value + " element " + element);
+            //agent = element.closest(".select-agent");
+            //alert("agent " + agent);
+
+            return true;
+        }, "Both role and agent must be entered.");
+
+        $.validator.addClassRules("select-role", { agentRequired: true });
+
     }); // end document.ready
 
-		$('.resource-change-form').each( function(){
-			var form = $(this);
-			form.validate({
-				highlight: function(label) {
-					$(label).closest('.control-group').addClass('error');
-				}
+	$('.resource-change-form').each( function(){
+		var form = $(this);
+		form.validate({
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			}
 
-			});
 		});
+	});
+/*    
+    $("tr.role-row").each(function(i, tr) {
+        var role = $(tr).children().get(0);
+        alert("role " + role );
 
+
+    });
+*/
     </script>
     
 {% endblock %}

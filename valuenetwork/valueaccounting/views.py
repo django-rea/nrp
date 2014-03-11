@@ -1732,7 +1732,10 @@ def explore(request):
     return render_to_response("valueaccounting/explore.html", {
     }, context_instance=RequestContext(request))
 
+@login_required
 def cleanup(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
     orphans = [p for p in Process.objects.all() if p.is_orphan()]           
 
     return render_to_response("valueaccounting/cleanup.html", {

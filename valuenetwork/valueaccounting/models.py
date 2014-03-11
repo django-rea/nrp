@@ -2081,6 +2081,11 @@ class Process(models.Model):
         unique_slugify(self, slug)
         super(Process, self).save(*args, **kwargs)
 
+    def is_deletable(self):
+        if self.events.all():
+            return False
+        return True
+
     def flow_type(self):
         return "Process"
 

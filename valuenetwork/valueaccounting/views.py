@@ -3353,6 +3353,9 @@ def delete_event(request, event_id):
     if next == "process":
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', process.id))
+    if next == "cleanup":
+        return HttpResponseRedirect('/%s/'
+            % ('accounting/cleanup'))
     if next == "exchange":
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/exchange', exchange.id))
@@ -3446,6 +3449,7 @@ def process_done(request):
 
     return HttpResponse("Ok", mimetype="text/plain")
 
+@login_required
 def process_finished(request, process_id):
     #import pdb; pdb.set_trace()
     process = get_object_or_404(Process, pk=process_id)
@@ -3456,9 +3460,26 @@ def process_finished(request, process_id):
         if process.finished:
             process.finished = False
             process.save()
-
+    next = request.POST.get("next")
+    if next:
+        if next == "cleanup":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/cleanup'))
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process_id))
+
+@login_required
+def delete_process(request, process_id):
+    #import pdb; pdb.set_trace()
+    process = get_object_or_404(Process, pk=process_id)
+    process.delete()
+    next = request.POST.get("next")
+    if next:
+        if next == "cleanup":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/cleanup'))
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/cleanup'))
   
 @login_required
 def labnotes_reload(

@@ -2036,7 +2036,7 @@ class Process(models.Model):
     objects = ProcessManager()
 
     class Meta:
-        ordering = ('end_date',)
+        ordering = ('-end_date',)
         verbose_name_plural = _("processes")
 
     def __unicode__(self):
@@ -3608,13 +3608,22 @@ class CachedEventSummary(models.Model):
         ordering = ('agent', 'project', 'resource_type')
 
     def __unicode__(self):
+        agent_name = "Unknown"
+        if self.agent:
+            agent_name = self.agent.name
+        project_name = "Unknown"
+        if self.project:
+            project_name = self.project.name
+        resource_type_name = "Unknown"
+        if self.resource_type:
+            resource_type_name = self.resource_type.name
         return ' '.join([
             'Agent:',
-            self.agent.name,
+            agent_name,
             'Project:',
-            self.project.name,
+            project_name,
             'Resource Type:',
-            self.resource_type.name,
+            resource_type_name,
         ])
 
     @classmethod

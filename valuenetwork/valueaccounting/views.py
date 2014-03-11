@@ -1732,6 +1732,13 @@ def explore(request):
     return render_to_response("valueaccounting/explore.html", {
     }, context_instance=RequestContext(request))
 
+def cleanup(request):
+    orphans = [p for p in Process.objects.all() if p.is_orphan()]           
+
+    return render_to_response("valueaccounting/cleanup.html", {
+        "orphans": orphans,
+    }, context_instance=RequestContext(request))
+
 @login_required
 def create_order(request):
     try:
@@ -2863,6 +2870,8 @@ def add_process_output(request, process_id):
                                 process.name,
                                 ct.resource_type.name,
                             ])
+                if len(process.name) > 128:
+                    process.name = process.name[0:128]
                 process.save()
                     
     return HttpResponseRedirect('/%s/%s/'

@@ -289,6 +289,7 @@ urlpatterns = patterns("",
     url(r'^delete-exchange/(?P<exchange_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_exchange', 
         name="delete_exchange"),
     url(r"^explore/$", 'valuenetwork.valueaccounting.views.explore', name="explore"),
+    url(r"^cleanup/$", 'valuenetwork.valueaccounting.views.cleanup', name="cleanup"),
     url(r'^financial-contributions-csv/$', 'valuenetwork.valueaccounting.views.financial_contributions_csv', 
         name="financial_contributions_csv"),
 )

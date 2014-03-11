@@ -292,6 +292,8 @@ urlpatterns = patterns("",
         name="delete_exchange"),
     url(r"^explore/$", 'valuenetwork.valueaccounting.views.explore', name="explore"),
     url(r"^cleanup/$", 'valuenetwork.valueaccounting.views.cleanup', name="cleanup"),
+    url(r"^cleanup-processes/$", 'valuenetwork.valueaccounting.views.cleanup_processes', name="cleanup_processes"),
+    url(r"^cleanup-resourcetypes/$", 'valuenetwork.valueaccounting.views.cleanup_resourcetypes', name="cleanup_resourcetypes"),
     url(r'^financial-contributions-csv/$', 'valuenetwork.valueaccounting.views.financial_contributions_csv', 
         name="financial_contributions_csv"),
 )

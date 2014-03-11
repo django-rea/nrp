@@ -1038,7 +1038,11 @@ def delete_resource_type(request, resource_type_id):
             pt.delete()
         next = request.POST.get("next")
         if next:
-            return HttpResponseRedirect(next)
+            if next == "cleanup-resourcetypes":
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/cleanup-resourcetypes'))
+            else:
+                return HttpResponseRedirect(next)
         else:
             return HttpResponseRedirect('/%s/'
                 % ('accounting/resources'))
@@ -1739,6 +1743,26 @@ def cleanup(request):
     orphans = [p for p in Process.objects.all() if p.is_orphan()]           
 
     return render_to_response("valueaccounting/cleanup.html", {
+        "orphans": orphans,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def cleanup_processes(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    orphans = [p for p in Process.objects.all() if p.is_orphan()]           
+
+    return render_to_response("valueaccounting/cleanup_processes.html", {
+        "orphans": orphans,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def cleanup_resourcetypes(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    orphans = [rt for rt in EconomicResourceType.objects.all() if rt.is_orphan()]           
+
+    return render_to_response("valueaccounting/cleanup_resourcetypes.html", {
         "orphans": orphans,
     }, context_instance=RequestContext(request))
 
@@ -3356,9 +3380,9 @@ def delete_event(request, event_id):
     if next == "process":
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', process.id))
-    if next == "cleanup":
+    if next == "cleanup-processes":
         return HttpResponseRedirect('/%s/'
-            % ('accounting/cleanup'))
+            % ('accounting/cleanup-processes'))
     if next == "exchange":
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/exchange', exchange.id))
@@ -3465,9 +3489,9 @@ def process_finished(request, process_id):
             process.save()
     next = request.POST.get("next")
     if next:
-        if next == "cleanup":
+        if next == "cleanup-processes":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/cleanup'))
+                % ('accounting/cleanup-processes'))
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process_id))
 
@@ -3478,11 +3502,11 @@ def delete_process(request, process_id):
     process.delete()
     next = request.POST.get("next")
     if next:
-        if next == "cleanup":
+        if next == "cleanup-processes":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/cleanup'))
+                % ('accounting/cleanup-processes'))
     return HttpResponseRedirect('/%s/'
-        % ('accounting/cleanup'))
+        % ('accounting/cleanup-processes'))
   
 @login_required
 def labnotes_reload(

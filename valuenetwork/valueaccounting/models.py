@@ -747,6 +747,14 @@ class EconomicResourceType(models.Model):
             answer = False
         return answer
 
+    def is_orphan(self):
+        answer = True
+        if not self.is_deletable():
+            answer = False
+        if self.process_types.all():
+            answer = False
+        return answer
+
     def facet_list(self):
         return ", ".join([facet.facet_value.__unicode__() for facet in self.facets.all()])
 

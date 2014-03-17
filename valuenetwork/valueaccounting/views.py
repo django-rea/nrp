@@ -174,7 +174,7 @@ def create_project(request):
 def locations(request):
     agent = get_agent(request)
     locations = Location.objects.all()
-    nolocs = Location.objects.filter(latitude__isnull=True)
+    nolocs = Location.objects.filter(latitude=0.0)
     return render_to_response("valueaccounting/locations.html", {
         "agent": agent,
         "locations": locations,

@@ -4553,7 +4553,6 @@ def change_resource(request, resource_id):
             resource = form.save(commit=False)
             resource.changed_by=request.user
             resource.save()
-            #formset = resource_role_agent_formset(prefix="role", data=request.POST)
             RraFormSet = modelformset_factory(
                 AgentResourceRole,
                 form=ResourceRoleAgentForm,

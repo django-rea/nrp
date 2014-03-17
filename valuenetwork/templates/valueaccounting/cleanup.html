@@ -18,8 +18,9 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-        <p><a href="{% url cleanup_processes %}">Processes</a></p>
-        <p><a href="{% url cleanup_resourcetypes %}">Resource Types</a></p>
+        <p><a href="{% url cleanup_processes %}">Orphan Processes</a></p>
+        <p><a href="{% url cleanup_resourcetypes %}">Orphan Resource Types</a></p>
+        <p><a href="{% url cleanup_resources %}">Orphan Resources</a></p>
     
 	</div>
     </div>

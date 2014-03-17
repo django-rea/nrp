@@ -1401,6 +1401,11 @@ class EconomicResource(models.Model):
             id_str,
         ])
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('resource', (),
+            { 'resource_id': str(self.id),})
+
     def label(self):
         return self.identifier or str(self.id)
 
@@ -1420,6 +1425,16 @@ class EconomicResource(models.Model):
     #def change_role_formset(self):
     #    from valuenetwork.valueaccounting.forms import ResourceRoleAgentForm
     #    return EconomicResourceForm(instance=self)
+
+    def is_orphan(self):
+        o = True
+        if self.agent_resource_roles.all():
+            o = False
+        if self.commitments.all():
+            o = False
+        if self.events.all():
+            o = False
+        return o
 
     def producing_events(self):
         if self.quality:

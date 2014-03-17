@@ -1,0 +1,61 @@
+{% extends "site_base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Cleanup Resources" %}{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+</style>
+{% endblock %}
+
+{% block body_class %}cleanup{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+
+    <h2>Orphan Resources</h2>
+    <ul>
+        {% for orphan in orphans %}
+            <li>
+                <a href="{{ orphan.get_absolute_url }}">{{ orphan }}</a> created by: {{ orphan.created_by }} created date: {{ orphan.created_date }}
+                <form
+                    style="display: inline;" 
+                    class="delete-resource-form" 
+                    id="deleteResourceForm{{ orphan.id }}" 
+                    action="{% url delete_resource resource_id=orphan.id %}" 
+                    method="POST" >
+                    {% csrf_token %}
+                	<input type="hidden" id="next" name="next" value="cleanup-resources" />
+                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete Resource" >X</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+
+	</div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+
+	}); // end document.ready
+
+     
+    </script>
+
+{% endblock %}

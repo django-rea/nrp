@@ -1048,6 +1048,23 @@ def delete_resource_type(request, resource_type_id):
                 % ('accounting/resources'))
 
 @login_required
+def delete_resource(request, resource_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        er = get_object_or_404(EconomicResource, pk=resource_id)
+        er.delete()
+        next = request.POST.get("next")
+        if next:
+            if next == "cleanup-resources":
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/cleanup-resources'))
+            else:
+                return HttpResponseRedirect(next)
+        else:
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/cleanup-resources'))
+
+@login_required
 def delete_order_confirmation(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
     pcs = order.producing_commitments()
@@ -1739,11 +1756,9 @@ def explore(request):
 @login_required
 def cleanup(request):
     if not request.user.is_superuser:
-        return render_to_response('valueaccounting/no_permission.html')
-    orphans = [p for p in Process.objects.all() if p.is_orphan()]           
+        return render_to_response('valueaccounting/no_permission.html')         
 
     return render_to_response("valueaccounting/cleanup.html", {
-        "orphans": orphans,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -1765,6 +1780,17 @@ def cleanup_resourcetypes(request):
     return render_to_response("valueaccounting/cleanup_resourcetypes.html", {
         "orphans": orphans,
     }, context_instance=RequestContext(request))
+
+@login_required
+def cleanup_resources(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    orphans = [er for er in EconomicResource.objects.all() if er.is_orphan()]           
+
+    return render_to_response("valueaccounting/cleanup_resources.html", {
+        "orphans": orphans,
+    }, context_instance=RequestContext(request))
+
 
 @login_required
 def create_order(request):

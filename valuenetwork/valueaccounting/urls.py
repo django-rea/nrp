@@ -301,5 +301,6 @@ urlpatterns = patterns("",
         name="financial_contributions_csv"),
     url(r"^locations/$", 'valuenetwork.valueaccounting.views.locations', name="locations"),
     url(r"^create-location/$", 'valuenetwork.valueaccounting.views.create_location', name="create_location"),
+    url(r"^change-location/(?P<location_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_location', name="change_location"),
 )
 

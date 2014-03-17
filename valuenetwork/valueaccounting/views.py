@@ -174,9 +174,11 @@ def create_project(request):
 def locations(request):
     agent = get_agent(request)
     locations = Location.objects.all()
+    nolocs = Location.objects.filter(latitude__isnull=True)
     return render_to_response("valueaccounting/locations.html", {
         "agent": agent,
         "locations": locations,
+        "nolocs": nolocs,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -193,6 +195,23 @@ def create_location(request):
     return render_to_response("valueaccounting/create_location.html", {
         "location_form": location_form,
     }, context_instance=RequestContext(request))
+
+@login_required
+def change_location(request, location_id):
+    location = get_object_or_404(Location, id=location_id)
+    agent = get_agent(request)
+    if not agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    location_form = LocationForm(instance=location, data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if location_form.is_valid():
+            location = location_form.save()
+            return HttpResponseRedirect("/accounting/locations/")
+    return render_to_response("valueaccounting/change_location.html", {
+        "location_form": location_form,
+    }, context_instance=RequestContext(request))
+
 
 @login_required
 def test_patterns(request):

@@ -207,6 +207,8 @@ class Location(models.Model):
     def __unicode__(self):
         return self.name
 
+    def resources(self):
+        return self.resources_at_location.all()
 
 class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)

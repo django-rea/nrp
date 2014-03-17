@@ -299,5 +299,7 @@ urlpatterns = patterns("",
     url(r"^cleanup-resources/$", 'valuenetwork.valueaccounting.views.cleanup_resources', name="cleanup_resources"),
     url(r'^financial-contributions-csv/$', 'valuenetwork.valueaccounting.views.financial_contributions_csv', 
         name="financial_contributions_csv"),
+    url(r"^locations/$", 'valuenetwork.valueaccounting.views.locations', name="locations"),
+    url(r"^create-location/$", 'valuenetwork.valueaccounting.views.create_location', name="create_location"),
 )
 

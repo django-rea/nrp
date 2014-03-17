@@ -1,0 +1,134 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load staticfiles %}
+
+{% block head_title %}{% trans "Create Location" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+
+<style>
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}locations{% endblock %}
+
+{% block body_base %}
+<div class="container">
+    {% include "_messages.html" %}
+
+    <legend>
+        {% trans "Create Location" %} 
+    </legend>
+
+    <div class="row-fluid">
+        <div class="span6">
+            <form id="locationForm" method="POST" action="">
+                 {% csrf_token %}
+
+                {{ location_form|as_bootstrap }}
+
+                <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
+
+           </form>
+        </div>
+        <div class="span6">
+            <div id="map" style="width: 600px; height: 400px" ></div>
+
+        </div>
+    </div>
+        
+
+</div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+	
+	<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+    <script src="http://beta.mapquestapi.com/sdk/leaflet/v0.1/mq-map.js?key=Fmjtd%7Cluur2lut2d%2Crl%3Do5-9a72uu"></script>
+    <script src="http://beta.mapquestapi.com/sdk/leaflet/v0.1/mq-geocoding.js?key=Fmjtd%7Cluur2lut2d%2Crl%3Do5-9a72uu"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        var map = L.map('map', {
+            layers: MQ.mapLayer(),
+            center: [ 45.5601062,-73.7120832 ],
+            zoom: 10
+        });
+
+        $("#id_address").blur(geocodeAddress);
+
+        function geocodeAddress(event) {
+            var address = event.target.value;
+            MQ.geocode({ map: map })
+                .search(address)
+                .on('success', function(e) {
+                    var best = e.result.best,
+                    latlng = best.latlng;
+                    $("#id_latitude").val(latlng.lat);
+		            $("#id_longitude").val(latlng.lng);
+		            var lat = $("#id_latitude").val();
+		            var lng = $("#id_longitude").val();
+		            
+                });
+        }
+
+
+	    $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+        })
+
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
+
+        $(".chzn-select").chosen();
+ 
+        function updateList(event)
+        {
+            $(".chzn-select").trigger("liszt:updated");
+        }
+
+		$( "#locationForm" ).validate({
+			rules: {
+			    'resource-identifier': {
+                    required: true
+				},
+
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+
+    }); // end document.ready
+
+
+
+    </script>
+    
+{% endblock %}

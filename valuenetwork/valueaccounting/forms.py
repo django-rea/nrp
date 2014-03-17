@@ -80,6 +80,20 @@ class ProjectForm(forms.ModelForm):
         fields = ('name', 'description')
 
 
+class LocationForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    address = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    latitude = forms.FloatField(required=False, widget=forms.HiddenInput)
+    longitude = forms.FloatField(required=False, widget=forms.HiddenInput)
+
+    class Meta:
+        model = Location
+
+
 class EconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))

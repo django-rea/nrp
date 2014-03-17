@@ -1,0 +1,73 @@
+{% extends "site_base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Locations" %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+<style>
+
+</style>
+{% endblock %}
+
+{% block body_class %}locations{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+    <legend>
+        {% trans "Locations" %}&nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url create_location %}">{% trans "Create a new Location" %}</a>
+    </legend>
+
+    <div id="map" style="width: 800px; height: 600px"></div>
+    
+	</div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+    <script src="http://beta.mapquestapi.com/sdk/leaflet/v0.1/mq-map.js?key=Fmjtd%7Cluur2lut2d%2Crl%3Do5-9a72uu"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+	    map = L.map('map', {
+            layers: MQ.mapLayer(),
+            center: [ 45.5601062,-73.7120832 ],
+            zoom: 11
+        });
+
+
+        {% for loc in locations %}
+            {% if loc.latitude and loc.longitude %}
+                var locName = "{{ loc.name }}";
+                var locAddress = "{{ loc.address }}";
+                var latlong = [ {{ loc.latitude }}, {{ loc.longitude }}];
+                var content = "<h2>" + "{{ loc.name }}" + "</h2><p>" + "{{ loc.address }}" + "</p>";
+                {% if loc.resources %}
+                    content += "<h4>Resources:</h4><ul>";
+                    {% for res in loc.resources %}
+                        content += "<li>" + "{{ res }}" + "</li>";
+                    {% endfor %}
+                    content += "</ul>";
+                {% endif %}
+                L.marker(latlong, {title: locName }).addTo(map).bindPopup(content);
+            {% endif %}
+        {% endfor %}
+
+
+
+	}); // end document.ready
+
+     
+    </script>
+
+{% endblock %}

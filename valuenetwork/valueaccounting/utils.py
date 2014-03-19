@@ -149,6 +149,7 @@ def project_process_resource_agent_graph(project_list, process_list):
                 order_set.add(order)
         dp = {
             "name": p.name,
+            "type": "process",
             "url": "".join([url_starter, p.get_absolute_url()]),
             "project-id": project_id,
             "order-id": order_id,
@@ -173,6 +174,7 @@ def project_process_resource_agent_graph(project_list, process_list):
     for rt in rt_set:
         drt = {
             "name": rt.name,
+            "type": "resourcetype",
             "url": "".join([url_starter, rt.get_absolute_url()]),
             "photo-url": rt.photo_url,
             "next": []
@@ -188,6 +190,7 @@ def project_process_resource_agent_graph(project_list, process_list):
             receiver_name = order.receiver.name
         dord = {
             "name": order.name,
+            "type": "order",
             "for": receiver_name,
             "due": order.due_date.strftime('%Y-%m-%d'),
             "url": "".join([url_starter, order.get_absolute_url()]),
@@ -197,6 +200,7 @@ def project_process_resource_agent_graph(project_list, process_list):
     for agnt, procs in agent_dict.items():
         da = {
             "name": agnt.name,
+            "type": "agent",
             "processes": []
             }
         for p in procs:

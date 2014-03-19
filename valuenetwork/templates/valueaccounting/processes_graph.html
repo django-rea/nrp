@@ -102,7 +102,7 @@ function ValnetModel(v) {
 var valnet;
 
 function load(f) {
-    var jsonUrl = encodeURI("/accounting/json-project-processes/");
+    var jsonUrl = encodeURI("/accounting/json-project-processes/16/");
 	$.getJSON( jsonUrl, function( valnetState ) {
        valnet = ValnetModel(valnetState);
 		f();
@@ -341,7 +341,7 @@ function viewProcessGraph() {
 			N.view = paper.findViewByModel(N.cell);
 			nodes[i] = N;*/
 
-			nodes.push( { name: N.name, color: "#bfb", width: width, height: 25, fixedX: rx, url: N.url } );
+			nodes.push( { name: N.name, color: "#bfb", width: width, height: 25, fixedX: rx, url: N.url, type: N.type } );
 			nodeIndex[i] = nodes.length-1;
 
 			for (var j = 0; j < N.next.length; j++) {
@@ -408,6 +408,7 @@ function viewProcessGraph() {
 			  .call(force.drag);
 
 		  node.on("click", function(d) {
+		        if (d3.event.defaultPrevented) return; // ignore drag
 		        window.open(d.url);
 	        });
 
@@ -418,12 +419,12 @@ function viewProcessGraph() {
              .attr("height", function(d) { return d.height; } )
 			 .style("fill", function(d) { return d.color; });
 
-		  node.append("image")
-			  .attr("xlink:href", "http://locecon.org/site_media/images/mushy40.jpg")
-			  .attr("x", -8)
-			  .attr("y", -8)
-			  .attr("width", 16)
-			  .attr("height", 16);
+	      node.append("image")
+		      .attr("xlink:href", "http://locecon.org/site_media/images/mushy40.jpg")
+		      .attr("x", -8)
+		      .attr("y", -8)
+		      .attr("width", 16)
+		      .attr("height", 16);
 
 		  node.append("text")
 			  .attr("dx", function(d) { return -d.width/2; })

@@ -128,10 +128,10 @@ def project_process_resource_agent_graph(project_list, process_list):
     order_set = set()
     agents = {}
     agent_dict = {}
-    #current_site = Site.objects.get_current()
-    #url_starter = "".join(["http://", current_site.domain])
+    current_site = Site.objects.get_current()
+    url_starter = "".join(["http://", current_site.domain])
     #url_starter = "http://valnet.webfactional.com"
-    url_starter = ""
+    #url_starter = ""
     for p in project_list:
         d = {
             "name": p.name,

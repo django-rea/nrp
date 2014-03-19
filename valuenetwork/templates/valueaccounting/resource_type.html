@@ -86,7 +86,10 @@ container li {
 				        {% endif %}
 			        </a>
 		        {% endif %}
-		        
+		        <a href="{% url plan_from_rt resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan" %}</a>
+{% comment %}
+		        <a href="{% url plan_from_rt_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan using recipe" %}</a>
+{% endcomment %}
 		    {% endif %}
 
 		</legend>

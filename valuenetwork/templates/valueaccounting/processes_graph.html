@@ -102,7 +102,7 @@ function ValnetModel(v) {
 var valnet;
 
 function load(f) {
-    var jsonUrl = encodeURI("/accounting/json-project-processes/16/");
+    var jsonUrl = encodeURI("/accounting/json-project-processes/");
 	$.getJSON( jsonUrl, function( valnetState ) {
        valnet = ValnetModel(valnetState);
 		f();
@@ -258,6 +258,17 @@ function viewProcessGraph() {
 
 		svg = d3.select("#content svg").append('g');
 
+		svg.append("defs").append("marker")
+            .attr("id", "arrowhead")
+            .attr('viewBox', '0 -5 10 10')
+            .attr('refX', 15)
+            .attr('markerWidth', 12)
+            .attr('markerHeight', 12)
+            .attr('orient', 'auto')
+          .append('svg:path')
+            .attr('d', 'M0,-5L10,0L0,5')
+            .attr('fill', '#000');
+
 		var force = d3.layout.force()
 			.gravity(.02)
 			.linkDistance(150)
@@ -399,6 +410,7 @@ function viewProcessGraph() {
 		  var link = svg.selectAll(".link")
 			  .data(edges)
 			  .enter().append("line")
+			  .attr("marker-end", "url(#arrowhead)")
 			  .attr("class", "link");
 
 		  var node = svg.selectAll(".node")
@@ -407,7 +419,7 @@ function viewProcessGraph() {
 			  .attr("class", "node")
 			  .call(force.drag);
 
-		  node.on("click", function(d) {
+		  node.on("dblclick", function(d) {
 		        if (d3.event.defaultPrevented) return; // ignore drag
 		        window.open(d.url);
 	        });
@@ -425,6 +437,9 @@ function viewProcessGraph() {
 		      .attr("y", -8)
 		      .attr("width", 16)
 		      .attr("height", 16);
+		      
+		      //.attr("xlink:href", "{% static 'img/process.png' %}")
+		      
 
 		  node.append("text")
 			  .attr("dx", function(d) { return -d.width/2; })
@@ -452,7 +467,7 @@ function viewProcessGraph() {
 		var dragging = false;
 		var lastPoint = null;
 		var startDragPoint = null;
-		var tx = 0, ty = -200;
+		var tx = -300, ty = -300;
 		var oncell = false;
 
 		var cc = $("#content");

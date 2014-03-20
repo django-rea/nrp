@@ -6728,81 +6728,33 @@ def plan_from_rt(request, resource_type_id):
 @login_required
 def plan_from_rt_recipe(request, resource_type_id):
     #import pdb; pdb.set_trace()
-    resource_types = []
-    selected_project = None
-    project_form = ProjectSelectionForm()
-    init = {"due_date": datetime.date.today(),}
-    date_name_form = DueDateAndNameForm(data=request.POST or None)
+    resource_type = EconomicResourceType.objects.get(id=resource_type_id)
+    init = {"due_date": datetime.date.today(), "order_name": resource_type.name}
+    date_name_form = DueDateAndNameForm(initial=init, data=request.POST or None)
     if request.method == "POST":
-        create_order = request.POST.get("create-order")
-        get_related = request.POST.get("get-related")
-        if get_related:
-            selected_project = Project.objects.get(id=request.POST.get("project"))
-            date_name_form = DueDateAndNameForm(initial=init)
-            if selected_project:
-                resource_types = selected_project.get_resource_types_with_recipe()
-        else:
-            #import pdb; pdb.set_trace()
-            rp = request.POST
-            today = datetime.date.today()
-            order_name = ""
-            if date_name_form.is_valid():
-                due_date = date_name_form.cleaned_data["due_date"]
-                order_name = date_name_form.cleaned_data["order_name"]
-            else:
-                due_date = today
-            for key, value in dict(rp).iteritems():
-                if "selected-project" in key:
-                    project_id = key.split("~")[1]
-                    selected_project = Project.objects.get(id=project_id)
-                    continue
-                if key == "rt":
-                    produced_id = int(value[0])
-                    produced_rt = EconomicResourceType.objects.get(id=produced_id)
+        if date_name_form.is_valid():
+            due_date = date_name_form.cleaned_data["due_date"]
+            order_name = date_name_form.cleaned_data["order_name"]
 
             demand = Order(
                 order_type="rand",
-                order_date=today,
+                order_date=datetime.date.today(),
                 due_date=due_date,
                 name=order_name,
                 created_by=request.user)
             demand.save()
 
-            pt = produced_rt.main_producing_process_type()
-            
-            #process = Process(
-            #    name=" ".join(["Make",produced_rt.name,]),
-            #    end_date=end_date,
-            #    start_date=start_date,
-            #    process_pattern=pt.process_pattern,
-            #    process_type=pt,
-            #    created_by=request.user,
-            #    project=selected_project
-            #)
-            #process.save()
-        
-            #import pdb; pdb.set_trace()      
-            ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=produced_rt)
+            pt = resource_type.main_producing_process_type()
+            ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=resource_type)
             et = ptrt.event_type
             if et:
-                #commitment = process.add_commitment(
-                #    resource_type=produced_rt,
-                #    demand=demand,
-                #    quantity=Decimal("1"),
-                #    event_type=et,
-                #    unit=produced_rt.unit,
-                #    user=request.user)
-                #commitment.order = demand
                 commitment = demand.add_commitment(
-                    resource_type=produced_rt,
+                    resource_type=resource_type,
                     quantity=Decimal("1"),
                     event_type=et,
-                    unit=produced_rt.unit)
+                    unit=resource_type.unit)
                 commitment.created_by=request.user
                 commitment.save()
-                #if pt:
-                #    process.explode_demands(demand, request.user, [])
-                #import pdb; pdb.set_trace()
                 process = commitment.generate_producing_process(request.user, [], explode=True)
                 if notification:
                     #import pdb; pdb.set_trace()
@@ -6829,12 +6781,10 @@ def plan_from_rt_recipe(request, resource_type_id):
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/order-schedule', demand.id))                 
                             
-    return render_to_response("valueaccounting/plan_from_recipe.html", {
-        "selected_project": selected_project,
-        "project_form": project_form,
+    return render_to_response("valueaccounting/plan_from_rt_recipe.html", {
         "date_name_form": date_name_form,
-        "resource_types": resource_types,
-        "help": get_help("process_selections"),
+        "resource_type": resource_type,
+        "help": get_help("plan_from_rt_recipe"),
     }, context_instance=RequestContext(request))
 
 

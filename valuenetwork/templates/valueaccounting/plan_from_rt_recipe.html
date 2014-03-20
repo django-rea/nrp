@@ -1,0 +1,77 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Production" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+
+<style>
+
+
+</style>
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+      {% include "_messages.html" %}
+	  <div>
+		<legend>{% trans "Create a Plan from Recipe for " %} {{ resource_type.name }} </legend>
+		<form class="form-horizontal" id="processForm" method="POST" action=".">
+	        {% csrf_token %}
+            {{ date_name_form|as_bootstrap }}
+            <input type="submit" name="create-process" value="{% trans 'Create plan' %}" class="btn btn-primary" />
+		</form>
+      </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+	
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+ 	$(document).ready(function(){
+
+	    $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        //$(".chzn-select").chosen();
+
+        $( "#id_due_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+
+		$( "#date_name_form" ).validate({
+			rules: {
+				due_date: {
+					required: true,
+					date: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+	}); // end document.ready
+
+    </script>
+
+{% endblock %}

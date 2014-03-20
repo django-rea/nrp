@@ -44,6 +44,7 @@
 		.node text {
 		  pointer-events: none;
 		  font: 10px sans-serif;
+          text-decoration: underline;
 		}
 		svg {
 			-webkit-touch-callout: none;
@@ -444,6 +445,7 @@ function viewProcessGraph() {
 		  node.append("text")
 			  .attr("dx", function(d) { return -d.width/2; })
 			  .attr("dy", "1em")
+			  .attr("fill", "blue")
 			  .text(function(d) { return d.name });
 
 		  force.on("tick", function() {

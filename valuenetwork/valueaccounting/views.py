@@ -739,7 +739,6 @@ def unscheduled_time_contributions(request):
         "time_formset": time_formset,
     }, context_instance=RequestContext(request))
 
-
 @login_required
 def log_simple(request):
     member = get_agent(request)
@@ -6677,7 +6676,115 @@ def plan_from_recipe(request):
         "project_form": project_form,
         "date_name_form": date_name_form,
         "resource_types": resource_types,
-        "help": get_help("process_selections"),
+        "help": get_help("plan_from_recipe"),
+    }, context_instance=RequestContext(request))
+
+@login_required
+def plan_from_rt(request, resource_type_id):
+    #import pdb; pdb.set_trace()
+    resource_type = EconomicResourceType.objects.get(id=resource_type_id)
+    name = "Make " + resource_type.name
+    init = {"start_date": datetime.date.today(), "end_date": datetime.date.today(), "name": name}
+    form = AddProcessFromResourceForm(initial=init, data=request.POST or None)
+    if request.method == "POST":
+        form = AddProcessFromResourceForm(data=request.POST)
+        if form.is_valid():
+            process = form.save(commit=False)
+            process.created_by = request.user
+            process.save() 
+
+            demand = Order(
+                order_type="rand",
+                order_date=datetime.date.today(),
+                due_date=process.end_date,
+                name=resource_type.name,
+                created_by=request.user)
+            demand.save()
+
+            com = Commitment()
+            com.project = process.project
+            com.independent_demand = demand
+            com.order = demand
+            com.commitment_date = datetime.date.today()
+            com.event_type = process.process_pattern.event_type_for_resource_type("out", resource_type)
+            com.process = process
+            com.due_date = process.end_date
+            com.resource_type = resource_type 
+            com.quantity = Decimal("1")
+            com.unit_of_quantity = resource_type.unit 
+            com.created_by = request.user
+            com.save()
+            #todo: if demand.add_commitment gets further developed, could use it instead of the above
+
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/process', process.id))
+  
+    return render_to_response("valueaccounting/plan_from_rt.html", {
+        "form": form,
+        "resource_type": resource_type,
+        "help": get_help("plan_from_rt"),
+    }, context_instance=RequestContext(request))
+
+@login_required
+def plan_from_rt_recipe(request, resource_type_id):
+    #import pdb; pdb.set_trace()
+    resource_type = EconomicResourceType.objects.get(id=resource_type_id)
+    init = {"due_date": datetime.date.today(), "order_name": resource_type.name}
+    date_name_form = DueDateAndNameForm(initial=init, data=request.POST or None)
+    if request.method == "POST":
+        if date_name_form.is_valid():
+            due_date = date_name_form.cleaned_data["due_date"]
+            order_name = date_name_form.cleaned_data["order_name"]
+
+            demand = Order(
+                order_type="rand",
+                order_date=datetime.date.today(),
+                due_date=due_date,
+                name=order_name,
+                created_by=request.user)
+            demand.save()
+
+            pt = resource_type.main_producing_process_type()
+            ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=resource_type)
+            et = ptrt.event_type
+            if et:
+                commitment = demand.add_commitment(
+                    resource_type=resource_type,
+                    quantity=Decimal("1"),
+                    event_type=et,
+                    unit=resource_type.unit)
+                commitment.created_by=request.user
+                commitment.save()
+                process = commitment.generate_producing_process(request.user, [], explode=True)
+                if notification:
+                    #import pdb; pdb.set_trace()
+                    agent = get_agent(request)
+                    work_cts = Commitment.objects.filter(
+                        independent_demand=demand, 
+                        event_type__relationship="work")
+                    for ct in work_cts:                           
+                        users = ct.possible_source_users()
+                        if users:
+                            notification.send(
+                                users, 
+                                "valnet_new_task", 
+                                {"resource_type": ct.resource_type,
+                                "due_date": ct.due_date,
+                                "hours": ct.quantity,
+                                "unit": ct.resource_type.unit,
+                                "description": ct.description or "",
+                                "process": ct.process,
+                                "creator": agent,
+                                }
+                            )
+ 
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/order-schedule', demand.id))                 
+                            
+    return render_to_response("valueaccounting/plan_from_rt_recipe.html", {
+        "date_name_form": date_name_form,
+        "resource_type": resource_type,
+        "help": get_help("plan_from_rt_recipe"),
     }, context_instance=RequestContext(request))
 
 

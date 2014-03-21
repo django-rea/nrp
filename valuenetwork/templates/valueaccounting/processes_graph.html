@@ -99,7 +99,15 @@
 
 <script>
 
-var jsonUrl = encodeURI("/accounting/json-project-processes/");
+var projectId = "";
+{% if project_id %}
+{
+    projectId = {{ project_id }};
+}
+{% endif %}
+
+var jsonUrl = encodeURI("/accounting/json-project-processes/" + projectId);
+
 
 function ValnetModel(v) {
     var m = {
@@ -139,7 +147,9 @@ function viewProjects() {
 
 	function newProjectSummary(pid, p) {
 		var s = $('<div/>');
-		s.append('<h2>' + p.name + '</h2>');
+		var projectId = pid.split("-")[1];
+		var anchor = '<a href="/accounting/processes-graph/' + projectId + '">Open process graph for this project</a>';
+		s.append('<h2>' + p.name + ' ' + anchor + '</h2>');
 		s.append('Processes:<br/>');
 		var proclist = $('<ul/>');
 		var procs = valnet.processesInProject(pid);

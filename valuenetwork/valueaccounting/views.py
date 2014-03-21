@@ -2490,9 +2490,11 @@ def order_graph(request, order_id):
         "order_id": order_id,
     }, context_instance=RequestContext(request))
 
-def processes_graph(request):
-
+def processes_graph(request, project_id=None):
+    project_id = project_id or ""
+    
     return render_to_response("valueaccounting/processes_graph.html", {
+        "project_id": project_id,
     }, context_instance=RequestContext(request))
 
 @login_required

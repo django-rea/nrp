@@ -1259,7 +1259,8 @@ class UseCaseEventType(models.Model):
             ucet = cls._default_manager.get(use_case=use_case, event_type=event_type)
         except cls.DoesNotExist:
             cls(use_case=use_case, event_type=event_type).save()
-            print "Created %s UseCaseEventType" % use_case % event_type
+            #import pdb; pdb.set_trace()
+            print "Created %s UseCaseEventType" % (use_case_identifier + " " + event_type_name)
 
 def create_usecase_eventtypes(app, **kwargs):
     if app != "valueaccounting":

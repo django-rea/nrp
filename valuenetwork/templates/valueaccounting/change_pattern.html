@@ -239,34 +239,6 @@ th, td {
 
                 {% endfor %}
 
-                {% if slots %}
-                    <h3>{% trans "Add more Event Types and Facet Values" %}:</h3>
-
-                {% else %}
-                    <h3>{% trans "Add Event Types and Facet Values" %}:</h3>
-                {% endif %}
-
-                <table>
-                    <thead>
-                        <th>{% trans "Event Type" %}</th>
-                        <th>{% trans "Facet Value" %}</th>
-                    </thead>
-                    <tbody>
-                        {{ additional_formset.management_form }}
-                        {% for form in additional_formset %}
-                                <tr>
-                                    <td>
-	                                    {{ form.event_type }} 
-                                    </td>
-                                    <td>
-	                                    {{ form.facet_value }}
-                                    </td>
-                                </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" 
-                    title="{% trans 'Save all changes and see results' %}" value="{% trans 'Save changes' %}" />
             </form>
 
 	    </div>

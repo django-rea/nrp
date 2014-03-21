@@ -1178,6 +1178,20 @@ class UseCase(models.Model):
                 et_ids.append(ucet.event_type.pk) 
         return EventType.objects.filter(pk__in=et_ids)
 
+    def allowed_patterns(self): #patterns must not have event types not assigned to the use case
+        #import pdb; pdb.set_trace()
+        allowed_ets = self.allowed_event_types()
+        all_ps = ProcessPattern.objects.all()
+        allowed_ps = []
+        for p in all_ps:
+            allow_this_pattern = True
+            for et in p.event_types():
+                if et not in allowed_ets:
+                    allow_this_pattern = False
+            if allow_this_pattern:
+                allowed_ps.append(p)
+        return allowed_ps
+
 
 from south.signals import post_migrate
 

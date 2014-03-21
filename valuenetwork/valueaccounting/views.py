@@ -241,11 +241,13 @@ def maintain_patterns(request, use_case_id=None):
         use_case = get_object_or_404(UseCase, id=use_case_id)
         init = {"use_case": use_case,}
         use_case_form = UseCaseSelectionForm(initial=init, data=request.POST or None)
-        patterns = [puc.pattern for puc in use_case.patterns.all()]
+        patterns = [puc.pattern for puc in use_case.patterns.all()] #patterns assigned to this use case
         pattern_ids = [p.id for p in patterns]
         #import pdb; pdb.set_trace()
         if use_case.allows_more_patterns():
-            qs = ProcessPattern.objects.exclude(id__in=pattern_ids)
+            allowed_patterns = use_case.allowed_patterns()
+            allowed_pattern_ids = [p.id for p in allowed_patterns]
+            qs = ProcessPattern.objects.filter(id__in=allowed_pattern_ids).exclude(id__in=pattern_ids)
             pattern_form = PatternSelectionForm(queryset=qs)
     else:
         use_case=None
@@ -257,7 +259,9 @@ def maintain_patterns(request, use_case_id=None):
             pattern_ids = [p.id for p in patterns]
             #import pdb; pdb.set_trace()
             if use_case.allows_more_patterns():
-                qs = ProcessPattern.objects.exclude(id__in=pattern_ids)
+                allowed_patterns = use_case.allowed_patterns()
+                allowed_pattern_ids = [p.id for p in allowed_patterns]
+                qs = ProcessPattern.objects.filter(id__in=allowed_pattern_ids).exclude(id__in=pattern_ids)
                 pattern_form = PatternSelectionForm(queryset=qs)
                 
     return render_to_response("valueaccounting/maintain_patterns.html", {
@@ -284,7 +288,7 @@ class AddFacetValueFormFormSet(BaseModelFormSet):
 def change_pattern(request, pattern_id, use_case_id):
     pattern = get_object_or_404(ProcessPattern, id=pattern_id)
     use_case = get_object_or_404(UseCase, id=use_case_id)
-    slots = pattern.event_types()
+    slots = use_case.allowed_event_types() 
     #import pdb; pdb.set_trace()
     for slot in slots:
         slot.resource_types = pattern.get_resource_types(slot)
@@ -305,22 +309,7 @@ def change_pattern(request, pattern_id, use_case_id):
             prefix=slot.relationship)
         #import pdb; pdb.set_trace()
     slot_ids = [slot.id for slot in slots]
-    #qs = EventType.objects.exclude(id__in=slot_ids) 
-    qs = use_case.allowed_event_types().exclude(id__in=slot_ids)  
-    AdditionalFormset = modelformset_factory(
-        PatternFacetValue,
-        form=PatternAddFacetValueForm,
-        formset=AddFacetValueFormFormSet,
-        can_delete=False,
-        extra=4,
-        )
-    additional_formset = AdditionalFormset(
-        queryset=PatternFacetValue.objects.none(),
-        data=request.POST or None,
-        prefix='additional',
-        qs=qs)
-    #todo: add all event_types, not just pattern slots
-    #import pdb; pdb.set_trace()
+
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         for slot in slots:
@@ -342,22 +331,13 @@ def change_pattern(request, pattern_id, use_case_id):
                                 event_type=slot,
                                 facet_value=new_value)
                             fv.save()
-        for form in additional_formset:
-            if form.is_valid():
-                data = form.cleaned_data
-                event_type = data.get("event_type")
-                facet_value = data.get("facet_value")
-                if event_type and facet_value:
-                    pfv = form.save(commit=False)
-                    pfv.pattern = pattern
-                    pfv.save()
+
         return HttpResponseRedirect('/%s/%s/%s/'
             % ('accounting/change-pattern', pattern.id, use_case.id))
                         
     return render_to_response("valueaccounting/change_pattern.html", {
         "pattern": pattern,
         "slots": slots,
-        "additional_formset": additional_formset,
         "use_case": use_case,
     }, context_instance=RequestContext(request))
 

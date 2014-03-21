@@ -1279,7 +1279,6 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('recipe', 'Resource use')
     UseCaseEventType.create('recipe', 'Time Contribution')
     UseCaseEventType.create('todo', 'Todo')
-    UseCaseEventType.create('todo', 'Time Contribution')
     UseCaseEventType.create('cust_orders', 'Damage')
     UseCaseEventType.create('cust_orders', 'Payment')
     UseCaseEventType.create('cust_orders', 'Receipt')

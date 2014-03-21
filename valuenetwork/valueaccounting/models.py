@@ -397,6 +397,46 @@ class EventType(models.Model):
         unique_slugify(self, self.name)
         super(EventType, self).save(*args, **kwargs)
 
+    @classmethod
+    def create(cls, name, label, inverse_label, relationship, related_to, resource_effect, unit_type, verbosity=2):
+        """  
+        Creates a new EventType, updates an existing one, or does nothing.
+        This is intended to be used as a post_syncdb manangement step.
+        """
+        try:
+            event_type = cls._default_manager.get(name=name)
+            updated = False
+            if name != event_type.name:
+                event_type.name = name
+                updated = True
+            if label != event_type.label:
+                event_type.label = label
+                updated = True
+            if inverse_label != event_type.inverse_label:
+                event_type.inverse_label = inverse_label
+                updated = True
+            if relationship != event_type.relationship:
+                event_type.relationship = relationship
+                updated = True
+            if related_to != event_type.related_to:
+                event_type.related_to = related_to
+                updated = True
+            if resource_effect != event_type.resource_effect:
+                event_type.resource_effect = resource_effect
+                updated = True
+            if unit_type != event_type.unit_type:
+                event_type.unit_type = unit_type
+                updated = True
+            if updated:
+                event_type.save()
+                if verbosity > 1:
+                    print "Updated %s EventType" % name
+        except cls.DoesNotExist:
+            cls(name=name, label=label, inverse_label=inverse_label, relationship=relationship,
+                related_to=related_to, resource_effect=resource_effect, unit_type=unit_type).save()
+            if verbosity > 1:
+                print "Created %s EventType" % name
+
     def creates_resources(self):
         return self.resource_effect == "+"
 
@@ -1100,10 +1140,9 @@ class UseCase(models.Model):
         return self.name
 
     @classmethod
-    def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=1):
+    def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=2):
         """  
         Creates a new UseCase, updates an existing one, or does nothing.
-        
         This is intended to be used as a post_syncdb manangement step.
         """
         try:
@@ -1131,6 +1170,28 @@ class UseCase(models.Model):
                 return False
         return True
 
+    def allowed_event_types(self):
+        ucets = UseCaseEventType.objects.filter(use_case=self)
+        et_ids = []
+        for ucet in ucets:
+            if ucet.event_type.pk not in et_ids:
+                et_ids.append(ucet.event_type.pk) 
+        return EventType.objects.filter(pk__in=et_ids)
+
+    def allowed_patterns(self): #patterns must not have event types not assigned to the use case
+        #import pdb; pdb.set_trace()
+        allowed_ets = self.allowed_event_types()
+        all_ps = ProcessPattern.objects.all()
+        allowed_ps = []
+        for p in all_ps:
+            allow_this_pattern = True
+            for et in p.event_types():
+                if et not in allowed_ets:
+                    allow_this_pattern = False
+            if allow_this_pattern:
+                allowed_ps.append(p)
+        return allowed_ps
+
 
 from south.signals import post_migrate
 
@@ -1151,7 +1212,32 @@ def create_use_cases(app, **kwargs):
 
 post_migrate.connect(create_use_cases)
 
-'''
+def create_event_types(app, **kwargs):
+    if app != "valueaccounting":
+        return
+    #Keep the first column (name) as unique
+    EventType.create('Citation', _('cites'), _('cited by'), 'cite', 'process', '=', '')
+    EventType.create('Resource Consumption', _('consumes'), _('consumed by'), 'consume', 'process', '-', 'quantity') 
+    EventType.create('Cash Contribution', _('contributes cash'), _('cash contributed by'), 'cash', 'exchange', '+', 'value') 
+    EventType.create('Resource Contribution', _('contributes resource'), _('resource contributed by'), 'resource', 'exchange', '+', 'quantity') 
+    EventType.create('Damage', _('damages'), _('damaged by'), 'out', 'agent', '-', 'value')  
+    EventType.create('Expense', _('expense'), '', 'expense', 'exchange', '=', 'value') 
+    EventType.create('Failed quantity', _('fails'), '', 'out', 'process', '<', 'quantity') 
+    EventType.create('Payment', _('pays'), _('paid by'), 'pay', 'exchange', '-', 'value') 
+    EventType.create('Resource Production', _('produces'), _('produced by'), 'out', 'process', '+', 'quantity') 
+    EventType.create('Work Provision', _('provides'), _('provided by'), 'out', 'agent', '+', 'time') 
+    EventType.create('Receipt', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity') 
+    EventType.create('Sale', _('sells'), _('sold by'), 'out', 'agent', '=', '') 
+    EventType.create('Shipment', _('ships'), _('shipped by'), 'out', 'agent', '-', 'quantity') 
+    EventType.create('Supply', _('supplies'), _('supplied by'), 'out', 'agent', '=', '') 
+    EventType.create('Todo', _('todo'), '', 'todo', 'agent', '=', '')
+    EventType.create('Resource use', _('uses'), _('used by'), 'use', 'process', '=', 'time') 
+    EventType.create('Time Contribution', _('work'), '', 'work', 'process', '=', 'time') 
+
+    print "created event types"
+
+post_migrate.connect(create_event_types)
+
 class UseCaseEventType(models.Model):
     use_case = models.ForeignKey(UseCase,
         verbose_name=_('use case'), related_name='event_types')
@@ -1162,37 +1248,58 @@ class UseCaseEventType(models.Model):
         return ": ".join([self.use_case.name, self.event_type.name])
 
     @classmethod
-    def create(use_case_identifier, event_type_identifier):
+    def create(cls, use_case_identifier, event_type_name):
         """  
         Creates a new UseCaseEventType, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
         """
         try:
-            use_case = cls._default_manager.get(identifier=use_case_identifier)
-            event_type = cls._default_manager.get(identifier=event_type_identifier)
-            use_case.save()
+            use_case = UseCase.objects.get(identifier=use_case_identifier)
+            event_type = EventType.objects.get(name=event_type_name)
+            ucet = cls._default_manager.get(use_case=use_case, event_type=event_type)
         except cls.DoesNotExist:
-            cls(use_case=use_case_identifier, event_type=event_type_identifier).save()
+            cls(use_case=use_case, event_type=event_type).save()
             print "Created %s UseCaseEventType" % use_case % event_type
 
-def create_usecase_eventtype(app, **kwargs):
+def create_usecase_eventtypes(app, **kwargs):
     if app != "valueaccounting":
         return
-    UseCaseEventType.create('financial', '') 
-    UseCase.create('non_prod', _('Non-production logging'), True)
-    UseCase.create('rand', _('Process logging'))
-    UseCase.create('recipe', _('Recipes'))
-    UseCase.create('todo', _('Todos'), True)
-    UseCase.create('cust_orders', _('Customer Orders'))
-    UseCase.create('purchasing', _('Purchasing')) #might not need?
-    UseCase.create('cash_contr', _('Cash Contribution'), True)
-    UseCase.create('res_contr', _('Material Contribution'))
-    UseCase.create('purch_contr', _('Purchase Contribution'))
-    UseCase.create('exp_contr', _('Expense Contribution'), True)
-    print "created use cases event type associations"
+    UseCaseEventType.create('cash_contr', 'Time Contribution') 
+    UseCaseEventType.create('cash_contr', 'Cash Contribution') 
+    UseCaseEventType.create('non_prod', 'Time Contribution')
+    UseCaseEventType.create('rand', 'Citation')
+    UseCaseEventType.create('rand', 'Resource Consumption')
+    UseCaseEventType.create('rand', 'Resource Production')
+    UseCaseEventType.create('rand', 'Resource use')
+    UseCaseEventType.create('rand', 'Time Contribution')
+    UseCaseEventType.create('recipe','Citation')
+    UseCaseEventType.create('recipe', 'Resource Consumption')
+    UseCaseEventType.create('recipe', 'Resource Production')
+    UseCaseEventType.create('recipe', 'Resource use')
+    UseCaseEventType.create('recipe', 'Time Contribution')
+    UseCaseEventType.create('todo', 'Todo')
+    UseCaseEventType.create('todo', 'Time Contribution')
+    UseCaseEventType.create('cust_orders', 'Damage')
+    UseCaseEventType.create('cust_orders', 'Payment')
+    UseCaseEventType.create('cust_orders', 'Receipt')
+    UseCaseEventType.create('cust_orders', 'Sale')
+    UseCaseEventType.create('cust_orders', 'Shipment')
+    UseCaseEventType.create('purchasing', 'Payment') 
+    UseCaseEventType.create('purchasing', 'Receipt') 
+    UseCaseEventType.create('res_contr', 'Time Contribution')
+    UseCaseEventType.create('res_contr', 'Resource Contribution')
+    UseCaseEventType.create('purch_contr', 'Time Contribution')
+    UseCaseEventType.create('purch_contr', 'Expense')
+    UseCaseEventType.create('purch_contr', 'Payment')
+    UseCaseEventType.create('purch_contr', 'Receipt')
+    UseCaseEventType.create('exp_contr', 'Time Contribution')
+    UseCaseEventType.create('exp_contr', 'Expense')
+    UseCaseEventType.create('exp_contr', 'Payment')
 
-post_migrate.connect(create_usecase_eventtype)
-'''
+    print "created use case event type associations"
+
+post_migrate.connect(create_usecase_eventtypes)
+
 
 class PatternUseCase(models.Model):
     pattern = models.ForeignKey(ProcessPattern, 

@@ -157,7 +157,7 @@ th, td {
         {% include "_messages.html" %}
 	    <div>
 		    <legend>
-		        {% trans "Maintain Process Patterns" %} &nbsp;&nbsp;&nbsp;<a href="{% url resource_facet_table %}">{% trans "Change Resource Type Facets" %}</a>
+		        {% trans "Maintain Process Patterns" %} &nbsp;&nbsp;&nbsp;<a href="{% url resource_facet_table %}">{% trans "Change Resource Type Facets" %}</a> 
 	        </legend>
 
 	        <form id="useCaseForm" action="." method="POST" >
@@ -175,7 +175,7 @@ th, td {
 	            <ul>
 	            {% for pattern in patterns %}
 	                <li>
-	                    <a href="{% url change_pattern pattern_id=pattern.id %}">{{ pattern }}</a>
+	                    <a href="{% url change_pattern pattern_id=pattern.id use_case_id=use_case.id %}">{{ pattern }}</a>
 	                    <form
 	                        style="display: inline;" 
                             class="remove-form" 
@@ -226,6 +226,7 @@ th, td {
 	            </div>
             {% endif %}
 
+{% comment %} LF commenting out: I don't see that this would ever occur.... ?
 	        {% if selected_pattern %}
 
 	            {% for slot in slots %}
@@ -270,7 +271,7 @@ th, td {
 
                 
 	        {% endif %}
-
+{% endcomment %}
 	    </div>
     </div>
 {% endblock %}

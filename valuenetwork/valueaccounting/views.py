@@ -281,8 +281,9 @@ class AddFacetValueFormFormSet(BaseModelFormSet):
 
 
 @login_required
-def change_pattern(request, pattern_id):
+def change_pattern(request, pattern_id, use_case_id):
     pattern = get_object_or_404(ProcessPattern, id=pattern_id)
+    use_case = get_object_or_404(UseCase, id=use_case_id)
     slots = pattern.event_types()
     #import pdb; pdb.set_trace()
     for slot in slots:
@@ -304,7 +305,8 @@ def change_pattern(request, pattern_id):
             prefix=slot.relationship)
         #import pdb; pdb.set_trace()
     slot_ids = [slot.id for slot in slots]
-    qs = EventType.objects.exclude(id__in=slot_ids)   
+    #qs = EventType.objects.exclude(id__in=slot_ids) 
+    qs = use_case.allowed_event_types().exclude(id__in=slot_ids)  
     AdditionalFormset = modelformset_factory(
         PatternFacetValue,
         form=PatternAddFacetValueForm,
@@ -349,13 +351,14 @@ def change_pattern(request, pattern_id):
                     pfv = form.save(commit=False)
                     pfv.pattern = pattern
                     pfv.save()
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/change-pattern', pattern.id))
+        return HttpResponseRedirect('/%s/%s/%s/'
+            % ('accounting/change-pattern', pattern.id, use_case.id))
                         
     return render_to_response("valueaccounting/change_pattern.html", {
         "pattern": pattern,
         "slots": slots,
         "additional_formset": additional_formset,
+        "use_case": use_case,
     }, context_instance=RequestContext(request))
 
 @login_required

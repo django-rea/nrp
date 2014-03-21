@@ -175,7 +175,7 @@ th, td {
 	            <ul>
 	            {% for pattern in patterns %}
 	                <li>
-	                    <a href="{% url change_pattern pattern_id=pattern.id %}">{{ pattern }}</a>
+	                    <a href="{% url change_pattern pattern_id=pattern.id use_case_id=use_case.id %}">{{ pattern }}</a>
 	                    <form
 	                        style="display: inline;" 
                             class="remove-form" 

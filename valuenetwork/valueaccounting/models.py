@@ -398,7 +398,7 @@ class EventType(models.Model):
         super(EventType, self).save(*args, **kwargs)
 
     @classmethod
-    def create(cls, name, label, inverse_label, relationship, related_to, resource_effect, unit_type, verbosity=1):
+    def create(cls, name, label, inverse_label, relationship, related_to, resource_effect, unit_type, verbosity=2):
         """  
         Creates a new EventType, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
@@ -1140,7 +1140,7 @@ class UseCase(models.Model):
         return self.name
 
     @classmethod
-    def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=1):
+    def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=2):
         """  
         Creates a new UseCase, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
@@ -1170,6 +1170,14 @@ class UseCase(models.Model):
                 return False
         return True
 
+    def allowed_event_types(self):
+        ucets = UseCaseEventType.objects.filter(use_case=self)
+        et_ids = []
+        for ucet in ucets:
+            if ucet.event_type.pk not in et_ids:
+                et_ids.append(ucet.event_type.pk) 
+        return EventType.objects.filter(pk__in=et_ids)
+
 
 from south.signals import post_migrate
 
@@ -1195,22 +1203,22 @@ def create_event_types(app, **kwargs):
         return
     #Keep the first column (name) as unique
     EventType.create('Citation', _('cites'), _('cited by'), 'cite', 'process', '=', '')
-    EventType.create('Resource Consumption', _('consumes'), _('consumed by'), 'consume', 'process', '0', 'quantity') 
-    EventType.create('Cash Contribution', _('contributes cash'), _('cash contributed by'), 'cash', 'exchange', '0', 'value') 
-    EventType.create('Resource Contribution', _('contributes resource'), _('resource contributed by'), 'resource', 'exchange', '0', 'quantity') 
-    EventType.create('Damage', _('damages'), _('damaged by'), 'out', 'agent', '0', 'value')  
-    EventType.create('Expense', _('expense'), _(''), 'expense', 'exchange', '=', 'value') 
-    EventType.create('Failed', _('quantity	fails'), _(''), 'out', 'process', '<', 'quantity') 
-    EventType.create('Payment', _('pays'), _('paid by'), 'pay', 'exchange', '0', 'value') 
-    EventType.create('Resource Production', _('produces'), _('produced by'), 'out', 'process', '0', 'quantity') 
-    EventType.create('Work Provision', _('provides'), _('provided by'), 'out', 'agent', '0', 'time') 
-    EventType.create('Receipt', _('receives'), _('received by'), 'receive', 'exchange', '0', 'quantity') 
+    EventType.create('Resource Consumption', _('consumes'), _('consumed by'), 'consume', 'process', '-', 'quantity') 
+    EventType.create('Cash Contribution', _('contributes cash'), _('cash contributed by'), 'cash', 'exchange', '+', 'value') 
+    EventType.create('Resource Contribution', _('contributes resource'), _('resource contributed by'), 'resource', 'exchange', '+', 'quantity') 
+    EventType.create('Damage', _('damages'), _('damaged by'), 'out', 'agent', '-', 'value')  
+    EventType.create('Expense', _('expense'), '', 'expense', 'exchange', '=', 'value') 
+    EventType.create('Failed quantity', _('fails'), '', 'out', 'process', '<', 'quantity') 
+    EventType.create('Payment', _('pays'), _('paid by'), 'pay', 'exchange', '-', 'value') 
+    EventType.create('Resource Production', _('produces'), _('produced by'), 'out', 'process', '+', 'quantity') 
+    EventType.create('Work Provision', _('provides'), _('provided by'), 'out', 'agent', '+', 'time') 
+    EventType.create('Receipt', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity') 
     EventType.create('Sale', _('sells'), _('sold by'), 'out', 'agent', '=', '') 
-    EventType.create('Shipment', _('ships'), _('shipped by'), 'out', 'agent', '0', 'quantity') 
+    EventType.create('Shipment', _('ships'), _('shipped by'), 'out', 'agent', '-', 'quantity') 
     EventType.create('Supply', _('supplies'), _('supplied by'), 'out', 'agent', '=', '') 
-    EventType.create('Todo', _('todo'), _(''), 'todo', 'agent', '=', '')
+    EventType.create('Todo', _('todo'), '', 'todo', 'agent', '=', '')
     EventType.create('Resource use', _('uses'), _('used by'), 'use', 'process', '=', 'time') 
-    EventType.create('Time Contribution', _('work'), _(''), 'work', 'process', '=', 'time') 
+    EventType.create('Time Contribution', _('work'), '', 'work', 'process', '=', 'time') 
 
     print "created event types"
 
@@ -1235,7 +1243,6 @@ class UseCaseEventType(models.Model):
             use_case = UseCase.objects.get(identifier=use_case_identifier)
             event_type = EventType.objects.get(name=event_type_name)
             ucet = cls._default_manager.get(use_case=use_case, event_type=event_type)
-            #ucet.save()
         except cls.DoesNotExist:
             cls(use_case=use_case, event_type=event_type).save()
             print "Created %s UseCaseEventType" % use_case % event_type
@@ -1249,13 +1256,11 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('rand', 'Citation')
     UseCaseEventType.create('rand', 'Resource Consumption')
     UseCaseEventType.create('rand', 'Resource Production')
-    UseCaseEventType.create('rand', 'Work Provision')
     UseCaseEventType.create('rand', 'Resource use')
     UseCaseEventType.create('rand', 'Time Contribution')
     UseCaseEventType.create('recipe','Citation')
     UseCaseEventType.create('recipe', 'Resource Consumption')
     UseCaseEventType.create('recipe', 'Resource Production')
-    UseCaseEventType.create('recipe', 'Work Provision')
     UseCaseEventType.create('recipe', 'Resource use')
     UseCaseEventType.create('recipe', 'Time Contribution')
     UseCaseEventType.create('todo', 'Todo')

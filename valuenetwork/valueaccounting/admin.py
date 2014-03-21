@@ -11,6 +11,7 @@ admin.site.register(UseCase)
 admin.site.register(AccountingReference)
 admin.site.register(AgentResourceRoleType)
 admin.site.register(Location)
+admin.site.register(UseCaseEventType)
 
 
 class HelpAdmin(admin.ModelAdmin):

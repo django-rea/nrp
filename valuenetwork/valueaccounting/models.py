@@ -321,6 +321,16 @@ class EconomicAgent(models.Model):
         else:
             return None
 
+    def worked_processes(self):
+        cts = self.given_commitments.all()
+        events = self.given_events.all()
+        processes = [x.process for x in cts if x.process]
+        processes.extend([x.process for x in events if x.process])
+        return list(set(processes))
+        
+    def active_processes(self):
+        return [p for p in self.worked_processes() if p.finished==False]
+
 
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,

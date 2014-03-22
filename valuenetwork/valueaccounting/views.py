@@ -1721,12 +1721,23 @@ def json_processes(request, order_id=None):
     data = simplejson.dumps(graph)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
-def json_project_processes(request, project_id=None):
+def json_project_processes(request, object_type=None, object_id=None):
     #import pdb; pdb.set_trace()
-    if project_id:
-        project = get_object_or_404(Project, pk=project_id)
-        processes = project.active_processes()
-        projects = [project,]
+    if object_type:
+        if object_type == "P":
+            project = get_object_or_404(Project, pk=object_id)
+            processes = project.active_processes()
+            projects = [project,]
+        elif object_type == "O":
+            order = get_object_or_404(Order, pk=object_id)
+            processes = order.active_processes()
+            projects = [p.project for p in processes if p.project]
+            projects = list(set(projects))
+        elif object_type == "A":
+            agent = get_object_or_404(EconomicAgent, pk=object_id)
+            processes = agent.active_processes()
+            projects = [p.project for p in processes if p.project]
+            projects = list(set(projects))
     else:
         processes = Process.objects.unfinished()
         projects = [p.project for p in processes if p.project]
@@ -2490,11 +2501,13 @@ def order_graph(request, order_id):
         "order_id": order_id,
     }, context_instance=RequestContext(request))
 
-def processes_graph(request, project_id=None):
-    project_id = project_id or ""
+def processes_graph(request, object_type=None, object_id=None):
+    url_extension = ""
+    if object_type:
+        url_extension = "".join([ object_type, "/", object_id, "/"])
     
     return render_to_response("valueaccounting/processes_graph.html", {
-        "project_id": project_id,
+        "url_extension": url_extension,
     }, context_instance=RequestContext(request))
 
 @login_required

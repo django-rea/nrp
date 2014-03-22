@@ -99,14 +99,7 @@
 
 <script>
 
-var projectId = "";
-{% if project_id %}
-{
-    projectId = {{ project_id }};
-}
-{% endif %}
-
-var jsonUrl = encodeURI("/accounting/json-project-processes/" + projectId);
+var jsonUrl = encodeURI("/accounting/json-project-processes/" + "{{ url_extension }}");
 
 
 function ValnetModel(v) {
@@ -148,7 +141,7 @@ function viewProjects() {
 	function newProjectSummary(pid, p) {
 		var s = $('<div/>');
 		var projectId = pid.split("-")[1];
-		var anchor = '<a href="/accounting/processes-graph/' + projectId + '">Open process graph for this project</a>';
+		var anchor = '<a href="/accounting/processes-graph/P/' + projectId + '">Open process graph for this project</a>';
 		s.append('<h2>' + p.name + ' ' + anchor + '</h2>');
 		s.append('Processes:<br/>');
 		var proclist = $('<ul/>');
@@ -172,7 +165,9 @@ function viewAgents() {
 
 	function newAgentSummary(aid, a) {
 		var s = $('<div/>');
-		s.append('<h2>' + a.name + '</h2>');
+		var agentId = aid.split("-")[1];
+		var anchor = '<a href="/accounting/processes-graph/A/' + agentId + '">Open process graph for this agent</a>';
+		s.append('<h2>' + a.name + ' ' + anchor + '</h2>');
 		s.append('Processes:<br/>');
 		var proclist = $('<ul/>');
 		var procs = a.processes;
@@ -447,9 +442,10 @@ function viewProcessGraph() {
 			  .data(nodes)
 			  .enter().append("g")
 			  .attr("class", "node")
+			  .attr("type", function(d) {return d.type })
 			  .call(force.drag);
 
-		  node.on("dblclick", function(d) {
+	        node.on("dblclick", function(d) {
 		        if (d3.event.defaultPrevented) return; // ignore drag
 		        window.open(d.url);
 	        });
@@ -461,15 +457,20 @@ function viewProcessGraph() {
              .attr("height", function(d) { return d.height; } )
 			 .style("fill", function(d) { return d.color; });
 
+		 var processImage = "{% static 'img/process.png' %}";
+		 var rtImage = "{% static 'img/resource.png' %}";
+
 	      node.append("image")
-		      .attr("xlink:href", "http://locecon.org/site_media/images/mushy40.jpg")
+		      .attr("xlink:href", function(d) { 
+		            if (d.type == "process")
+		            { return processImage}
+		            else
+		            { return rtImage}
+		        })
 		      .attr("x", -8)
 		      .attr("y", -8)
 		      .attr("width", 16)
-		      .attr("height", 16);
-		      
-		      //.attr("xlink:href", "{% static 'img/process.png' %}")
-		      
+		      .attr("height", 16);	      
 
 		  node.append("text")
 			  .attr("dx", function(d) { return -d.width/2; })
@@ -490,6 +491,7 @@ function viewProcessGraph() {
 
 			force.stop();
 
+
 		  });
 
 
@@ -498,7 +500,8 @@ function viewProcessGraph() {
 		var dragging = false;
 		var lastPoint = null;
 		var startDragPoint = null;
-		var tx = -300, ty = -300;
+		var tx = -2000, ty = -2000;
+		//var tx = 0, ty = -200;
 		var oncell = false;
 
 		var cc = $("#content");

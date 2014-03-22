@@ -382,6 +382,13 @@ RESOURCE_EFFECT_CHOICES = (
     ('<', _('failure')),
 )
 
+
+class EventTypeManager(models.Manager):
+
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
 class EventType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     label = models.CharField(_('label'), max_length=32)
@@ -397,8 +404,13 @@ class EventType(models.Model):
         blank=True)
     slug = models.SlugField(_("Page name"), editable=False)
 
+    objects = EventTypeManager()
+
     class Meta:
         ordering = ('label',)
+
+    def natural_key(self):
+        return (self.name)
 
     def __unicode__(self):
         return self.label
@@ -1141,13 +1153,25 @@ class PatternFacetValue(models.Model):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
 
 
+class UseCaseManager(models.Manager):
+
+    def get_by_natural_key(self, identifier):
+        #import pdb; pdb.set_trace()
+        return self.get(identifier=identifier)
+
+
 class UseCase(models.Model):
     identifier = models.CharField(_('identifier'), max_length=12)
     name = models.CharField(_('name'), max_length=128)
     restrict_to_one_pattern = models.BooleanField(_('restrict_to_one_pattern'), default=False)
 
+    objects = UseCaseManager()
+
     def __unicode__(self):
         return self.name
+
+    def natural_key(self):
+        return (self.identifier)
 
     @classmethod
     def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=2):

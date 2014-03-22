@@ -100,10 +100,12 @@
         </div>
     </div>
     <div id="container">
-	    <div id="content">
+
+	</div>
+
+		    <div id="content">
             <div id="loading">Loading...<img src="http://i.stack.imgur.com/FhHRx.gif"></img></div> 
 	    </div>
-	</div>
 </body>
 
 <script>
@@ -165,7 +167,7 @@ function viewProjects() {
 	_.each( valnet.projects(), function(p, pid) {
 		c.append(newProjectSummary(pid, p));
 	});
-
+    $('#content').html('');
 	$('#container').html(c);
 }
 
@@ -192,6 +194,7 @@ function viewAgents() {
 		c.append(newAgentSummary(aid, a));
 	});
 
+    $('#content').html('');
 	$('#container').html(c);
 }
 
@@ -221,6 +224,7 @@ function viewResources() {
 		c.append(newResourceSummary(aid, a));
 	});
 
+    $('#content').html('');
 	$('#container').html(c);
 }
 
@@ -260,25 +264,8 @@ $(document).ready(function() {
 function viewProcessGraph() {
 
 
+		$('#container').html('');
 		$('#content').html('');
-
-		//add Project filter
-		/*
-		var projectFilter = $('<div/>');
-		projectFilter.append('<b>Projects:</b><br/>');
-		projectFilter.attr('id', 'projectFilter');
-		for (var i in valnet.projects()) {
-			var P = valnet.projects()[i];
-			var cb = $('<input type="checkbox"/>');
-			cb.click(function() {
-				alert('TODO: redraw graph');
-			});
-			projectFilter.append(cb);
-			projectFilter.append(P.name);
-			projectFilter.append('<br/>');
-		}
-		$('#content').append(projectFilter);
-		*/
 
 		var maxWidth = 6000, maxHeight = 4000;
 

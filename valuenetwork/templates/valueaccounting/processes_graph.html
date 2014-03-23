@@ -118,6 +118,7 @@ function ValnetModel(v) {
 	    projects: function() { 	return v.projects;		},
 	    agents: function() { 	return v.agents;		},
 	    processes: function() { 	return v.processes;		},
+	    orders: function() { 	return v.orders;		},
 	    resourceTypes: function() { 	return v.resource_types;		},
 	    processesInProject : function(pid) {
 		    return _.filter(v.processes, function(proc) {
@@ -229,15 +230,29 @@ function viewResources() {
 }
 
 function viewOrders() {
-    /*"Order-104": {
-      "url": "\/accounting\/order-schedule\/104\/",
-      "next": [
-        
-      ],
-      "name": "",
-      "for": "",
-      "due": "2013-10-10"
-    },*/
+    var c = $('<div/>');
+
+	function newOrderSummary(pid, o) {
+		var s = $('<div/>');
+		var orderId = pid.split("-")[1];
+		var anchor = '<a href="/accounting/processes-graph/O/' + orderId + '">Open process graph for this order</a>';
+		s.append('<h2>' + o.name + ' ' + anchor + '</h2>');
+		s.append('Processes:<br/>');
+		var proclist = $('<ul/>');
+		var procs = o.processes;
+		_.each(procs, function(pr) {
+			var P = valnet.processes()[pr];
+			proclist.append('<li>' + P.name + '</li>');
+		});
+		s.append(proclist);
+		return s;
+	}
+
+	_.each( valnet.orders(), function(p, pid) {
+		c.append(newOrderSummary(pid, p));
+	});
+    $('#content').html('');
+	$('#container').html(c);
 }
 
 $(document).ready(function() {
@@ -250,6 +265,7 @@ $(document).ready(function() {
 		$("#ViewStatistics").click(viewStatistics);
 		$("#ViewAgents").click(viewAgents);
 		$("#ViewResources").click(viewResources);
+		$("#ViewOrders").click(viewOrders);
 		$("#ViewProcesses").click(viewProcessGraph);
 
 		viewProcessGraph();

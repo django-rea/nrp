@@ -1730,7 +1730,7 @@ def json_project_processes(request, object_type=None, object_id=None):
             projects = [project,]
         elif object_type == "O":
             order = get_object_or_404(Order, pk=object_id)
-            processes = order.active_processes()
+            processes = order.all_processes()
             projects = [p.project for p in processes if p.project]
             projects = list(set(projects))
         elif object_type == "A":

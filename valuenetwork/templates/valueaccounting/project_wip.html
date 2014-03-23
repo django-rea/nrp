@@ -28,7 +28,10 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Work in Process for Project" %} {{ project }}</legend>
+		<legend>
+		    {% trans "Work in Process for Project" %} {{ project }} &nbsp;&nbsp;&nbsp;
+		    <a href="{% url processes_graph object_type='P' object_id=project.id %}">Process graph diagram</a>
+	    </legend>
 
         <ul>
             {% for process in processes %}

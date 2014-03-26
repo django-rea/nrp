@@ -148,12 +148,12 @@ class EventSavingTest(TestCase):
         #import pdb; pdb.set_trace()
         event.project = self.project2
         event.save()
-        
-        summary = CachedEventSummary.objects.get(
+           
+        summaries = CachedEventSummary.objects.filter(
             agent=self.agent1,
             project=self.project1,
             resource_type=self.optical_work)
-        self.assertEqual(summary.quantity, Decimal("0"))
+        self.assertEqual(summaries.count(), 0)
         summary = CachedEventSummary.objects.get(
             agent=self.agent1,
             project=self.project2,

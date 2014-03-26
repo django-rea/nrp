@@ -3446,8 +3446,7 @@ def update_summary(agent, project, resource_type):
     if summary.quantity:
         summary.save() 
     else:
-        if not created:
-            summary.delete()
+        summary.delete()
 
 
 class EconomicEvent(models.Model):

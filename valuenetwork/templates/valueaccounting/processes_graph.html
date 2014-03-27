@@ -369,7 +369,7 @@ function viewProcessGraph() {
 
 			var rx = getX(N.mid);
 
-			var ry = 500 * Math.random();
+			var ry = 100 * Math.random();
 
 			var width = Math.max(150, getX(Date.parse(N.end)) - getX(Date.parse(N.start)));
 			var height = 50;
@@ -508,8 +508,8 @@ function viewProcessGraph() {
 		  force.on("tick", function() {
 			node.attr("transform", function(d) { 
 				if (d.fixedX!=undefined) d.x = d.fixedX;
-				return "translate(" + d.x + "," + d.y + ")"; 
-			});
+				return "translate(" + d.x + "," + d.y + ")";
+        });
 
 			link.attr("x1", function(d) { return d.source.x + d.source.width/2; })
 				.attr("y1", function(d) { return d.source.y; })
@@ -527,8 +527,7 @@ function viewProcessGraph() {
 		var dragging = false;
 		var lastPoint = null;
 		var startDragPoint = null;
-		var tx = -2000, ty = -2000;
-		//var tx = 0, ty = -200;
+		var tx = 0, ty = -200;
 		var oncell = false;
 
 		var cc = $("#content");

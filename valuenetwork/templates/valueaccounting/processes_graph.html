@@ -76,7 +76,7 @@
 
 		#help {
 		    color: white;
-		    font-size: 80%;
+		    font-size: 75%;
 		}
 	</style>
 	
@@ -94,6 +94,7 @@
             </div>
             <div class="span8" id="help">
                 Zoom using mousewheel or touchpad scroll. Slide the whole graph like a map, or move a node. 
+                Click a node to freeze it, click again to unfreeze. 
                 Double-click a node to open its own page.
                 Processes horizontally positioned by date, width by duration.
             </div>
@@ -277,8 +278,82 @@ $(document).ready(function() {
 	
 }); // end document.ready
 
-function viewProcessGraph() {
+        var nodes = [];
+        var nodeIndex = {};
+        var edges = [];
 
+function assembleNodes(){
+
+
+        var minDate=-1, maxDate;
+        
+        
+
+        for (var i in valnet.processes()) {
+            var N = valnet.processes()[i];
+            var start = Date.parse(N.start);
+            var end = Date.parse(N.end);
+            var mid = (start + end)/2.0;
+            N.mid = mid;    
+            if (minDate == -1)
+                minDate = maxDate = mid;
+            else {
+                if (mid < minDate) minDate = mid;
+                if (mid > maxDate) maxDate = mid;
+            }               
+        }
+
+        var xScale = 4500;
+        function getX(date) {
+            var x = (maxDate!=minDate) ? xScale * (date - minDate) / (maxDate - minDate) : 0;
+            return x;
+        }
+
+        //add resource type nodes
+        for (var i in valnet.resourceTypes()) {
+            var N = valnet.resourceTypes()[i];
+            var rx = xScale * Math.random();
+            var ry = 500 * Math.random();
+
+            var width = 150;
+            var height = 100;
+
+            nodes.push( { name: N.name, color: "#bbf", width: width, height: 25, url: N.url } );
+            nodeIndex[i] = nodes.length-1;
+        }
+
+        //add process nodes
+        for (var i in valnet.processes()) {
+            var N = valnet.processes()[i];
+
+            var rx = getX(N.mid);
+
+            var ry = 100 * Math.random();
+
+            var width = Math.max(150, getX(Date.parse(N.end)) - getX(Date.parse(N.start)));
+            var height = 50;
+
+            var dates = N.start + '..' + N.end;
+            nodes.push( { name: N.name, dates: dates, color: "#bfb", width: width, height: 40, fixedX: rx, url: N.url, type: N.type } );
+            nodeIndex[i] = nodes.length-1;
+
+            for (var j = 0; j < N.next.length; j++) {
+                edges.push( { source: nodeIndex[i], target: nodeIndex[N.next[j]] } );
+            }
+        }
+
+        //add outgoing edges from resource types
+        for (var i in valnet.resourceTypes()) {
+            var N = valnet.resourceTypes()[i];              
+            for (var k = 0; k < N.next.length; k++) {
+                var nextProcess = N.next[k];
+                edges.push( { source: nodeIndex[i], target: nodeIndex[nextProcess] } );
+            }
+        }
+
+} // end assembleNodes
+
+function viewProcessGraph() {
 
 		$('#container').html('');
 		$('#content').html('');
@@ -303,140 +378,18 @@ function viewProcessGraph() {
             .attr('fill', '#000');
 
 		var force = d3.layout.force()
-			.gravity(.02)
+			.gravity(.09)
 			.linkDistance(150)
 			.linkStrength(0.1) //necessary to be < 1.0 to make sure charge (repulsion) is stronger
 			.charge(-500)
 			.size([maxWidth, maxHeight]);
 
-
-		var nodes = [];
-		var nodeIndex = {};
-		var edges = [];
-
-
-
-		var minDate=-1, maxDate;
-
-		for (var i in valnet.processes()) {
-			var N = valnet.processes()[i];
-			var start = Date.parse(N.start);
-			var end = Date.parse(N.end);
-			var mid = (start + end)/2.0;
-			N.mid = mid;	
-			if (minDate == -1)
-				minDate = maxDate = mid;
-			else {
-				if (mid < minDate) minDate = mid;
-				if (mid > maxDate) maxDate = mid;
-			}				
-		}
-
-		var xScale = 4500;
-		function getX(date) {
-			var x = (maxDate!=minDate) ? xScale * (date - minDate) / (maxDate - minDate) : 0;
-			return x;
-		}
-
-		//add resource type nodes
-		for (var i in valnet.resourceTypes()) {
-			var N = valnet.resourceTypes()[i];
-			var rx = xScale * Math.random();
-			var ry = 500 * Math.random();
-
-			var width = 150;
-			var height = 100;
-			/*var rb = new joint.shapes.basic.Rect({
-				position: { x: rx, y: ry },
-				size: { width: width, height: height },
-				attrs: { 
-					text: { text: '<a href="' + N.url + '">' + N.name + '</a>' },
-				    rect: { fill: '#bbf' },
-				}
-			});
-			graph.addCell(rb);		
-			N.cell = rb;
-			N.view = paper.findViewByModel(N.cell);
-			nodes[i] = N;*/
-
-			nodes.push( { name: N.name, color: "#bbf", width: width, height: 25, url: N.url } );
-			nodeIndex[i] = nodes.length-1;
-		}
-
-		//add process nodes
-		for (var i in valnet.processes()) {
-			var N = valnet.processes()[i];
-
-			var rx = getX(N.mid);
-
-			var ry = 100 * Math.random();
-
-			var width = Math.max(150, getX(Date.parse(N.end)) - getX(Date.parse(N.start)));
-			var height = 50;
-			/*var rb = new joint.shapes.basic.Rect({
-				position: { x: rx, y: ry },
-				size: { width: width, height: height },
-				attrs: { 
-					text: { text: N.name + '/ln' + N.start + '..' + N.end },
-				    rect: { fill: '#bfb' },
-				}			});
-			graph.addCell(rb);		
-			N.cell = rb;
-			N.view = paper.findViewByModel(N.cell);
-			nodes[i] = N;*/
-
-            var dates = N.start + '..' + N.end;
-			nodes.push( { name: N.name, dates: dates, color: "#bfb", width: width, height: 40, fixedX: rx, url: N.url, type: N.type } );
-			nodeIndex[i] = nodes.length-1;
-
-			for (var j = 0; j < N.next.length; j++) {
-				edges.push( { source: nodeIndex[i], target: nodeIndex[N.next[j]] } );
-			}
-		}
-
-		//add outgoing edges from resource types
-		for (var i in valnet.resourceTypes()) {
-			var N = valnet.resourceTypes()[i];				
-			for (var k = 0; k < N.next.length; k++) {
-				var nextProcess = N.next[k];
-				edges.push( { source: nodeIndex[i], target: nodeIndex[nextProcess] } );
-			}
-		}
-
-		for (var i = 0; i < edges.length; i++) {
-			var E = edges[i];
-
-			//var from = nodes[E[0]].cell;
-			//var to = nodes[E[1]].cell;
-
-			/*
-			var link1 = new joint.dia.Link({
-				source: { id: from.id },
-				target: { id: to.id },
-			});
-			var label = E[2];
-			if ((label) && (label.length > 0)) {
-				link1.label(0, {
-					position: .5,
-					attrs: {
-						rect: { fill: 'black' },
-						text: { fill: 'white', text: E[2] }
-					}
-				});
-			}
-			*/
-			//graph.addCell(link1);
-		}
-
+        assembleNodes();
+        
 		 force
 			  .nodes(nodes)
 			  .links(edges)
 			  .start();
-/*
-		  setTimeout(function() {
-              force.stop();
-            }, 500);
-*/
 
 	      var drag = force.drag()
     		.on("dragstart", function() {
@@ -462,7 +415,27 @@ function viewProcessGraph() {
 		        if (d3.event.defaultPrevented) return; // ignore drag
 		        window.open(d.url);
 	        });
-
+	        
+	        node.on("click", function(d) {
+                if (d3.event.defaultPrevented) return; // ignore drag
+                if (d.fixed)
+                { 
+                    d.fixed=false;
+                    d.color=d.oldColor;
+                    this.firstChild.style.fill = d.color;
+                }
+                else
+                { 
+                    d.fixed=true;
+                    d.oldColor=d.color;
+                    if (d.type == "process")
+                    { d.color="#4cfe4c"; }
+                    else
+                    { d.color="#dda0dd"; }
+                    this.firstChild.style.fill = d.color;
+                }
+            });
+            
   		  node.append("rect")
              .attr("x", function(d) { return -d.width/2; })
              .attr("y", function(d) { return -d.height/2; })
@@ -470,22 +443,6 @@ function viewProcessGraph() {
              .attr("height", function(d) { return d.height; } )
 			 .style("fill", function(d) { return d.color; });
 
-        /*
-		 var processImage = "{% static 'img/process.png' %}";
-		 var rtImage = "{% static 'img/resource.png' %}";
-
-	      node.append("image")
-		      .attr("xlink:href", function(d) { 
-		            if (d.type == "process")
-		            { return processImage}
-		            else
-		            { return rtImage}
-		        })
-		      .attr("x", -8)
-		      .attr("y", -8)
-		      .attr("width", 16)
-		      .attr("height", 16);	 
-	      */     
 
         node.append("text")
             .attr("dx", function(d) { return -d.width/2; })
@@ -504,12 +461,11 @@ function viewProcessGraph() {
             .attr("fill", "black")
             .text(function(d) {return d.dates });
 
-
 		  force.on("tick", function() {
 			node.attr("transform", function(d) { 
 				if (d.fixedX!=undefined) d.x = d.fixedX;
 				return "translate(" + d.x + "," + d.y + ")";
-        });
+            });
 
 			link.attr("x1", function(d) { return d.source.x + d.source.width/2; })
 				.attr("y1", function(d) { return d.source.y; })
@@ -518,10 +474,7 @@ function viewProcessGraph() {
 
 			force.stop();
 
-
 		  });
-
-
 
 		var scale = 1.0;
 		var dragging = false;
@@ -539,7 +492,6 @@ function viewProcessGraph() {
 			ended = true;
 		});
 
-
 		function updateSVGTransform() {
 			ssg.attr('transform', 'translate(' + tx + ',' + ty +') scale('+scale+','+scale+')');
 			if (ended) {
@@ -548,11 +500,7 @@ function viewProcessGraph() {
 				force.stop();
 			}
 		}
-/*
-        setTimeout(function() {
-          force.stop();
-        }, 50);
-*/
+
 		ss.mousewheel(function(evt){
 			var direction = evt.deltaY;
 
@@ -566,17 +514,18 @@ function viewProcessGraph() {
 			updateSVGTransform();
 		});
 
-
 		cc.mousedown(function(m) {
 			if ((m.which==1) && (!oncell)) { 
 				dragging = true;
 				startDragPoint = [m.clientX, m.clientY];
 			}		
 		});
+		
 		cc.mouseup(function(m) {
 			dragging = false;
 			lastPoint = null;
 		});
+		
 		cc.mousemove(function(m) {
 			if (m.which!=1) {
 				dragging = false;
@@ -598,7 +547,7 @@ function viewProcessGraph() {
 			}
 		});
 
-}
+} // end viewProcessGraph
 
 </script>
 

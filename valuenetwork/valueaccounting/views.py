@@ -87,6 +87,87 @@ def create_user_and_agent(request):
         agent = None
         if sa_id:
             agent = EconomicAgent.objects.get(id=sa_id)
+        if agent_form.is_valid():
+            nick = request.POST.get("nick")
+            description = request.POST.get("description")
+            url = request.POST.get("url")
+            address = request.POST.get("address")
+            email = request.POST.get("email")
+            agent_type_id = request.POST.get("agent_type")
+            errors = False
+            password1 = request.POST.get("password1")
+            password2 = request.POST.get("password2")
+            username = request.POST.get("username")
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")  or ""
+            if password1:
+                if password1 != password2:
+                    errors = True
+                if not username:
+                    errors = True
+                user_form.is_valid()
+            if not errors:
+                if agent:
+                    agent.description = description
+                    agent.url = url
+                    agent.address = address
+                    if agent_type_id:
+                        if agent.agent_type.id != agent_type_id:
+                            agent_type = AgentType.objects.get(id=agent_type_id)
+                            agent.agent_type = agent_type
+                    if not agent.email:
+                        agent.email = email
+                else:
+                    if nick and first_name:
+                        try:
+                            agent = EconomicAgent.objects.get(nick=nick)
+                            errors = True
+                        except EconomicAgent.DoesNotExist:
+                            pass
+                    else:
+                        errors = True
+                    if not errors:
+                        name = " ".join([first_name, last_name])
+                        agent_type = AgentType.objects.get(id=agent_type_id)
+                        agent = EconomicAgent(
+                            nick = nick,
+                            name = name,
+                            description = description,
+                            url = url,
+                            address = address,
+                            agent_type = agent_type,
+                        )
+                        agent.save()
+                        if user_form.is_valid():
+                            user = user_form.save(commit=False)
+                            user.first_name = request.POST.get("first_name")
+                            user.last_name = request.POST.get("last_name")
+                            user.email = request.POST.get("email")
+                            user.save()                                   
+                            au = AgentUser(
+                                agent = agent,
+                                user = user)
+                            au.save()
+                        return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
+    
+    return render_to_response("valueaccounting/create_user_and_agent.html", {
+        "user_form": user_form,
+        "agent_form": agent_form,
+        "agent_selection_form": agent_selection_form,
+    }, context_instance=RequestContext(request))
+    
+def create_user_and_agent_old(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    user_form = UserCreationForm(data=request.POST or None)
+    agent_form = AgentForm(data=request.POST or None)
+    agent_selection_form = AgentSelectionForm()
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        sa_id = request.POST.get("selected_agent")
+        agent = None
+        if sa_id:
+            agent = EconomicAgent.objects.get(id=sa_id)
         if user_form.is_valid():
             user = user_form.save(commit=False)
             user.first_name = request.POST.get("first_name")

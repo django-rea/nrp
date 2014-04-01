@@ -3651,7 +3651,7 @@ class EconomicEvent(models.Model):
         if self.unit_of_quantity:
             return self.unit_of_quantity.abbrev
         else:
-            return self.resource_type.unit_of_quantity.abbrev
+            return self.resource_type.unit.abbrev
 
     def quantity_formatted(self):
         return " ".join([

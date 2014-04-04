@@ -2534,7 +2534,7 @@ def project_stats(request, project_slug):
             agents = {}
             for ce in ces:
                 agents.setdefault(ce.agent, Decimal("0"))
-                agents[ce.agent] += ce.quantity
+                agents[ce.agent] += ce.quantity * ce.resource_type_rate
             for key, value in agents.items():
                 member_hours.append((key, value))
             member_hours.sort(lambda x, y: cmp(y[1], x[1]))
@@ -2553,7 +2553,7 @@ def project_roles(request, project_slug):
         ces = CachedEventSummary.objects.filter(project__in=subs)
         if ces.count():
             agents = {}
-            roles = [ce.resource_type.name for ce in ces]
+            roles = [ce.quantity_label() for ce in ces]
             roles = list(set(roles))
             for ce in ces:
                 if ce.quantity:
@@ -2563,8 +2563,8 @@ def project_roles(request, project_slug):
                         row.append(Decimal("0.0"))
                         key = ce.agent.name
                     agents.setdefault(key, row)
-                    idx = roles.index(ce.resource_type.name) + 1
-                    agents[key][idx] += ce.quantity
+                    idx = roles.index(ce.quantity_label()) + 1
+                    agents[key][idx] += ce.quantity * ce.resource_type_rate
             headings = ["Member",]
             headings.extend(roles)
             for row in agents.values():                

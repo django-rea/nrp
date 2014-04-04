@@ -642,6 +642,21 @@ class EconomicResourceType(models.Model):
                         return True
         return False
         
+    def is_work(self):
+        #import pdb; pdb.set_trace()
+        #todo: does this still return false positives?
+        fvs = self.facets.all()
+        for fv in fvs:
+            pfvs = fv.facet_value.patterns.filter(
+                event_type__related_to="process",
+                event_type__relationship="work")
+            if pfvs:
+                for pf in pfvs:
+                    pattern = pf.pattern
+                    if self in pattern.work_resource_types():
+                        return True
+        return False
+        
     def consuming_process_type_relationships(self):
         return self.process_types.filter(event_type__resource_effect='-')
 
@@ -3865,5 +3880,9 @@ class CachedEventSummary(models.Model):
 
     def value_formatted(self):
         return self.value.quantize(Decimal('.01'), rounding=ROUND_UP)
+        
+    def quantity_label(self):
+        #return " ".join([self.resource_type.name, self.resource_type.unit.abbrev])
+        return self.resource_type.name
 
 

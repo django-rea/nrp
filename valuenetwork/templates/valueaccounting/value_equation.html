@@ -78,6 +78,7 @@ th
 				<th>{% trans "Member" %}</th>
 				<th>{% trans "Project" %}</th>
 				<th>{% trans "Resource Type" %}</th>
+				<th>{% trans "Event Type" %}</th>
 				<th>{% trans "Rate" %}</th>
 				<th>{% trans "Hours" %}</th>
 				<th>{% trans "Reputation" %}</th>
@@ -91,6 +92,7 @@ th
 						<td>{{ event.agent }}</td>
 						<td>{{ event.project }}</td>
 						<td>{{ event.resource_type }}</td>
+						<td>{{ event.event_type.name }}</td>
 						<td style="text-align: right;" >{{ event.resource_type_rate }}</td>
 						<td style="text-align: right;" >{{ event.quantity_formatted }}</td>
 						<td style="text-align: right;" >{{ event.reputation }}</td>

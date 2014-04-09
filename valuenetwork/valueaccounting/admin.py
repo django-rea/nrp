@@ -12,6 +12,7 @@ admin.site.register(AccountingReference)
 admin.site.register(AgentResourceRoleType)
 admin.site.register(Location)
 admin.site.register(UseCaseEventType)
+admin.site.register(AgentAssociationType)
 
 
 class HelpAdmin(admin.ModelAdmin):
@@ -72,6 +73,11 @@ class EconomicAgentAdmin(admin.ModelAdmin):
     inlines = [ AgentUserInline, ]
     
 admin.site.register(EconomicAgent, EconomicAgentAdmin)
+
+class AgentAssociationAdmin(admin.ModelAdmin):
+    list_filter = ['association_type', 'state', 'from_agent', 'to_agent']
+    
+admin.site.register(AgentAssociation, AgentAssociationAdmin)
 
 class ResourceTypeFacetInline(admin.TabularInline):
     model = ResourceTypeFacetValue

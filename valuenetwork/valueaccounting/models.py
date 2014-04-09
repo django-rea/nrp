@@ -248,6 +248,8 @@ class EconomicAgent(models.Model):
     url = models.CharField(_('url'), max_length=255, blank=True)
     agent_type = models.ForeignKey(AgentType,
         verbose_name=_('agent type'), related_name='agents')
+    agent_type_old = models.ForeignKey(AgentType,
+        verbose_name=_('agent type old'), related_name='agents_old')
     description = models.TextField(_('description'), blank=True, null=True)
     address = models.CharField(_('address'), max_length=255, blank=True)
     email = models.EmailField(_('email address'), max_length=96, blank=True, null=True)
@@ -339,19 +341,34 @@ class AgentUser(models.Model):
         verbose_name=_('user'), related_name='agent')
 
 
-class AssociationType(models.Model):
+class AgentAssociationType(models.Model):
+    identifier = models.CharField(_('identifier'), max_length=12, unique=True)
     name = models.CharField(_('name'), max_length=128)
 
+    def __unicode__(self):
+        return self.name
+
+        
+RELATIONSHIP_STATE_CHOICES = (
+    ('active', _('active')),
+    ('inactive', _('inactive')),
+    ('potential', _('potential')),
+)
 
 class AgentAssociation(models.Model):
     from_agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('from'), related_name='associations_from')
     to_agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('to'), related_name='associations_to')
-    association_type = models.ForeignKey(AssociationType,
+    association_type = models.ForeignKey(AgentAssociationType,
         verbose_name=_('association type'), related_name='associations')
     description = models.TextField(_('description'), blank=True, null=True)
-
+    state = models.CharField(_('state'), 
+        max_length=12, choices=RELATIONSHIP_STATE_CHOICES,
+        default='active')
+        
+    def __unicode__(self):
+        return self.from_agent.nick + " " + self.association_type.name + " " + self.to_agent.nick
 
 DIRECTION_CHOICES = (
     ('in', _('input')),

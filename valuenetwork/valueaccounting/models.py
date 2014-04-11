@@ -285,6 +285,7 @@ class EconomicAgent(models.Model):
     def node_id(self):
         return "-".join(["Agent", str(self.id)])
 
+    #todo: project color is blue, how to distinguish, maybe by type?
     def color(self):
         return "green"
 
@@ -332,6 +333,42 @@ class EconomicAgent(models.Model):
         
     def active_processes(self):
         return [p for p in self.worked_processes() if p.finished==False]
+        
+    #from here these were copied from project - todo: fix these to work correctly using context agent relationships
+    def time_contributions(self):
+        return sum(event.quantity for event in self.events.filter(
+            is_contribution=True,
+            event_type__relationship="work"))
+ 
+    #todo: dup name - fix
+    #def contributions(self):
+    #    return sum(event.quantity for event in self.events.filter(
+    #        is_contribution=True))
+        
+    def contributions_count(self):
+        return self.events.filter(is_contribution=True).count()
+        
+    def contribution_events(self):
+        return self.events.filter(is_contribution=True)
+        
+    def contributors(self):
+        ids = self.events.filter(is_contribution=True).values_list('from_agent').order_by('from_agent').distinct()
+        id_list = [id[0] for id in ids]
+        return EconomicAgent.objects.filter(id__in=id_list)
+        
+    def with_all_sub_agents(self):
+        from valuenetwork.valueaccounting.utils import flattened_children
+        return flattened_children(self, EconomicAgent.objects.all(), [])
+        
+    def wip(self):
+        return self.processes.all()
+        
+    def get_resource_types_with_recipe(self):
+        return [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self)]
+        
+    def active_processes(self):
+        return self.processes.filter(finished=False)
+                
 
 
 class AgentUser(models.Model):
@@ -1475,7 +1512,7 @@ class Order(models.Model):
             event_type,
             unit,
             due=None):
-        #todo: needs process and project. Anything else?
+        #todo: needs process and project. Anything else? >>context agent
         #might not be worth refactoring out.
         if not due:
             due=self.due_date
@@ -1870,6 +1907,9 @@ class ProcessType(models.Model):
     project = models.ForeignKey(Project,
         blank=True, null=True,
         verbose_name=_('project'), related_name='process_types')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        verbose_name=_('context agent'), related_name='process_types')
     description = models.TextField(_('description'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     estimated_duration = models.IntegerField(_('estimated duration'), 
@@ -2201,15 +2241,18 @@ class Process(models.Model):
     project = models.ForeignKey(Project,
         blank=True, null=True,
         verbose_name=_('project'), related_name='processes')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        verbose_name=_('context agent'), related_name='processes')
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
     end_date = models.DateField(_('end date'), blank=True, null=True)
     started = models.DateField(_('started'), blank=True, null=True)
     finished = models.BooleanField(_('finished'), default=False)
-    managed_by = models.ForeignKey(EconomicAgent, related_name="managed_processes",
-        verbose_name=_('managed by'), blank=True, null=True)
-    owner = models.ForeignKey(EconomicAgent, related_name="owned_processes",
-        verbose_name=_('owner'), blank=True, null=True)
+    # managed_by = models.ForeignKey(EconomicAgent, related_name="managed_processes",
+    #     verbose_name=_('managed by'), blank=True, null=True)
+    # owner = models.ForeignKey(EconomicAgent, related_name="owned_processes",
+    #     verbose_name=_('owner'), blank=True, null=True)
     notes = models.TextField(_('notes'), blank=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='processes_created', blank=True, null=True, editable=False)
@@ -2565,6 +2608,7 @@ class Process(models.Model):
             independent_demand=demand,
             process=self,
             project=self.project,
+            context_agent=self.context_agent,
             event_type=event_type,
             resource_type=resource_type,
             quantity=quantity,
@@ -2616,6 +2660,7 @@ class Process(models.Model):
                             process_type=next_pt,
                             process_pattern=next_pt.process_pattern,
                             project=next_pt.project,
+                            context_agent=next_pt.context_agent,
                             url=next_pt.url,
                             end_date=self.start_date,
                             start_date=start_date,
@@ -2697,6 +2742,9 @@ class Exchange(models.Model):
     project = models.ForeignKey(Project,
         blank=True, null=True,
         verbose_name=_('project'), related_name='exchanges')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        verbose_name=_('context agent'), related_name='exchanges')
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
     notes = models.TextField(_('notes'), blank=True)
@@ -2993,6 +3041,9 @@ class Commitment(models.Model):
     project = models.ForeignKey(Project,
         blank=True, null=True,
         verbose_name=_('project'), related_name='commitments')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        verbose_name=_('context agent'), related_name='commitments')
     description = models.TextField(_('description'), null=True, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2)
@@ -3335,6 +3386,7 @@ class Commitment(models.Model):
                     process_type=pt,
                     process_pattern=pt.process_pattern,
                     project=pt.project,
+                    context_agent=pt.context_agent,
                     url=pt.url,
                     end_date=self.due_date,
                     start_date=start_date,
@@ -3448,16 +3500,16 @@ class SelectedOption(models.Model):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
 
 
-def update_summary(agent, project, resource_type):
+def update_summary(agent, context_agent, resource_type):
     events = EconomicEvent.objects.filter(
         from_agent=agent,
-        project=project,
+        context_agent=context_agent,
         resource_type=resource_type,
         is_contribution=True)
     total = sum(event.quantity for event in events)
     summary, created = CachedEventSummary.objects.get_or_create(
         agent=agent,
-        project=project,
+        context_agent=context_agent,
         resource_type=resource_type)
     summary.quantity = total
     if summary.quantity:
@@ -3494,6 +3546,10 @@ class EconomicEvent(models.Model):
         blank=True, null=True,
         verbose_name=_('project'), related_name='events',
         on_delete=models.SET_NULL)
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="events", verbose_name=_('context agent'),
+        on_delete=models.SET_NULL)        
     url = models.CharField(_('url'), max_length=255, blank=True)
     description = models.TextField(_('description'), null=True, blank=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2)
@@ -3548,14 +3604,17 @@ class EconomicEvent(models.Model):
         from_agt = 'Unassigned'
         agent = self.from_agent
         project = self.project
+        context_agent = self.context_agent
         resource_type = self.resource_type
         delta = self.quantity
         agent_change = False
         project_change = False
         resource_type_change = False
+        context_agent_change = False
         if self.pk:
             prev_agent = self.from_agent
             prev_project = self.project
+            prev_context_agent = self.context_agent
             prev_resource_type = self.resource_type
             prev = EconomicEvent.objects.get(pk=self.pk)
             if prev.quantity != self.quantity:
@@ -3566,6 +3625,9 @@ class EconomicEvent(models.Model):
             if prev.project != self.project:
                 project_change = True
                 prev_project = prev.project 
+            if prev.context_agent != self.context_agent:
+                context_agent_change = True
+                prev_context_agent = prev.context_agent 
             if prev.resource_type != self.resource_type:
                 resource_type_change = True
                 prev_resource_type = prev.resource_type
@@ -3596,21 +3658,22 @@ class EconomicEvent(models.Model):
         ])
         unique_slugify(self, slug)
         super(EconomicEvent, self).save(*args, **kwargs)
-        update_summary(agent, project, resource_type)
-        if agent_change or project_change or resource_type_change:
-            update_summary(prev_agent, prev_project, prev_resource_type)
+        update_summary(agent, context_agent, resource_type)
+        if agent_change or project_change or resource_type_change or context_agent_change:
+            update_summary(prev_agent, prev_context_agent, prev_resource_type)
 
     def delete(self, *args, **kwargs):
         if self.event_type.relationship == "work":
             if self.is_contribution:
                 agent = self.from_agent
                 project = self.project
+                context_agent = self.context_agent
                 resource_type = self.resource_type
-                if agent and project and resource_type:
+                if agent and context_agent and resource_type:
                     try:
                         summary = CachedEventSummary.objects.get(
                             agent=agent,
-                            project=project,
+                            context_agent=context_agent,
                             resource_type=resource_type)
                         summary.quantity -= self.quantity
                         if summary.quantity:
@@ -3761,9 +3824,9 @@ class Compensation(models.Model):
 
 
 class EventSummary(object):
-    def __init__(self, agent, project, resource_type, quantity, value=Decimal('0.0')):
+    def __init__(self, agent, context_agent, resource_type, quantity, value=Decimal('0.0')):
         self.agent = agent
-        self.project = project
+        self.context_agent = context_agent
         self.resource_type = resource_type
         self.quantity = quantity
         self.value=value
@@ -3783,6 +3846,9 @@ class CachedEventSummary(models.Model):
     project = models.ForeignKey(Project,
         blank=True, null=True,
         verbose_name=_('project'), related_name='cached_events')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        verbose_name=_('context agent'), related_name='context_cached_events')
     resource_type = models.ForeignKey(EconomicResourceType,
         blank=True, null=True,
         verbose_name=_('resource type'), related_name='cached_events')
@@ -3796,7 +3862,7 @@ class CachedEventSummary(models.Model):
         default=Decimal("0.0"))
 
     class Meta:
-        ordering = ('agent', 'project', 'resource_type')
+        ordering = ('agent', 'context_agent', 'resource_type')
 
     def __unicode__(self):
         agent_name = "Unknown"
@@ -3805,38 +3871,41 @@ class CachedEventSummary(models.Model):
         project_name = "Unknown"
         if self.project:
             project_name = self.project.name
+        context_agent_name = "Unknown"
+        if self.context_agent:
+            context_agent_name = self.context_agent.name
         resource_type_name = "Unknown"
         if self.resource_type:
             resource_type_name = self.resource_type.name
         return ' '.join([
             'Agent:',
             agent_name,
-            'Project:',
-            project_name,
+            'Context:',
+            context_agent_name,
             'Resource Type:',
             resource_type_name,
         ])
 
     @classmethod
-    def summarize_events(cls, project):
+    def summarize_events(cls, context_agent):
         #import pdb; pdb.set_trace()
         #todo: this code is obsolete, we don't want to roll up sub-projects anymore
-        all_subs = project.with_all_sub_projects()
-        event_list = EconomicEvent.objects.filter(project__in=all_subs)
+        all_subs = context_agent.with_all_sub_agents()
+        event_list = EconomicEvent.objects.filter(context_agent__in=all_subs)
         summaries = {}
         for event in event_list:
-            key = "-".join([str(event.from_agent.id), str(event.project.id), str(event.resource_type.id)])
+            key = "-".join([str(event.from_agent.id), str(event.context_agent.id), str(event.resource_type.id)])
             if not key in summaries:
-                summaries[key] = EventSummary(event.from_agent, event.project, event.resource_type, Decimal('0.0'))
+                summaries[key] = EventSummary(event.from_agent, event.context_agent, event.resource_type, Decimal('0.0'))
             summaries[key].quantity += event.quantity
         summaries = summaries.values()
         for summary in summaries:
             ces = cls(
                 agent=summary.agent,
-                project=summary.project,
+                context_agent=summary.context_agent,
                 resource_type=summary.resource_type,
                 resource_type_rate=summary.resource_type.rate,
-                importance=summary.project.importance,
+                #importance=summary.project.importance, >>>>>>>>>>>>>>>>>todo: need this in agent?
                 quantity=summary.quantity,
             )
             ces.save()
@@ -3850,16 +3919,16 @@ class CachedEventSummary(models.Model):
         event_list = EconomicEvent.objects.filter(is_contribution="true")
         summaries = {}
         #todo: very temporary hack
-        project = Project.objects.get(name="Not defined")
+        context_agent = EconomicAgent.objects.get(name="Not defined")
         for event in event_list:
             #todo: very temporary hack
-            if not event.project:
-                event.project=project
+            if not event.context_agent:
+                event.context_agent=context_agent
                 event.save()
             try:
-                key = "-".join([str(event.from_agent.id), str(event.project.id), str(event.resource_type.id)])
+                key = "-".join([str(event.from_agent.id), str(event.context_agent.id), str(event.resource_type.id)])
                 if not key in summaries:
-                    summaries[key] = EventSummary(event.from_agent, event.project, event.resource_type, Decimal('0.0'))
+                    summaries[key] = EventSummary(event.from_agent, event.context_agent, event.resource_type, Decimal('0.0'))
                 summaries[key].quantity += event.quantity
             except AttributeError:
                 #todo: the event errors shd be fixed
@@ -3868,10 +3937,10 @@ class CachedEventSummary(models.Model):
         for summary in summaries:
             ces = cls(
                 agent=summary.agent,
-                project=summary.project,
+                context_agent=summary.context_agent,
                 resource_type=summary.resource_type,
                 resource_type_rate=summary.resource_type.rate,
-                importance=summary.project.importance,
+                #importance=summary.project.importance,
                 quantity=summary.quantity,
             )
             ces.save()

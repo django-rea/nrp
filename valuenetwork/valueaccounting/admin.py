@@ -28,7 +28,7 @@ class EconomicEventInline(admin.TabularInline):
 
 class ExchangeAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
-    list_display = ('id', 'use_case', 'project')
+    list_display = ('id', 'use_case', 'context_agent')
     inlines = [ EconomicEventInline, ]
 
 admin.site.register(Exchange, ExchangeAdmin)
@@ -112,8 +112,8 @@ class ProcessTypeResourceTypeInline(admin.TabularInline):
 
 
 class ProcessTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'project' )
-    list_filter = ['project',]
+    list_display = ('name', 'context_agent' )
+    list_filter = ['context_agent',]
     search_fields = ['name',]
     inlines = [ ProcessTypeResourceTypeInline, ]
 
@@ -162,9 +162,9 @@ admin.site.register(Order, OrderAdmin)
 
 class ProcessAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
-    list_display = ('name', 'start_date', 'end_date', 'finished', 'process_type', 'project', 'owner', 'managed_by')
-    list_filter = ['process_type', 'finished', 'owner', 'managed_by']
-    search_fields = ['name', 'process_type__name', 'owner__name', 'managed_by__name']
+    list_display = ('name', 'start_date', 'end_date', 'finished', 'process_type', 'context_agent')
+    list_filter = ['process_type', 'finished', 'context_agent']
+    search_fields = ['name', 'process_type__name', 'context_agent__name']
     inlines = [ CommitmentInline, ]
     
 admin.site.register(Process, ProcessAdmin)
@@ -179,9 +179,9 @@ admin.site.register(Project, ProjectAdmin)
 
 class CommitmentAdmin(admin.ModelAdmin):
     date_hierarchy = 'due_date'
-    list_display = ('resource_type', 'quantity', 'unit_of_quantity', 'event_type', 'due_date', 'finished', 'from_agent', 'process', 'project', 'order', 'independent_demand',  
+    list_display = ('resource_type', 'quantity', 'unit_of_quantity', 'event_type', 'due_date', 'finished', 'from_agent', 'to_agent', 'process', 'context_agent', 'order', 'independent_demand',  
         'description')
-    list_filter = ['independent_demand', 'event_type', 'resource_type', 'from_agent', 'project']
+    list_filter = ['independent_demand', 'event_type', 'resource_type', 'from_agent', 'context_agent']
     search_fields = ['event_type__name', 'from_agent__name', 'to_agent__name', 'resource_type__name']
     
 admin.site.register(Commitment, CommitmentAdmin)
@@ -189,11 +189,11 @@ admin.site.register(Commitment, CommitmentAdmin)
 
 class EconomicEventAdmin(admin.ModelAdmin):
     date_hierarchy = 'event_date'
-    list_display = ('event_type', 'event_date', 'from_agent', 'project', 
+    list_display = ('event_type', 'event_date', 'from_agent', 'to_agent', 'context_agent', 'process', 'exchange',
         'resource_type', 'resource', 'quantity', 'unit_of_quantity', 'description', 'url', 'quality')
-    list_filter = ['event_type', 'project', 'resource_type', 'from_agent', ]
+    list_filter = ['event_type', 'context_agent', 'resource_type', 'from_agent', ]
     search_fields = ['event_type__name', 'from_agent__name', 'to_agent__name', 'resource_type__name']
-    list_editable = ['event_date', 'project']
+    list_editable = ['event_date', 'context_agent']
     
 admin.site.register(EconomicEvent, EconomicEventAdmin)
 

@@ -2441,6 +2441,7 @@ def agent_stats(request, agent_id):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
+#todo: the next 2 methods will need to be changed from project to context_agent
 def project_stats(request, project_slug):
     project = None
     member_hours = []

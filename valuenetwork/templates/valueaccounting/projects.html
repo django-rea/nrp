@@ -77,9 +77,9 @@
 					    <div class="description" >{{ root.description|urlize|linebreaks }}</div>
 					{% endif %}
 				</li>
-				{% if root.sub_projects.all %}
+				{% if root.children %}
 					<ul>
-						{% for kid in root.sub_projects.all %}
+						{% for kid in root.children %}
 							<li>
 								<b>{{ kid }}</b> 
 								<a href="{% url contributions project_id=kid.id %}">{% trans "Contributions" %}: {{ kid.contributions_count }}</a>
@@ -91,9 +91,9 @@
 					                <div class="description" >{{ kid.description|urlize|linebreaks }}</div>
 					            {% endif %}
 					        </li>
-							{% if kid.sub_projects.all %}
+							{% if kid.children %}
 								<ul>
-									{% for grandkid in kid.sub_projects.all %}
+									{% for grandkid in kid.children %}
 										<li>
 											<b>{{ grandkid }}</b> 
 											<a href="{% url contributions project_id=grandkid.id %}">{% trans "Contributions" %}: {{ grandkid.contributions_count }}</a>

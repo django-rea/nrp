@@ -89,7 +89,7 @@ th
 				{% for event in events %}
 					<tr class="{% cycle 'odd' 'even' %}">
 						<td>{{ event.agent }}</td>
-						<td>{{ event.project }}</td>
+						<td>{{ event.context_agent }}</td>
 						<td>{{ event.resource_type }}</td>
 						<td style="text-align: right;" >{{ event.resource_type_rate }}</td>
 						<td style="text-align: right;" >{{ event.quantity_formatted }}</td>

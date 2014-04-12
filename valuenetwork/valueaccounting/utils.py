@@ -28,6 +28,13 @@ def flattened_children(node, all_nodes, to_return):
          if subnode.parent and subnode.parent.id == node.id:
              flattened_children(subnode, all_nodes, to_return)
      return to_return
+     
+def flattened_children_by_association(node, all_associations, to_return): #works only for agents
+    to_return.append(node)
+    for association in all_associations:
+        if association.to_agent.id == node.id and association.association_type.identifier == "child":
+            flattened_children_by_association(association.from_agent, all_associations, to_return)
+    return to_return
 
 class Edge(object):
     def __init__(self, from_node, to_node, label):

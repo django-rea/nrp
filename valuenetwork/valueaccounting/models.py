@@ -285,9 +285,11 @@ class EconomicAgent(models.Model):
     def node_id(self):
         return "-".join(["Agent", str(self.id)])
 
-    #todo: project color is blue, how to distinguish, maybe by type?
-    def color(self):
-        return "green"
+    def color(self): #todo: not tested
+        if self.agent_type.party_type == "project":
+            return "blue"
+        else:
+            return "green"
 
     def produced_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='out')
@@ -334,16 +336,15 @@ class EconomicAgent(models.Model):
     def active_processes(self):
         return [p for p in self.worked_processes() if p.finished==False]
         
-    #from here these were copied from project - todo: fix these to work correctly using context agent relationships
+    #from here these were copied from project - todo: fix these to work correctly using context agent relationships (initial fix done, no testing done)
     def time_contributions(self):
         return sum(event.quantity for event in self.events.filter(
             is_contribution=True,
             event_type__relationship="work"))
  
-    #todo: dup name - fix
-    #def contributions(self):
-    #    return sum(event.quantity for event in self.events.filter(
-    #        is_contribution=True))
+    def context_contributions(self):
+        return sum(event.quantity for event in self.events.filter(
+            is_contribution=True))
         
     def contributions_count(self):
         return self.events.filter(is_contribution=True).count()
@@ -358,7 +359,8 @@ class EconomicAgent(models.Model):
         
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children
-        return flattened_children(self, EconomicAgent.objects.all(), [])
+        #return flattened_children(self, EconomicAgent.objects.all(), [])
+        return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
         
     def wip(self):
         return self.processes.all()

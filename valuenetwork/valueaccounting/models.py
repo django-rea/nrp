@@ -262,6 +262,7 @@ class EconomicAgent(models.Model):
     agent_type = models.ForeignKey(AgentType,
         verbose_name=_('agent type'), related_name='agents')
     agent_type_old = models.ForeignKey(AgentType,
+        blank=True, null=True, default=1,
         verbose_name=_('agent type old'), related_name='agents_old')
     description = models.TextField(_('description'), blank=True, null=True)
     address = models.CharField(_('address'), max_length=255, blank=True)
@@ -3552,8 +3553,7 @@ def update_summary(agent, context_agent, resource_type):
     if summary.quantity:
         summary.save() 
     else:
-        if not created:
-            summary.delete()
+        summary.delete()
 
 
 class EconomicEvent(models.Model):
@@ -3696,7 +3696,7 @@ class EconomicEvent(models.Model):
         unique_slugify(self, slug)
         super(EconomicEvent, self).save(*args, **kwargs)
         update_summary(agent, context_agent, resource_type)
-        if agent_change or project_change or resource_type_change or context_agent_change:
+        if agent_change or resource_type_change or context_agent_change:
             update_summary(prev_agent, prev_context_agent, prev_resource_type)
 
     def delete(self, *args, **kwargs):

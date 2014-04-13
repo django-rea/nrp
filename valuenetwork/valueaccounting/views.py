@@ -2542,7 +2542,7 @@ def commit_to_task(request, commitment_id):
             ct.unit_of_quantity=unit_of_quantity
             ct.description=description
             ct.from_agent = agent
-            ct.created_by=request.user
+            ct.changed_by=request.user
             ct.save()
             #todo: commented out for now
             #might need more logic so it doesn't needlessly 
@@ -3017,6 +3017,7 @@ def add_unplanned_output(request, process_id):
                 event.event_type = event_type
                 event.process = process
                 event.project = process.project
+                event.context_agent = process.context_agent
                 event.event_date = datetime.date.today()
                 event.created_by = request.user
                 event.save()
@@ -3249,7 +3250,7 @@ def add_process_input(request, process_id, slot):
                 event_type = pattern.event_type_for_resource_type(rel, rt)
                 ct.event_type = event_type
                 ct.process = process
-                ct.project = project
+                ct.project = process.project
                 ct.context_agent=process.context_agent
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
@@ -4170,6 +4171,7 @@ def add_unplanned_cite_event(request, process_id):
                 from_agent = agent,
                 process = process,
                 project = process.project,
+                context_agent = process.context_agent,
                 event_date = datetime.date.today(),
                 quantity=Decimal("1"),
                 unit_of_quantity = rt.unit,
@@ -4217,6 +4219,7 @@ def add_unplanned_input_event(request, process_id, slot):
                 from_agent = agent,
                 process = process,
                 project = process.project,
+                context_agent = process.context_agent,
                 event_date = event_date,
                 quantity=qty,
                 unit_of_quantity = unit,
@@ -4326,6 +4329,7 @@ def add_unplanned_work_event(request, process_id):
             event.event_type = pattern.event_type_for_resource_type("work", rt)
             event.process = process
             event.project = process.project
+            event.context_agent = process.context_agent
             event.unit_of_quantity = rt.unit
             event.created_by = request.user
             event.changed_by = request.user
@@ -4377,6 +4381,7 @@ def add_use_event(request, commitment_id, resource_id):
         event.resource = resource
         event.process = ct.process
         event.project = ct.project
+        event.context_agent = ct.context_agent
         event.unit_of_quantity = unit
         event.created_by = request.user
         event.changed_by = request.user
@@ -4400,6 +4405,7 @@ def add_consumption_event(request, commitment_id, resource_id):
         event.resource = resource
         event.process = ct.process
         event.project = ct.project
+        event.context_agent = ct.context_agent
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
@@ -4426,6 +4432,7 @@ def log_citation(request, commitment_id, resource_id):
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,
+            context_agent = ct.context_agent,
             quantity = Decimal("1"),
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,

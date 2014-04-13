@@ -192,7 +192,7 @@ SIZE_CHOICES = (
     ('individual', _('individual')),
     ('org', _('organization')),
     ('network', _('network')),
-    ('team', _('project team')),
+    ('team', _('project')),
     ('community', _('community')),
 )
 
@@ -239,8 +239,21 @@ class AgentManager(models.Manager):
                 ua_ids.append(agent.id)
         return EconomicAgent.objects.exclude(id__in=ua_ids)
 
+    #todo: this won't work any more but I don't see where it is used.... but it blows up without it
     def active_contributors(self):
         return EconomicAgent.objects.filter(agent_type__member_type="active")
+     
+    def projects(self):
+        return EconomicAgent.objects.filter(agent_type__party_type="team")
+    
+    def individuals(self):
+        return EconomicAgent.objects.filter(agent_type__party_type="individual")
+        
+    def organizations(self):
+        return EconomicAgent.objects.filter(agent_type__party_type="org")
+
+    def networks(self):
+        return EconomicAgent.objects.filter(agent_type__party_type="network")
 
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
@@ -359,7 +372,7 @@ class EconomicAgent(models.Model):
         return EconomicAgent.objects.filter(id__in=id_list)
         
     def with_all_sub_agents(self):
-        from valuenetwork.valueaccounting.utils import flattened_children
+        from valuenetwork.valueaccounting.utils import flattened_children_by_association
         #return flattened_children(self, EconomicAgent.objects.all(), [])
         return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
         
@@ -371,7 +384,29 @@ class EconomicAgent(models.Model):
         
     def active_processes(self):
         return self.processes.filter(finished=False)
-                
+
+    def parent(self):
+        #assume only one parent
+        associations = self.associations_from.filter(association_type__identifier="child")
+        parent = None
+        if associations.count() > 0:
+            parent = associations[0].to_agent
+        return parent
+        
+    def children(self):
+        associations = self.associations_to.filter(association_type__identifier="child")
+        children = None
+        if associations.count() > 0:
+            children = []
+            for association in associations:
+                children.append(association.from_agent)
+        return children
+        
+    def is_root(self):
+        if self.parent():
+            return False
+        else:
+            return True
 
 
 class AgentUser(models.Model):
@@ -3734,7 +3769,7 @@ class EconomicEvent(models.Model):
         if self.unit_of_quantity:
             return self.unit_of_quantity.abbrev
         else:
-            return self.resource_type.unit_of_quantity.abbrev
+            return self.resource_type.unit.abbrev
 
     def quantity_formatted(self):
         return " ".join([

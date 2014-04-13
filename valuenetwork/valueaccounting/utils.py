@@ -30,6 +30,7 @@ def flattened_children(node, all_nodes, to_return):
      return to_return
      
 def flattened_children_by_association(node, all_associations, to_return): #works only for agents
+    #import pdb; pdb.set_trace()
     to_return.append(node)
     for association in all_associations:
         if association.to_agent.id == node.id and association.association_type.identifier == "child":

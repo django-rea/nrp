@@ -147,7 +147,13 @@ def create_user_and_agent(request):
     }, context_instance=RequestContext(request))
 
 def projects(request):
-    roots = Project.objects.filter(parent=None)
+    #import pdb; pdb.set_trace()
+    #roots = EconomicAgent.objects.filter(parent=None)
+    projects = EconomicAgent.objects.projects()
+    roots = []
+    for project in projects:
+        if project.is_root():
+            roots.append(project)
     agent = get_agent(request)
     project_create_form = ProjectForm()
     
@@ -604,7 +610,7 @@ def all_contributions(request):
 
 def contributions(request, project_id):
     #import pdb; pdb.set_trace()
-    project = get_object_or_404(Project, pk=project_id)
+    project = get_object_or_404(EconomicAgent, pk=project_id)
     event_list = project.contribution_events()
     paginator = Paginator(event_list, 25)
 
@@ -625,7 +631,7 @@ def contributions(request, project_id):
 
 def project_wip(request, project_id):
     #import pdb; pdb.set_trace()
-    project = get_object_or_404(Project, pk=project_id)
+    project = get_object_or_404(EconomicAgent, pk=project_id)
     process_list = project.wip()
     paginator = Paginator(process_list, 25)
 
@@ -859,10 +865,11 @@ class AgentSummary(object):
 
 
 def value_equation(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)    
-    all_subs = project.with_all_sub_projects()
+    #import pdb; pdb.set_trace()
+    project = get_object_or_404(EconomicAgent, pk=project_id)    
+    all_subs = project.with_all_sub_agents()
     summaries = CachedEventSummary.objects.select_related(
-        'agent', 'project', 'resource_type').filter(project__in=all_subs).order_by(
+        'agent', 'context_agent', 'resource_type').filter(project__in=all_subs).order_by(
         'agent__name', 'project__name', 'resource_type__name')
     total = 0
     agent_totals = []

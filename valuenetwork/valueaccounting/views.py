@@ -147,9 +147,9 @@ def create_user_and_agent(request):
     }, context_instance=RequestContext(request))
 
 def projects(request):
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     #roots = EconomicAgent.objects.filter(parent=None)
-    projects = EconomicAgent.objects.projects()
+    projects = EconomicAgent.objects.projects_and_networks()
     roots = []
     for project in projects:
         if project.is_root():
@@ -7180,7 +7180,8 @@ def exchange_logging(request, exchange_id):
 def create_exchange(request, use_case_identifier):
     #import pdb; pdb.set_trace()
     use_case = get_object_or_404(UseCase, identifier=use_case_identifier)
-    exchange_form = ExchangeForm(use_case, data=request.POST or None)
+    context_agent = EconomicAgent.objects.get(name="SENSORICA") #temp
+    exchange_form = ExchangeForm(use_case, context_agent, data=request.POST or None)
     if request.method == "POST":
         if exchange_form.is_valid():
             exchange = exchange_form.save(commit=False)

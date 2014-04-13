@@ -865,12 +865,12 @@ class AgentSummary(object):
 
 
 def value_equation(request, project_id):
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     project = get_object_or_404(EconomicAgent, pk=project_id)    
     all_subs = project.with_all_sub_agents()
     summaries = CachedEventSummary.objects.select_related(
-        'agent', 'context_agent', 'resource_type').filter(project__in=all_subs).order_by(
-        'agent__name', 'project__name', 'resource_type__name')
+        'agent', 'context_agent', 'resource_type').filter(context_agent__in=all_subs).order_by(
+        'agent__name', 'context_agent__name', 'resource_type__name')
     total = 0
     agent_totals = []
     init = {"equation": "( hours * ( rate + importance + reputation ) ) + seniority"}

@@ -434,7 +434,15 @@ class EconomicAgent(models.Model):
                 return xs[0]
             parent = parent.parent()
         return None
-
+ 
+    def all_suppliers(self):
+        sups = list(self.suppliers())
+        parent = self.parent()
+        while parent:
+            sups.extend(parent.suppliers())
+            parent = parent.parent()
+        return sups
+        
         
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,

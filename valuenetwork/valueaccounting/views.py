@@ -147,7 +147,7 @@ def create_user_and_agent(request):
     }, context_instance=RequestContext(request))
 
 def projects(request):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     #roots = EconomicAgent.objects.filter(parent=None)
     projects = EconomicAgent.objects.projects_and_networks()
     roots = []

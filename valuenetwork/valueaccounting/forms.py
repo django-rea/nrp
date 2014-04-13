@@ -1828,8 +1828,8 @@ class ExchangeForm(forms.ModelForm):
         empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
-    project = forms.ModelChoiceField(
-        queryset=Project.objects.all(), 
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.projects_and_networks(), #todo: probably need a code to say which can be context agents
         label=_("Project"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
@@ -1837,7 +1837,7 @@ class ExchangeForm(forms.ModelForm):
         label=_("Date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     supplier = forms.ModelChoiceField(required=False,
-        queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
+        queryset=EconomicAgent.objects.none(),
         label="Supplier",  
         help_text="This is a supplier external to the network.  It is used as a default for individual events in this contribution.",
         widget=forms.Select(
@@ -1851,10 +1851,11 @@ class ExchangeForm(forms.ModelForm):
 
     class Meta:
         model = Exchange
-        fields = ('process_pattern', 'project', 'supplier', 'start_date', 'url', 'notes')
+        fields = ('process_pattern', 'context_agent', 'supplier', 'start_date', 'url', 'notes')
 
-    def __init__(self, use_case, *args, **kwargs):
+    def __init__(self, use_case, context_agent, *args, **kwargs):
         super(ExchangeForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
+        self.fields["supplier"].queryset = context_agent.suppliers()
 
 

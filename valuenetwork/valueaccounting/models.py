@@ -239,7 +239,7 @@ class AgentManager(models.Manager):
                 ua_ids.append(agent.id)
         return EconomicAgent.objects.exclude(id__in=ua_ids)
 
-    #todo: this won't work any more but I don't see where it is used.... but it blows up without it
+    #todo: this won't work any more and I don't see where it is used.... but it blows up without it
     def active_contributors(self):
         return EconomicAgent.objects.filter(agent_type__member_type="active")
      
@@ -254,6 +254,9 @@ class AgentManager(models.Manager):
 
     def networks(self):
         return EconomicAgent.objects.filter(agent_type__party_type="network")
+    
+    def projects_and_networks(self):
+        return EconomicAgent.objects.filter(Q(agent_type__party_type="network") | Q(agent_type__party_type="team"))
 
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
@@ -350,7 +353,7 @@ class EconomicAgent(models.Model):
     def active_processes(self):
         return [p for p in self.worked_processes() if p.finished==False]
         
-    #from here these were copied from project - todo: fix these to work correctly using context agent relationships (initial fix done, no testing done)
+    #from here these were copied from project - todo: fix these to work correctly using context agent relationships (these are in various stages of fix and test)
     def time_contributions(self):
         return sum(event.quantity for event in self.events.filter(
             is_contribution=True,
@@ -384,17 +387,19 @@ class EconomicAgent(models.Model):
         
     def active_processes(self):
         return self.processes.filter(finished=False)
-
+        
+    #from here are new methods for context agent code
     def parent(self):
-        #assume only one parent
-        associations = self.associations_from.filter(association_type__identifier="child")
+        #assumes only one parent
+        #import pdb; pdb.set_trace()
+        associations = self.associations_from.filter(association_type__identifier="child").filter(state="active")
         parent = None
         if associations.count() > 0:
             parent = associations[0].to_agent
         return parent
         
-    def children(self):
-        associations = self.associations_to.filter(association_type__identifier="child")
+    def children(self): #returns a list or None
+        associations = self.associations_to.filter(association_type__identifier="child").filter(state="active")
         children = None
         if associations.count() > 0:
             children = []
@@ -407,8 +412,13 @@ class EconomicAgent(models.Model):
             return False
         else:
             return True
+            
+    def suppliers(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.associations_to.filter(association_type__identifier="supplier").filter(state="active").values_list('from_agent')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
 
-
+        
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='users')

@@ -4038,7 +4038,7 @@ class CachedEventSummary(models.Model):
             try:
                 key = "-".join([str(event.from_agent.id), str(event.context_agent.id), str(event.resource_type.id), str(event.event_type.id)])
                 if not key in summaries:
-                    summaries[key] = EventSummary(event.from_agent, event.context_agent, event.resource_type, event_type=event.event_type, Decimal('0.0'))
+                    summaries[key] = EventSummary(event.from_agent, event.context_agent, event.resource_type, event.event_type, Decimal('0.0'))
                 key = "-".join([
                     str(event.from_agent.id), 
                     str(event.project.id), 

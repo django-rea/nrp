@@ -418,7 +418,32 @@ class EconomicAgent(models.Model):
         #import pdb; pdb.set_trace()
         agent_ids = self.associations_to.filter(association_type__identifier="supplier").filter(state="active").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
-
+        
+    def exchange_firms(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.associations_to.filter(association_type__identifier="legal").filter(state="active").values_list('from_agent')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def exchange_firm(self):
+        xs = self.exchange_firms()
+        if xs:
+            return xs[0]
+        parent = self.parent()
+        while parent:
+            xs = parent.exchange_firms()
+            if xs:
+                return xs[0]
+            parent = parent.parent()
+        return None
+ 
+    def all_suppliers(self):
+        sups = list(self.suppliers())
+        parent = self.parent()
+        while parent:
+            sups.extend(parent.suppliers())
+            parent = parent.parent()
+        return sups
+        
         
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,

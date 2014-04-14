@@ -2577,7 +2577,7 @@ def commit_to_task(request, commitment_id):
             ct.unit_of_quantity=unit_of_quantity
             ct.description=description
             ct.from_agent = agent
-            ct.created_by=request.user
+            ct.changed_by=request.user
             ct.save()
             #todo: commented out for now
             #might need more logic so it doesn't needlessly 
@@ -2991,6 +2991,7 @@ def add_process_output(request, process_id):
                 ct.event_type = event_type
                 ct.process = process
                 ct.project = process.project
+                ct.context_agent = process.context_agent
                 ct.independent_demand = process.independent_demand()
                 ct.due_date = process.end_date
                 ct.created_by = request.user
@@ -3051,6 +3052,7 @@ def add_unplanned_output(request, process_id):
                 event.event_type = event_type
                 event.process = process
                 event.project = process.project
+                event.context_agent = process.context_agent
                 event.event_date = datetime.date.today()
                 event.created_by = request.user
                 event.save()
@@ -3283,6 +3285,8 @@ def add_process_input(request, process_id, slot):
                 event_type = pattern.event_type_for_resource_type(rel, rt)
                 ct.event_type = event_type
                 ct.process = process
+                ct.project = process.project
+                ct.context_agent=process.context_agent
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
@@ -3290,7 +3294,7 @@ def add_process_input(request, process_id, slot):
                 if ptrt:
                     ct.project = ptrt.process_type.project
                 ct.save()
-                #todo: this is used in labnotes; shd it explode?
+                #todo: this is used in process logging; shd it explode?
                 #explode_dependent_demands(ct, request.user)                
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -3319,6 +3323,7 @@ def add_process_citation(request, process_id):
                 due_date=process.start_date,
                 resource_type=rt,
                 project=process.project,
+                context_agent=process.context_agent,
                 quantity=quantity,
                 description=descrip,
                 unit_of_quantity=rt.directional_unit("cite"),
@@ -3702,6 +3707,7 @@ def create_worknow_context(
         from_agent=agent,
         process=process,
         project=process.project,
+        context_agent=process.context_agent,
         quantity=Decimal("0"),
         is_contribution=True,
         created_by = request.user,
@@ -4200,6 +4206,7 @@ def add_unplanned_cite_event(request, process_id):
                 from_agent = agent,
                 process = process,
                 project = process.project,
+                context_agent = process.context_agent,
                 event_date = datetime.date.today(),
                 quantity=Decimal("1"),
                 unit_of_quantity = rt.unit,
@@ -4247,6 +4254,7 @@ def add_unplanned_input_event(request, process_id, slot):
                 from_agent = agent,
                 process = process,
                 project = process.project,
+                context_agent = process.context_agent,
                 event_date = event_date,
                 quantity=qty,
                 unit_of_quantity = unit,
@@ -4278,6 +4286,7 @@ def log_resource_for_commitment(request, commitment_id):
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,
+            context_agent = ct.context_agent,
             quantity = resource.quantity,
             unit_of_quantity = ct.unit_of_quantity,
             #quality = resource.quality,
@@ -4334,6 +4343,7 @@ def add_work_event(request, commitment_id):
         event.resource_type = ct.resource_type
         event.process = ct.process
         event.project = ct.project
+        event.context_agent=ct.context_agent
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
@@ -4354,6 +4364,7 @@ def add_unplanned_work_event(request, process_id):
             event.event_type = pattern.event_type_for_resource_type("work", rt)
             event.process = process
             event.project = process.project
+            event.context_agent = process.context_agent
             event.unit_of_quantity = rt.unit
             event.created_by = request.user
             event.changed_by = request.user
@@ -4405,6 +4416,7 @@ def add_use_event(request, commitment_id, resource_id):
         event.resource = resource
         event.process = ct.process
         event.project = ct.project
+        event.context_agent = ct.context_agent
         event.unit_of_quantity = unit
         event.created_by = request.user
         event.changed_by = request.user
@@ -4428,6 +4440,7 @@ def add_consumption_event(request, commitment_id, resource_id):
         event.resource = resource
         event.process = ct.process
         event.project = ct.project
+        event.context_agent = ct.context_agent
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
@@ -4454,6 +4467,7 @@ def log_citation(request, commitment_id, resource_id):
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,
+            context_agent = ct.context_agent,
             quantity = Decimal("1"),
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,
@@ -4948,6 +4962,7 @@ def time_use_event_for_commitment(request):
     events = ct.fulfillment_events.filter(resource=resource)
     if not event_date:
         event_date = datetime.date.today()
+    #todo: is this correct?
     if events:
         event = events[events.count() - 1]
     if event:
@@ -4976,6 +4991,7 @@ def time_use_event_for_commitment(request):
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,
+            context_agent = ct.context_agent,
             quantity = quantity,
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,

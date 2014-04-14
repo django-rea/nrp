@@ -14,18 +14,69 @@ class Migration(SchemaMigration):
         # Adding model 'AgentAssociationType'
         db.create_table('valueaccounting_agentassociationtype', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('identifier', self.gf('django.db.models.fields.CharField')(unique=True, max_length=12)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
+            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('label', self.gf('django.db.models.fields.CharField')(max_length=32, null=True)),
+            ('inverse_label', self.gf('django.db.models.fields.CharField')(max_length=40, null=True)),
+            ('is_context', self.gf('django.db.models.fields.BooleanField')(default=True)),
         ))
         db.send_create_signal('valueaccounting', ['AgentAssociationType'])
 
-        # Adding field 'AgentAssociation.is_active'
-        db.add_column('valueaccounting_agentassociation', 'is_active',
-                      self.gf('django.db.models.fields.BooleanField')(default=True),
+        # Adding field 'AgentAssociation.state'
+        db.add_column('valueaccounting_agentassociation', 'state',
+                      self.gf('django.db.models.fields.CharField')(default='active', max_length=12),
                       keep_default=False)
 
 
         # Changing field 'AgentAssociation.association_type'
         db.alter_column('valueaccounting_agentassociation', 'association_type_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['valueaccounting.AgentAssociationType']))
+        # Deleting field 'Process.owner'
+        db.delete_column('valueaccounting_process', 'owner_id')
+
+        # Deleting field 'Process.managed_by'
+        db.delete_column('valueaccounting_process', 'managed_by_id')
+
+        # Adding field 'Process.context_agent'
+        db.add_column('valueaccounting_process', 'context_agent',
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='processes', null=True, to=orm['valueaccounting.EconomicAgent']),
+                      keep_default=False)
+
+        # Adding field 'Commitment.context_agent'
+        db.add_column('valueaccounting_commitment', 'context_agent',
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='commitments', null=True, to=orm['valueaccounting.EconomicAgent']),
+                      keep_default=False)
+
+        # Adding field 'CachedEventSummary.context_agent'
+        db.add_column('valueaccounting_cachedeventsummary', 'context_agent',
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='context_cached_events', null=True, to=orm['valueaccounting.EconomicAgent']),
+                      keep_default=False)
+
+        # Adding field 'AgentType.description'
+        db.add_column('valueaccounting_agenttype', 'description',
+                      self.gf('django.db.models.fields.TextField')(null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'EconomicAgent.agent_type_old'
+        db.add_column('valueaccounting_economicagent', 'agent_type_old',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, related_name='agents_old', null=True, blank=True, to=orm['valueaccounting.AgentType']),
+                      keep_default=False)
+
+        # Adding field 'ProcessType.context_agent'
+        db.add_column('valueaccounting_processtype', 'context_agent',
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='process_types', null=True, to=orm['valueaccounting.EconomicAgent']),
+                      keep_default=False)
+
+        # Adding field 'Exchange.context_agent'
+        db.add_column('valueaccounting_exchange', 'context_agent',
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='exchanges', null=True, to=orm['valueaccounting.EconomicAgent']),
+                      keep_default=False)
+
+        # Adding field 'EconomicEvent.context_agent'
+        db.add_column('valueaccounting_economicevent', 'context_agent',
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='events', null=True, on_delete=models.SET_NULL, to=orm['valueaccounting.EconomicAgent']),
+                      keep_default=False)
+
 
     def backwards(self, orm):
         # Adding model 'AssociationType'
@@ -38,12 +89,46 @@ class Migration(SchemaMigration):
         # Deleting model 'AgentAssociationType'
         db.delete_table('valueaccounting_agentassociationtype')
 
-        # Deleting field 'AgentAssociation.is_active'
-        db.delete_column('valueaccounting_agentassociation', 'is_active')
+        # Deleting field 'AgentAssociation.state'
+        db.delete_column('valueaccounting_agentassociation', 'state')
 
 
         # Changing field 'AgentAssociation.association_type'
         db.alter_column('valueaccounting_agentassociation', 'association_type_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['valueaccounting.AssociationType']))
+        # Adding field 'Process.owner'
+        db.add_column('valueaccounting_process', 'owner',
+                      self.gf('django.db.models.fields.related.ForeignKey')(related_name='owned_processes', null=True, to=orm['valueaccounting.EconomicAgent'], blank=True),
+                      keep_default=False)
+
+        # Adding field 'Process.managed_by'
+        db.add_column('valueaccounting_process', 'managed_by',
+                      self.gf('django.db.models.fields.related.ForeignKey')(related_name='managed_processes', null=True, to=orm['valueaccounting.EconomicAgent'], blank=True),
+                      keep_default=False)
+
+        # Deleting field 'Process.context_agent'
+        db.delete_column('valueaccounting_process', 'context_agent_id')
+
+        # Deleting field 'Commitment.context_agent'
+        db.delete_column('valueaccounting_commitment', 'context_agent_id')
+
+        # Deleting field 'CachedEventSummary.context_agent'
+        db.delete_column('valueaccounting_cachedeventsummary', 'context_agent_id')
+
+        # Deleting field 'AgentType.description'
+        db.delete_column('valueaccounting_agenttype', 'description')
+
+        # Deleting field 'EconomicAgent.agent_type_old'
+        db.delete_column('valueaccounting_economicagent', 'agent_type_old_id')
+
+        # Deleting field 'ProcessType.context_agent'
+        db.delete_column('valueaccounting_processtype', 'context_agent_id')
+
+        # Deleting field 'Exchange.context_agent'
+        db.delete_column('valueaccounting_exchange', 'context_agent_id')
+
+        # Deleting field 'EconomicEvent.context_agent'
+        db.delete_column('valueaccounting_economicevent', 'context_agent_id')
+
 
     models = {
         'auth.group': {
@@ -94,12 +179,17 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'from_agent': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'associations_from'", 'to': "orm['valueaccounting.EconomicAgent']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'state': ('django.db.models.fields.CharField', [], {'default': "'active'", 'max_length': '12'}),
             'to_agent': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'associations_to'", 'to': "orm['valueaccounting.EconomicAgent']"})
         },
         'valueaccounting.agentassociationtype': {
             'Meta': {'object_name': 'AgentAssociationType'},
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'identifier': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '12'}),
+            'inverse_label': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True'}),
+            'is_context': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'label': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '128'})
         },
         'valueaccounting.agentresourcerole': {
@@ -134,6 +224,7 @@ class Migration(SchemaMigration):
         },
         'valueaccounting.agenttype': {
             'Meta': {'ordering': "('name',)", 'object_name': 'AgentType'},
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'member_type': ('django.db.models.fields.CharField', [], {'default': "'active'", 'max_length': '12'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
@@ -147,8 +238,10 @@ class Migration(SchemaMigration):
             'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'agent'", 'unique': 'True', 'to': "orm['auth.User']"})
         },
         'valueaccounting.cachedeventsummary': {
-            'Meta': {'ordering': "('agent', 'project', 'resource_type')", 'object_name': 'CachedEventSummary'},
+            'Meta': {'ordering': "('agent', 'context_agent', 'resource_type')", 'object_name': 'CachedEventSummary'},
             'agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'cached_events'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
+            'context_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'context_cached_events'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
+            'event_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'cached_events'", 'to': "orm['valueaccounting.EventType']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'importance': ('django.db.models.fields.DecimalField', [], {'default': "'1'", 'max_digits': '3', 'decimal_places': '0'}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'cached_events'", 'null': 'True', 'to': "orm['valueaccounting.Project']"}),
@@ -163,6 +256,7 @@ class Migration(SchemaMigration):
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
             'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
             'commitment_date': ('django.db.models.fields.DateField', [], {'default': 'datetime.date.today'}),
+            'context_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'commitments_created'", 'null': 'True', 'to': "orm['auth.User']"}),
             'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
@@ -201,6 +295,7 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "('nick',)", 'object_name': 'EconomicAgent'},
             'address': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
             'agent_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'agents'", 'to': "orm['valueaccounting.AgentType']"}),
+            'agent_type_old': ('django.db.models.fields.related.ForeignKey', [], {'default': '1', 'related_name': "'agents_old'", 'null': 'True', 'blank': 'True', 'to': "orm['valueaccounting.AgentType']"}),
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'agents_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
             'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'agents_created'", 'null': 'True', 'to': "orm['auth.User']"}),
@@ -222,6 +317,7 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "('-event_date',)", 'object_name': 'EconomicEvent'},
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'events_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
             'commitment': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'fulfillment_events'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['valueaccounting.Commitment']"}),
+            'context_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'events'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['valueaccounting.EconomicAgent']"}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'events_created'", 'null': 'True', 'to': "orm['auth.User']"}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'event_date': ('django.db.models.fields.DateField', [], {}),
@@ -301,6 +397,7 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "('-start_date',)", 'object_name': 'Exchange'},
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
             'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'context_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'exchanges_created'", 'null': 'True', 'to': "orm['auth.User']"}),
             'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -398,15 +495,14 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "('-end_date',)", 'object_name': 'Process'},
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
             'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'context_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes_created'", 'null': 'True', 'to': "orm['auth.User']"}),
             'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             'end_date': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'finished': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'managed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'managed_processes'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'notes': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'owner': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'owned_processes'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
             'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'sub_processes'", 'null': 'True', 'to': "orm['valueaccounting.Process']"}),
             'process_pattern': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes'", 'null': 'True', 'to': "orm['valueaccounting.ProcessPattern']"}),
             'process_type': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'processes'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['valueaccounting.ProcessType']"}),
@@ -425,6 +521,7 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "('name',)", 'object_name': 'ProcessType'},
             'changed_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'process_types_changed'", 'null': 'True', 'to': "orm['auth.User']"}),
             'changed_date': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'context_agent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'process_types'", 'null': 'True', 'to': "orm['valueaccounting.EconomicAgent']"}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'process_types_created'", 'null': 'True', 'to': "orm['auth.User']"}),
             'created_date': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),

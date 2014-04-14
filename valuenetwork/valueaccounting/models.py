@@ -220,6 +220,7 @@ class AgentType(models.Model):
     party_type = models.CharField(_('party type'), 
         max_length=12, choices=SIZE_CHOICES,
         default='individual')
+    description = models.TextField(_('description'), blank=True, null=True)
 
     class Meta:
         ordering = ('name',)
@@ -429,7 +430,11 @@ class AgentUser(models.Model):
 class AgentAssociationType(models.Model):
     identifier = models.CharField(_('identifier'), max_length=12, unique=True)
     name = models.CharField(_('name'), max_length=128)
-
+    description = models.TextField(_('description'), blank=True, null=True)
+    label = models.CharField(_('label'), max_length=32, null=True)
+    inverse_label = models.CharField(_('inverse label'), max_length=40, null=True)
+    is_context = models.BooleanField(_('is context'), default=True)
+    
     def __unicode__(self):
         return self.name
 
@@ -453,7 +458,7 @@ class AgentAssociation(models.Model):
         default='active')
         
     def __unicode__(self):
-        return self.from_agent.nick + " " + self.association_type.name + " " + self.to_agent.nick
+        return self.from_agent.nick + " " + self.association_type.label + " " + self.to_agent.nick
 
 DIRECTION_CHOICES = (
     ('in', _('input')),

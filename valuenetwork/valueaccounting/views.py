@@ -147,8 +147,7 @@ def create_user_and_agent(request):
     }, context_instance=RequestContext(request))
 
 def projects(request):
-    import pdb; pdb.set_trace()
-    #roots = EconomicAgent.objects.filter(parent=None)
+    #import pdb; pdb.set_trace()
     projects = EconomicAgent.objects.projects_and_networks()
     roots = []
     for project in projects:
@@ -218,7 +217,37 @@ def change_location(request, location_id):
         "location_form": location_form,
     }, context_instance=RequestContext(request))
 
-
+@login_required
+#todo: not complete
+def change_agent(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+        change_form = LocationForm(instance=location, data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if change_form.is_valid():
+            agent = agent_form.save()
+            return HttpResponseRedirect("/accounting/agent.html")
+    return render_to_response("valueaccounting/change_agent.html", {
+        "change_form": location_form,
+        }, context_instance=RequestContext(request))
+                        
+    
+def agent(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    change_form = None
+                             
+    return render_to_response("valueaccounting/agent.html", {
+        "agent": agent,
+        "photo_size": (128, 128),
+        "change_form": change_form,
+        "user_agent": user_agent,
+    }, context_instance=RequestContext(request))
+        
 @login_required
 def test_patterns(request):
     pattern_form = PatternSelectionForm(data=request.POST or None)
@@ -1790,6 +1819,12 @@ def json_resource_type_defaults(request, resource_type_id):
     #import pdb; pdb.set_trace()
     data = simplejson.dumps(defaults, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
+    
+def json_context_agent_suppliers(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = EconomicAgent.objects.get(id=agent_id)
+    json = serializers.serialize("json", agent.suppliers(), fields=('pk', 'nick'))
+    return HttpResponse(json, mimetype='application/json')
 
 def explore(request):
     return render_to_response("valueaccounting/explore.html", {
@@ -7171,7 +7206,7 @@ def exchange_logging(request, exchange_id):
 def create_exchange(request, use_case_identifier):
     #import pdb; pdb.set_trace()
     use_case = get_object_or_404(UseCase, identifier=use_case_identifier)
-    context_agent = EconomicAgent.objects.get(name="SENSORICA") #temp
+    context_agent = None #EconomicAgent.objects.get(name="SENSORICA") #test
     exchange_form = ExchangeForm(use_case, context_agent, data=request.POST or None)
     if request.method == "POST":
         if exchange_form.is_valid():

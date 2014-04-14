@@ -1856,6 +1856,7 @@ class ExchangeForm(forms.ModelForm):
     def __init__(self, use_case, context_agent, *args, **kwargs):
         super(ExchangeForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
-        self.fields["supplier"].queryset = context_agent.suppliers()
+        if context_agent:
+            self.fields["supplier"].queryset = context_agent.suppliers()
 
 

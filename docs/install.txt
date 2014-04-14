@@ -28,29 +28,36 @@ Step 5 assumes virtualenvwrapper
 4. unless you don't have it already: install git
 sudo apt-get install git
 
-5. create a virtualenv (assuming you installed virtualenvwrapper):
+4. We have had problems getting Pillow, one of the requirements, 
+to handle jpegs without installing some external libraries.
+
+See 
+http://pillow.readthedocs.org/en/latest/installation.html#simple-installation
+for how to install them on your operating system.
+
+6. create a virtualenv (assuming you installed virtualenvwrapper):
 mkvirtualenv vn --system-site-packages 
 workon vn
 cdvirtualenv
 
-6. clone the valuenetwork repo inside the vn virtualenv.
+7. clone the valuenetwork repo inside the vn virtualenv.
 git clone https://github.com/valnet/valuenetwork.git
  
-7. cd valuenetwork
+8. cd valuenetwork
 
-8. pip install -r requirements.txt
+9. pip install -r requirements.txt
 
-9. create the sqlite database
+10. create the sqlite database
 ./manage.py syncdb
 and then
 ./manage.py migrate
 
-10. run the tests
+11. run the tests
 ./manage.py test valueaccounting
 
-11. crank up the django server
+12. crank up the django server
 ./manage.py runserver
 
-12. point browser at http://127.0.0.1:8000/
+13. point browser at http://127.0.0.1:8000/
 
 

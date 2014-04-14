@@ -197,13 +197,17 @@ def project_process_resource_agent_graph(project_list, process_list):
         if order.receiver:
             receiver_name = order.receiver.name
         dord = {
-            "name": order.name,
+            "name": order.__unicode__(),
             "type": "order",
             "for": receiver_name,
             "due": order.due_date.strftime('%Y-%m-%d'),
             "url": "".join([url_starter, order.get_absolute_url()]),
-            "next": []
+            "processes": []
             }
+        for p in order.all_processes():
+            p_id = p.node_id()
+            if p_id in processes:
+                dord["processes"].append(p_id)
         orders[order.node_id()] = dord
     for agnt, procs in agent_dict.items():
         da = {

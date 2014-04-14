@@ -85,7 +85,7 @@ li {
 				<div class="span12">
 					<h3 style="margin-bottom: 4px;" >
 					    {% trans "Production Schedule" %}:&nbsp;&nbsp;&nbsp;&nbsp;
-					    <a href="{% url order_graph order_id=order.id %}">Process graph diagram</a>
+					    <a href="{% url processes_graph object_type='O' object_id=order.id %}">Process graph diagram</a>
 				    </h3>
 					
 					{% for process in processes %}

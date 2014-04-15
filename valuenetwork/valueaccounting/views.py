@@ -321,12 +321,16 @@ def agent(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
     change_form = None
+    associations_to = agent.to_associations()
+    associations_from = agent.from_associations()
                              
     return render_to_response("valueaccounting/agent.html", {
         "agent": agent,
         "photo_size": (128, 128),
         "change_form": change_form,
         "user_agent": user_agent,
+        "associations_to": associations_to,
+        "associations_from": associations_from,
     }, context_instance=RequestContext(request))
         
 @login_required
@@ -975,7 +979,7 @@ class AgentSummary(object):
 
 
 def value_equation(request, project_id):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     project = get_object_or_404(EconomicAgent, pk=project_id)    
     all_subs = project.with_all_sub_agents()
     summaries = CachedEventSummary.objects.select_related(
@@ -1904,7 +1908,7 @@ def json_resource_type_defaults(request, resource_type_id):
 def json_context_agent_suppliers(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = EconomicAgent.objects.get(id=agent_id)
-    json = serializers.serialize("json", agent.suppliers(), fields=('pk', 'nick'))
+    json = serializers.serialize("json", agent.all_suppliers(), fields=('pk', 'nick'))
     return HttpResponse(json, mimetype='application/json')
 
 def explore(request):

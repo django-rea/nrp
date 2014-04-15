@@ -39,14 +39,14 @@
 
 {% endblock %}
 
-{% block body_class %}work{% endblock %}
+{% block body_class %}x{% endblock %}
 
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
 
 		<legend>
-			{% trans "Agent" %} ( {{ agent.agent_type }} ): {{ agent }} &nbsp;
+			{{ agent.agent_type }}: {{ agent }} &nbsp;
 {% comment %}
 			{% if user_agent %}
 		        <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
@@ -77,7 +77,7 @@
 {% endcomment %}
 		<div class="row-fluid">
 		
-		    <div class="span6 resource">
+		    <div class="span4 resource">
 		
 	            <table class="table table-bordered" >
 	                <tr>
@@ -145,20 +145,28 @@
 	            </table>
 	        
 	        </div>
-{% comment %}
-	        <div class="span6 info">
+	        <div class="span4 info">
+                <h3 class="hdg">{% trans "Associations to " %} {{ agent.nick }}: </h3>
 
-	            {% if resource.demands %}
-	                <h4 class="hdg">{% trans "Demands" %}:</h4>
-	                <ul>
-	                {% for ct in resource.demands %}
-	                    <li><a href="{{ ct.process.get_absolute_url }}">{{ ct }}</a></li>
-	                {% endfor %}
-	                </ul>
-	            {% endif %}
+                <ul>
+                {% for assoc in  associations_to %}
+                    <li><a href="{{ assoc.from_agent.get_absolute_url }}">{{ assoc }}</a></li>
+                {% endfor %}
+                </ul>
 
 	        </div>
+	        <div class="span4 info">
+                <h3 class="hdg">{% trans "Associations from " %} {{ agent.nick }}: </h3>
+                
+                <ul>
+                {% for assoc in  associations_from %}
+                    <li><a href="{{ assoc.to_agent.get_absolute_url }}">{{ assoc }}</a></li>
+                {% endfor %}
+                </ul>
+	        
+	        </div>
 
+{% comment %}
 		</div>
 
         <div class="row-fluid" tyle="margin-top: 1em;">

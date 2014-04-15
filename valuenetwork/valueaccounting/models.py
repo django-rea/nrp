@@ -296,7 +296,12 @@ class EconomicAgent(models.Model):
     def save(self, *args, **kwargs):
         unique_slugify(self, self.nick)
         super(EconomicAgent, self).save(*args, **kwargs)
-
+        
+    @models.permalink
+    def get_absolute_url(self):
+        return ('agent', (),
+        { 'agent_id': str(self.id),})
+            
     def seniority(self):
         return (datetime.date.today() - self.created_date).days
 
@@ -424,6 +429,26 @@ class EconomicAgent(models.Model):
         agent_ids = self.associations_to.filter(association_type__identifier="legal").filter(state="active").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
+    def members(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.associations_to.filter(association_type__identifier="member").filter(state="active").values_list('from_agent')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def affiliates(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.associations_to.filter(association_type__identifier="affiliate").filter(state="active").values_list('from_agent')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def customers(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.associations_to.filter(association_type__identifier="customer").filter(state="active").values_list('from_agent')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def potential_customers(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.associations_to.filter(association_type__identifier="customer").filter(state="potential").values_list('from_agent')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
     def exchange_firm(self):
         xs = self.exchange_firms()
         if xs:
@@ -444,6 +469,12 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         return sups
         
+    def to_associations(self):
+        return AgentAssociation.objects.filter(to_agent=self).order_by('association_type__name', 'to_agent__nick')
+        
+    def from_associations(self):
+        return AgentAssociation.objects.filter(from_agent=self).order_by('association_type__name', 'from_agent__nick')
+            
         
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,

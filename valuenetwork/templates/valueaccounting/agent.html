@@ -35,6 +35,9 @@
 .text-center {
     text-align: center;
 }
+.assoc li {
+    margin-left: 3em;
+}
 </style>
 
 {% endblock %}
@@ -145,21 +148,25 @@
 	            </table>
 	        
 	        </div>
-	        <div class="span4 info">
+	        <div class="span4 assoc">
                 <h3 class="hdg">{% trans "Associations to " %} {{ agent.nick }}: </h3>
-
                 <ul>
                 {% for assoc in  associations_to %}
+                    {% ifchanged assoc.association_type %} 
+                        <h4>{{ assoc.association_type.name }} </h4>
+                    {% endifchanged %}
                     <li><a href="{{ assoc.from_agent.get_absolute_url }}">{{ assoc }}</a></li>
                 {% endfor %}
                 </ul>
 
 	        </div>
-	        <div class="span4 info">
-                <h3 class="hdg">{% trans "Associations from " %} {{ agent.nick }}: </h3>
-                
+	        <div class="span4 assoc">
+                <h3 class="hdg">{% trans "Associations from " %} {{ agent.nick }}: </h3>             
                 <ul>
                 {% for assoc in  associations_from %}
+                    {% ifchanged assoc.association_type %} 
+                        <h4>{{ assoc.association_type.name }} </h4>
+                    {% endifchanged %}   
                     <li><a href="{{ assoc.to_agent.get_absolute_url }}">{{ assoc }}</a></li>
                 {% endfor %}
                 </ul>

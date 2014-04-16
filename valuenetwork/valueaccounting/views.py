@@ -230,10 +230,10 @@ def create_user_and_agent_old(request):
 def projects(request):
     #import pdb; pdb.set_trace()
     projects = EconomicAgent.objects.projects_and_networks()
-    roots = []
-    for project in projects:
-        if project.is_root():
-            roots.append(project)
+    roots = [p for p in projects if p.is_root()]
+    for root in roots:
+        root.nodes = root.child_tree()
+        annotate_tree_properties(root.nodes)
     agent = get_agent(request)
     project_create_form = ProjectForm()
     
@@ -1844,6 +1844,9 @@ def json_processes(request, order_id=None):
 
 def json_project_processes(request, object_type=None, object_id=None):
     #import pdb; pdb.set_trace()
+    #todo: needs to change
+    # project and agent are now both agents
+    # active_processes has been fixed, though...
     if object_type:
         if object_type == "P":
             project = get_object_or_404(Project, pk=object_id)

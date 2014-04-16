@@ -227,7 +227,7 @@ class AgentType(models.Model):
         ordering = ('name',)
 
     def __unicode__(self):
-        return self.name
+        return self.name    
 
 
 class AgentManager(models.Manager):
@@ -413,6 +413,11 @@ class EconomicAgent(models.Model):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
         #return flattened_children(self, EconomicAgent.objects.all(), [])
         return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
+        
+    def child_tree(self):
+        from valuenetwork.valueaccounting.utils import agent_dfs_by_association
+        #return flattened_children(self, EconomicAgent.objects.all(), [])
+        return agent_dfs_by_association(self, AgentAssociation.objects.all(), 1)
         
     def wip(self):
         return self.active_processes()
@@ -1982,7 +1987,8 @@ class AgentResourceRole(models.Model):
 
     def __unicode__(self):
         return " ".join([self.agent.name, self.role.name, self.resource.__unicode__()])
-
+        
+        
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=128) 
     description = models.TextField(_('description'), blank=True, null=True)

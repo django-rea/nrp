@@ -36,6 +36,15 @@ def flattened_children_by_association(node, all_associations, to_return): #works
         if association.to_agent.id == node.id and association.association_type.identifier == "child":
             flattened_children_by_association(association.from_agent, all_associations, to_return)
     return to_return
+    
+def agent_dfs_by_association(node, all_associations, depth): #works only for agents
+    #import pdb; pdb.set_trace()
+    node.depth = depth
+    to_return = [node,]
+    for association in all_associations:
+        if association.to_agent.id == node.id and association.association_type.identifier == "child":
+            to_return.extend(agent_dfs_by_association(association.from_agent, all_associations, depth+1))
+    return to_return
 
 class Edge(object):
     def __init__(self, from_node, to_node, label):

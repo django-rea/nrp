@@ -356,9 +356,37 @@ class EconomicAgent(models.Model):
         processes.extend([x.process for x in events if x.process])
         return list(set(processes))
         
-    def active_processes(self):
-        return [p for p in self.worked_processes() if p.finished==False]
+    def active_worked_processes(self):
+        aps = [p for p in self.worked_processes() if p.finished==False]
+        return aps
         
+    def context_processes(self):
+        return self.processes.all()
+        
+    def active_context_processes(self):
+        return self.context_processes().filter(finished=False)
+        
+    def active_processes(self):
+        if self.agent_type.party_type == "individual":
+            return self.active_worked_processes()
+        else:
+            return self.active_context_processes()
+            
+    def all_processes(self):
+        if self.agent_type.party_type == "individual":
+            return self.worked_processes()
+        else:
+            return self.context_processes()
+    
+    def resources_created(self):
+        creations = []
+        for p in self.all_processes():
+            creations.extend(p.deliverables())
+        return creations
+        
+    def resource_relationships(self):
+        return self.agent_resource_roles.all()
+    
     #from here these were copied from project - todo: fix these to work correctly using context agent relationships (these are in various stages of fix and test)
     def time_contributions(self):
         return sum(event.quantity for event in self.events.filter(
@@ -386,14 +414,11 @@ class EconomicAgent(models.Model):
         return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
         
     def wip(self):
-        return self.processes.all()
+        return self.active_processes()
         
     def get_resource_types_with_recipe(self):
         return [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self)]
-        
-    def active_processes(self):
-        return self.processes.filter(finished=False)
-        
+                
     #from here are new methods for context agent code
     def parent(self):
         #assumes only one parent
@@ -1953,6 +1978,8 @@ class AgentResourceRole(models.Model):
         verbose_name=_('role'), related_name='agent_resource_roles')
     is_contact = models.BooleanField(_('is contact'), default=False)
 
+    def __unicode__(self):
+        return " ".join([self.agent.name, self.role.name, self.resource.__unicode__()])
 
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=128) 

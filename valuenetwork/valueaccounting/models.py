@@ -221,6 +221,7 @@ class AgentType(models.Model):
         max_length=12, choices=SIZE_CHOICES,
         default='individual')
     description = models.TextField(_('description'), blank=True, null=True)
+    is_context = models.BooleanField(_('is context'), default=False)
 
     class Meta:
         ordering = ('name',)
@@ -514,7 +515,6 @@ class AgentAssociationType(models.Model):
     description = models.TextField(_('description'), blank=True, null=True)
     label = models.CharField(_('label'), max_length=32, null=True)
     inverse_label = models.CharField(_('inverse label'), max_length=40, null=True)
-    is_context = models.BooleanField(_('is context'), default=True)
     
     def __unicode__(self):
         return self.name
@@ -1964,6 +1964,7 @@ class AgentResourceType(models.Model):
 class AgentResourceRoleType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     description = models.TextField(_('description'), blank=True, null=True)
+    is_owner = models.BooleanField(_('is owner'), default=False)
 
     def __unicode__(self):
         return self.name
@@ -1977,6 +1978,7 @@ class AgentResourceRole(models.Model):
     role = models.ForeignKey(AgentResourceRoleType, 
         verbose_name=_('role'), related_name='agent_resource_roles')
     is_contact = models.BooleanField(_('is contact'), default=False)
+    owner_percentage = models.IntegerField(_('owner percentage'), null=True)
 
     def __unicode__(self):
         return " ".join([self.agent.name, self.role.name, self.resource.__unicode__()])

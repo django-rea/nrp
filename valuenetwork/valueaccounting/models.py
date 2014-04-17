@@ -367,14 +367,17 @@ class EconomicAgent(models.Model):
     def active_context_processes(self):
         return self.context_processes().filter(finished=False)
         
+    def is_individual(self):
+        return self.agent_type.party_type == "individual"
+        
     def active_processes(self):
-        if self.agent_type.party_type == "individual":
+        if self.is_individual():
             return self.active_worked_processes()
         else:
             return self.active_context_processes()
             
     def all_processes(self):
-        if self.agent_type.party_type == "individual":
+        if self.is_individual():
             return self.worked_processes()
         else:
             return self.context_processes()
@@ -399,7 +402,10 @@ class EconomicAgent(models.Model):
             is_contribution=True))
         
     def contributions_count(self):
-        return self.events.filter(is_contribution=True).count()
+        if self.is_individual():
+            return self.contributions().count()
+        else:
+            return self.contribution_events().count()
         
     def contribution_events(self):
         return self.events.filter(is_contribution=True)
@@ -491,7 +497,7 @@ class EconomicAgent(models.Model):
                 return xs[0]
             parent = parent.parent()
         return None
- 
+        
     def all_suppliers(self):
         sups = list(self.suppliers())
         parent = self.parent()
@@ -542,6 +548,9 @@ class AgentAssociation(models.Model):
     state = models.CharField(_('state'), 
         max_length=12, choices=RELATIONSHIP_STATE_CHOICES,
         default='active')
+        
+    class Meta:
+        ordering = ('from_agent',)
         
     def __unicode__(self):
         return self.from_agent.nick + " " + self.association_type.label + " " + self.to_agent.nick
@@ -1877,6 +1886,7 @@ class EconomicResource(models.Model):
         else:
             qty_help = " ".join(["unit:", unit.abbrev])
             return InputEventForm(qty_help=qty_help, prefix=prefix)  
+             
 
 
 class AgentResourceType(models.Model):
@@ -3743,8 +3753,8 @@ class EconomicEvent(models.Model):
         if self.from_agent:
             from_agt = self.from_agent.name
         to_agt = 'Unassigned'
-        if self.to_agent:
-            to_agt = self.to_agent.name
+        if self.recipient():
+            to_agt = self.recipient().name
         resource_string = self.resource_type.name
         if self.resource:
             resource_string = str(self.resource)
@@ -3851,6 +3861,14 @@ class EconomicEvent(models.Model):
                     except CachedEventSummary.DoesNotExist:
                         pass
         super(EconomicEvent, self).delete(*args, **kwargs)
+        
+    def default_agent(self):
+        if self.context_agent:
+            return self.context_agent.exchange_firm() or self.context_agent
+        return None 
+        
+    def recipient(self):
+        return self.to_agent or self.default_agent()
 
     def flow_type(self):
         return self.event_type.name
@@ -3911,6 +3929,15 @@ class EconomicEvent(models.Model):
     def work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import WorkEventChangeForm
         return WorkEventChangeForm(instance=self)
+        
+    def change_form(self, data):
+        from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
+        unit = self.resource_type.unit
+        if unit.unit_type == "time":
+            return TimeEventForm(instance=self, data=data)
+        else:
+            qty_help = " ".join(["unit:", unit.abbrev])
+            return InputEventForm(qty_help=qty_help, instance=self, data=data)
 
     def unplanned_work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm

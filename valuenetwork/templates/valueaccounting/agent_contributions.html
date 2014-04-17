@@ -38,9 +38,11 @@
         {% include "_messages.html" %}
 	<div>
 		<h1>{% trans "Contributions from " %} {{ agent }}</h1>
-		<p>
-		    {% trans "You can change date or qty inline and it will be automatically saved." %} <span id="saving"></span>
-	    </p>
+		{% if user_is_agent %}
+            <p>
+                {% trans "You can change date or qty inline and it will be automatically saved." %} <span id="saving"></span>
+            </p>
+	    {% endif %}
 		<table class="table table-bordered table-hover table-condensed" >
 			<thead>
 				<th>{% trans "Date" %}</th>
@@ -52,12 +54,15 @@
 				<th>{% trans "Description" %}</th>
 				<th>{% trans "Process" %}</th>
 				<th>{% trans "Deliverables" %}</th>
-				<th>&nbsp;</th>
+				{% if user_is_agent %}
+                    <th>&nbsp;</th>
+                {% endif %}
 			</thead>
 			<tbody>	
 				{% for event in events %}
 					<tr class="{% cycle 'odd' 'even' %}">
 						<td>
+                            {% if user_is_agent %}
 						    <form class="eventDateForm" id="eventDateForm-{{ event.id }}" >
 								{% csrf_token %}
 								{% with event.change_date_form as form %}
@@ -65,6 +70,9 @@
 								    {{ form.event_date }}
 							    {% endwith %}
 							</form>
+							{% else %}
+                                {{ event.event_date }}
+							{% endif %}
 						</td>
 						<td>{{ event.event_type }}</td>
 						<td>{{ event.project }}</td>
@@ -73,6 +81,7 @@
 						<td style="text-align: right;" >{{ event.quantity_formatted }}</td>
 						{% endcomment %}
 						<td style="white-space:nowrap;" >
+                            {% if user_is_agent %}
 						    <form class="eventQtyForm" id="eventQtyForm-{{ event.id }}" >
 								{% csrf_token %}
 								{% with event.change_quantity_form as form %}
@@ -80,6 +89,9 @@
 								    {{ form.quantity }} {{ event.unit_of_quantity.abbrev }}
 							    {% endwith %}
 							</form>
+							{% else %}
+                                {{ event.quantity }} {{ event.unit_of_quantity.abbrev }}
+                            {% endif %}
 						</td>
 						<td>
 							{% if event.url %}
@@ -97,26 +109,28 @@
 						        <a href="{% url resource resource_id=d.id %}">{{ d }}</a></br >
 					        {% endfor %}
 					    </td>
-					    <td>
-					        <form
-						        class="change-form" 
-						        id="changeForm{{ event.id }}" 
-						        action="{% url change_event event_id=event.id %}" 
-						        method="GET" >
-                            	<input type='hidden' class="page" id='changePage{{ event.id }}' name='page' value='' />
-			                    <button class="btn btn-info btn-mini" title="Change" ><i class="icon-edit icon-white"></button>
-		                    </form>
-					        <form
-						        class="delete-form" 
-						        id="deleteForm{{ event.id }}" 
-						        action="{% url delete_event event_id=event.id %}" 
-						        method="POST" >
-			                    {% csrf_token %}
-                            	<input type='hidden' class="page" id='deletePage{{ event.id }}' name='page' value='' />
-                            	<input type='hidden' id='next' name='next' value='contributions' />
-			                    <button class="btn btn-warning btn-mini" title="Delete" ><i class="icon-remove icon-white"></button>
-		                    </form>
-					    </td>
+					    {% if user_is_agent %}
+                            <td>
+                                <form
+                                    class="change-form" 
+                                    id="changeForm{{ event.id }}" 
+                                    action="{% url change_event event_id=event.id %}" 
+                                    method="GET" >
+                                    <input type='hidden' class="page" id='changePage{{ event.id }}' name='page' value='' />
+                                    <button class="btn btn-info btn-mini" title="Change" ><i class="icon-edit icon-white"></button>
+                                </form>
+                                <form
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type='hidden' class="page" id='deletePage{{ event.id }}' name='page' value='' />
+                                    <input type='hidden' id='next' name='next' value='contributions' />
+                                    <button class="btn btn-warning btn-mini" title="Delete" ><i class="icon-remove icon-white"></button>
+                                </form>
+                            </td>
+					    {% endif %}
 					</tr>
 				{% endfor %}
 			<tbody>	

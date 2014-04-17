@@ -57,8 +57,8 @@
 	            </div>
             </div>
 
-                &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a>
             {% endif %}
+            &nbsp;&nbsp;&nbsp;<a href="{% url agents %}">{% trans "All Agents" %}</a>
             &nbsp;&nbsp;&nbsp;<a href="{% url all_contributions %}">{% trans "All contributions" %}</a>
             &nbsp;&nbsp;&nbsp;<a href="{% url project_network %}">{% trans "Project network diagram" %}</a>
                 
@@ -77,7 +77,8 @@
                 {% endif %}
                 
                 <li>
-                    <b>{{ node }}</b> 
+                    <b><a href="{{ node.get_absolute_url }}">{{ node }}</a></b> 
+                    &nbsp;&nbsp;&nbsp;
                     <a href="{% url contributions project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
                     {% if node.wip %}
                         &nbsp;&nbsp;&nbsp;<a href="{% url project_wip project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>

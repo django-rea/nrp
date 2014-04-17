@@ -1,0 +1,397 @@
+[
+    {
+        "pk": 1, 
+        "model": "valueaccounting.agenttype", 
+        "fields": {
+            "party_type": "individual", 
+            "name": "Contributor Individual", 
+            "parent": null, 
+            "member_type": "active"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "valueaccounting.agenttype", 
+        "fields": {
+            "party_type": "org", 
+            "name": "Contributor Organization", 
+            "parent": null, 
+            "member_type": "active"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "valueaccounting.agenttype", 
+        "fields": {
+            "party_type": "org", 
+            "name": "Supplier", 
+            "parent": null, 
+            "member_type": "external"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "valueaccounting.facet", 
+        "fields": {
+            "name": "Category", 
+            "description": "This is a set of default facet values.  You can set up as many Facets and Facet Values as needed to categorize and filter your Resource Types."
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "valueaccounting.facetvalue", 
+        "fields": {
+            "facet": 1, 
+            "description": "", 
+            "value": "Cash"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "valueaccounting.facetvalue", 
+        "fields": {
+            "facet": 1, 
+            "description": "", 
+            "value": "Product or Service"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "valueaccounting.facetvalue", 
+        "fields": {
+            "facet": 1, 
+            "description": "", 
+            "value": "Work - Administrative"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "valueaccounting.facetvalue", 
+        "fields": {
+            "facet": 1, 
+            "description": "", 
+            "value": "Work - Product or Service"
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "valueaccounting.processpattern", 
+        "fields": {
+            "name": "Cash Contribution"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "valueaccounting.processpattern", 
+        "fields": {
+            "name": "Customer order"
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "valueaccounting.processpattern", 
+        "fields": {
+            "name": "Expense Contribution"
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "valueaccounting.processpattern", 
+        "fields": {
+            "name": "Material Contribution"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "valueaccounting.processpattern", 
+        "fields": {
+            "name": "Non-production"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "valueaccounting.processpattern", 
+        "fields": {
+            "name": "Production Logging"
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "valueaccounting.processpattern", 
+        "fields": {
+            "name": "Purchase Contribution"
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "valueaccounting.processpattern", 
+        "fields": {
+            "name": "Purchase Order"
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "valueaccounting.processpattern", 
+        "fields": {
+            "name": "Todo"
+        }
+    }, 
+    {
+        "pk": 22, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 4, 
+            "pattern": 9, 
+            "event_type": [
+                "Cash Contribution"
+            ]
+        }
+    }, 
+    {
+        "pk": 23, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 2, 
+            "pattern": 9, 
+            "event_type": [
+                "Time Contribution"
+            ]
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 1, 
+            "pattern": 1, 
+            "event_type": [
+                "Sale"
+            ]
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 1, 
+            "pattern": 1, 
+            "event_type": [
+                "Shipment"
+            ]
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 1, 
+            "pattern": 8, 
+            "event_type": [
+                "Expense"
+            ]
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 4, 
+            "pattern": 8, 
+            "event_type": [
+                "Payment"
+            ]
+        }
+    }, 
+    {
+        "pk": 21, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 2, 
+            "pattern": 8, 
+            "event_type": [
+                "Time Contribution"
+            ]
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 1, 
+            "pattern": 6, 
+            "event_type": [
+                "Resource Contribution"
+            ]
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 2, 
+            "pattern": 6, 
+            "event_type": [
+                "Time Contribution"
+            ]
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 2, 
+            "pattern": 2, 
+            "event_type": [
+                "Time Contribution"
+            ]
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 1, 
+            "pattern": 3, 
+            "event_type": [
+                "Citation"
+            ]
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 1, 
+            "pattern": 3, 
+            "event_type": [
+                "Resource Consumption"
+            ]
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 1, 
+            "pattern": 3, 
+            "event_type": [
+                "Resource Production"
+            ]
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 3, 
+            "pattern": 3, 
+            "event_type": [
+                "Time Contribution"
+            ]
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 1, 
+            "pattern": 7, 
+            "event_type": [
+                "Expense"
+            ]
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 4, 
+            "pattern": 7, 
+            "event_type": [
+                "Payment"
+            ]
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 1, 
+            "pattern": 7, 
+            "event_type": [
+                "Receipt"
+            ]
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 2, 
+            "pattern": 7, 
+            "event_type": [
+                "Time Contribution"
+            ]
+        }
+    }, 
+    {
+        "pk": 24, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 4, 
+            "pattern": 10, 
+            "event_type": [
+                "Payment"
+            ]
+        }
+    }, 
+    {
+        "pk": 25, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 1, 
+            "pattern": 10, 
+            "event_type": [
+                "Receipt"
+            ]
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 2, 
+            "pattern": 5, 
+            "event_type": [
+                "Todo"
+            ]
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "valueaccounting.patternfacetvalue", 
+        "fields": {
+            "facet_value": 3, 
+            "pattern": 5, 
+            "event_type": [
+                "Todo"
+            ]
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "valueaccounting.project", 
+        "fields": {
+            "project_team": null, 
+            "changed_date": "2014-03-22", 
+            "name": "Default Project", 
+            "parent": null, 
+            "importance": "0", 
+            "changed_by": null, 
+            "created_by": null, 
+            "created_date": "2014-03-22", 
+            "slug": "default-project", 
+            "description": "If the network uses Projects, this can be deleted after real projects are added.  If the network does not need Projects, this can be used where Project is required until we enhance the software to support networks that don't have a need for Projects."
+        }
+    }
+]

@@ -616,7 +616,7 @@ class EventType(models.Model):
         ordering = ('label',)
 
     def natural_key(self):
-        return (self.name)
+        return (self.name,)
 
     def __unicode__(self):
         return self.label
@@ -1392,7 +1392,7 @@ class UseCase(models.Model):
         return self.name
 
     def natural_key(self):
-        return (self.identifier)
+        return (self.identifier,)
 
     @classmethod
     def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=2):

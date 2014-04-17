@@ -7164,8 +7164,9 @@ def exchange_logging(request, exchange_id):
     logger = False
     exchange = get_object_or_404(Exchange, id=exchange_id)
     use_case = exchange.use_case
+    context_agent = exchange.context_agent
     pattern = exchange.process_pattern
-    exchange_form = ExchangeForm(use_case, instance=exchange, data=request.POST or None)
+    exchange_form = ExchangeForm(use_case, context_agent, instance=exchange, data=request.POST or None)
     add_receipt_form = None
     add_payment_form = None
     add_expense_form = None
@@ -7201,12 +7202,14 @@ def exchange_logging(request, exchange_id):
         for event in payment_events:
             event.changeform = PaymentEventForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         for event in expense_events:
             expense_total = expense_total + event.value
             event.changeform = ExpenseEventForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         for event in work_events:
@@ -7218,6 +7221,7 @@ def exchange_logging(request, exchange_id):
             receipt_total = receipt_total + event.value
             event.changeform = UnorderedReceiptForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         #for event in cash_events:
@@ -7237,13 +7241,13 @@ def exchange_logging(request, exchange_id):
                 "to_agent": exchange.supplier,
                 "event_date": exchange.start_date
             }
-            add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, data=request.POST or None)
+            add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, context_agent=context_agent, data=request.POST or None)
         if "expense" in slots:
             expense_init = {
                 "from_agent": exchange.supplier,
                 "event_date": exchange.start_date,
             }
-            add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern)
+            add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, context_agent=context_agent)
         if "work" in slots:
             work_init = {
                 "from_agent": agent,
@@ -7255,7 +7259,7 @@ def exchange_logging(request, exchange_id):
                 "event_date": exchange.start_date,
                 "from_agent": exchange.supplier
             }      
-            add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern)
+            add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern, context_agent=context_agent)
             #import pdb; pdb.set_trace()
             create_receipt_role_formset = resource_role_agent_formset(prefix='receiptrole')
         if "cash" in slots:
@@ -7269,7 +7273,7 @@ def exchange_logging(request, exchange_id):
                 "event_date": exchange.start_date,
                 "from_agent": agent
             }      
-            add_material_form = MaterialContributionEventForm(prefix='material', initial=matl_init, pattern=pattern)
+            add_material_form = MaterialContributionEventForm(prefix='material', initial=matl_init, pattern=pattern, context_agent=context_agent)
             #import pdb; pdb.set_trace()
             create_material_role_formset = resource_role_agent_formset(prefix='materialrole')
 
@@ -7314,9 +7318,12 @@ def exchange_logging(request, exchange_id):
 def create_exchange(request, use_case_identifier):
     #import pdb; pdb.set_trace()
     use_case = get_object_or_404(UseCase, identifier=use_case_identifier)
-    context_agent = None #EconomicAgent.objects.get(name="SENSORICA") #test
-    exchange_form = ExchangeForm(use_case, context_agent, data=request.POST or None)
+    context_agent = EconomicAgent.objects.context_agents()[0]
+    exchange_form = ExchangeForm(use_case, context_agent)
     if request.method == "POST":
+        ca_id = request.POST.get("context_agent")
+        context_agent = EconomicAgent.objects.get(id=ca_id)
+        exchange_form = ExchangeForm(use_case, context_agent, data=request.POST)
         if exchange_form.is_valid():
             exchange = exchange_form.save(commit=False)
             exchange.use_case = use_case
@@ -7327,6 +7334,7 @@ def create_exchange(request, use_case_identifier):
     return render_to_response("valueaccounting/create_exchange.html", {
         "exchange_form": exchange_form,
         "use_case": use_case,
+        "context_agent": context_agent,
     }, context_instance=RequestContext(request))
 
 '''

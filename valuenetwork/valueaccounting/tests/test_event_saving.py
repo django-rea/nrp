@@ -61,7 +61,7 @@ class EventSavingTest(TestCase):
             relationship="todo",
             resource_effect="=",
         )
-        self.event_type_work.save()
+        self.event_type_todo.save()
 
         self.optical_work = EconomicResourceType(
              name="Optical Work",
@@ -160,10 +160,37 @@ class EventSavingTest(TestCase):
             resource_type=self.optical_work)
         self.assertEqual(summary.quantity, Decimal("1"))
 
-
-
     def test_changed_resourcetype(self):
         pass
+    
+    def test_changed_eventtype(self):
+        event = EconomicEvent(
+            from_agent=self.agent1,
+            resource_type=self.optical_work,
+            project=self.project1,
+            event_type=self.event_type_work,
+            quantity=Decimal("1"),
+            event_date=datetime.date.today(),
+            is_contribution=True,
+        )
+        event.save()
+        
+        #import pdb; pdb.set_trace()
+        event.event_type = self.event_type_todo
+        event.save()
+           
+        summaries = CachedEventSummary.objects.filter(
+            agent=self.agent1,
+            project=self.project1,
+            resource_type=self.optical_work,
+            event_type=self.event_type_work)
+        self.assertEqual(summaries.count(), 0)
+        summary = CachedEventSummary.objects.get(
+            agent=self.agent1,
+            project=self.project1,
+            resource_type=self.optical_work,
+            event_type=self.event_type_todo)
+        self.assertEqual(summary.quantity, Decimal("1"))
 
     def test_changed_quantity(self):
         event = EconomicEvent(

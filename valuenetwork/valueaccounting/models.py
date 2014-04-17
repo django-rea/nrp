@@ -642,6 +642,21 @@ class EconomicResourceType(models.Model):
                         return True
         return False
         
+    def is_work(self):
+        #import pdb; pdb.set_trace()
+        #todo: does this still return false positives?
+        fvs = self.facets.all()
+        for fv in fvs:
+            pfvs = fv.facet_value.patterns.filter(
+                event_type__related_to="process",
+                event_type__relationship="work")
+            if pfvs:
+                for pf in pfvs:
+                    pattern = pf.pattern
+                    if self in pattern.work_resource_types():
+                        return True
+        return False
+        
     def consuming_process_type_relationships(self):
         return self.process_types.filter(event_type__resource_effect='-')
 
@@ -3431,17 +3446,19 @@ class SelectedOption(models.Model):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
 
 
-def update_summary(agent, project, resource_type):
+def update_summary(agent, project, resource_type, event_type):
     events = EconomicEvent.objects.filter(
         from_agent=agent,
         project=project,
         resource_type=resource_type,
+        event_type=event_type,
         is_contribution=True)
     total = sum(event.quantity for event in events)
     summary, created = CachedEventSummary.objects.get_or_create(
         agent=agent,
         project=project,
-        resource_type=resource_type)
+        resource_type=resource_type,
+        event_type=event_type)
     summary.quantity = total
     if summary.quantity:
         summary.save() 
@@ -3531,14 +3548,17 @@ class EconomicEvent(models.Model):
         agent = self.from_agent
         project = self.project
         resource_type = self.resource_type
+        event_type = self.event_type
         delta = self.quantity
         agent_change = False
         project_change = False
         resource_type_change = False
+        event_type_change = False
         if self.pk:
             prev_agent = self.from_agent
             prev_project = self.project
             prev_resource_type = self.resource_type
+            prev_event_type = self.event_type
             prev = EconomicEvent.objects.get(pk=self.pk)
             if prev.quantity != self.quantity:
                 delta = self.quantity - prev.quantity
@@ -3551,6 +3571,9 @@ class EconomicEvent(models.Model):
             if prev.resource_type != self.resource_type:
                 resource_type_change = True
                 prev_resource_type = prev.resource_type
+            if prev.event_type != self.event_type:
+                event_type_change = True
+                prev_event_type = prev.event_type
         if agent:
             from_agt = agent.name
             if delta:
@@ -3578,9 +3601,9 @@ class EconomicEvent(models.Model):
         ])
         unique_slugify(self, slug)
         super(EconomicEvent, self).save(*args, **kwargs)
-        update_summary(agent, project, resource_type)
-        if agent_change or project_change or resource_type_change:
-            update_summary(prev_agent, prev_project, prev_resource_type)
+        update_summary(agent, project, resource_type, event_type)
+        if agent_change or project_change or resource_type_change or event_type_change:
+            update_summary(prev_agent, prev_project, prev_resource_type, prev_event_type)
 
     def delete(self, *args, **kwargs):
         if self.event_type.relationship == "work":
@@ -3588,12 +3611,14 @@ class EconomicEvent(models.Model):
                 agent = self.from_agent
                 project = self.project
                 resource_type = self.resource_type
+                event_type = event_type
                 if agent and project and resource_type:
                     try:
                         summary = CachedEventSummary.objects.get(
                             agent=agent,
                             project=project,
-                            resource_type=resource_type)
+                            resource_type=resource_type,
+                            event_type=event_type)
                         summary.quantity -= self.quantity
                         if summary.quantity:
                             summary.save() 
@@ -3651,7 +3676,7 @@ class EconomicEvent(models.Model):
         if self.unit_of_quantity:
             return self.unit_of_quantity.abbrev
         else:
-            return self.resource_type.unit_of_quantity.abbrev
+            return self.resource_type.unit.abbrev
 
     def quantity_formatted(self):
         return " ".join([
@@ -3743,15 +3768,21 @@ class Compensation(models.Model):
 
 
 class EventSummary(object):
-    def __init__(self, agent, project, resource_type, quantity, value=Decimal('0.0')):
+    def __init__(self, agent, project, resource_type, event_type, quantity, value=Decimal('0.0')):
         self.agent = agent
         self.project = project
         self.resource_type = resource_type
+        self.event_type = event_type
         self.quantity = quantity
         self.value=value
 
     def key(self):
-        return "-".join([str(self.agent.id), str(self.resource_type.id)])
+        return "-".join([
+            str(self.agent.id), 
+            str(self.resource_type.id),
+            str(self.project.id),
+            str(self.event_type.id),
+            ])
 
     def quantity_formatted(self):
         return self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)
@@ -3768,6 +3799,8 @@ class CachedEventSummary(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType,
         blank=True, null=True,
         verbose_name=_('resource type'), related_name='cached_events')
+    event_type = models.ForeignKey(EventType,
+        verbose_name=_('event type'), related_name='cached_events')
     resource_type_rate = models.DecimalField(_('resource type rate'), max_digits=8, decimal_places=2, default=Decimal("1.0"))
     importance = models.DecimalField(_('importance'), max_digits=3, decimal_places=0, default=Decimal("1"))
     reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2, 
@@ -3839,9 +3872,18 @@ class CachedEventSummary(models.Model):
                 event.project=project
                 event.save()
             try:
-                key = "-".join([str(event.from_agent.id), str(event.project.id), str(event.resource_type.id)])
+                key = "-".join([
+                    str(event.from_agent.id), 
+                    str(event.project.id), 
+                    str(event.resource_type.id), 
+                    str(event.event_type.id)])
                 if not key in summaries:
-                    summaries[key] = EventSummary(event.from_agent, event.project, event.resource_type, Decimal('0.0'))
+                    summaries[key] = EventSummary(
+                        agent=event.from_agent, 
+                        project=event.project, 
+                        resource_type=event.resource_type, 
+                        event_type=event.event_type,
+                        quantity=Decimal('0.0'))
                 summaries[key].quantity += event.quantity
             except AttributeError:
                 #todo: the event errors shd be fixed
@@ -3852,6 +3894,7 @@ class CachedEventSummary(models.Model):
                 agent=summary.agent,
                 project=summary.project,
                 resource_type=summary.resource_type,
+                event_type=summary.event_type,
                 resource_type_rate=summary.resource_type.rate,
                 importance=summary.project.importance,
                 quantity=summary.quantity,
@@ -3865,5 +3908,9 @@ class CachedEventSummary(models.Model):
 
     def value_formatted(self):
         return self.value.quantize(Decimal('.01'), rounding=ROUND_UP)
+        
+    def quantity_label(self):
+        #return " ".join([self.resource_type.name, self.resource_type.unit.abbrev])
+        return self.resource_type.name
 
 

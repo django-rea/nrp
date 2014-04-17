@@ -209,7 +209,7 @@ th, td {
 
 	                <form id="patternForm" action="{% url add_pattern_to_use_case use_case_id=use_case.id %}" method="POST" >
                         {% csrf_token %}
-                        <input type="text" name="pattern-name" value="name" onfocus="this.value=''" />
+                        <input type="text" name="pattern-name" value="name" onfocus="this.value=''" maxlength="32" />
                         <input type="submit" name="new-pattern" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Create a new Pattern for this Use Case' %}" />
 	                </form>
 

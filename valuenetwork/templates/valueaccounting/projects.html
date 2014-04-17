@@ -105,6 +105,23 @@
 					                            <div class="description" >{{ grandkid.description|urlize|linebreaks }}</div>
 					                        {% endif %}
 										</li>
+										{% if grandkid.sub_projects.all %}
+                                            <ul>
+                                                {% for greatgrandkid in grandkid.sub_projects.all %}
+                                                    <li>
+                                                        <b>{{ greatgrandkid }}</b> 
+                                                        <a href="{% url contributions project_id=greatgrandkid.id %}">{% trans "Contributions" %}: {{ greatgrandkid.contributions_count }}</a>
+                                                        {% if greatgrandkid.wip %}
+                                                            &nbsp;&nbsp;&nbsp;<a href="{% url project_wip project_id=greatgrandkid.id %}">{% trans "Work in process" %}: {{ greatgrandkid.wip.count }}</a>
+                                                        {% endif %}
+                                                        &nbsp;&nbsp;&nbsp;<a href="{% url value_equation project_id=greatgrandkid.id %}"><b>{% trans "Value Equation" %}</b></a>
+                                                        {% if greatgrandkid.description %}
+                                                            <div class="description" >{{ greatgrandkid.description|urlize|linebreaks }}</div>
+                                                        {% endif %}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
 									{% endfor %}
 								</ul>
 							{% endif %}

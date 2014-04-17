@@ -423,7 +423,8 @@ class EconomicAgent(models.Model):
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
         #return flattened_children(self, EconomicAgent.objects.all(), [])
-        return agent_dfs_by_association(self, AgentAssociation.objects.all(), 1)
+        aas = AgentAssociation.objects.all().order_by("id")
+        return agent_dfs_by_association(self, aas, 1)
         
     def wip(self):
         return self.active_processes()
@@ -1885,7 +1886,14 @@ class EconomicResource(models.Model):
             return TimeEventForm(prefix=prefix)
         else:
             qty_help = " ".join(["unit:", unit.abbrev])
-            return InputEventForm(qty_help=qty_help, prefix=prefix)  
+            return InputEventForm(qty_help=qty_help, prefix=prefix) 
+            
+    def owner(self):
+        owner_roles = self.agent_resource_roles.filter(role__is_owner=True)
+        # todo: this allows one and only one owner
+        if owner_roles:
+            return owner_roles[0].agent
+        return None
              
 
 
@@ -2484,6 +2492,11 @@ class Process(models.Model):
             return False
         return True
 
+    def default_agent(self):
+        if self.context_agent:
+            return self.context_agent.exchange_firm() or self.context_agent
+        return None
+        
     def flow_type(self):
         return "Process"
 
@@ -3845,7 +3858,7 @@ class EconomicEvent(models.Model):
                 project = self.project
                 context_agent = self.context_agent
                 resource_type = self.resource_type
-                event_type = event_type
+                event_type = self.event_type
                 if agent and context_agent and resource_type:
                     try:
                         summary = CachedEventSummary.objects.get(

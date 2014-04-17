@@ -3155,6 +3155,9 @@ def add_unplanned_output(request, process_id):
                 event.process = process
                 event.project = process.project
                 event.context_agent = process.context_agent
+                default_agent = process.default_agent()
+                event.from_agent = default_agent
+                event.to_agent = default_agent
                 event.event_date = datetime.date.today()
                 event.created_by = request.user
                 event.save()
@@ -4301,12 +4304,16 @@ def add_unplanned_cite_event(request, process_id):
             rt = data["resource_type"]
             r_id = data["resource"]
             resource = EconomicResource.objects.get(id=r_id)
+            #todo: rethink for citations
+            default_agent = process.default_agent()
+            from_agent = resource.owner() or default_agent
             event_type = pattern.event_type_for_resource_type("cite", rt)
             event = EconomicEvent(
                 event_type=event_type,
                 resource_type = rt,
                 resource = resource,
-                from_agent = agent,
+                from_agent = from_agent,
+                to_agent = default_agent,
                 process = process,
                 project = process.project,
                 context_agent = process.context_agent,
@@ -4349,12 +4356,15 @@ def add_unplanned_input_event(request, process_id, slot):
             if et == "use":
                 unit = rt.unit_of_use
             resource = EconomicResource.objects.get(id=r_id)
+            default_agent = process.default_agent()
+            from_agent = resource.owner() or default_agent
             event_type = pattern.event_type_for_resource_type(et, rt)
             event = EconomicEvent(
                 event_type=event_type,
                 resource_type = rt,
                 resource = resource,
-                from_agent = agent,
+                from_agent = from_agent,
+                to_agent = default_agent,
                 process = process,
                 project = process.project,
                 context_agent = process.context_agent,
@@ -4380,12 +4390,14 @@ def log_resource_for_commitment(request, commitment_id):
         resource.resource_type = ct.resource_type
         resource.created_by=request.user
         resource.save()
+        default_agent = ct.process.default_agent()
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
             event_date = resource.created_date,
             event_type = ct.event_type,
-            from_agent = agent,
+            from_agent = default_agent,
+            to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,
@@ -4468,6 +4480,8 @@ def add_unplanned_work_event(request, process_id):
             event.process = process
             event.project = process.project
             event.context_agent = process.context_agent
+            default_agent = process.default_agent()
+            event.to_agent = default_agent
             event.unit_of_quantity = rt.unit
             event.created_by = request.user
             event.changed_by = request.user
@@ -4519,6 +4533,9 @@ def add_use_event(request, commitment_id, resource_id):
         event.resource = resource
         event.process = ct.process
         event.project = ct.project
+        default_agent = ct.process.default_agent()
+        event.from_agent = default_agent
+        event.to_agent = default_agent
         event.context_agent = ct.context_agent
         event.unit_of_quantity = unit
         event.created_by = request.user
@@ -4544,6 +4561,9 @@ def add_consumption_event(request, commitment_id, resource_id):
         event.process = ct.process
         event.project = ct.project
         event.context_agent = ct.context_agent
+        default_agent = ct.process.default_agent()
+        event.from_agent = default_agent
+        event.to_agent = default_agent
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user

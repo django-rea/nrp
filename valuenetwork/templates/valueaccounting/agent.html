@@ -49,12 +49,19 @@
         {% include "_messages.html" %}
 
 		<legend>
-			{{ agent.agent_type }}: {{ agent }} &nbsp;
-{% comment %}
-			{% if user_agent %}
+			{{ agent.agent_type }}: {{ agent }} &nbsp;&nbsp;&nbsp;
+
+			{% if user_agent and change_form %}
 		        <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
 	        {% endif %}
-{% endcomment %}
+	        
+	        {% if agent.is_individual %}
+                <a href="{% url contribution_history agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+            {% else %}
+                <a href="{% url contributions project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+	        {% endif %}
+	              
+
 		</legend>
 {% comment %}
         {% if user_agent %}

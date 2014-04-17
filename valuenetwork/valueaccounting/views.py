@@ -315,7 +315,14 @@ def change_agent(request, agent_id):
         "change_form": location_form,
         }, context_instance=RequestContext(request))
                         
-    
+def agents(request):
+    #import pdb; pdb.set_trace()
+    agents = EconomicAgent.objects.all().order_by("agent_type__name", "name")
+
+    return render_to_response("valueaccounting/agents.html", {
+        "agents": agents,
+    }, context_instance=RequestContext(request))
+                        
 def agent(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, id=agent_id)
@@ -323,7 +330,7 @@ def agent(request, agent_id):
     change_form = None
     associations_to = agent.to_associations()
     associations_from = agent.from_associations()
-                             
+
     return render_to_response("valueaccounting/agent.html", {
         "agent": agent,
         "photo_size": (128, 128),
@@ -768,8 +775,10 @@ def project_wip(request, project_id):
 def contribution_history(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, pk=agent_id)
-    if not agent:
-        return render_to_response('valueaccounting/no_permission.html')
+    user_agent = get_agent(request)
+    user_is_agent = False
+    if agent == user_agent:
+        user_is_agent = True
     event_list = agent.contributions()
     paginator = Paginator(event_list, 25)
 
@@ -785,6 +794,7 @@ def contribution_history(request, agent_id):
     
     return render_to_response("valueaccounting/agent_contributions.html", {
         "agent": agent,
+        "user_is_agent": user_is_agent,
         "events": events,
     }, context_instance=RequestContext(request))
 
@@ -3540,7 +3550,8 @@ def change_event_qty(request):
 def change_event(request, event_id):
     event = get_object_or_404(EconomicEvent, pk=event_id)
     page = request.GET.get("page")
-    event_form = WorkContributionChangeForm(instance=event, data=request.POST or None)
+    #import pdb; pdb.set_trace()
+    event_form = event.change_form(data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         page = request.POST.get("page")

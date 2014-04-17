@@ -1,0 +1,99 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Agents" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.description {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-style: italic;
+}
+
+.hdg {
+    margin-top: 1em;
+    color: firebrick;
+}
+
+.agents li {
+    margin-left: 3em;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+
+        <legend>
+            {% trans "Agents" %}  
+        </legend>
+        
+        <ul class="agents" >
+            {% for agent in agents %}
+                {% ifchanged agent.agent_type %} 
+                    <h3 class="hdg" >{{ agent.agent_type.name }} </h3>
+                {% endifchanged %}
+            
+                <li>
+                        <b><a href="{{ agent.get_absolute_url }}">{{ agent.name }}</a></b> 
+                        &nbsp;&nbsp;&nbsp;
+                        {% if agent.contributions_count %}
+                            {% if agent.is_individual %}
+                                <a href="{% url contribution_history agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+                            {% else %}
+                                <a href="{% url contributions project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if agent.description %}
+                            <div class="description" >{{ agent.description|urlize|linebreaks }}</div>
+                        {% endif %}
+                </li>
+                
+            {% endfor %}
+        </ul>
+        
+
+    </div>
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $('#projects').addClass('active');
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+    }); // end document.ready
+
+    </script>
+{% endblock %}
+

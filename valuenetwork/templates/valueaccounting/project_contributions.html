@@ -28,7 +28,7 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Contributions for Project" %} {{ project }}</legend>
+		<legend>{% trans "Contributions for" %} {{ project.agent_type }} {{ project }}</legend>
 		<table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
 			<thead>
 				<th>{% trans "Date" %}</th>

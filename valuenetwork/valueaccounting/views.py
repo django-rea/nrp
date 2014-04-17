@@ -3167,7 +3167,7 @@ def add_unplanned_output(request, process_id):
 def add_unordered_receipt(request, exchange_id):
     exchange = get_object_or_404(Exchange, pk=exchange_id)   
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         form = UnorderedReceiptForm(data=request.POST, prefix='unorderedreceipt')
         if form.is_valid():
             output_data = form.cleaned_data
@@ -3217,7 +3217,8 @@ def add_unordered_receipt(request, exchange_id):
                 event_type = pattern.event_type_for_resource_type("receive", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
+                event.context_agent = exchange.context_agent
+                event.to_agent = event.default_agent()
                 event.created_by = request.user
                 event.save()
                 

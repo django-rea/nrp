@@ -419,7 +419,7 @@ class UnorderedReceiptForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
     from_agent = forms.ModelChoiceField(
         required=True,
-        queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
+        queryset=EconomicAgent.objects.none(),
         label="Supplier",  
         empty_label=None,
         widget=forms.Select(
@@ -477,12 +477,15 @@ class UnorderedReceiptForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('event_date', 'from_agent', 'resource_type', 'value', 'unit_of_value', 'quantity', 'unit_of_quantity', 'description')
 
-    def __init__(self, pattern=None, *args, **kwargs):
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(UnorderedReceiptForm, self).__init__(*args, **kwargs)
         #import pdb; pdb.set_trace()
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].queryset = pattern.receipt_resource_types()
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["from_agent"].queryset = context_agent.all_suppliers()
 
 
 class WorkModelChoiceField(forms.ModelChoiceField):
@@ -1074,7 +1077,7 @@ class PaymentEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     to_agent = forms.ModelChoiceField(
         required=True,
-        queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
+        queryset=EconomicAgent.objects.none(),
         label="Payment made to",  
         empty_label=None,
         widget=forms.Select(
@@ -1103,11 +1106,14 @@ class PaymentEventForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('event_date', 'to_agent', 'from_agent', 'quantity', 'resource_type', 'description')
 
-    def __init__(self, pattern=None, *args, **kwargs):
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(PaymentEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].queryset = pattern.payment_resource_types()
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["to_agent"].queryset = context_agent.all_suppliers()
 
 class ExpenseEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -1123,7 +1129,7 @@ class ExpenseEventForm(forms.ModelForm):
         queryset=Unit.objects.filter(unit_type='value'))
     from_agent = forms.ModelChoiceField(
         required=False,
-        queryset=EconomicAgent.objects.filter(agent_type__name='Supplier'),
+        queryset=EconomicAgent.objects.none(),
         label="Supplier",
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
@@ -1137,12 +1143,15 @@ class ExpenseEventForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'from_agent', 'description')
 
-    def __init__(self, pattern=None, *args, **kwargs):
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(ExpenseEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             #import pdb; pdb.set_trace()
             self.fields["resource_type"].queryset = pattern.expense_resource_types()
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["from_agent"].queryset = context_agent.all_suppliers()
 
 class CashContributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -1784,42 +1793,6 @@ class EquationForm(forms.Form):
 
         return equation
 
-'''
-#todo: can eliminate this when exchagne is done
-class FinancialContributionForm(forms.ModelForm):
-    #probably a limited selection of resource type, but not ready to set these up yet
-    resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
-        empty_label=None,
-        label=_("Type of contribution"),
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'}))
-    project = forms.ModelChoiceField(
-        queryset=Project.objects.all(), 
-        empty_label=None, 
-        widget=forms.Select(attrs={'class': 'chzn-select'}))
-    event_date = forms.DateField(required=True, 
-        label=_("Date of contribution"),
-        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
-    description = forms.CharField(required=False, 
-        label=_("Details and comments"),
-        widget=forms.Textarea(attrs={'class': 'item-description',}))
-    unit_of_quantity = forms.ChoiceField(label=_("Currency"))
-    quantity = forms.DecimalField(
-        max_digits=10, decimal_places=2,
-        label=_("Total amount"),
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
-    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
-
-    class Meta:
-        model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'project', 'resource_type', 'quantity', 'unit_of_quantity', 'url', 'description', 'is_contribution')
-
-    def __init__(self, *args, **kwargs):
-        super(FinancialContributionForm, self).__init__(*args, **kwargs)
-        self.fields["resource_type"].choices = [('1','cash infusion')] + [('2','administrative expenses')] + [('3','production and R&D')] + [('4','sales expenses')] + [('5','capital assets')] + [('6','Other')]
-        self.fields["unit_of_quantity"].choices = [('1','CAD')] + [('2','USD')] 
-'''
 
 class ExchangeForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(
@@ -1829,7 +1802,7 @@ class ExchangeForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.projects_and_networks(), #todo: probably need a code to say which can be context agents
+        queryset=EconomicAgent.objects.context_agents(), 
         label=_("Project"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
@@ -1857,6 +1830,6 @@ class ExchangeForm(forms.ModelForm):
         super(ExchangeForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
         if context_agent:
-            self.fields["supplier"].queryset = context_agent.suppliers()
+            self.fields["supplier"].queryset = context_agent.all_suppliers()
 
 

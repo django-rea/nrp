@@ -259,6 +259,9 @@ class AgentManager(models.Manager):
     
     def projects_and_networks(self):
         return EconomicAgent.objects.filter(Q(agent_type__party_type="network") | Q(agent_type__party_type="team"))
+        
+    def context_agents(self):
+        return EconomicAgent.objects.filter(agent_type__is_context=True)
 
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
@@ -505,7 +508,8 @@ class EconomicAgent(models.Model):
         while parent:
             sups.extend(parent.suppliers())
             parent = parent.parent()
-        return sups
+        sup_ids = [sup.id for sup in sups]
+        return EconomicAgent.objects.filter(pk__in=sup_ids)
         
     def to_associations(self):
         return AgentAssociation.objects.filter(to_agent=self).order_by('association_type__name', 'to_agent__nick')
@@ -613,7 +617,7 @@ class EventType(models.Model):
         ordering = ('label',)
 
     def natural_key(self):
-        return (self.name)
+        return (self.name,)
 
     def __unicode__(self):
         return self.label
@@ -1389,7 +1393,7 @@ class UseCase(models.Model):
         return self.name
 
     def natural_key(self):
-        return (self.identifier)
+        return (self.identifier,)
 
     @classmethod
     def create(cls, identifier, name, restrict_to_one_pattern=False, verbosity=2):

@@ -241,10 +241,7 @@ class AgentManager(models.Manager):
                 ua_ids.append(agent.id)
         return EconomicAgent.objects.exclude(id__in=ua_ids)
 
-    #todo: this won't work any more and I don't see where it is used.... but it blows up without it
-    def active_contributors(self):
-        return EconomicAgent.objects.filter(agent_type__member_type="active")
-     
+    
     def projects(self):
         return EconomicAgent.objects.filter(agent_type__party_type="team")
     
@@ -263,6 +260,7 @@ class AgentManager(models.Manager):
     def context_agents(self):
         return EconomicAgent.objects.filter(agent_type__is_context=True)
 
+        
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
     nick = models.CharField(_('ID'), max_length=32, unique=True)
@@ -500,6 +498,9 @@ class EconomicAgent(models.Model):
                 return xs[0]
             parent = parent.parent()
         return None
+        
+    def default_agent(self):
+        return self.exchange_firm() or self
         
     def all_suppliers(self):
         sups = list(self.suppliers())

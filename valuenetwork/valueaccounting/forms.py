@@ -62,13 +62,8 @@ class AgentSelectionForm(forms.Form):
         label="Select an existing Agent",
         required=False)
 
-
-class AgentContributorSelectionForm(forms.Form):
-    selected_agent = AgentModelChoiceField(
-        queryset=EconomicAgent.objects.active_contributors(), 
-        label="The member who did the work",
-        required=True)
-
+        
+#changed to create context_agents
 class ProjectForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     description = forms.CharField(
@@ -76,7 +71,7 @@ class ProjectForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
 
     class Meta:
-        model = Project
+        model = EconomicAgent
         fields = ('name', 'description')
 
 
@@ -119,7 +114,7 @@ class ResourceRoleAgentForm(forms.ModelForm):
         queryset=AgentResourceRoleType.objects.all(), 
         required=False)
     agent = AgentModelChoiceField(
-        queryset=EconomicAgent.objects.active_contributors(), 
+        queryset=EconomicAgent.objects.individuals(), 
         required=False)
     is_contact = forms.BooleanField(
         required=False, 
@@ -178,25 +173,22 @@ class ProcessForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(),
         empty_label=None)
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Project"),
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
 
     class Meta:
         model = Process
-        fields = ('name', 'project', 'process_pattern', 'start_date', 'end_date', 'notes' )
+        fields = ('name', 'context_agent', 'process_pattern', 'start_date', 'end_date', 'notes' )
 
     def __init__(self, *args, **kwargs):
         super(ProcessForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()  
 
-
-class NamelessProcessForm(forms.ModelForm):
-    start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
-    end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
-
-    class Meta:
-        model = Process
-        fields = ('project', 'start_date', 'end_date', 'notes' )
 
 class ScheduleProcessForm(forms.ModelForm):
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -209,10 +201,15 @@ class ScheduleProcessForm(forms.ModelForm):
 
 class AddProcessFromResourceForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
-    project = forms.ModelChoiceField(
-        queryset=Project.objects.all(),
-        required=False,
-        empty_label=None)
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Project"),
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    #project = forms.ModelChoiceField(
+    #    queryset=Project.objects.all(),
+    #    required=False,
+    #    empty_label=None)
     process_pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(),
         required=False,
@@ -222,7 +219,7 @@ class AddProcessFromResourceForm(forms.ModelForm):
 
     class Meta:
         model = Process
-        fields = ('name', 'project', 'process_pattern', 'start_date', 'end_date')
+        fields = ('name', 'context_agent', 'process_pattern', 'start_date', 'end_date')
 
     def __init__(self, *args, **kwargs):
         super(AddProcessFromResourceForm, self).__init__(*args, **kwargs)
@@ -506,11 +503,16 @@ class TodoForm(forms.ModelForm):
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
-    project = forms.ModelChoiceField(
-        queryset=Project.objects.all(), 
-        empty_label=None,
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'}))
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Project"),
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    #project = forms.ModelChoiceField(
+    #    queryset=Project.objects.all(), 
+    #    empty_label=None,
+    #    widget=forms.Select(
+    #        attrs={'class': 'chzn-select'}))
     due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     description = forms.CharField(
         required=False, 
@@ -519,7 +521,7 @@ class TodoForm(forms.ModelForm):
 
     class Meta:
         model = Commitment
-        fields = ('from_agent', 'project', 'resource_type', 'due_date', 'description', 'url')
+        fields = ('from_agent', 'context_agent', 'resource_type', 'due_date', 'description', 'url')
 
     def __init__(self, pattern=None, *args, **kwargs):
         super(TodoForm, self).__init__(*args, **kwargs)
@@ -761,78 +763,6 @@ class PastWorkForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('id', 'event_date', 'quantity', 'description')
 
-class SimpleOutputForm(forms.ModelForm):
-    event_date = forms.DateField(
-        label="Date created",
-        initial=datetime.date.today,  
-        widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
-
-    class Meta:
-        model = EconomicEvent
-        fields = ('project', 'event_date')
-
-    def __init__(self, *args, **kwargs):
-        super(SimpleOutputForm, self).__init__(*args, **kwargs)
-        self.fields["project"].choices = [(p.id, p) for p in Project.objects.all()]
-
-'''
-# used in log_simple()
-class SimpleOutputResourceForm(forms.ModelForm):
-    resource_type = FacetedModelChoiceField(
-        queryset=EconomicResourceType.objects.all(),
-        label="Type of resource created",
-        empty_label=None,
-        widget=forms.Select(
-            attrs={'class': 'resource-type-selector chzn-select'}))
-    identifier = forms.CharField(
-        required=True, 
-        label="Name",
-        widget=forms.TextInput(attrs={'class': 'item-name',}))
-    notes = forms.CharField(
-        required=True,
-        label="Notes", 
-        widget=forms.Textarea(attrs={'class': 'item-description',}))
-    url = forms.URLField(
-        required=True, 
-        label="URL",
-        widget=forms.TextInput(attrs={'class': 'url',}))
-    #Photo URL:
-
-    class Meta:
-        model = EconomicResource
-        fields = ('resource_type','identifier', 'url', 'notes')
-
-    def __init__(self, pattern, *args, **kwargs):
-        super(SimpleOutputResourceForm, self).__init__(*args, **kwargs)
-        self.pattern = pattern
-        self.fields["resource_type"].queryset = pattern.output_resource_types()
-
-class SimpleWorkForm(forms.ModelForm):
-    resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.all(),
-        label="Type of work done",
-        empty_label=None,
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
-    quantity = forms.DecimalField(required=True,
-        widget=DecimalDurationWidget,
-        label="Time spent",
-        help_text="hours, minutes")
-    description = forms.CharField(
-        required=False, 
-        widget=forms.Textarea(attrs={'class': 'item-description input-xlarge',}))
-   
-    class Meta:
-        model = EconomicEvent
-        fields = ('resource_type','quantity', 'description')
-
-    def __init__(self, pattern=None, *args, **kwargs):
-        #import pdb; pdb.set_trace()
-        super(SimpleWorkForm, self).__init__(*args, **kwargs)
-        if pattern:
-            self.pattern = pattern
-            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
-'''
 
 class UnplannedWorkEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -1038,11 +968,16 @@ class WorkContributionChangeForm(forms.ModelForm):
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
-    project = forms.ModelChoiceField(
-        queryset=Project.objects.all(), 
-        empty_label=None,
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'}))
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Project"),
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    #project = forms.ModelChoiceField(
+    #    queryset=Project.objects.all(), 
+    #    empty_label=None,
+    #    widget=forms.Select(
+    #        attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
         label = "Time spent",
@@ -1054,7 +989,7 @@ class WorkContributionChangeForm(forms.ModelForm):
 	
     class Meta:
         model = EconomicEvent
-        fields = ('id', 'event_date', 'resource_type', 'project', 'quantity', 'url', 'description')
+        fields = ('id', 'event_date', 'resource_type', 'context_agent', 'quantity', 'url', 'description')
 
 
 class EventChangeDateForm(forms.ModelForm):
@@ -1257,20 +1192,23 @@ class WorkSelectionForm(forms.Form):
         self.fields["type_of_work"].choices = [('', '----------')] + [(rt.id, rt.name) for rt in EconomicResourceType.objects.all()]
 
 
+#used in views process_selections and plan_from_recipe, 
+#fixed to select context_agents
 class ProjectSelectionForm(forms.Form):
     project = forms.ModelChoiceField(
-        queryset=Project.objects.all(),
+        queryset=EconomicAgent.objects.context_agents(),
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
 
 
+#used in view work, fixed to select context_agents
 class ProjectSelectionFormOptional(forms.Form):
     project = forms.ChoiceField()
 
     def __init__(self, *args, **kwargs):
         super(ProjectSelectionFormOptional, self).__init__(*args, **kwargs)
-        self.fields["project"].choices = [('', '--All Projects--')] + [(proj.id, proj.name) for proj in Project.objects.all()]
+        self.fields["project"].choices = [('', '--All Projects--')] + [(proj.id, proj.name) for proj in EconomicAgent.objects.context_agents()]
 
 
 class PatternSelectionForm(forms.Form):
@@ -1352,10 +1290,15 @@ class CasualTimeContributionForm(forms.ModelForm):
         queryset=EconomicResourceType.objects.all(), 
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
-    project = forms.ModelChoiceField(
-        queryset=Project.objects.all(), 
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Project"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
+    #project = forms.ModelChoiceField(
+    #    queryset=Project.objects.all(), 
+    #    empty_label=None, 
+    #    widget=forms.Select(attrs={'class': 'chzn-select'}))
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     quantity = forms.DecimalField(required=False,
@@ -1364,7 +1307,7 @@ class CasualTimeContributionForm(forms.ModelForm):
 	
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'project', 'quantity', 'url', 'description')
+        fields = ('event_date', 'resource_type', 'context_agent', 'quantity', 'url', 'description')
 
     def __init__(self, *args, **kwargs):
         super(CasualTimeContributionForm, self).__init__(*args, **kwargs)

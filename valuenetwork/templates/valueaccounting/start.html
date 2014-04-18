@@ -159,12 +159,7 @@ th, td {
 
 			<p class="top-buttons">
 				{% if agent %}
-{% comment %}
-				    <a href="{% url log_simple %}" role="button" class="btn btn-primary" 
-					    title="Log time and create design resources." >
-					    {% trans "Log design work" %}
-				    </a> 
-{% endcomment %}
+
 				    <a href="{% url process_selections %}" role="button" class="btn btn-primary" 
 				        title="Log time and create resources." >
 				        {% trans "Create a production process" %}
@@ -279,7 +274,7 @@ th, td {
                                 </td>
                                 {% comment %}
                                 <td>
-                                    {{ todo.project }}
+                                    {{ todo.context_agent }}
                                 </td>
                                 {% endcomment %}
                                 <td>

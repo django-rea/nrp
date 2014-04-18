@@ -419,7 +419,7 @@ class UnorderedReceiptForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
     from_agent = forms.ModelChoiceField(
         required=True,
-        queryset=EconomicAgent.objects.none(),
+        queryset=EconomicAgent.objects.all(),
         label="Supplier",  
         empty_label=None,
         widget=forms.Select(
@@ -886,7 +886,7 @@ class WorkEventAgentForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
     from_agent = forms.ModelChoiceField(
         required=True,
-        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        queryset=EconomicAgent.objects.all(),
         label="Work done by",  
         empty_label=None,
         widget=forms.Select(
@@ -896,12 +896,15 @@ class WorkEventAgentForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('event_date', 'resource_type','quantity', 'description', 'from_agent')
 
-    def __init__(self, pattern, *args, **kwargs):
-        #import pdb; pdb.set_trace()
+    def __init__(self, pattern, context_agent=None, *args, **kwargs):
         super(WorkEventAgentForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
+        import pdb; pdb.set_trace()
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["from_agent"].choices = context_agent.all_members()
 
 
 class WorkCommitmentForm(forms.ModelForm):
@@ -1077,14 +1080,14 @@ class PaymentEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     to_agent = forms.ModelChoiceField(
         required=True,
-        queryset=EconomicAgent.objects.none(),
+        queryset=EconomicAgent.objects.all(),
         label="Payment made to",  
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     from_agent = forms.ModelChoiceField(
         required=True,
-        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        queryset=EconomicAgent.objects.all(),
         label="Payment made by",  
         empty_label=None,
         widget=forms.Select(
@@ -1114,6 +1117,7 @@ class PaymentEventForm(forms.ModelForm):
         if context_agent:
             self.context_agent = context_agent
             self.fields["to_agent"].queryset = context_agent.all_suppliers()
+            self.fields["from_agent"].queryset = context_agent.all_members()
 
 class ExpenseEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -1129,7 +1133,7 @@ class ExpenseEventForm(forms.ModelForm):
         queryset=Unit.objects.filter(unit_type='value'))
     from_agent = forms.ModelChoiceField(
         required=False,
-        queryset=EconomicAgent.objects.none(),
+        queryset=EconomicAgent.objects.all(),
         label="Supplier",
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
@@ -1165,7 +1169,7 @@ class CashContributionEventForm(forms.ModelForm):
             attrs={'class': 'chzn-select'})) 
     from_agent = forms.ModelChoiceField(
         required=False,
-        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        queryset=EconomicAgent.objects.all(),
         label="Contributor",
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
@@ -1178,18 +1182,21 @@ class CashContributionEventForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('event_date', 'from_agent', 'value', 'resource_type', 'description', 'is_contribution')
 
-    def __init__(self, pattern=None, *args, **kwargs):
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(CashContributionEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             #import pdb; pdb.set_trace()
             self.fields["resource_type"].queryset = pattern.cash_contr_resource_types()
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["from_agent"].queryset = context_agent.all_members()
 
 class MaterialContributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     from_agent = forms.ModelChoiceField(
         required=True,
-        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        queryset=EconomicAgent.objects.all(),
         label="Resource contributed by",  
         empty_label=None,
         widget=forms.Select(
@@ -1242,11 +1249,14 @@ class MaterialContributionEventForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('event_date', 'from_agent', 'quantity', 'resource_type', 'unit_of_quantity', 'description')
 
-    def __init__(self, pattern=None, *args, **kwargs):
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(MaterialContributionEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.material_contr_resource_types()
+            self.fields["resource_type"].queryset = pattern.material_contr_resource_types() 
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["from_agent"].queryset = context_agent.all_members()
 
 
 class WorkSelectionForm(forms.Form):

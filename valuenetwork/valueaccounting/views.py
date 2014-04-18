@@ -3171,7 +3171,9 @@ def add_unordered_receipt(request, exchange_id):
     exchange = get_object_or_404(Exchange, pk=exchange_id)   
     if request.method == "POST":
         import pdb; pdb.set_trace()
-        form = UnorderedReceiptForm(data=request.POST, prefix='unorderedreceipt')
+        pattern=exchange.process_pattern
+        context_agent=exchange.context_agent
+        form = UnorderedReceiptForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='unorderedreceipt')
         if form.is_valid():
             output_data = form.cleaned_data
             value = output_data["value"] 
@@ -3216,11 +3218,10 @@ def add_unordered_receipt(request, exchange_id):
                                     rra.resource = resource
                                     rra.is_contact = data_rra["is_contact"]
                                     rra.save()
-                pattern = exchange.process_pattern
                 event_type = pattern.event_type_for_resource_type("receive", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.context_agent = exchange.context_agent
+                event.context_agent = context_agent
                 event.to_agent = event.default_agent()
                 event.created_by = request.user
                 event.save()
@@ -3235,7 +3236,8 @@ def add_unplanned_payment(request, exchange_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
-        form = PaymentEventForm(data=request.POST, pattern=pattern, prefix='pay')
+        context_agent = exchange.context_agent
+        form = PaymentEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='pay')
         if form.is_valid():
             payment_data = form.cleaned_data
             qty = payment_data["quantity"] 
@@ -3245,7 +3247,7 @@ def add_unplanned_payment(request, exchange_id):
                 event_type = pattern.event_type_for_resource_type("pay", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
+                event.context_agent = exchange.context_agent
                 event.unit_of_quantity = rt.unit
                 event.is_contribution = True
                 event.created_by = request.user
@@ -3260,7 +3262,8 @@ def add_expense(request, exchange_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
-        form = ExpenseEventForm(data=request.POST, pattern=pattern, prefix='expense')
+        context_agent = exchange.context_agent
+        form = ExpenseEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='expense')
         if form.is_valid():
             expense_data = form.cleaned_data
             value = expense_data["value"] 
@@ -3270,7 +3273,8 @@ def add_expense(request, exchange_id):
                 event_type = pattern.event_type_for_resource_type("expense", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
+                event.context_agent = exchange.context_agent
+                event.to_agent = event.default_agent()
                 event.quantity = 1
                 event.unit_of_quantity = rt.unit
                 event.created_by = request.user
@@ -3285,7 +3289,8 @@ def add_material_contribution(request, exchange_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
-        form = MaterialContributionEventForm(data=request.POST, pattern=pattern, prefix='material')
+        context_agent = exchange.context_agent
+        form = MaterialContributionEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='material')
         if form.is_valid():
             material_data = form.cleaned_data
             qty = material_data["quantity"] 
@@ -3329,11 +3334,11 @@ def add_material_contribution(request, exchange_id):
                                     rra.resource = resource
                                     rra.is_contact = data_rra["is_contact"]
                                     rra.save()
-                pattern = exchange.process_pattern
                 event_type = pattern.event_type_for_resource_type("resource", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
+                event.context_agent = context_agent
+                event.to_agent = event.default_agent()
                 event.is_contribution = True
                 event.created_by = request.user
                 event.save()
@@ -3348,7 +3353,8 @@ def add_cash_contribution(request, exchange_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
-        form = CashContributionEventForm(data=request.POST, pattern=pattern, prefix='cash')
+        context_agent = exchange.context_agent
+        form = CashContributionEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='cash')
         if form.is_valid():
             cash_data = form.cleaned_data
             value = cash_data["value"] 
@@ -3358,7 +3364,8 @@ def add_cash_contribution(request, exchange_id):
                 event_type = pattern.event_type_for_resource_type("cash", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
+                event.context_agent = context_agent
+                event.to_agent = event.default_agent()
                 event.quantity = 1
                 event.unit_of_value = rt.unit
                 event.created_by = request.user
@@ -7273,7 +7280,7 @@ def exchange_logging(request, exchange_id):
                 "to_agent": exchange.supplier,
                 "event_date": exchange.start_date
             }
-            add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, context_agent=context_agent, data=request.POST or None)
+            add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, context_agent=context_agent)
         if "expense" in slots:
             expense_init = {
                 "from_agent": exchange.supplier,
@@ -7285,7 +7292,7 @@ def exchange_logging(request, exchange_id):
                 "from_agent": agent,
                 "event_date": exchange.start_date
             }      
-            add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern)
+            add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern, context_agent=context_agent)
         if "receive" in slots:
             receipt_init = {
                 "event_date": exchange.start_date,
@@ -7299,7 +7306,7 @@ def exchange_logging(request, exchange_id):
                 "event_date": exchange.start_date,
                 "from_agent": agent
             }      
-            add_cash_form = CashContributionEventForm(prefix='cash', initial=cash_init, pattern=pattern)
+            add_cash_form = CashContributionEventForm(prefix='cash', initial=cash_init, pattern=pattern, context_agent=context_agent)
         if "resource" in slots:
             matl_init = {
                 "event_date": exchange.start_date,

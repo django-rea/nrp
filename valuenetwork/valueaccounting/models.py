@@ -470,7 +470,7 @@ class EconomicAgent(models.Model):
         agent_ids = self.associations_to.filter(association_type__identifier="legal").filter(state="active").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
-    def members(self):
+    def members(self): 
         #import pdb; pdb.set_trace()
         agent_ids = self.associations_to.filter(association_type__identifier="member").filter(state="active").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
@@ -510,6 +510,15 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         sup_ids = [sup.id for sup in sups]
         return EconomicAgent.objects.filter(pk__in=sup_ids)
+        
+    def all_members(self): 
+        mems = list(self.members())
+        parent = self.parent()
+        while parent:
+            mems.extend(parent.members())
+            parent = parent.parent()
+        mem_ids = [mem.id for mem in mems]
+        return EconomicAgent.objects.filter(pk__in=mem_ids)
         
     def to_associations(self):
         return AgentAssociation.objects.filter(to_agent=self).order_by('association_type__name', 'to_agent__nick')

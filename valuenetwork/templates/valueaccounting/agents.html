@@ -40,13 +40,13 @@
         <legend>
             {% trans "Agents" %}  
         </legend>
-        
+
         <ul class="agents" >
             {% for agent in agents %}
                 {% ifchanged agent.agent_type %} 
                     <h3 class="hdg" >{{ agent.agent_type.name }} </h3>
                 {% endifchanged %}
-            
+
                 <li>
                         <b><a href="{{ agent.get_absolute_url }}">{{ agent.name }}</a></b> 
                         &nbsp;&nbsp;&nbsp;
@@ -62,10 +62,9 @@
                             <div class="description" >{{ agent.description|urlize|linebreaks }}</div>
                         {% endif %}
                 </li>
-                
+
             {% endfor %}
         </ul>
-        
 
     </div>
     </div>
@@ -73,6 +72,7 @@
 
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 {% endblock %}
 
 
@@ -93,7 +93,7 @@
         })
 
     }); // end document.ready
-
+    
     </script>
 {% endblock %}
 

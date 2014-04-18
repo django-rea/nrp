@@ -3811,6 +3811,7 @@ def create_worknow_context(
     event = EconomicEvent(
         event_date=today,
         from_agent=agent,
+        to_agent=process.default_agent(),
         process=process,
         project=process.project,
         context_agent=process.context_agent,
@@ -4455,10 +4456,11 @@ def add_work_event(request, commitment_id):
         event.commitment = ct
         event.event_type = ct.event_type
         event.from_agent = ct.from_agent
+        event.to_agent = ct.process.default_agent()
         event.resource_type = ct.resource_type
         event.process = ct.process
         event.project = ct.project
-        event.context_agent=ct.context_agent
+        event.context_agent = ct.context_agent
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
@@ -4581,12 +4583,16 @@ def log_citation(request, commitment_id, resource_id):
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     if request.method == "POST":
         agent = get_agent(request)
+        #todo: rethink for citations
+        default_agent = ct.process.default_agent()
+        from_agent = resource.owner() or default_agent
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
             event_date = datetime.date.today(),
             event_type = ct.event_type,
-            from_agent = agent,
+            from_agent = from_agent,
+            to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,
@@ -5110,7 +5116,8 @@ def time_use_event_for_commitment(request):
             commitment = ct,
             event_date = event_date,
             event_type = ct.event_type,
-            to_agent = agent,
+            from_agent = agent,
+            to_agent = ct.process.default_agent(),
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,

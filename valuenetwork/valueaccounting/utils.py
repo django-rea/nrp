@@ -38,6 +38,7 @@ def flattened_children_by_association(node, all_associations, to_return): #works
     return to_return
     
 def agent_dfs_by_association(node, all_associations, depth): #works only for agents
+    #todo: figure out why this failed when AAs were ordered by from_agent
     #import pdb; pdb.set_trace()
     node.depth = depth
     to_return = [node,]

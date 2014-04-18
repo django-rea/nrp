@@ -420,12 +420,11 @@ class EconomicAgent(models.Model):
         
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
-        #return flattened_children(self, EconomicAgent.objects.all(), [])
         return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
         
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
-        #return flattened_children(self, EconomicAgent.objects.all(), [])
+        #todo: figure out why this failed when AAs were ordered by from_agent
         aas = AgentAssociation.objects.all().order_by("id")
         return agent_dfs_by_association(self, aas, 1)
         

@@ -2124,26 +2124,26 @@ def create_supplier(request):
         % ('accounting/supply'))
 
 
-def assemble_schedule(start, end, project=None):
+def assemble_schedule(start, end, context_agent=None):
     processes = Process.objects.unfinished()
     #import pdb; pdb.set_trace()
     if start:
         processes = processes.filter(
             Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)) |
             Q(start_date__lt=start, end_date__gt=end))       
-    processes = processes.order_by("project__name", "end_date", "start_date")
-    projects = SortedDict()
+    processes = processes.order_by("context_agent__name", "end_date", "start_date")
+    context_agents = SortedDict()
     for proc in processes:
-        if project == None:
-            if proc.project not in projects:
-                projects[proc.project] = []
-            projects[proc.project].append(proc)
+        if context_agent == None:
+            if proc.context_agent not in context_agents:
+                context_agents[proc.context_agent] = []
+            context_agents[proc.context_agent].append(proc)
         else:
-            if proc.project == project:
-                if proc.project not in projects:
-                    projects[proc.project] = []
-                projects[proc.project].append(proc)
-    return processes, projects
+            if proc.context_agent == context_agent:
+                if proc.context_agent not in context_agents:
+                    context_agents[proc.context_agent] = []
+                context_agents[proc.context_agent].append(proc)
+    return processes, context_agents
 
 @login_required
 def change_process_sked_ajax(request):
@@ -2168,8 +2168,8 @@ def work(request):
     end = start + datetime.timedelta(days=7)
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
-    project_form = ProjectSelectionFormOptional(data=request.POST or None)
-    chosen_project = None
+    ca_form = ProjectSelectionFormOptional(data=request.POST or None)
+    chosen_context_agent = None
     try:
         pattern = PatternUseCase.objects.get(use_case__identifier='todo').pattern
         todo_form = TodoForm(pattern=pattern)
@@ -2181,37 +2181,37 @@ def work(request):
             dates = date_form.cleaned_data
             start = dates["start_date"]
             end = dates["end_date"]
-            if project_form.is_valid():
-                proj_data = project_form.cleaned_data
-                proj_id = proj_data["project"]
+            if ca_form.is_valid():
+                proj_data = ca_form.cleaned_data
+                proj_id = proj_data["context_agent"]
                 if proj_id.isdigit:
-                    chosen_project = Project.objects.get(id=proj_id)
+                    chosen_context_agent = EconomicAgent.objects.get(id=proj_id)
 
-    processes, projects = assemble_schedule(start, end, chosen_project)
+    processes, context_agents = assemble_schedule(start, end, chosen_context_agent)
     todos = Commitment.objects.todos().filter(due_date__range=(start, end))
     work_now = settings.USE_WORK_NOW
     return render_to_response("valueaccounting/work.html", {
         "agent": agent,
-        "projects": projects,
+        "context_agents": context_agents,
         "all_processes": processes,
         "date_form": date_form,
         "todo_form": todo_form,
-        "project_form": project_form,
+        "ca_form": ca_form,
         "todos": todos,
         "work_now": work_now,
         "help": get_help("all_work"),
     }, context_instance=RequestContext(request))
 
-def schedule(request, project_slug=None): 
-    project = None
-    if project_slug:
-        project = get_object_or_404(Project, slug=project_slug)
+def schedule(request, context_agent_slug=None): 
+    context_agent = None
+    if context_agent_slug:
+        context_agent = get_object_or_404(EconomicAgent, slug=context_agent_slug)
     start = None
     end = None
     #import pdb; pdb.set_trace()
-    processes, projects = assemble_schedule(start, end, project)
+    processes, context_agents = assemble_schedule(start, end, context_agent)
     return render_to_response("valueaccounting/schedule.html", {
-        "projects": projects,
+        "context_agents": context_agents,
     }, context_instance=RequestContext(request))
 
 def today(request):
@@ -2220,11 +2220,11 @@ def today(request):
     end = start
     #import pdb; pdb.set_trace()
     todos = Commitment.objects.todos().filter(due_date=start)
-    processes, projects = assemble_schedule(start, end)
+    processes, context_agents = assemble_schedule(start, end)
     events = EconomicEvent.objects.filter(event_date=start)
     return render_to_response("valueaccounting/today.html", {
         "agent": agent,
-        "projects": projects,
+        "context_agents": context_agents,
         "todos": todos,
         "events": events,
     }, context_instance=RequestContext(request))
@@ -6413,10 +6413,10 @@ def process_selections(request, rand=0):
     slots = []
     resource_types = []
     selected_pattern = None
-    selected_project = None
+    selected_context_agent = None
     pattern_form = PatternProdSelectionForm()
     #import pdb; pdb.set_trace()
-    project_form = ProjectSelectionForm()
+    ca_form = ProjectSelectionForm()
     init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
     process_form = DateAndNameForm(data=request.POST or None)
     demand_form = DemandSelectionForm(data=request.POST or None)
@@ -6431,7 +6431,7 @@ def process_selections(request, rand=0):
         if get_related:
             #import pdb; pdb.set_trace()
             selected_pattern = ProcessPattern.objects.get(id=request.POST.get("pattern"))
-            selected_project = Project.objects.get(id=request.POST.get("project"))
+            selected_context_agent = EconomicAgent.objects.get(id=request.POST.get("context_agent"))
             if selected_pattern:
                 slots = selected_pattern.event_types()
                 for slot in slots:
@@ -6461,9 +6461,9 @@ def process_selections(request, rand=0):
             work_rts = []
             #import pdb; pdb.set_trace()
             for key, value in dict(rp).iteritems():
-                if "selected-project" in key:
-                    project_id = key.split("~")[1]
-                    selected_project = Project.objects.get(id=project_id)
+                if "selected-context-agent" in key:
+                    context_agent_id = key.split("~")[1]
+                    selected_context_agent = EconomicAgent.objects.get(id=context_agent_id)
                     continue
                 if "selected-pattern" in key:
                     pattern_id = key.split("~")[1]
@@ -6526,7 +6526,7 @@ def process_selections(request, rand=0):
                 start_date=start_date,
                 process_pattern=selected_pattern,
                 created_by=request.user,
-                project=selected_project
+                context_agent=selected_context_agent
             )
             process.save()
         
@@ -6656,8 +6656,8 @@ def process_selections(request, rand=0):
     return render_to_response("valueaccounting/process_selections.html", {
         "slots": slots,
         "selected_pattern": selected_pattern,
-        "selected_project": selected_project,
-        "project_form": project_form,
+        "selected_context_agent": selected_context_agent,
+        "ca_form": ca_form,
         "pattern_form": pattern_form,
         "process_form": process_form,
         "demand_form": demand_form,
@@ -6669,18 +6669,18 @@ def process_selections(request, rand=0):
 def plan_from_recipe(request):
     #import pdb; pdb.set_trace()
     resource_types = []
-    selected_project = None
-    project_form = ProjectSelectionForm()
+    selected_context_agent = None
+    ca_form = ProjectSelectionForm()
     init = {"due_date": datetime.date.today(),}
     date_name_form = DueDateAndNameForm(data=request.POST or None)
     if request.method == "POST":
         create_order = request.POST.get("create-order")
         get_related = request.POST.get("get-related")
         if get_related:
-            selected_project = Project.objects.get(id=request.POST.get("project"))
+            selected_context_agent = EconomicAgent.objects.get(id=request.POST.get("context_agent"))
             date_name_form = DueDateAndNameForm(initial=init)
-            if selected_project:
-                resource_types = selected_project.get_resource_types_with_recipe()
+            if selected_context_agent:
+                resource_types = selected_context_agent.get_resource_types_with_recipe()
         else:
             #import pdb; pdb.set_trace()
             rp = request.POST
@@ -6692,9 +6692,9 @@ def plan_from_recipe(request):
             else:
                 due_date = today
             for key, value in dict(rp).iteritems():
-                if "selected-project" in key:
-                    project_id = key.split("~")[1]
-                    selected_project = Project.objects.get(id=project_id)
+                if "selected-context-agent" in key:
+                    context_agent_id = key.split("~")[1]
+                    selected_context_agent = EconomicAgent.objects.get(id=context_agent_id)
                     continue
                 if key == "rt":
                     produced_id = int(value[0])
@@ -6770,8 +6770,8 @@ def plan_from_recipe(request):
                 % ('accounting/order-schedule', demand.id))                 
                             
     return render_to_response("valueaccounting/plan_from_recipe.html", {
-        "selected_project": selected_project,
-        "project_form": project_form,
+        "selected_context_agent": selected_context_agent,
+        "ca_form": ca_form,
         "date_name_form": date_name_form,
         "resource_types": resource_types,
         "help": get_help("plan_from_recipe"),
@@ -6800,7 +6800,7 @@ def plan_from_rt(request, resource_type_id):
             demand.save()
 
             com = Commitment()
-            com.project = process.project
+            com.context_agent = process.context_agent
             com.independent_demand = demand
             com.order = demand
             com.commitment_date = datetime.date.today()
@@ -7097,7 +7097,7 @@ def financial_contributions_csv(request):
              event.unit_of_value,
              from_agent,
              to_agent,
-             event.project.name,
+             event.context_agent.name,
              event.description,
              url,
              event.exchange.use_case,

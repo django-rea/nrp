@@ -4405,6 +4405,7 @@ def add_work_for_exchange(request, exchange_id):
     #import pdb; pdb.set_trace()
     exchange = get_object_or_404(Exchange, pk=exchange_id)
     pattern = exchange.process_pattern
+    context_agent = exchange.context_agent
     if pattern:
         form = WorkEventAgentForm(prefix="work", data=request.POST, pattern=pattern)
         if form.is_valid():
@@ -4412,7 +4413,7 @@ def add_work_for_exchange(request, exchange_id):
             rt = event.resource_type
             event.event_type = pattern.event_type_for_resource_type("work", rt)
             event.exchange = exchange
-            event.project = exchange.project
+            event.context_agent = context_agent
             event.unit_of_quantity = rt.unit
             event.created_by = request.user
             event.changed_by = request.user
@@ -5337,11 +5338,13 @@ def change_exchange_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     exchange = event.exchange
     pattern = exchange.process_pattern
+    context_agent=exchange.context_agent
     if pattern:
         #import pdb; pdb.set_trace()
         if request.method == "POST":
             form = WorkEventAgentForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id), 
                 data=request.POST)
@@ -7161,6 +7164,7 @@ def exchange_logging(request, exchange_id):
         for event in work_events:
             event.changeform = WorkEventAgentForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         for event in receipt_events:

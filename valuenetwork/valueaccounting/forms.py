@@ -831,10 +831,10 @@ class WorkEventAgentForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         if context_agent:
             self.context_agent = context_agent
-            self.fields["from_agent"].choices = context_agent.all_members()
+            self.fields["from_agent"].queryset = context_agent.all_members()
 
 
 class WorkCommitmentForm(forms.ModelForm):

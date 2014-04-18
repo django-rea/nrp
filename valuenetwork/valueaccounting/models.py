@@ -416,6 +416,17 @@ class EconomicAgent(models.Model):
         id_list = [id[0] for id in ids]
         return EconomicAgent.objects.filter(id__in=id_list)
         
+    def events_by_event_type(self):
+        events = EconomicEvent.objects.filter(
+            Q(from_agent=self)|Q(to_agent=self))
+        ets = EventType.objects.all()
+        answer = {}
+        for et in ets:
+            et_events = events.filter(event_type=et)
+            if et_events:
+                answer[et.label] = et_events
+        return answer
+               
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
         return flattened_children_by_association(self, AgentAssociation.objects.all(), [])

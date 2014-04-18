@@ -241,10 +241,7 @@ class AgentManager(models.Manager):
                 ua_ids.append(agent.id)
         return EconomicAgent.objects.exclude(id__in=ua_ids)
 
-    #todo: this won't work any more and I don't see where it is used.... but it blows up without it
-    def active_contributors(self):
-        return EconomicAgent.objects.filter(agent_type__member_type="active")
-     
+    
     def projects(self):
         return EconomicAgent.objects.filter(agent_type__party_type="team")
     
@@ -263,6 +260,7 @@ class AgentManager(models.Manager):
     def context_agents(self):
         return EconomicAgent.objects.filter(agent_type__is_context=True)
 
+        
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
     nick = models.CharField(_('ID'), max_length=32, unique=True)
@@ -420,12 +418,11 @@ class EconomicAgent(models.Model):
         
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
-        #return flattened_children(self, EconomicAgent.objects.all(), [])
         return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
         
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
-        #return flattened_children(self, EconomicAgent.objects.all(), [])
+        #todo: figure out why this failed when AAs were ordered by from_agent
         aas = AgentAssociation.objects.all().order_by("id")
         return agent_dfs_by_association(self, aas, 1)
         
@@ -501,6 +498,9 @@ class EconomicAgent(models.Model):
                 return xs[0]
             parent = parent.parent()
         return None
+        
+    def default_agent(self):
+        return self.exchange_firm() or self
         
     def all_suppliers(self):
         sups = list(self.suppliers())

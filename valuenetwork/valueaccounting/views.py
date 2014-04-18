@@ -4,18 +4,15 @@ import csv
 from operator import attrgetter
 
 from django.db.models import Q
-from django.http import Http404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseServerError, Http404, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseServerError
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.utils import simplejson
 from django.forms.models import formset_factory, modelformset_factory, BaseModelFormSet
 from django.forms import ValidationError
 from django.utils import simplejson
@@ -253,6 +250,12 @@ def create_project(request):
         form = ProjectForm(request.POST)
         if form.is_valid():
             project = form.save(commit=False)
+            project.nick = project.name
+            ats = AgentType.objects.filter(party_type="team")
+            if ats:
+                project.agent_type = ats[0]
+            else:
+                return HttpResponseNotFound('<h1>No project AgentTypes</h1>')
             project.created_by=request.user
             project.save()
     return HttpResponseRedirect("/accounting/projects/")
@@ -850,109 +853,6 @@ def unscheduled_time_contributions(request):
     return render_to_response("valueaccounting/unscheduled_time_contributions.html", {
         "member": member,
         "time_formset": time_formset,
-    }, context_instance=RequestContext(request))
-
-@login_required
-def log_simple(request):
-    member = get_agent(request)
-    if not member:
-        return HttpResponseRedirect('/%s/'
-            % ('accounting/start')) 
-    pattern = PatternUseCase.objects.get(use_case__identifier='design').pattern  #assumes only one pattern is assigned to design
-    output_form = SimpleOutputForm(data=request.POST or None)
-    resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
-    work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
-    citations_select_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite', pattern=pattern)
-    rt_create_form = EconomicResourceTypeAjaxForm()
-    rtf_create_formset = create_patterned_facet_formset(pattern=pattern, slot="out")
-    facets = pattern.output_facets()
-    names = EconomicResourceType.objects.values_list('name', flat=True)
-    resource_names = '~'.join(names)
-
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        if output_form.is_valid():
-            output_event = output_form.save(commit=False)
-            if work_form.is_valid():
-                work_event = work_form.save(commit=False)
-                if resource_form.is_valid():
-                    output_resource = resource_form.save(commit=False)
-                    
-                    process = Process()
-                    process.name = 'Create ' + output_resource.identifier
-                    process.project = output_event.project
-                    process.start_date = output_event.event_date
-                    process.end_date = output_event.event_date
-                    process.started = output_event.event_date
-                    process.finished = True
-                    process.created_by = request.user
-                    process.save()                    
-                    
-                    output_resource.quantity = 1
-                    output_resource.unit_of_quantity = output_resource.resource_type.directional_unit("out") 
-                    #output_resource.author = member
-                    output_resource.created_by = request.user
-                    output_resource.save()
-
-                    output_event.event_type = pattern.event_type_for_resource_type("out", output_resource.resource_type)
-                    output_event.process = process
-                    output_event.resource_type = output_resource.resource_type 
-                    output_event.quantity = output_resource.quantity 
-                    output_event.unit_of_quantity = output_resource.unit_of_quantity 
-                    output_event.resource = output_resource
-                    output_event.from_agent = member
-                    output_event.created_by = request.user
-                    output_event.save()
-
-                    work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)
-                    work_event.event_date = output_event.event_date
-                    work_event.process = process
-                    work_event.project = output_event.project
-                    work_event.is_contribution = True
-                    work_event.unit_of_quantity = work_event.resource_type.directional_unit("use")  
-                    work_event.from_agent = member
-                    work_event.created_by = request.user
-                    work_event.save()
-
-                    #import pdb; pdb.set_trace()
-                    citation_resources = request.POST.getlist("citation")
-                    if citation_resources:
-                        for cr_id in citation_resources:
-                            cr = EconomicResource.objects.get(id=int(cr_id))
-                            citation_event = EconomicEvent()
-                            citation_event.event_type = pattern.event_type_for_resource_type("cite", cr.resource_type)
-                            citation_event.event_date = output_event.event_date
-                            citation_event.process = process
-                            citation_event.project = output_event.project
-                            citation_event.resource = cr
-                            citation_event.resource_type = cr.resource_type
-                            citation_event.quantity = 1
-                            citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
-                            citation_event.from_agent = member
-                            citation_event.created_by = request.user
-                            citation_event.save()
-
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/resource', output_resource.id ))
-
-                else:
-                    raise ValidationError(resource_form.errors)
-            else:
-                raise ValidationError(work_form.errors)
-        else:
-            raise ValidationError(output_form.errors)
-
-    return render_to_response("valueaccounting/log_simple.html", {
-        "member": member,
-        "output_form": output_form,
-        "work_form": work_form,
-        "resource_form":resource_form,
-        "citations_select_form": citations_select_form,
-        "rt_create_form": rt_create_form,
-        "rtf_create_formset": rtf_create_formset,
-        "facets": facets,
-        "pattern": pattern,
-        "resource_names": resource_names,
     }, context_instance=RequestContext(request))
 
 def json_resource_type_resources(request, resource_type_id):
@@ -2376,9 +2276,9 @@ def create_event_from_todo(todo):
         event_type=todo.event_type,
         event_date=datetime.date.today(),
         from_agent=todo.from_agent,
-        to_agent=todo.to_agent,
+        to_agent=todo.context_agent.default_agent(),
         resource_type=todo.resource_type,
-        project=todo.project,
+        context_agent=todo.context_agent,
         url=todo.url,
         quantity=Decimal("1"),
         unit_of_quantity=todo.resource_type.unit,
@@ -3819,6 +3719,7 @@ def create_worknow_context(
     event = EconomicEvent(
         event_date=today,
         from_agent=agent,
+        to_agent=process.default_agent(),
         process=process,
         project=process.project,
         context_agent=process.context_agent,
@@ -4463,10 +4364,11 @@ def add_work_event(request, commitment_id):
         event.commitment = ct
         event.event_type = ct.event_type
         event.from_agent = ct.from_agent
+        event.to_agent = ct.process.default_agent()
         event.resource_type = ct.resource_type
         event.process = ct.process
         event.project = ct.project
-        event.context_agent=ct.context_agent
+        event.context_agent = ct.context_agent
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
@@ -4589,12 +4491,16 @@ def log_citation(request, commitment_id, resource_id):
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     if request.method == "POST":
         agent = get_agent(request)
+        #todo: rethink for citations
+        default_agent = ct.process.default_agent()
+        from_agent = resource.owner() or default_agent
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
             event_date = datetime.date.today(),
             event_type = ct.event_type,
-            from_agent = agent,
+            from_agent = from_agent,
+            to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,
@@ -5118,7 +5024,8 @@ def time_use_event_for_commitment(request):
             commitment = ct,
             event_date = event_date,
             event_type = ct.event_type,
-            to_agent = agent,
+            from_agent = agent,
+            to_agent = ct.process.default_agent(),
             resource_type = ct.resource_type,
             process = ct.process,
             project = ct.project,

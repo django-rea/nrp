@@ -3611,7 +3611,7 @@ class EconomicEvent(models.Model):
                 agent = self.from_agent
                 project = self.project
                 resource_type = self.resource_type
-                event_type = event_type
+                event_type = self.event_type
                 if agent and project and resource_type:
                     try:
                         summary = CachedEventSummary.objects.get(

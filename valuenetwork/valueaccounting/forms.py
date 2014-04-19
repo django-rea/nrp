@@ -1205,7 +1205,7 @@ class WorkSelectionForm(forms.Form):
 #used in views process_selections and plan_from_recipe, 
 #fixed to select context_agents
 class ProjectSelectionForm(forms.Form):
-    project = forms.ModelChoiceField(
+    context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(),
         empty_label=None,
         widget=forms.Select(
@@ -1214,11 +1214,11 @@ class ProjectSelectionForm(forms.Form):
 
 #used in view work, fixed to select context_agents
 class ProjectSelectionFormOptional(forms.Form):
-    project = forms.ChoiceField()
+    context_agent = forms.ChoiceField()
 
     def __init__(self, *args, **kwargs):
         super(ProjectSelectionFormOptional, self).__init__(*args, **kwargs)
-        self.fields["project"].choices = [('', '--All Projects--')] + [(proj.id, proj.name) for proj in EconomicAgent.objects.context_agents()]
+        self.fields["context_agent"].choices = [('', '--All Projects--')] + [(proj.id, proj.name) for proj in EconomicAgent.objects.context_agents()]
 
 
 class PatternSelectionForm(forms.Form):

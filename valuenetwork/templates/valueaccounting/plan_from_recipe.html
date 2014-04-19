@@ -38,21 +38,21 @@
 	      {% csrf_token %}
 		  <div class="row-fluid">
 			<div class="span12">
-                {% if selected_project %}
+                {% if selected_context_agent %}
                     <p class="selected">
                     <i>Chosen:</i>&nbsp;&nbsp;
                     {% trans "Project " %} 
-	                <input type="text" name="selected-project~{{ selected_project.id }}" value="{{ selected_project }}"
+	                <input type="text" name="selected-context-agent~{{ selected_context_agent.id }}" value="{{ selected_context_agent }}"
                         readonly="readonly" /> 
                     </p>
                 {% else %}
-                    {% trans "Choose a project " %} {{ project_form.project }} &nbsp;&nbsp; 
+                    {% trans "Choose a project " %} {{ ca_form.context_agent }} &nbsp;&nbsp; 
 	                <input type="submit" name="get-related" value="{% trans 'Get recipes' %}" class="btn btn-primary" />
                 {% endif %}
             </div>
           </div>
 
-		  {% if selected_project %}
+		  {% if selected_context_agent %}
 
 		    <div class="row-fluid">
 			  <div class="span6">

@@ -62,16 +62,16 @@
                 {% if selected_pattern %}
                     <p class="selected">
                     <i>Chosen:</i>&nbsp;&nbsp;
-                    {% trans "Type of process " %} 
+                    {% trans "Pattern " %} 
 	                <input type="text" name="selected-pattern~{{ selected_pattern.id }}" value="{{ selected_pattern }}"
                         readonly="readonly" />&nbsp;&nbsp; 
                     {% trans "Project " %} 
-	                <input type="text" name="selected-project~{{ selected_project.id }}" value="{{ selected_project }}"
+	                <input type="text" name="selected-context-agent~{{ selected_context_agent.id }}" value="{{ selected_context_agent }}"
                         readonly="readonly" /> 
                     </p>
                 {% else %}
-                    {% trans "Choose type of process " %} {{ pattern_form.pattern }} &nbsp; 
-                    {% trans "Choose a project " %} {{ project_form.project }} &nbsp;&nbsp; 
+                    {% trans "Choose a pattern " %} {{ pattern_form.pattern }} &nbsp; 
+                    {% trans "Choose a project " %} {{ ca_form.context_agent }} &nbsp;&nbsp; 
 	                <input type="submit" name="get-related" value="{% trans 'Get resource types' %}" class="btn btn-primary" />
                 {% endif %}
             </div>

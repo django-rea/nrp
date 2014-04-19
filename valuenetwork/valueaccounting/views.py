@@ -1771,22 +1771,22 @@ def json_project_processes(request, object_type=None, object_id=None):
     # active_processes has been fixed, though...
     if object_type:
         if object_type == "P":
-            project = get_object_or_404(Project, pk=object_id)
+            project = get_object_or_404(EconomicAgent, pk=object_id)
             processes = project.active_processes()
             projects = [project,]
         elif object_type == "O":
             order = get_object_or_404(Order, pk=object_id)
             processes = order.all_processes()
-            projects = [p.project for p in processes if p.project]
+            projects = [p.context_agent for p in processes if p.context_agent]
             projects = list(set(projects))
         elif object_type == "A":
             agent = get_object_or_404(EconomicAgent, pk=object_id)
             processes = agent.active_processes()
-            projects = [p.project for p in processes if p.project]
+            projects = [p.context_agent for p in processes if p.context_agent]
             projects = list(set(projects))
     else:
         processes = Process.objects.unfinished()
-        projects = [p.project for p in processes if p.project]
+        projects = [p.context_agent for p in processes if p.context_agent]
         projects = list(set(projects))
     #import pdb; pdb.set_trace()
     graph = project_process_resource_agent_graph(projects, processes)

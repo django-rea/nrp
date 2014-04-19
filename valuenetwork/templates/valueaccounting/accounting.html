@@ -1,0 +1,115 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "Accounting for" %}: {{ agent }}{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+.labnote {
+    background-color: beige;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+}
+.btn-info {
+    margin-left: 10px;
+}
+.hdg {
+    color: firebrick;
+}
+.btn {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+#id_notes, #id_access_rules {
+  width: 500px;
+  height: 100px;    
+}
+.modal {
+    width: 600px;
+}
+.text-center {
+    text-align: center;
+}
+.assoc li {
+    margin-left: 3em;
+}
+td {
+    padding:15px;
+}
+
+.nbr {
+    text-align: right;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+
+        <legend>
+            {{ agent.agent_type }}: {{ agent }} &nbsp;&nbsp;&nbsp;
+
+        </legend>
+        
+        <table>
+            <thead>
+                <th>{% trans "Type" %}</th>
+                <th>{% trans "Count" %}</th>
+                <th>{% trans "Quantity" %}</th>
+                <th>{% trans "Example" %}</th>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                    <tr>
+                        <td class="hdg">
+                           {{ account.event_type.name }}
+                        </td>
+                        <td class="nbr" >{{ account.count }}</td>
+                        <td class="nbr" >{{ account.quantity }}</td>
+                        <td>{{ account.example }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $('#projects').addClass('active');
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+
+    </script>
+    
+{% endblock %}

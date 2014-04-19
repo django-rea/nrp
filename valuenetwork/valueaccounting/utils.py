@@ -157,8 +157,8 @@ def project_process_resource_agent_graph(project_list, process_list):
         projects[p.node_id()] = d   
     for p in process_list:
         project_id = ""
-        if p.project:
-            project_id = p.project.node_id()
+        if p.context_agent:
+            project_id = p.context_agent.node_id()
         order_id = ""
         order = p.independent_demand()
         if order:
@@ -290,11 +290,11 @@ def project_graph(producers):
     for p in producers:
         for rt in p.produced_resource_type_relationships():
             for pt in rt.resource_type.consuming_process_type_relationships():
-                if p.project and pt.process_type.project:
-                    if p.project != pt.process_type.project:
-                        nodes.extend([p.project, pt.process_type.project, rt.resource_type])
-                        edges.append(Edge(p.project, rt.resource_type, rt.event_type.label))
-                        edges.append(Edge(rt.resource_type, pt.process_type.project, pt.inverse_label()))
+                if p.context_agent and pt.process_type.context_agent:
+                    if p.context_agent != pt.process_type.context_agent:
+                        nodes.extend([p.context_agent, pt.process_type.context_agent, rt.resource_type])
+                        edges.append(Edge(p.context_agent, rt.resource_type, rt.event_type.label))
+                        edges.append(Edge(rt.resource_type, pt.process_type.context_agent, pt.inverse_label()))
     return [nodes, edges]
 
 def explode(process_type_relationship, nodes, edges, depth, depth_limit):

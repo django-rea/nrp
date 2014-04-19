@@ -320,10 +320,13 @@ class EconomicAgent(models.Model):
         return (datetime.date.today() - self.created_date).days
 
     def node_id(self):
-        return "-".join(["Agent", str(self.id)])
+        if self.agent_type.party_type == "team":
+            return "-".join(["Project", str(self.id)])
+        else:
+            return "-".join(["Agent", str(self.id)])
 
     def color(self): #todo: not tested
-        if self.agent_type.party_type == "project":
+        if self.agent_type.party_type == "team":
             return "blue"
         else:
             return "green"

@@ -1465,6 +1465,12 @@ class XbillProcessTypeForm(forms.ModelForm):
         empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Project"),
+        required=False, 
+        #empty_label="---------",
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
@@ -1475,7 +1481,7 @@ class XbillProcessTypeForm(forms.ModelForm):
 
     class Meta:
         model = ProcessType
-        exclude = ('parent',)
+        exclude = ('parent','project')
 
     def __init__(self, *args, **kwargs):
         super(XbillProcessTypeForm, self).__init__(*args, **kwargs)

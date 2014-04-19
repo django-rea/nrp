@@ -309,6 +309,7 @@ urlpatterns = patterns("",
     url(r"^create-location/$", 'valuenetwork.valueaccounting.views.create_location', name="create_location"),
     url(r"^change-location/(?P<location_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_location', name="change_location"),
     url(r"^agent/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent', name="agent"),
+    url(r"^accounting/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.accounting', name="accounting"),
     url(r"^change-agent/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_agent', name="change_agent"),
 )
 

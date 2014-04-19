@@ -229,7 +229,19 @@ class AgentType(models.Model):
     def __unicode__(self):
         return self.name    
 
+        
+class AgentAccount(object):
+    def __init__(self, agent, event_type, count, quantity, events):
+        self.agent = agent
+        self.event_type = event_type
+        self.count = count
+        self.quantity = quantity
+        self.events=events
 
+    def example(self):
+        return self.events[0]
+        
+        
 class AgentManager(models.Manager):
 
     def without_user(self):
@@ -417,14 +429,17 @@ class EconomicAgent(models.Model):
         return EconomicAgent.objects.filter(id__in=id_list)
         
     def events_by_event_type(self):
-        events = EconomicEvent.objects.filter(
+        agent_events = EconomicEvent.objects.filter(
             Q(from_agent=self)|Q(to_agent=self))
         ets = EventType.objects.all()
-        answer = {}
+        answer = []
         for et in ets:
-            et_events = events.filter(event_type=et)
-            if et_events:
-                answer[et.label] = et_events
+            events = agent_events.filter(event_type=et)
+            if events:
+                count = events.count()
+                quantity = sum(e.quantity for e in events)
+                aa = AgentAccount(self, et, count, quantity, events)
+                answer.append(aa)
         return answer
                
     def with_all_sub_agents(self):

@@ -342,6 +342,17 @@ def agent(request, agent_id):
         "associations_to": associations_to,
         "associations_from": associations_from,
     }, context_instance=RequestContext(request))
+    
+def accounting(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    accounts = agent.events_by_event_type()
+
+
+    return render_to_response("valueaccounting/accounting.html", {
+        "agent": agent,
+        "accounts": accounts,
+    }, context_instance=RequestContext(request))
         
 @login_required
 def test_patterns(request):
@@ -836,6 +847,7 @@ def unscheduled_time_contributions(request):
                 for event in events:
                     if event.event_date and event.quantity:
                         event.from_agent=member
+                        event.to_agent = event.context_agent.default_agent()
                         event.is_contribution=True
                         rt = event.resource_type
                         event_type = pattern.event_type_for_resource_type("work", rt)

@@ -151,11 +151,11 @@ class OrderForm(forms.ModelForm):
 
 class RandOrderForm(forms.ModelForm):
     receiver = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.exclude(agent_type__member_type='inactive'),
+        queryset=EconomicAgent.objects.all(),
         label="Receiver (optional)", 
         required=False)
     provider = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.exclude(agent_type__member_type='inactive'), 
+        queryset=EconomicAgent.objects.all(), 
         label="Provider (optional)", 
         required=False)
     create_order = forms.BooleanField(
@@ -493,7 +493,7 @@ class WorkModelChoiceField(forms.ModelChoiceField):
 class TodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=False,
-        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        queryset=EconomicAgent.objects.individuals(),
         label="Assigned to",  
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
@@ -774,7 +774,7 @@ class UnplannedWorkEventForm(forms.ModelForm):
             attrs={'class': 'chzn-select'})) 
     from_agent = forms.ModelChoiceField(
         required=True,
-        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        queryset=EconomicAgent.objects.individuals(),
         label="Work done by",  
         empty_label=None,
         widget=forms.Select(

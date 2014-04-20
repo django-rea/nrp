@@ -214,9 +214,9 @@ class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='sub-agents', editable=False)
-    member_type = models.CharField(_('member type'), 
-        max_length=12, choices=ACTIVITY_CHOICES,
-        default='active')
+    #member_type = models.CharField(_('member type'), 
+    #    max_length=12, choices=ACTIVITY_CHOICES,
+    #    default='active')
     party_type = models.CharField(_('party type'), 
         max_length=12, choices=SIZE_CHOICES,
         default='individual')
@@ -227,7 +227,31 @@ class AgentType(models.Model):
         ordering = ('name',)
 
     def __unicode__(self):
-        return self.name    
+        return self.name   
+        
+    @classmethod
+    def create(cls, name, party_type, is_context, verbosity=2):
+        """  
+        Creates a new AgentType, updates an existing one, or does nothing.
+        This is intended to be used as a post_syncdb manangement step.
+        """
+        try:
+            agent_type = cls._default_manager.get(name=name)
+            updated = False
+            if party_type != agent_type.party_type:
+                agent_type.party_type = party_type
+                updated = True
+            if is_context != agent_type.is_context:
+                agent_type.is_context = is_context
+                updated = True
+            if updated:
+                agent_type.save()
+                if verbosity > 1:
+                    print "Updated %s AgentType" % name
+        except cls.DoesNotExist:
+            cls(name=name, party_type=party_type, is_context=is_context).save()
+            if verbosity > 1:
+                print "Created %s AgentType" % name
 
         
 class AgentAccount(object):
@@ -572,7 +596,56 @@ class AgentAssociationType(models.Model):
     
     def __unicode__(self):
         return self.name
+        
+    @classmethod
+    def create(cls, identifier, name, label, inverse_label, verbosity=2):
+        """  
+        Creates a new AgentType, updates an existing one, or does nothing.
+        This is intended to be used as a post_syncdb manangement step.
+        """
+        try:
+            agent_association_type = cls._default_manager.get(identifier=identifier)
+            updated = False
+            if name != agent_association_type.name:
+                agent_association_type.name = name
+                updated = True
+            if label != agent_association_type.label:
+                agent_association_type.label = label
+                updated = True
+            if inverse_label != agent_association_type.inverse_label:
+                agent_association_type.inverse_label = inverse_label
+                updated = True
+            if updated:
+                agent_association_type.save()
+                if verbosity > 1:
+                    print "Updated %s AgentAssociationType" % name
+        except cls.DoesNotExist:
+            cls(identifier=identifier, name=name, label=label, inverse_label=inverse_label).save()
+            if verbosity > 1:
+                print "Created %s AgentAssociationType" % name
 
+from south.signals import post_migrate
+        
+def create_agent_types(app, **kwargs):
+    if app != "valueaccounting":
+        return
+    AgentType.create('Individual', 'individual', False) 
+    AgentType.create('Organization', 'org', False) 
+    AgentType.create('Network', 'network', True) 
+    print "created agent types"
+    
+post_migrate.connect(create_agent_types) 
+
+def create_agent_association_types(app, **kwargs):
+    if app != "valueaccounting":
+        return
+    AgentAssociationType.create('child', 'Child', 'is child of', 'has child') 
+    AgentAssociationType.create('member', 'Member', 'is member of', 'has member')  
+    AgentAssociationType.create('supplier', 'Supplier', 'is supplier of', 'has supplier') 
+    AgentAssociationType.create('customer', 'Customer', 'is customer of', 'has customer') 
+    print "created agent association types"
+    
+post_migrate.connect(create_agent_association_types)  
         
 RELATIONSHIP_STATE_CHOICES = (
     ('active', _('active')),
@@ -1487,8 +1560,6 @@ class UseCase(models.Model):
         return allowed_ps
 
 
-from south.signals import post_migrate
-
 def create_use_cases(app, **kwargs):
     if app != "valueaccounting":
         return
@@ -2123,9 +2194,9 @@ class ProcessType(models.Model):
     process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
         verbose_name=_('process pattern'), related_name='process_types')
-    project = models.ForeignKey(Project,
-        blank=True, null=True,
-        verbose_name=_('project'), related_name='process_types')
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='process_types')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         verbose_name=_('context agent'), related_name='process_types')
@@ -2457,9 +2528,9 @@ class Process(models.Model):
         blank=True, null=True,
         verbose_name=_('process type'), related_name='processes',
         on_delete=models.SET_NULL)
-    project = models.ForeignKey(Project,
-        blank=True, null=True,
-        verbose_name=_('project'), related_name='processes')
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='processes')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         verbose_name=_('context agent'), related_name='processes')
@@ -2963,9 +3034,9 @@ class Exchange(models.Model):
     use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
         verbose_name=_('use case'), related_name='exchanges')
-    project = models.ForeignKey(Project,
-        blank=True, null=True,
-        verbose_name=_('project'), related_name='exchanges')
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='exchanges')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         verbose_name=_('context agent'), related_name='exchanges')
@@ -3262,9 +3333,9 @@ class Commitment(models.Model):
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='commitments')
-    project = models.ForeignKey(Project,
-        blank=True, null=True,
-        verbose_name=_('project'), related_name='commitments')
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='commitments')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         verbose_name=_('context agent'), related_name='commitments')
@@ -3767,10 +3838,10 @@ class EconomicEvent(models.Model):
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
-    project = models.ForeignKey(Project,
-        blank=True, null=True,
-        verbose_name=_('project'), related_name='events',
-        on_delete=models.SET_NULL)
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='events',
+    #    on_delete=models.SET_NULL)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         related_name="events", verbose_name=_('context agent'),
@@ -3828,7 +3899,7 @@ class EconomicEvent(models.Model):
         #import pdb; pdb.set_trace()
         from_agt = 'Unassigned'
         agent = self.from_agent
-        project = self.project
+        #project = self.project
         context_agent = self.context_agent
         resource_type = self.resource_type
         event_type = self.event_type
@@ -3840,7 +3911,7 @@ class EconomicEvent(models.Model):
         event_type_change = False
         if self.pk:
             prev_agent = self.from_agent
-            prev_project = self.project
+            #prev_project = self.project
             prev_context_agent = self.context_agent
             prev_resource_type = self.resource_type
             prev_event_type = self.event_type
@@ -3850,9 +3921,9 @@ class EconomicEvent(models.Model):
             if prev.from_agent != self.from_agent:
                 agent_change = True
                 prev_agent = prev.from_agent
-            if prev.project != self.project:
-                project_change = True
-                prev_project = prev.project 
+            #if prev.project != self.project:
+            #    project_change = True
+            #    prev_project = prev.project 
             if prev.context_agent != self.context_agent:
                 context_agent_change = True
                 prev_context_agent = prev.context_agent 
@@ -3897,7 +3968,7 @@ class EconomicEvent(models.Model):
         if self.event_type.relationship == "work":
             if self.is_contribution:
                 agent = self.from_agent
-                project = self.project
+                #project = self.project
                 context_agent = self.context_agent
                 resource_type = self.resource_type
                 event_type = self.event_type
@@ -4099,9 +4170,9 @@ class CachedEventSummary(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         related_name="cached_events", verbose_name=_('agent'))
-    project = models.ForeignKey(Project,
-        blank=True, null=True,
-        verbose_name=_('project'), related_name='cached_events')
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='cached_events')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         verbose_name=_('context agent'), related_name='context_cached_events')

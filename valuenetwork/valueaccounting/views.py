@@ -1924,7 +1924,7 @@ def create_order(request):
                                 from_agent=order.provider,
                                 to_agent=order.receiver,
                                 resource_type=rt,
-                                project=pt.project,
+                                context_agent=pt.context_agent,
                                 description=data["description"],
                                 quantity=qty,
                                 unit_of_quantity=rt.unit,
@@ -1967,7 +1967,7 @@ def create_order(request):
                                     from_agent=order.provider,
                                     to_agent=order.provider,
                                     resource_type=component,
-                                    project=pt.project,
+                                    context_agent=pt.context_agent,
                                     quantity=qty * feature.quantity,
                                     unit_of_quantity=component.unit,
                                     created_by=request.user,
@@ -2806,7 +2806,7 @@ def new_process_output(request, commitment_id):
                 event_type = pattern.event_type_for_resource_type("out", rt)
                 ct.event_type = event_type
                 ct.process = process
-                ct.project = process.project
+                ct.context_agent = process.context_agent
                 ct.independent_demand = commitment.independent_demand
                 ct.due_date = process.end_date
                 ct.created_by = request.user
@@ -2866,7 +2866,7 @@ def new_process_input(request, commitment_id, slot):
                 ct.created_by = request.user
                 ptrt = ct.resource_type.main_producing_process_type_relationship()
                 if ptrt:
-                    ct.project = ptrt.process_type.project
+                    ct.context_agent = ptrt.process_type.context_agent
                 ct.save()
                 #todo: this is used in labnotes; shd it explode?
                 #explode_dependent_demands(ct, request.user)                
@@ -2914,7 +2914,7 @@ def new_process_citation(request, commitment_id):
                 event_type=event_type,
                 due_date=process.start_date,
                 resource_type=rt,
-                project=process.project,
+                context_agent=process.context_agent,
                 quantity=quantity,
                 unit_of_quantity=rt.directional_unit("cite"),
                 created_by=request.user,
@@ -2961,7 +2961,7 @@ def new_process_worker(request, commitment_id):
             ct.event_type=event_type
             ct.due_date=process.end_date
             ct.resource_type=rt
-            ct.project=process.project
+            ct.context_agent=process.context_agent
             ct.unit_of_quantity=rt.directional_unit("use")
             ct.created_by=request.user
             ct.save()
@@ -3004,7 +3004,7 @@ def add_process_output(request, process_id):
                 event_type = pattern.event_type_for_resource_type("out", rt)
                 ct.event_type = event_type
                 ct.process = process
-                ct.project = process.project
+                #ct.project = process.project
                 ct.context_agent = process.context_agent
                 ct.independent_demand = process.independent_demand()
                 ct.due_date = process.end_date
@@ -3065,7 +3065,7 @@ def add_unplanned_output(request, process_id):
                 event_type = pattern.event_type_for_resource_type("out", rt)
                 event.event_type = event_type
                 event.process = process
-                event.project = process.project
+                #event.project = process.project
                 event.context_agent = process.context_agent
                 default_agent = process.default_agent()
                 event.from_agent = default_agent
@@ -3082,7 +3082,7 @@ def add_unplanned_output(request, process_id):
 def add_unordered_receipt(request, exchange_id):
     exchange = get_object_or_404(Exchange, pk=exchange_id)   
     if request.method == "POST":
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         pattern=exchange.process_pattern
         context_agent=exchange.context_agent
         form = UnorderedReceiptForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='unorderedreceipt')
@@ -3310,14 +3310,14 @@ def add_process_input(request, process_id, slot):
                 event_type = pattern.event_type_for_resource_type(rel, rt)
                 ct.event_type = event_type
                 ct.process = process
-                ct.project = process.project
+                #ct.project = process.project
                 ct.context_agent=process.context_agent
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
                 ptrt = ct.resource_type.main_producing_process_type_relationship()
                 if ptrt:
-                    ct.project = ptrt.process_type.project
+                    ct.context_agent = ptrt.process_type.context_agent
                 ct.save()
                 #todo: this is used in process logging; shd it explode?
                 #explode_dependent_demands(ct, request.user)                
@@ -3347,7 +3347,7 @@ def add_process_citation(request, process_id):
                 event_type=event_type,
                 due_date=process.start_date,
                 resource_type=rt,
-                project=process.project,
+                #project=process.project,
                 context_agent=process.context_agent,
                 quantity=quantity,
                 description=descrip,
@@ -3377,7 +3377,7 @@ def add_process_worker(request, process_id):
             ct.event_type=event_type
             ct.due_date=process.end_date
             ct.resource_type=rt
-            ct.project=process.project
+            ct.context_agent=process.context_agent
             ct.unit_of_quantity=rt.directional_unit("use")
             ct.created_by=request.user
             ct.save()
@@ -3704,7 +3704,7 @@ def work_commitment(
                 event.from_agent = ct.from_agent
                 event.resource_type = ct.resource_type
                 event.process = process
-                event.project = ct.project
+                event.context_agent = ct.context_agent
                 event.unit_of_quantity = ct.unit_of_quantity
                 event.created_by = request.user
                 event.changed_by = request.user
@@ -3733,7 +3733,7 @@ def create_worknow_context(
         from_agent=agent,
         to_agent=process.default_agent(),
         process=process,
-        project=process.project,
+        #project=process.project,
         context_agent=process.context_agent,
         quantity=Decimal("0"),
         is_contribution=True,
@@ -4004,7 +4004,7 @@ def save_labnotes(request, commitment_id):
                 event.commitment = ct
                 event.is_contribution = True
                 event.process = ct.process
-                event.project = ct.project
+                event.context_agent = ct.context_agent
                 event.event_type = ct.event_type
                 event.resource_type = ct.resource_type
                 event.from_agent = ct.from_agent
@@ -4057,7 +4057,7 @@ def save_past_work(request, commitment_id):
                 event.commitment = ct
                 event.is_contribution = True
                 event.process = ct.process
-                event.project = ct.project
+                event.context_agent = ct.context_agent
                 event.event_type = ct.event_type
                 event.resource_type = ct.resource_type
                 event.from_agent = ct.from_agent
@@ -4238,7 +4238,7 @@ def add_unplanned_cite_event(request, process_id):
                 from_agent = from_agent,
                 to_agent = default_agent,
                 process = process,
-                project = process.project,
+                #project = process.project,
                 context_agent = process.context_agent,
                 event_date = datetime.date.today(),
                 quantity=Decimal("1"),
@@ -4289,7 +4289,7 @@ def add_unplanned_input_event(request, process_id, slot):
                 from_agent = from_agent,
                 to_agent = default_agent,
                 process = process,
-                project = process.project,
+                #project = process.project,
                 context_agent = process.context_agent,
                 event_date = event_date,
                 quantity=qty,
@@ -4323,7 +4323,7 @@ def log_resource_for_commitment(request, commitment_id):
             to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,
-            project = ct.project,
+            #project = ct.project,
             context_agent = ct.context_agent,
             quantity = resource.quantity,
             unit_of_quantity = ct.unit_of_quantity,
@@ -4381,7 +4381,7 @@ def add_work_event(request, commitment_id):
         event.to_agent = ct.process.default_agent()
         event.resource_type = ct.resource_type
         event.process = ct.process
-        event.project = ct.project
+        #event.project = ct.project
         event.context_agent = ct.context_agent
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
@@ -4402,7 +4402,7 @@ def add_unplanned_work_event(request, process_id):
             rt = event.resource_type
             event.event_type = pattern.event_type_for_resource_type("work", rt)
             event.process = process
-            event.project = process.project
+            #event.project = process.project
             event.context_agent = process.context_agent
             default_agent = process.default_agent()
             event.to_agent = default_agent
@@ -4457,7 +4457,7 @@ def add_use_event(request, commitment_id, resource_id):
         event.resource_type = ct.resource_type
         event.resource = resource
         event.process = ct.process
-        event.project = ct.project
+        #event.project = ct.project
         default_agent = ct.process.default_agent()
         event.from_agent = default_agent
         event.to_agent = default_agent
@@ -4484,7 +4484,7 @@ def add_consumption_event(request, commitment_id, resource_id):
         event.resource_type = ct.resource_type
         event.resource = resource
         event.process = ct.process
-        event.project = ct.project
+        #event.project = ct.project
         event.context_agent = ct.context_agent
         default_agent = ct.process.default_agent()
         event.from_agent = default_agent
@@ -4518,7 +4518,7 @@ def log_citation(request, commitment_id, resource_id):
             to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,
-            project = ct.project,
+            #project = ct.project,
             context_agent = ct.context_agent,
             quantity = Decimal("1"),
             unit_of_quantity = ct.unit_of_quantity,
@@ -4637,7 +4637,8 @@ def resource(request, resource_id):
                 process.created_by = request.user
                 process.save() 
                 event = EconomicEvent()
-                event.project = process.project
+                #event.project = process.project
+                event.context_agent = process.context_agent
                 event.event_date = process.end_date
                 event.event_type = process.process_pattern.event_type_for_resource_type("out", resource.resource_type)
                 event.process = process
@@ -4822,7 +4823,8 @@ def production_event_for_commitment(request):
             from_agent = agent,
             resource_type = ct.resource_type,
             process = ct.process,
-            project = ct.project,
+            #project = ct.project,
+            context_agent = context_agent,
             quantity = quantity,
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,
@@ -4884,7 +4886,8 @@ def resource_event_for_commitment(request, commitment_id):
                 from_agent = agent,
                 resource_type = ct.resource_type,
                 process = ct.process,
-                project = ct.project,
+                #project = ct.project,
+                context_agent = ct.context_agent,
                 quantity = resource.quantity,
                 unit_of_quantity = ct.unit_of_quantity,
                 #quality = resource.quality,
@@ -4942,7 +4945,8 @@ def consumption_event_for_commitment(request):
                 to_agent = agent,
                 resource_type = ct.resource_type,
                 process = ct.process,
-                project = ct.project,
+                #project = ct.project,
+                context_agent = ct.context_agent,
                 quantity = quantity,
                 unit_of_quantity = ct.unit_of_quantity,
                 created_by = request.user,
@@ -4985,7 +4989,8 @@ def citation_event_for_commitment(request):
             from_agent = agent,
             resource_type = ct.resource_type,
             process = ct.process,
-            project = ct.project,
+            #project = ct.project,
+            context_agent = ct.context_agent,
             quantity = quantity,
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,
@@ -5043,7 +5048,7 @@ def time_use_event_for_commitment(request):
             to_agent = ct.process.default_agent(),
             resource_type = ct.resource_type,
             process = ct.process,
-            project = ct.project,
+            #project = ct.project,
             context_agent = ct.context_agent,
             quantity = quantity,
             unit_of_quantity = ct.unit_of_quantity,
@@ -5104,7 +5109,8 @@ def failed_outputs(request, commitment_id):
             event.from_agent = agent
             event.resource_type = ct.resource_type
             event.process = process
-            event.project = ct.project
+            #event.project = ct.project
+            event.context_agent = ct.context_agent
             event.unit_of_quantity = ct.unit_of_quantity
             event.quality = Decimal("-1")
             event.created_by = request.user
@@ -5162,7 +5168,7 @@ def create_process(request):
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
-                        ct.project = process.project
+                        ct.context_agent = process.context_agent
                         ct.independent_demand = demand
                         ct.due_date = process.end_date
                         ct.created_by = request.user
@@ -5207,7 +5213,7 @@ def copy_process(request, process_id):
     demand = process.independent_demand()
     demand_form = DemandSelectionForm(data=request.POST or None)
     process_init = {
-        "project": process.project,
+        "project": process.context_agent,
         "url": process.url,
         "notes": process.notes,
     }      
@@ -5272,7 +5278,7 @@ def copy_process(request, process_id):
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
-                        ct.project = process.project
+                        ct.context_agent = process.context_agent
                         ct.independent_demand = demand
                         ct.due_date = process.end_date
                         ct.created_by = request.user
@@ -5622,7 +5628,7 @@ def change_process(request, process_id):
                         #this was wrong. Would it ever be correct?
                         #ct.order = demand
                         ct.independent_demand = demand
-                        ct.project = process.project
+                        ct.context_agent = process.context_agent
                         ct.due_date = process.end_date
                         if ct_from_id:
                             ct.changed_by = request.user
@@ -5653,7 +5659,7 @@ def change_process(request, process_id):
                             if rt:
                                 ct = form.save(commit=False)
                                 ct.independent_demand = demand
-                                ct.project = process.project
+                                ct.context_agent = process.context_agent
                                 ct.due_date = process.end_date
                                 ct.quantity = Decimal("1")
                                 if ct_from_id:
@@ -5689,7 +5695,7 @@ def change_process(request, process_id):
                             if rt:
                                 ct = form.save(commit=False)
                                 ct.independent_demand = demand
-                                ct.project = process.project
+                                ct.context_agent = process.context_agent
                                 ct.due_date = process.end_date
                                 if ct_from_id:
                                     old_ct = Commitment.objects.get(id=ct_from_id.id)
@@ -5811,7 +5817,7 @@ def change_process(request, process_id):
                             ct.created_by = request.user
                             ptrt = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
-                                ct.project = ptrt.process_type.project
+                                ct.context_agent = ptrt.process_type.context_agent
                         ct.save()
                         if explode:
                             #todo: use new commitment.generate_producing_process(request.user, explode=True)
@@ -5906,7 +5912,7 @@ def change_process(request, process_id):
                             ct.created_by = request.user
                             ptrt = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
-                                ct.project = ptrt.process_type.project
+                                ct.context_agent = ptrt.process_type.context_agent
                         ct.save()
                         #probly not needed for usables
                         #if explode:
@@ -5948,7 +5954,7 @@ def explode_dependent_demands(commitment, user):
                 name=pt.name,
                 process_type=pt,
                 process_pattern=pt.process_pattern,
-                project=pt.project,
+                context_agent=pt.context_agent,
                 url=pt.url,
                 end_date=commitment.due_date,
                 start_date=start_date,
@@ -5962,7 +5968,7 @@ def explode_dependent_demands(commitment, user):
                 due_date=commitment.due_date,
                 resource_type=rt,
                 process=feeder_process,
-                project=pt.project,
+                context_agent=pt.context_agent,
                 quantity=qty_to_explode,
                 unit_of_quantity=rt.unit,
                 description=ptrt.description,
@@ -6067,7 +6073,7 @@ def create_rand(request):
                             ct.order = rand
                             ct.independent_demand = rand
                             ct.process = process
-                            ct.project = process.project
+                            ct.context_agent = process.context_agent
                             ct.from_agent_type=agent_type
                             ct.from_agent=rand.provider
                             ct.to_agent=rand.receiver
@@ -6090,7 +6096,7 @@ def create_rand(request):
                             rt = ct.resource_type
                             ptrt = rt.main_producing_process_type_relationship()
                             if ptrt:
-                                ct.project = ptrt.process_type.project
+                                ct.context_agent = ptrt.process_type.context_agent
                             ct.save()
                             explode_dependent_demands(ct, request.user)
                 if just_save:
@@ -6126,7 +6132,7 @@ def copy_rand(request, rand_id):
     input_init = []
     if process:
         process_init = {
-            "project": process.project,
+            "project": process.context_agent,
             "url": process.url,
             "notes": process.notes,
         }      
@@ -6199,7 +6205,7 @@ def copy_rand(request, rand_id):
                             ct.order = rand
                             ct.independent_demand = rand
                             ct.process = process
-                            ct.project = process.project
+                            ct.context_agent = process.context_agent
                             ct.from_agent_type=agent_type
                             ct.from_agent=rand.provider
                             ct.to_agent=rand.receiver
@@ -6223,7 +6229,7 @@ def copy_rand(request, rand_id):
                             rt = ct.resource_type
                             ptrt = rt.main_producing_process_type_relationship()
                             if ptrt:
-                                ct.project = ptrt.process_type.project
+                                ct.context_agent = ptrt.process_type.context_agent
                             ct.save()
                             explode_dependent_demands(ct, request.user)
                 if just_save:
@@ -6316,7 +6322,7 @@ def change_rand(request, rand_id):
                             ct = form.save(commit=False)
                             if ct_from_id:
                                 ct.changed_by = request.user
-                                ct.project = process.project
+                                ct.context_agent = process.context_agent
                             else:
                                 ct.process = process
                                 ct.due_date = process.end_date
@@ -6326,7 +6332,7 @@ def change_rand(request, rand_id):
                                 ct.event_type = event_type
                                 ct.order = rand
                                 ct.independent_demand = rand
-                                ct.project = process.project
+                                ct.context_agent = process.context_agent
                                 ct.from_agent_type=agent_type
                                 ct.from_agent=rand.provider
                                 ct.to_agent=rand.receiver
@@ -6374,7 +6380,7 @@ def change_rand(request, rand_id):
                                                     proc.delete()
                                     ptrt = ct.resource_type.main_producing_process_type_relationship()
                                     if ptrt:
-                                        ct.project = ptrt.process_type.project
+                                        ct.context_agent = ptrt.process_type.context_agent
                                     explode = True                                 
                                 elif qty != old_ct.quantity:
                                     #import pdb; pdb.set_trace()
@@ -6397,7 +6403,7 @@ def change_rand(request, rand_id):
                                 ct.created_by = request.user
                                 ptrt = ct.resource_type.main_producing_process_type_relationship()
                                 if ptrt:
-                                    ct.project = ptrt.process_type.project
+                                    ct.context_agent = ptrt.process_type.context_agent
                             ct.save()
                             if explode:
                                 explode_dependent_demands(ct, request.user)

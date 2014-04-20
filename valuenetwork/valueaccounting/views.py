@@ -342,6 +342,17 @@ def agent(request, agent_id):
         "associations_to": associations_to,
         "associations_from": associations_from,
     }, context_instance=RequestContext(request))
+    
+def accounting(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    accounts = agent.events_by_event_type()
+
+
+    return render_to_response("valueaccounting/accounting.html", {
+        "agent": agent,
+        "accounts": accounts,
+    }, context_instance=RequestContext(request))
         
 @login_required
 def test_patterns(request):
@@ -836,6 +847,7 @@ def unscheduled_time_contributions(request):
                 for event in events:
                     if event.event_date and event.quantity:
                         event.from_agent=member
+                        event.to_agent = event.context_agent.default_agent()
                         event.is_contribution=True
                         rt = event.resource_type
                         event_type = pattern.event_type_for_resource_type("work", rt)
@@ -1759,22 +1771,22 @@ def json_project_processes(request, object_type=None, object_id=None):
     # active_processes has been fixed, though...
     if object_type:
         if object_type == "P":
-            project = get_object_or_404(Project, pk=object_id)
+            project = get_object_or_404(EconomicAgent, pk=object_id)
             processes = project.active_processes()
             projects = [project,]
         elif object_type == "O":
             order = get_object_or_404(Order, pk=object_id)
             processes = order.all_processes()
-            projects = [p.project for p in processes if p.project]
+            projects = [p.context_agent for p in processes if p.context_agent]
             projects = list(set(projects))
         elif object_type == "A":
             agent = get_object_or_404(EconomicAgent, pk=object_id)
             processes = agent.active_processes()
-            projects = [p.project for p in processes if p.project]
+            projects = [p.context_agent for p in processes if p.context_agent]
             projects = list(set(projects))
     else:
         processes = Process.objects.unfinished()
-        projects = [p.project for p in processes if p.project]
+        projects = [p.context_agent for p in processes if p.context_agent]
         projects = list(set(projects))
     #import pdb; pdb.set_trace()
     graph = project_process_resource_agent_graph(projects, processes)

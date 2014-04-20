@@ -151,11 +151,11 @@ class OrderForm(forms.ModelForm):
 
 class RandOrderForm(forms.ModelForm):
     receiver = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.exclude(agent_type__member_type='inactive'),
+        queryset=EconomicAgent.objects.all(),
         label="Receiver (optional)", 
         required=False)
     provider = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.exclude(agent_type__member_type='inactive'), 
+        queryset=EconomicAgent.objects.all(), 
         label="Provider (optional)", 
         required=False)
     create_order = forms.BooleanField(
@@ -493,7 +493,7 @@ class WorkModelChoiceField(forms.ModelChoiceField):
 class TodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=False,
-        queryset=EconomicAgent.objects.filter(agent_type__member_type='active'),
+        queryset=EconomicAgent.objects.individuals(),
         label="Assigned to",  
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
@@ -1471,6 +1471,12 @@ class XbillProcessTypeForm(forms.ModelForm):
         empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Project"),
+        required=False, 
+        #empty_label="---------",
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
@@ -1481,7 +1487,7 @@ class XbillProcessTypeForm(forms.ModelForm):
 
     class Meta:
         model = ProcessType
-        exclude = ('parent',)
+        exclude = ('parent','project')
 
     def __init__(self, *args, **kwargs):
         super(XbillProcessTypeForm, self).__init__(*args, **kwargs)

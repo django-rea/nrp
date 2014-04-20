@@ -4088,6 +4088,7 @@ def process_details(request, process_id):
 def process_oriented_logging(request, process_id):   
     process = get_object_or_404(Process, id=process_id)
     pattern = process.process_pattern
+    context_agent = process.context_agent
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
     user = request.user
@@ -4130,6 +4131,7 @@ def process_oriented_logging(request, process_id):
         for event in unplanned_work:
             event.changeform = UnplannedWorkEventForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         output_resource_types = pattern.output_resource_types()        
@@ -4146,7 +4148,7 @@ def process_oriented_logging(request, process_id):
             work_init = {
                 "from_agent": agent,
             }             
-            unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", initial=work_init)
+            unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
             unplanned_work_form.fields["resource_type"].queryset = work_resource_types 
         if "cite" in slots:
             unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)

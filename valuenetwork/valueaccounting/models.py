@@ -449,6 +449,18 @@ class EconomicAgent(models.Model):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
         return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
         
+    def with_all_associations(self):
+        from valuenetwork.valueaccounting.utils import group_dfs_by_association
+        associations = AgentAssociation.objects.all().order_by("-association_type")
+        associations = associations.exclude(from_agent__agent_type__party_type="individual")
+        associations = associations.exclude(association_type__identifier="supplier")
+        gas = group_dfs_by_association(self, self, associations, [], 1)
+        agents = [self,]
+        for ga in gas:
+            if ga not in agents:
+                agents.append(ga)
+        return agents
+        
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
         #todo: figure out why this failed when AAs were ordered by from_agent
@@ -515,6 +527,14 @@ class EconomicAgent(models.Model):
         #import pdb; pdb.set_trace()
         agent_ids = self.associations_to.filter(association_type__identifier="customer").filter(state="potential").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def associations_to_groups(self):
+        atgs = self.associations_to.exclude(from_agent__agent_type__party_type="individual")
+        return atgs
+        
+    def associations_from_groups(self):
+        afgs = self.associations_from.exclude(to_agent__agent_type__party_type="individual")
+        return afgs
         
     def exchange_firm(self):
         xs = self.exchange_firms()

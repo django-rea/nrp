@@ -325,6 +325,15 @@ def agents(request):
     return render_to_response("valueaccounting/agents.html", {
         "agents": agents,
     }, context_instance=RequestContext(request))
+    
+def radial_graph(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    agents = agent.with_all_associations()
+    #import pdb; pdb.set_trace()
+    return render_to_response("valueaccounting/radial_graph.html", {
+        "agents": agents,
+        "root": agent,
+    }, context_instance=RequestContext(request))
                         
 def agent(request, agent_id):
     #import pdb; pdb.set_trace()

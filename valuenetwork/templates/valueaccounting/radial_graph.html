@@ -158,7 +158,8 @@ function init(){
                                 //"$color":"#339999",
                                 "weight": 1,
                                 //"label": "{{ association.from_agent.name }}" + " " + "{{ association.association_type.label }}"
-                                "label": "{{ association }}" 
+                                "label": "{{ association }}",
+                                "type": "{{ association.association_type.name }}"
                             }
 
                         },  
@@ -176,7 +177,8 @@ function init(){
                                 //"$color":"#339999",
                                 "weight": 1,
                                 //"label": "{{ association.to_agent.name }}" + " " + "{{ association.association_type.inverse_label }}"
-                                "label": "{{ association }}" 
+                                "label": "{{ association }}",
+                                "type": "{{ association.association_type.name }}" + " of"
                             }
 
                         },  
@@ -245,9 +247,31 @@ function init(){
             //Make right column relations list.
             var html = "<h4>" + node.name + "</h4><b>Associations:</b>";
             html += "<ul>";
+            var types = {};
             node.eachAdjacency(function(adj){
-                html += "<li>" + adj.data['label'] + "</li>";
+                var type = adj.data['type'];
+                if(!types[type])
+                {types[type] = [];}
+                if (adj.nodeFrom == node)
+                {
+                    types[type].push(adj.nodeTo.name);
+                }
+                else
+                {
+                    types[type].push(adj.nodeFrom.name);
+                }
             });
+            for (var t in types)
+            {
+                html += "<li>" + t + "</li>";
+                var agents = types[t];
+                html += "<ul>";
+                for (var i = 0; i < agents.length; i++) 
+                {
+                    html += "<li>" + agents[i] + "</li>";
+                }
+                html += "</ul>";
+            }
             html += "</ul>";
 
             document.getElementById('inner-details').innerHTML = html;
@@ -327,7 +351,6 @@ function init(){
     rgraph.controller.onBeforeCompute(rgraph.graph.getNode(rgraph.root));
     Log.write('done');
         
-    //rgraph.controller.onBeforeCompute(rgraph.graph.getNode(rgraph.root));
     //rgraph.controller.onAfterCompute();
 
     {% if root %}

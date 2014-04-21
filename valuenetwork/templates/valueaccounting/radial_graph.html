@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Agent Organization Graph" %}{% endblock %}
+{% block head_title %}{% trans "Association Graph for" %} {{ root }} {% endblock %}
 
 {% block extra_head %}
 
@@ -26,7 +26,7 @@
     <div>
 
         <h2>
-            {% trans "Agent Organization Graph" %}  
+            {% trans "Association Graph for" %} {{ root.name }} 
         </h2>
 
         <div class="diagrams">
@@ -157,7 +157,7 @@ function init(){
                                 "$dim":10,
                                 //"$color":"#339999",
                                 "weight": 1,
-                                "label": "{{ association.association_type.name }} "
+                                "label": "{{ association.from_agent.name }}" + " " + "{{ association.association_type.name }}"
                             }
 
                         },  
@@ -174,7 +174,7 @@ function init(){
                                 "$dim":10,
                                 //"$color":"#339999",
                                 "weight": 1,
-                                "label": "{{ association.association_type.name }} "
+                                "label": "{{ association.to_agent.name }}" + " " + "{{ association.association_type.name }}"
                             }
 
                         },  
@@ -260,7 +260,7 @@ function init(){
             html += "<ul>";
             node.eachAdjacency(function(adj){
                 var child = adj.nodeTo;
-                html += "<li>" + adj.data['label'] + ": " + child.name + "</li>";
+                html += "<li>" + adj.data['label'] + "</li>";
             });
             html += "</ul>";
 

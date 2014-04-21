@@ -55,8 +55,8 @@ def agent_dfs_by_association(node, all_associations, depth): #works only for age
             to_return.extend(agent_dfs_by_association(association.from_agent, all_associations, depth+1))
     return to_return
 
-def group_dfs_by_association(root, node, all_associations, visited, depth): #works only for agents
-    #todo: figure out why this failed when AAs were ordered by from_agent
+def group_dfs_by_association_to(root, node, all_associations, visited, depth): 
+    #works only for agents, and only follows association_from
     #import pdb; pdb.set_trace()
     to_return = []
     visited.append(node)
@@ -66,7 +66,20 @@ def group_dfs_by_association(root, node, all_associations, visited, depth): #wor
     #    import pdb; pdb.set_trace()
     for association in all_associations:
         if association.to_agent.id == node.id:
-                to_return.extend(group_dfs_by_association(root, association.from_agent, all_associations, visited, depth+1))
+                to_return.extend(group_dfs_by_association_to(root, association.from_agent, all_associations, visited, depth+1))
+    return to_return
+    
+def group_dfs_by_association_from(root, node, all_associations, visited, depth): 
+    #import pdb; pdb.set_trace()
+    to_return = []
+    visited.append(node)
+    node.depth = depth
+    to_return.append(node)
+    #if node.id == root.id:
+    #    import pdb; pdb.set_trace()
+    for association in all_associations:
+        if association.from_agent.id == node.id:
+                to_return.extend(group_dfs_by_association_from(root, association.to_agent, all_associations, visited, depth+1))
     return to_return
     
 class Edge(object):

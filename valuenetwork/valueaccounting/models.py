@@ -474,15 +474,21 @@ class EconomicAgent(models.Model):
         return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
         
     def with_all_associations(self):
-        from valuenetwork.valueaccounting.utils import group_dfs_by_association
-        associations = AgentAssociation.objects.all().order_by("-association_type")
-        associations = associations.exclude(from_agent__agent_type__party_type="individual")
-        associations = associations.exclude(association_type__identifier="supplier")
-        gas = group_dfs_by_association(self, self, associations, [], 1)
-        agents = [self,]
-        for ga in gas:
-            if ga not in agents:
-                agents.append(ga)
+        from valuenetwork.valueaccounting.utils import group_dfs_by_association_to, group_dfs_by_association_from
+        if self.is_individual():
+            agents = [self,]
+            agents.extend([ag.to_agent for ag in self.associations_from.all()])
+            agents.extend([ag.from_agent for ag in self.associations_to.all()])
+        else:     
+            associations = AgentAssociation.objects.all().order_by("-association_type")
+            associations = associations.exclude(from_agent__agent_type__party_type="individual")
+            associations = associations.exclude(association_type__identifier="supplier")
+            gas = group_dfs_by_association_to(self, self, associations, [], 1)
+            gas.extend(group_dfs_by_association_from(self, self, associations, [], 1))
+            agents = [self,]
+            for ga in gas:
+                if ga not in agents:
+                    agents.append(ga)
         return agents
         
     def child_tree(self):
@@ -690,6 +696,7 @@ class AgentAssociation(models.Model):
         
     def __unicode__(self):
         return self.from_agent.nick + " " + self.association_type.label + " " + self.to_agent.nick
+        
 
 DIRECTION_CHOICES = (
     ('in', _('input')),

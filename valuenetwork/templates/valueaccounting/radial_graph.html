@@ -159,7 +159,7 @@ function init(){
                                 "weight": 1,
                                 //"label": "{{ association.from_agent.name }}" + " " + "{{ association.association_type.label }}"
                                 "label": "{{ association }}",
-                                "type": "{{ association.association_type.name }}"
+                                "type": "{{ association.association_type.label }}"
                             }
 
                         },  
@@ -178,7 +178,7 @@ function init(){
                                 "weight": 1,
                                 //"label": "{{ association.to_agent.name }}" + " " + "{{ association.association_type.inverse_label }}"
                                 "label": "{{ association }}",
-                                "type": "{{ association.association_type.name }}" + " of"
+                                "type": "{{ association.association_type.inverse_label }}"
                             }
 
                         },  

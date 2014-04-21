@@ -47,7 +47,7 @@ h4 {
 }
 
 #right-container {
-    width:200px;
+    width:300px;
     right:0;
     border-right:1px solid #ddd;
 }
@@ -57,7 +57,7 @@ h4 {
 }
 
 #center-container {
-    width:900px;
+    width:800px;
     left:100px;
     background-color: #FFFFCC;
     color: #CC99FF;

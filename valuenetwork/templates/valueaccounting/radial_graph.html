@@ -157,7 +157,8 @@ function init(){
                                 "$dim":10,
                                 //"$color":"#339999",
                                 "weight": 1,
-                                "label": "{{ association.from_agent.name }}" + " " + "{{ association.association_type.name }}"
+                                //"label": "{{ association.from_agent.name }}" + " " + "{{ association.association_type.label }}"
+                                "label": "{{ association }}" 
                             }
 
                         },  
@@ -174,7 +175,8 @@ function init(){
                                 "$dim":10,
                                 //"$color":"#339999",
                                 "weight": 1,
-                                "label": "{{ association.to_agent.name }}" + " " + "{{ association.association_type.name }}"
+                                //"label": "{{ association.to_agent.name }}" + " " + "{{ association.association_type.inverse_label }}"
+                                "label": "{{ association }}" 
                             }
 
                         },  
@@ -236,21 +238,6 @@ function init(){
                 //adj.data.$lineWidth = Math.random() * 5 + 1;
                 adj.data.$lineWidth = 1;
         },
-        /*
-        onBeforeCompute: function(node){
-            Log.write("centering " + node.name + "...");
-            
-            //Make right column relations list.
-            var html = "<h4>" + node.name + "</h4><b>Connections:</b>";
-            html += "<ul>";
-            node.eachAdjacency(function(adj){
-                var child = adj.nodeTo;
-                html += "<li>" + child.name + "</li>";
-            });
-            html += "</ul>";
-            $jit.id('inner-details').innerHTML = html;
-        },
-    */
     
         onBeforeCompute: function(node){
             Log.write("centering " + node.name + "...");
@@ -259,7 +246,6 @@ function init(){
             var html = "<h4>" + node.name + "</h4><b>Associations:</b>";
             html += "<ul>";
             node.eachAdjacency(function(adj){
-                var child = adj.nodeTo;
                 html += "<li>" + adj.data['label'] + "</li>";
             });
             html += "</ul>";

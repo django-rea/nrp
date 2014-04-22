@@ -159,6 +159,8 @@ function init(){
                                 "weight": 1,
                                 //"label": "{{ association.from_agent.name }}" + " " + "{{ association.association_type.label }}"
                                 "label": "{{ association }}",
+                                //"toType": "{{ association.association_type.label }}",
+                                //"fromType": "{{ association.association_type.inverse_label }}",
                                 "type": "{{ association.association_type.inverse_label }}"
                             }
 
@@ -178,6 +180,8 @@ function init(){
                                 "weight": 1,
                                 //"label": "{{ association.to_agent.name }}" + " " + "{{ association.association_type.inverse_label }}"
                                 "label": "{{ association }}",
+                                //"toType": "{{ association.association_type.label }}",
+                                //"fromType": "{{ association.association_type.inverse_label }}"
                                 "type": "{{ association.association_type.label }}"
                             }
 
@@ -249,15 +253,23 @@ function init(){
             html += "<ul>";
             var types = {};
             node.eachAdjacency(function(adj){
+            
                 var type = adj.data['type'];
                 if(!types[type])
                 {types[type] = [];}
+                
                 if (adj.nodeFrom == node)
                 {
+                    //var type = adj.data['toType'];
+                    //if(!types[type])
+                    //{types[type] = [];}
                     types[type].push(adj.nodeTo.name);
                 }
                 else
                 {
+                    //var type = adj.data['fromType'];
+                    //if(!types[type])
+                    //{types[type] = [];}
                     types[type].push(adj.nodeFrom.name);
                 }
             });
@@ -342,7 +354,9 @@ function init(){
 
     //load graph.
     rgraph.loadJSON(json, 1);
-   
+    
+    //var allNodes = rgraph.graph.nodes;
+    
     //compute positions and plot
     rgraph.refresh();
     //end

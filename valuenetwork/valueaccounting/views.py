@@ -264,10 +264,16 @@ def locations(request):
     agent = get_agent(request)
     locations = Location.objects.all()
     nolocs = Location.objects.filter(latitude=0.0)
+    latitude = settings.MAP_LATITUDE
+    longitude = settings.MAP_LONGITUDE
+    zoom = settings.MAP_ZOOM
     return render_to_response("valueaccounting/locations.html", {
         "agent": agent,
         "locations": locations,
         "nolocs": nolocs,
+        "latitude": latitude,
+        "longitude": longitude,
+        "zoom": zoom,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -276,6 +282,9 @@ def create_location(request):
     if not agent:
         return render_to_response('valueaccounting/no_permission.html')
     location_form = LocationForm(data=request.POST or None)
+    latitude = settings.MAP_LATITUDE
+    longitude = settings.MAP_LONGITUDE
+    zoom = settings.MAP_ZOOM
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if location_form.is_valid():
@@ -283,6 +292,9 @@ def create_location(request):
             return HttpResponseRedirect("/accounting/locations/")
     return render_to_response("valueaccounting/create_location.html", {
         "location_form": location_form,
+        "latitude": latitude,
+        "longitude": longitude,
+        "zoom": zoom,
     }, context_instance=RequestContext(request))
 
 @login_required

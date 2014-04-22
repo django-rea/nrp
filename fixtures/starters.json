@@ -1,36 +1,6 @@
 [
     {
         "pk": 1, 
-        "model": "valueaccounting.agenttype", 
-        "fields": {
-            "party_type": "individual", 
-            "name": "Contributor Individual", 
-            "parent": null, 
-            "member_type": "active"
-        }
-    }, 
-    {
-        "pk": 2, 
-        "model": "valueaccounting.agenttype", 
-        "fields": {
-            "party_type": "org", 
-            "name": "Contributor Organization", 
-            "parent": null, 
-            "member_type": "active"
-        }
-    }, 
-    {
-        "pk": 3, 
-        "model": "valueaccounting.agenttype", 
-        "fields": {
-            "party_type": "org", 
-            "name": "Supplier", 
-            "parent": null, 
-            "member_type": "external"
-        }
-    }, 
-    {
-        "pk": 1, 
         "model": "valueaccounting.facet", 
         "fields": {
             "name": "Category", 
@@ -376,22 +346,6 @@
             "event_type": [
                 "Todo"
             ]
-        }
-    }, 
-    {
-        "pk": 1, 
-        "model": "valueaccounting.project", 
-        "fields": {
-            "project_team": null, 
-            "changed_date": "2014-03-22", 
-            "name": "Default Project", 
-            "parent": null, 
-            "importance": "0", 
-            "changed_by": null, 
-            "created_by": null, 
-            "created_date": "2014-03-22", 
-            "slug": "default-project", 
-            "description": "If the network uses Projects, this can be deleted after real projects are added.  If the network does not need Projects, this can be used where Project is required until we enhance the software to support networks that don't have a need for Projects."
         }
     }
 ]

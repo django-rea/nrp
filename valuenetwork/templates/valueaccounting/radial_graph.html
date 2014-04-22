@@ -1,0 +1,364 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Association Graph for" %} {{ root }} {% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link href="{% static "css/radial.css" %}" rel="stylesheet">
+
+<style>
+
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}agents{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+
+        <h2>
+            {% trans "Association Graph for" %} {{ root.name }} 
+        </h2>
+
+        <div class="diagrams">
+        
+            <div id="container" >
+
+                <div id="left-container">
+
+                    <div class="text">
+                        <p>
+                            <i>Click on a node to center it and show its details.</i>
+                        </p>
+                    </div>
+
+                    <div id="id-list"></div>
+
+        
+                </div>
+
+                <div id="center-container" >
+                    <div id="infovis"></div>    
+                </div>
+
+                <div id="right-container" >
+
+                    <div id="inner-details"></div>
+
+                </div>
+
+                <div id="log"></div>
+
+            </div>
+            
+        </div>
+        
+
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+    <script src="{% static 'js/jit.js' %}" type="text/javascript"></script> 
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+<script type="text/javascript">
+
+$(document).ready(function(){
+
+    $('projects').addClass('active');
+
+    $( "#help" ).toggle( function(){
+        $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        $( "#help" ).text("Hide Help");
+    }, function() {
+        $('#help-content').hide("slide", { direction: "right" }, "slow");
+        $( "#help" ).text("Show Help");
+    })
+    
+    init();
+
+}); // end document.ready
+
+var Log = {
+    elem: false,
+    write: function(text){
+        if (!this.elem) 
+            this.elem = document.getElementById('log');
+        this.elem.innerHTML = text;
+        this.elem.style.left = (500 - this.elem.offsetWidth / 2) + 'px';
+    }
+};
+
+var labelType, useGradients, nativeTextSupport, animate;
+
+(function() {
+  var ua = navigator.userAgent,
+      iStuff = ua.match(/iPhone/i) || ua.match(/iPad/i),
+      typeOfCanvas = typeof HTMLCanvasElement,
+      nativeCanvasSupport = (typeOfCanvas == 'object' || typeOfCanvas == 'function'),
+      textSupport = nativeCanvasSupport 
+        && (typeof document.createElement('canvas').getContext('2d').fillText == 'function');
+  //I'm setting this based on the fact that ExCanvas provides text support for IE
+  //and that as of today iPhone/iPad current text support is lame
+  labelType = (!nativeCanvasSupport || (textSupport && !iStuff))? 'Native' : 'HTML';
+  nativeTextSupport = labelType == 'Native';
+  useGradients = nativeCanvasSupport;
+  animate = !(iStuff || !nativeCanvasSupport);
+})();
+
+    
+function addEvent(obj, type, fn) {
+    if (obj.addEventListener) obj.addEventListener(type, fn, false);
+    else obj.attachEvent('on' + type, fn);
+};
+
+var functionAgents = {};
+    
+function init(){
+    var infovis = document.getElementById('infovis');
+    var w = infovis.offsetWidth, h = infovis.offsetHeight;
+    
+    // init data
+
+    var json = 
+    [
+        {% for agent in agents %}
+            {
+                "id": "{{ agent.node_id }}",
+                "name": "{{ agent.name }}",
+                "data": 
+                {
+                    "$dim": 4,
+                    "$type": "square",
+                    "$color":"#339999"
+                },
+                "adjacencies": 
+                [
+                    {% for association in agent.associations_to_groups %}
+                        {% if association.from_agent in agents %}
+                        {
+                            "nodeTo": "{{ association.from_agent.node_id }}",
+                            "data": 
+                            {
+                                "$type":"arrow",
+                                "$direction": ["{{ agent.node_id }}", "{{ association.from_agent.node_id }}"],
+                                "$dim":10,
+                                //"$color":"#339999",
+                                "weight": 1,
+                                //"label": "{{ association.from_agent.name }}" + " " + "{{ association.association_type.label }}"
+                                "label": "{{ association }}",
+                                "type": "{{ association.association_type.inverse_label }}"
+                            }
+
+                        },  
+                        {% endif %}
+                    {% endfor %}
+                    {% for association in agent.associations_from_groups %}
+                        {% if association.to_agent in agents %}
+                        {
+                            "nodeTo": "{{ association.to_agent.node_id }}",
+                            "data": 
+                            {
+                                "$type":"arrow",
+                                "$direction": ["{{ association.to_agent.node_id }}", "{{ agent.node_id }}"],
+                                "$dim":10,
+                                //"$color":"#339999",
+                                "weight": 1,
+                                //"label": "{{ association.to_agent.name }}" + " " + "{{ association.association_type.inverse_label }}"
+                                "label": "{{ association }}",
+                                "type": "{{ association.association_type.label }}"
+                            }
+
+                        },  
+                        {% endif %}
+                    {% endfor %}
+
+                ]
+            },  
+        {% endfor %}
+    ]
+
+    //end
+    
+    
+//init RGraph
+    var rgraph = new $jit.RGraph({
+      'injectInto': 'infovis',
+      //Optional: Add a background canvas
+      //that draws some concentric circles.
+    /*
+      'background': {
+        'CanvasStyles': {
+          'strokeStyle': '#CC99FF',
+          'shadowBlur': 50,
+          'shadowColor': '#ccc'
+        }
+      },
+    */
+        //Nodes and Edges parameters
+        //can be overridden if defined in 
+        //the JSON input data.
+        //This way we can define different node
+        //types individually.
+        Node: {
+            'overridable': true,
+             'color': '#cc0000'
+        },
+        Edge: {
+            'overridable': true,
+            'color': '#cc0000'
+        },
+        //Set polar interpolation.
+        //Default's linear.
+        interpolation: 'polar',
+        //Change the transition effect from linear
+        //to elastic.
+        transition: $jit.Trans.Elastic.easeOut,
+        //Change other animation parameters.
+        duration:3500,
+        fps: 30,
+        //Change father-child distance.
+        levelDistance: 90,
+        //This method is called right before plotting
+        //an edge. This method is useful to change edge styles
+        //individually.
+        onBeforePlotLine: function(adj){
+            //Add some random lineWidth to each edge.
+            if (!adj.data.$lineWidth) 
+                //adj.data.$lineWidth = Math.random() * 5 + 1;
+                adj.data.$lineWidth = 1;
+        },
+    
+        onBeforeCompute: function(node){
+            Log.write("centering " + node.name + "...");
+            
+            //Make right column relations list.
+            var html = "<h4>" + node.name + "</h4><b>Associations:</b>";
+            html += "<ul>";
+            var types = {};
+            node.eachAdjacency(function(adj){
+                var type = adj.data['type'];
+                if(!types[type])
+                {types[type] = [];}
+                if (adj.nodeFrom == node)
+                {
+                    types[type].push(adj.nodeTo.name);
+                }
+                else
+                {
+                    types[type].push(adj.nodeFrom.name);
+                }
+            });
+            for (var t in types)
+            {
+                html += "<li>" + t + "</li>";
+                var agents = types[t];
+                html += "<ul>";
+                for (var i = 0; i < agents.length; i++) 
+                {
+                    html += "<li>" + agents[i] + "</li>";
+                }
+                html += "</ul>";
+            }
+            html += "</ul>";
+
+            document.getElementById('inner-details').innerHTML = html;
+        },
+    
+        //Add node click handler and some styles.
+        //This method is called only once for each node/label crated.
+        onCreateLabel: function(domElement, node){
+            domElement.innerHTML = node.name;
+            domElement.onclick = function () {
+                rgraph.onClick(node.id, { 
+                    hideLabels: false,
+                    onComplete: function() {
+                        Log.write("done");
+                    }
+                });
+            };
+            var style = domElement.style;
+            style.cursor = 'pointer';
+            style.fontSize = "0.8em";
+            style.color = "#660000";
+        },
+        //This method is called when rendering/moving a label.
+        //This is method is useful to make some last minute changes
+        //to node labels like adding some position offset.
+        onPlaceLabel: function(domElement, node){
+            var style = domElement.style;
+            var left = parseInt(style.left);
+            var w = domElement.offsetWidth;
+            style.left = (left - w / 2) + 'px';
+        },
+    
+        onAfterCompute: function(){
+            Log.write("done");
+        }
+    
+    });
+
+        
+        
+        
+        //Add node click handler and some styles.
+        //This method is called only once for each node/label crated.
+    /*
+        onCreateLabel: function(domElement, node){
+            domElement.innerHTML = node.name;
+            domElement.onclick = function () {
+                rgraph.onClick(node.id, { hideLabels: false });
+            };
+            var style = domElement.style;
+            style.cursor = 'pointer';
+            style.fontSize = "0.8em";
+            style.color = "#660000";
+        },
+    */
+        //This method is called when rendering/moving a label.
+        //This is method is useful to make some last minute changes
+        //to node labels like adding some position offset.
+    /*
+        onPlaceLabel: function(domElement, node){
+            var style = domElement.style;
+            var left = parseInt(style.left);
+            var w = domElement.offsetWidth;
+            style.left = (left - w / 2) + 'px';
+        },
+    */
+        
+
+    //load graph.
+    rgraph.loadJSON(json, 1);
+   
+    //compute positions and plot
+    rgraph.refresh();
+    //end
+
+
+    rgraph.controller.onBeforeCompute(rgraph.graph.getNode(rgraph.root));
+    Log.write('done');
+        
+    //rgraph.controller.onAfterCompute();
+
+    {% if root %}
+        rgraph.onClick('{{ root.node_id }}');
+        Log.write('done');
+    {% endif %}
+}
+
+</script>
+{% endblock %}
+

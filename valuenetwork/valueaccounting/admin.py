@@ -76,7 +76,7 @@ class EconomicAgentAdmin(admin.ModelAdmin):
 admin.site.register(EconomicAgent, EconomicAgentAdmin)
 
 class AgentAssociationAdmin(admin.ModelAdmin):
-    list_filter = ['association_type', 'state', 'from_agent', 'to_agent']
+    list_filter = ['association_type', 'state', 'is_associate', 'has_associate']
     
 admin.site.register(AgentAssociation, AgentAssociationAdmin)
 

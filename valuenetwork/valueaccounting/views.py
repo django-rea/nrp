@@ -226,7 +226,7 @@ def create_user_and_agent_old(request):
 
 def projects(request):
     #import pdb; pdb.set_trace()
-    projects = EconomicAgent.objects.projects_and_networks()
+    projects = EconomicAgent.objects.context_agents()  
     roots = [p for p in projects if p.is_root()]
     for root in roots:
         root.nodes = root.child_tree()
@@ -260,6 +260,14 @@ def create_project(request):
             project.save()
     return HttpResponseRedirect("/accounting/projects/")
 
+def agent_assoc_report(agent_id, association_type_identifier):
+    associates = AgentAssociation.objects.all() #temp
+    #temp
+    return render_to_response("valueaccounting/agent_assoc_report.html", {
+        "associates": associates,
+    }, context_instance=RequestContext(request))
+        
+        
 def locations(request):
     agent = get_agent(request)
     locations = Location.objects.all()

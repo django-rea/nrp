@@ -210,6 +210,15 @@ class Location(models.Model):
     def resources(self):
         return self.resources_at_location.all()
 
+        
+class AgentTypeManager(models.Manager):
+    
+    def context_agent_types(self):
+        return AgentType.objects.filter(is_context=True)
+        
+    def non_context_agent_types(self):
+        return AgentType.objects.filter(is_context=False)
+        
 class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
@@ -222,6 +231,7 @@ class AgentType(models.Model):
         default='individual')
     description = models.TextField(_('description'), blank=True, null=True)
     is_context = models.BooleanField(_('is context'), default=False)
+    objects = AgentTypeManager()
 
     class Meta:
         ordering = ('name',)
@@ -290,13 +300,15 @@ class AgentManager(models.Manager):
     def networks(self):
         return EconomicAgent.objects.filter(agent_type__party_type="network")
     
-    def projects_and_networks(self):
-        return EconomicAgent.objects.filter(Q(agent_type__party_type="network") | Q(agent_type__party_type="team"))
+    #def projects_and_networks(self):
+    #    return EconomicAgent.objects.filter(Q(agent_type__party_type="network") | Q(agent_type__party_type="team"))
         
     def context_agents(self):
         return EconomicAgent.objects.filter(agent_type__is_context=True)
-
         
+    def non_context_agents(self):
+        return EconomicAgent.objects.filter(agent_type__is_context=False)
+    
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
     nick = models.CharField(_('ID'), max_length=32, unique=True)
@@ -558,6 +570,25 @@ class EconomicAgent(models.Model):
         agent_ids = self.associations_to.filter(association_type__identifier="customer").filter(state="potential").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
+    def all_has_associates_by_type(self, assoc_type_identifier):
+        import pdb; pdb.set_trace()
+        agent_ids = self.associations_to.filter(association_type__identifier=assoc_type_identifier).filter(state!="inactive").values_list('from_agent')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def has_associates_of_type(self, assoc_type_identifier): #returns boolean
+        if self.all_has_associates_by_type(assoc_type_identifier).count > 0: #todo: can this be made more efficient, return count from sql?
+            return True
+        else:
+            return False
+            
+    def agent_association_types(self):
+        my_aats = []
+        all_aats = AgentAssociationType.objects.all()
+        for aat in all_aats:
+            if self.has_associates_of_type(aat.identifier):
+                my_aats.append(aat)
+        return my_aats
+    
     def associations_to_groups(self):
         atgs = self.associations_to.exclude(from_agent__agent_type__party_type="individual")
         return atgs

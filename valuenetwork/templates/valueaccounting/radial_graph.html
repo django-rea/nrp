@@ -146,14 +146,14 @@ function init(){
                 },
                 "adjacencies": 
                 [
-                    {% for association in agent.associations_to_groups %}
-                        {% if association.from_agent in agents %}
+                    {% for association in agent.is_associated_with_groups %}
+                        {% if association.has_associate in agents %}
                         {
-                            "nodeTo": "{{ association.from_agent.node_id }}",
+                            "nodeTo": "{{ association.has_associate.node_id }}",
                             "data": 
                             {
                                 "$type":"arrow",
-                                "$direction": ["{{ agent.node_id }}", "{{ association.from_agent.node_id }}"],
+                                "$direction": ["{{ agent.node_id }}", "{{ association.has_associate.node_id }}"],
                                 "$dim":10,
                                 //"$color":"#339999",
                                 "weight": 1,
@@ -167,14 +167,14 @@ function init(){
                         },  
                         {% endif %}
                     {% endfor %}
-                    {% for association in agent.associations_from_groups %}
-                        {% if association.to_agent in agents %}
+                    {% for association in agent.has_group_associates %}
+                        {% if association.is_associate in agents %}
                         {
-                            "nodeTo": "{{ association.to_agent.node_id }}",
+                            "nodeTo": "{{ association.is_associate.node_id }}",
                             "data": 
                             {
                                 "$type":"arrow",
-                                "$direction": ["{{ association.to_agent.node_id }}", "{{ agent.node_id }}"],
+                                "$direction": ["{{ association.is_associate.node_id }}", "{{ agent.node_id }}"],
                                 "$dim":10,
                                 //"$color":"#339999",
                                 "weight": 1,

@@ -352,16 +352,16 @@ def agent(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
     change_form = None
-    associations_to = agent.to_associations()
-    associations_from = agent.from_associations()
+    has_associations = agent.all_has_associates()
+    is_associated_with = agent.all_is_associates()
 
     return render_to_response("valueaccounting/agent.html", {
         "agent": agent,
         "photo_size": (128, 128),
         "change_form": change_form,
         "user_agent": user_agent,
-        "associations_to": associations_to,
-        "associations_from": associations_from,
+        "has_associations": has_associations,
+        "is_associated_with": is_associated_with,
     }, context_instance=RequestContext(request))
     
 def accounting(request, agent_id):

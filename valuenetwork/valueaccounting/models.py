@@ -474,17 +474,17 @@ class EconomicAgent(models.Model):
         return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
         
     def with_all_associations(self):
-        from valuenetwork.valueaccounting.utils import group_dfs_by_association_to, group_dfs_by_association_from
+        from valuenetwork.valueaccounting.utils import group_dfs_by_has_associate, group_dfs_by_is_associate
         if self.is_individual():
             agents = [self,]
-            agents.extend([ag.to_agent for ag in self.associations_from.all()])
-            agents.extend([ag.from_agent for ag in self.associations_to.all()])
+            agents.extend([ag.has_associate for ag in self.is_associate_of.all()])
+            agents.extend([ag.is_associate for ag in self.has_associates.all()])
         else:     
             associations = AgentAssociation.objects.all().order_by("-association_type")
-            associations = associations.exclude(from_agent__agent_type__party_type="individual")
+            associations = associations.exclude(is_associate__agent_type__party_type="individual")
             associations = associations.exclude(association_type__identifier="supplier")
-            gas = group_dfs_by_association_to(self, self, associations, [], 1)
-            gas.extend(group_dfs_by_association_from(self, self, associations, [], 1))
+            gas = group_dfs_by_has_associate(self, self, associations, [], 1)
+            gas.extend(group_dfs_by_is_associate(self, self, associations, [], 1))
             agents = [self,]
             for ga in gas:
                 if ga not in agents:
@@ -507,14 +507,14 @@ class EconomicAgent(models.Model):
     def parent(self):
         #assumes only one parent
         #import pdb; pdb.set_trace()
-        associations = self.associations_from.filter(association_type__identifier="child").filter(state="active")
+        associations = self.is_associate_of.filter(association_type__identifier="child").filter(state="active")
         parent = None
         if associations.count() > 0:
-            parent = associations[0].to_agent
+            parent = associations[0].has_associate
         return parent
         
     def children(self): #returns a list or None
-        associations = self.associations_to.filter(association_type__identifier="child").filter(state="active")
+        associations = self.has_associates.filter(association_type__identifier="child").filter(state="active")
         children = None
         if associations.count() > 0:
             children = []
@@ -530,40 +530,40 @@ class EconomicAgent(models.Model):
             
     def suppliers(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.associations_to.filter(association_type__identifier="supplier").filter(state="active").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="supplier").filter(state="active").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def exchange_firms(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.associations_to.filter(association_type__identifier="legal").filter(state="active").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="legal").filter(state="active").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def members(self): 
         #import pdb; pdb.set_trace()
-        agent_ids = self.associations_to.filter(association_type__identifier="member").filter(state="active").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="member").filter(state="active").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def affiliates(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.associations_to.filter(association_type__identifier="affiliate").filter(state="active").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def customers(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.associations_to.filter(association_type__identifier="customer").filter(state="active").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="customer").filter(state="active").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def potential_customers(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.associations_to.filter(association_type__identifier="customer").filter(state="potential").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="customer").filter(state="potential").values_list('from_agent')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
-    def associations_to_groups(self):
-        atgs = self.associations_to.exclude(from_agent__agent_type__party_type="individual")
+    def has_group_associates(self):
+        atgs = self.has_associates.exclude(is_associate__agent_type__party_type="individual")
         return atgs
         
-    def associations_from_groups(self):
-        afgs = self.associations_from.exclude(to_agent__agent_type__party_type="individual")
+    def is_associated_with_groups(self):
+        afgs = self.is_associate_of.exclude(has_associate__agent_type__party_type="individual")
         return afgs
         
     def exchange_firm(self):
@@ -599,11 +599,11 @@ class EconomicAgent(models.Model):
         mem_ids = [mem.id for mem in mems]
         return EconomicAgent.objects.filter(pk__in=mem_ids)
         
-    def to_associations(self):
-        return AgentAssociation.objects.filter(to_agent=self).order_by('association_type__name', 'to_agent__nick')
+    def all_has_associates(self):
+        return self.has_associates.all().order_by('association_type__name', 'is_associate__nick')
         
-    def from_associations(self):
-        return AgentAssociation.objects.filter(from_agent=self).order_by('association_type__name', 'from_agent__nick')
+    def all_is_associates(self):
+        return self.is_associate_of.all().order_by('association_type__name', 'has_associate__nick')
             
         
 class AgentUser(models.Model):
@@ -616,6 +616,7 @@ class AgentUser(models.Model):
 class AgentAssociationType(models.Model):
     identifier = models.CharField(_('identifier'), max_length=12, unique=True)
     name = models.CharField(_('name'), max_length=128)
+    plural_name = models.CharField(_('plural name'), default="", max_length=128)
     description = models.TextField(_('description'), blank=True, null=True)
     label = models.CharField(_('label'), max_length=32, null=True)
     inverse_label = models.CharField(_('inverse label'), max_length=40, null=True)
@@ -680,10 +681,14 @@ RELATIONSHIP_STATE_CHOICES = (
 )
 
 class AgentAssociation(models.Model):
-    from_agent = models.ForeignKey(EconomicAgent,
-        verbose_name=_('from'), related_name='associations_from')
-    to_agent = models.ForeignKey(EconomicAgent,
-        verbose_name=_('to'), related_name='associations_to')
+    #is_associate = models.ForeignKey(EconomicAgent,
+    #    verbose_name=_('is associate of'), related_name='associations_from')
+    #has_associate = models.ForeignKey(EconomicAgent,
+    #    verbose_name=_('has associate'), related_name='associations_to')
+    is_associate = models.ForeignKey(EconomicAgent,
+        verbose_name=_('is associate of'), related_name='is_associate_of')
+    has_associate = models.ForeignKey(EconomicAgent,
+        verbose_name=_('has associate'), related_name='has_associates')
     association_type = models.ForeignKey(AgentAssociationType,
         verbose_name=_('association type'), related_name='associations')
     description = models.TextField(_('description'), blank=True, null=True)
@@ -692,10 +697,10 @@ class AgentAssociation(models.Model):
         default='active')
         
     class Meta:
-        ordering = ('from_agent',)
+        ordering = ('is_associate',)
         
     def __unicode__(self):
-        return self.from_agent.nick + " " + self.association_type.label + " " + self.to_agent.nick
+        return self.is_associate.nick + " " + self.association_type.label + " " + self.has_associate.nick
         
 
 DIRECTION_CHOICES = (

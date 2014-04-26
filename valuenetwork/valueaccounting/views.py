@@ -260,11 +260,12 @@ def create_project(request):
             project.save()
     return HttpResponseRedirect("/accounting/projects/")
 
-def agent_assoc_report(agent_id, association_type_identifier):
-    associates = AgentAssociation.objects.all() #temp
-    #temp
+def agent_assoc_report(agent_id, association_type_id):
+    import pdb; pdb.set_trace()
+    agent = EconomicAgent.objects.get(id=agent_id)
+    associations = agent.all_has_associates_by_type(association_type_id)
     return render_to_response("valueaccounting/agent_assoc_report.html", {
-        "associates": associates,
+        "associations": associations,
     }, context_instance=RequestContext(request))
         
         

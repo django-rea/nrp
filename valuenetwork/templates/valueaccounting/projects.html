@@ -17,7 +17,7 @@
     font-style: italic;
 }
 .indent {
-    margin-left: 3em;
+    margin-left: 1.5em;
 }
 
 </style>
@@ -35,7 +35,7 @@
 	        {% trans "Organization" %} 
 	        {% if agent %}
                 <div style="display: inline;" >
-                <a class="indent" href="#createProjectForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create new Project" %}</a>
+                <a href="#createProjectForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create new Project" %}</a>
 				</div>
 			
 
@@ -86,7 +86,9 @@
                         <a class="indent" href="{% url project_wip project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
                     {% endif %}
                     {% for aat in node.agent_association_types %}
-                        <a class="indent" href="{% url agent_assoc_report agent_id=node.id association_type_id=aat.id %}"> {{ aat.name }} </a>
+                        {% if aat.identifier != "child" %}
+                            <a class="indent" href="{% url agent_assoc_report agent_id=node.id association_type_id=aat.id %}"> {{ aat.plural_name }}</a>
+                        {% endif%}
                     {% endfor %}
                     <a class="indent" href="{% url value_equation project_id=node.id %}"><b>{% trans "Value Equation" %}</b></a>
                     {% if node.description %}

@@ -51,8 +51,8 @@ def agent_dfs_by_association(node, all_associations, depth): #works only for age
     node.depth = depth
     to_return = [node,]
     for association in all_associations:
-        if association.to_agent.id == node.id and association.association_type.identifier == "child":
-            to_return.extend(agent_dfs_by_association(association.from_agent, all_associations, depth+1))
+        if association.has_associate.id == node.id and association.association_type.identifier == "child":
+            to_return.extend(agent_dfs_by_association(association.is_associate, all_associations, depth+1))
     return to_return
 
 def group_dfs_by_has_associate(root, node, all_associations, visited, depth): 

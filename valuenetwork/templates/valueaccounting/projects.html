@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Projects" %}{% endblock %}
+{% block head_title %}{% trans "Organization" %}{% endblock %}
 
 {% block extra_head %}
 
@@ -19,7 +19,16 @@
 .indent {
     margin-left: 1.5em;
 }
-
+.assoc_group {
+    color: green;
+    font-weight: bold;
+    margin-left: 1em;
+}
+.showhide {
+    color: gray;
+    margin-left: 1.2em;
+}
+    
 </style>
 
 {% endblock %}
@@ -33,6 +42,7 @@
 
 	    <legend>
 	        {% trans "Organization" %} 
+{% comment %}
 	        {% if agent %}
                 <div style="display: inline;" >
                 <a href="#createProjectForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create new Project" %}</a>
@@ -61,9 +71,11 @@
             </div>
 
             {% endif %}
+{% endcomment %}
+
             <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>
             <a class="indent" href="{% url all_contributions %}">{% trans "All contributions" %}</a>
-            <a class="indent" href="{% url project_network %}">{% trans "Project network diagram" %}</a>
+            <a class="indent" href="{% url project_network %}">{% trans "Network diagram" %}</a>
                 
         </legend>
         
@@ -85,18 +97,27 @@
                     {% if node.wip %}
                         <a class="indent" href="{% url project_wip project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
                     {% endif %}
-                    {% for aat in node.agent_association_types %}
-                        {% if aat.identifier != "child" %}
-                            <a class="indent" href="{% url agent_assoc_report agent_id=node.id association_type_id=aat.id %}"> {{ aat.plural_name }}</a>
-                        {% endif%}
-                    {% endfor %}
                     <a class="indent" href="{% url value_equation project_id=node.id %}"><b>{% trans "Value Equation" %}</b></a>
                     {% if node.description %}
                         <div class="description" >{{ node.description|urlize|linebreaks }}</div>
                     {% endif %}
+                    {% for aat in node.aats %}
+                        {% if aat.identifier != "child" %}
+                            <div class="assoc_group"> {{ aat.plural_name }}: {{ aat.assoc_count }} </div>
+                            <div class="showhide">(Show)</div>
+                            <div class="list">
+                                <ul>
+                                    {% for assoc in aat.assoc_list %}
+                                        <li class="indent"><a href="{{ assoc.get_absolute_url }}">{{ assoc }} </a>
+                                        {% if assoc.state == "potential" %} (potential) {% endif%} </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif%}
+                    {% endfor %}
+                </li>
                 
                 {% for close in node.close %}
-                    </li>
                     </ul>
                 {% endfor %}
                 
@@ -110,12 +131,13 @@
 {% endblock %}
 
 {% block extra_script %}
+    <script type="text/javascript">
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 {% endblock %}
 
 
 {% block extra_body %}
-	{{ block.super }}
+    {{ block.super }}
     <script type="text/javascript">
 
 	$(document).ready(function(){
@@ -129,6 +151,14 @@
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
+        
+        $(".list").hide();
+        
+        $(".showhide").click(function()
+        {
+            $(this).next(".list").slideToggle(200);
+            $(this).text($(this).text() == '(Show)' ? '(Hide)' : '(Show)');
+        });
 
 	}); // end document.ready
 

@@ -37,7 +37,6 @@ h3 {
     color: firebrick;
 }
 .report {
-    font-size: 1.6em;
     margin-left: 2em;
 
 </style>
@@ -52,6 +51,7 @@ h3 {
 	<div>
 		<legend>
             {% trans "Supply" %}
+{% comment %}
 		    {% if agent %} &nbsp;&nbsp;&nbsp;
                 <a href="#create-supplier" role="button" class="btn btn-primary" data-toggle="modal">
 	               Create Supplier
@@ -73,16 +73,16 @@ h3 {
 	                </div>
                 </div>
             {% endif %}
-        </legend>
-        <div>
-		    {% if agent %} 
+{% endcomment %}
+            {% if agent %} 
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='purch_contr' %}">{% trans "Purchase contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='exp_contr' %}">{% trans "Expense contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='cash_contr' %}">{% trans "Cash contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='res_contr' %}">{% trans "Material contribution" %}</a>
                 <a class="report" href="{% url exchanges %}">{% trans "Financial contributions" %}</a>
             {% endif %}
-        <div>
+        </legend>
+
         <div class="reqs-supplier">
 		    <h3 style="margin-bottom: 4px;" >{% trans "Requirements by Supplier" %}:</h3>
 

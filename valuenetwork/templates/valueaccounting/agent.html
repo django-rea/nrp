@@ -163,9 +163,11 @@
                 <ul>
                 {% for assoc in is_associated_with  %}
                     {% ifchanged assoc.association_type %} 
-                        <h4>{{ assoc.association_type.name }} </h4>
+                        <h4> {{ assoc.association_type.name }} </h4>
                     {% endifchanged %}
-                    <li><a href="{{ assoc.has_associate.get_absolute_url }}">{{ assoc }}</a></li>
+                    <li><a href="{{ assoc.has_associate.get_absolute_url }}">{{ assoc }}</a>
+                        {% if assoc.state == "potential" %} (potential) {% endif %}
+                    </li>
                 {% endfor %}
                 </ul>
 

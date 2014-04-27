@@ -16,6 +16,9 @@
     margin-bottom: 0;
     font-style: italic;
 }
+.indent {
+    margin-left: 1.5em;
+}
 
 </style>
 
@@ -29,10 +32,10 @@
 	<div>
 
 	    <legend>
-	        {% trans "Projects" %} 
+	        {% trans "Organization" %} 
 	        {% if agent %}
-				<div style="display: inline;" >
-					<a href="#createProjectForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create new Project" %}</a>
+                <div style="display: inline;" >
+                <a href="#createProjectForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create new Project" %}</a>
 				</div>
 			
 
@@ -58,9 +61,9 @@
             </div>
 
             {% endif %}
-            &nbsp;&nbsp;&nbsp;<a href="{% url agents %}">{% trans "All Agents" %}</a>
-            &nbsp;&nbsp;&nbsp;<a href="{% url all_contributions %}">{% trans "All contributions" %}</a>
-            &nbsp;&nbsp;&nbsp;<a href="{% url project_network %}">{% trans "Project network diagram" %}</a>
+            <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>
+            <a class="indent" href="{% url all_contributions %}">{% trans "All contributions" %}</a>
+            <a class="indent" href="{% url project_network %}">{% trans "Project network diagram" %}</a>
                 
         </legend>
         
@@ -78,12 +81,16 @@
                 
                 <li>
                     <b><a href="{{ node.get_absolute_url }}">{{ node }}</a></b> 
-                    &nbsp;&nbsp;&nbsp;
-                    <a href="{% url contributions project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
+                    <a class="indent" href="{% url contributions project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
                     {% if node.wip %}
-                        &nbsp;&nbsp;&nbsp;<a href="{% url project_wip project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
+                        <a class="indent" href="{% url project_wip project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
                     {% endif %}
-                    &nbsp;&nbsp;&nbsp;<a href="{% url value_equation project_id=node.id %}"><b>{% trans "Value Equation" %}</b></a>
+                    {% for aat in node.agent_association_types %}
+                        {% if aat.identifier != "child" %}
+                            <a class="indent" href="{% url agent_assoc_report agent_id=node.id association_type_id=aat.id %}"> {{ aat.plural_name }}</a>
+                        {% endif%}
+                    {% endfor %}
+                    <a class="indent" href="{% url value_equation project_id=node.id %}"><b>{% trans "Value Equation" %}</b></a>
                     {% if node.description %}
                         <div class="description" >{{ node.description|urlize|linebreaks }}</div>
                     {% endif %}

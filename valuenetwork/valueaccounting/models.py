@@ -210,6 +210,15 @@ class Location(models.Model):
     def resources(self):
         return self.resources_at_location.all()
 
+        
+class AgentTypeManager(models.Manager):
+    
+    def context_agent_types(self):
+        return AgentType.objects.filter(is_context=True)
+        
+    def non_context_agent_types(self):
+        return AgentType.objects.filter(is_context=False)
+        
 class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
@@ -222,6 +231,7 @@ class AgentType(models.Model):
         default='individual')
     description = models.TextField(_('description'), blank=True, null=True)
     is_context = models.BooleanField(_('is context'), default=False)
+    objects = AgentTypeManager()
 
     class Meta:
         ordering = ('name',)
@@ -290,13 +300,15 @@ class AgentManager(models.Manager):
     def networks(self):
         return EconomicAgent.objects.filter(agent_type__party_type="network")
     
-    def projects_and_networks(self):
-        return EconomicAgent.objects.filter(Q(agent_type__party_type="network") | Q(agent_type__party_type="team"))
+    #def projects_and_networks(self):
+    #    return EconomicAgent.objects.filter(Q(agent_type__party_type="network") | Q(agent_type__party_type="team"))
         
     def context_agents(self):
         return EconomicAgent.objects.filter(agent_type__is_context=True)
-
         
+    def non_context_agents(self):
+        return EconomicAgent.objects.filter(agent_type__is_context=False)
+    
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
     nick = models.CharField(_('ID'), max_length=32, unique=True)
@@ -530,34 +542,54 @@ class EconomicAgent(models.Model):
             
     def suppliers(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="supplier").filter(state="active").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="supplier").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def exchange_firms(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="legal").filter(state="active").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="legal").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def members(self): 
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="member").filter(state="active").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="member").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def affiliates(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def customers(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="customer").filter(state="active").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="customer").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def potential_customers(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="customer").filter(state="potential").values_list('from_agent')
+        agent_ids = self.has_associates.filter(association_type__identifier="customer").filter(state="potential").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
+    def all_has_associates_by_type(self, assoc_type_identifier):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.has_associates.filter(association_type__identifier=assoc_type_identifier).exclude(state="inactive").values_list('is_associate')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def has_associates_of_type(self, assoc_type_identifier): #returns boolean
+        #import pdb; pdb.set_trace()
+        if self.all_has_associates_by_type(assoc_type_identifier).count() > 0: #todo: can this be made more efficient, return count from sql?
+            return True
+        else:
+            return False
+            
+    def agent_association_types(self):
+        my_aats = []
+        all_aats = AgentAssociationType.objects.all()
+        for aat in all_aats:
+            if self.has_associates_of_type(aat.identifier):
+                my_aats.append(aat)
+        return my_aats
+
     def has_group_associates(self):
         atgs = self.has_associates.exclude(is_associate__agent_type__party_type="individual")
         return atgs
@@ -625,7 +657,7 @@ class AgentAssociationType(models.Model):
         return self.name
         
     @classmethod
-    def create(cls, identifier, name, label, inverse_label, verbosity=2):
+    def create(cls, identifier, name, plural_name, label, inverse_label, verbosity=2):
         """  
         Creates a new AgentType, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
@@ -635,6 +667,9 @@ class AgentAssociationType(models.Model):
             updated = False
             if name != agent_association_type.name:
                 agent_association_type.name = name
+                updated = True
+            if plural_name != agent_association_type.plural_name:
+                agent_association_type.plural_name = plural_name
                 updated = True
             if label != agent_association_type.label:
                 agent_association_type.label = label
@@ -666,10 +701,10 @@ post_migrate.connect(create_agent_types)
 def create_agent_association_types(app, **kwargs):
     if app != "valueaccounting":
         return
-    AgentAssociationType.create('child', 'Child', 'is child of', 'has child') 
-    AgentAssociationType.create('member', 'Member', 'is member of', 'has member')  
-    AgentAssociationType.create('supplier', 'Supplier', 'is supplier of', 'has supplier') 
-    AgentAssociationType.create('customer', 'Customer', 'is customer of', 'has customer') 
+    AgentAssociationType.create('child', 'Child', 'Children', 'is child of', 'has child') 
+    AgentAssociationType.create('member', 'Member', 'Members', 'is member of', 'has member')  
+    AgentAssociationType.create('supplier', 'Supplier', 'Suppliers', 'is supplier of', 'has supplier') 
+    AgentAssociationType.create('customer', 'Customer', 'Customers', 'is customer of', 'has customer') 
     print "created agent association types"
     
 post_migrate.connect(create_agent_association_types)  

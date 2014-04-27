@@ -158,32 +158,34 @@
 	            </table>
 	        
 	        </div>
-	        <div class="span4 assoc">
-                <h3 class="hdg"> {{ agent.nick }} {% trans "is associated with " %}: </h3>
-                <ul>
-                {% for assoc in is_associated_with  %}
-                    {% ifchanged assoc.association_type %} 
-                        <h4> {{ assoc.association_type.name }} </h4>
-                    {% endifchanged %}
-                    <li><a href="{{ assoc.has_associate.get_absolute_url }}">{{ assoc }}</a>
-                        {% if assoc.state == "potential" %} (potential) {% endif %}
-                    </li>
-                {% endfor %}
-                </ul>
-
-	        </div>
+	        
 	        <div class="span4 assoc">
                 <h3 class="hdg">{{ agent.nick }} {% trans "has these associates " %}: </h3>             
                 <ul>
                 {% for assoc in has_associations %}
                     {% ifchanged assoc.association_type %} 
-                        <h4>{{ assoc.association_type.name }} </h4>
+                        <h4>{{ assoc.association_type.inverse_label }}: </h4>
                     {% endifchanged %}   
-                    <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc }}</a></li>
+                    <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate }}</a></li>
                 {% endfor %}
                 </ul>
 	        
 	        </div>
+	        
+	        <div class="span4 assoc">
+                <h3 class="hdg"> {{ agent.nick }} {% trans "is associated with " %}: </h3>
+                <ul>
+                {% for assoc in is_associated_with  %}
+                    {% ifchanged assoc.association_type %} 
+                        <h4> {{ assoc.association_type.label }}: </h4>
+                    {% endifchanged %}
+                    <li><a href="{{ assoc.has_associate.get_absolute_url }}">{{ assoc.has_associate }}</a>
+                        {% if assoc.state == "potential" %} (potential) {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
+
+            </div>
 
 		</div>
 

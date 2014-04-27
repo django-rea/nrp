@@ -1335,6 +1335,53 @@ class CasualTimeContributionForm(forms.ModelForm):
         if pattern:
             self.fields["resource_type"].queryset = pattern.work_resource_types().order_by("name")
 
+class HasAssociateChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.inverse_label
+
+                       
+class HasAssociateForm(forms.ModelForm):
+    id = forms.CharField(required=False, widget=forms.HiddenInput)
+    association_type = HasAssociateChoiceField(
+        queryset=AgentAssociationType.objects.all(), 
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    is_associate = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.all(), 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'description',}))
+    
+    class Meta:
+        model = AgentAssociation
+        fields = ('id', 'association_type', 'is_associate', 'description', 'state')
+
+    def __init__(self, *args, **kwargs):
+        super(HasAssociateForm, self).__init__(*args, **kwargs)
+
+            
+class IsAssociateChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.label
+
+        
+class IsAssociateForm(forms.ModelForm):
+    id = forms.CharField(required=False, widget=forms.HiddenInput)
+    association_type = IsAssociateChoiceField(
+        queryset=AgentAssociationType.objects.all(), 
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    has_associate = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'description',}))
+    
+    class Meta:
+        model = AgentAssociation
+        fields = ('id', 'association_type', 'has_associate', 'description', 'state')
+
+    def __init__(self, *args, **kwargs):
+        super(IsAssociateForm, self).__init__(*args, **kwargs)
+
 
 class DateSelectionForm(forms.Form):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

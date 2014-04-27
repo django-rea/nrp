@@ -636,6 +636,10 @@ class EconomicAgent(models.Model):
         
     def all_is_associates(self):
         return self.is_associate_of.all().order_by('association_type__name', 'has_associate__nick')
+        
+    def all_associations(self):
+        return AgentAssociation.objects.filter(
+            Q(has_associate=self ) | Q(is_associate=self))
             
         
 class AgentUser(models.Model):

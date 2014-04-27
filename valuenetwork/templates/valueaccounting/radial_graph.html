@@ -135,6 +135,7 @@ function init(){
     var json = 
     [
         {% for agent in agents %}
+                   
             {
                 "id": "{{ agent.node_id }}",
                 "name": "{{ agent.name }}",
@@ -146,46 +147,45 @@ function init(){
                 },
                 "adjacencies": 
                 [
-                    {% for association in agent.is_associated_with_groups %}
-                        {% if association.has_associate in agents %}
-                        {
-                            "nodeTo": "{{ association.has_associate.node_id }}",
-                            "data": 
-                            {
-                                "$type":"arrow",
-                                "$direction": ["{{ agent.node_id }}", "{{ association.has_associate.node_id }}"],
-                                "$dim":10,
-                                //"$color":"#339999",
-                                "weight": 1,
-                                //"label": "{{ association.from_agent.name }}" + " " + "{{ association.association_type.label }}"
-                                "label": "{{ association }}",
-                                //"toType": "{{ association.association_type.label }}",
-                                //"fromType": "{{ association.association_type.inverse_label }}",
-                                "type": "{{ association.association_type.label }}"
-                            }
 
-                        },  
-                        {% endif %}
-                    {% endfor %}
                     {% for association in agent.has_group_associates %}
                         {% if association.is_associate in agents %}
-                        {
-                            "nodeTo": "{{ association.is_associate.node_id }}",
-                            "data": 
                             {
-                                "$type":"arrow",
-                                "$direction": ["{{ association.is_associate.node_id }}", "{{ agent.node_id }}"],
-                                "$dim":10,
-                                //"$color":"#339999",
-                                "weight": 1,
-                                //"label": "{{ association.to_agent.name }}" + " " + "{{ association.association_type.inverse_label }}"
-                                "label": "{{ association }}",
-                                //"toType": "{{ association.association_type.label }}",
-                                //"fromType": "{{ association.association_type.inverse_label }}"
-                                "type": "{{ association.association_type.inverse_label }}"
-                            }
+                                "nodeTo": "{{ association.is_associate.node_id }}",
+                                "data": 
+                                {
+                                    "$type":"arrow",
+                                    "$direction": [ "{{ agent.node_id }}", "{{ association.is_associate.node_id }}"],
+                                    "$dim":10,
+                                    "weight": 1,
+                                    "label": "{{ association }}",
+                                    "originalToNode": "{{ association.is_associate.node_id }}",
+                                    "originalFromNode": "{{ agent.node_id }}",
+                                    "fromType": "{{ association.association_type.inverse_label }}",
+                                    "toType": "{{ association.association_type.label }}"
+                                }
+                            }, 
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% for association in agent.is_associated_with_groups %}
+                        {% if association.has_associate in agents %}
+                            {
+                                "nodeTo": "{{ association.has_associate.node_id }}",
+                                "data": 
+                                {
+                                    "$type":"arrow",
+                                    "$direction": ["{{ agent.node_id }}", "{{ association.has_associate.node_id }}"],
+                                    "$dim":10,
+                                    "weight": 1,
+                                    "label": "{{ association }}",
+                                    "originalToNode": "{{ association.has_associate.node_id }}",
+                                    "originalFromNode": "{{ agent.node_id }}",
+                                    "fromType": "{{ association.association_type.label }}",
+                                    "toType": "{{ association.association_type.inverse_label }}"
+                                }
 
-                        },  
+                            },  
                         {% endif %}
                     {% endfor %}
 
@@ -253,23 +253,40 @@ function init(){
             html += "<ul>";
             var types = {};
             node.eachAdjacency(function(adj){
-            
-                var type = adj.data['type'];
-                if(!types[type])
-                {types[type] = [];}
-                
+
+                var originalToNodeID = adj.data['originalToNode'];
+                                
                 if (adj.nodeFrom == node)
                 {
-                    //var type = adj.data['toType'];
-                    //if(!types[type])
-                    //{types[type] = [];}
+                    if (originalToNodeID == node.id)
+                    {
+                        var type = adj.data['toType'];
+                    }
+                    else
+                    {
+                        var type = adj.data['fromType'];
+                    }
+
+                    if(!types[type])
+                    {types[type] = [];}
+                    
                     types[type].push(adj.nodeTo.name);
                 }
                 else
                 {
-                    //var type = adj.data['fromType'];
-                    //if(!types[type])
-                    //{types[type] = [];}
+                    // this never happens
+                    if (originalToNodeID == node.id)
+                    {
+                        var type = adj.data['hasType'];
+                    }
+                    else
+                    {
+                        var type = adj.data['isType'];
+                    }
+
+                    if(!types[type])
+                    {types[type] = [];}
+
                     types[type].push(adj.nodeFrom.name);
                 }
             });

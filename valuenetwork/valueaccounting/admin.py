@@ -13,7 +13,6 @@ admin.site.register(AgentResourceRoleType)
 admin.site.register(AgentResourceRole)
 admin.site.register(Location)
 admin.site.register(UseCaseEventType)
-admin.site.register(AgentAssociationType)
 
 
 class HelpAdmin(admin.ModelAdmin):
@@ -33,6 +32,11 @@ class ExchangeAdmin(admin.ModelAdmin):
     inlines = [ EconomicEventInline, ]
 
 admin.site.register(Exchange, ExchangeAdmin)
+
+class AgentAssociationTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'label', 'inverse_label', 'description')
+
+admin.site.register(AgentAssociationType, AgentAssociationTypeAdmin)
 
 
 class FacetValueInline(admin.TabularInline):

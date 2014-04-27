@@ -13,7 +13,7 @@ from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.forms.models import formset_factory, modelformset_factory, BaseModelFormSet
+from django.forms.models import formset_factory, modelformset_factory, inlineformset_factory, BaseModelFormSet
 from django.forms import ValidationError
 from django.utils import simplejson
 from django.utils.datastructures import SortedDict
@@ -286,6 +286,7 @@ def create_project(request):
             project.created_by=request.user
             project.save()
     return HttpResponseRedirect("/accounting/projects/")
+
 '''    
         
 def locations(request):
@@ -374,6 +375,16 @@ def radial_graph(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     agents = agent.with_all_associations()
     #import pdb; pdb.set_trace()
+    connections = {}
+    for agnt in agents:
+        if agnt not in connections:
+            connections[agnt] = 0
+        cxs = [assn.is_associate for assn in agnt.all_has_associates()]
+        for cx in cxs:
+            if cx not in connections:
+                connections[cx] = 0
+            connections[cx] += 1
+        
     return render_to_response("valueaccounting/radial_graph.html", {
         "agents": agents,
         "root": agent,
@@ -918,6 +929,67 @@ def unscheduled_time_contributions(request):
     return render_to_response("valueaccounting/unscheduled_time_contributions.html", {
         "member": member,
         "time_formset": time_formset,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def agent_associations(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, pk=agent_id)
+    HasAssociatesFormSet = inlineformset_factory(
+        EconomicAgent,
+        AgentAssociation,
+        fk_name = "has_associate",
+        form=HasAssociateForm,
+        extra=3,
+        )
+    has_associates_formset = HasAssociatesFormSet(
+        instance=agent,
+        queryset=agent.all_has_associates(),
+        prefix = "has",
+        data=request.POST or None)
+    IsAssociatesFormSet = inlineformset_factory(
+        EconomicAgent,
+        AgentAssociation,
+        fk_name = "is_associate",
+        form=IsAssociateForm,
+        extra=3,
+        )
+    is_associates_formset = IsAssociatesFormSet(
+        instance=agent,
+        queryset=agent.all_is_associates(),
+        prefix = "is",
+        data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        keep_going = request.POST.get("keep-going")
+        just_save = request.POST.get("save")
+        for form in has_associates_formset:
+            if form.is_valid():
+                deleteme = form.cleaned_data['DELETE']
+                if deleteme:
+                    association = form.save(commit=False)
+                    if association.id:
+                        association.delete()
+                else:
+                    form.save()
+        for form in is_associates_formset:
+            if form.is_valid():
+                deleteme = form.cleaned_data['DELETE']
+                if deleteme:
+                    association = form.save(commit=False)
+                    if association.id:
+                        association.delete()
+                else:
+                    form.save()
+        if just_save:
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/agent', agent.id))
+        elif keep_going:
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/agent-associations', agent.id))
+    return render_to_response("valueaccounting/agent_associations.html", {
+        "agent": agent,
+        "has_associates_formset": has_associates_formset,
+        "is_associates_formset": is_associates_formset,
     }, context_instance=RequestContext(request))
 
 def json_resource_type_resources(request, resource_type_id):

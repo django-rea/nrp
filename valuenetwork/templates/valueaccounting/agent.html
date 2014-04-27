@@ -62,6 +62,8 @@
 	        {% endif %}
 	        &nbsp;&nbsp;&nbsp;
 	        <a href="{% url radial_graph agent_id=agent.id %}">{% trans "Association Graph" %}</a>
+	        &nbsp;&nbsp;&nbsp;
+            <a href="{% url agent_associations agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
 	        
 	              
 

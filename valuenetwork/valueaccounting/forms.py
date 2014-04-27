@@ -40,7 +40,7 @@ class AgentForm(forms.ModelForm):
         fields = ('nick', 'agent_type', 'description', 'url', 'address', 'email')
 
 
-class AgentSupplierForm(forms.ModelForm):
+class AgentCreateForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'required-field input-xlarge',}))   
     nick = forms.CharField(label="ID", widget=forms.TextInput(attrs={'class': 'required-field',}))   
     email = forms.EmailField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
@@ -49,10 +49,15 @@ class AgentSupplierForm(forms.ModelForm):
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    agent_type = forms.ModelChoiceField(
+        queryset=AgentType.objects.all(),
+        empty_label=None,
+        widget=forms.Select(
+        attrs={'class': 'chzn-select'}))
 
     class Meta:
         model = EconomicAgent
-        fields = ('name', 'nick', 'description', 'url', 'address', 'email')
+        fields = ('name', 'nick', 'agent_type', 'description', 'url', 'address', 'email')
 
 
 #todo: queryset methods cd be cached

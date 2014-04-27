@@ -72,6 +72,20 @@ def home(request):
     }, context_instance=RequestContext(request))
 
 @login_required
+def create_agent(request):
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    if request.method == "POST":
+        form = AgentCreateForm(request.POST)
+        if form.is_valid():
+            agent = form.save(commit=False)
+            agent.created_by=request.user
+            agent.save()
+    return HttpResponseRedirect("/accounting/agents/")
+  
+                                                                                    
+@login_required
 def create_user_and_agent(request):
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')
@@ -253,6 +267,7 @@ def projects(request):
         "project_create_form": project_create_form,
     }, context_instance=RequestContext(request))
 
+'''
 @login_required
 def create_project(request):
     agent = get_agent(request)
@@ -271,7 +286,7 @@ def create_project(request):
             project.created_by=request.user
             project.save()
     return HttpResponseRedirect("/accounting/projects/")
-    
+'''    
         
 def locations(request):
     agent = get_agent(request)
@@ -345,10 +360,14 @@ def change_agent(request, agent_id):
                         
 def agents(request):
     #import pdb; pdb.set_trace()
+    user_agent = get_agent(request)
     agents = EconomicAgent.objects.all().order_by("agent_type__name", "name")
+    agent_form = AgentCreateForm()
 
     return render_to_response("valueaccounting/agents.html", {
         "agents": agents,
+        "agent_form": agent_form,
+        "user_agent": user_agent,
     }, context_instance=RequestContext(request))
     
 def radial_graph(request, agent_id):

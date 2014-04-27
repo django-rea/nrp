@@ -231,6 +231,18 @@ def projects(request):
     for root in roots:
         root.nodes = root.child_tree()
         annotate_tree_properties(root.nodes)
+        #import pdb; pdb.set_trace()
+        for node in root.nodes:
+            aats = []
+            for aat in node.agent_association_types():
+                aat.assoc_count = node.associate_count_of_type(aat.identifier)
+                assoc_list = node.all_has_associates_by_type(aat.identifier)
+                for assoc in assoc_list:
+                    association = AgentAssociation.objects.get(is_associate=assoc, has_associate=node, association_type=aat)
+                    assoc.state = association.state
+                aat.assoc_list = assoc_list
+                aats.append(aat)
+            node.aats = aats
     agent = get_agent(request)
     project_create_form = ProjectForm()
     
@@ -259,15 +271,7 @@ def create_project(request):
             project.created_by=request.user
             project.save()
     return HttpResponseRedirect("/accounting/projects/")
-
-def agent_assoc_report(agent_id, association_type_id):
-    import pdb; pdb.set_trace()
-    agent = EconomicAgent.objects.get(id=agent_id)
-    associations = agent.all_has_associates_by_type(association_type_id)
-    return render_to_response("valueaccounting/agent_assoc_report.html", {
-        "associations": associations,
-    }, context_instance=RequestContext(request))
-        
+    
         
 def locations(request):
     agent = get_agent(request)

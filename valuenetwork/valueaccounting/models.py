@@ -582,6 +582,9 @@ class EconomicAgent(models.Model):
         else:
             return False
             
+    def associate_count_of_type(self, assoc_type_identifier):
+        return self.all_has_associates_by_type(assoc_type_identifier).count()
+            
     def agent_association_types(self):
         my_aats = []
         all_aats = AgentAssociationType.objects.all()

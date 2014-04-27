@@ -312,7 +312,5 @@ urlpatterns = patterns("",
     url(r"^agent/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent', name="agent"),
     url(r"^accounting/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.accounting', name="accounting"),
     url(r"^change-agent/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_agent', name="change_agent"),
-    url(r"^agent-assoc-report/(?P<agent_id>\d+)/(?P<association_type_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent_assoc_report', 
-        name="agent_assoc_report"),
 )
 

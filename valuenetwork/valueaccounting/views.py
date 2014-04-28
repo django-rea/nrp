@@ -2226,7 +2226,7 @@ def supply(request):
     mreqs = []
     mrqs = Commitment.objects.to_buy()
     suppliers = SortedDict()
-    supplier_form = AgentSupplierForm(prefix="supplier")
+    #supplier_form = AgentSupplierForm(prefix="supplier")
     for commitment in mrqs:
         if not commitment.fulfilling_events():    
             mreqs.append(commitment)
@@ -2244,7 +2244,7 @@ def supply(request):
         "treqs": treqs,
         "suppliers": suppliers,
         "agent": agent,
-        "supplier_form": supplier_form,
+        #"supplier_form": supplier_form,
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
 

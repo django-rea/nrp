@@ -51,7 +51,7 @@
 </div>
 {% endblock %}
 {% block extra_script %}
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
@@ -65,7 +65,7 @@
 
 
 	    $( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
         }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
@@ -81,9 +81,23 @@
         });
 
         $("select").chosen();
+        
 
 		$( "#userAgentForm" ).validate({
 			rules: {
+                'first_name': {
+                    required: true
+                },
+                username: {
+                    required: true
+                },
+                password1: {
+                    required: true
+                },
+                password2: {
+                    required: true,
+                    equalTo: "#id_password1"
+                },               
 			    'url': {
                     url: true
 				},
@@ -93,7 +107,7 @@
 				}
 			},
 			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
+				$(label).closest('.control-group').addClass('error');	
 			},
 		});
 

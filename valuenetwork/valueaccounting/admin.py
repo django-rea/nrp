@@ -174,13 +174,6 @@ class ProcessAdmin(admin.ModelAdmin):
     
 admin.site.register(Process, ProcessAdmin)
 
-class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'parent', 'slug')
-    list_filter = ['parent',]
-    search_fields = ['name',]
-    
-admin.site.register(Project, ProjectAdmin)
-
 
 class CommitmentAdmin(admin.ModelAdmin):
     date_hierarchy = 'due_date'

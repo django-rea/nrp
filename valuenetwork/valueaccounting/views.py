@@ -150,17 +150,18 @@ def create_user_and_agent(request):
                             agent_type = agent_type,
                         )
                 if not errors:
-                    agent.save()
-                    user = user_form.save(commit=False)
-                    user.first_name = request.POST.get("first_name")
-                    user.last_name = request.POST.get("last_name")
-                    user.email = request.POST.get("email")
-                    user.save()                                   
-                    au = AgentUser(
-                        agent = agent,
-                        user = user)
-                    au.save()
-                    return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
+                    if user_form.is_valid():
+                        agent.save()
+                        user = user_form.save(commit=False)
+                        user.first_name = request.POST.get("first_name")
+                        user.last_name = request.POST.get("last_name")
+                        user.email = request.POST.get("email")
+                        user.save()                                   
+                        au = AgentUser(
+                            agent = agent,
+                            user = user)
+                        au.save()
+                        return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
     
     return render_to_response("valueaccounting/create_user_and_agent.html", {
         "user_form": user_form,

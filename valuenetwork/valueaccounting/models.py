@@ -3027,7 +3027,7 @@ class Process(models.Model):
                             name=next_pt.name,
                             process_type=next_pt,
                             process_pattern=next_pt.process_pattern,
-                            project=next_pt.project,
+                            #project=next_pt.project,
                             context_agent=next_pt.context_agent,
                             url=next_pt.url,
                             end_date=self.start_date,
@@ -3753,7 +3753,7 @@ class Commitment(models.Model):
                     name=pt.name,
                     process_type=pt,
                     process_pattern=pt.process_pattern,
-                    project=pt.project,
+                    #project=pt.project,
                     context_agent=pt.context_agent,
                     url=pt.url,
                     end_date=self.due_date,
@@ -4339,7 +4339,7 @@ class CachedEventSummary(models.Model):
                 if not key in summaries:
                     summaries[key] = EventSummary(
                         agent=event.from_agent, 
-                        project=event.project, 
+                        #project=event.project, 
                         resource_type=event.resource_type, 
                         event_type=event.event_type,
                         quantity=Decimal('0.0'))

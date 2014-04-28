@@ -87,6 +87,7 @@ def create_agent(request):
                                                                                     
 @login_required
 def create_user_and_agent(request):
+    #import pdb; pdb.set_trace()
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')
     user_form = UserCreationForm(data=request.POST or None)
@@ -148,18 +149,18 @@ def create_user_and_agent(request):
                             address = address,
                             agent_type = agent_type,
                         )
-                        agent.save()
-                        if user_form.is_valid():
-                            user = user_form.save(commit=False)
-                            user.first_name = request.POST.get("first_name")
-                            user.last_name = request.POST.get("last_name")
-                            user.email = request.POST.get("email")
-                            user.save()                                   
-                            au = AgentUser(
-                                agent = agent,
-                                user = user)
-                            au.save()
-                        return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
+                if not errors:
+                    agent.save()
+                    user = user_form.save(commit=False)
+                    user.first_name = request.POST.get("first_name")
+                    user.last_name = request.POST.get("last_name")
+                    user.email = request.POST.get("email")
+                    user.save()                                   
+                    au = AgentUser(
+                        agent = agent,
+                        user = user)
+                    au.save()
+                    return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
     
     return render_to_response("valueaccounting/create_user_and_agent.html", {
         "user_form": user_form,

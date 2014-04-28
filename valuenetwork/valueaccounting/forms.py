@@ -20,7 +20,8 @@ class AgentModelChoiceField(forms.ModelChoiceField):
         return obj.name
 
 
-class AgentForm(forms.ModelForm):
+class AgentForm(forms.Form):
+    nick = forms.CharField(label="ID", widget=forms.TextInput(attrs={'class': 'required-field',}))
     first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     last_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     email = forms.EmailField(widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
@@ -35,9 +36,6 @@ class AgentForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
 
-    class Meta:
-        model = EconomicAgent
-        fields = ('nick', 'agent_type', 'description', 'url', 'address', 'email')
 
 
 class AgentCreateForm(forms.ModelForm):

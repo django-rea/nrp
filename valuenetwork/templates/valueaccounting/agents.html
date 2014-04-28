@@ -24,9 +24,13 @@
     font-weight: bold;
 }
 .showhide {
-    font-size: 1.1em;
+    font-size: .6em;
     color: gray;
-    margin-left: 1.2em;
+    margin-left: 4px;
+}
+
+.showhide:hover {
+    cursor: pointer;
 }
 
 .agents li {
@@ -78,8 +82,8 @@
             {% for agent in agents %}
                 {% ifchanged agent.agent_type %} 
                     </ul>
-                    <div class="heading"> {{ agent.agent_type.name }}s </div><div class="showhide">(Show)</div>
-                    <ul class="list">
+                    <div class="heading"> {{ agent.agent_type.name }}s <span class="showhide" id="sh-{{ agent.agent_type.id }}" >(Show)</span></div>
+                    <ul class="list" id="list-{{ agent.agent_type.id }}" >
                 {% endifchanged %}
 
                 <li>
@@ -130,9 +134,11 @@
         
         $(".list").hide();
        
-        $(".showhide").click(function()
+        $(".showhide").click(function(event)
         {
-            $(this).next(".list").slideToggle(200);
+            var id = event.target.id;
+            var listId = '#list-' + id.split('-')[1];
+            $(listId).slideToggle(200);
             $(this).text($(this).text() == '(Show)' ? '(Hide)' : '(Show)');
         });
 

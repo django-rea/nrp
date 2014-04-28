@@ -26,9 +26,13 @@
 }
 .showhide {
     color: gray;
-    margin-left: 1.2em;
+    margin-left: 4px;
 }
-    
+
+.showhide:hover {
+    cursor: pointer;
+}
+
 </style>
 
 {% endblock %}
@@ -103,9 +107,10 @@
                     {% endif %}
                     {% for aat in node.aats %}
                         {% if aat.identifier != "child" %}
-                            <div class="assoc_group"> {{ aat.plural_name }}: {{ aat.assoc_count }} </div>
-                            <div class="showhide">(Show)</div>
-                            <div class="list">
+                            <div class="assoc_group"> {{ aat.plural_name }}: {{ aat.assoc_count }} 
+                                <span class="showhide" id="sh-{{ node.id }}{{ aat.id }}" >(Show)</span>
+                            </div>
+                            <div class="list" id="list-{{ node.id }}{{ aat.id }}" >
                                 <ul>
                                     {% for assoc in aat.assoc_list %}
                                         <li class="indent"><a href="{{ assoc.get_absolute_url }}">{{ assoc }} </a>
@@ -154,9 +159,11 @@
         
         $(".list").hide();
         
-        $(".showhide").click(function()
+        $(".showhide").click(function(event)
         {
-            $(this).next(".list").slideToggle(200);
+            var id = event.target.id;
+            var listId = '#list-' + id.split('-')[1];
+            $(listId).slideToggle(200);
             $(this).text($(this).text() == '(Show)' ? '(Hide)' : '(Show)');
         });
 

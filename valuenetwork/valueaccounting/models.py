@@ -315,9 +315,9 @@ class EconomicAgent(models.Model):
     url = models.CharField(_('url'), max_length=255, blank=True)
     agent_type = models.ForeignKey(AgentType,
         verbose_name=_('agent type'), related_name='agents')
-    agent_type_old = models.ForeignKey(AgentType,
-        blank=True, null=True, default=1,
-        verbose_name=_('agent type old'), related_name='agents_old')
+    #agent_type_old = models.ForeignKey(AgentType,
+    #    blank=True, null=True, default=1,
+    #    verbose_name=_('agent type old'), related_name='agents_old')
     description = models.TextField(_('description'), blank=True, null=True)
     address = models.CharField(_('address'), max_length=255, blank=True)
     email = models.EmailField(_('email address'), max_length=96, blank=True, null=True)
@@ -2193,7 +2193,7 @@ class AgentResourceRole(models.Model):
     def __unicode__(self):
         return " ".join([self.agent.name, self.role.name, self.resource.__unicode__()])
         
-        
+'''        
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=128) 
     description = models.TextField(_('description'), blank=True, null=True)
@@ -2259,7 +2259,7 @@ class Project(models.Model):
 
     def active_processes(self):
         return self.processes.filter(finished=False)
-
+'''
 
 class ProcessType(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -2976,7 +2976,6 @@ class Process(models.Model):
         ct = Commitment(
             independent_demand=demand,
             process=self,
-            #project=self.project,
             context_agent=self.context_agent,
             event_type=event_type,
             resource_type=resource_type,

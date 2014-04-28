@@ -83,7 +83,7 @@ class EventSavingTest(TestCase):
         )
         self.electronic_work.save()
 
-    def test_new_contribution_agent_project_resourcetype(self):
+    def test_new_contribution_agent_context_resourcetype(self):
         event = EconomicEvent(
             from_agent=self.agent1,
             resource_type=self.optical_work,
@@ -106,7 +106,7 @@ class EventSavingTest(TestCase):
             event_type=self.event_type_work)
         self.assertEqual(art.score, Decimal("1"))
 
-    def test_two_contributions_same_agent_project_resourcetype(self):
+    def test_two_contributions_same_agent_context_resourcetype(self):
         event = EconomicEvent(
             from_agent=self.agent1,
             resource_type=self.optical_work,
@@ -143,7 +143,7 @@ class EventSavingTest(TestCase):
     def test_changed_agent(self):
         pass
 
-    def test_changed_project(self):
+    def test_changed_context(self):
         event = EconomicEvent(
             from_agent=self.agent1,
             resource_type=self.optical_work,
@@ -177,7 +177,7 @@ class EventSavingTest(TestCase):
         event = EconomicEvent(
             from_agent=self.agent1,
             resource_type=self.optical_work,
-            project=self.project1,
+            #project=self.project1,
             event_type=self.event_type_work,
             quantity=Decimal("1"),
             event_date=datetime.date.today(),
@@ -191,13 +191,13 @@ class EventSavingTest(TestCase):
            
         summaries = CachedEventSummary.objects.filter(
             agent=self.agent1,
-            project=self.project1,
+            #project=self.project1,
             resource_type=self.optical_work,
             event_type=self.event_type_work)
         self.assertEqual(summaries.count(), 0)
         summary = CachedEventSummary.objects.get(
             agent=self.agent1,
-            project=self.project1,
+            #project=self.project1,
             resource_type=self.optical_work,
             event_type=self.event_type_todo)
         self.assertEqual(summary.quantity, Decimal("1"))

@@ -1,0 +1,304 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "Agent" %}: {{ agent }}{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+.labnote {
+    background-color: beige;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+}
+.btn-info {
+    margin-left: 10px;
+}
+.hdg {
+    color: firebrick;
+}
+.btn {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+#id_notes, #id_access_rules {
+  width: 500px;
+  height: 100px;    
+}
+.modal {
+    width: 600px;
+}
+.text-center {
+    text-align: center;
+}
+.assoc li {
+    margin-left: 3em;
+}
+</style>
+
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+
+		<legend>
+			{{ agent.agent_type }}: {{ agent }} &nbsp;&nbsp;&nbsp;
+
+			{% if user_agent and change_form %}
+		        <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
+	        {% endif %}
+	        
+	        {% if agent.is_individual %}
+                <a href="{% url contribution_history agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+            {% else %}
+                <a href="{% url contributions project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+	        {% endif %}
+	        &nbsp;&nbsp;&nbsp;
+	        <a href="{% url radial_graph agent_id=agent.id %}">{% trans "Association Graph" %}</a>
+	        &nbsp;&nbsp;&nbsp;
+            <a href="{% url agent_associations agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
+	        
+	              
+
+		</legend>
+{% comment %}
+        {% if user_agent %}
+		    <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
+			    <div class="modal-header">
+				    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				    <h3 id="agent-change-label">{% trans "Change" %} {{ agent }}</h3>
+			    </div>
+			    <div class="modal-body">
+				    <form enctype="multipart/form-data" action="{% url change_agent agent_id=agent.id %}" method="POST" >
+					    {% csrf_token %}
+					    {{ change_form|as_bootstrap }}
+
+				        <div class="modal-footer">
+					      <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+					      <button class="btn btn-primary">{% trans "Save changes" %}</button>
+				        </div>
+				    </form>
+		      </div>
+
+		    </div>
+	    {% endif %}
+{% endcomment %}
+		<div class="row-fluid">
+		
+		    <div class="span4 resource">
+		
+	            <table class="table table-bordered" >
+	                <tr>
+                        <th style="text-align: right;">{% trans "Identifier" %}</th>
+                        <td>{{ agent.nick }}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right;">{% trans "Name" %}</th>
+                        <td>{{ agent.name }}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right;">{% trans "Type" %}</th>
+                        <td>{{ agent.agent_type.name }}</td>
+                    </tr>
+	                {% if agent.url %}
+	                    <tr>
+	                        <th style="text-align: right;">{% trans "URL" %}</th>
+	                        <td>{{ agent.url|urlize }}</td>
+                        </tr>
+                    {% endif %}
+	                {% if agent.description %}
+	                    <tr>
+	                        <th style="text-align: right;">{% trans "Description" %}</th>
+	                        <td>{{ agent.description }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if agent.email %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
+	                        <td>{{ agent.email }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if agent.address %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Address" %}</th>
+	                        <td>{{ agent.address }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if agent.photo %}
+	                	<tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
+	                        <td><img src="{% thumbnail agent.photo photo_size %}" /></td>
+                        </tr>
+                	{% elif agent.photo_url %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
+	                        <td><img src="{{ agent.photo_url }}" width="128" height="96" /></td>
+                        </tr>
+	                {% endif %}
+                    {% if agent.reputation %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Reputation" %}</th>
+	                        <td>{{ agent.reputation }}</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <th style="text-align: right;">{% trans "Record created date" %}</th>
+                        <td>{{ agent.created_date }}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right;">{% trans "Record created by" %}</th>
+                        <td>{{ agent.created_by }}</td>
+                    </tr>
+
+	            </table>
+	        
+	        </div>
+	        
+	        <div class="span4 assoc">
+                <h3 class="hdg">{{ agent.nick }} {% trans "has these associates " %}: </h3>             
+                <ul>
+                {% for assoc in has_associations %}
+                    {% ifchanged assoc.association_type %} 
+                        <h4>{{ assoc.association_type.inverse_label }}: </h4>
+                    {% endifchanged %}   
+                    <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate }}</a></li>
+                {% endfor %}
+                </ul>
+	        
+	        </div>
+	        
+	        <div class="span4 assoc">
+                <h3 class="hdg"> {{ agent.nick }} {% trans "is associated with " %}: </h3>
+                <ul>
+                {% for assoc in is_associated_with  %}
+                    {% ifchanged assoc.association_type %} 
+                        <h4> {{ assoc.association_type.label }}: </h4>
+                    {% endifchanged %}
+                    <li><a href="{{ assoc.has_associate.get_absolute_url }}">{{ assoc.has_associate }}</a>
+                        {% if assoc.state == "potential" %} (potential) {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
+
+            </div>
+
+		</div>
+
+        <div class="row-fluid" tyle="margin-top:2em;">
+            <div class="span6">
+            <h3 class="hdg">{% trans "Resources" %}:</h3>
+            {% if agent.resources_created %}
+                <h4 class="hdg">{% trans "Resources Created" %}:</h4>
+                <ul>
+                    {% for resource in agent.resources_created %}
+                        <li>
+                            <a href="{{ resource.get_absolute_url }}"> {{ resource }}</a>
+                        </li>
+
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if agent.resource_relationships %}
+                <h4 class="hdg">{% trans "Resource Relationships" %}:</h4>
+                <ul>
+                    {% for rel in agent.resource_relationships %}
+                        {% ifchanged rel.role %} 
+                            <h4>{{ rel.role.name }} </h4>
+                        {% endifchanged %}
+                        <li>
+                            <a href="{{ rel.resource.get_absolute_url }}"> {{ rel.resource }}</a>
+                        </li>
+
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            </div>
+
+            <div class="span6">
+              <h3 class="hdg">{% trans "Active Processes" %}:</h3>
+
+              {% if agent.active_processes %}
+                <ul>
+                    {% for process in agent.active_processes %}
+                        <li>
+                            <a href="{{ process.get_absolute_url }}"> {{ process }}</a>
+                        </li>
+
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>None</p>
+
+            {% endif %}
+
+	    </div>
+
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+{% endblock %}
+
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+		$('#projects').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        $('td.td-role > select').addClass('select-role');   
+        $('td.td-agent > select').addClass('select-agent');  
+
+        $.validator.addMethod("agentRequired", function (value, element) {
+            alert("value " + value + " element " + element);
+            //agent = element.closest(".select-agent");
+            //alert("agent " + agent);
+
+            return true;
+        }, "Both role and agent must be entered.");
+
+        $.validator.addClassRules("select-role", { agentRequired: true });
+
+    }); // end document.ready
+
+	$('.resource-change-form').each( function(){
+		var form = $(this);
+		form.validate({
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			}
+
+		});
+	});
+/*    
+    $("tr.role-row").each(function(i, tr) {
+        var role = $(tr).children().get(0);
+        alert("role " + role );
+
+
+    });
+*/
+    </script>
+    
+{% endblock %}

@@ -19,10 +19,16 @@ class EventSavingTest(TestCase):
     def setUp(self):
 
         agent_type = AgentType(
-            name="Active",
+            name="Active individual",
         )
         agent_type.save()
-
+        
+        project_type = AgentType(
+            name="Project",
+            party_type="team", 
+        )
+        project_type.save()
+        
         self.agent1 = EconomicAgent(
             name="AOne",
             nick="AOne",
@@ -37,13 +43,17 @@ class EventSavingTest(TestCase):
         )
         self.agent2.save()
 
-        self.project1 = Project(
+        self.project1 = EconomicAgent(
             name="POne",
+            nick="POne",
+            agent_type=project_type,
         )
         self.project1.save()
 
-        self.project2 = Project(
+        self.project2 = EconomicAgent(
             name="PTwo",
+            nick="PTwo",
+            agent_type=project_type,
         )
         self.project2.save()
 
@@ -77,7 +87,7 @@ class EventSavingTest(TestCase):
         event = EconomicEvent(
             from_agent=self.agent1,
             resource_type=self.optical_work,
-            project=self.project1,
+            context_agent=self.project1,
             event_type=self.event_type_work,
             quantity=Decimal("1"),
             event_date=datetime.date.today(),
@@ -87,7 +97,7 @@ class EventSavingTest(TestCase):
         #import pdb; pdb.set_trace()
         summary = CachedEventSummary.objects.get(
             agent=self.agent1,
-            project=self.project1,
+            context_agent=self.project1,
             resource_type=self.optical_work)
         self.assertEqual(summary.quantity, Decimal("1"))
         art = AgentResourceType.objects.get(
@@ -100,7 +110,7 @@ class EventSavingTest(TestCase):
         event = EconomicEvent(
             from_agent=self.agent1,
             resource_type=self.optical_work,
-            project=self.project1,
+            context_agent=self.project1,
             event_type=self.event_type_work,
             quantity=Decimal("1"),
             event_date=datetime.date.today(),
@@ -111,7 +121,7 @@ class EventSavingTest(TestCase):
         event = EconomicEvent(
             from_agent=self.agent1,
             resource_type=self.optical_work,
-            project=self.project1,
+            context_agent=self.project1,
             event_type=self.event_type_work,
             quantity=Decimal("2"),
             event_date=datetime.date.today(),
@@ -121,7 +131,7 @@ class EventSavingTest(TestCase):
         
         summary = CachedEventSummary.objects.get(
             agent=self.agent1,
-            project=self.project1,
+            context_agent=self.project1,
             resource_type=self.optical_work)
         self.assertEqual(summary.quantity, Decimal("3"))
         art = AgentResourceType.objects.get(
@@ -137,7 +147,7 @@ class EventSavingTest(TestCase):
         event = EconomicEvent(
             from_agent=self.agent1,
             resource_type=self.optical_work,
-            project=self.project1,
+            context_agent=self.project1,
             event_type=self.event_type_work,
             quantity=Decimal("1"),
             event_date=datetime.date.today(),
@@ -146,17 +156,17 @@ class EventSavingTest(TestCase):
         event.save()
         
         #import pdb; pdb.set_trace()
-        event.project = self.project2
+        event.context_agent = self.project2
         event.save()
-           
+
         summaries = CachedEventSummary.objects.filter(
             agent=self.agent1,
-            project=self.project1,
+            context_agent=self.project1,
             resource_type=self.optical_work)
         self.assertEqual(summaries.count(), 0)
         summary = CachedEventSummary.objects.get(
             agent=self.agent1,
-            project=self.project2,
+            context_agent=self.project2,
             resource_type=self.optical_work)
         self.assertEqual(summary.quantity, Decimal("1"))
 
@@ -196,7 +206,7 @@ class EventSavingTest(TestCase):
         event = EconomicEvent(
             from_agent=self.agent1,
             resource_type=self.optical_work,
-            project=self.project1,
+            context_agent=self.project1,
             event_type=self.event_type_work,
             quantity=Decimal("1"),
             event_date=datetime.date.today(),
@@ -209,7 +219,7 @@ class EventSavingTest(TestCase):
         
         summary = CachedEventSummary.objects.get(
             agent=self.agent1,
-            project=self.project1,
+            context_agent=self.project1,
             resource_type=self.optical_work)
         self.assertEqual(summary.quantity, Decimal("3"))
         art = AgentResourceType.objects.get(
@@ -222,11 +232,12 @@ class EventSavingTest(TestCase):
         event = EconomicEvent(
             from_agent=self.agent1,
             resource_type=self.optical_work,
-            project=self.project1,
+            context_agent=self.project1,
             event_type=self.event_type_work,
             quantity=Decimal("1"),
             event_date=datetime.date.today(),
         )
+        #import pdb; pdb.set_trace()
         event.save()
         summaries = CachedEventSummary.objects.all()
         self.assertEqual(summaries.count(), 0)

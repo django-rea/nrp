@@ -192,7 +192,7 @@ SIZE_CHOICES = (
     ('individual', _('individual')),
     ('org', _('organization')),
     ('network', _('network')),
-    ('team', _('project team')),
+    ('team', _('project')),
     ('community', _('community')),
 )
 
@@ -210,24 +210,72 @@ class Location(models.Model):
     def resources(self):
         return self.resources_at_location.all()
 
+        
+class AgentTypeManager(models.Manager):
+    
+    def context_agent_types(self):
+        return AgentType.objects.filter(is_context=True)
+        
+    def non_context_agent_types(self):
+        return AgentType.objects.filter(is_context=False)
+        
 class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='sub-agents', editable=False)
-    member_type = models.CharField(_('member type'), 
-        max_length=12, choices=ACTIVITY_CHOICES,
-        default='active')
+    #member_type = models.CharField(_('member type'), 
+    #    max_length=12, choices=ACTIVITY_CHOICES,
+    #    default='active')
     party_type = models.CharField(_('party type'), 
         max_length=12, choices=SIZE_CHOICES,
         default='individual')
+    description = models.TextField(_('description'), blank=True, null=True)
+    is_context = models.BooleanField(_('is context'), default=False)
+    objects = AgentTypeManager()
 
     class Meta:
         ordering = ('name',)
 
     def __unicode__(self):
-        return self.name
+        return self.name   
+        
+    @classmethod
+    def create(cls, name, party_type, is_context, verbosity=2):
+        """  
+        Creates a new AgentType, updates an existing one, or does nothing.
+        This is intended to be used as a post_syncdb manangement step.
+        """
+        try:
+            agent_type = cls._default_manager.get(name=name)
+            updated = False
+            if party_type != agent_type.party_type:
+                agent_type.party_type = party_type
+                updated = True
+            if is_context != agent_type.is_context:
+                agent_type.is_context = is_context
+                updated = True
+            if updated:
+                agent_type.save()
+                if verbosity > 1:
+                    print "Updated %s AgentType" % name
+        except cls.DoesNotExist:
+            cls(name=name, party_type=party_type, is_context=is_context).save()
+            if verbosity > 1:
+                print "Created %s AgentType" % name
 
+        
+class AgentAccount(object):
+    def __init__(self, agent, event_type, count, quantity, events):
+        self.agent = agent
+        self.event_type = event_type
+        self.count = count
+        self.quantity = quantity
+        self.events=events
 
+    def example(self):
+        return self.events[0]
+        
+        
 class AgentManager(models.Manager):
 
     def without_user(self):
@@ -239,15 +287,37 @@ class AgentManager(models.Manager):
                 ua_ids.append(agent.id)
         return EconomicAgent.objects.exclude(id__in=ua_ids)
 
-    def active_contributors(self):
-        return EconomicAgent.objects.filter(agent_type__member_type="active")
+    
+    def projects(self):
+        return EconomicAgent.objects.filter(agent_type__party_type="team")
+    
+    def individuals(self):
+        return EconomicAgent.objects.filter(agent_type__party_type="individual")
+        
+    def organizations(self):
+        return EconomicAgent.objects.filter(agent_type__party_type="org")
 
+    def networks(self):
+        return EconomicAgent.objects.filter(agent_type__party_type="network")
+    
+    #def projects_and_networks(self):
+    #    return EconomicAgent.objects.filter(Q(agent_type__party_type="network") | Q(agent_type__party_type="team"))
+        
+    def context_agents(self):
+        return EconomicAgent.objects.filter(agent_type__is_context=True)
+        
+    def non_context_agents(self):
+        return EconomicAgent.objects.filter(agent_type__is_context=False)
+    
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
     nick = models.CharField(_('ID'), max_length=32, unique=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     agent_type = models.ForeignKey(AgentType,
         verbose_name=_('agent type'), related_name='agents')
+    agent_type_old = models.ForeignKey(AgentType,
+        blank=True, null=True, default=1,
+        verbose_name=_('agent type old'), related_name='agents_old')
     description = models.TextField(_('description'), blank=True, null=True)
     address = models.CharField(_('address'), max_length=255, blank=True)
     email = models.EmailField(_('email address'), max_length=96, blank=True, null=True)
@@ -276,15 +346,26 @@ class EconomicAgent(models.Model):
     def save(self, *args, **kwargs):
         unique_slugify(self, self.nick)
         super(EconomicAgent, self).save(*args, **kwargs)
-
+        
+    @models.permalink
+    def get_absolute_url(self):
+        return ('agent', (),
+        { 'agent_id': str(self.id),})
+            
     def seniority(self):
         return (datetime.date.today() - self.created_date).days
 
     def node_id(self):
-        return "-".join(["Agent", str(self.id)])
+        if self.agent_type.party_type == "team":
+            return "-".join(["Project", str(self.id)])
+        else:
+            return "-".join(["Agent", str(self.id)])
 
-    def color(self):
-        return "green"
+    def color(self): #todo: not tested
+        if self.agent_type.party_type == "team":
+            return "blue"
+        else:
+            return "green"
 
     def produced_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='out')
@@ -328,10 +409,242 @@ class EconomicAgent(models.Model):
         processes.extend([x.process for x in events if x.process])
         return list(set(processes))
         
+    def active_worked_processes(self):
+        aps = [p for p in self.worked_processes() if p.finished==False]
+        return aps
+        
+    def context_processes(self):
+        return self.processes.all()
+        
+    def active_context_processes(self):
+        return self.context_processes().filter(finished=False)
+        
+    def is_individual(self):
+        return self.agent_type.party_type == "individual"
+        
     def active_processes(self):
-        return [p for p in self.worked_processes() if p.finished==False]
+        if self.is_individual():
+            return self.active_worked_processes()
+        else:
+            return self.active_context_processes()
+            
+    def all_processes(self):
+        if self.is_individual():
+            return self.worked_processes()
+        else:
+            return self.context_processes()
+    
+    def resources_created(self):
+        creations = []
+        for p in self.all_processes():
+            creations.extend(p.deliverables())
+        return creations
+        
+    def resource_relationships(self):
+        return self.agent_resource_roles.all()
+    
+    #from here these were copied from project - todo: fix these to work correctly using context agent relationships (these are in various stages of fix and test)
+    def time_contributions(self):
+        return sum(event.quantity for event in self.events.filter(
+            is_contribution=True,
+            event_type__relationship="work"))
+ 
+    def context_contributions(self):
+        return sum(event.quantity for event in self.events.filter(
+            is_contribution=True))
+        
+    def contributions_count(self):
+        if self.is_individual():
+            return self.contributions().count()
+        else:
+            return self.contribution_events().count()
+        
+    def contribution_events(self):
+        return self.events.filter(is_contribution=True)
+        
+    def contributors(self):
+        ids = self.events.filter(is_contribution=True).values_list('from_agent').order_by('from_agent').distinct()
+        id_list = [id[0] for id in ids]
+        return EconomicAgent.objects.filter(id__in=id_list)
+        
+    def events_by_event_type(self):
+        agent_events = EconomicEvent.objects.filter(
+            Q(from_agent=self)|Q(to_agent=self))
+        ets = EventType.objects.all()
+        answer = []
+        for et in ets:
+            events = agent_events.filter(event_type=et)
+            if events:
+                count = events.count()
+                quantity = sum(e.quantity for e in events)
+                aa = AgentAccount(self, et, count, quantity, events)
+                answer.append(aa)
+        return answer
+               
+    def with_all_sub_agents(self):
+        from valuenetwork.valueaccounting.utils import flattened_children_by_association
+        return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
+        
+    def with_all_associations(self):
+        from valuenetwork.valueaccounting.utils import group_dfs_by_has_associate, group_dfs_by_is_associate
+        if self.is_individual():
+            agents = [self,]
+            agents.extend([ag.has_associate for ag in self.is_associate_of.all()])
+            agents.extend([ag.is_associate for ag in self.has_associates.all()])
+        else:     
+            associations = AgentAssociation.objects.all().order_by("-association_type")
+            associations = associations.exclude(is_associate__agent_type__party_type="individual")
+            #associations = associations.exclude(association_type__identifier="supplier")
+            gas = group_dfs_by_has_associate(self, self, associations, [], 1)
+            gas.extend(group_dfs_by_is_associate(self, self, associations, [], 1))
+            agents = [self,]
+            for ga in gas:
+                if ga not in agents:
+                    agents.append(ga)
+        return agents
+        
+    def child_tree(self):
+        from valuenetwork.valueaccounting.utils import agent_dfs_by_association
+        #todo: figure out why this failed when AAs were ordered by from_agent
+        aas = AgentAssociation.objects.all().order_by("id")
+        return agent_dfs_by_association(self, aas, 1)
+        
+    def wip(self):
+        return self.active_processes()
+        
+    def get_resource_types_with_recipe(self):
+        return [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self)]
+                
+    #from here are new methods for context agent code
+    def parent(self):
+        #assumes only one parent
+        #import pdb; pdb.set_trace()
+        associations = self.is_associate_of.filter(association_type__identifier="child").filter(state="active")
+        parent = None
+        if associations.count() > 0:
+            parent = associations[0].has_associate
+        return parent
+        
+    def children(self): #returns a list or None
+        associations = self.has_associates.filter(association_type__identifier="child").filter(state="active")
+        children = None
+        if associations.count() > 0:
+            children = []
+            for association in associations:
+                children.append(association.from_agent)
+        return children
+        
+    def is_root(self):
+        if self.parent():
+            return False
+        else:
+            return True
+            
+    def suppliers(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.has_associates.filter(association_type__identifier="supplier").filter(state="active").values_list('is_associate')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def exchange_firms(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.has_associates.filter(association_type__identifier="legal").filter(state="active").values_list('is_associate')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def members(self): 
+        #import pdb; pdb.set_trace()
+        agent_ids = self.has_associates.filter(association_type__identifier="member").filter(state="active").values_list('is_associate')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def affiliates(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('is_associate')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def customers(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.has_associates.filter(association_type__identifier="customer").filter(state="active").values_list('is_associate')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def potential_customers(self):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.has_associates.filter(association_type__identifier="customer").filter(state="potential").values_list('is_associate')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def all_has_associates_by_type(self, assoc_type_identifier):
+        #import pdb; pdb.set_trace()
+        agent_ids = self.has_associates.filter(association_type__identifier=assoc_type_identifier).exclude(state="inactive").values_list('is_associate')
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def has_associates_of_type(self, assoc_type_identifier): #returns boolean
+        #import pdb; pdb.set_trace()
+        if self.all_has_associates_by_type(assoc_type_identifier).count() > 0: #todo: can this be made more efficient, return count from sql?
+            return True
+        else:
+            return False
+            
+    def associate_count_of_type(self, assoc_type_identifier):
+        return self.all_has_associates_by_type(assoc_type_identifier).count()
+            
+    def agent_association_types(self):
+        my_aats = []
+        all_aats = AgentAssociationType.objects.all()
+        for aat in all_aats:
+            if self.has_associates_of_type(aat.identifier):
+                my_aats.append(aat)
+        return my_aats
 
-
+    def has_group_associates(self):
+        atgs = self.has_associates.exclude(is_associate__agent_type__party_type="individual")
+        return atgs
+        
+    def is_associated_with_groups(self):
+        afgs = self.is_associate_of.exclude(has_associate__agent_type__party_type="individual")
+        return afgs
+        
+    def exchange_firm(self):
+        xs = self.exchange_firms()
+        if xs:
+            return xs[0]
+        parent = self.parent()
+        while parent:
+            xs = parent.exchange_firms()
+            if xs:
+                return xs[0]
+            parent = parent.parent()
+        return None
+        
+    def default_agent(self):
+        return self.exchange_firm() or self
+        
+    def all_suppliers(self):
+        sups = list(self.suppliers())
+        parent = self.parent()
+        while parent:
+            sups.extend(parent.suppliers())
+            parent = parent.parent()
+        sup_ids = [sup.id for sup in sups]
+        return EconomicAgent.objects.filter(pk__in=sup_ids)
+        
+    def all_members(self): 
+        mems = list(self.members())
+        parent = self.parent()
+        while parent:
+            mems.extend(parent.members())
+            parent = parent.parent()
+        mem_ids = [mem.id for mem in mems]
+        return EconomicAgent.objects.filter(pk__in=mem_ids)
+        
+    def all_has_associates(self):
+        return self.has_associates.all().order_by('association_type__name', 'is_associate__nick')
+        
+    def all_is_associates(self):
+        return self.is_associate_of.all().order_by('association_type__name', 'has_associate__nick')
+        
+    def all_associations(self):
+        return AgentAssociation.objects.filter(
+            Q(has_associate=self ) | Q(is_associate=self))
+            
+        
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='users')
@@ -339,19 +652,98 @@ class AgentUser(models.Model):
         verbose_name=_('user'), related_name='agent')
 
 
-class AssociationType(models.Model):
+class AgentAssociationType(models.Model):
+    identifier = models.CharField(_('identifier'), max_length=12, unique=True)
     name = models.CharField(_('name'), max_length=128)
+    plural_name = models.CharField(_('plural name'), default="", max_length=128)
+    description = models.TextField(_('description'), blank=True, null=True)
+    label = models.CharField(_('label'), max_length=32, null=True)
+    inverse_label = models.CharField(_('inverse label'), max_length=40, null=True)
+    
+    def __unicode__(self):
+        return self.name
+        
+    @classmethod
+    def create(cls, identifier, name, plural_name, label, inverse_label, verbosity=2):
+        """  
+        Creates a new AgentType, updates an existing one, or does nothing.
+        This is intended to be used as a post_syncdb manangement step.
+        """
+        try:
+            agent_association_type = cls._default_manager.get(identifier=identifier)
+            updated = False
+            if name != agent_association_type.name:
+                agent_association_type.name = name
+                updated = True
+            if plural_name != agent_association_type.plural_name:
+                agent_association_type.plural_name = plural_name
+                updated = True
+            if label != agent_association_type.label:
+                agent_association_type.label = label
+                updated = True
+            if inverse_label != agent_association_type.inverse_label:
+                agent_association_type.inverse_label = inverse_label
+                updated = True
+            if updated:
+                agent_association_type.save()
+                if verbosity > 1:
+                    print "Updated %s AgentAssociationType" % name
+        except cls.DoesNotExist:
+            cls(identifier=identifier, name=name, label=label, inverse_label=inverse_label).save()
+            if verbosity > 1:
+                print "Created %s AgentAssociationType" % name
 
+from south.signals import post_migrate
+        
+def create_agent_types(app, **kwargs):
+    if app != "valueaccounting":
+        return
+    AgentType.create('Individual', 'individual', False) 
+    AgentType.create('Organization', 'org', False) 
+    AgentType.create('Network', 'network', True) 
+    print "created agent types"
+    
+post_migrate.connect(create_agent_types) 
+
+def create_agent_association_types(app, **kwargs):
+    if app != "valueaccounting":
+        return
+    AgentAssociationType.create('child', 'Child', 'Children', 'is child of', 'has child') 
+    AgentAssociationType.create('member', 'Member', 'Members', 'is member of', 'has member')  
+    AgentAssociationType.create('supplier', 'Supplier', 'Suppliers', 'is supplier of', 'has supplier') 
+    AgentAssociationType.create('customer', 'Customer', 'Customers', 'is customer of', 'has customer') 
+    print "created agent association types"
+    
+post_migrate.connect(create_agent_association_types)  
+        
+RELATIONSHIP_STATE_CHOICES = (
+    ('active', _('active')),
+    ('inactive', _('inactive')),
+    ('potential', _('potential')),
+)
 
 class AgentAssociation(models.Model):
-    from_agent = models.ForeignKey(EconomicAgent,
-        verbose_name=_('from'), related_name='associations_from')
-    to_agent = models.ForeignKey(EconomicAgent,
-        verbose_name=_('to'), related_name='associations_to')
-    association_type = models.ForeignKey(AssociationType,
+    #is_associate = models.ForeignKey(EconomicAgent,
+    #    verbose_name=_('is associate of'), related_name='associations_from')
+    #has_associate = models.ForeignKey(EconomicAgent,
+    #    verbose_name=_('has associate'), related_name='associations_to')
+    is_associate = models.ForeignKey(EconomicAgent,
+        verbose_name=_('is associate of'), related_name='is_associate_of')
+    has_associate = models.ForeignKey(EconomicAgent,
+        verbose_name=_('has associate'), related_name='has_associates')
+    association_type = models.ForeignKey(AgentAssociationType,
         verbose_name=_('association type'), related_name='associations')
     description = models.TextField(_('description'), blank=True, null=True)
-
+    state = models.CharField(_('state'), 
+        max_length=12, choices=RELATIONSHIP_STATE_CHOICES,
+        default='active')
+        
+    class Meta:
+        ordering = ('is_associate',)
+        
+    def __unicode__(self):
+        return self.is_associate.nick + " " + self.association_type.label + " " + self.has_associate.nick
+        
 
 DIRECTION_CHOICES = (
     ('in', _('input')),
@@ -1242,8 +1634,6 @@ class UseCase(models.Model):
         return allowed_ps
 
 
-from south.signals import post_migrate
-
 def create_use_cases(app, **kwargs):
     if app != "valueaccounting":
         return
@@ -1473,7 +1863,7 @@ class Order(models.Model):
             event_type,
             unit,
             due=None):
-        #todo: needs process and project. Anything else?
+        #todo: needs process and project. Anything else? >>context agent
         #might not be worth refactoring out.
         if not due:
             due=self.due_date
@@ -1683,7 +2073,15 @@ class EconomicResource(models.Model):
             return TimeEventForm(prefix=prefix)
         else:
             qty_help = " ".join(["unit:", unit.abbrev])
-            return InputEventForm(qty_help=qty_help, prefix=prefix)  
+            return InputEventForm(qty_help=qty_help, prefix=prefix) 
+            
+    def owner(self):
+        owner_roles = self.agent_resource_roles.filter(role__is_owner=True)
+        # todo: this allows one and only one owner
+        if owner_roles:
+            return owner_roles[0].agent
+        return None
+             
 
 
 class AgentResourceType(models.Model):
@@ -1776,6 +2174,7 @@ class AgentResourceType(models.Model):
 class AgentResourceRoleType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     description = models.TextField(_('description'), blank=True, null=True)
+    is_owner = models.BooleanField(_('is owner'), default=False)
 
     def __unicode__(self):
         return self.name
@@ -1789,8 +2188,12 @@ class AgentResourceRole(models.Model):
     role = models.ForeignKey(AgentResourceRoleType, 
         verbose_name=_('role'), related_name='agent_resource_roles')
     is_contact = models.BooleanField(_('is contact'), default=False)
+    owner_percentage = models.IntegerField(_('owner percentage'), null=True)
 
-
+    def __unicode__(self):
+        return " ".join([self.agent.name, self.role.name, self.resource.__unicode__()])
+        
+        
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=128) 
     description = models.TextField(_('description'), blank=True, null=True)
@@ -1865,9 +2268,12 @@ class ProcessType(models.Model):
     process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
         verbose_name=_('process pattern'), related_name='process_types')
-    project = models.ForeignKey(Project,
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='process_types')
+    context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        verbose_name=_('project'), related_name='process_types')
+        verbose_name=_('context agent'), related_name='process_types')
     description = models.TextField(_('description'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     estimated_duration = models.IntegerField(_('estimated duration'), 
@@ -2196,18 +2602,21 @@ class Process(models.Model):
         blank=True, null=True,
         verbose_name=_('process type'), related_name='processes',
         on_delete=models.SET_NULL)
-    project = models.ForeignKey(Project,
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='processes')
+    context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        verbose_name=_('project'), related_name='processes')
+        verbose_name=_('context agent'), related_name='processes')
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
     end_date = models.DateField(_('end date'), blank=True, null=True)
     started = models.DateField(_('started'), blank=True, null=True)
     finished = models.BooleanField(_('finished'), default=False)
-    managed_by = models.ForeignKey(EconomicAgent, related_name="managed_processes",
-        verbose_name=_('managed by'), blank=True, null=True)
-    owner = models.ForeignKey(EconomicAgent, related_name="owned_processes",
-        verbose_name=_('owner'), blank=True, null=True)
+    # managed_by = models.ForeignKey(EconomicAgent, related_name="managed_processes",
+    #     verbose_name=_('managed by'), blank=True, null=True)
+    # owner = models.ForeignKey(EconomicAgent, related_name="owned_processes",
+    #     verbose_name=_('owner'), blank=True, null=True)
     notes = models.TextField(_('notes'), blank=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='processes_created', blank=True, null=True, editable=False)
@@ -2270,6 +2679,11 @@ class Process(models.Model):
             return False
         return True
 
+    def default_agent(self):
+        if self.context_agent:
+            return self.context_agent.exchange_firm() or self.context_agent
+        return None
+        
     def flow_type(self):
         return "Process"
 
@@ -2563,6 +2977,7 @@ class Process(models.Model):
             independent_demand=demand,
             process=self,
             project=self.project,
+            context_agent=self.context_agent,
             event_type=event_type,
             resource_type=resource_type,
             quantity=quantity,
@@ -2614,6 +3029,7 @@ class Process(models.Model):
                             process_type=next_pt,
                             process_pattern=next_pt.process_pattern,
                             project=next_pt.project,
+                            context_agent=next_pt.context_agent,
                             url=next_pt.url,
                             end_date=self.start_date,
                             start_date=start_date,
@@ -2692,9 +3108,12 @@ class Exchange(models.Model):
     use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
         verbose_name=_('use case'), related_name='exchanges')
-    project = models.ForeignKey(Project,
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='exchanges')
+    context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        verbose_name=_('project'), related_name='exchanges')
+        verbose_name=_('context agent'), related_name='exchanges')
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
     notes = models.TextField(_('notes'), blank=True)
@@ -2988,9 +3407,12 @@ class Commitment(models.Model):
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='commitments')
-    project = models.ForeignKey(Project,
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='commitments')
+    context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        verbose_name=_('project'), related_name='commitments')
+        verbose_name=_('context agent'), related_name='commitments')
     description = models.TextField(_('description'), null=True, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2)
@@ -3333,6 +3755,7 @@ class Commitment(models.Model):
                     process_type=pt,
                     process_pattern=pt.process_pattern,
                     project=pt.project,
+                    context_agent=pt.context_agent,
                     url=pt.url,
                     end_date=self.due_date,
                     start_date=start_date,
@@ -3446,17 +3869,17 @@ class SelectedOption(models.Model):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
 
 
-def update_summary(agent, project, resource_type, event_type):
+def update_summary(agent, context_agent, resource_type, event_type):
     events = EconomicEvent.objects.filter(
         from_agent=agent,
-        project=project,
+        context_agent=context_agent,
         resource_type=resource_type,
         event_type=event_type,
         is_contribution=True)
     total = sum(event.quantity for event in events)
     summary, created = CachedEventSummary.objects.get_or_create(
         agent=agent,
-        project=project,
+        context_agent=context_agent,
         resource_type=resource_type,
         event_type=event_type)
     summary.quantity = total
@@ -3489,10 +3912,14 @@ class EconomicEvent(models.Model):
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
-    project = models.ForeignKey(Project,
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='events',
+    #    on_delete=models.SET_NULL)
+    context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        verbose_name=_('project'), related_name='events',
-        on_delete=models.SET_NULL)
+        related_name="events", verbose_name=_('context agent'),
+        on_delete=models.SET_NULL)        
     url = models.CharField(_('url'), max_length=255, blank=True)
     description = models.TextField(_('description'), null=True, blank=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2)
@@ -3526,8 +3953,8 @@ class EconomicEvent(models.Model):
         if self.from_agent:
             from_agt = self.from_agent.name
         to_agt = 'Unassigned'
-        if self.to_agent:
-            to_agt = self.to_agent.name
+        if self.recipient():
+            to_agt = self.recipient().name
         resource_string = self.resource_type.name
         if self.resource:
             resource_string = str(self.resource)
@@ -3546,17 +3973,20 @@ class EconomicEvent(models.Model):
         #import pdb; pdb.set_trace()
         from_agt = 'Unassigned'
         agent = self.from_agent
-        project = self.project
+        #project = self.project
+        context_agent = self.context_agent
         resource_type = self.resource_type
         event_type = self.event_type
         delta = self.quantity
         agent_change = False
         project_change = False
         resource_type_change = False
+        context_agent_change = False
         event_type_change = False
         if self.pk:
             prev_agent = self.from_agent
-            prev_project = self.project
+            #prev_project = self.project
+            prev_context_agent = self.context_agent
             prev_resource_type = self.resource_type
             prev_event_type = self.event_type
             prev = EconomicEvent.objects.get(pk=self.pk)
@@ -3565,9 +3995,12 @@ class EconomicEvent(models.Model):
             if prev.from_agent != self.from_agent:
                 agent_change = True
                 prev_agent = prev.from_agent
-            if prev.project != self.project:
-                project_change = True
-                prev_project = prev.project 
+            #if prev.project != self.project:
+            #    project_change = True
+            #    prev_project = prev.project 
+            if prev.context_agent != self.context_agent:
+                context_agent_change = True
+                prev_context_agent = prev.context_agent 
             if prev.resource_type != self.resource_type:
                 resource_type_change = True
                 prev_resource_type = prev.resource_type
@@ -3601,22 +4034,23 @@ class EconomicEvent(models.Model):
         ])
         unique_slugify(self, slug)
         super(EconomicEvent, self).save(*args, **kwargs)
-        update_summary(agent, project, resource_type, event_type)
-        if agent_change or project_change or resource_type_change or event_type_change:
-            update_summary(prev_agent, prev_project, prev_resource_type, prev_event_type)
+        update_summary(agent, context_agent, resource_type, event_type)
+        if agent_change or resource_type_change or context_agent_change or event_type_change:
+            update_summary(prev_agent, prev_context_agent, prev_resource_type, prev_event_type)
 
     def delete(self, *args, **kwargs):
         if self.event_type.relationship == "work":
             if self.is_contribution:
                 agent = self.from_agent
-                project = self.project
+                #project = self.project
+                context_agent = self.context_agent
                 resource_type = self.resource_type
                 event_type = self.event_type
-                if agent and project and resource_type:
+                if agent and context_agent and resource_type:
                     try:
                         summary = CachedEventSummary.objects.get(
                             agent=agent,
-                            project=project,
+                            context_agent=context_agent,
                             resource_type=resource_type,
                             event_type=event_type)
                         summary.quantity -= self.quantity
@@ -3627,6 +4061,14 @@ class EconomicEvent(models.Model):
                     except CachedEventSummary.DoesNotExist:
                         pass
         super(EconomicEvent, self).delete(*args, **kwargs)
+        
+    def default_agent(self):
+        if self.context_agent:
+            return self.context_agent.exchange_firm() or self.context_agent
+        return None 
+        
+    def recipient(self):
+        return self.to_agent or self.default_agent()
 
     def flow_type(self):
         return self.event_type.name
@@ -3687,6 +4129,15 @@ class EconomicEvent(models.Model):
     def work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import WorkEventChangeForm
         return WorkEventChangeForm(instance=self)
+        
+    def change_form(self, data):
+        from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
+        unit = self.resource_type.unit
+        if unit.unit_type == "time":
+            return TimeEventForm(instance=self, data=data)
+        else:
+            qty_help = " ".join(["unit:", unit.abbrev])
+            return InputEventForm(qty_help=qty_help, instance=self, data=data)
 
     def unplanned_work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm
@@ -3768,9 +4219,9 @@ class Compensation(models.Model):
 
 
 class EventSummary(object):
-    def __init__(self, agent, project, resource_type, event_type, quantity, value=Decimal('0.0')):
+    def __init__(self, agent, context_agent, resource_type, event_type, quantity, value=Decimal('0.0')):
         self.agent = agent
-        self.project = project
+        self.context_agent = context_agent
         self.resource_type = resource_type
         self.event_type = event_type
         self.quantity = quantity
@@ -3793,9 +4244,12 @@ class CachedEventSummary(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         related_name="cached_events", verbose_name=_('agent'))
-    project = models.ForeignKey(Project,
+    #project = models.ForeignKey(Project,
+    #    blank=True, null=True,
+    #    verbose_name=_('project'), related_name='cached_events')
+    context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        verbose_name=_('project'), related_name='cached_events')
+        verbose_name=_('context agent'), related_name='context_cached_events')
     resource_type = models.ForeignKey(EconomicResourceType,
         blank=True, null=True,
         verbose_name=_('resource type'), related_name='cached_events')
@@ -3811,7 +4265,7 @@ class CachedEventSummary(models.Model):
         default=Decimal("0.0"))
 
     class Meta:
-        ordering = ('agent', 'project', 'resource_type')
+        ordering = ('agent', 'context_agent', 'resource_type')
 
     def __unicode__(self):
         agent_name = "Unknown"
@@ -3820,38 +4274,41 @@ class CachedEventSummary(models.Model):
         project_name = "Unknown"
         if self.project:
             project_name = self.project.name
+        context_agent_name = "Unknown"
+        if self.context_agent:
+            context_agent_name = self.context_agent.name
         resource_type_name = "Unknown"
         if self.resource_type:
             resource_type_name = self.resource_type.name
         return ' '.join([
             'Agent:',
             agent_name,
-            'Project:',
-            project_name,
+            'Context:',
+            context_agent_name,
             'Resource Type:',
             resource_type_name,
         ])
 
     @classmethod
-    def summarize_events(cls, project):
+    def summarize_events(cls, context_agent):
         #import pdb; pdb.set_trace()
         #todo: this code is obsolete, we don't want to roll up sub-projects anymore
-        all_subs = project.with_all_sub_projects()
-        event_list = EconomicEvent.objects.filter(project__in=all_subs)
+        all_subs = context_agent.with_all_sub_agents()
+        event_list = EconomicEvent.objects.filter(context_agent__in=all_subs)
         summaries = {}
         for event in event_list:
-            key = "-".join([str(event.from_agent.id), str(event.project.id), str(event.resource_type.id)])
+            key = "-".join([str(event.from_agent.id), str(event.context_agent.id), str(event.resource_type.id)])
             if not key in summaries:
-                summaries[key] = EventSummary(event.from_agent, event.project, event.resource_type, Decimal('0.0'))
+                summaries[key] = EventSummary(event.from_agent, event.context_agent, event.resource_type, Decimal('0.0'))
             summaries[key].quantity += event.quantity
         summaries = summaries.values()
         for summary in summaries:
             ces = cls(
                 agent=summary.agent,
-                project=summary.project,
+                context_agent=summary.context_agent,
                 resource_type=summary.resource_type,
                 resource_type_rate=summary.resource_type.rate,
-                importance=summary.project.importance,
+                #importance=summary.project.importance, >>>>>>>>>>>>>>>>>todo: need this in agent?
                 quantity=summary.quantity,
             )
             ces.save()
@@ -3865,13 +4322,16 @@ class CachedEventSummary(models.Model):
         event_list = EconomicEvent.objects.filter(is_contribution="true")
         summaries = {}
         #todo: very temporary hack
-        project = Project.objects.get(name="Not defined")
+        context_agent = EconomicAgent.objects.get(name="Not defined")
         for event in event_list:
             #todo: very temporary hack
-            if not event.project:
-                event.project=project
+            if not event.context_agent:
+                event.context_agent=context_agent
                 event.save()
             try:
+                key = "-".join([str(event.from_agent.id), str(event.context_agent.id), str(event.resource_type.id), str(event.event_type.id)])
+                if not key in summaries:
+                    summaries[key] = EventSummary(event.from_agent, event.context_agent, event.resource_type, event.event_type, Decimal('0.0'))
                 key = "-".join([
                     str(event.from_agent.id), 
                     str(event.project.id), 
@@ -3892,11 +4352,11 @@ class CachedEventSummary(models.Model):
         for summary in summaries:
             ces = cls(
                 agent=summary.agent,
-                project=summary.project,
+                context_agent=summary.context_agent,
                 resource_type=summary.resource_type,
                 event_type=summary.event_type,
                 resource_type_rate=summary.resource_type.rate,
-                importance=summary.project.importance,
+                #importance=summary.project.importance,
                 quantity=summary.quantity,
             )
             ces.save()

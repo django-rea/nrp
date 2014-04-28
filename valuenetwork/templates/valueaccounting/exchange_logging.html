@@ -502,7 +502,7 @@ li {
             <div class="modal-body">
                 <form class="validateMe" id="workForm" enctype="multipart/form-data" action="{% url add_work_for_exchange exchange_id=exchange.id %}" method="POST" >
                     {% csrf_token %}
-                    {{ add_work_form|as_bootstrap }}
+                    {{ add_work_form }}
                   <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                     <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />

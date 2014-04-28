@@ -4,19 +4,16 @@ import csv
 from operator import attrgetter
 
 from django.db.models import Q
-from django.http import Http404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseServerError, Http404, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseServerError
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.utils import simplejson
-from django.forms.models import formset_factory, modelformset_factory, BaseModelFormSet
+from django.forms.models import formset_factory, modelformset_factory, inlineformset_factory, BaseModelFormSet
 from django.forms import ValidationError
 from django.utils import simplejson
 from django.utils.datastructures import SortedDict
@@ -74,6 +71,20 @@ def home(request):
         "help": get_help("home"),
     }, context_instance=RequestContext(request))
 
+@login_required
+def create_agent(request):
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    if request.method == "POST":
+        form = AgentCreateForm(request.POST)
+        if form.is_valid():
+            agent = form.save(commit=False)
+            agent.created_by=request.user
+            agent.save()
+    return HttpResponseRedirect("/accounting/agents/")
+  
+                                                                                    
 @login_required
 def create_user_and_agent(request):
     if not request.user.is_superuser:
@@ -228,7 +239,24 @@ def create_user_and_agent_old(request):
     }, context_instance=RequestContext(request))
 
 def projects(request):
-    roots = Project.objects.filter(parent=None)
+    #import pdb; pdb.set_trace()
+    projects = EconomicAgent.objects.context_agents()  
+    roots = [p for p in projects if p.is_root()]
+    for root in roots:
+        root.nodes = root.child_tree()
+        annotate_tree_properties(root.nodes)
+        #import pdb; pdb.set_trace()
+        for node in root.nodes:
+            aats = []
+            for aat in node.agent_association_types():
+                aat.assoc_count = node.associate_count_of_type(aat.identifier)
+                assoc_list = node.all_has_associates_by_type(aat.identifier)
+                for assoc in assoc_list:
+                    association = AgentAssociation.objects.get(is_associate=assoc, has_associate=node, association_type=aat)
+                    assoc.state = association.state
+                aat.assoc_list = assoc_list
+                aats.append(aat)
+            node.aats = aats
     agent = get_agent(request)
     project_create_form = ProjectForm()
     
@@ -239,6 +267,7 @@ def projects(request):
         "project_create_form": project_create_form,
     }, context_instance=RequestContext(request))
 
+'''
 @login_required
 def create_project(request):
     agent = get_agent(request)
@@ -248,18 +277,32 @@ def create_project(request):
         form = ProjectForm(request.POST)
         if form.is_valid():
             project = form.save(commit=False)
+            project.nick = project.name
+            ats = AgentType.objects.filter(party_type="team")
+            if ats:
+                project.agent_type = ats[0]
+            else:
+                return HttpResponseNotFound('<h1>No project AgentTypes</h1>')
             project.created_by=request.user
             project.save()
     return HttpResponseRedirect("/accounting/projects/")
 
+'''    
+        
 def locations(request):
     agent = get_agent(request)
     locations = Location.objects.all()
     nolocs = Location.objects.filter(latitude=0.0)
+    latitude = settings.MAP_LATITUDE
+    longitude = settings.MAP_LONGITUDE
+    zoom = settings.MAP_ZOOM
     return render_to_response("valueaccounting/locations.html", {
         "agent": agent,
         "locations": locations,
         "nolocs": nolocs,
+        "latitude": latitude,
+        "longitude": longitude,
+        "zoom": zoom,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -268,6 +311,9 @@ def create_location(request):
     if not agent:
         return render_to_response('valueaccounting/no_permission.html')
     location_form = LocationForm(data=request.POST or None)
+    latitude = settings.MAP_LATITUDE
+    longitude = settings.MAP_LONGITUDE
+    zoom = settings.MAP_ZOOM
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if location_form.is_valid():
@@ -275,6 +321,9 @@ def create_location(request):
             return HttpResponseRedirect("/accounting/locations/")
     return render_to_response("valueaccounting/create_location.html", {
         "location_form": location_form,
+        "latitude": latitude,
+        "longitude": longitude,
+        "zoom": zoom,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -293,7 +342,82 @@ def change_location(request, location_id):
         "location_form": location_form,
     }, context_instance=RequestContext(request))
 
+@login_required
+#todo: not complete
+def change_agent(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+        change_form = LocationForm(instance=location, data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if change_form.is_valid():
+            agent = agent_form.save()
+            return HttpResponseRedirect("/accounting/agent.html")
+    return render_to_response("valueaccounting/change_agent.html", {
+        "change_form": location_form,
+        }, context_instance=RequestContext(request))
+                        
+def agents(request):
+    #import pdb; pdb.set_trace()
+    user_agent = get_agent(request)
+    agents = EconomicAgent.objects.all().order_by("agent_type__name", "name")
+    agent_form = AgentCreateForm()
 
+    return render_to_response("valueaccounting/agents.html", {
+        "agents": agents,
+        "agent_form": agent_form,
+        "user_agent": user_agent,
+    }, context_instance=RequestContext(request))
+    
+def radial_graph(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    agents = agent.with_all_associations()
+    #import pdb; pdb.set_trace()
+    connections = {}
+    for agnt in agents:
+        if agnt not in connections:
+            connections[agnt] = 0
+        cxs = [assn.is_associate for assn in agnt.all_has_associates()]
+        for cx in cxs:
+            if cx not in connections:
+                connections[cx] = 0
+            connections[cx] += 1
+        
+    return render_to_response("valueaccounting/radial_graph.html", {
+        "agents": agents,
+        "root": agent,
+    }, context_instance=RequestContext(request))
+                        
+def agent(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    change_form = None
+    has_associations = agent.all_has_associates()
+    is_associated_with = agent.all_is_associates()
+
+    return render_to_response("valueaccounting/agent.html", {
+        "agent": agent,
+        "photo_size": (128, 128),
+        "change_form": change_form,
+        "user_agent": user_agent,
+        "has_associations": has_associations,
+        "is_associated_with": is_associated_with,
+    }, context_instance=RequestContext(request))
+    
+def accounting(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    accounts = agent.events_by_event_type()
+
+
+    return render_to_response("valueaccounting/accounting.html", {
+        "agent": agent,
+        "accounts": accounts,
+    }, context_instance=RequestContext(request))
+        
 @login_required
 def test_patterns(request):
     pattern_form = PatternSelectionForm(data=request.POST or None)
@@ -685,7 +809,7 @@ def all_contributions(request):
 
 def contributions(request, project_id):
     #import pdb; pdb.set_trace()
-    project = get_object_or_404(Project, pk=project_id)
+    project = get_object_or_404(EconomicAgent, pk=project_id)
     event_list = project.contribution_events()
     paginator = Paginator(event_list, 25)
 
@@ -706,7 +830,7 @@ def contributions(request, project_id):
 
 def project_wip(request, project_id):
     #import pdb; pdb.set_trace()
-    project = get_object_or_404(Project, pk=project_id)
+    project = get_object_or_404(EconomicAgent, pk=project_id)
     process_list = project.wip()
     paginator = Paginator(process_list, 25)
 
@@ -729,8 +853,10 @@ def project_wip(request, project_id):
 def contribution_history(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, pk=agent_id)
-    if not agent:
-        return render_to_response('valueaccounting/no_permission.html')
+    user_agent = get_agent(request)
+    user_is_agent = False
+    if agent == user_agent:
+        user_is_agent = True
     event_list = agent.contributions()
     paginator = Paginator(event_list, 25)
 
@@ -746,6 +872,7 @@ def contribution_history(request, agent_id):
     
     return render_to_response("valueaccounting/agent_contributions.html", {
         "agent": agent,
+        "user_is_agent": user_is_agent,
         "events": events,
     }, context_instance=RequestContext(request))
 
@@ -784,6 +911,7 @@ def unscheduled_time_contributions(request):
                 for event in events:
                     if event.event_date and event.quantity:
                         event.from_agent=member
+                        event.to_agent = event.context_agent.default_agent()
                         event.is_contribution=True
                         rt = event.resource_type
                         event_type = pattern.event_type_for_resource_type("work", rt)
@@ -804,106 +932,64 @@ def unscheduled_time_contributions(request):
     }, context_instance=RequestContext(request))
 
 @login_required
-def log_simple(request):
-    member = get_agent(request)
-    if not member:
-        return HttpResponseRedirect('/%s/'
-            % ('accounting/start')) 
-    pattern = PatternUseCase.objects.get(use_case__identifier='design').pattern  #assumes only one pattern is assigned to design
-    output_form = SimpleOutputForm(data=request.POST or None)
-    resource_form = SimpleOutputResourceForm(data=request.POST or None, prefix='resource', pattern=pattern)
-    work_form = SimpleWorkForm(data=request.POST or None, prefix='work', pattern=pattern)
-    citations_select_form = SelectCitationResourceForm(data=request.POST or None, prefix='cite', pattern=pattern)
-    rt_create_form = EconomicResourceTypeAjaxForm()
-    rtf_create_formset = create_patterned_facet_formset(pattern=pattern, slot="out")
-    facets = pattern.output_facets()
-    names = EconomicResourceType.objects.values_list('name', flat=True)
-    resource_names = '~'.join(names)
-
+def agent_associations(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, pk=agent_id)
+    HasAssociatesFormSet = inlineformset_factory(
+        EconomicAgent,
+        AgentAssociation,
+        fk_name = "has_associate",
+        form=HasAssociateForm,
+        extra=3,
+        )
+    has_associates_formset = HasAssociatesFormSet(
+        instance=agent,
+        queryset=agent.all_has_associates(),
+        prefix = "has",
+        data=request.POST or None)
+    IsAssociatesFormSet = inlineformset_factory(
+        EconomicAgent,
+        AgentAssociation,
+        fk_name = "is_associate",
+        form=IsAssociateForm,
+        extra=3,
+        )
+    is_associates_formset = IsAssociatesFormSet(
+        instance=agent,
+        queryset=agent.all_is_associates(),
+        prefix = "is",
+        data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        if output_form.is_valid():
-            output_event = output_form.save(commit=False)
-            if work_form.is_valid():
-                work_event = work_form.save(commit=False)
-                if resource_form.is_valid():
-                    output_resource = resource_form.save(commit=False)
-                    
-                    process = Process()
-                    process.name = 'Create ' + output_resource.identifier
-                    process.project = output_event.project
-                    process.start_date = output_event.event_date
-                    process.end_date = output_event.event_date
-                    process.started = output_event.event_date
-                    process.finished = True
-                    process.created_by = request.user
-                    process.save()                    
-                    
-                    output_resource.quantity = 1
-                    output_resource.unit_of_quantity = output_resource.resource_type.directional_unit("out") 
-                    #output_resource.author = member
-                    output_resource.created_by = request.user
-                    output_resource.save()
-
-                    output_event.event_type = pattern.event_type_for_resource_type("out", output_resource.resource_type)
-                    output_event.process = process
-                    output_event.resource_type = output_resource.resource_type 
-                    output_event.quantity = output_resource.quantity 
-                    output_event.unit_of_quantity = output_resource.unit_of_quantity 
-                    output_event.resource = output_resource
-                    output_event.from_agent = member
-                    output_event.created_by = request.user
-                    output_event.save()
-
-                    work_event.event_type = pattern.event_type_for_resource_type("work", work_event.resource_type)
-                    work_event.event_date = output_event.event_date
-                    work_event.process = process
-                    work_event.project = output_event.project
-                    work_event.is_contribution = True
-                    work_event.unit_of_quantity = work_event.resource_type.directional_unit("use")  
-                    work_event.from_agent = member
-                    work_event.created_by = request.user
-                    work_event.save()
-
-                    #import pdb; pdb.set_trace()
-                    citation_resources = request.POST.getlist("citation")
-                    if citation_resources:
-                        for cr_id in citation_resources:
-                            cr = EconomicResource.objects.get(id=int(cr_id))
-                            citation_event = EconomicEvent()
-                            citation_event.event_type = pattern.event_type_for_resource_type("cite", cr.resource_type)
-                            citation_event.event_date = output_event.event_date
-                            citation_event.process = process
-                            citation_event.project = output_event.project
-                            citation_event.resource = cr
-                            citation_event.resource_type = cr.resource_type
-                            citation_event.quantity = 1
-                            citation_event.unit_of_quantity = citation_event.resource_type.directional_unit("cite")  
-                            citation_event.from_agent = member
-                            citation_event.created_by = request.user
-                            citation_event.save()
-
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/resource', output_resource.id ))
-
+        keep_going = request.POST.get("keep-going")
+        just_save = request.POST.get("save")
+        for form in has_associates_formset:
+            if form.is_valid():
+                deleteme = form.cleaned_data['DELETE']
+                if deleteme:
+                    association = form.save(commit=False)
+                    if association.id:
+                        association.delete()
                 else:
-                    raise ValidationError(resource_form.errors)
-            else:
-                raise ValidationError(work_form.errors)
-        else:
-            raise ValidationError(output_form.errors)
-
-    return render_to_response("valueaccounting/log_simple.html", {
-        "member": member,
-        "output_form": output_form,
-        "work_form": work_form,
-        "resource_form":resource_form,
-        "citations_select_form": citations_select_form,
-        "rt_create_form": rt_create_form,
-        "rtf_create_formset": rtf_create_formset,
-        "facets": facets,
-        "pattern": pattern,
-        "resource_names": resource_names,
+                    form.save()
+        for form in is_associates_formset:
+            if form.is_valid():
+                deleteme = form.cleaned_data['DELETE']
+                if deleteme:
+                    association = form.save(commit=False)
+                    if association.id:
+                        association.delete()
+                else:
+                    form.save()
+        if just_save:
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/agent', agent.id))
+        elif keep_going:
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/agent-associations', agent.id))
+    return render_to_response("valueaccounting/agent_associations.html", {
+        "agent": agent,
+        "has_associates_formset": has_associates_formset,
+        "is_associates_formset": is_associates_formset,
     }, context_instance=RequestContext(request))
 
 def json_resource_type_resources(request, resource_type_id):
@@ -940,11 +1026,12 @@ class AgentSummary(object):
 
 
 def value_equation(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)    
-    all_subs = project.with_all_sub_projects()
+    #import pdb; pdb.set_trace()
+    project = get_object_or_404(EconomicAgent, pk=project_id)    
+    all_subs = project.with_all_sub_agents()
     summaries = CachedEventSummary.objects.select_related(
-        'agent', 'project', 'resource_type').filter(project__in=all_subs).order_by(
-        'agent__name', 'project__name', 'resource_type__name')
+        'agent', 'context_agent', 'resource_type').filter(context_agent__in=all_subs).order_by(
+        'agent__name', 'context_agent__name', 'resource_type__name')
     total = 0
     agent_totals = []
     init = {"equation": "( hours * ( rate + importance + reputation ) ) + seniority"}
@@ -1804,24 +1891,27 @@ def json_processes(request, order_id=None):
 
 def json_project_processes(request, object_type=None, object_id=None):
     #import pdb; pdb.set_trace()
+    #todo: needs to change
+    # project and agent are now both agents
+    # active_processes has been fixed, though...
     if object_type:
         if object_type == "P":
-            project = get_object_or_404(Project, pk=object_id)
+            project = get_object_or_404(EconomicAgent, pk=object_id)
             processes = project.active_processes()
             projects = [project,]
         elif object_type == "O":
             order = get_object_or_404(Order, pk=object_id)
             processes = order.all_processes()
-            projects = [p.project for p in processes if p.project]
+            projects = [p.context_agent for p in processes if p.context_agent]
             projects = list(set(projects))
         elif object_type == "A":
             agent = get_object_or_404(EconomicAgent, pk=object_id)
             processes = agent.active_processes()
-            projects = [p.project for p in processes if p.project]
+            projects = [p.context_agent for p in processes if p.context_agent]
             projects = list(set(projects))
     else:
         processes = Process.objects.unfinished()
-        projects = [p.project for p in processes if p.project]
+        projects = [p.context_agent for p in processes if p.context_agent]
         projects = list(set(projects))
     #import pdb; pdb.set_trace()
     graph = project_process_resource_agent_graph(projects, processes)
@@ -1864,6 +1954,12 @@ def json_resource_type_defaults(request, resource_type_id):
     #import pdb; pdb.set_trace()
     data = simplejson.dumps(defaults, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
+    
+def json_context_agent_suppliers(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = EconomicAgent.objects.get(id=agent_id)
+    json = serializers.serialize("json", agent.all_suppliers(), fields=('pk', 'nick'))
+    return HttpResponse(json, mimetype='application/json')
 
 def explore(request):
     return render_to_response("valueaccounting/explore.html", {
@@ -1953,7 +2049,7 @@ def create_order(request):
                                 from_agent=order.provider,
                                 to_agent=order.receiver,
                                 resource_type=rt,
-                                project=pt.project,
+                                context_agent=pt.context_agent,
                                 description=data["description"],
                                 quantity=qty,
                                 unit_of_quantity=rt.unit,
@@ -1996,7 +2092,7 @@ def create_order(request):
                                     from_agent=order.provider,
                                     to_agent=order.provider,
                                     resource_type=component,
-                                    project=pt.project,
+                                    context_agent=pt.context_agent,
                                     quantity=qty * feature.quantity,
                                     unit_of_quantity=component.unit,
                                     created_by=request.user,
@@ -2165,26 +2261,26 @@ def create_supplier(request):
         % ('accounting/supply'))
 
 
-def assemble_schedule(start, end, project=None):
+def assemble_schedule(start, end, context_agent=None):
     processes = Process.objects.unfinished()
     #import pdb; pdb.set_trace()
     if start:
         processes = processes.filter(
             Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)) |
             Q(start_date__lt=start, end_date__gt=end))       
-    processes = processes.order_by("project__name", "end_date", "start_date")
-    projects = SortedDict()
+    processes = processes.order_by("context_agent__name", "end_date", "start_date")
+    context_agents = SortedDict()
     for proc in processes:
-        if project == None:
-            if proc.project not in projects:
-                projects[proc.project] = []
-            projects[proc.project].append(proc)
+        if context_agent == None:
+            if proc.context_agent not in context_agents:
+                context_agents[proc.context_agent] = []
+            context_agents[proc.context_agent].append(proc)
         else:
-            if proc.project == project:
-                if proc.project not in projects:
-                    projects[proc.project] = []
-                projects[proc.project].append(proc)
-    return processes, projects
+            if proc.context_agent == context_agent:
+                if proc.context_agent not in context_agents:
+                    context_agents[proc.context_agent] = []
+                context_agents[proc.context_agent].append(proc)
+    return processes, context_agents
 
 @login_required
 def change_process_sked_ajax(request):
@@ -2209,8 +2305,8 @@ def work(request):
     end = start + datetime.timedelta(days=7)
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
-    project_form = ProjectSelectionFormOptional(data=request.POST or None)
-    chosen_project = None
+    ca_form = ProjectSelectionFormOptional(data=request.POST or None)
+    chosen_context_agent = None
     try:
         pattern = PatternUseCase.objects.get(use_case__identifier='todo').pattern
         todo_form = TodoForm(pattern=pattern)
@@ -2222,37 +2318,37 @@ def work(request):
             dates = date_form.cleaned_data
             start = dates["start_date"]
             end = dates["end_date"]
-            if project_form.is_valid():
-                proj_data = project_form.cleaned_data
-                proj_id = proj_data["project"]
+            if ca_form.is_valid():
+                proj_data = ca_form.cleaned_data
+                proj_id = proj_data["context_agent"]
                 if proj_id.isdigit:
-                    chosen_project = Project.objects.get(id=proj_id)
+                    chosen_context_agent = EconomicAgent.objects.get(id=proj_id)
 
-    processes, projects = assemble_schedule(start, end, chosen_project)
+    processes, context_agents = assemble_schedule(start, end, chosen_context_agent)
     todos = Commitment.objects.todos().filter(due_date__range=(start, end))
     work_now = settings.USE_WORK_NOW
     return render_to_response("valueaccounting/work.html", {
         "agent": agent,
-        "projects": projects,
+        "context_agents": context_agents,
         "all_processes": processes,
         "date_form": date_form,
         "todo_form": todo_form,
-        "project_form": project_form,
+        "ca_form": ca_form,
         "todos": todos,
         "work_now": work_now,
         "help": get_help("all_work"),
     }, context_instance=RequestContext(request))
 
-def schedule(request, project_slug=None): 
-    project = None
-    if project_slug:
-        project = get_object_or_404(Project, slug=project_slug)
+def schedule(request, context_agent_slug=None): 
+    context_agent = None
+    if context_agent_slug:
+        context_agent = get_object_or_404(EconomicAgent, slug=context_agent_slug)
     start = None
     end = None
     #import pdb; pdb.set_trace()
-    processes, projects = assemble_schedule(start, end, project)
+    processes, context_agents = assemble_schedule(start, end, context_agent)
     return render_to_response("valueaccounting/schedule.html", {
-        "projects": projects,
+        "context_agents": context_agents,
     }, context_instance=RequestContext(request))
 
 def today(request):
@@ -2261,11 +2357,11 @@ def today(request):
     end = start
     #import pdb; pdb.set_trace()
     todos = Commitment.objects.todos().filter(due_date=start)
-    processes, projects = assemble_schedule(start, end)
+    processes, context_agents = assemble_schedule(start, end)
     events = EconomicEvent.objects.filter(event_date=start)
     return render_to_response("valueaccounting/today.html", {
         "agent": agent,
-        "projects": projects,
+        "context_agents": context_agents,
         "todos": todos,
         "events": events,
     }, context_instance=RequestContext(request))
@@ -2317,9 +2413,9 @@ def create_event_from_todo(todo):
         event_type=todo.event_type,
         event_date=datetime.date.today(),
         from_agent=todo.from_agent,
-        to_agent=todo.to_agent,
+        to_agent=todo.context_agent.default_agent(),
         resource_type=todo.resource_type,
-        project=todo.project,
+        context_agent=todo.context_agent,
         url=todo.url,
         quantity=Decimal("1"),
         unit_of_quantity=todo.resource_type.unit,
@@ -2522,6 +2618,7 @@ def agent_stats(request, agent_id):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
+#todo: the next 2 methods will need to be changed from project to context_agent
 def project_stats(request, project_slug):
     project = None
     member_hours = []
@@ -2619,7 +2716,7 @@ def commit_to_task(request, commitment_id):
             ct.unit_of_quantity=unit_of_quantity
             ct.description=description
             ct.from_agent = agent
-            ct.created_by=request.user
+            ct.changed_by=request.user
             ct.save()
             #todo: commented out for now
             #might need more logic so it doesn't needlessly 
@@ -2834,7 +2931,7 @@ def new_process_output(request, commitment_id):
                 event_type = pattern.event_type_for_resource_type("out", rt)
                 ct.event_type = event_type
                 ct.process = process
-                ct.project = process.project
+                ct.context_agent = process.context_agent
                 ct.independent_demand = commitment.independent_demand
                 ct.due_date = process.end_date
                 ct.created_by = request.user
@@ -2894,7 +2991,7 @@ def new_process_input(request, commitment_id, slot):
                 ct.created_by = request.user
                 ptrt = ct.resource_type.main_producing_process_type_relationship()
                 if ptrt:
-                    ct.project = ptrt.process_type.project
+                    ct.context_agent = ptrt.process_type.context_agent
                 ct.save()
                 #todo: this is used in labnotes; shd it explode?
                 #explode_dependent_demands(ct, request.user)                
@@ -2942,7 +3039,7 @@ def new_process_citation(request, commitment_id):
                 event_type=event_type,
                 due_date=process.start_date,
                 resource_type=rt,
-                project=process.project,
+                context_agent=process.context_agent,
                 quantity=quantity,
                 unit_of_quantity=rt.directional_unit("cite"),
                 created_by=request.user,
@@ -2989,7 +3086,7 @@ def new_process_worker(request, commitment_id):
             ct.event_type=event_type
             ct.due_date=process.end_date
             ct.resource_type=rt
-            ct.project=process.project
+            ct.context_agent=process.context_agent
             ct.unit_of_quantity=rt.directional_unit("use")
             ct.created_by=request.user
             ct.save()
@@ -3032,7 +3129,8 @@ def add_process_output(request, process_id):
                 event_type = pattern.event_type_for_resource_type("out", rt)
                 ct.event_type = event_type
                 ct.process = process
-                ct.project = process.project
+                #ct.project = process.project
+                ct.context_agent = process.context_agent
                 ct.independent_demand = process.independent_demand()
                 ct.due_date = process.end_date
                 ct.created_by = request.user
@@ -3092,7 +3190,11 @@ def add_unplanned_output(request, process_id):
                 event_type = pattern.event_type_for_resource_type("out", rt)
                 event.event_type = event_type
                 event.process = process
-                event.project = process.project
+                #event.project = process.project
+                event.context_agent = process.context_agent
+                default_agent = process.default_agent()
+                event.from_agent = default_agent
+                event.to_agent = default_agent
                 event.event_date = datetime.date.today()
                 event.created_by = request.user
                 event.save()
@@ -3106,7 +3208,9 @@ def add_unordered_receipt(request, exchange_id):
     exchange = get_object_or_404(Exchange, pk=exchange_id)   
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        form = UnorderedReceiptForm(data=request.POST, prefix='unorderedreceipt')
+        pattern=exchange.process_pattern
+        context_agent=exchange.context_agent
+        form = UnorderedReceiptForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='unorderedreceipt')
         if form.is_valid():
             output_data = form.cleaned_data
             value = output_data["value"] 
@@ -3151,11 +3255,11 @@ def add_unordered_receipt(request, exchange_id):
                                     rra.resource = resource
                                     rra.is_contact = data_rra["is_contact"]
                                     rra.save()
-                pattern = exchange.process_pattern
                 event_type = pattern.event_type_for_resource_type("receive", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
+                event.context_agent = context_agent
+                event.to_agent = event.default_agent()
                 event.created_by = request.user
                 event.save()
                 
@@ -3169,7 +3273,8 @@ def add_unplanned_payment(request, exchange_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
-        form = PaymentEventForm(data=request.POST, pattern=pattern, prefix='pay')
+        context_agent = exchange.context_agent
+        form = PaymentEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='pay')
         if form.is_valid():
             payment_data = form.cleaned_data
             qty = payment_data["quantity"] 
@@ -3179,7 +3284,7 @@ def add_unplanned_payment(request, exchange_id):
                 event_type = pattern.event_type_for_resource_type("pay", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
+                event.context_agent = exchange.context_agent
                 event.unit_of_quantity = rt.unit
                 event.is_contribution = True
                 event.created_by = request.user
@@ -3194,7 +3299,8 @@ def add_expense(request, exchange_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
-        form = ExpenseEventForm(data=request.POST, pattern=pattern, prefix='expense')
+        context_agent = exchange.context_agent
+        form = ExpenseEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='expense')
         if form.is_valid():
             expense_data = form.cleaned_data
             value = expense_data["value"] 
@@ -3204,7 +3310,8 @@ def add_expense(request, exchange_id):
                 event_type = pattern.event_type_for_resource_type("expense", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
+                event.context_agent = exchange.context_agent
+                event.to_agent = event.default_agent()
                 event.quantity = 1
                 event.unit_of_quantity = rt.unit
                 event.created_by = request.user
@@ -3219,7 +3326,8 @@ def add_material_contribution(request, exchange_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
-        form = MaterialContributionEventForm(data=request.POST, pattern=pattern, prefix='material')
+        context_agent = exchange.context_agent
+        form = MaterialContributionEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='material')
         if form.is_valid():
             material_data = form.cleaned_data
             qty = material_data["quantity"] 
@@ -3263,11 +3371,11 @@ def add_material_contribution(request, exchange_id):
                                     rra.resource = resource
                                     rra.is_contact = data_rra["is_contact"]
                                     rra.save()
-                pattern = exchange.process_pattern
                 event_type = pattern.event_type_for_resource_type("resource", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
+                event.context_agent = context_agent
+                event.to_agent = event.default_agent()
                 event.is_contribution = True
                 event.created_by = request.user
                 event.save()
@@ -3282,7 +3390,8 @@ def add_cash_contribution(request, exchange_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
-        form = CashContributionEventForm(data=request.POST, pattern=pattern, prefix='cash')
+        context_agent = exchange.context_agent
+        form = CashContributionEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='cash')
         if form.is_valid():
             cash_data = form.cleaned_data
             value = cash_data["value"] 
@@ -3292,7 +3401,8 @@ def add_cash_contribution(request, exchange_id):
                 event_type = pattern.event_type_for_resource_type("cash", rt)
                 event.event_type = event_type
                 event.exchange = exchange
-                event.project = exchange.project
+                event.context_agent = context_agent
+                event.to_agent = event.default_agent()
                 event.quantity = 1
                 event.unit_of_value = rt.unit
                 event.created_by = request.user
@@ -3325,14 +3435,16 @@ def add_process_input(request, process_id, slot):
                 event_type = pattern.event_type_for_resource_type(rel, rt)
                 ct.event_type = event_type
                 ct.process = process
+                #ct.project = process.project
+                ct.context_agent=process.context_agent
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
                 ptrt = ct.resource_type.main_producing_process_type_relationship()
                 if ptrt:
-                    ct.project = ptrt.process_type.project
+                    ct.context_agent = ptrt.process_type.context_agent
                 ct.save()
-                #todo: this is used in labnotes; shd it explode?
+                #todo: this is used in process logging; shd it explode?
                 #explode_dependent_demands(ct, request.user)                
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -3360,7 +3472,8 @@ def add_process_citation(request, process_id):
                 event_type=event_type,
                 due_date=process.start_date,
                 resource_type=rt,
-                project=process.project,
+                #project=process.project,
+                context_agent=process.context_agent,
                 quantity=quantity,
                 description=descrip,
                 unit_of_quantity=rt.directional_unit("cite"),
@@ -3389,7 +3502,7 @@ def add_process_worker(request, process_id):
             ct.event_type=event_type
             ct.due_date=process.end_date
             ct.resource_type=rt
-            ct.project=process.project
+            ct.context_agent=process.context_agent
             ct.unit_of_quantity=rt.directional_unit("use")
             ct.created_by=request.user
             ct.save()
@@ -3485,7 +3598,8 @@ def change_event_qty(request):
 def change_event(request, event_id):
     event = get_object_or_404(EconomicEvent, pk=event_id)
     page = request.GET.get("page")
-    event_form = WorkContributionChangeForm(instance=event, data=request.POST or None)
+    #import pdb; pdb.set_trace()
+    event_form = event.change_form(data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         page = request.POST.get("page")
@@ -3715,7 +3829,7 @@ def work_commitment(
                 event.from_agent = ct.from_agent
                 event.resource_type = ct.resource_type
                 event.process = process
-                event.project = ct.project
+                event.context_agent = ct.context_agent
                 event.unit_of_quantity = ct.unit_of_quantity
                 event.created_by = request.user
                 event.changed_by = request.user
@@ -3742,8 +3856,10 @@ def create_worknow_context(
     event = EconomicEvent(
         event_date=today,
         from_agent=agent,
+        to_agent=process.default_agent(),
         process=process,
-        project=process.project,
+        #project=process.project,
+        context_agent=process.context_agent,
         quantity=Decimal("0"),
         is_contribution=True,
         created_by = request.user,
@@ -4013,7 +4129,7 @@ def save_labnotes(request, commitment_id):
                 event.commitment = ct
                 event.is_contribution = True
                 event.process = ct.process
-                event.project = ct.project
+                event.context_agent = ct.context_agent
                 event.event_type = ct.event_type
                 event.resource_type = ct.resource_type
                 event.from_agent = ct.from_agent
@@ -4066,7 +4182,7 @@ def save_past_work(request, commitment_id):
                 event.commitment = ct
                 event.is_contribution = True
                 event.process = ct.process
-                event.project = ct.project
+                event.context_agent = ct.context_agent
                 event.event_type = ct.event_type
                 event.resource_type = ct.resource_type
                 event.from_agent = ct.from_agent
@@ -4109,6 +4225,7 @@ def process_details(request, process_id):
 def process_oriented_logging(request, process_id):   
     process = get_object_or_404(Process, id=process_id)
     pattern = process.process_pattern
+    context_agent = process.context_agent
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
     user = request.user
@@ -4151,6 +4268,7 @@ def process_oriented_logging(request, process_id):
         for event in unplanned_work:
             event.changeform = UnplannedWorkEventForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         output_resource_types = pattern.output_resource_types()        
@@ -4167,7 +4285,7 @@ def process_oriented_logging(request, process_id):
             work_init = {
                 "from_agent": agent,
             }             
-            unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", initial=work_init)
+            unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
             unplanned_work_form.fields["resource_type"].queryset = work_resource_types 
         if "cite" in slots:
             unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)
@@ -4234,14 +4352,19 @@ def add_unplanned_cite_event(request, process_id):
             rt = data["resource_type"]
             r_id = data["resource"]
             resource = EconomicResource.objects.get(id=r_id)
+            #todo: rethink for citations
+            default_agent = process.default_agent()
+            from_agent = resource.owner() or default_agent
             event_type = pattern.event_type_for_resource_type("cite", rt)
             event = EconomicEvent(
                 event_type=event_type,
                 resource_type = rt,
                 resource = resource,
-                from_agent = agent,
+                from_agent = from_agent,
+                to_agent = default_agent,
                 process = process,
-                project = process.project,
+                #project = process.project,
+                context_agent = process.context_agent,
                 event_date = datetime.date.today(),
                 quantity=Decimal("1"),
                 unit_of_quantity = rt.unit,
@@ -4281,14 +4404,18 @@ def add_unplanned_input_event(request, process_id, slot):
             if et == "use":
                 unit = rt.unit_of_use
             resource = EconomicResource.objects.get(id=r_id)
+            default_agent = process.default_agent()
+            from_agent = resource.owner() or default_agent
             event_type = pattern.event_type_for_resource_type(et, rt)
             event = EconomicEvent(
                 event_type=event_type,
                 resource_type = rt,
                 resource = resource,
-                from_agent = agent,
+                from_agent = from_agent,
+                to_agent = default_agent,
                 process = process,
-                project = process.project,
+                #project = process.project,
+                context_agent = process.context_agent,
                 event_date = event_date,
                 quantity=qty,
                 unit_of_quantity = unit,
@@ -4311,15 +4438,18 @@ def log_resource_for_commitment(request, commitment_id):
         resource.resource_type = ct.resource_type
         resource.created_by=request.user
         resource.save()
+        default_agent = ct.process.default_agent()
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
             event_date = resource.created_date,
             event_type = ct.event_type,
-            from_agent = agent,
+            from_agent = default_agent,
+            to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,
-            project = ct.project,
+            #project = ct.project,
+            context_agent = ct.context_agent,
             quantity = resource.quantity,
             unit_of_quantity = ct.unit_of_quantity,
             #quality = resource.quality,
@@ -4373,9 +4503,11 @@ def add_work_event(request, commitment_id):
         event.commitment = ct
         event.event_type = ct.event_type
         event.from_agent = ct.from_agent
+        event.to_agent = ct.process.default_agent()
         event.resource_type = ct.resource_type
         event.process = ct.process
-        event.project = ct.project
+        #event.project = ct.project
+        event.context_agent = ct.context_agent
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
@@ -4395,7 +4527,10 @@ def add_unplanned_work_event(request, process_id):
             rt = event.resource_type
             event.event_type = pattern.event_type_for_resource_type("work", rt)
             event.process = process
-            event.project = process.project
+            #event.project = process.project
+            event.context_agent = process.context_agent
+            default_agent = process.default_agent()
+            event.to_agent = default_agent
             event.unit_of_quantity = rt.unit
             event.created_by = request.user
             event.changed_by = request.user
@@ -4409,6 +4544,7 @@ def add_work_for_exchange(request, exchange_id):
     #import pdb; pdb.set_trace()
     exchange = get_object_or_404(Exchange, pk=exchange_id)
     pattern = exchange.process_pattern
+    context_agent = exchange.context_agent
     if pattern:
         form = WorkEventAgentForm(prefix="work", data=request.POST, pattern=pattern)
         if form.is_valid():
@@ -4416,7 +4552,7 @@ def add_work_for_exchange(request, exchange_id):
             rt = event.resource_type
             event.event_type = pattern.event_type_for_resource_type("work", rt)
             event.exchange = exchange
-            event.project = exchange.project
+            event.context_agent = context_agent
             event.unit_of_quantity = rt.unit
             event.created_by = request.user
             event.changed_by = request.user
@@ -4446,7 +4582,11 @@ def add_use_event(request, commitment_id, resource_id):
         event.resource_type = ct.resource_type
         event.resource = resource
         event.process = ct.process
-        event.project = ct.project
+        #event.project = ct.project
+        default_agent = ct.process.default_agent()
+        event.from_agent = default_agent
+        event.to_agent = default_agent
+        event.context_agent = ct.context_agent
         event.unit_of_quantity = unit
         event.created_by = request.user
         event.changed_by = request.user
@@ -4469,7 +4609,11 @@ def add_consumption_event(request, commitment_id, resource_id):
         event.resource_type = ct.resource_type
         event.resource = resource
         event.process = ct.process
-        event.project = ct.project
+        #event.project = ct.project
+        event.context_agent = ct.context_agent
+        default_agent = ct.process.default_agent()
+        event.from_agent = default_agent
+        event.to_agent = default_agent
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
@@ -4487,15 +4631,20 @@ def log_citation(request, commitment_id, resource_id):
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     if request.method == "POST":
         agent = get_agent(request)
+        #todo: rethink for citations
+        default_agent = ct.process.default_agent()
+        from_agent = resource.owner() or default_agent
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
             event_date = datetime.date.today(),
             event_type = ct.event_type,
-            from_agent = agent,
+            from_agent = from_agent,
+            to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,
-            project = ct.project,
+            #project = ct.project,
+            context_agent = ct.context_agent,
             quantity = Decimal("1"),
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,
@@ -4613,7 +4762,8 @@ def resource(request, resource_id):
                 process.created_by = request.user
                 process.save() 
                 event = EconomicEvent()
-                event.project = process.project
+                #event.project = process.project
+                event.context_agent = process.context_agent
                 event.event_date = process.end_date
                 event.event_type = process.process_pattern.event_type_for_resource_type("out", resource.resource_type)
                 event.process = process
@@ -4798,7 +4948,8 @@ def production_event_for_commitment(request):
             from_agent = agent,
             resource_type = ct.resource_type,
             process = ct.process,
-            project = ct.project,
+            #project = ct.project,
+            context_agent = context_agent,
             quantity = quantity,
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,
@@ -4860,7 +5011,8 @@ def resource_event_for_commitment(request, commitment_id):
                 from_agent = agent,
                 resource_type = ct.resource_type,
                 process = ct.process,
-                project = ct.project,
+                #project = ct.project,
+                context_agent = ct.context_agent,
                 quantity = resource.quantity,
                 unit_of_quantity = ct.unit_of_quantity,
                 #quality = resource.quality,
@@ -4918,7 +5070,8 @@ def consumption_event_for_commitment(request):
                 to_agent = agent,
                 resource_type = ct.resource_type,
                 process = ct.process,
-                project = ct.project,
+                #project = ct.project,
+                context_agent = ct.context_agent,
                 quantity = quantity,
                 unit_of_quantity = ct.unit_of_quantity,
                 created_by = request.user,
@@ -4961,7 +5114,8 @@ def citation_event_for_commitment(request):
             from_agent = agent,
             resource_type = ct.resource_type,
             process = ct.process,
-            project = ct.project,
+            #project = ct.project,
+            context_agent = ct.context_agent,
             quantity = quantity,
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,
@@ -4990,6 +5144,7 @@ def time_use_event_for_commitment(request):
     events = ct.fulfillment_events.filter(resource=resource)
     if not event_date:
         event_date = datetime.date.today()
+    #todo: is this correct?
     if events:
         event = events[events.count() - 1]
     if event:
@@ -5014,10 +5169,12 @@ def time_use_event_for_commitment(request):
             commitment = ct,
             event_date = event_date,
             event_type = ct.event_type,
-            to_agent = agent,
+            from_agent = agent,
+            to_agent = ct.process.default_agent(),
             resource_type = ct.resource_type,
             process = ct.process,
-            project = ct.project,
+            #project = ct.project,
+            context_agent = ct.context_agent,
             quantity = quantity,
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,
@@ -5077,7 +5234,8 @@ def failed_outputs(request, commitment_id):
             event.from_agent = agent
             event.resource_type = ct.resource_type
             event.process = process
-            event.project = ct.project
+            #event.project = ct.project
+            event.context_agent = ct.context_agent
             event.unit_of_quantity = ct.unit_of_quantity
             event.quality = Decimal("-1")
             event.created_by = request.user
@@ -5135,7 +5293,7 @@ def create_process(request):
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
-                        ct.project = process.project
+                        ct.context_agent = process.context_agent
                         ct.independent_demand = demand
                         ct.due_date = process.end_date
                         ct.created_by = request.user
@@ -5180,7 +5338,7 @@ def copy_process(request, process_id):
     demand = process.independent_demand()
     demand_form = DemandSelectionForm(data=request.POST or None)
     process_init = {
-        "project": process.project,
+        "project": process.context_agent,
         "url": process.url,
         "notes": process.notes,
     }      
@@ -5245,7 +5403,7 @@ def copy_process(request, process_id):
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
-                        ct.project = process.project
+                        ct.context_agent = process.context_agent
                         ct.independent_demand = demand
                         ct.due_date = process.end_date
                         ct.created_by = request.user
@@ -5325,11 +5483,13 @@ def change_exchange_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     exchange = event.exchange
     pattern = exchange.process_pattern
+    context_agent=exchange.context_agent
     if pattern:
         #import pdb; pdb.set_trace()
         if request.method == "POST":
             form = WorkEventAgentForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id), 
                 data=request.POST)
@@ -5593,7 +5753,7 @@ def change_process(request, process_id):
                         #this was wrong. Would it ever be correct?
                         #ct.order = demand
                         ct.independent_demand = demand
-                        ct.project = process.project
+                        ct.context_agent = process.context_agent
                         ct.due_date = process.end_date
                         if ct_from_id:
                             ct.changed_by = request.user
@@ -5624,7 +5784,7 @@ def change_process(request, process_id):
                             if rt:
                                 ct = form.save(commit=False)
                                 ct.independent_demand = demand
-                                ct.project = process.project
+                                ct.context_agent = process.context_agent
                                 ct.due_date = process.end_date
                                 ct.quantity = Decimal("1")
                                 if ct_from_id:
@@ -5660,7 +5820,7 @@ def change_process(request, process_id):
                             if rt:
                                 ct = form.save(commit=False)
                                 ct.independent_demand = demand
-                                ct.project = process.project
+                                ct.context_agent = process.context_agent
                                 ct.due_date = process.end_date
                                 if ct_from_id:
                                     old_ct = Commitment.objects.get(id=ct_from_id.id)
@@ -5782,7 +5942,7 @@ def change_process(request, process_id):
                             ct.created_by = request.user
                             ptrt = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
-                                ct.project = ptrt.process_type.project
+                                ct.context_agent = ptrt.process_type.context_agent
                         ct.save()
                         if explode:
                             #todo: use new commitment.generate_producing_process(request.user, explode=True)
@@ -5877,7 +6037,7 @@ def change_process(request, process_id):
                             ct.created_by = request.user
                             ptrt = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
-                                ct.project = ptrt.process_type.project
+                                ct.context_agent = ptrt.process_type.context_agent
                         ct.save()
                         #probly not needed for usables
                         #if explode:
@@ -5919,7 +6079,7 @@ def explode_dependent_demands(commitment, user):
                 name=pt.name,
                 process_type=pt,
                 process_pattern=pt.process_pattern,
-                project=pt.project,
+                context_agent=pt.context_agent,
                 url=pt.url,
                 end_date=commitment.due_date,
                 start_date=start_date,
@@ -5933,7 +6093,7 @@ def explode_dependent_demands(commitment, user):
                 due_date=commitment.due_date,
                 resource_type=rt,
                 process=feeder_process,
-                project=pt.project,
+                context_agent=pt.context_agent,
                 quantity=qty_to_explode,
                 unit_of_quantity=rt.unit,
                 description=ptrt.description,
@@ -6038,7 +6198,7 @@ def create_rand(request):
                             ct.order = rand
                             ct.independent_demand = rand
                             ct.process = process
-                            ct.project = process.project
+                            ct.context_agent = process.context_agent
                             ct.from_agent_type=agent_type
                             ct.from_agent=rand.provider
                             ct.to_agent=rand.receiver
@@ -6061,7 +6221,7 @@ def create_rand(request):
                             rt = ct.resource_type
                             ptrt = rt.main_producing_process_type_relationship()
                             if ptrt:
-                                ct.project = ptrt.process_type.project
+                                ct.context_agent = ptrt.process_type.context_agent
                             ct.save()
                             explode_dependent_demands(ct, request.user)
                 if just_save:
@@ -6097,7 +6257,7 @@ def copy_rand(request, rand_id):
     input_init = []
     if process:
         process_init = {
-            "project": process.project,
+            "project": process.context_agent,
             "url": process.url,
             "notes": process.notes,
         }      
@@ -6170,7 +6330,7 @@ def copy_rand(request, rand_id):
                             ct.order = rand
                             ct.independent_demand = rand
                             ct.process = process
-                            ct.project = process.project
+                            ct.context_agent = process.context_agent
                             ct.from_agent_type=agent_type
                             ct.from_agent=rand.provider
                             ct.to_agent=rand.receiver
@@ -6194,7 +6354,7 @@ def copy_rand(request, rand_id):
                             rt = ct.resource_type
                             ptrt = rt.main_producing_process_type_relationship()
                             if ptrt:
-                                ct.project = ptrt.process_type.project
+                                ct.context_agent = ptrt.process_type.context_agent
                             ct.save()
                             explode_dependent_demands(ct, request.user)
                 if just_save:
@@ -6287,7 +6447,7 @@ def change_rand(request, rand_id):
                             ct = form.save(commit=False)
                             if ct_from_id:
                                 ct.changed_by = request.user
-                                ct.project = process.project
+                                ct.context_agent = process.context_agent
                             else:
                                 ct.process = process
                                 ct.due_date = process.end_date
@@ -6297,7 +6457,7 @@ def change_rand(request, rand_id):
                                 ct.event_type = event_type
                                 ct.order = rand
                                 ct.independent_demand = rand
-                                ct.project = process.project
+                                ct.context_agent = process.context_agent
                                 ct.from_agent_type=agent_type
                                 ct.from_agent=rand.provider
                                 ct.to_agent=rand.receiver
@@ -6345,7 +6505,7 @@ def change_rand(request, rand_id):
                                                     proc.delete()
                                     ptrt = ct.resource_type.main_producing_process_type_relationship()
                                     if ptrt:
-                                        ct.project = ptrt.process_type.project
+                                        ct.context_agent = ptrt.process_type.context_agent
                                     explode = True                                 
                                 elif qty != old_ct.quantity:
                                     #import pdb; pdb.set_trace()
@@ -6368,7 +6528,7 @@ def change_rand(request, rand_id):
                                 ct.created_by = request.user
                                 ptrt = ct.resource_type.main_producing_process_type_relationship()
                                 if ptrt:
-                                    ct.project = ptrt.process_type.project
+                                    ct.context_agent = ptrt.process_type.context_agent
                             ct.save()
                             if explode:
                                 explode_dependent_demands(ct, request.user)
@@ -6398,10 +6558,10 @@ def process_selections(request, rand=0):
     slots = []
     resource_types = []
     selected_pattern = None
-    selected_project = None
+    selected_context_agent = None
     pattern_form = PatternProdSelectionForm()
     #import pdb; pdb.set_trace()
-    project_form = ProjectSelectionForm()
+    ca_form = ProjectSelectionForm()
     init = {"start_date": datetime.date.today(), "end_date": datetime.date.today()}
     process_form = DateAndNameForm(data=request.POST or None)
     demand_form = DemandSelectionForm(data=request.POST or None)
@@ -6416,7 +6576,7 @@ def process_selections(request, rand=0):
         if get_related:
             #import pdb; pdb.set_trace()
             selected_pattern = ProcessPattern.objects.get(id=request.POST.get("pattern"))
-            selected_project = Project.objects.get(id=request.POST.get("project"))
+            selected_context_agent = EconomicAgent.objects.get(id=request.POST.get("context_agent"))
             if selected_pattern:
                 slots = selected_pattern.event_types()
                 for slot in slots:
@@ -6446,9 +6606,9 @@ def process_selections(request, rand=0):
             work_rts = []
             #import pdb; pdb.set_trace()
             for key, value in dict(rp).iteritems():
-                if "selected-project" in key:
-                    project_id = key.split("~")[1]
-                    selected_project = Project.objects.get(id=project_id)
+                if "selected-context-agent" in key:
+                    context_agent_id = key.split("~")[1]
+                    selected_context_agent = EconomicAgent.objects.get(id=context_agent_id)
                     continue
                 if "selected-pattern" in key:
                     pattern_id = key.split("~")[1]
@@ -6511,7 +6671,7 @@ def process_selections(request, rand=0):
                 start_date=start_date,
                 process_pattern=selected_pattern,
                 created_by=request.user,
-                project=selected_project
+                context_agent=selected_context_agent
             )
             process.save()
         
@@ -6641,8 +6801,8 @@ def process_selections(request, rand=0):
     return render_to_response("valueaccounting/process_selections.html", {
         "slots": slots,
         "selected_pattern": selected_pattern,
-        "selected_project": selected_project,
-        "project_form": project_form,
+        "selected_context_agent": selected_context_agent,
+        "ca_form": ca_form,
         "pattern_form": pattern_form,
         "process_form": process_form,
         "demand_form": demand_form,
@@ -6654,18 +6814,18 @@ def process_selections(request, rand=0):
 def plan_from_recipe(request):
     #import pdb; pdb.set_trace()
     resource_types = []
-    selected_project = None
-    project_form = ProjectSelectionForm()
+    selected_context_agent = None
+    ca_form = ProjectSelectionForm()
     init = {"due_date": datetime.date.today(),}
     date_name_form = DueDateAndNameForm(data=request.POST or None)
     if request.method == "POST":
         create_order = request.POST.get("create-order")
         get_related = request.POST.get("get-related")
         if get_related:
-            selected_project = Project.objects.get(id=request.POST.get("project"))
+            selected_context_agent = EconomicAgent.objects.get(id=request.POST.get("context_agent"))
             date_name_form = DueDateAndNameForm(initial=init)
-            if selected_project:
-                resource_types = selected_project.get_resource_types_with_recipe()
+            if selected_context_agent:
+                resource_types = selected_context_agent.get_resource_types_with_recipe()
         else:
             #import pdb; pdb.set_trace()
             rp = request.POST
@@ -6677,9 +6837,9 @@ def plan_from_recipe(request):
             else:
                 due_date = today
             for key, value in dict(rp).iteritems():
-                if "selected-project" in key:
-                    project_id = key.split("~")[1]
-                    selected_project = Project.objects.get(id=project_id)
+                if "selected-context-agent" in key:
+                    context_agent_id = key.split("~")[1]
+                    selected_context_agent = EconomicAgent.objects.get(id=context_agent_id)
                     continue
                 if key == "rt":
                     produced_id = int(value[0])
@@ -6755,8 +6915,8 @@ def plan_from_recipe(request):
                 % ('accounting/order-schedule', demand.id))                 
                             
     return render_to_response("valueaccounting/plan_from_recipe.html", {
-        "selected_project": selected_project,
-        "project_form": project_form,
+        "selected_context_agent": selected_context_agent,
+        "ca_form": ca_form,
         "date_name_form": date_name_form,
         "resource_types": resource_types,
         "help": get_help("plan_from_recipe"),
@@ -6785,7 +6945,7 @@ def plan_from_rt(request, resource_type_id):
             demand.save()
 
             com = Commitment()
-            com.project = process.project
+            com.context_agent = process.context_agent
             com.independent_demand = demand
             com.order = demand
             com.commitment_date = datetime.date.today()
@@ -7082,7 +7242,7 @@ def financial_contributions_csv(request):
              event.unit_of_value,
              from_agent,
              to_agent,
-             event.project.name,
+             event.context_agent.name,
              event.description,
              url,
              event.exchange.use_case,
@@ -7098,8 +7258,9 @@ def exchange_logging(request, exchange_id):
     logger = False
     exchange = get_object_or_404(Exchange, id=exchange_id)
     use_case = exchange.use_case
+    context_agent = exchange.context_agent
     pattern = exchange.process_pattern
-    exchange_form = ExchangeForm(use_case, instance=exchange, data=request.POST or None)
+    exchange_form = ExchangeForm(use_case, context_agent, instance=exchange, data=request.POST or None)
     add_receipt_form = None
     add_payment_form = None
     add_expense_form = None
@@ -7135,23 +7296,27 @@ def exchange_logging(request, exchange_id):
         for event in payment_events:
             event.changeform = PaymentEventForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         for event in expense_events:
             expense_total = expense_total + event.value
             event.changeform = ExpenseEventForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         for event in work_events:
             event.changeform = WorkEventAgentForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         for event in receipt_events:
             receipt_total = receipt_total + event.value
             event.changeform = UnorderedReceiptForm(
                 pattern=pattern,
+                context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         #for event in cash_events:
@@ -7171,25 +7336,25 @@ def exchange_logging(request, exchange_id):
                 "to_agent": exchange.supplier,
                 "event_date": exchange.start_date
             }
-            add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, data=request.POST or None)
+            add_payment_form = PaymentEventForm(prefix='pay', initial=pay_init, pattern=pattern, context_agent=context_agent)
         if "expense" in slots:
             expense_init = {
                 "from_agent": exchange.supplier,
                 "event_date": exchange.start_date,
             }
-            add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern)
+            add_expense_form = ExpenseEventForm(prefix='expense', initial=expense_init, pattern=pattern, context_agent=context_agent)
         if "work" in slots:
             work_init = {
                 "from_agent": agent,
                 "event_date": exchange.start_date
             }      
-            add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern)
+            add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern, context_agent=context_agent)
         if "receive" in slots:
             receipt_init = {
                 "event_date": exchange.start_date,
                 "from_agent": exchange.supplier
             }      
-            add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern)
+            add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern, context_agent=context_agent)
             #import pdb; pdb.set_trace()
             create_receipt_role_formset = resource_role_agent_formset(prefix='receiptrole')
         if "cash" in slots:
@@ -7197,13 +7362,13 @@ def exchange_logging(request, exchange_id):
                 "event_date": exchange.start_date,
                 "from_agent": agent
             }      
-            add_cash_form = CashContributionEventForm(prefix='cash', initial=cash_init, pattern=pattern)
+            add_cash_form = CashContributionEventForm(prefix='cash', initial=cash_init, pattern=pattern, context_agent=context_agent)
         if "resource" in slots:
             matl_init = {
                 "event_date": exchange.start_date,
                 "from_agent": agent
             }      
-            add_material_form = MaterialContributionEventForm(prefix='material', initial=matl_init, pattern=pattern)
+            add_material_form = MaterialContributionEventForm(prefix='material', initial=matl_init, pattern=pattern, context_agent=context_agent)
             #import pdb; pdb.set_trace()
             create_material_role_formset = resource_role_agent_formset(prefix='materialrole')
 
@@ -7248,8 +7413,12 @@ def exchange_logging(request, exchange_id):
 def create_exchange(request, use_case_identifier):
     #import pdb; pdb.set_trace()
     use_case = get_object_or_404(UseCase, identifier=use_case_identifier)
-    exchange_form = ExchangeForm(use_case, data=request.POST or None)
+    context_agent = EconomicAgent.objects.context_agents()[0]
+    exchange_form = ExchangeForm(use_case, context_agent)
     if request.method == "POST":
+        ca_id = request.POST.get("context_agent")
+        context_agent = EconomicAgent.objects.get(id=ca_id)
+        exchange_form = ExchangeForm(use_case, context_agent, data=request.POST)
         if exchange_form.is_valid():
             exchange = exchange_form.save(commit=False)
             exchange.use_case = use_case
@@ -7260,6 +7429,7 @@ def create_exchange(request, use_case_identifier):
     return render_to_response("valueaccounting/create_exchange.html", {
         "exchange_form": exchange_form,
         "use_case": use_case,
+        "context_agent": context_agent,
     }, context_instance=RequestContext(request))
 
 '''

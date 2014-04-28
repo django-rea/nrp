@@ -28,7 +28,60 @@ def flattened_children(node, all_nodes, to_return):
          if subnode.parent and subnode.parent.id == node.id:
              flattened_children(subnode, all_nodes, to_return)
      return to_return
+     
+def flattened_children_by_association(node, all_associations, to_return): #works only for agents
+    #import pdb; pdb.set_trace()
+    to_return.append(node)
+    for association in all_associations:
+        if association.to_agent.id == node.id and association.association_type.identifier == "child":
+            flattened_children_by_association(association.from_agent, all_associations, to_return)
+    return to_return
+    
+def flattened_group_associations(node, all_associations, to_return): #works only for agents
+    #import pdb; pdb.set_trace()
+    to_return.append(node)
+    for association in all_associations:
+        if association.to_agent.id == node.id and association.from_agent.agent_type.party_type!="individual":
+            flattened_group_associations(association.from_agent, all_associations, to_return)
+    return to_return
+    
+def agent_dfs_by_association(node, all_associations, depth): #works only for agents
+    #todo: figure out why this failed when AAs were ordered by from_agent
+    #import pdb; pdb.set_trace()
+    node.depth = depth
+    to_return = [node,]
+    for association in all_associations:
+        if association.has_associate.id == node.id and association.association_type.identifier == "child":
+            to_return.extend(agent_dfs_by_association(association.is_associate, all_associations, depth+1))
+    return to_return
 
+def group_dfs_by_has_associate(root, node, all_associations, visited, depth): 
+    #works only for agents, and only follows association_from
+    #import pdb; pdb.set_trace()
+    to_return = []
+    visited.append(node)
+    node.depth = depth
+    to_return.append(node)
+    #if node.id == root.id:
+    #    import pdb; pdb.set_trace()
+    for association in all_associations:
+        if association.has_associate.id == node.id:
+                to_return.extend(group_dfs_by_has_associate(root, association.is_associate, all_associations, visited, depth+1))
+    return to_return
+    
+def group_dfs_by_is_associate(root, node, all_associations, visited, depth): 
+    #import pdb; pdb.set_trace()
+    to_return = []
+    visited.append(node)
+    node.depth = depth
+    to_return.append(node)
+    #if node.id == root.id:
+    #    import pdb; pdb.set_trace()
+    for association in all_associations:
+        if association.is_associate.id == node.id:
+                to_return.extend(group_dfs_by_is_associate(root, association.has_associate, all_associations, visited, depth+1))
+    return to_return
+    
 class Edge(object):
     def __init__(self, from_node, to_node, label):
         self.from_node = from_node
@@ -139,8 +192,8 @@ def project_process_resource_agent_graph(project_list, process_list):
         projects[p.node_id()] = d   
     for p in process_list:
         project_id = ""
-        if p.project:
-            project_id = p.project.node_id()
+        if p.context_agent:
+            project_id = p.context_agent.node_id()
         order_id = ""
         order = p.independent_demand()
         if order:
@@ -272,11 +325,11 @@ def project_graph(producers):
     for p in producers:
         for rt in p.produced_resource_type_relationships():
             for pt in rt.resource_type.consuming_process_type_relationships():
-                if p.project and pt.process_type.project:
-                    if p.project != pt.process_type.project:
-                        nodes.extend([p.project, pt.process_type.project, rt.resource_type])
-                        edges.append(Edge(p.project, rt.resource_type, rt.event_type.label))
-                        edges.append(Edge(rt.resource_type, pt.process_type.project, pt.inverse_label()))
+                if p.context_agent and pt.process_type.context_agent:
+                    if p.context_agent != pt.process_type.context_agent:
+                        nodes.extend([p.context_agent, pt.process_type.context_agent, rt.resource_type])
+                        edges.append(Edge(p.context_agent, rt.resource_type, rt.event_type.label))
+                        edges.append(Edge(rt.resource_type, pt.process_type.context_agent, pt.inverse_label()))
     return [nodes, edges]
 
 def explode(process_type_relationship, nodes, edges, depth, depth_limit):

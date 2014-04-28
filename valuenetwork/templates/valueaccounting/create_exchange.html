@@ -98,7 +98,27 @@
             $( '#div_id_supplier' ).show();
         }
 
+        $("#id_context_agent").change(getSuppliers);
+        
+
 	}); // end document.ready
+	
+    function getSuppliers()
+    {
+        var selectedAgent = document.getElementById('id_context_agent').value;
+        var jsonUrl = encodeURI("/accounting/json-context-agent-suppliers/" + selectedAgent + "/");
+        $("#id_supplier").empty();
+        $.get(jsonUrl,
+        function(data){
+            for(var i=0 ; i<data.length ; i++)
+            {
+                var id = data[i]['pk'];
+                var name = data[i].fields['nick']; 
+                $("#id_supplier").append('<option value="' + id + '">' + name + '</option>') 
+            }
+        });
+    }
+	
     </script>
 
 {% endblock %}

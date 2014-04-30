@@ -7,12 +7,16 @@
 {% block body_class %}home{% endblock %}
 
 {% block banner %}
-    <h1>{% trans "A Value Network..." %}</h1>
-    <p>
-        {% trans "is people creating value together, by contributing work, money and goods, and sharing the income." %} 
-        <a href="http://valuenetwork.referata.com/wiki/Main_Page" target="_blank">{% trans "Learn more" %}</a>
-    </p>
 
+    {% if layout %}
+        {{ layout.banner|safe|urlize|linebreaks }}
+    {% else %}
+        {% if user.is_staff %}
+            <h1> Create content here using Home Page Layout in Admin. </h1>
+        {% else %}
+            <h1> An administrator can create content for this page. </h1>
+        {% endif %}
+    {% endif %} 
 
 {% endblock %}
 

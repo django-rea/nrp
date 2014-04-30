@@ -1,0 +1,28 @@
+{% load i18n %}
+{% load thumbnail %}
+
+{% if layout.needs_panel_headline %}
+    {{ layout.needs_panel_headline|safe|urlize|linebreaks }}
+{% else %}
+    <legend>Resources we need</legend>
+    <p style="font-style: italic;" >
+        Your contributions will be eligible for income sharing.
+    </p>
+{% endif %}
+
+<ul>
+    {% for resource_type, qty in stuff_to_buy.items %}
+        <li>
+            <b>{{ resource_type.name }}:</b> {{ qty}} {{ resource_type.unit }}
+            
+                <div style="display: inline;" >
+                    <a href="" role="button" class="btn btn-info" title="This button does not work yet. It will soon.">
+                        {% trans "get this for us?" %}
+                    </a>
+                </div>
+            {% if resource_type.description %}
+            <br />{{ resource_type.description|linebreaks }}
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>

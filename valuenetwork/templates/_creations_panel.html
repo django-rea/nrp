@@ -1,0 +1,30 @@
+{% load i18n %}
+{% load thumbnail %}
+
+{% if layout.creations_panel_headline %}
+    {{ layout.creations_panel_headline|safe|urlize|linebreaks }}
+{% else %}
+    <legend>Value being created</legend>
+    <p style="font-style: italic;" >
+        Our designs are open source. We seek partners in evolving our products.
+    </p>
+{% endif %}
+
+<ul>
+    {% for item in value_creations %}
+        <li>
+            <b>{{ item.resource_type.name }}:</b> {% trans "created" %} {{ item.due_date }}
+            {% if item.resource_type.photo %}
+                <img src="{% thumbnail item.resource_type.photo photo_size %}" />
+            {% elif item.resource_type.photo_url %}
+                <img src="{{ item.resource_type.photo_url }}" width="128" height="96" />
+            {% endif %}
+            <div style="display: inline;" >
+                <a href="" role="button" class="btn btn-info" title="This button does not work yet. It will soon.">
+                    {% trans "use this?" %}
+                </a>
+            </div>
+            
+        </li>
+    {% endfor %}
+</ul>

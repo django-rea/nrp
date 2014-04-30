@@ -1,6 +1,8 @@
 {% load i18n %}
 <div class="legal">
-    {% blocktrans %}
-        <a href="http://creativecommons.org/licenses/by-sa/3.0/" target="_blank">Creative Commons Attribution-ShareAlike 3.0</a>
-    {% endblocktrans %}
+    {% if layout %}
+        {{ layout.footer|safe|urlize|linebreaks }}
+    {% else %}
+        <p>footer</p>
+    {% endif %}
 </div>

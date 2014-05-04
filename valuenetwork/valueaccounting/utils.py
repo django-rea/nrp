@@ -33,16 +33,16 @@ def flattened_children_by_association(node, all_associations, to_return): #works
     #import pdb; pdb.set_trace()
     to_return.append(node)
     for association in all_associations:
-        if association.to_agent.id == node.id and association.association_type.identifier == "child":
-            flattened_children_by_association(association.from_agent, all_associations, to_return)
+        if association.has_associate.id == node.id and association.association_type.identifier == "child":
+            flattened_children_by_association(association.is_associate, all_associations, to_return)
     return to_return
     
 def flattened_group_associations(node, all_associations, to_return): #works only for agents
     #import pdb; pdb.set_trace()
     to_return.append(node)
     for association in all_associations:
-        if association.to_agent.id == node.id and association.from_agent.agent_type.party_type!="individual":
-            flattened_group_associations(association.from_agent, all_associations, to_return)
+        if association.has_associate.id == node.id and association.from_agent.agent_type.party_type!="individual":
+            flattened_group_associations(association.is_associate, all_associations, to_return)
     return to_return
     
 def agent_dfs_by_association(node, all_associations, depth): #works only for agents

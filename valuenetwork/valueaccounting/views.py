@@ -4524,6 +4524,9 @@ def add_work_event(request, commitment_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
 
+#todo: refactor out a testable method
+#problem: event = form.save(commit=False)
+#need 'event_date', 'resource_type', 'from_agent', 'quantity', 'description'
 @login_required
 def add_unplanned_work_event(request, process_id):
     process = get_object_or_404(Process, pk=process_id)

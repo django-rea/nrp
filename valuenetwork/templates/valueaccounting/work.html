@@ -347,8 +347,8 @@ th, td {
 						      </div>
 						     </div>
 			            {% endif %}
-			            <a href="{% url open_todos %}">{% trans "Open Todos" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
-			            <a href="{% url todo_history %}">{% trans "Done Todos" %}</a>
+			            <a href="{% url open_todos %}">{% trans "Unfinished Todos" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
+			            <a href="{% url todo_history %}">{% trans "Finished Todos" %}</a>
 		            </h3>
 
 		            <table class="todo-table" >
@@ -360,7 +360,7 @@ th, td {
 		                        <th>{% trans "Doer" %}</th>
 		                        <th>{% trans "What to do" %}</th>
 		                        <th>{% trans "Url" %}</th>
-		                        <th>{% trans "What did" %}</th>
+		                        <th>{% trans "Did what" %}</th>
 	                            <th>{% trans "Hours" %}</th>
 		                        <th colspan="2">&nbsp;</th>
 		                    </tr>

@@ -61,7 +61,7 @@ class AgentCreateForm(forms.ModelForm):
 #todo: queryset methods cd be cached
 class AgentSelectionForm(forms.Form):
     selected_agent = AgentModelChoiceField(
-        queryset=EconomicAgent.objects.without_user(), 
+        queryset=EconomicAgent.objects.individuals_without_user(), 
         label="Select an existing Agent",
         required=False)
 

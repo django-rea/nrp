@@ -1,8 +1,6 @@
 {% load i18n %}
+{% load footer_tag %}
+
 <div class="legal">
-    {% if layout %}
-        {{ layout.footer|safe|urlize|linebreaks }}
-    {% else %}
-        <p>footer</p>
-    {% endif %}
+    {% footer %}
 </div>

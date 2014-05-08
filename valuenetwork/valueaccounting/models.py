@@ -311,6 +311,14 @@ class AgentManager(models.Manager):
                 ua_ids.append(agent.id)
         return EconomicAgent.objects.exclude(id__in=ua_ids)
 
+    def individuals_without_user(self):
+        #import pdb; pdb.set_trace()
+        all_agents = self.individuals()
+        ua_ids = []
+        for agent in all_agents:
+            if agent.users.all():
+                ua_ids.append(agent.id)
+        return all_agents.exclude(id__in=ua_ids)
     
     def projects(self):
         return EconomicAgent.objects.filter(agent_type__party_type="team")

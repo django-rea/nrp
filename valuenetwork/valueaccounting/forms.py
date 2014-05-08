@@ -1374,7 +1374,7 @@ class IsAssociateForm(forms.ModelForm):
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     has_associate = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.context_agents(), 
+        queryset=EconomicAgent.objects.all(), 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'description',}))
     

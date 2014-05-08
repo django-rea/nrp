@@ -15,81 +15,48 @@
         <div class="row-fluid">
 	        <div class="span4">
 	            {% block column-1 %}
-                    <legend>Work to do</legend>
-                    <p style="font-style: italic;" >
-                        Your work will be eligible for income sharing.
-                    </p>
-
-                    <ul>
-						{% for item in work_to_do %}
-							<li>
-								<b>{{ item.resource_type.name }}:</b> {% trans "due" %} {{ item.due_date }}
-								
-									<div style="display: inline;" >
-									    <a href="" role="button" class="btn btn-info" title="This button does not work yet. It will soon.">
-											{% trans "do this work?" %}
-										</a>
-									</div>
-									<p style="margin-left: 1em; margin-bottom: 0; font-size: 90%;">
-								        {% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process.name }}</a>
-							        </p>
-							</li>
-						{% endfor %}
-					</ul>
+	            
+                    {% if layout %}
+                        {% if layout.use_work_panel %}
+                            {% include "_work_panel.html" %}
+                        {% else %}
+                            {{ layout.panel_1|safe|urlize|linebreaks }}
+                        {% endif %}
+                    {% else %}
+                        <p>Panel 1</p>
+                    {% endif %}
                     
                 {% endblock %}
 	        </div>
 	        <div class="span4">
 	            {% block column-2 %}
-                    <legend>Resources we need</legend>
-                    <p style="font-style: italic;" >
-                        Your contributions will be eligible for income sharing.
-                    </p>
-
-                    <ul>
-						{% for resource_type, qty in stuff_to_buy.items %}
-							<li>
-								<b>{{ resource_type.name }}:</b> {{ qty}} {{ resource_type.unit }}
-								
-									<div style="display: inline;" >
-									    <a href="" role="button" class="btn btn-info" title="This button does not work yet. It will soon.">
-											{% trans "get this for us?" %}
-										</a>
-									</div>
-								{% if resource_type.description %}
-								<br />{{ resource_type.description|linebreaks }}
-								{% endif %}
-							</li>
-						{% endfor %}
-					</ul>
+	            
+                    {% if layout %}
+                        {% if layout.use_needs_panel %}
+                            {% include "_needs_panel.html" %}
+                        {% else %}
+                            {{ layout.panel_2|safe|urlize|linebreaks }}
+                        {% endif %}
+                    {% else %}
+                        <p>Panel 2</p>
+                    {% endif %}
+                    
 					
                 {% endblock %}
 	        </div>
 	        <div class="span4">
 	            {% block column-3 %}
-                    <legend>Value being created</legend>
-                    <p style="font-style: italic;" >
-                        Our designs are open source. We seek partners in evolving our products.
-                    </p>
-
-                    <ul>
-						{% for item in value_creations %}
-							<li>
-								<b>{{ item.resource_type.name }}:</b> {% trans "created" %} {{ item.due_date }}
-								{% if item.resource_type.photo %}
-		                        	<img src="{% thumbnail item.resource_type.photo photo_size %}" />
-	                        	{% elif item.resource_type.photo_url %}
-	                        	    <img src="{{ item.resource_type.photo_url }}" width="128" height="96" />
-		                        {% endif %}
-		                        <div style="display: inline;" >
-								    <a href="" role="button" class="btn btn-info" title="This button does not work yet. It will soon.">
-										{% trans "use this?" %}
-									</a>
-								</div>
-								
-							</li>
-						{% endfor %}
-					</ul>
+	            
+                    {% if layout %}
+                        {% if layout.use_creations_panel %}
+                            {% include "_creations_panel.html" %}
+                        {% else %}
+                            {{ layout.panel_3|safe|urlize|linebreaks }}
+                        {% endif %}
+                    {% else %}
+                        <p>Panel 3</p>
+                    {% endif %}
+                    
                     
                 {% endblock %}
 	        </div>

@@ -95,7 +95,31 @@ def _slug_strip(value, separator=None):
      
 #    def __unicode__(self):
 #        return self.name
-        
+       
+
+class HomePageLayout(models.Model):
+    banner = models.TextField(_('banner'), blank=True, null=True,
+        help_text=_("HTML text for top Banner"))
+    use_work_panel = models.BooleanField(_('use work panel'), default=False,
+        help_text=_("Work panel, if used, will be Panel 1"))
+    work_panel_headline = models.TextField(_('work panel headline'), blank=True, null=True)
+    use_needs_panel = models.BooleanField(_('use needs panel'), default=False,
+        help_text=_("Needs panel, if used, will be Panel 2"))
+    needs_panel_headline = models.TextField(_('needs panel headline'), blank=True, null=True)
+    use_creations_panel = models.BooleanField(_('use creations panel'), default=False,
+        help_text=_("Creations panel, if used, will be Panel 3"))
+    creations_panel_headline = models.TextField(_('creations panel headline'), blank=True, null=True)
+    panel_1 = models.TextField(_('panel 1'), blank=True, null=True,
+        help_text=_("HTML text for Panel 1"))
+    panel_2 = models.TextField(_('panel 2'), blank=True, null=True,
+        help_text=_("HTML text for Panel 2"))
+    panel_3 = models.TextField(_('panel 3'), blank=True, null=True,
+        help_text=_("HTML text for Panel 3"))
+    footer = models.TextField(_('footer'), blank=True, null=True)
+    
+    class Meta:
+        verbose_name_plural = _('home page layout')
+    
 
 #for help text
 PAGE_CHOICES = (
@@ -287,6 +311,14 @@ class AgentManager(models.Manager):
                 ua_ids.append(agent.id)
         return EconomicAgent.objects.exclude(id__in=ua_ids)
 
+    def individuals_without_user(self):
+        #import pdb; pdb.set_trace()
+        all_agents = self.individuals()
+        ua_ids = []
+        for agent in all_agents:
+            if agent.users.all():
+                ua_ids.append(agent.id)
+        return all_agents.exclude(id__in=ua_ids)
     
     def projects(self):
         return EconomicAgent.objects.filter(agent_type__party_type="team")

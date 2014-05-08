@@ -45,6 +45,11 @@ def get_help(page_name):
         return None
 
 def home(request):
+    layout = None
+    try:
+        layout = HomePageLayout.objects.get(id=1)
+    except HomePageLayout.DoesNotExist:
+        pass
     work_to_do = Commitment.objects.unfinished().filter(
             from_agent=None, 
             event_type__relationship="work")
@@ -64,6 +69,7 @@ def home(request):
                 rts.append(vc.resource_type)
                 value_creations.append(vc)
     return render_to_response("homepage.html", {
+        "layout": layout,
         "work_to_do": work_to_do,
         "stuff_to_buy": stuff,
         "value_creations": value_creations,
@@ -4519,6 +4525,9 @@ def add_work_event(request, commitment_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
 
+#todo: refactor out a testable method
+#problem: event = form.save(commit=False)
+#need 'event_date', 'resource_type', 'from_agent', 'quantity', 'description'
 @login_required
 def add_unplanned_work_event(request, process_id):
     process = get_object_or_404(Process, pk=process_id)

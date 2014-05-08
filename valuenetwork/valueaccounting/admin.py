@@ -13,6 +13,7 @@ admin.site.register(AgentResourceRoleType)
 admin.site.register(AgentResourceRole)
 admin.site.register(Location)
 admin.site.register(UseCaseEventType)
+admin.site.register(HomePageLayout)
 
 
 class HelpAdmin(admin.ModelAdmin):

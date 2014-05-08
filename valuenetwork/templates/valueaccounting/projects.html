@@ -96,7 +96,7 @@
                 {% endif %}
                 
                 <li>
-                    <b><a href="{{ node.get_absolute_url }}">{{ node }}</a></b> 
+                    <b><a href="{{ node.get_absolute_url }}">{{ node.name }}</a></b> 
                     <a class="indent" href="{% url contributions project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
                     {% if node.wip %}
                         <a class="indent" href="{% url project_wip project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
@@ -113,7 +113,7 @@
                             <div class="list" id="list-{{ node.id }}{{ aat.id }}" >
                                 <ul>
                                     {% for assoc in aat.assoc_list %}
-                                        <li class="indent"><a href="{{ assoc.get_absolute_url }}">{{ assoc }} </a>
+                                        <li class="indent"><a href="{{ assoc.get_absolute_url }}">{{ assoc.name }} </a>
                                         {% if assoc.state == "potential" %} (potential) {% endif%} </li>
                                     {% endfor %}
                                 </ul>

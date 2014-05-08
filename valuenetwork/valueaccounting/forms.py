@@ -61,7 +61,7 @@ class AgentCreateForm(forms.ModelForm):
 #todo: queryset methods cd be cached
 class AgentSelectionForm(forms.Form):
     selected_agent = AgentModelChoiceField(
-        queryset=EconomicAgent.objects.without_user(), 
+        queryset=EconomicAgent.objects.individuals_without_user(), 
         label="Select an existing Agent",
         required=False)
 
@@ -1374,7 +1374,7 @@ class IsAssociateForm(forms.ModelForm):
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     has_associate = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.context_agents(), 
+        queryset=EconomicAgent.objects.all(), 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'description',}))
     

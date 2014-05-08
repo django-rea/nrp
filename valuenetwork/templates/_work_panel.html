@@ -1,0 +1,28 @@
+{% load i18n %}
+{% load thumbnail %}
+
+{% if layout.work_panel_headline %}
+    {{ layout.work_panel_headline|safe|urlize|linebreaks }}
+{% else %}
+    <legend> Work to do </legend>
+    <p style="font-style: italic;" >
+        Your work will be eligible for income sharing.
+    </p>
+{% endif %}
+
+<ul>
+    {% for item in work_to_do %}
+        <li>
+            <b>{{ item.resource_type.name }}:</b> {% trans "due" %} {{ item.due_date }}
+            
+                <div style="display: inline;" >
+                    <a href="" role="button" class="btn btn-info" title="This button does not work yet. It will soon.">
+                        {% trans "do this work?" %}
+                    </a>
+                </div>
+                <p style="margin-left: 1em; margin-bottom: 0; font-size: 90%;">
+                    {% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process.name }}</a>
+                </p>
+        </li>
+    {% endfor %}
+</ul>

@@ -151,6 +151,7 @@ def create_user_and_agent(request):
                         )
                 if not errors:
                     if user_form.is_valid():
+                        agent.created_by=request.user
                         agent.save()
                         user = user_form.save(commit=False)
                         user.first_name = request.POST.get("first_name")
@@ -345,20 +346,20 @@ def change_location(request, location_id):
     }, context_instance=RequestContext(request))
 
 @login_required
-#todo: not complete
 def change_agent(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
     if not user_agent:
         return render_to_response('valueaccounting/no_permission.html')
-        change_form = LocationForm(instance=location, data=request.POST or None)
+    change_form = AgentCreateForm(instance=agent, data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if change_form.is_valid():
-            agent = agent_form.save()
-            return HttpResponseRedirect("/accounting/agent.html")
+            agent = change_form.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/agent', agent.id))
     return render_to_response("valueaccounting/change_agent.html", {
-        "change_form": location_form,
+        "change_form": change_form,
         }, context_instance=RequestContext(request))
                         
 def agents(request):
@@ -396,7 +397,7 @@ def agent(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
-    change_form = None
+    change_form = AgentCreateForm(instance=agent)
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()
 

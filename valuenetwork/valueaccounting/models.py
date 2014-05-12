@@ -909,6 +909,11 @@ class AccountingReference(models.Model):
 #    ('work', _('work')),
 #)
 
+class ResourceState(models.Model):
+    name = models.CharField(_('name'), max_length=128, unique=True)
+    description = models.TextField(_('description'), blank=True, null=True)
+        
+
 INVENTORY_RULE_CHOICES = (
     ('yes', _('Keep inventory')),
     ('no', _('Not worth it')),
@@ -1927,6 +1932,236 @@ class Order(models.Model):
         ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
         return ordered_processes
 
+class ProcessType(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    parent = models.ForeignKey('self', blank=True, null=True, 
+    verbose_name=_('parent'), related_name='sub_process_types', editable=False)
+    process_pattern = models.ForeignKey(ProcessPattern,
+    blank=True, null=True,
+    verbose_name=_('process pattern'), related_name='process_types')
+    context_agent = models.ForeignKey(EconomicAgent,
+    blank=True, null=True,
+    verbose_name=_('context agent'), related_name='process_types')
+    description = models.TextField(_('description'), blank=True, null=True)
+    url = models.CharField(_('url'), max_length=255, blank=True)
+    estimated_duration = models.IntegerField(_('estimated duration'), 
+    default=0, 
+    help_text=_("in minutes, e.g. 3 hours = 180"))
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+    related_name='process_types_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+    related_name='process_types_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+    
+    class Meta:
+        ordering = ('name',)
+        
+    def __unicode__(self):
+        return self.name
+            
+    def save(self, *args, **kwargs):
+        unique_slugify(self, self.name)
+        super(ProcessType, self).save(*args, **kwargs)
+                
+    def timeline_title(self):
+        return " ".join([self.name, "Process to be planned"])
+                    
+    def node_id(self):
+        return "-".join(["ProcessType", str(self.id)])
+                        
+    def color(self):
+        return "blue"
+                            
+    def produced_resource_type_relationships(self):
+        return self.resource_types.filter(event_type__relationship='out')
+                                
+    def produced_resource_types(self):
+        return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
+                                    
+    def main_produced_resource_type(self):
+        prts = self.produced_resource_types()
+        if prts:
+            return prts[0]
+        else:
+            return None
+                                                
+    def consumed_and_used_resource_type_relationships(self):
+        return self.resource_types.filter(Q(event_type__relationship='consume')|Q(event_type__relationship='use'))
+                                                    
+    def consumed_resource_type_relationships(self):
+        return self.resource_types.filter(event_type__relationship='consume')
+                                                        
+    def used_resource_type_relationships(self):
+        return self.resource_types.filter(event_type__relationship='use')
+                                                            
+    def cited_resource_type_relationships(self):
+        return self.resource_types.filter(event_type__relationship='cite')
+                                                                
+    def work_resource_type_relationships(self):
+        return self.resource_types.filter(event_type__relationship='work')
+                                                                    
+    def consumed_resource_types(self):
+        return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
+                                                                        
+    def used_resource_types(self):
+        return [ptrt.resource_type for ptrt in self.used_resource_type_relationships()]
+                                                                            
+    def cited_resource_types(self):
+        return [ptrt.resource_type for ptrt in self.cited_resource_type_relationships()]
+                                                                                
+    def work_resource_types(self):
+        return [ptrt.resource_type for ptrt in self.work_resource_type_relationships()]
+                                                                                    
+    def all_input_resource_type_relationships(self):
+        return self.resource_types.exclude(event_type__relationship='out').exclude(event_type__relationship='todo')
+                                                                                        
+    def xbill_parents(self):
+        return self.produced_resource_type_relationships()
+                                                                                            
+    def xbill_children(self):
+        kids = list(self.consumed_and_used_resource_type_relationships())
+        kids.extend(self.cited_resource_type_relationships())
+        kids.extend(self.work_resource_type_relationships())
+        kids.extend(self.features.all())
+        return kids
+                                                                                                
+                                                                                                
+    def xbill_explanation(self):
+        return "Process Type"
+
+    def xbill_change_prefix(self):
+        return "".join(["PT", str(self.id)])
+
+    def xbill_change_form(self):
+        from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
+        return XbillProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
+
+    def xbill_input_prefix(self):
+        return "".join(["PTINPUT", str(self.id)])
+
+    def xbill_consumable_prefix(self):
+        return "".join(["PTCONS", str(self.id)])
+
+    def xbill_usable_prefix(self):
+        return "".join(["PTUSE", str(self.id)])
+
+    def xbill_citable_prefix(self):
+        return "".join(["PTCITE", str(self.id)])
+
+    def xbill_work_prefix(self):
+        return "".join(["PTWORK", str(self.id)])
+
+    def xbill_input_rt_prefix(self):
+        return "".join(["PTINPUTRT", str(self.id)])
+
+    def xbill_consumable_rt_prefix(self):
+        return "".join(["PTCONSRT", str(self.id)])
+
+    def xbill_usable_rt_prefix(self):
+        return "".join(["PTUSERT", str(self.id)])
+
+    def xbill_citable_rt_prefix(self):
+        return "".join(["PTCITERT", str(self.id)])
+
+    def xbill_input_rt_facet_prefix(self):
+        return "".join(["PTINPUTRTF", str(self.id)])
+
+    def xbill_consumable_rt_facet_prefix(self):
+        return "".join(["PTCONSRTF", str(self.id)])
+
+    def xbill_usable_rt_facet_prefix(self):
+        return "".join(["PTUSERTF", str(self.id)])
+
+    def xbill_citable_rt_facet_prefix(self):
+        return "".join(["PTCITERTF", str(self.id)])
+
+    def xbill_input_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessTypeInputForm
+        return ProcessTypeInputForm(process_type=self, prefix=self.xbill_input_prefix())
+
+    def xbill_consumable_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessTypeConsumableForm
+        return ProcessTypeConsumableForm(process_type=self, prefix=self.xbill_consumable_prefix())
+
+    def xbill_usable_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessTypeUsableForm
+        return ProcessTypeUsableForm(process_type=self, prefix=self.xbill_usable_prefix())
+
+    def xbill_citable_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessTypeCitableForm
+        return ProcessTypeCitableForm(process_type=self, prefix=self.xbill_citable_prefix())
+
+    def xbill_work_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessTypeWorkForm
+        return ProcessTypeWorkForm(process_type=self, prefix=self.xbill_work_prefix())
+
+    def xbill_input_rt_form(self):
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
+        return EconomicResourceTypeAjaxForm(prefix=self.xbill_input_rt_prefix())
+
+    def xbill_consumable_rt_form(self):
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
+        return EconomicResourceTypeAjaxForm(prefix=self.xbill_consumable_rt_prefix())
+
+    def xbill_usable_rt_form(self):
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
+        return EconomicResourceTypeAjaxForm(prefix=self.xbill_usable_rt_prefix())
+
+    def xbill_citable_rt_form(self):
+        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
+        return EconomicResourceTypeAjaxForm(prefix=self.xbill_citable_rt_prefix())
+
+    def xbill_input_rt_facet_formset(self):
+        return self.create_facet_formset_filtered(slot="in", pre=self.xbill_input_rt_facet_prefix())
+
+    def xbill_consumable_rt_facet_formset(self):
+        return self.create_facet_formset_filtered(slot="consume", pre=self.xbill_consumable_rt_facet_prefix())
+
+    def xbill_usable_rt_facet_formset(self):
+        return self.create_facet_formset_filtered(slot="use", pre=self.xbill_usable_rt_facet_prefix())
+
+    def xbill_citable_rt_facet_formset(self):
+        return self.create_facet_formset_filtered(slot="cite", pre=self.xbill_citable_rt_facet_prefix())
+
+    def create_facet_formset_filtered(self, pre, slot, data=None):
+        from django.forms.models import formset_factory
+        from valuenetwork.valueaccounting.forms import ResourceTypeFacetValueForm
+        #import pdb; pdb.set_trace()
+        RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
+        init = []
+        if self.process_pattern == None:
+            facets = Facet.objects.all()
+        else:
+            #facets = self.process_pattern.facets_by_relationship(slot)
+            if slot == "consume":
+                facets = self.process_pattern.consumable_facets()
+            elif slot == "use":
+                facets = self.process_pattern.usable_facets()
+            elif slot == "cite":
+                facets = self.process_pattern.citable_facets()
+        for facet in facets:
+            d = {"facet_id": facet.id,}
+            init.append(d)
+        formset = RtfvFormSet(initial=init, data=data, prefix=pre)
+        for form in formset:
+            id = int(form["facet_id"].value())
+            facet = Facet.objects.get(id=id)
+            form.facet_name = facet.name
+            if self.process_pattern == None:
+                fvs = facet.values.all()
+            else:
+                fvs = self.process_pattern.facet_values_for_facet_and_relationship(facet, slot)
+            fvs = list(set(fvs))
+            choices = [(fv.id, fv.value) for fv in fvs]
+            form.fields["value"].choices = choices
+        return formset
+
+    def xbill_class(self):
+        return "process-type"
+
+    
 
 class GoodResourceManager(models.Manager):
     def get_query_set(self):
@@ -1943,6 +2178,10 @@ class EconomicResource(models.Model):
     independent_demand = models.ForeignKey(Order,
         blank=True, null=True,
         related_name="dependent_resources", verbose_name=_('independent_demand'))
+    stage = models.ForeignKey(ProcessType, related_name="resources_at_stage",
+        verbose_name=_('stage'), blank=True, null=True)
+    state = models.ForeignKey(ResourceState, related_name="resources_at_state",
+        verbose_name=_('state'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
         verbose_name=_('author'), blank=True, null=True)
@@ -2292,242 +2531,6 @@ class Project(models.Model):
     def active_processes(self):
         return self.processes.filter(finished=False)
 '''
-
-class ProcessType(models.Model):
-    name = models.CharField(_('name'), max_length=128)
-    parent = models.ForeignKey('self', blank=True, null=True, 
-        verbose_name=_('parent'), related_name='sub_process_types', editable=False)
-    process_pattern = models.ForeignKey(ProcessPattern,
-        blank=True, null=True,
-        verbose_name=_('process pattern'), related_name='process_types')
-    #project = models.ForeignKey(Project,
-    #    blank=True, null=True,
-    #    verbose_name=_('project'), related_name='process_types')
-    context_agent = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        verbose_name=_('context agent'), related_name='process_types')
-    description = models.TextField(_('description'), blank=True, null=True)
-    url = models.CharField(_('url'), max_length=255, blank=True)
-    estimated_duration = models.IntegerField(_('estimated duration'), 
-        default=0, 
-        help_text=_("in minutes, e.g. 3 hours = 180"))
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='process_types_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='process_types_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    slug = models.SlugField(_("Page name"), editable=False)
-
-    class Meta:
-        ordering = ('name',)
-
-    def __unicode__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        unique_slugify(self, self.name)
-        super(ProcessType, self).save(*args, **kwargs)
-
-    def timeline_title(self):
-        return " ".join([self.name, "Process to be planned"])
-
-    def node_id(self):
-        return "-".join(["ProcessType", str(self.id)])
-
-    def color(self):
-        return "blue"
-
-    def produced_resource_type_relationships(self):
-        return self.resource_types.filter(event_type__relationship='out')
-
-    def produced_resource_types(self):
-        return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
-
-    def main_produced_resource_type(self):
-        prts = self.produced_resource_types()
-        if prts:
-            return prts[0]
-        else:
-            return None
-
-    def consumed_and_used_resource_type_relationships(self):
-        return self.resource_types.filter(
-            Q(event_type__relationship='consume')|Q(event_type__relationship='use'))
-
-    def consumed_resource_type_relationships(self):
-        return self.resource_types.filter(
-            event_type__relationship='consume')
-
-    def used_resource_type_relationships(self):
-        return self.resource_types.filter(
-            event_type__relationship='use')
-
-    def cited_resource_type_relationships(self):
-        return self.resource_types.filter(event_type__relationship='cite')
-
-    def work_resource_type_relationships(self):
-        return self.resource_types.filter(event_type__relationship='work')
-
-    def consumed_resource_types(self):
-        return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
-
-    def used_resource_types(self):
-        return [ptrt.resource_type for ptrt in self.used_resource_type_relationships()]
-
-    def cited_resource_types(self):
-        return [ptrt.resource_type for ptrt in self.cited_resource_type_relationships()]
-
-    def work_resource_types(self):
-        return [ptrt.resource_type for ptrt in self.work_resource_type_relationships()]
-
-    def all_input_resource_type_relationships(self):
-        return self.resource_types.exclude(event_type__relationship='out').exclude(event_type__relationship='todo')
-
-    def xbill_parents(self):
-        return self.produced_resource_type_relationships()
-
-    def xbill_children(self):
-        kids = list(self.consumed_and_used_resource_type_relationships())
-        kids.extend(self.cited_resource_type_relationships())
-        kids.extend(self.work_resource_type_relationships())
-        kids.extend(self.features.all())
-        return kids
-
-    def xbill_explanation(self):
-        return "Process Type"
-
-    def xbill_change_prefix(self):
-        return "".join(["PT", str(self.id)])
-
-    def xbill_change_form(self):
-        from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
-        return XbillProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
-
-    def xbill_input_prefix(self):
-        return "".join(["PTINPUT", str(self.id)])
-
-    def xbill_consumable_prefix(self):
-        return "".join(["PTCONS", str(self.id)])
-
-    def xbill_usable_prefix(self):
-        return "".join(["PTUSE", str(self.id)])
-
-    def xbill_citable_prefix(self):
-        return "".join(["PTCITE", str(self.id)])
-
-    def xbill_work_prefix(self):
-        return "".join(["PTWORK", str(self.id)])
-
-    def xbill_input_rt_prefix(self):
-        return "".join(["PTINPUTRT", str(self.id)])
-
-    def xbill_consumable_rt_prefix(self):
-        return "".join(["PTCONSRT", str(self.id)])
-
-    def xbill_usable_rt_prefix(self):
-        return "".join(["PTUSERT", str(self.id)])
-
-    def xbill_citable_rt_prefix(self):
-        return "".join(["PTCITERT", str(self.id)])
-
-    def xbill_input_rt_facet_prefix(self):
-        return "".join(["PTINPUTRTF", str(self.id)])
-
-    def xbill_consumable_rt_facet_prefix(self):
-        return "".join(["PTCONSRTF", str(self.id)])
-
-    def xbill_usable_rt_facet_prefix(self):
-        return "".join(["PTUSERTF", str(self.id)])
-
-    def xbill_citable_rt_facet_prefix(self):
-        return "".join(["PTCITERTF", str(self.id)])
-
-    def xbill_input_form(self):
-        from valuenetwork.valueaccounting.forms import ProcessTypeInputForm
-        return ProcessTypeInputForm(process_type=self, prefix=self.xbill_input_prefix())
-
-    def xbill_consumable_form(self):
-        from valuenetwork.valueaccounting.forms import ProcessTypeConsumableForm
-        return ProcessTypeConsumableForm(process_type=self, prefix=self.xbill_consumable_prefix())
-
-    def xbill_usable_form(self):
-        from valuenetwork.valueaccounting.forms import ProcessTypeUsableForm
-        return ProcessTypeUsableForm(process_type=self, prefix=self.xbill_usable_prefix())
-
-    def xbill_citable_form(self):
-        from valuenetwork.valueaccounting.forms import ProcessTypeCitableForm
-        return ProcessTypeCitableForm(process_type=self, prefix=self.xbill_citable_prefix())
-
-    def xbill_work_form(self):
-        from valuenetwork.valueaccounting.forms import ProcessTypeWorkForm
-        return ProcessTypeWorkForm(process_type=self, prefix=self.xbill_work_prefix())
-
-    def xbill_input_rt_form(self):
-        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
-        return EconomicResourceTypeAjaxForm(prefix=self.xbill_input_rt_prefix())
-
-    def xbill_consumable_rt_form(self):
-        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
-        return EconomicResourceTypeAjaxForm(prefix=self.xbill_consumable_rt_prefix())
-
-    def xbill_usable_rt_form(self):
-        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
-        return EconomicResourceTypeAjaxForm(prefix=self.xbill_usable_rt_prefix())
-
-    def xbill_citable_rt_form(self):
-        from valuenetwork.valueaccounting.forms import EconomicResourceTypeAjaxForm
-        return EconomicResourceTypeAjaxForm(prefix=self.xbill_citable_rt_prefix())
-
-    def xbill_input_rt_facet_formset(self):
-        return self.create_facet_formset_filtered(slot="in", pre=self.xbill_input_rt_facet_prefix())
-
-    def xbill_consumable_rt_facet_formset(self):
-        return self.create_facet_formset_filtered(slot="consume", pre=self.xbill_consumable_rt_facet_prefix())
-
-    def xbill_usable_rt_facet_formset(self):
-        return self.create_facet_formset_filtered(slot="use", pre=self.xbill_usable_rt_facet_prefix())
-
-    def xbill_citable_rt_facet_formset(self):
-        return self.create_facet_formset_filtered(slot="cite", pre=self.xbill_citable_rt_facet_prefix())
-
-    def create_facet_formset_filtered(self, pre, slot, data=None):
-        from django.forms.models import formset_factory
-        from valuenetwork.valueaccounting.forms import ResourceTypeFacetValueForm
-        #import pdb; pdb.set_trace()
-        RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
-        init = []
-        if self.process_pattern == None:
-            facets = Facet.objects.all()
-        else:
-            #facets = self.process_pattern.facets_by_relationship(slot)
-            if slot == "consume":
-                facets = self.process_pattern.consumable_facets()
-            elif slot == "use":
-                facets = self.process_pattern.usable_facets()
-            elif slot == "cite":
-                facets = self.process_pattern.citable_facets()
-        for facet in facets:
-            d = {"facet_id": facet.id,}
-            init.append(d)
-        formset = RtfvFormSet(initial=init, data=data, prefix=pre)
-        for form in formset:
-            id = int(form["facet_id"].value())
-            facet = Facet.objects.get(id=id)
-            form.facet_name = facet.name
-            if self.process_pattern == None:
-                fvs = facet.values.all()
-            else:
-                fvs = self.process_pattern.facet_values_for_facet_and_relationship(facet, slot)
-            fvs = list(set(fvs))
-            choices = [(fv.id, fv.value) for fv in fvs]
-            form.fields["value"].choices = choices
-        return formset
-
-    def xbill_class(self):
-        return "process-type"
-
-
 
 #todo: rename to CommitmentType
 class ProcessTypeResourceType(models.Model):

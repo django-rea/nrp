@@ -925,11 +925,6 @@ class EconomicResourceType(models.Model):
     #version = models.CharField(_('version'), max_length=32, blank=True)    
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='children', editable=False)
-    #stage = models.ForeignKey(Stage, blank=True, null=True, 
-    #    verbose_name=_('stage'), related_name='resource_types')
-    #category = models.ForeignKey(Category, 
-    #    verbose_name=_('category'), related_name='resource_types',
-    #    limit_choices_to=Q(applies_to='Anything') | Q(applies_to='EconomicResourceType'))
     unit = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="resource_units",
         help_text=_('if this resource has different units of use and inventory, this is the unit of inventory'))
@@ -1935,22 +1930,21 @@ class Order(models.Model):
 class ProcessType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
-    verbose_name=_('parent'), related_name='sub_process_types', editable=False)
+        verbose_name=_('parent'), related_name='sub_process_types', editable=False)
     process_pattern = models.ForeignKey(ProcessPattern,
-    blank=True, null=True,
-    verbose_name=_('process pattern'), related_name='process_types')
+        blank=True, null=True,
+        verbose_name=_('process pattern'), related_name='process_types')
     context_agent = models.ForeignKey(EconomicAgent,
-    blank=True, null=True,
-    verbose_name=_('context agent'), related_name='process_types')
+        blank=True, null=True,
+        verbose_name=_('context agent'), related_name='process_types')
     description = models.TextField(_('description'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     estimated_duration = models.IntegerField(_('estimated duration'), 
-    default=0, 
-    help_text=_("in minutes, e.g. 3 hours = 180"))
+        default=0, help_text=_("in minutes, e.g. 3 hours = 180"))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
-    related_name='process_types_created', blank=True, null=True, editable=False)
+        related_name='process_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-    related_name='process_types_changed', blank=True, null=True, editable=False)
+        related_name='process_types_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)

@@ -46,7 +46,7 @@
 	<legend>{% trans "Log Unscheduled Time Contributions for " %} {{ member.name }}</legend>
 	<p>Both Date and Time spent are required for a contribution to be saved.</p>
 
-    <form method="POST" action=".">
+    <form id="contributionsForm" method="POST" action=".">
 	    {% csrf_token %}
 	    {{ time_formset.management_form }}
 	    <table class="table table-bordered table-condensed table-hover">
@@ -56,8 +56,8 @@
 	                <th>{% trans "Type of work" %}</th>
 	                <th>{% trans "Project" %}</th>
 	                <th>{% trans "Time spent" %}</th>
-	                <th>{% trans "URL" %}</th>
 	                <th>{% trans "Description" %}</th>
+	                <th>{% trans "URL" %}</th>
 	            </tr>
 	        </thead>
 	        <tbody>
@@ -69,9 +69,9 @@
 	                <td style="white-space:nowrap;" >
 	                    {{ form.quantity }}</br>
 	                    {{ form.quantity.help_text }}
-                    </td>
-                	<td>{{ form.url }}</td>
+                    </td>                	
 	                <td>{{ form.description }}</td>
+	                <td>{{ form.url }}</td>
 	            </tr>
            	{% endfor %}
            	<tr>
@@ -106,6 +106,22 @@
     <script type="text/javascript">
 
     $(document).ready(function(){
+    
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
+        });
+        
+        $.validator.addClassRules("url", { url: true, maxlength: 255 });
+        
+        $( "#contributionsForm" ).validate({
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            },
+        });
 
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
         $(".chzn-select").chosen();

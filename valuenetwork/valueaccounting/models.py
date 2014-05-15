@@ -804,6 +804,9 @@ RESOURCE_EFFECT_CHOICES = (
     ('x', _('transfer')), #means - for from_agent, + for to_agent
     ('=', _('no effect')),
     ('<', _('failure')),
+    ('+~', _('create-to-transform')),
+    ('>~', _('to-be-transformed')),
+    ('~>', _('transform')),
 )
 
 
@@ -1704,6 +1707,9 @@ def create_event_types(app, **kwargs):
     EventType.create('Todo', _('todo'), '', 'todo', 'agent', '=', '')
     EventType.create('Resource use', _('uses'), _('used by'), 'use', 'process', '=', 'time') 
     EventType.create('Time Contribution', _('work'), '', 'work', 'process', '=', 'time') 
+    EventType.create('Create Transformable', _('create transformable'), 'transformable created by', 'out', 'process', '+~', 'quantity')  
+    EventType.create('To Be Transformed', _('to be transformed'), '', 'in', 'process', '>~', 'quantity')  
+    EventType.create('Transform', _('transform'), 'transformed', 'out', 'process', '~>', 'quantity') 
 
     print "created event types"
 
@@ -1744,11 +1750,17 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('rand', 'Resource Production')
     UseCaseEventType.create('rand', 'Resource use')
     UseCaseEventType.create('rand', 'Time Contribution')
+    UseCaseEventType.create('rand', 'To Be Transformed')
+    UseCaseEventType.create('rand', 'Transform')
+    UseCaseEventType.create('rand', 'Create Transformable')
     UseCaseEventType.create('recipe','Citation')
     UseCaseEventType.create('recipe', 'Resource Consumption')
     UseCaseEventType.create('recipe', 'Resource Production')
     UseCaseEventType.create('recipe', 'Resource use')
     UseCaseEventType.create('recipe', 'Time Contribution')
+    UseCaseEventType.create('recipe', 'To Be Transformed')
+    UseCaseEventType.create('recipe', 'Transform')
+    UseCaseEventType.create('recipe', 'Create Transformable')
     UseCaseEventType.create('todo', 'Todo')
     UseCaseEventType.create('cust_orders', 'Damage')
     UseCaseEventType.create('cust_orders', 'Payment')

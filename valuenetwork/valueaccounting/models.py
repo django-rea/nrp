@@ -1044,6 +1044,31 @@ class EconomicResourceType(models.Model):
             return pts[0]
         else:
             return None
+            
+    def all_staged_commitment_types(self):
+        return self.process_types.filter(stage__isnull=False)
+        
+    def all_staged_process_types(self):
+        cts = self.all_staged_commitment_types()
+        pts = [ct.process_type for ct in cts]
+        return list(set(pts))
+        
+    def staged_commitment_type_sequence(self):
+        creation_et = EventType.objects.get(name='Create Changeable') 
+        creation = self.process_types.get(
+            stage__isnull=False,
+            event_type=creation_et)
+        chain = []
+        creation.follow_stage_chain(chain)
+        return chain
+        
+    def staged_process_type_sequence(self):
+        pts = []
+        stages = self.staged_commitment_type_sequence()
+        for stage in stages:
+            if stage.process_type not in pts:
+                pts.append(stage.process_type)
+        return pts
 
     def is_process_output(self):
         #import pdb; pdb.set_trace()
@@ -2031,6 +2056,15 @@ class ProcessType(models.Model):
                                                                                     
     def all_input_resource_type_relationships(self):
         return self.resource_types.exclude(event_type__relationship='out').exclude(event_type__relationship='todo')
+        
+    def all_input_resource_types(self):
+        return [ptrt.resource_type for ptrt in self.all_input_resource_type_relationships()]
+        
+    def previous_process_types(self):
+        return []
+        
+    def next_process_types(self):
+        return []
                                                                                         
     def xbill_parents(self):
         return self.produced_resource_type_relationships()
@@ -2515,7 +2549,23 @@ class ProcessTypeResourceType(models.Model):
 
     def inverse_label(self):
         return self.event_type.inverse_label
-
+        
+    def follow_stage_chain(self, chain):
+        if self.event_type.is_change_related():
+            chain.append(self)
+            if self.event_type.relationship == "out":
+                next_in_chain = ProcessTypeResourceType.objects.filter(
+                    resource_type=self.resource_type,
+                    stage=self.stage,
+                    event_type__resource_effect=">~")
+            if self.event_type.relationship == "in":
+                next_in_chain = ProcessTypeResourceType.objects.filter(
+                    resource_type=self.resource_type,
+                    stage=self.process_type,
+                    event_type__resource_effect="~>")
+            if next_in_chain:
+                next_in_chain[0].follow_stage_chain(chain)
+                    
     def xbill_label(self):
         if self.event_type.relationship == 'out':
             #return self.inverse_label()

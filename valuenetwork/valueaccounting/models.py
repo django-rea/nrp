@@ -804,9 +804,9 @@ RESOURCE_EFFECT_CHOICES = (
     ('x', _('transfer')), #means - for from_agent, + for to_agent
     ('=', _('no effect')),
     ('<', _('failure')),
-    ('+~', _('create-to-transform')),
-    ('>~', _('to-be-transformed')),
-    ('~>', _('transform')),
+    ('+~', _('create to change')),
+    ('>~', _('to be changed')),
+    ('~>', _('change')),
 )
 
 
@@ -892,7 +892,7 @@ class EventType(models.Model):
     def consumes_resources(self):
         return self.resource_effect == "-"
         
-    def is_transform_related_event(self):
+    def is_change_related_event(self):
         if "~" in self.resource_effect:
             return True
         else:
@@ -1361,11 +1361,11 @@ class ProcessPattern(models.Model):
     def slots(self):
         return [et.relationship for et in self.event_types()]
         
-    def transform_event_types(self):
+    def change_event_types(self):
         answer = []
         ets = self.event_types
         for et in ets:
-            if et.is_transform_related_event:
+            if et.is_change_related_event:
                 amswer.append(et)
         return answer
 
@@ -1721,9 +1721,9 @@ def create_event_types(app, **kwargs):
     EventType.create('Todo', _('todo'), '', 'todo', 'agent', '=', '')
     EventType.create('Resource use', _('uses'), _('used by'), 'use', 'process', '=', 'time') 
     EventType.create('Time Contribution', _('work'), '', 'work', 'process', '=', 'time') 
-    EventType.create('Create Transformable', _('create transformable'), 'transformable created by', 'out', 'process', '+~', 'quantity')  
-    EventType.create('To Be Transformed', _('to be transformed'), '', 'in', 'process', '>~', 'quantity')  
-    EventType.create('Transform', _('transform'), 'transformed', 'out', 'process', '~>', 'quantity') 
+    EventType.create('Create Changeable', _('create changeable'), 'changeable created by', 'out', 'process', '+~', 'quantity')  
+    EventType.create('To Be Changed', _('to be changed'), '', 'in', 'process', '>~', 'quantity')  
+    EventType.create('Change', _('change'), 'changed', 'out', 'process', '~>', 'quantity') 
 
     print "created event types"
 
@@ -1764,17 +1764,17 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('rand', 'Resource Production')
     UseCaseEventType.create('rand', 'Resource use')
     UseCaseEventType.create('rand', 'Time Contribution')
-    UseCaseEventType.create('rand', 'To Be Transformed')
-    UseCaseEventType.create('rand', 'Transform')
-    UseCaseEventType.create('rand', 'Create Transformable')
+    UseCaseEventType.create('rand', 'To Be Changed')
+    UseCaseEventType.create('rand', 'Change')
+    UseCaseEventType.create('rand', 'Create Changeable')
     UseCaseEventType.create('recipe','Citation')
     UseCaseEventType.create('recipe', 'Resource Consumption')
     UseCaseEventType.create('recipe', 'Resource Production')
     UseCaseEventType.create('recipe', 'Resource use')
     UseCaseEventType.create('recipe', 'Time Contribution')
-    UseCaseEventType.create('recipe', 'To Be Transformed')
-    UseCaseEventType.create('recipe', 'Transform')
-    UseCaseEventType.create('recipe', 'Create Transformable')
+    UseCaseEventType.create('recipe', 'To Be Changed')
+    UseCaseEventType.create('recipe', 'Change')
+    UseCaseEventType.create('recipe', 'Create Changeable')
     UseCaseEventType.create('todo', 'Todo')
     UseCaseEventType.create('cust_orders', 'Damage')
     UseCaseEventType.create('cust_orders', 'Payment')

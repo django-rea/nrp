@@ -1196,6 +1196,7 @@ def edit_extended_bill(request, resource_type_id):
 @login_required
 def edit_stream_recipe(request, resource_type_id):
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+        prev_pt_id = None
         #import pdb; pdb.set_trace()
         nodes = rt.generate_xbill()
         resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
@@ -1212,6 +1213,7 @@ def edit_stream_recipe(request, resource_type_id):
             "resource_type_form": resource_type_form,
             "feature_form": feature_form,
             "resource_names": resource_names,
+            "prev_pt_id": prev_pt_id,
             "help": get_help("edit_recipes"),
             }, context_instance=RequestContext(request))
             
@@ -1877,10 +1879,19 @@ def create_process_type_for_streaming(request, resource_type_id):
             unit = rt.unit
             quantity = Decimal(quantity)
             for et in ets:
+                if et.relationship == "out":
+                    stage = pt
+                else:
+                    prev_pt_id = request.POST["prev_pt_id"]
+                    if prev_pt_id:
+                        stage = ProcessType.objects.get(id=prev_pt_id)
+                    else:
+                        stage = None
                 ptrt = ProcessTypeResourceType(
                     process_type=pt,
                     resource_type=rt,
                     event_type=et,
+                    stage=stage,
                     unit_of_quantity=unit,
                     quantity=quantity,
                     created_by=request.user,

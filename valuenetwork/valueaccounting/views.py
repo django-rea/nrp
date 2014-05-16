@@ -1828,7 +1828,7 @@ def change_process_type(request, process_type_id):
 
 @login_required
 def create_process_type_for_resource_type(request, resource_type_id):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
         prefix = rt.process_create_prefix()
@@ -1857,7 +1857,41 @@ def create_process_type_for_resource_type(request, resource_type_id):
             return HttpResponseRedirect(next)
         else:
             raise ValidationError(form.errors)
+        
+@login_required
+def create_process_type_for_streaming(request, resource_type_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+        prefix = rt.process_create_prefix()
+        form = XbillProcessTypeForm(request.POST, prefix=prefix)
+        if form.is_valid():
+            data = form.cleaned_data
+            pt = form.save(commit=False)
+            pt.created_by=request.user
+            pt.changed_by=request.user
+            pt.save()
+            quantity = data["quantity"]
+            pattern = pt.process_pattern
+            ets = pattern.transform_event_types()
+            unit = rt.unit
+            quantity = Decimal(quantity)
+            for et in ets:
+                ptrt = ProcessTypeResourceType(
+                    process_type=pt,
+                    resource_type=rt,
+                    event_type=et,
+                    unit_of_quantity=unit,
+                    quantity=quantity,
+                    created_by=request.user,
+                )
+                ptrt.save()
+            next = request.POST.get("next")
+            return HttpResponseRedirect(next)
+        else:
+            raise ValidationError(form.errors)
 
+            
 def network(request, resource_type_id):
     #import pdb; pdb.set_trace()
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)

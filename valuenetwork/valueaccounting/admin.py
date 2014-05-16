@@ -115,6 +115,7 @@ admin.site.register(ProcessTypeResourceType, ProcessTypeResourceTypeAdmin)
 
 class ProcessTypeResourceTypeInline(admin.TabularInline):
     model = ProcessTypeResourceType
+    fk_name = "process_type"
 
 
 class ProcessTypeAdmin(admin.ModelAdmin):

@@ -891,6 +891,12 @@ class EventType(models.Model):
 
     def consumes_resources(self):
         return self.resource_effect == "-"
+        
+    def is_transform_related_event(self):
+        if "~" in self.resource_effect:
+            return True
+        else:
+            return False
 
 
 class AccountingReference(models.Model):
@@ -1354,6 +1360,14 @@ class ProcessPattern(models.Model):
 
     def slots(self):
         return [et.relationship for et in self.event_types()]
+        
+    def transform_event_types(self):
+        answer = []
+        ets = self.event_types
+        for et in ets:
+            if et.is_transform_related_event:
+                amswer.append(et)
+        return answer
 
     def get_resource_types(self, event_type):
         """Matching logic:
@@ -2479,6 +2493,10 @@ class ProcessTypeResourceType(models.Model):
         verbose_name=_('resource type'), related_name='process_types')
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='process_resource_types')
+    stage = models.ForeignKey(ProcessType, related_name="commitmenttypes_at_stage",
+        verbose_name=_('stage'), blank=True, null=True)
+    state = models.ForeignKey(ResourceState, related_name="commitmenttypes_at_state",
+        verbose_name=_('state'), blank=True, null=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, default=Decimal('0.00'))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="process_resource_qty_units")
@@ -3353,8 +3371,10 @@ class Commitment(models.Model):
         related_name="dependent_commitments", verbose_name=_('independent_demand'))
     event_type = models.ForeignKey(EventType, 
         related_name="commitments", verbose_name=_('event type'))
-    #relationship = models.ForeignKey(ResourceRelationship,
-    #    verbose_name=_('relationship'), related_name='commitments')
+    stage = models.ForeignKey(ProcessType, related_name="commitments_at_stage",
+        verbose_name=_('stage'), blank=True, null=True)
+    state = models.ForeignKey(ResourceState, related_name="commitments_at_state",
+        verbose_name=_('state'), blank=True, null=True)
     commitment_date = models.DateField(_('commitment date'), default=datetime.date.today)
     start_date = models.DateField(_('start date'), blank=True, null=True)
     due_date = models.DateField(_('due date'))

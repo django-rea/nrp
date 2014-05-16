@@ -1862,7 +1862,7 @@ def create_process_type_for_resource_type(request, resource_type_id):
         
 @login_required
 def create_process_type_for_streaming(request, resource_type_id):
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
         prefix = rt.process_create_prefix()
@@ -1875,14 +1875,14 @@ def create_process_type_for_streaming(request, resource_type_id):
             pt.save()
             quantity = data["quantity"]
             pattern = pt.process_pattern
-            ets = pattern.transform_event_types()
+            ets = pattern.change_event_types()
             unit = rt.unit
             quantity = Decimal(quantity)
             for et in ets:
                 if et.relationship == "out":
                     stage = pt
                 else:
-                    prev_pt_id = request.POST["prev_pt_id"]
+                    prev_pt_id = None #use new method from bob
                     if prev_pt_id:
                         stage = ProcessType.objects.get(id=prev_pt_id)
                     else:

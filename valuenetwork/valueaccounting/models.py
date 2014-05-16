@@ -1387,7 +1387,7 @@ class ProcessPattern(models.Model):
         return [et.relationship for et in self.event_types()]
         
     def change_event_types(self):
-        return [et for et in self.event_types if et.is_change_related()]
+        return [et for et in self.event_types() if et.is_change_related()]
 
     def get_resource_types(self, event_type):
         """Matching logic:

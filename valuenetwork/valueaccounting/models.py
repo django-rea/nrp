@@ -892,7 +892,7 @@ class EventType(models.Model):
     def consumes_resources(self):
         return self.resource_effect == "-"
         
-    def is_change_related_event(self):
+    def is_change_related(self):
         if "~" in self.resource_effect:
             return True
         else:
@@ -1362,12 +1362,7 @@ class ProcessPattern(models.Model):
         return [et.relationship for et in self.event_types()]
         
     def change_event_types(self):
-        answer = []
-        ets = self.event_types
-        for et in ets:
-            if et.is_change_related_event:
-                amswer.append(et)
-        return answer
+        return [et for et in self.event_types if et.is_change_related()]
 
     def get_resource_types(self, event_type):
         """Matching logic:

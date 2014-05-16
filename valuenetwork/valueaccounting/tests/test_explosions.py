@@ -128,7 +128,7 @@ class ExplosionTest(TestCase):
         crt = cyclic_input_commitment.resource_type
         self.assertEqual(crt.producing_commitments().count(), 1)
         
-    def test_stages(self):
+    def test_exploding_stages(self):
         """ stages allow the same resource type to re-occur in an explosion
         
             if the occurrences have different stages.

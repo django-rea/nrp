@@ -3002,6 +3002,7 @@ class Process(models.Model):
                 unit=ptrt.resource_type.unit,
                 user=user,
             )
+            #cycles broken here
             if ptrt.resource_type not in visited:
                 visited.append(ptrt.resource_type)
                 qty_to_explode = commitment.net()

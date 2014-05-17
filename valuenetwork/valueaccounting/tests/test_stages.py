@@ -7,7 +7,7 @@ from django.test import Client
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.tests.objects_for_testing import *
 
-class ExplosionTest(TestCase):
+class StageTest(TestCase):
 
     """Testing stages (changeable resources)
     """
@@ -25,11 +25,12 @@ class ExplosionTest(TestCase):
             substitutable=False)
         self.sow.save()
         
-        self.ideation = ProcessType(name="Ideation")
+        duration = 4320
+        self.ideation = ProcessType(name="Ideation", estimated_duration=duration)
         self.ideation.save()
-        self.curation = ProcessType(name="Curation")
+        self.curation = ProcessType(name="Curation", estimated_duration=duration)
         self.curation.save()
-        self.finish = ProcessType(name="Finish")
+        self.finish = ProcessType(name="Finish", estimated_duration=duration)
         self.finish.save()
         
         qty = Decimal("1.0")
@@ -86,7 +87,33 @@ class ExplosionTest(TestCase):
         ct4 = cts[4]
         pt = ct4.process_type
         stages = sow.staged_commitment_type_sequence()
+        expected_stages = [
+            self.ct1_create, 
+            self.ct1_to_be, 
+            self.ct2_change,
+            self.ct2_to_be,
+            self.ct3_change,
+        ]
         process_types = sow.staged_process_type_sequence()
-        import pdb; pdb.set_trace()
+        expected_pts = [self.ideation, self.curation, self.finish]
+        #import pdb; pdb.set_trace()
+        self.assertEqual(stages, expected_stages)
+        self.assertEqual(process_types, expected_pts)
         
+    def test_staged_schedule(self):
+        start = datetime.date.today()
+        order = self.sow.generate_staged_schedule(start, self.user)
+        #import pdb; pdb.set_trace()
+        processes = order.all_processes()
+        self.assertEqual(len(processes), 3)
+        first = processes[0]
+        second = processes[1]
+        third = processes[2]
+        self.assertEqual(first.start_date, start)
+        next_start = start + datetime.timedelta(days=3)
+        self.assertEqual(second.start_date, next_start)
+        next_start = next_start + datetime.timedelta(days=3)
+        self.assertEqual(third.start_date, next_start)
+        due = next_start + datetime.timedelta(days=3)
+        self.assertEqual(order.due_date, due)
         

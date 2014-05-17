@@ -180,8 +180,8 @@ ul {
                 <div class="modal-body">
                     <form class="process-change-form" action="{% url change_process_type process_type_id=process_type.id %}" method="POST" >
                         {% csrf_token %}
-                        {{ xbill_object.xbill_change_form }}
-                        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+                        {{ process_type.xbill_change_form }}
+                        <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
                         <div class="modal-footer">
                         <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                         <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -191,7 +191,12 @@ ul {
             </div>
 
             <div style="display: inline;" >
-                <a href="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >Delete</a>
+              <form style="display: inline;" action="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
+              <!--<a href="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >Delete</a>-->
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                <button class="btn btn-warning" title="Delete process stype" >Delete</button>
+              </form>
             </div>
           </div>
           

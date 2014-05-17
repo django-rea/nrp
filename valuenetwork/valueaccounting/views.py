@@ -1418,17 +1418,20 @@ def delete_process_type_confirmation(request,
         process_type_id, resource_type_id):
     pt = get_object_or_404(ProcessType, pk=process_type_id)
     side_effects = False
+    next = request.POST.get("next")
+    if next == None:
+        next = '/%s/%s/' % ('accounting/edit-xbomfg', resource_type_id)
     if pt.resource_types.all():
         side_effects = True
         return render_to_response('valueaccounting/process_type_delete_confirmation.html', {
             "process_type": pt,
             "resource_type_id": resource_type_id,
             "side_effects": side_effects,
+            "next": next,
             }, context_instance=RequestContext(request))
     else:
         pt.delete()
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/edit-xbomfg', resource_type_id))
+        return HttpResponseRedirect(next)
 
 @login_required
 def delete_feature_confirmation(request, 

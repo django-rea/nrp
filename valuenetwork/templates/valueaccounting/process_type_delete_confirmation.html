@@ -27,9 +27,11 @@
 	<form style="display: inline;" action="{% url delete_process_type process_type_id=process_type.id %}" method="POST">
 		{% csrf_token %}
     		<input type="submit" value="{% trans 'Delete' %}" class="btn btn-warning" />
-			<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type_id %}" />
+			<!--<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type_id %}" />-->
+			<input type="hidden" name="next" value="{{ next }}" />
 	</form>
-	<form style="display: inline;" action="{% url edit_extended_bill resource_type_id=resource_type_id %}" method="GET">
+	<!--<form style="display: inline;" action="{% url edit_extended_bill resource_type_id=resource_type_id %}" method="GET">-->
+	<form style="display: inline;" action="{{ next }}" method="GET">
     		<input type="submit" value="{% trans 'Cancel' %}" class="btn btn-info" />
     </form>
 

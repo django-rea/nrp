@@ -1070,6 +1070,36 @@ class EconomicResourceType(models.Model):
                 pts.append(stage.process_type)
         return pts
 
+    def generate_staged_work_order(self, start_date, user):
+        pts = self.staged_process_type_sequence()
+        #import pdb; pdb.set_trace()
+        order = Order(
+            order_type="rand",
+            order_date=datetime.date.today(),
+            due_date=start_date,
+            created_by=user)
+        order.save()
+        processes = []
+        new_start_date = start_date
+        for pt in pts:
+            p = pt.create_process(new_start_date, user)
+            new_start_date = p.end_date
+            processes.append(p)
+        for process in processes:
+            for ct in process.commitments.all():
+                ct.independent_demand = order
+                ct.save()
+        last_process = process
+        order_name = ""
+        for ct in last_process.outgoing_commitments():
+            ct.order = order
+            " ".join([order_name, ct.resource_type.name])
+            ct.save()
+        order.name = order_name
+        order.due_date = last_process.end_date
+        order.save()
+        return order
+        
     def is_process_output(self):
         #import pdb; pdb.set_trace()
         #todo: does this still return false positives?
@@ -1927,6 +1957,7 @@ class Order(models.Model):
 
     def process(self):
         answer = None
+        #todo: why rand, what difference does it make?
         if self.order_type == 'rand':
             process = None
             for item in self.producing_commitments():
@@ -2013,6 +2044,28 @@ class ProcessType(models.Model):
                         
     def color(self):
         return "blue"
+        
+    def create_process(self, start_date, user):
+        end_date = start_date + datetime.timedelta(minutes=self.estimated_duration)
+        process = Process(          
+            name=self.name,
+            process_type=self,
+            process_pattern=self.process_pattern,
+            context_agent=self.context_agent,
+            url=self.url,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        process.save()
+        input_ctypes = self.all_input_resource_type_relationships()
+        for ic in input_ctypes:
+            ic.create_commitment_for_process(process, user)
+        output_ctypes = self.produced_resource_type_relationships()
+        for oc in output_ctypes:
+            oc.create_commitment_for_process(process, user)
+        process.name = " ".join([process.name, oc.resource_type.name])
+        process.save()
+        return process
                             
     def produced_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='out')
@@ -2569,6 +2622,25 @@ class ProcessTypeResourceType(models.Model):
             if next_in_chain:
                 next_in_chain[0].follow_stage_chain(chain)
                     
+    def create_commitment_for_process(self, process, user):
+        if self.event_type.relationship == "out":
+            due_date = process.end_date
+        else:
+            due_date = process.start_date
+        commitment = Commitment(
+            process=process,
+            context_agent=process.context_agent,
+            event_type=self.event_type,
+            resource_type=self.resource_type,
+            quantity=self.quantity,
+            unit_of_quantity=self.resource_type.unit,
+            due_date=due_date,
+            #from_agent=from_agent,
+            #to_agent=to_agent,
+            created_by=user)
+        commitment.save()
+        return commitment
+        
     def xbill_label(self):
         if self.event_type.relationship == 'out':
             #return self.inverse_label()

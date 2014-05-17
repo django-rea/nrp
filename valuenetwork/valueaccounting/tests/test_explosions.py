@@ -133,7 +133,7 @@ class ExplosionTest(TestCase):
         
             if the occurrences have different stages.
         """
-        
+        #todo: this is a stub and needs actual staged_input
         parent_pt = self.parent.main_producing_process_type()
         staged_input = ProcessTypeResourceType(
             process_type=parent_pt,
@@ -143,7 +143,7 @@ class ExplosionTest(TestCase):
             unit_of_quantity=self.unit,
         )
         staged_input.save()
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         cts = self.order.order_items()
         commitment = cts[0]
         visited = []

@@ -2689,16 +2689,16 @@ def agent_stats(request, agent_id):
     }, context_instance=RequestContext(request))
 
 #todo: the next 2 methods will need to be changed from project to context_agent
-def project_stats(request, project_slug):
+def project_stats(request, context_agent_slug):
     project = None
     member_hours = []
-    if project_slug:
-        project = get_object_or_404(Project, slug=project_slug)
+    if context_agent_slug:
+        project = get_object_or_404(EconomicAgent, slug=context_agent_slug)
     if project:
-        subs = project.with_all_sub_projects()
+        subs = project.with_all_sub_agents()
         ces = CachedEventSummary.objects.filter(
             event_type__relationship="work",
-            project__in=subs)
+            context_agent__in=subs)
         if ces.count():
             agents = {}
             for ce in ces:
@@ -2711,17 +2711,17 @@ def project_stats(request, project_slug):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
-def project_roles(request, project_slug):
+def project_roles(request, context_agent_slug):
     project = None
     headings = []
     member_hours = []
-    if project_slug:
-        project = get_object_or_404(Project, slug=project_slug)
+    if context_agent_slug:
+        project = get_object_or_404(EconomicAgent, slug=context_agent_slug)
     if project:
-        subs = project.with_all_sub_projects()
+        subs = project.with_all_sub_agents()
         ces = CachedEventSummary.objects.filter(
             event_type__relationship="work",
-            project__in=subs)
+            context_agent__in=subs)
         if ces.count():
             agents = {}
             roles = [ce.quantity_label() for ce in ces]

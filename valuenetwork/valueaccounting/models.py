@@ -1070,7 +1070,7 @@ class EconomicResourceType(models.Model):
                 pts.append(stage.process_type)
         return pts
 
-    def generate_staged_schedule(self, start_date, user):
+    def generate_staged_work_order(self, start_date, user):
         pts = self.staged_process_type_sequence()
         #import pdb; pdb.set_trace()
         order = Order(

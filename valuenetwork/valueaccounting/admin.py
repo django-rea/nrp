@@ -73,7 +73,7 @@ class AgentUserInline(admin.TabularInline):
 
 
 class EconomicAgentAdmin(admin.ModelAdmin):
-    list_display = ('nick', 'name', 'agent_type', 'url', 'address', 'email', 'created_date')
+    list_display = ('nick', 'name', 'agent_type', 'url', 'address', 'email', 'slug', 'created_date')
     list_filter = ['agent_type',]
     search_fields = ['name', 'address']
     inlines = [ AgentUserInline, ]

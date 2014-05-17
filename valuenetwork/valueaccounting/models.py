@@ -2545,7 +2545,10 @@ class ProcessTypeResourceType(models.Model):
         relname = ""
         if self.event_type:
             relname = self.event_type.label
-        return " ".join([self.process_type.name, relname, str(self.quantity), self.resource_type.name])        
+        rt_name = self.resource_type.name
+        if self.stage:
+            rt_name = "".join([rt_name, "@", self.stage.name])
+        return " ".join([self.process_type.name, relname, str(self.quantity), rt_name])        
 
     def inverse_label(self):
         return self.event_type.inverse_label

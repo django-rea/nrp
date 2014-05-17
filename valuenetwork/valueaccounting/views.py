@@ -1197,9 +1197,7 @@ def edit_extended_bill(request, resource_type_id):
 def edit_stream_recipe(request, resource_type_id):
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
         #import pdb; pdb.set_trace()
-        pt = ProcessType.objects.get(id=98) #temp!!!!!
-        process_types = [] #temp!!!
-        process_types.append(pt) #temp!!!
+        process_types = rt.staged_process_type_sequence()
         resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
   
         names = EconomicResourceType.objects.values_list('name', flat=True)
@@ -1210,10 +1208,9 @@ def edit_stream_recipe(request, resource_type_id):
             "resource_type": rt,
             "process_types": process_types,
             "photo_size": (128, 128),
-            "big_photo_size": (200, 200),
             "resource_type_form": resource_type_form,
             "resource_names": resource_names,
-            "help": get_help("edit_recipes"),
+            "help": get_help("edit_stream_recipe"),
             }, context_instance=RequestContext(request))
             
     
@@ -1881,11 +1878,8 @@ def create_process_type_for_streaming(request, resource_type_id):
                 if et.relationship == "out":
                     stage = pt
                 else:
-                    prev_pt_id = None #use new method from bob
-                    if prev_pt_id:
-                        stage = ProcessType.objects.get(id=prev_pt_id)
-                    else:
-                        stage = None
+                    pts = rt.staged_process_type_sequence()
+                    stage = pts[-1]
                 ptrt = ProcessTypeResourceType(
                     process_type=pt,
                     resource_type=rt,

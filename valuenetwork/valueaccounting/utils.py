@@ -190,6 +190,7 @@ def project_process_resource_agent_graph(project_list, process_list):
             "name": p.name,
             }
         projects[p.node_id()] = d   
+    #import pdb; pdb.set_trace()
     for p in process_list:
         project_id = ""
         if p.context_agent:
@@ -224,6 +225,7 @@ def project_process_resource_agent_graph(project_list, process_list):
             if a not in agent_dict:
                 agent_dict[a] = []
             agent_dict[a].append(p)
+    #import pdb; pdb.set_trace()
     for rt in rt_set:
         drt = {
             "name": rt.name,
@@ -237,6 +239,7 @@ def project_process_resource_agent_graph(project_list, process_list):
             if p_id in processes:
                 drt["next"].append(p_id)
         resource_types[rt.node_id()] = drt
+    #import pdb; pdb.set_trace()
     for order in order_set:
         receiver_name = ""
         if order.receiver:

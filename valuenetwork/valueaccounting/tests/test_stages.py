@@ -137,9 +137,12 @@ class StageTest(TestCase):
         self.assertEqual(prev_prev.start_date, prev_prev_start)
         ordered_processes = []
         visited_resources = []
-        all_prevs = process.all_previous_processes()
-        prev_next = prev.next_processes()
-        prev_prev_next = prev_prev.next_processes()
-        import pdb; pdb.set_trace()
+        all_prevs = process.all_previous_processes(ordered_processes, visited_resources, 0)
+        self.assertEqual(len(ordered_processes), 3)
+        prev_next = prev.next_processes()[0]
+        self.assertEqual(prev_next, process)
+        prev_prev_next = prev_prev.next_processes()[0]
+        self.assertEqual(prev_prev_next, prev)
+        #import pdb; pdb.set_trace()
         
         

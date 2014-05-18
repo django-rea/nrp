@@ -1418,6 +1418,9 @@ class ProcessPattern(models.Model):
         
     def change_event_types(self):
         return [et for et in self.event_types() if et.is_change_related()]
+        
+    def non_change_event_type_names(self):
+        return [et.name for et in self.event_types() if not et.is_change_related()]
 
     def get_resource_types(self, event_type):
         """Matching logic:
@@ -1771,9 +1774,9 @@ def create_event_types(app, **kwargs):
     EventType.create('Todo', _('todo'), '', 'todo', 'agent', '=', '')
     EventType.create('Resource use', _('uses'), _('used by'), 'use', 'process', '=', 'time') 
     EventType.create('Time Contribution', _('work'), '', 'work', 'process', '=', 'time') 
-    EventType.create('Create Changeable', _('create changeable'), 'changeable created by', 'out', 'process', '+~', 'quantity')  
+    EventType.create('Create Changeable', _('creates changeable'), 'changeable created by', 'out', 'process', '+~', 'quantity')  
     EventType.create('To Be Changed', _('to be changed'), '', 'in', 'process', '>~', 'quantity')  
-    EventType.create('Change', _('change'), 'changed', 'out', 'process', '~>', 'quantity') 
+    EventType.create('Change', _('changes'), 'changed by', 'out', 'process', '~>', 'quantity') 
 
     print "created event types"
 
@@ -2602,7 +2605,10 @@ class ProcessTypeResourceType(models.Model):
         relname = ""
         if self.event_type:
             relname = self.event_type.label
-        return " ".join([self.process_type.name, relname, str(self.quantity), self.resource_type.name])        
+        rt_name = self.resource_type.name
+        if self.stage:
+            rt_name = "".join([rt_name, "@", self.stage.name])
+        return " ".join([self.process_type.name, relname, str(self.quantity), rt_name])        
 
     def inverse_label(self):
         return self.event_type.inverse_label
@@ -2669,6 +2675,15 @@ class ProcessTypeResourceType(models.Model):
         commitment.save()
         return commitment
         
+    def stream_label(self):
+        relname = ""
+        if self.event_type:
+            relname = self.event_type.label
+        rt_name = self.resource_type.name
+        if self.stage:
+            rt_name = "".join([rt_name, "@", self.stage.name])
+        return " ".join([relname, str(self.quantity), rt_name]) 
+                        
     def xbill_label(self):
         if self.event_type.relationship == 'out':
             #return self.inverse_label()

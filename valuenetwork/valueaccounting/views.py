@@ -1196,25 +1196,17 @@ def edit_extended_bill(request, resource_type_id):
 @login_required
 def edit_stream_recipe(request, resource_type_id):
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-        prev_pt_id = None
         #import pdb; pdb.set_trace()
-        nodes = rt.generate_xbill()
+        process_types = rt.staged_process_type_sequence()
         resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
-        feature_form = FeatureForm()
-        names = EconomicResourceType.objects.values_list('name', flat=True)
-        resource_names = '~'.join(names)
         #end_time = time.time()
         #print("edit_extended_bill view elapsed time was %g seconds" % (end_time - start_time))
         return render_to_response("valueaccounting/edit_stream_recipe.html", {
             "resource_type": rt,
-            "nodes": nodes,
+            "process_types": process_types,
             "photo_size": (128, 128),
-            "big_photo_size": (200, 200),
             "resource_type_form": resource_type_form,
-            "feature_form": feature_form,
-            "resource_names": resource_names,
-            "prev_pt_id": prev_pt_id,
-            "help": get_help("edit_recipes"),
+            "help": get_help("edit_stream_recipe"),
             }, context_instance=RequestContext(request))
             
     
@@ -1422,17 +1414,20 @@ def delete_process_type_confirmation(request,
         process_type_id, resource_type_id):
     pt = get_object_or_404(ProcessType, pk=process_type_id)
     side_effects = False
+    next = request.POST.get("next")
+    if next == None:
+        next = '/%s/%s/' % ('accounting/edit-xbomfg', resource_type_id)
     if pt.resource_types.all():
         side_effects = True
         return render_to_response('valueaccounting/process_type_delete_confirmation.html', {
             "process_type": pt,
             "resource_type_id": resource_type_id,
             "side_effects": side_effects,
+            "next": next,
             }, context_instance=RequestContext(request))
     else:
         pt.delete()
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/edit-xbomfg', resource_type_id))
+        return HttpResponseRedirect(next)
 
 @login_required
 def delete_feature_confirmation(request, 
@@ -1862,7 +1857,7 @@ def create_process_type_for_resource_type(request, resource_type_id):
         
 @login_required
 def create_process_type_for_streaming(request, resource_type_id):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
         prefix = rt.process_create_prefix()
@@ -1882,11 +1877,8 @@ def create_process_type_for_streaming(request, resource_type_id):
                 if et.relationship == "out":
                     stage = pt
                 else:
-                    prev_pt_id = None #use new method from bob
-                    if prev_pt_id:
-                        stage = ProcessType.objects.get(id=prev_pt_id)
-                    else:
-                        stage = None
+                    pts = rt.staged_process_type_sequence()
+                    stage = pts[-1]
                 ptrt = ProcessTypeResourceType(
                     process_type=pt,
                     resource_type=rt,

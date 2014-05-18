@@ -1739,7 +1739,7 @@ class ProcessTypeWorkForm(forms.ModelForm):
 
     class Meta:
         model = ProcessTypeResourceType
-        exclude = ('process_type', 'relationship', 'event_type')
+        exclude = ('process_type', 'relationship', 'event_type', 'state', 'stage')
 
     def __init__(self, process_type=None, *args, **kwargs):
         super(ProcessTypeWorkForm, self).__init__(*args, **kwargs)

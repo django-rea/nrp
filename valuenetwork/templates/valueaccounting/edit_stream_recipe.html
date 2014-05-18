@@ -44,6 +44,9 @@ ul {
 }
 .economic-resource-type {
     background-color: lightyellow;
+    border: 1px solid gainsboro; 
+    padding: 1em;
+    font-weight: bold;
 }
 .inputs, .outputs {
     background-color: whitesmoke;
@@ -169,10 +172,10 @@ ul {
             <div class="process-hdr" style="display: inline;"> {{ process_type.name }} </div>
 
             <div style="display: inline;" >
-                <a href="#processChangeForm{{ object_node_id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+                <a href="#processChangeForm{{ process_type.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
             </div>
 
-            <div class="modal hide fade processForm" id="processChangeForm{{ object_node_id }}" tabindex="-1" role="dialog" aria-labelledby="process-change-label" aria-hidden="true">
+            <div class="modal hide fade processForm" id="processChangeForm{{ process_type.id }}" tabindex="-1" role="dialog" aria-labelledby="process-change-label" aria-hidden="true">
                 <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 <h3 id="process-change-label">{% trans "Change" %} {{ xbill_object }}</h3>
@@ -189,69 +192,127 @@ ul {
                     </form>
                 </div>
             </div>
-
+            
+            {% if "Time Contribution" in process_type.process_pattern.non_change_event_type_names %}
+                <div style="display: inline;" >
+                    <a href="#workForm{{ process_type.id }}" role="button" class="btn btn-info" data-toggle="modal">
+                    {% trans "Add work" %}
+                    </a>
+                </div>
+            
+                <div class="modal hide fade" id="workForm{{ process_type.id }}" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 id="work-label">{% blocktrans %}Add work to {{ ptype }}{% endblocktrans %}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <form class="work-form" action="{% url create_process_type_work process_type_id=process_type.id %}" method="POST" >
+                            {% csrf_token %}
+                            {{ process_type.xbill_work_form }}
+                            <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                            <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if "Resource Consumption" in process_type.process_pattern.non_change_event_type_names %}
             <div style="display: inline;" >
-              <form style="display: inline;" action="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
-              <!--<a href="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >Delete</a>-->
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
-                <button class="btn btn-warning" title="Delete process stype" >Delete</button>
-              </form>
+                <a href="#consumableForm{{ process_type.id }}" role="button" class="btn btn-info" data-toggle="modal">
+                {% trans "Add consumable" %}
+                </a>
             </div>
+          
+            <div class="modal hide fade" id="consumableForm{{ process_type.id }}" tabindex="-1" role="dialog" aria-labelledby="consumable-label" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="consumable-label">{% blocktrans %}Add a consumable input to {{ process_type.name }}{% endblocktrans %}</h3>
+                </div>
+                <div class="modal-body">
+                    <form class="consumable-form" action="{% url create_process_type_input process_type_id=process_type.id slot='c' %}" method="POST" >
+                        {% csrf_token %}
+                        {% with iform=process_type.xbill_consumable_form %}
+                        <p class="modal-line">{% trans "Resource Type" %} </p>
+                        <p>{{ iform.resource_type }} 
+                        <a href="#createResourceForm{{ process_type.id }}" role="button" class="add-another" data-toggle="modal">
+                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
+                        </a> </p>                   
+                        <p class="modal-line">{% trans "Quantity" %} </p>
+                        <p>{{ iform.quantity }} </p>
+                        <p class="modal-line">{% trans "Unit of Quantity" %} </p>
+                        <p>{{ iform.unit_of_quantity }}</p>
+                        <p class="modal-line">{% trans "Description" %} </p>
+                        <p class="desc">{{ iform.description }} </p>
+                        {% endwith %}
+                        <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                        <div class="modal-footer">
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                            <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                        </div>
+                    
+                    </form>
+                </div>
+             </div>
+            {% endif %}
+            
+            
           </div>
           
           <div class="row-fluid">
             <div class="span6 inputs">
                 <h5>Inputs</h5>
-                {% for ptrt in process_type.all_input_resource_type_relationships %}
-{% comment %}
+                
+                {% for ptrt in process_type.all_input_resource_type_relationships %}                
+                    <div class="economic-resource-type">
+                        {{ ptrt.stream_label }}
+                    </div>
+  {% comment %}  
                     <div style="display: inline;">
-                        <a href="#changeInputForm{{ node_id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+                        <a href="#changeInputForm{{ ptrt.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
                     </div>
 
-
-                    <div class="modal hide fade" id="changeInputForm{{ node_id }}" tabindex="-1" role="dialog" aria-labelledby="change-input-label" aria-hidden="true">
+                    <div class="modal hide fade" id="changeInputForm{{ ptrt.id }}" tabindex="-1" role="dialog" aria-labelledby="change-input-label" aria-hidden="true">
                         <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                        <h3 id="change-input-label">{% trans "Change" %} {{ xbill_node }}</h3>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="change-input-label">{% trans "Change" %} {{ ptrt }}</h3>
                         </div>
                         <div class="modal-body">
-                            <form class="change-input-form" action="{% url change_process_type_input input_id=xbill_node.id %}" method="POST" >
+                            <form class="change-input-form" action="{% url change_process_type_input input_id=ptrt.id %}" method="POST" >
                                 {% csrf_token %}
-                                {{ xbill_node.xbill_change_form }}
-                                <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+                                {{ ptrt.xbill_change_form }}
+                                <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
                                 <div class="modal-footer">
-                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                    <button class="btn btn-primary">{% trans "Save changes" %}</button>
                                 </div>
-
-
                             </form>
                         </div>
-
                     </div>
 
-                <div style="display: inline;" >
-                    <a href="{% url delete_process_input process_input_id=xbill_node.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
-                        {% trans "Delete" %}
-                    </a>
-                </div>
-{% endcomment %}
-                    {{ ptrt }}
+                    <div style="display: inline;" >
+                        <a href="{% url delete_process_input process_input_id=ptrt.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
+                            {% trans "Delete" %}
+                        </a>
+                    </div>
+    {% endcomment %}
                 {% endfor %}
             </div>
 
             <div class="span6 outputs">
             <h5 class="center">Outputs</h5>
                 {% for ptrt in process_type.produced_resource_type_relationships %}
-                
-                    {{ ptrt }}
+                    <div class="economic-resource-type">
+                        {{ ptrt.stream_label }}
+                    </div>
                 {% endfor %}
             </div>
-            
+           </div> 
           </div>
          </div>
-        </div>
+     
          <div class="row-fluid">
            <div class="span12">
             <img src="{% static 'img/bullet-arrow-down-icon.png' %}" />
@@ -310,6 +371,10 @@ ul {
                             {% endwith %}
                         </div>
                         {% endif %}
+                        
+                        
+                        
+                        
                         {% if xb_type == "process-type" %}
                             {% with ptype=xbill_object %}
                                 {% with xbill_consumable_prefix=ptype.xbill_consumable_prefix %}
@@ -384,7 +449,7 @@ ul {
                                     </div>
                               
 
-                                                                {% with xbill_usable_prefix=ptype.xbill_usable_prefix %}
+                                {% with xbill_usable_prefix=ptype.xbill_usable_prefix %}
                                     <div style="display: inline;" >
                                         <a href="#usableForm{{ xbill_usable_prefix }}" role="button" class="btn btn-info" data-toggle="modal">
                                             {% trans "Add usable" %}

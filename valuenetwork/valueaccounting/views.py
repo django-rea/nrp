@@ -1199,9 +1199,6 @@ def edit_stream_recipe(request, resource_type_id):
         #import pdb; pdb.set_trace()
         process_types = rt.staged_process_type_sequence()
         resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
-  
-        names = EconomicResourceType.objects.values_list('name', flat=True)
-        resource_names = '~'.join(names)
         #end_time = time.time()
         #print("edit_extended_bill view elapsed time was %g seconds" % (end_time - start_time))
         return render_to_response("valueaccounting/edit_stream_recipe.html", {
@@ -1209,7 +1206,6 @@ def edit_stream_recipe(request, resource_type_id):
             "process_types": process_types,
             "photo_size": (128, 128),
             "resource_type_form": resource_type_form,
-            "resource_names": resource_names,
             "help": get_help("edit_stream_recipe"),
             }, context_instance=RequestContext(request))
             

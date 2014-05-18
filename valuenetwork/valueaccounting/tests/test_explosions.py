@@ -127,27 +127,6 @@ class ExplosionTest(TestCase):
         self.assertEqual(cyclic_input_commitment.quantity, Decimal("5"))
         crt = cyclic_input_commitment.resource_type
         self.assertEqual(crt.producing_commitments().count(), 1)
-        
-    def test_exploding_stages(self):
-        """ stages allow the same resource type to re-occur in an explosion
-        
-            if the occurrences have different stages.
-        """
-        #todo: this is a stub and needs actual staged_input
-        parent_pt = self.parent.main_producing_process_type()
-        staged_input = ProcessTypeResourceType(
-            process_type=parent_pt,
-            resource_type=self.parent,
-            event_type=self.consumption_event_type,
-            quantity=Decimal("1"),
-            unit_of_quantity=self.unit,
-        )
-        staged_input.save()
-        #import pdb; pdb.set_trace()
-        cts = self.order.order_items()
-        commitment = cts[0]
-        visited = []
-        process = commitment.generate_producing_process(self.user, visited, explode=True)
 
         
     def test_scheduling(self):

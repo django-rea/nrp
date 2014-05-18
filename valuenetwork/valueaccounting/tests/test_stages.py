@@ -117,3 +117,29 @@ class StageTest(TestCase):
         due = next_start + datetime.timedelta(days=3)
         self.assertEqual(order.due_date, due)
         
+    def test_staged_explosion(self):
+        """ stages allow the same resource type to re-occur in an explosion
+        
+            if the occurrences have different stages.
+        """
+        due_date = datetime.date.today()
+        commitment = self.ct3_change.create_commitment(due_date, self.user)
+        visited = []
+        #import pdb; pdb.set_trace()
+        process = commitment.generate_producing_process(self.user, visited, explode=True)
+        prev = process.previous_processes()[0]
+        prev_prev = prev.previous_processes()[0]
+        process_start = due_date - datetime.timedelta(days=3)
+        self.assertEqual(process.start_date, process_start)
+        prev_start = due_date - datetime.timedelta(days=6)
+        self.assertEqual(prev.start_date, prev_start)
+        prev_prev_start = due_date - datetime.timedelta(days=9)
+        self.assertEqual(prev_prev.start_date, prev_prev_start)
+        ordered_processes = []
+        visited_resources = []
+        all_prevs = process.all_previous_processes()
+        prev_next = prev.next_processes()
+        prev_prev_next = prev_prev.next_processes()
+        import pdb; pdb.set_trace()
+        
+        

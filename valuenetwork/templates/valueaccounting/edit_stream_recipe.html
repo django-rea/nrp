@@ -333,6 +333,7 @@ textarea {
           
             <div class="span6 inputs">
                 <h5>Inputs</h5>
+                
                 {% for ptrt in process_type.to_be_changed_resource_type_relationships %}                
                     <div class="change-resource-type">
                         {{ ptrt.stream_label }}
@@ -343,7 +344,8 @@ textarea {
                             <div class="description" >{{ ptrt.description|urlize|linebreaks }}</div>
                         {% endif %}
                     </div>
-                {% endfor %}    
+                {% endfor %} 
+                
                 {% for ptrt in process_type.all_input_except_change_resource_type_relationships %}
                   <div class="economic-resource-type">
                     <div style="display: inline;">
@@ -391,19 +393,20 @@ textarea {
             </div>
 
             <div class="span6 outputs">
-            <h5 class="center">Outputs</h5>
+                <h5 class="center">Output</h5>
                 {% for ptrt in process_type.produced_resource_type_relationships %}
                     <div class="change-resource-type">
                         {{ ptrt.stream_label }}
+                        {% if ptrt.resource_type.facet_list %}
+                            <div class="facets" >{{ ptrt.resource_type.facet_list }}</div>
+                        {% endif %}
+                        {% if ptrt.description %}
+                            <div class="description" >{{ ptrt.description|urlize|linebreaks }}</div>
+                        {% endif %}
                     </div>
-                    {% if ptrt.resource_type.facet_list %}
-                        <div class="facets" >{{ ptrt.resource_type.facet_list }}</div>
-                    {% endif %}
-                    {% if ptrt.description %}
-                        <div class="description" >{{ ptrt.description|urlize|linebreaks }}</div>
-                    {% endif %}
                 {% endfor %}
             </div>
+            
            </div> 
           </div>
          </div>

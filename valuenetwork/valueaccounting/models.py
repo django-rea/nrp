@@ -545,7 +545,8 @@ class EconomicAgent(models.Model):
         return self.active_processes()
         
     def get_resource_types_with_recipe(self):
-        return [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self)]
+        rts = [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self)]
+        return list(set(rts))
                 
     #from here are new methods for context agent code
     def parent(self):
@@ -1029,9 +1030,18 @@ class EconomicResourceType(models.Model):
         return self.process_types.filter(event_type__relationship='out')
 
     def main_producing_process_type_relationship(self, stage=None, state=None):
-        ptrts = self.producing_process_type_relationships().filter(stage=stage, state=state)
+        ptrts = self.producing_process_type_relationships()
+        if stage or state:
+            ptrts = ptrts.filter(stage=stage, state=state)
         if ptrts:
-            return ptrts[0]
+            one_ptrt = ptrts[0]
+            if stage or state:
+                return one_ptrt
+            else:
+                if one_ptrt.stage:
+                    stages = self.staged_commitment_type_sequence()
+                    one_ptrt = stages[-1]
+                return one_ptrt
         else:
             return None
 

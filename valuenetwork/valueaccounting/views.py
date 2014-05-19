@@ -6950,7 +6950,8 @@ def plan_from_recipe(request):
             #process.save()
         
             #import pdb; pdb.set_trace()      
-            ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=produced_rt)
+            #ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=produced_rt)
+            ptrt = produced_rt.main_producing_process_type_relationship()
             et = ptrt.event_type
             if et:
                 #commitment = process.add_commitment(

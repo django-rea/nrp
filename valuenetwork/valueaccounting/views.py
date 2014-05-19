@@ -516,8 +516,9 @@ def change_pattern(request, pattern_id, use_case_id):
         facet_value_formset = FacetValueFormSet(
             queryset=slot.facets,
             data=request.POST or None,
-            prefix=slot.relationship)
+            prefix=slot.slug)
         slot.formset = facet_value_formset
+        #todo: weird, this rts form does not do anything
         slot.rts = ResourceTypeSelectionForm(
             qs=slot.resource_types,
             prefix=slot.relationship)

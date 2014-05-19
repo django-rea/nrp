@@ -141,8 +141,8 @@ textarea {
                     {{ resource_type_form }}
                     <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
                     <div class="modal-footer">
-                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                    <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                        <button class="btn btn-primary">{% trans "Save changes" %}</button>
                     </div>
                 </form>
             </div>
@@ -184,16 +184,13 @@ textarea {
                     </form>
                 </div>
             </div>
-            
-            <div style="display: inline;" >
-                <form style="display: inline;" action="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
-                    <button class="btn btn-warning" title="Delete process stype" >Delete</button>
-                </form>
-            </div>
-           </div>
-            
+    
+            <form style="display: inline;" action="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                <button class="btn btn-warning" title="Delete process type" >Delete</button>
+            </form>
+             
             {% if "Time Contribution" in process_type.process_pattern.non_change_event_type_names %}
                 <div style="display: inline;" >
                     <a href="#workForm{{ process_type.id }}" role="button" class="btn btn-info" data-toggle="modal">
@@ -280,7 +277,7 @@ textarea {
                 {% for ptrt in process_type.all_input_except_change_resource_type_relationships %}
                   <div class="economic-resource-type">
                     <div style="display: inline;">
-                        {{ ptrt.xbill_label }}
+                        {{ ptrt.stream_label }}
                     </div>
                     <div style="display: inline;">
                         <a href="#changeInputForm{{ ptrt.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
@@ -347,8 +344,7 @@ textarea {
            </div>
          </div>
  
- 
-      {% endfor %}
+       {% endfor %}
  
 
 

@@ -72,7 +72,12 @@ li {
 			<ul>
 			    {% for item in order.producing_commitments %}
 					<li>
-					    <span class="resource-type">{{ item.resource_type }}</span> {{ item.quantity }} {{ item.unit_of_quantity }}
+					    <span class="resource-type">
+                            {{ item.resource_type }}
+                            {% if item.stage %}
+                                @{{ item.stage.name }}
+                            {% endif %}
+                        </span> {{ item.quantity }} {{ item.unit_of_quantity }}
 			            {% if item.description %}
 			               <div class="req-description"> {{ item.description|urlize|linebreaks }}</div>
 		                {% endif %}

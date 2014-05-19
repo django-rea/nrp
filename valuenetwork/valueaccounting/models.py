@@ -545,7 +545,8 @@ class EconomicAgent(models.Model):
         return self.active_processes()
         
     def get_resource_types_with_recipe(self):
-        return [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self)]
+        rts = [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self)]
+        return list(set(rts))
                 
     #from here are new methods for context agent code
     def parent(self):
@@ -1028,20 +1029,29 @@ class EconomicResourceType(models.Model):
     def producing_process_type_relationships(self):
         return self.process_types.filter(event_type__relationship='out')
 
-    def main_producing_process_type_relationship(self):
+    def main_producing_process_type_relationship(self, stage=None, state=None):
         ptrts = self.producing_process_type_relationships()
+        if stage or state:
+            ptrts = ptrts.filter(stage=stage, state=state)
         if ptrts:
-            return ptrts[0]
+            one_ptrt = ptrts[0]
+            if stage or state:
+                return one_ptrt
+            else:
+                if one_ptrt.stage:
+                    stages = self.staged_commitment_type_sequence()
+                    one_ptrt = stages[-1]
+                return one_ptrt
         else:
             return None
 
     def producing_process_types(self):
         return [pt.process_type for pt in self.producing_process_type_relationships()]
 
-    def main_producing_process_type(self):
-        pts = self.producing_process_types()
-        if pts:
-            return pts[0]
+    def main_producing_process_type(self, stage=None, state=None):
+        ptrt = self.main_producing_process_type_relationship(stage, state)
+        if ptrt:
+            return ptrt.process_type
         else:
             return None
             
@@ -1055,11 +1065,14 @@ class EconomicResourceType(models.Model):
         
     def staged_commitment_type_sequence(self):
         creation_et = EventType.objects.get(name='Create Changeable') 
-        creation = self.process_types.get(
-            stage__isnull=False,
-            event_type=creation_et)
         chain = []
-        creation.follow_stage_chain(chain)
+        try:
+            creation = self.process_types.get(
+                stage__isnull=False,
+                event_type=creation_et)
+            creation.follow_stage_chain(chain)
+        except ProcessTypeResourceType.DoesNotExist:
+            pass
         return chain
         
     def staged_process_type_sequence(self):
@@ -1089,7 +1102,7 @@ class EconomicResourceType(models.Model):
             for ct in process.commitments.all():
                 ct.independent_demand = order
                 ct.save()
-        last_process = process
+        last_process = processes[-1]
         order_name = ""
         for ct in last_process.outgoing_commitments():
             ct.order = order
@@ -1974,6 +1987,8 @@ class Order(models.Model):
             quantity,
             event_type,
             unit,
+            stage=None,
+            state=None,
             due=None):
         #todo: needs process and project. Anything else? >>context agent
         #might not be worth refactoring out.
@@ -1984,6 +1999,8 @@ class Order(models.Model):
             independent_demand=self,
             event_type=event_type,
             resource_type=resource_type,
+            stage=stage,
+            state=state,
             quantity=quantity,
             unit_of_quantity=unit,
             due_date=due)
@@ -2000,9 +2017,9 @@ class Order(models.Model):
             if not p.next_processes():
                 roots.append(p)
         ordered_processes = []
-        visited_resources = []
+        visited = []
         for root in roots:
-            root.all_previous_processes(ordered_processes, visited_resources, 0)
+            root.all_previous_processes(ordered_processes, visited, 0)
         ordered_processes = list(set(ordered_processes))
         ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
         return ordered_processes
@@ -2615,6 +2632,15 @@ class ProcessTypeResourceType(models.Model):
     def inverse_label(self):
         return self.event_type.inverse_label
         
+    def cycle_id(self):
+        stage_id = ""
+        if self.stage:
+            stage_id = str(self.stage.id)
+        state_id = ""
+        if self.state:
+            state_id = str(self.state.id)
+        return "-".join([str(self.resource_type.id), stage_id, state_id])
+        
     def follow_stage_chain(self, chain):
         if self.event_type.is_change_related():
             chain.append(self)
@@ -2638,7 +2664,25 @@ class ProcessTypeResourceType(models.Model):
             due_date = process.start_date
         commitment = Commitment(
             process=process,
+            stage=self.stage,
+            state=self.state,
             context_agent=process.context_agent,
+            event_type=self.event_type,
+            resource_type=self.resource_type,
+            quantity=self.quantity,
+            unit_of_quantity=self.resource_type.unit,
+            due_date=due_date,
+            #from_agent=from_agent,
+            #to_agent=to_agent,
+            created_by=user)
+        commitment.save()
+        return commitment
+        
+    def create_commitment(self, due_date, user):
+        commitment = Commitment(
+            stage=self.stage,
+            state=self.state,
+            context_agent=self.process_type.context_agent,
             event_type=self.event_type,
             resource_type=self.resource_type,
             quantity=self.quantity,
@@ -2919,6 +2963,7 @@ class Process(models.Model):
             return None
 
     def previous_processes(self):
+        #todo: needs stages and states
         answer = []
         dmnd = None
         moc = self.main_outgoing_commitment()
@@ -2928,17 +2973,20 @@ class Process(models.Model):
         #output_rts = [oc.resource_type for oc in self.outgoing_commitments()]
         for ic in self.incoming_commitments():
             rt = ic.resource_type
+            stage = ic.stage
+            state = ic.state
             # this is maybe a better way to block cycles
             for pc in rt.producing_commitments():
                 if pc.process != self:
-                    if dmnd:
-                        if pc.independent_demand == dmnd:
-                            answer.append(pc.process)
-                    else:
-                        if not pc.independent_demand:
-                            if pc.quantity >= ic.quantity:
-                                if pc.due_date <= self.start_date:
-                                    answer.append(pc.process)
+                    if pc.stage == stage and pc.state == state:
+                        if dmnd:
+                            if pc.independent_demand == dmnd:
+                                answer.append(pc.process)
+                        else:
+                            if not pc.independent_demand:
+                                if pc.quantity >= ic.quantity:
+                                    if pc.due_date <= self.start_date:
+                                        answer.append(pc.process)
         for ie in self.uncommitted_input_events():
             if ie.resource:
                 for evt in ie.resource.producing_events():
@@ -2948,43 +2996,48 @@ class Process(models.Model):
                                 answer.append(evt.process)
         return answer
 
-    def all_previous_processes(self, ordered_processes, visited_resources, depth):
+    def all_previous_processes(self, ordered_processes, visited, depth):
+        #todo: needs stages and states
         self.depth = depth * 2
         ordered_processes.append(self)
         output = self.main_outgoing_commitment()
         if not output:
             return []
         depth = depth + 1
-        if output.resource_type not in visited_resources:
-            visited_resources.append(output.resource_type)
+        if output.cycle_id not in visited:
+            visited.append(output.cycle_id)
             for process in self.previous_processes():
-                process.all_previous_processes(ordered_processes, visited_resources, depth)
+                process.all_previous_processes(ordered_processes, visited, depth)
 
     def next_processes(self):
+        #todo: needs stages and states
         answer = []
         #import pdb; pdb.set_trace()
-        input_rts = [ic.resource_type for ic in self.incoming_commitments()]
+        input_ids = [ic.cycle_id() for ic in self.incoming_commitments()]
         for oc in self.outgoing_commitments():
             dmnd = oc.independent_demand
+            stage = oc.stage
+            state = oc.state
             rt = oc.resource_type
-            if rt not in input_rts:
+            if oc.cycle_id() not in input_ids:
                 for cc in rt.wanting_commitments():
-                    if dmnd:
-                        if cc.independent_demand == dmnd:
-                            if cc.process not in answer:
-                                answer.append(cc.process)
-                    else:
-                        if not cc.independent_demand:
-                            if cc.quantity >= oc.quantity:
-                                compare_date = self.end_date
-                                if not compare_date:
-                                    compare_date = self.start_date
-                                if cc.due_date >= compare_date:
-                                    if cc.process not in answer:
-                                        answer.append(cc.process)
+                    if cc.stage == stage and cc.state == state:
+                        if dmnd:
+                            if cc.independent_demand == dmnd:
+                                if cc.process not in answer:
+                                    answer.append(cc.process)
+                        else:
+                            if not cc.independent_demand:
+                                if cc.quantity >= oc.quantity:
+                                    compare_date = self.end_date
+                                    if not compare_date:
+                                        compare_date = self.start_date
+                                    if cc.due_date >= compare_date:
+                                        if cc.process not in answer:
+                                            answer.append(cc.process)
         for oe in self.uncommitted_production_events():
             rt = oe.resource_type
-            if rt not in input_rts:
+            if oe.cycle_id() not in input_ids:
                 if oe.resource:
                     for evt in oe.resource.all_usage_events():
                         if evt.process:
@@ -3104,6 +3157,8 @@ class Process(models.Model):
             event_type,
             unit,
             user,
+            stage=None,
+            state=None,
             from_agent=None,
             to_agent=None):
         ct = Commitment(
@@ -3112,6 +3167,8 @@ class Process(models.Model):
             context_agent=self.context_agent,
             event_type=event_type,
             resource_type=resource_type,
+            stage=stage,
+            state=state,
             quantity=quantity,
             unit_of_quantity=unit,
             due_date=self.start_date,
@@ -3132,20 +3189,24 @@ class Process(models.Model):
         output = self.main_outgoing_commitment()
         #if not output:
             #import pdb; pdb.set_trace()
-        if output.resource_type not in visited:
-            visited.append(output.resource_type)
+        visited_id = output.cycle_id()
+        if visited_id not in visited:
+            visited.append(visited_id)
         for ptrt in pt.all_input_resource_type_relationships():   
             commitment = self.add_commitment(
                 resource_type=ptrt.resource_type,
                 demand=demand,
+                stage=ptrt.stage,
+                state=ptrt.state,
                 quantity=output.quantity * ptrt.quantity,
                 event_type=ptrt.event_type,
                 unit=ptrt.resource_type.unit,
                 user=user,
             )
             #cycles broken here
-            if ptrt.resource_type not in visited:
-                visited.append(ptrt.resource_type)
+            visited_id = ptrt.cycle_id()
+            if visited_id not in visited:
+                visited.append(visited_id)
                 qty_to_explode = commitment.net()
                 if qty_to_explode:
                     #todo: shd commitment.generate_producing_process?
@@ -3153,7 +3214,10 @@ class Process(models.Model):
                     #shd pt create process?
                     #shd pptr create next_commitment, and then 
                     #shd next_commitment.generate_producing_process?
-                    pptr = ptrt.resource_type.main_producing_process_type_relationship()
+                    
+                    pptr = ptrt.resource_type.main_producing_process_type_relationship(
+                        stage=commitment.stage,
+                        state=commitment.state)
                     if pptr:
                         next_pt = pptr.process_type
                         start_date = self.start_date - datetime.timedelta(minutes=next_pt.estimated_duration)
@@ -3171,6 +3235,8 @@ class Process(models.Model):
                         #this is the output commitment
                         next_commitment = next_process.add_commitment(
                             resource_type=pptr.resource_type,
+                            stage=pptr.stage,
+                            state=pptr.state,
                             demand=demand,
                             quantity=qty_to_explode * pptr.quantity,
                             event_type=pptr.event_type,
@@ -3632,6 +3698,15 @@ class Commitment(models.Model):
 
     def label(self):
         return self.event_type.get_relationship_display()
+        
+    def cycle_id(self):
+        stage_id = ""
+        if self.stage:
+            stage_id = str(self.stage.id)
+        state_id = ""
+        if self.state:
+            state_id = str(self.state.id)
+        return "-".join([str(self.resource_type.id), stage_id, state_id])
 
     def commitment_type(self):
         rt = self.resource_type
@@ -3879,8 +3954,8 @@ class Commitment(models.Model):
         if not self.order:
             qty_required = self.net()
         process=None
-        if qty_required:            
-            ptrt = rt.main_producing_process_type_relationship()
+        if qty_required:  
+            ptrt = rt.main_producing_process_type_relationship(stage=self.stage, state=self.state)
             demand = self.independent_demand
             if ptrt:
                 pt = ptrt.process_type
@@ -4201,6 +4276,15 @@ class EconomicEvent(models.Model):
         if self.context_agent:
             return self.context_agent.exchange_firm() or self.context_agent
         return None 
+        
+    def cycle_id(self):
+        stage_id = ""
+        if self.resource.stage:
+            stage_id = str(self.resource.stage.id)
+        state_id = ""
+        if self.resource.state:
+            state_id = str(self.resource.state.id)
+        return "-".join([str(self.resource_type.id), stage_id, state_id])
         
     def recipient(self):
         return self.to_agent or self.default_agent()

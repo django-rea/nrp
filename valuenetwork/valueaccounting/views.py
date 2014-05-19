@@ -516,8 +516,9 @@ def change_pattern(request, pattern_id, use_case_id):
         facet_value_formset = FacetValueFormSet(
             queryset=slot.facets,
             data=request.POST or None,
-            prefix=slot.relationship)
+            prefix=slot.slug)
         slot.formset = facet_value_formset
+        #todo: weird, this rts form does not do anything
         slot.rts = ResourceTypeSelectionForm(
             qs=slot.resource_types,
             prefix=slot.relationship)
@@ -2115,8 +2116,10 @@ def create_order(request):
                     if qty:
                         rt_id = data["resource_type_id"]
                         rt = EconomicResourceType.objects.get(id=rt_id)
+                        #todo: add stage and state as args?
                         pt = rt.main_producing_process_type()
                         if pt:
+                            #todo: add stage and state as args?
                             ptrt = rt.main_producing_process_type_relationship()
                             commitment = Commitment(
                                 order=order,
@@ -3066,6 +3069,7 @@ def new_process_input(request, commitment_id, slot):
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
+                #todo: add stage and state as args
                 ptrt = ct.resource_type.main_producing_process_type_relationship()
                 if ptrt:
                     ct.context_agent = ptrt.process_type.context_agent
@@ -3517,6 +3521,7 @@ def add_process_input(request, process_id, slot):
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
+                #todo: add stage and state as args
                 ptrt = ct.resource_type.main_producing_process_type_relationship()
                 if ptrt:
                     ct.context_agent = ptrt.process_type.context_agent
@@ -6020,6 +6025,7 @@ def change_process(request, process_id):
                             ct.process = process
                             ct.independent_demand = demand
                             ct.created_by = request.user
+                            #todo: add stage and state as args
                             ptrt = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
                                 ct.context_agent = ptrt.process_type.context_agent
@@ -6115,6 +6121,7 @@ def change_process(request, process_id):
                             ct.independent_demand = demand
                             ct.due_date = process.start_date
                             ct.created_by = request.user
+                            #todo: add stage and state as args
                             ptrt = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
                                 ct.context_agent = ptrt.process_type.context_agent
@@ -6142,7 +6149,7 @@ def change_process(request, process_id):
         "work_formset": work_formset,
     }, context_instance=RequestContext(request))
 
-#todo: soon to be obsolete
+#todo: soon to be obsolete (is it obsolete now?)
 def explode_dependent_demands(commitment, user):
     """This method assumes an input commitment"""
     
@@ -6150,6 +6157,7 @@ def explode_dependent_demands(commitment, user):
     qty_to_explode = commitment.net()
     if qty_to_explode:
         rt = commitment.resource_type
+        #todo: add stage and state as args?
         ptrt = rt.main_producing_process_type_relationship()
         demand = commitment.independent_demand
         if ptrt:
@@ -6583,6 +6591,7 @@ def change_rand(request, rand_id):
                                                 # and keep the others
                                                 if proc.outgoing_commitments().count() <= 1:
                                                     proc.delete()
+                                    #todo: add stage and state as args
                                     ptrt = ct.resource_type.main_producing_process_type_relationship()
                                     if ptrt:
                                         ct.context_agent = ptrt.process_type.context_agent
@@ -6606,6 +6615,7 @@ def change_rand(request, rand_id):
                                 ct.process = process
                                 ct.due_date = process.start_date
                                 ct.created_by = request.user
+                                #todo: add stage and state as args
                                 ptrt = ct.resource_type.main_producing_process_type_relationship()
                                 if ptrt:
                                     ct.context_agent = ptrt.process_type.context_agent
@@ -6773,6 +6783,7 @@ def process_selections(request, rand=0):
                             commitment.save()
                         '''
                         #use recipe
+                        #todo: add stage and state as args
                         pt = rt.main_producing_process_type()
                         process.process_type=pt
                         process.save()
@@ -6932,7 +6943,7 @@ def plan_from_recipe(request):
                 name=order_name,
                 created_by=request.user)
             demand.save()
-
+            #todo: add stage and state as args
             pt = produced_rt.main_producing_process_type()
             
             #process = Process(
@@ -6947,7 +6958,8 @@ def plan_from_recipe(request):
             #process.save()
         
             #import pdb; pdb.set_trace()      
-            ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=produced_rt)
+            #ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=produced_rt)
+            ptrt = produced_rt.main_producing_process_type_relationship()
             et = ptrt.event_type
             if et:
                 #commitment = process.add_commitment(
@@ -7066,7 +7078,7 @@ def plan_from_rt_recipe(request, resource_type_id):
                 name=order_name,
                 created_by=request.user)
             demand.save()
-
+            #todo: add stage and state as args
             pt = resource_type.main_producing_process_type()
             ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=resource_type)
             et = ptrt.event_type

@@ -27,7 +27,12 @@
         <ul>
 		    {% for item in process.outgoing_commitments %}	
 			    <li class="deliverable" >
-				    <span class="name deliverable-name">{{ item.resource_type.name }}:</span> 
+				    <span class="name deliverable-name">
+                        {{ item.resource_type.name }}
+                        {% if item.stage %}
+                            @{{ item.stage.name }}
+                        {% endif %}
+                        :</span> 
 				    {{ item.quantity }} {{ item.unit_of_quantity }} <span class="due">{% trans "due" %} {{ item.due_date }}</span>
 				    {% if item.description %}
 		               <ul>

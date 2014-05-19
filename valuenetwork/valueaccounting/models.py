@@ -2114,7 +2114,10 @@ class ProcessType(models.Model):
                                                                 
     def work_resource_type_relationships(self):
         return self.resource_types.filter(event_type__relationship='work')
-                                                                    
+        
+    def to_be_changed_resource_type_relationships(self):
+        return self.resource_types.filter(event_type__name='To Be Changed')       
+        
     def consumed_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_resource_type_relationships()]
                                                                         
@@ -2129,6 +2132,9 @@ class ProcessType(models.Model):
                                                                                     
     def all_input_resource_type_relationships(self):
         return self.resource_types.exclude(event_type__relationship='out').exclude(event_type__relationship='todo')
+        
+    def all_input_except_change_resource_type_relationships(self):
+        return self.resource_types.exclude(event_type__relationship='out').exclude(event_type__relationship='todo').exclude(event_type__name='To Be Changed')
         
     def all_input_resource_types(self):
         return [ptrt.resource_type for ptrt in self.all_input_resource_type_relationships()]
@@ -2695,7 +2701,10 @@ class ProcessTypeResourceType(models.Model):
         rt_name = self.resource_type.name
         if self.stage:
             rt_name = "".join([rt_name, "@", self.stage.name])
-        return " ".join([relname, str(self.quantity), rt_name]) 
+        abbrev = ""
+        if self.unit_of_quantity:
+            abbrev = self.unit_of_quantity.abbrev
+        return " ".join([relname, str(self.quantity), abbrev, rt_name]) 
                         
     def xbill_label(self):
         if self.event_type.relationship == 'out':

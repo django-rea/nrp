@@ -1399,6 +1399,14 @@ def delete_process_input(request,
     pi.delete()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/edit-xbomfg', resource_type_id))
+        
+@login_required
+def delete_process_type_input(request, 
+        process_input_id, resource_type_id):
+    pi = get_object_or_404(ProcessTypeResourceType, pk=process_input_id)
+    pi.delete()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
 
 
 @login_required

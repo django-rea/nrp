@@ -1543,6 +1543,34 @@ class XbillProcessTypeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(XbillProcessTypeForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()  
+        
+class RecipeProcessTypeForm(forms.ModelForm):
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.none(), 
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 'pattern-selector'}))
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Project"),
+        required=False, 
+        #empty_label="---------",
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    quantity = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    estimated_duration = forms.IntegerField(required=False,
+        widget=DurationWidget,
+        help_text="days, hours, minutes")
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    
+    class Meta:
+        model = ProcessType
+        exclude = ('parent','project')
+        
+    def __init__(self, *args, **kwargs):
+        super(RecipeProcessTypeForm, self).__init__(*args, **kwargs)
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.recipe_patterns() 
 
 
 class ChangeProcessTypeForm(forms.ModelForm):
@@ -1595,7 +1623,7 @@ class ProcessTypeInputForm(forms.ModelForm):
 
     class Meta:
         model = ProcessTypeResourceType
-        exclude = ('process_type', 'relationship', 'event_type')
+        exclude = ('process_type', 'relationship', 'event_type', 'state', 'stage')
 
     def __init__(self, process_type=None, *args, **kwargs):
         super(ProcessTypeInputForm, self).__init__(*args, **kwargs)
@@ -1632,7 +1660,7 @@ class ProcessTypeConsumableForm(forms.ModelForm):
 
     class Meta:
         model = ProcessTypeResourceType
-        exclude = ('process_type', 'relationship', 'event_type')
+        exclude = ('process_type', 'relationship', 'event_type', 'state', 'stage')
 
     def __init__(self, process_type=None, *args, **kwargs):
         super(ProcessTypeConsumableForm, self).__init__(*args, **kwargs)
@@ -1669,7 +1697,7 @@ class ProcessTypeUsableForm(forms.ModelForm):
 
     class Meta:
         model = ProcessTypeResourceType
-        exclude = ('process_type', 'relationship', 'event_type')
+        exclude = ('process_type', 'relationship', 'event_type', 'state', 'stage')
 
     def __init__(self, process_type=None, *args, **kwargs):
         super(ProcessTypeUsableForm, self).__init__(*args, **kwargs)

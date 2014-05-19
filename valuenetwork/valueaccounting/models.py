@@ -1290,7 +1290,12 @@ class EconomicResourceType(models.Model):
         from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
         init = {"name": " ".join(["Make", self.name])}
         return XbillProcessTypeForm(initial=init, prefix=self.process_create_prefix())
-
+        
+    def process_stream_create_form(self):
+        from valuenetwork.valueaccounting.forms import RecipeProcessTypeForm
+        init = {"name": " ".join(["Make", self.name])}
+        return RecipeProcessTypeForm(initial=init, prefix=self.process_create_prefix())
+            
     def source_create_prefix(self):
         return "".join(["SRC", str(self.id)])
 
@@ -1398,7 +1403,13 @@ class ProcessPatternManager(models.Manager):
             Q(use_case__identifier='rand')|Q(use_case__identifier='design'))
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
-
+        
+    def recipe_patterns(self):
+        #import pdb; pdb.set_trace()
+        use_cases = PatternUseCase.objects.filter(use_case__identifier='recipe')
+        pattern_ids = [uc.pattern.id for uc in use_cases]
+        return ProcessPattern.objects.filter(id__in=pattern_ids)
+        
     def usecase_patterns(self, use_case):
         #import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(
@@ -2165,6 +2176,10 @@ class ProcessType(models.Model):
     def xbill_change_form(self):
         from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
         return XbillProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
+    
+    def recipe_change_form(self):
+        from valuenetwork.valueaccounting.forms import RecipeProcessTypeForm
+        return RecipeProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
 
     def xbill_input_prefix(self):
         return "".join(["PTINPUT", str(self.id)])

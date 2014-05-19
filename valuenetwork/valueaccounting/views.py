@@ -6974,7 +6974,10 @@ def plan_from_recipe(request):
                     resource_type=produced_rt,
                     quantity=Decimal("1"),
                     event_type=et,
-                    unit=produced_rt.unit)
+                    unit=produced_rt.unit,
+                    stage=ptrt.stage,
+                    state=ptrt.state,
+                    )
                 commitment.created_by=request.user
                 commitment.save()
                 #if pt:
@@ -7087,7 +7090,9 @@ def plan_from_rt_recipe(request, resource_type_id):
                     resource_type=resource_type,
                     quantity=Decimal("1"),
                     event_type=et,
-                    unit=resource_type.unit)
+                    unit=resource_type.unit,
+                    stage=ptrt.stage,
+                    state=ptrt.stage,)
                 commitment.created_by=request.user
                 commitment.save()
                 process = commitment.generate_producing_process(request.user, [], explode=True)

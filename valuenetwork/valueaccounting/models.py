@@ -4013,6 +4013,8 @@ class Commitment(models.Model):
 
     def associated_wanting_commitments(self):
         wanters = self.resource_type.wanting_commitments().exclude(id=self.id)
+        if self.stage:
+            wanters = wanters.filter(stage=self.stage)
         return [ct for ct in wanters if ct.independent_demand == self.independent_demand]
 
     def associated_producing_commitments(self):

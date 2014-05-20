@@ -33,7 +33,7 @@ textarea {
 .economic-resource-type {
     background-color: whitesmoke;
     border: 1px solid gainsboro; 
-    padding: 1em;
+    padding: 1em 1em .5em 1em;
     font-weight: bold;
 }
 .change-resource-type {
@@ -57,12 +57,6 @@ textarea {
     color: firebrick;
     font-size: 1.2em;
 }
-.option {
-    background-color: whitesmoke;
-}
-.economic-agent {
-    background-color: #EDDCCC;
-}
 .description {
     font-style: italic;
     font-weight: normal;
@@ -76,9 +70,9 @@ textarea {
     font-weight: normal;
 }
 .btn-info {
-    margin-top: 2px;
+    margin-top: 1px;
+    margin-bottom: 1px;
 }
-
 .days, .hours, .minutes {
     width: 24px;
 }
@@ -99,8 +93,13 @@ textarea {
     padding-right: 1em;
     text-align: right;
 }
-
-
+.bottom-space {
+    margin-bottom: 4px;
+}
+.align-center {
+    text-align: center;
+}
+    
 </style>
 {% endblock %}
 
@@ -158,7 +157,39 @@ textarea {
         {% endif %}
         
         {% for process_type in process_types %}
+         {% if process_type.input_stream_resource_type_relationship.count > 0 %}
+          <div class="row-fluid">
+           <div class="span12">
+           
+            <div class="bottom-space">
+                <a href="#insertProcessForm{{ process_type.id }}" role="button" class="btn btn-info" data-toggle="modal">
+                {% blocktrans %}Insert a process type here {% endblocktrans %}
+                </a>
+            </div>
+            
+            <div class="modal hide fade processForm" id="insertProcessForm{{ process_type.id }}" tabindex="-1" role="dialog" aria-labelledby="process-insert-label" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="process-insert-label">{% blocktrans %}Insert process type for {% endblocktrans %} {{ resource_type }} </h3>
+                </div>
+                <div class="modal-body">
+                    <form class="process-form" action="{% url create_process_type_for_streaming resource_type_id=resource_type.id process_type_id=process_type.id %}" method="POST">
+                        {% csrf_token %}
+                        {{ process_type.stream_process_type_create_form }}
+                        <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                        <div class="modal-footer">
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                            <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>            
+           </div>
+          </div>
+         {% endif %}
+          
          <div class="process-type">
+ 
           <div class="row-fluid">
            <div class="span12">
             <div class="process-hdr" style="display: inline;"> {{ process_type.name }} </div>
@@ -235,9 +266,12 @@ textarea {
                             {% with iform=process_type.xbill_consumable_form %}
                                 <p class="modal-line">{% trans "Resource Type" %} </p>
                                 <p>{{ iform.resource_type }} 
+                                {% comment %}
                                 <a href="#createResourceForm{{ process_type.id }}" role="button" class="add-another" data-toggle="modal">
                                 <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
-                                </a> </p>                   
+                                </a> 
+                                {% endcomment %}
+                                </p>                   
                                 <p class="modal-line">{% trans "Quantity" %} </p>
                                 <p>{{ iform.quantity }} </p>
                                 <p class="modal-line">{% trans "Unit of Quantity" %} </p>
@@ -274,9 +308,12 @@ textarea {
                             {% with iform=process_type.xbill_usable_form %}
                                 <p class="modal-line">{% trans "Resource Type" %} </p>
                                 <p>{{ iform.resource_type }} 
+                                {% comment %}
                                 <a href="#createResourceForm{{ process_type.id }}" role="button" class="add-another" data-toggle="modal">
                                 <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
-                                </a> </p>                   
+                                </a> 
+                                {% endcomment %}
+                                </p>                   
                                 <p class="modal-line">{% trans "Quantity" %} </p>
                                 <p>{{ iform.quantity }} </p>
                                 <p class="modal-line">{% trans "Unit of Quantity" %} </p>
@@ -312,9 +349,12 @@ textarea {
                             {% with iform=process_type.xbill_citable_form %}
                                 <p class="modal-line">{% trans "Resource Type" %} </p>
                                 <p>{{ iform.resource_type }} 
+                                {% comment %} 
                                 <a href="#createResourceForm{{ process_type.id }}" role="button" class="add-another" data-toggle="modal">
                                 <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
-                                </a> </p>                   
+                                </a> 
+                                {% endcomment %} 
+                                </p>                  
                                 <p class="modal-line">{% trans "Description" %} </p>
                                 <p class="desc">{{ iform.description }} </p>
                             {% endwith %}
@@ -337,7 +377,7 @@ textarea {
           <div class="row-fluid">
           
             <div class="span6 inputs">
-                <h5>Inputs</h5>
+                <h5 class="align-center">Inputs</h5>
                 
                 {% for ptrt in process_type.to_be_changed_resource_type_relationships %}                
                     <div class="change-resource-type">
@@ -398,7 +438,7 @@ textarea {
             </div>
 
             <div class="span6 outputs">
-                <h5 class="center">Output</h5>
+            <h5  class="align-center">Output</h5>
                 {% for ptrt in process_type.produced_resource_type_relationships %}
                     <div class="change-resource-type">
                         {{ ptrt.stream_label }}
@@ -425,15 +465,15 @@ textarea {
        {% endfor %}
  
         <div >
-            <a href="#processForm{{ resource_type.id }}" role="button" class="btn btn-info" data-toggle="modal">
+            <a href="#processForm0" role="button" class="btn btn-info" data-toggle="modal">
             {% blocktrans %}Add a process type to change {{ resource_type }}{% endblocktrans %}
             </a>
         </div>
         
-        <div class="modal hide fade processForm" id="processForm{{ resource_type.id }}" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
+        <div class="modal hide fade processForm" id="processForm0" tabindex="-1" role="dialog" aria-labelledby="process-label" aria-hidden="true">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h3 id="process-label">{% blocktrans %}Add next process type for {{ resource_type }}{% endblocktrans %}</h3>
+                <h3 id="process-label">{% blocktrans %}Add next process type for {% endblocktrans %} {{ resource_type }} </h3>
             </div>
             <div class="modal-body">
                 <form class="process-form" action="{% url create_process_type_for_streaming resource_type_id=resource_type.id %}" method="POST">
@@ -446,7 +486,7 @@ textarea {
                     </div>
                 </form>
             </div>
-        </div>    
+        </div>  
     
     </div>
 

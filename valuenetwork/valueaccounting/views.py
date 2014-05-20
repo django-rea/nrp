@@ -1865,11 +1865,16 @@ def create_process_type_for_resource_type(request, resource_type_id):
             raise ValidationError(form.errors)
         
 @login_required
-def create_process_type_for_streaming(request, resource_type_id):
+def create_process_type_for_streaming(request, resource_type_id, process_type_id=None):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-        prefix = rt.process_create_prefix()
+        existing_process_type = None
+        if process_type_id:
+            next_process_type = ProcessType.objects.get(id=process_type_id)
+            prefix = next_process_type.stream_process_type_create_prefix()
+        else:
+            prefix = rt.process_create_prefix()
         form = XbillProcessTypeForm(request.POST, prefix=prefix)
         if form.is_valid():
             data = form.cleaned_data
@@ -1885,9 +1890,15 @@ def create_process_type_for_streaming(request, resource_type_id):
             for et in ets:
                 if et.relationship == "out":
                     stage = pt
-                else:
+                else: #assumes only one input of stream/change type (or possibly none)
                     pts = rt.staged_process_type_sequence()
-                    stage = pts[-1]
+                    if process_type_id:
+                        next_input_ptrt = next_process_type.input_stream_resource_type_relationship()[0]
+                        stage = next_input_ptrt.stage
+                        next_input_ptrt.stage = pt
+                        next_input_ptrt.save()
+                    else:
+                        stage = pts[-1]
                 ptrt = ProcessTypeResourceType(
                     process_type=pt,
                     resource_type=rt,

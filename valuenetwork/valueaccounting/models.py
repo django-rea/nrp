@@ -1798,9 +1798,9 @@ def create_event_types(app, **kwargs):
     EventType.create('Todo', _('todo'), '', 'todo', 'agent', '=', '')
     EventType.create('Resource use', _('uses'), _('used by'), 'use', 'process', '=', 'time') 
     EventType.create('Time Contribution', _('work'), '', 'work', 'process', '=', 'time') 
-    EventType.create('Create Changeable', _('creates changeable'), 'changeable created by', 'out', 'process', '+~', 'quantity')  
+    EventType.create('Create Changeable', _('creates changeable'), 'changeable created', 'out', 'process', '+~', 'quantity')  
     EventType.create('To Be Changed', _('to be changed'), '', 'in', 'process', '>~', 'quantity')  
-    EventType.create('Change', _('changes'), 'changed by', 'out', 'process', '~>', 'quantity') 
+    EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
 
     print "created event types"
 
@@ -2150,6 +2150,9 @@ class ProcessType(models.Model):
     def all_input_resource_types(self):
         return [ptrt.resource_type for ptrt in self.all_input_resource_type_relationships()]
         
+    def input_stream_resource_type_relationship(self):
+        return self.resource_types.filter(event_type__name='To Be Changed')
+        
     def previous_process_types(self):
         return []
         
@@ -2166,7 +2169,6 @@ class ProcessType(models.Model):
         kids.extend(self.features.all())
         return kids
                                                                                                 
-                                                                                                
     def xbill_explanation(self):
         return "Process Type"
 
@@ -2178,8 +2180,8 @@ class ProcessType(models.Model):
         return XbillProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
     
     def recipe_change_form(self):
-        from valuenetwork.valueaccounting.forms import RecipeProcessTypeForm
-        return RecipeProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
+        from valuenetwork.valueaccounting.forms import RecipeProcessTypeChangeForm
+        return RecipeProcessTypeChangeForm(instance=self, prefix=self.xbill_change_prefix())
 
     def xbill_input_prefix(self):
         return "".join(["PTINPUT", str(self.id)])
@@ -2267,7 +2269,26 @@ class ProcessType(models.Model):
 
     def xbill_citable_rt_facet_formset(self):
         return self.create_facet_formset_filtered(slot="cite", pre=self.xbill_citable_rt_facet_prefix())
-
+        
+    def stream_process_type_create_prefix(self):
+        return "".join(["PTP", str(self.id)])
+            
+    def stream_process_type_create_form(self):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import RecipeProcessTypeForm
+        rt = self.stream_resource_type()
+        init = {"name": " ".join(["Make", rt.name])}
+        return RecipeProcessTypeForm(initial=init, prefix=self.stream_process_type_create_prefix())
+        
+    def stream_resource_type(self):
+        #import pdb; pdb.set_trace()
+        answer = None
+        ptrts = self.resource_types.all()
+        for ptrt in ptrts:
+            if ptrt.is_change_related():
+                answer = ptrt.resource_type
+        return answer
+        
     def create_facet_formset_filtered(self, pre, slot, data=None):
         from django.forms.models import formset_factory
         from valuenetwork.valueaccounting.forms import ResourceTypeFacetValueForm
@@ -2655,6 +2676,9 @@ class ProcessTypeResourceType(models.Model):
         if self.state:
             state_id = str(self.state.id)
         return "-".join([str(self.resource_type.id), stage_id, state_id])
+       
+    def is_change_related(self):
+        return self.event_type.is_change_related()
         
     def follow_stage_chain(self, chain):
         if self.event_type.is_change_related():

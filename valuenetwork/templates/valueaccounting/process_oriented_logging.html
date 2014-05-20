@@ -153,8 +153,14 @@ li {
 		    {% for item in process.outgoing_commitments %}
 			    <div>
 				    <b>{% trans "Scheduled" %}: 
+				    {% if add_output_form %}
+				    
 			        <span class="output-requirement" >
-			            {{ item.resource_type.name }}</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
+			            {{ item.resource_type.name }}
+			            {% if item.stage %}
+                            @{{ item.stage.name }}
+                        {% endif %}
+			            </b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
 		            </span>
 		            {% if logger %}
 
@@ -206,10 +212,32 @@ li {
 			                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 			                        <button class="btn btn-primary">{% trans "Save" %}</button>
 		                          </div>
-
-
 		                        </form>
                             </div>
+                        </div>
+			        {% endif %}
+			        {% elif changeable_requirement %}
+                        <div>
+                            {{ to_be_changed_requirement.resource_type.name }}@{{ to_be_changed_requirement.stage }} change to: @{{ changeable_requirement.stage }}
+                            {% if to_be_changed_requirement.ready_resource %}
+                                {% with to_be_changed_requirement.ready_resource as resource %}
+                                <div>
+                                    {% trans "Resource" %}: <a href="{% url resource resource_id=resource.id  %}">{{ resource }}</a>
+                                    <form
+                                        style="display: inline;" 
+                                        class="changeable-form" 
+                                        id="change_stage_form" 
+                                        action="{% url log_stage_change_event commitment_id=to_be_changed_requirement.id resource_id=resource.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" id="next" name="next" value="process" />
+                                        <button style="display: inline;"  class="btn btn-primary btn-mini" title="Change to next stage" >
+                                            Change to @{{ changeable_requirement.stage }}
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endwith %}
+                            {% endif %}
                         </div>
 			        {% endif %}
 			    </div>
@@ -220,7 +248,9 @@ li {
 			
 			    {% for event in item.fulfilling_events %}
 				    <div class="event" >
-					    <span class="event-label">{% trans "Completed" %}:</span> <span class="event" >{{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} </span>
+					    <span class="event-label">{% trans "Completed" %}:</span> <span class="event" >
+                            {{ event.event_type.inverse_label }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
+                        </span>
 					    {% if logger %}
 					        {% comment %}
 					        <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
@@ -1097,6 +1127,7 @@ li {
             <h3 id="output-label">{% trans "Add an output requirement" %}</h3>
             
         </div>
+        {% if add_output_form %}
         <div class="modal-body">
             <form class="output-form validateMe" enctype="multipart/form-data" id="addOutputForm" action="{% url add_process_output process_id=process.id %}" method="POST" >
 	            {% csrf_token %}
@@ -1124,6 +1155,7 @@ li {
 
             </form>
         </div>
+        {% endif %}
     </div>
 
     <div class="modal hide fade rtmodal" id="createResourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-consumable-create-label" aria-hidden="true">

@@ -898,7 +898,16 @@ class EventType(models.Model):
             return True
         else:
             return False
-
+            
+    def applies_stage(self):
+        return self.resource_effect == "+~"
+        
+    def changes_stage(self):
+        return self.resource_effect == "~>"
+        
+    def stage_to_be_changed(self):
+        return self.resource_effect == ">~"
+        
 
 class AccountingReference(models.Model):
     code = models.CharField(_('code'), max_length=128, unique=True)
@@ -2343,8 +2352,11 @@ class EconomicResource(models.Model):
     
     def __unicode__(self):
         id_str = self.identifier or str(self.id)
+        rt_name = self.resource_type.name
+        if self.stage:
+            rt_name = "@".join([rt_name, self.stage.name])
         return ": ".join([
-            self.resource_type.name,
+            rt_name,
             id_str,
         ])
 
@@ -2387,7 +2399,7 @@ class EconomicResource(models.Model):
         if self.quality:
             if self.quality < 0:
                return self.events.filter(event_type__resource_effect='<') 
-        return self.events.filter(event_type__resource_effect='+')
+        return self.events.filter(event_type__relationship='out')
 
     def consuming_events(self):
         return self.events.filter(event_type__relationship='consume')
@@ -2399,7 +2411,10 @@ class EconomicResource(models.Model):
         return self.events.exclude(event_type__relationship="out").exclude(event_type__relationship="receive").exclude(event_type__relationship="resource")
 
     def demands(self):
-        return self.resource_type.commitments.exclude(event_type__relationship="out")
+        answer = self.resource_type.commitments.exclude(event_type__relationship="out")
+        if self.stage:
+            answer = answer.filter(stage=self.stage)
+        return answer
 
     def is_cited(self):
         ces = self.events.filter(event_type__relationship="cite")
@@ -3075,6 +3090,17 @@ class Process(models.Model):
         return self.commitments.exclude(
             event_type__relationship='work',
         )
+        
+    def to_be_changed_requirements(self):
+        return self.commitments.filter(
+            event_type__name="To Be Changed")
+        
+    def changeable_requirements(self):
+        return self.commitments.filter(
+            event_type__name="Change")
+            
+    def paired_change_requirements(self):
+        return self.to_be_changed_requirements(), self.changeable_requirements()
 
     def working_agents(self):
         reqs = self.work_requirements()
@@ -3775,7 +3801,14 @@ class Commitment(models.Model):
         return ChangeWorkCommitmentForm(instance=self, prefix=prefix)
 
     def resource_create_form(self):
-        return self.resource_type.resource_create_form(self.form_prefix())
+        from valuenetwork.valueaccounting.forms import EconomicResourceForm
+        init = {
+            "quantity": self.quantity,
+            "stage": self.stage,
+            "state": self.state,
+            "unit_of_quantity": self.resource_type.unit,
+        }
+        return EconomicResourceForm(prefix=self.form_prefix(), initial=init)
 
     def resource_change_form(self):
         resource = self.output_resource()
@@ -3815,7 +3848,19 @@ class Commitment(models.Model):
         else:
             qty_help = " ".join(["unit:", unit.abbrev])
             return InputEventForm(qty_help=qty_help, prefix=prefix)
-
+            
+    def ready_resource(self):
+        resource = None
+        if self.event_type.stage_to_be_changed():
+            if not self.resource_type.substitutable:
+                resource = EconomicResource.objects.filter(
+                    resource_type=self.resource_type,
+                    stage=self.stage,
+                    independent_demand=self.independent_demand)
+                if resource:
+                    resource = resource[0]
+        return resource
+        
     def fulfilling_events(self):
         return self.fulfillment_events.all()
 

@@ -470,7 +470,7 @@ class EconomicAgent(models.Model):
         creations = []
         for p in self.all_processes():
             creations.extend(p.deliverables())
-        return creations
+        return list(set(creations))
         
     def resource_relationships(self):
         return self.agent_resource_roles.all()

@@ -4336,7 +4336,10 @@ def process_oriented_logging(request, process_id):
     unplanned_use_form = None
     unplanned_output_form = None
     slots = []
+    event_types = []
     work_now = settings.USE_WORK_NOW
+    to_be_changed_requirement = None
+    changeable_requirement = None
     
     work_reqs = process.work_requirements()
     consume_reqs = process.consumed_input_requirements()
@@ -4345,6 +4348,7 @@ def process_oriented_logging(request, process_id):
     
     if agent and pattern:
         slots = pattern.slots()
+        event_types = pattern.event_types()
         if request.user.is_superuser or request.user == process.created_by:
             logger = True
             super_logger = True
@@ -4367,9 +4371,16 @@ def process_oriented_logging(request, process_id):
         output_resource_types = pattern.output_resource_types()        
         unplanned_output_form = UnplannedOutputForm(prefix='unplannedoutput')
         unplanned_output_form.fields["resource_type"].queryset = output_resource_types
-        if logger:
-            add_output_form = ProcessOutputForm(prefix='output')
-            add_output_form.fields["resource_type"].queryset = output_resource_types
+        produce_et = EventType.objects.get(name="Resource Production")
+        change_et = EventType.objects.get(name="Change")
+        if "out" in slots:
+            if logger:
+                if change_et in event_types:
+                    to_be_changed_requirement = process.to_be_changed_requirements()[0]
+                    changeable_requirement = process.changeable_requirements()[0]
+                else:
+                    add_output_form = ProcessOutputForm(prefix='output')
+                    add_output_form.fields["resource_type"].queryset = output_resource_types
         if "work" in slots:
             work_resource_types = pattern.work_resource_types()
             if logger:
@@ -4416,7 +4427,8 @@ def process_oriented_logging(request, process_id):
         "unplanned_use_form": unplanned_use_form,
         "unplanned_output_form": unplanned_output_form,
         "slots": slots,
-        
+        "to_be_changed_requirement": to_be_changed_requirement,
+        "changeable_requirement": changeable_requirement,
         "work_reqs": work_reqs,        
         "consume_reqs": consume_reqs,
         "uncommitted_consumption": process.uncommitted_consumption_events(),
@@ -4465,6 +4477,51 @@ def add_unplanned_cite_event(request, process_id):
                 changed_by = request.user,
             )
             event.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', process.id))
+        
+@login_required
+def log_stage_change_event(request, commitment_id, resource_id):
+    to_be_changed_commitment = get_object_or_404(Commitment, pk=commitment_id)
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    process = to_be_changed_commitment.process
+    change_commitment = process.changeable_requirements()[0]
+    default_agent = process.default_agent()
+    rt = to_be_changed_commitment.resource_type
+    event = EconomicEvent(
+        commitment=to_be_changed_commitment,
+        event_type=to_be_changed_commitment.event_type,
+        resource_type = rt,
+        resource = resource,
+        from_agent = default_agent,
+        to_agent = default_agent,
+        process = process,
+        context_agent = process.context_agent,
+        event_date = datetime.date.today(),
+        quantity=resource.quantity,
+        unit_of_quantity = rt.unit,
+        created_by = request.user,
+        changed_by = request.user,
+    )
+    event.save()
+    event = EconomicEvent(
+        commitment=change_commitment,
+        event_type=change_commitment.event_type,
+        resource_type = rt,
+        resource = resource,
+        from_agent = default_agent,
+        to_agent = default_agent,
+        process = process,
+        context_agent = process.context_agent,
+        event_date = datetime.date.today(),
+        quantity=resource.quantity,
+        unit_of_quantity = rt.unit,
+        created_by = request.user,
+        changed_by = request.user,
+    )
+    event.save()
+    resource.stage = change_commitment.stage
+    resource.save()   
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
@@ -4525,23 +4582,29 @@ def log_resource_for_commitment(request, commitment_id):
     prefix = ct.form_prefix()
     form = EconomicResourceForm(prefix=prefix, data=request.POST)
     if form.is_valid():
+        
         resource_data = form.cleaned_data
         agent = get_agent(request)
         resource = form.save(commit=False)
         resource.resource_type = ct.resource_type
         resource.created_by=request.user
+        event_type = ct.event_type
+        if not ct.resource_type.substitutable:
+            resource.independent_demand = ct.independent_demand
+        if event_type.applies_stage():
+            resource.stage = ct.stage
         resource.save()
+        
         default_agent = ct.process.default_agent()
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
             event_date = resource.created_date,
-            event_type = ct.event_type,
+            event_type = event_type,
             from_agent = default_agent,
             to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,
-            #project = ct.project,
             context_agent = ct.context_agent,
             quantity = resource.quantity,
             unit_of_quantity = ct.unit_of_quantity,
@@ -4550,6 +4613,7 @@ def log_resource_for_commitment(request, commitment_id):
             changed_by = request.user,
         )
         event.save()
+
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
 

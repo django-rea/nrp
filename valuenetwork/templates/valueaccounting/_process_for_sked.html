@@ -8,7 +8,13 @@
         <ul>
 		    {% for item in process.outgoing_commitments %}	
 			    <li class="deliverable" >
-				    <span class="name deliverable-name">{{ item.resource_type.name }}:</span> {{ item.quantity }} {{ item.unit_of_quantity }}
+				     <span class="name deliverable-name">
+                        {{ item.resource_type.name }}
+                        {% if item.stage %}
+                            @{{ item.stage.name }}
+                        {% endif %}
+                        :</span> 
+                        {{ item.quantity }} {{ item.unit_of_quantity }}
 				    {% if item.description %}
 					    <ul>
                             <li class="req-description">{{ item.description|urlize|linebreaks|truncatewords_html:15 }}</li>
@@ -19,7 +25,7 @@
 			        <ul>
 				        {% for event in item.fulfilling_events %}
 					        <li class="subline" >
-						        <span class="prefix created-prefix">{% trans "Created" %}:</span> 
+						        <span class="prefix created-prefix">{{ event.event_type.inverse_label }}:</span> 
 						        <a href="{% url resource resource_id=event.resource.id %}" target="_blank">{{ event.resource_type.name }} {{ event.resource.label }}</a>
 						        {{ event.quantity }} {{ event.unit_of_quantity }}
 					        </li>

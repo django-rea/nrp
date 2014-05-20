@@ -44,7 +44,7 @@
 			        <ul>
 				        {% for event in item.fulfilling_events %}
 					        <li class="subline" >
-						        <span class="prefix created-prefix">{% trans "Created" %}:</span> 
+						        <span class="prefix created-prefix">{{ event.event_type.inverse_label }}:</span> 
 						        <a href="{% url resource resource_id=event.resource.id %}">{{ event.resource_type.name }} {{ event.resource.label }}</a>
 						        {{ event.quantity }} {{ event.unit_of_quantity }}
 					        </li>

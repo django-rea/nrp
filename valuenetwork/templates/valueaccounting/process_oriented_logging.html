@@ -619,6 +619,7 @@ li {
 				    
 				    {% if item.onhand %}
 					    {% for resource in item.onhand %}
+                            {% comment %}todo: consider stage and state here{% endcomment %}
 					        {% if resource.id not in output_resource_ids %}
 						        <div class="onhand" >
 							        <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>

@@ -201,7 +201,7 @@
                 <ul>
                     {% for resource in agent.resources_created %}
                         <li>
-                            <a href="{{ resource.get_absolute_url }}"> {{ resource }}</a>
+                            <a href="{{ resource.get_absolute_url }}"> {{ resource.resource_type.name }}: {{ resource.identifier }}</a>
                         </li>
 
                     {% endfor %}

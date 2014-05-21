@@ -2174,6 +2174,16 @@ class ProcessType(models.Model):
     def input_stream_resource_type_relationship(self):
         return self.resource_types.filter(event_type__name='To Be Changed')
         
+    def has_create_changeable_output(self):
+        #import pdb; pdb.set_trace()
+        if self.produced_resource_type_relationships():
+            if self.produced_resource_type_relationships()[0].event_type.name == "Create Changeable":
+                return True
+            else:
+                return False
+        else:
+            return False
+        
     def previous_process_types(self):
         return []
         

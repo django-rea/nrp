@@ -1478,6 +1478,20 @@ def delete_process_type(request, process_type_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
+        rt = pt.main_produced_resource_type()
+        if rt:
+            if rt.recipe_is_staged():
+                pts = rt.staged_process_type_sequence()
+                index = pts.index(pt)
+                if index < len(pts) - 1:
+                    if index == 0:
+                        stage = None
+                    else:
+                        stage = pts[index - 1]
+                    next_pt = pts[index + 1]
+                    next_input_ptrt = next_pt.input_stream_resource_type_relationship()[0]
+                    next_input_ptrt.stage = stage
+                    next_input_ptrt.save()
         pt.delete()
         next = request.POST.get("next")
         if next:

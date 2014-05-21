@@ -74,16 +74,24 @@ container li {
 		    {% endif %}
 	   
             {% if resource_type.producing_process_type_relationships %}
-                <a href="{% url extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+                {% if resource_type.recipe_is_staged %}
+                    <a href="{% url view_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+                {% else %}
+                    <a href="{% url extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+                {% endif %}
             {% endif %}
             {% if agent %}
                 {% if resource_type.is_process_output %}
-			        <a href="{% url edit_extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
-				        {% if resource_type.producing_process_type_relationships %}
-					        {% trans "Change Recipe" %}
-				        {% else %}
-					        {% trans "Create Recipe" %}
-				        {% endif %}
+                    {% if resource_type.recipe_is_staged %}
+                        <a href="{% url edit_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+                    {% else %}
+                        <a href="{% url edit_extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+			        {% endif %}
+                    {% if resource_type.producing_process_type_relationships %}
+                        {% trans "Change Recipe" %}
+                    {% else %}
+                        {% trans "Create Recipe" %}
+                    {% endif %}
 			        </a>
 		        {% endif %}
 		        <a href="{% url plan_from_rt resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan" %}</a>

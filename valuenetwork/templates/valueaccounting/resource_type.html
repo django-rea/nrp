@@ -90,9 +90,14 @@ container li {
                     {% if resource_type.producing_process_type_relationships %}
                         {% trans "Change Recipe" %}
                     {% else %}
-                        {% trans "Create Recipe" %}
+                        {% trans "Create Assembly Recipe" %}
                     {% endif %}
 			        </a>
+			        {% if not resource_type.producing_process_type_relationships %}
+                        <a href="{% url edit_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+                        {% trans "Create Workflow Recipe" %}
+                        </a>
+                    {% endif %}
 		        {% endif %}
 		        <a href="{% url plan_from_rt resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan" %}</a>
 		        <a href="{% url plan_from_rt_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan using recipe" %}</a>

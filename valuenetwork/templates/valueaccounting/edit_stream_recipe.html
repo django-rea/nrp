@@ -5,7 +5,7 @@
 {% load thumbnail %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans " Edit Stream Recipe for " %} {{ resource_type }}{% endblock %}
+{% block head_title %}{% trans " Edit Workflow Recipe for " %} {{ resource_type }}{% endblock %}
 
 {% block extra_head %}
 
@@ -109,7 +109,7 @@ textarea {
     <div class="container-fluid">
         {% include "_messages.html" %}
       <div>
-        <legend>{% trans "Edit Stream Recipe for " %} {{ resource_type }}</legend>
+        <legend>{% trans "Edit Workflow Recipe for " %} {{ resource_type }}</legend>
 
         <h4>
             {% if resource_type.url %}

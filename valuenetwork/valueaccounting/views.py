@@ -751,6 +751,7 @@ def resource_type(request, resource_type_id):
         "agent": agent,
         "create_form": create_form,
         "create_role_formset": create_role_formset,
+        "help": get_help("resource_type"),
     }, context_instance=RequestContext(request))
 
 def inventory(request):

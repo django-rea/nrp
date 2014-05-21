@@ -1085,6 +1085,7 @@ class EconomicResourceType(models.Model):
         return list(set(pts))
         
     def staged_commitment_type_sequence(self):
+        #todo: remove dependency on creation_et
         creation_et = EventType.objects.get(name='Create Changeable') 
         chain = []
         try:

@@ -154,6 +154,8 @@ textarea {
 
         {% if resource_type.description %}
             <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
+        {% else %}
+            <br />
         {% endif %}
         
         {% for process_type in process_types %}
@@ -216,11 +218,13 @@ textarea {
                 </div>
             </div>
     
-            <form style="display: inline;" action="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
-                <button class="btn btn-warning" title="Delete process type" >Delete</button>
-            </form>
+            {% if not process_type.has_create_changeable_output %}
+                <form style="display: inline;" action="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                    <button class="btn btn-warning" title="Delete process type" >Delete</button>
+                </form>
+            {% endif %}
              
             {% if "Time Contribution" in process_type.process_pattern.non_change_event_type_names %}
                 <div style="display: inline;" >

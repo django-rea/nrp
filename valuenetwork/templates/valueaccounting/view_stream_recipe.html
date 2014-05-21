@@ -1,0 +1,307 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load thumbnail %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans " View Stream Recipe for " %} {{ resource_type }}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+h4 {
+    margin-top: 1em; 
+    margin-bottom: 1em;
+} 
+h4 a, h4 {
+    font-size: 1.4em;
+}
+textarea {
+    width: 500px;
+}
+.modal {
+    width: 550px;
+}
+.score {
+    font-weight: normal;
+    font-style: italic;
+}
+.economic-resource-type {
+    background-color: whitesmoke;
+    border: 1px solid gainsboro; 
+    padding: 1em 1em .5em 1em;
+    font-weight: bold;
+}
+.change-resource-type {
+    background-color: mintcream;
+    border: 1px solid gainsboro; 
+    padding: 1em;
+    font-weight: bold;
+}
+.inputs, .outputs {
+    background-color: #E5E5E5;
+    border: solid 1px gainsboro;
+    padding: 5px;
+    margin-top: 4px;
+}
+.process-type {
+    background-color: beige;
+    border: solid 1px gainsboro;
+    padding: 10px;
+}
+.process-hdr {
+    color: firebrick;
+    font-size: 1.2em;
+}
+.description {
+    font-style: italic;
+    font-weight: normal;
+    padding-left: 2em;
+}
+.node-description {
+    font-weight: normal;
+}
+.facets, .pattern {
+    margin-left: 1em;
+    font-weight: normal;
+}
+.btn-info {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+.days, .hours, .minutes {
+    width: 24px;
+}
+.modal-line {
+    font-weight: normal;
+    margin-top: .2em;
+    margin-bottom: 3px; 
+}
+.desc textarea {
+    width: 90%;
+    height: 100px;
+}
+.facet {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.facet-name {
+    padding-right: 1em;
+    text-align: right;
+}
+.bottom-space {
+    margin-bottom: 4px;
+}
+.align-center {
+    text-align: center;
+}
+    
+</style>
+{% endblock %}
+
+{% block body_class %}recipe{% endblock %}
+
+{% block body_base %}
+    <div class="container-fluid">
+        {% include "_messages.html" %}
+      <div>
+        <legend>{% trans "View Stream Recipe for " %} {{ resource_type }}</legend>
+
+        <h4>
+            {% if resource_type.url %}
+                <a href="{{ resource_type.url }}" target="blank">{{ resource_type }}</a>
+            {% else %}
+                {{ resource_type }}
+            {% endif %}
+            {% if resource_type.photo %}
+                <img src="{% thumbnail resource_type.photo photo_size %}" />
+            {% elif resource_type.photo_url %}
+                        <img src="{{ resource_type.photo_url }}" width="200" height="128" />
+            {% endif %}
+        </h4>
+
+        {% if resource_type.facet_list %}
+            <div class="facets" >{{ resource_type.facet_list }}</div>
+        {% endif %}
+
+        {% if resource_type.description %}
+            <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
+        {% endif %}
+        
+        {% for process_type in process_types %}
+            
+         <div class="process-type">
+ 
+          <div class="row-fluid">
+           <div class="span12">
+            <div class="process-hdr" style="display: inline;"> {{ process_type.name }} </div>
+         
+            {% if process_type.description %}
+                <div class="description" >{{ process_type.description|urlize|linebreaks }}</div>
+            {% endif %}
+          </div>
+  
+          <div class="row-fluid">
+          
+            <div class="span6 inputs">
+                <h5 class="align-center">Inputs</h5>
+                
+                {% for ptrt in process_type.to_be_changed_resource_type_relationships %}                
+                    <div class="change-resource-type">
+                        {{ ptrt.stream_label }}
+                        {% if ptrt.resource_type.facet_list %}
+                            <div class="facets" >{{ ptrt.resource_type.facet_list }}</div>
+                        {% endif %}
+                        {% if ptrt.description %}
+                            <div class="description" >{{ ptrt.description|urlize|linebreaks }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %} 
+                
+                {% for ptrt in process_type.all_input_except_change_resource_type_relationships %}
+                  <div class="economic-resource-type">
+                    <div style="display: inline;">
+                        {{ ptrt.stream_label }}
+                    </div>
+                    
+                    {% if ptrt.resource_type.facet_list %}
+                        <div class="facets" >{{ ptrt.resource_type.facet_list }}</div>
+                    {% endif %}
+                    {% if ptrt.description %}
+                        <div class="description" >{{ ptrt.description|urlize|linebreaks }}</div>
+                    {% endif %}
+                    
+                  </div>
+                {% endfor %}
+            </div>
+
+            <div class="span6 outputs">
+            <h5  class="align-center">Output</h5>
+                {% for ptrt in process_type.produced_resource_type_relationships %}
+                    <div class="change-resource-type">
+                        {{ ptrt.stream_label }}
+                        {% if ptrt.resource_type.facet_list %}
+                            <div class="facets" >{{ ptrt.resource_type.facet_list }}</div>
+                        {% endif %}
+                        {% if ptrt.description %}
+                            <div class="description" >{{ ptrt.description|urlize|linebreaks }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            
+           </div> 
+          </div>
+         </div>
+     
+         <div class="row-fluid">
+           <div class="span12">
+            <img src="{% static 'img/bullet-arrow-down-icon.png' %}" />
+           </div>
+         </div>
+ 
+       {% endfor %}
+    
+    </div>
+
+{% endblock %}
+
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+    
+        $('#resource-types').addClass('active');
+
+        function html_unescape(text) {
+            // Unescape a string that was escaped using django.utils.html.escape.
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            text = text.replace(/&amp;/g, '&');
+            return text;
+        }
+
+        var nameArray = html_unescape("{{ resource_names }}").split("~");
+
+        $("select").chosen();
+
+       $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        $(".existing-name").change(setupUniqueTest);
+
+        function setupUniqueTest(event)
+        {
+            var field = event.target;
+            var oldValue = field.defaultValue;
+            var newValue = field.value;
+            if (newValue != oldValue)
+            {
+                var fieldId = "#" + field.id;
+                $(fieldId).addClass("unique-name");
+            }
+        }
+
+ 
+
+        $(document).ajaxSend(function(event, xhr, settings) {
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie != '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            function sameOrigin(url) {
+                // url could be relative or scheme relative or absolute
+                var host = document.location.host; // host + port
+                var protocol = document.location.protocol;
+                var sr_origin = '//' + host;
+                var origin = protocol + sr_origin;
+                // Allow absolute or scheme relative URLs to same origin
+                return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+                    (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+                    // or any other URL that isn't scheme relative or absolute i.e relative.
+                    !(/^(\/\/|http:|https:).*/.test(url));
+            }
+            function safeMethod(method) {
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
+
+            if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        });
+
+
+
+    }); // end document.ready
+    </script>
+{% endblock %}

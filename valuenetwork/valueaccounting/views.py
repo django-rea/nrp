@@ -1196,21 +1196,36 @@ def edit_extended_bill(request, resource_type_id):
 
 @login_required
 def edit_stream_recipe(request, resource_type_id):
-        rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
-        #import pdb; pdb.set_trace()
-        process_types = rt.staged_process_type_sequence()
-        resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
-        names = EconomicResourceType.objects.values_list('name', flat=True)
-        resource_names = '~'.join(names)
-        return render_to_response("valueaccounting/edit_stream_recipe.html", {
-            "resource_type": rt,
-            "process_types": process_types,
-            "resource_names": resource_names,
-            "photo_size": (128, 128),
-            "resource_type_form": resource_type_form,
-            "help": get_help("edit_stream_recipe"),
-            }, context_instance=RequestContext(request))
-            
+    rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    #import pdb; pdb.set_trace()
+    process_types = rt.staged_process_type_sequence()
+    resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
+    names = EconomicResourceType.objects.values_list('name', flat=True)
+    resource_names = '~'.join(names)
+    return render_to_response("valueaccounting/edit_stream_recipe.html", {
+        "resource_type": rt,
+        "process_types": process_types,
+        "resource_names": resource_names,
+        "photo_size": (128, 128),
+        "resource_type_form": resource_type_form,
+        "help": get_help("edit_stream_recipe"),
+    }, context_instance=RequestContext(request))
+        
+
+def view_stream_recipe(request, resource_type_id):
+    rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    #import pdb; pdb.set_trace()
+    process_types = rt.staged_process_type_sequence()
+    names = EconomicResourceType.objects.values_list('name', flat=True)
+    resource_names = '~'.join(names)
+    return render_to_response("valueaccounting/view_stream_recipe.html", {
+        "resource_type": rt,
+        "process_types": process_types,
+        "resource_names": resource_names,
+        "photo_size": (128, 128),
+        "help": get_help("edit_stream_recipe"),
+    }, context_instance=RequestContext(request))
+                    
     
 @login_required
 def change_resource_type(request, resource_type_id):

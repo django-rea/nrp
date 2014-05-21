@@ -346,7 +346,7 @@ textarea {
                     <div class="modal-body">
                         <form class="cites-form" action="{% url create_process_type_citable process_type_id=process_type.id %}" method="POST" >
                             {% csrf_token %}
-                            {% with iform=process_type.xbill_citable_form %}
+                            {% with iform=process_type.stream_recipe_citable_form %}
                                 <p class="modal-line">{% trans "Resource Type" %} </p>
                                 <p>{{ iform.resource_type }} 
                                 {% comment %} 
@@ -559,13 +559,13 @@ textarea {
             required: true,
             number: true,
             min: 0,
-            max: 24
+            max: 23
         });
         $.validator.addClassRules("minutes", { 
             required: true,
             number: true,
             min: 0,
-            max: 60
+            max: 59
         });
 
         $(".resource-type-selector").change(getUnit);
@@ -656,8 +656,18 @@ textarea {
             });
 
         });
+        
+        $('.cites-form').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
 
-        $('.usable-form').each( function(){
+        });
+
+        $('.uses-form').each( function(){
             var form = $(this);
             form.validate({
                 highlight: function(label) {

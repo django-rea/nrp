@@ -1543,6 +1543,7 @@ class XbillProcessTypeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(XbillProcessTypeForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()  
+
         
 class RecipeProcessTypeForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(
@@ -1571,6 +1572,7 @@ class RecipeProcessTypeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(RecipeProcessTypeForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.recipe_patterns() 
+
         
 class RecipeProcessTypeChangeForm(forms.ModelForm):
     context_agent = forms.ModelChoiceField(
@@ -1626,6 +1628,7 @@ class ProcessTypeResourceTypeForm(forms.ModelForm):
 class ProcessTypeInputForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),  
+        empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
     quantity = forms.DecimalField(required=False,
@@ -1633,7 +1636,7 @@ class ProcessTypeInputForm(forms.ModelForm):
     unit_of_quantity = forms.ModelChoiceField(
         required = False,
         label = _("Unit"),
-        queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'),  
+        queryset=Unit.objects.all(),  
         widget=forms.Select())
 
     class Meta:
@@ -1662,7 +1665,8 @@ class ProcessTypeInputForm(forms.ModelForm):
 
 class ProcessTypeConsumableForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.all(),  
+        queryset=EconomicResourceType.objects.all(), 
+        empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
     quantity = forms.DecimalField(required=False,
@@ -1700,6 +1704,7 @@ class ProcessTypeConsumableForm(forms.ModelForm):
 class ProcessTypeUsableForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),  
+        empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
     quantity = forms.DecimalField(required=False,
@@ -1737,6 +1742,7 @@ class ProcessTypeUsableForm(forms.ModelForm):
 class ProcessTypeCitableForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
+        empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
     description = forms.CharField(
@@ -1766,10 +1772,44 @@ class ProcessTypeCitableForm(forms.ModelForm):
                 output_ids = [pt.id for pt in process_type.produced_resource_types()]
                 self.fields["resource_type"].queryset = pattern.citable_resource_types().exclude(id__in=output_ids)
 
+                
+class ProcessTypeCitableStreamRecipeForm(forms.ModelForm):
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector input-xlarge' }))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
 
+    class Meta:
+        model = ProcessTypeResourceType
+        fields = ('resource_type', 'description')
+
+    def __init__(self, process_type=None, *args, **kwargs):
+        super(ProcessTypeCitableStreamRecipeForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        use_pattern = True
+        pattern = None
+        if process_type:
+            pattern = process_type.process_pattern
+        if self.instance:
+            if self.instance.id:
+                use_pattern = False
+                inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
+                rt = inst.resource_type
+                self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
+        if pattern:
+            if use_pattern:
+                self.pattern = pattern
+                self.fields["resource_type"].queryset = pattern.citable_resource_types()
+              
+                
 class ProcessTypeWorkForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
+        empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
     quantity = forms.DecimalField(required=False,

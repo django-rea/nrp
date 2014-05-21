@@ -2255,8 +2255,12 @@ class ProcessType(models.Model):
 
     def xbill_citable_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeCitableForm
-        return ProcessTypeCitableForm(process_type=self, prefix=self.xbill_citable_prefix())
-
+        return ProcessTypeCitableForm(process_type=self, pattern=self.process_pattern, prefix=self.xbill_citable_prefix())
+     
+    def stream_recipe_citable_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessTypeCitableStreamRecipeForm
+        return ProcessTypeCitableStreamRecipeForm(process_type=self, prefix=self.xbill_citable_prefix())
+        
     def xbill_work_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeWorkForm
         return ProcessTypeWorkForm(process_type=self, prefix=self.xbill_work_prefix())

@@ -1053,6 +1053,16 @@ class EconomicResourceType(models.Model):
                 return one_ptrt
         else:
             return None
+            
+    def recipe_is_staged(self):
+        rel = self.main_producing_process_type_relationship()
+        if rel:
+            if rel.stage:
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def producing_process_types(self):
         return [pt.process_type for pt in self.producing_process_type_relationships()]

@@ -1720,6 +1720,11 @@ class ProcessTypeConsumableForm(forms.ModelForm):
                 self.pattern = pattern
                 output_ids = [pt.id for pt in process_type.produced_resource_types()]
                 self.fields["resource_type"].queryset = pattern.consumable_resource_types().exclude(id__in=output_ids)
+        if self.instance.id:
+            pass
+        else:
+            if len(self.fields["resource_type"].queryset) > 0:
+                self.fields["unit_of_quantity"].initial = self.fields["resource_type"].queryset[0].unit_for_use()
 
 
 class ProcessTypeUsableForm(forms.ModelForm):
@@ -1758,6 +1763,11 @@ class ProcessTypeUsableForm(forms.ModelForm):
                 self.pattern = pattern
                 output_ids = [pt.id for pt in process_type.produced_resource_types()]
                 self.fields["resource_type"].queryset = pattern.usable_resource_types().exclude(id__in=output_ids)
+        if self.instance.id:
+            pass
+        else:
+            if len(self.fields["resource_type"].queryset) > 0:
+                self.fields["unit_of_quantity"].initial = self.fields["resource_type"].queryset[0].unit_for_use()
 
         
 class ProcessTypeCitableForm(forms.ModelForm):

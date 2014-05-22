@@ -7016,14 +7016,14 @@ def plan_from_recipe(request):
     resource_types = []
     selected_context_agent = None
     ca_form = ProjectSelectionForm()
-    init = {"due_date": datetime.date.today(),}
-    date_name_form = DueDateAndNameForm(data=request.POST or None)
+    init = {"date": datetime.date.today(),}
+    date_name_form = OrderDateAndNameForm(data=request.POST or None)
     if request.method == "POST":
         create_order = request.POST.get("create-order")
         get_related = request.POST.get("get-related")
         if get_related:
             selected_context_agent = EconomicAgent.objects.get(id=request.POST.get("context_agent"))
-            date_name_form = DueDateAndNameForm(initial=init)
+            date_name_form = OrderDateAndNameForm(initial=init)
             if selected_context_agent:
                 resource_types = selected_context_agent.get_resource_types_with_recipe()
         else:
@@ -7032,7 +7032,7 @@ def plan_from_recipe(request):
             today = datetime.date.today()
             order_name = ""
             if date_name_form.is_valid():
-                due_date = date_name_form.cleaned_data["due_date"]
+                due_date = date_name_form.cleaned_data["date"]
                 order_name = date_name_form.cleaned_data["order_name"]
             else:
                 due_date = today
@@ -7041,7 +7041,7 @@ def plan_from_recipe(request):
                     context_agent_id = key.split("~")[1]
                     selected_context_agent = EconomicAgent.objects.get(id=context_agent_id)
                     continue
-                if key == "rt":
+                if key == "workflow" or key == "assembly":
                     produced_id = int(value[0])
                     produced_rt = EconomicResourceType.objects.get(id=produced_id)
 

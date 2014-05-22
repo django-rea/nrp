@@ -1395,6 +1395,13 @@ class DateSelectionForm(forms.Form):
 class DueDateAndNameForm(forms.Form):
     due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     order_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    
+class OrderDateAndNameForm(forms.Form):
+    date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    start_date_or_due_date = forms.ChoiceField(
+        choices=(("start", "start"),("due", "due")),
+        widget=forms.Select(attrs={'class': 'input-small'}))
+    order_name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
 
 class DateAndNameForm(forms.Form):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

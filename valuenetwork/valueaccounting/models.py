@@ -548,6 +548,13 @@ class EconomicAgent(models.Model):
         
     def get_resource_types_with_recipe(self):
         rts = [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self)]
+        parents = []
+        parent = self.parent()
+        while parent:
+            parents.append(parent)
+            parent = parent.parent()
+        for p in parents:
+            rts.extend([pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=p)])
         return list(set(rts))
                 
     #from here are new methods for context agent code

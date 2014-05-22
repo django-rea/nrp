@@ -59,14 +59,40 @@
                     <div id="rts">
                         {% for item in resource_types %}
 	                        <p>
-	                            <input type="radio" id="rt-{{ item.id }}" name="rt" value="{{ item.id }}" />
-	                            {{ item }} ( {{ item.facet_values_list }} )
+	                            <input type="radio" id="rt-{{ item.id }}" 
+	                            {% if item.recipe_is_staged %} 
+                                    name="workflow" 
+                                {% else %}
+                                    name="assembly" 
+                                {% endif %}
+                                value="{{ item.id }}" />
+	                            {{ item }} ( {{ item.facet_values_list }} ) 
+	                            {% if item.recipe_is_staged %} 
+                                    Work Flow Recipe
+                                {% else %}
+                                    Assembly Recipe
+                                {% endif %}
                             </p>
                         {% endfor %}
                     </div>
               </div>
               <div class="span6">
-                    {{ date_name_form|as_bootstrap }}
+                    <table>
+                        <tr>
+                            <td style="text-align: right;" >
+                                <span id="dateLabel">Due date</span>
+                            </td>
+                            <td> {{ date_name_form.date }}</td>
+                        </tr>
+                        <tr id="date-choice" >
+                            <td style="text-align: right;" >{{ date_name_form.start_date_or_due_date.label_tag }} </td>
+                            <td>  {{ date_name_form.start_date_or_due_date }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: right;" >{{ date_name_form.order_name.label_tag }}</td>
+                            <td>  {{ date_name_form.order_name }}</td>
+                        </tr>
+                    </table>
                     <hr />                
                     <div class="select-buttons">
                             <p>
@@ -103,44 +129,27 @@
             $('#help-content').hide("slide", { direction: "right" }, "slow"); 
             $( "#help" ).text("Show Help");
         })
+        
+        $("#date-choice").hide();
 
         //$(".chzn-select").chosen();
 
         //$( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
-        $( "#id_due_date" ).datepicker({ 
+        $( "#id_date" ).datepicker({ 
 			dateFormat: "yy-mm-dd",
     		onClose: function() {
       			$( this ).valid();
 			}
 		 });
 
-		jQuery.validator.addMethod("equalToOrGreaterThan", 
-		function(value, element, params) {
-
-			if (!/Invalid|NaN/.test(new Date(value))) {
-				return new Date(value) >= new Date($(params).val());
-			}
-
-			return isNaN(value) && isNaN($(params).val()) 
-				|| (Number(value) >= Number($(params).val())); 
-		},'Must be equal to or greater than start date.');
-
-		$( "#processForm" ).validate({
-			rules: {
-				start_date: {
-					required: true,
-					date: true
-				},
-				end_date: {
-					date: true,
-					equalToOrGreaterThan: '#id_start_date'
-				}
-			},
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			},
-		});
-
+        $("[type=radio]").click(function() {
+            var name = $(this).attr('name'); 
+            if (name == "workflow")
+            {
+                $("#date-choice").show();
+                $("#dateLabel").html('Date');
+            }
+        });
 
 	}); // end document.ready
 

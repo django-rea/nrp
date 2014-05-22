@@ -1041,6 +1041,7 @@ class EconomicResourceType(models.Model):
         return self.process_types.filter(event_type__relationship='out')
 
     def main_producing_process_type_relationship(self, stage=None, state=None):
+        #import pdb; pdb.set_trace()
         ptrts = self.producing_process_type_relationships()
         if stage or state:
             ptrts = ptrts.filter(stage=stage, state=state)
@@ -1051,7 +1052,10 @@ class EconomicResourceType(models.Model):
             else:
                 if one_ptrt.stage:
                     stages = self.staged_commitment_type_sequence()
-                    one_ptrt = stages[-1]
+                    if stages:
+                        one_ptrt = stages[-1]
+                    else:
+                        return None
                 return one_ptrt
         else:
             return None
@@ -1085,6 +1089,7 @@ class EconomicResourceType(models.Model):
         return list(set(pts))
         
     def staged_commitment_type_sequence(self):
+        #todo: remove dependency on creation_et
         creation_et = EventType.objects.get(name='Create Changeable') 
         chain = []
         try:

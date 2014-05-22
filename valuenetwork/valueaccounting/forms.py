@@ -1575,6 +1575,11 @@ class RecipeProcessTypeForm(forms.ModelForm):
 
         
 class RecipeProcessTypeChangeForm(forms.ModelForm):
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.none(), 
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
         label=_("Project"),
@@ -1588,7 +1593,16 @@ class RecipeProcessTypeChangeForm(forms.ModelForm):
     
     class Meta:
         model = ProcessType
-        exclude = ('parent','project','process_pattern')
+        exclude = ('parent',)
+        
+    def __init__(self, *args, **kwargs):
+        super(RecipeProcessTypeChangeForm, self).__init__(*args, **kwargs)
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.recipe_patterns()
+        if self.instance:
+            pat = self.instance.process_pattern
+            if pat:
+                self.fields["process_pattern"].queryset = ProcessPattern.objects.filter(id=pat.id)
+             
 
 class ChangeProcessTypeForm(forms.ModelForm):
     estimated_duration = forms.IntegerField(required=False,

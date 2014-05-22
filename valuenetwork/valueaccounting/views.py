@@ -1929,7 +1929,10 @@ def create_process_type_for_streaming(request, resource_type_id, process_type_id
                         next_input_ptrt.stage = pt
                         next_input_ptrt.save()
                     else:
-                        stage = pts[-1]
+                        if pts:
+                            stage = pts[-1]
+                        else:
+                            stage = None
                 ptrt = ProcessTypeResourceType(
                     process_type=pt,
                     resource_type=rt,

@@ -7015,6 +7015,7 @@ def plan_from_recipe(request):
     #import pdb; pdb.set_trace()
     resource_types = []
     selected_context_agent = None
+    forward_schedule = False
     ca_form = ProjectSelectionForm()
     init = {"date": datetime.date.today(),}
     date_name_form = OrderDateAndNameForm(data=request.POST or None)
@@ -7034,6 +7035,7 @@ def plan_from_recipe(request):
             if date_name_form.is_valid():
                 due_date = date_name_form.cleaned_data["date"]
                 order_name = date_name_form.cleaned_data["order_name"]
+                start_or_due = date_name_form.cleaned_data["start_date_or_due_date"]
             else:
                 due_date = today
             for key, value in dict(rp).iteritems():
@@ -7044,76 +7046,68 @@ def plan_from_recipe(request):
                 if key == "workflow" or key == "assembly":
                     produced_id = int(value[0])
                     produced_rt = EconomicResourceType.objects.get(id=produced_id)
+                    if key == "workflow":
+                        forward_schedule = True
+            if forward_schedule:
+                if start_or_due == "start":
+                    start_date = due_date
+                else:
+                    forward_schedule = False
 
-            demand = Order(
-                order_type="rand",
-                order_date=today,
-                due_date=due_date,
-                name=order_name,
-                created_by=request.user)
-            demand.save()
-            #todo: add stage and state as args
-            pt = produced_rt.main_producing_process_type()
-            
-            #process = Process(
-            #    name=" ".join(["Make",produced_rt.name,]),
-            #    end_date=end_date,
-            #    start_date=start_date,
-            #    process_pattern=pt.process_pattern,
-            #    process_type=pt,
-            #    created_by=request.user,
-            #    project=selected_project
-            #)
-            #process.save()
+            #pt = produced_rt.main_producing_process_type()
         
             #import pdb; pdb.set_trace()      
-            #ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=produced_rt)
-            ptrt = produced_rt.main_producing_process_type_relationship()
-            et = ptrt.event_type
-            if et:
-                #commitment = process.add_commitment(
-                #    resource_type=produced_rt,
-                #    demand=demand,
-                #    quantity=Decimal("1"),
-                #    event_type=et,
-                #    unit=produced_rt.unit,
-                #    user=request.user)
-                #commitment.order = demand
-                commitment = demand.add_commitment(
-                    resource_type=produced_rt,
-                    quantity=Decimal("1"),
-                    event_type=et,
-                    unit=produced_rt.unit,
-                    stage=ptrt.stage,
-                    state=ptrt.state,
-                    )
-                commitment.created_by=request.user
-                commitment.save()
-                #if pt:
-                #    process.explode_demands(demand, request.user, [])
-                #import pdb; pdb.set_trace()
-                process = commitment.generate_producing_process(request.user, [], explode=True)
-                if notification:
+            if forward_schedule:
+                demand = produced_rt.generate_staged_work_order(start_date, request.user)
+            else:
+                
+                demand = Order(
+                    order_type="rand",
+                    order_date=today,
+                    due_date=due_date,
+                    name=order_name,
+                    created_by=request.user)
+                demand.save()
+
+                ptrt = produced_rt.main_producing_process_type_relationship()
+                et = ptrt.event_type
+                if et:
+
+                    commitment = demand.add_commitment(
+                        resource_type=produced_rt,
+                        quantity=Decimal("1"),
+                        event_type=et,
+                        unit=produced_rt.unit,
+                        stage=ptrt.stage,
+                        state=ptrt.state,
+                        )
+                    commitment.created_by=request.user
+                    commitment.save()
+
                     #import pdb; pdb.set_trace()
-                    agent = get_agent(request)
-                    work_cts = Commitment.objects.filter(
-                        independent_demand=demand, 
-                        event_type__relationship="work")
-                    for ct in work_cts:                           
-                        users = ct.possible_source_users()
-                        if users:
-                            notification.send(
-                                users, 
-                                "valnet_new_task", 
-                                {"resource_type": ct.resource_type,
-                                "due_date": ct.due_date,
-                                "hours": ct.quantity,
-                                "unit": ct.resource_type.unit,
-                                "description": ct.description or "",
-                                "process": ct.process,
-                                "creator": agent,
-                                }
-                            )
+                    process = commitment.generate_producing_process(request.user, [], explode=True)
+                    
+            if notification:
+                #import pdb; pdb.set_trace()
+                agent = get_agent(request)
+                work_cts = Commitment.objects.filter(
+                    independent_demand=demand, 
+                    event_type__relationship="work")
+                for ct in work_cts:                           
+                    users = ct.possible_source_users()
+                    if users:
+                        notification.send(
+                            users, 
+                            "valnet_new_task", 
+                            {"resource_type": ct.resource_type,
+                            "due_date": ct.due_date,
+                            "hours": ct.quantity,
+                            "unit": ct.resource_type.unit,
+                            "description": ct.description or "",
+                            "process": ct.process,
+                            "creator": agent,
+                            }
+                        )
  
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/order-schedule', demand.id))                 

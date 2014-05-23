@@ -2754,6 +2754,7 @@ class ProcessTypeResourceType(models.Model):
             due_date = process.end_date
         else:
             due_date = process.start_date
+        unit = self.resource_type.directional_unit(self.event_type.relationship)
         commitment = Commitment(
             process=process,
             stage=self.stage,
@@ -2762,7 +2763,7 @@ class ProcessTypeResourceType(models.Model):
             event_type=self.event_type,
             resource_type=self.resource_type,
             quantity=self.quantity,
-            unit_of_quantity=self.resource_type.unit,
+            unit_of_quantity=unit,
             due_date=due_date,
             #from_agent=from_agent,
             #to_agent=to_agent,

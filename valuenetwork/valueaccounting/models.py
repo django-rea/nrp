@@ -2278,8 +2278,9 @@ class ProcessType(models.Model):
         return ProcessTypeUsableForm(process_type=self, prefix=self.xbill_usable_prefix())
 
     def xbill_citable_form(self):
+        #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import ProcessTypeCitableForm
-        return ProcessTypeCitableForm(process_type=self, pattern=self.process_pattern, prefix=self.xbill_citable_prefix())
+        return ProcessTypeCitableForm(process_type=self, prefix=self.xbill_citable_prefix())
      
     def stream_recipe_citable_form(self):
         from valuenetwork.valueaccounting.forms import ProcessTypeCitableStreamRecipeForm

@@ -4410,8 +4410,12 @@ def process_oriented_logging(request, process_id):
         if "out" in slots:
             if logger:
                 if change_et in event_types:
-                    to_be_changed_requirement = process.to_be_changed_requirements()[0]
-                    changeable_requirement = process.changeable_requirements()[0]
+                    to_be_changed_requirement = process.to_be_changed_requirements()
+                    if to_be_changed_requirement:
+                        to_be_changed_requirement = to_be_changed_requirement[0]
+                    changeable_requirement = process.changeable_requirements()
+                    if changeable_requirement:
+                        changeable_requirement = changeable_requirement[0]
                 else:
                     add_output_form = ProcessOutputForm(prefix='output')
                     add_output_form.fields["resource_type"].queryset = output_resource_types

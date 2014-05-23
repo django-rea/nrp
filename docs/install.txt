@@ -31,9 +31,14 @@ sudo apt-get install git
 4. We have had problems getting Pillow, one of the requirements, 
 to handle jpegs without installing some external libraries.
 
+It's gone from requirements.txt until we figure this out more.
+But you will need either Pillow or PIL, the Python Imaging Library.
+
 See 
 http://pillow.readthedocs.org/en/latest/installation.html#simple-installation
-for how to install them on your operating system.
+for how to install Pillow on your operating system.
+
+Here's PIL: https://pypi.python.org/pypi/PIL/
 
 6. create a virtualenv (assuming you installed virtualenvwrapper):
 mkvirtualenv vn --system-site-packages 

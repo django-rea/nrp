@@ -158,6 +158,10 @@ NOTIFICATION_QUEUE_ALL = True
 
 THUMBNAIL_DEBUG = True
 
+SOUTH_MIGRATION_MODULES = {
+    'easy_thumbnails': 'easy_thumbnails.south_migrations',
+}
+
 INTERNAL_IPS = ('127.0.0.1',)
 
 DEBUG_TOOLBAR_CONFIG = {

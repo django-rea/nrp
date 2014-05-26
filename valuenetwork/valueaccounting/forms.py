@@ -117,7 +117,7 @@ class ResourceRoleAgentForm(forms.ModelForm):
         queryset=AgentResourceRoleType.objects.all(), 
         required=False)
     agent = AgentModelChoiceField(
-        queryset=EconomicAgent.objects.individuals(), 
+        queryset=EconomicAgent.objects.resource_role_agents(), 
         required=False)
     is_contact = forms.BooleanField(
         required=False, 

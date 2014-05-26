@@ -242,6 +242,9 @@ class AgentTypeManager(models.Manager):
     def context_agent_types(self):
         return AgentType.objects.filter(is_context=True)
         
+    def context_types_string(self):
+        return " or ".join([ at.name for at in self.context_agent_types()])
+        
     def non_context_agent_types(self):
         return AgentType.objects.filter(is_context=False)
         
@@ -1068,6 +1071,7 @@ class EconomicResourceType(models.Model):
             return None
             
     def recipe_is_staged(self):
+        #import pdb; pdb.set_trace()
         rel = self.main_producing_process_type_relationship()
         if rel:
             if rel.stage:
@@ -1097,15 +1101,18 @@ class EconomicResourceType(models.Model):
         
     def staged_commitment_type_sequence(self):
         #todo: remove dependency on creation_et
+        #import pdb; pdb.set_trace()
         creation_et = EventType.objects.get(name='Create Changeable') 
         chain = []
         try:
             creation = self.process_types.get(
                 stage__isnull=False,
                 event_type=creation_et)
-            creation.follow_stage_chain(chain)
         except ProcessTypeResourceType.DoesNotExist:
-            pass
+            creation = self.process_types.get(
+                stage__isnull=True)
+        if creation:
+            creation.follow_stage_chain(chain)
         return chain
         
     def staged_process_type_sequence(self):

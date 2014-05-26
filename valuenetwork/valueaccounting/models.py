@@ -342,6 +342,9 @@ class AgentManager(models.Manager):
         
     def non_context_agents(self):
         return EconomicAgent.objects.filter(agent_type__is_context=False)
+        
+    def resource_role_agents(self):
+        return EconomicAgent.objects.filter(Q(agent_type__is_context=True)|Q(agent_type__party_type="individual"))
     
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)

@@ -4616,9 +4616,9 @@ class CachedEventSummary(models.Model):
         agent_name = "Unknown"
         if self.agent:
             agent_name = self.agent.name
-        project_name = "Unknown"
-        if self.project:
-            project_name = self.project.name
+        #project_name = "Unknown"
+        #if self.project:
+        #    project_name = self.project.name
         context_agent_name = "Unknown"
         if self.context_agent:
             context_agent_name = self.context_agent.name

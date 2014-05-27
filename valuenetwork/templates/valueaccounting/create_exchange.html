@@ -35,7 +35,8 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-	<legend>{% trans "Create Contribution" %}</legend>
+	{% if context_agent %}
+        <legend>{% trans "Create Contribution" %}</legend>
 		<form id="exchangeForm" method="POST" action="">
 			{% csrf_token %}
 			<div class="span12">
@@ -47,6 +48,15 @@
             <input type="hidden" id="use-case" name="next" value= "{{ use_case.identifier }}" />
 		</div>
 		</form>
+    {% else %}
+        <h2>You need a {{ context_types }}.</h2>
+        <p>
+            Read the 
+            <a href="https://docs.google.com/presentation/d/1ztnDX-Cf-PmQPUNxAfntNBBpLH9mhsQ2lrJ77Ty8Plw/edit?usp=sharing" target= "_blank">
+                Network Setup tutorial</a> 
+            and create one.
+        </p>
+    {% endif %}
     </div>
     </div>
 {% endblock %}

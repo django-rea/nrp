@@ -114,8 +114,8 @@ def process_graph(processes):
         if p not in visited:
             visited.add(p)
             project_id = ""
-            if p.project:
-                project_id = p.project.node_id()
+            if p.context_agent:
+                project_id = p.context_agent.node_id()
             d = {
                 "id": p.node_id(),
                 "name": p.name,
@@ -129,8 +129,8 @@ def process_graph(processes):
             if n not in visited:
                 visited.add(n)
                 project_id = ""
-                if p.project:
-                    project_id = p.project.node_id()
+                if p.context_agent:
+                    project_id = p.context_agent.node_id()
                 d = {
                     "id": n.node_id(),
                     "name": n.name,
@@ -150,8 +150,8 @@ def process_graph(processes):
             if n not in visited:
                 visited.add(n)
                 project_id = ""
-                if p.project:
-                    project_id = p.project.node_id()
+                if p.context_agent:
+                    project_id = p.context_agent.node_id()
                 d = {
                     "id": n.node_id(),
                     "name": n.name,
@@ -287,8 +287,8 @@ def project_process_graph(project_list, process_list):
         projects[p.node_id()] = d   
     for p in process_list:
         project_id = ""
-        if p.project:
-            project_id = p.project.node_id()
+        if p.context_agent:
+            project_id = p.context_agent.node_id()
         dp = {
             "name": p.name,
             "project-id": project_id,
@@ -372,10 +372,10 @@ def project_network():
     for p in producers:
         for rt in p.produced_resource_types():
             for pt in rt.consuming_process_types():
-                if p.project != pt.project:
-                    nodes.extend([p.project, pt.project, rt])
-                    edges.append(Edge(p.project, rt))
-                    edges.append(Edge(rt, pt.project))
+                if p.context_agent != pt.context_agent:
+                    nodes.extend([p.context_agent, pt.context_agent, rt])
+                    edges.append(Edge(p.context_agent, rt))
+                    edges.append(Edge(rt, pt.context_agent))
     return [nodes, edges]
 
 class TimelineEvent(object):

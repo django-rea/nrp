@@ -7062,7 +7062,7 @@ def plan_from_recipe(request):
         
             #import pdb; pdb.set_trace()      
             if forward_schedule:
-                demand = produced_rt.generate_staged_work_order(start_date, request.user)
+                demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)
             else:
                 
                 demand = Order(
@@ -7617,7 +7617,11 @@ def exchange_logging(request, exchange_id):
 def create_exchange(request, use_case_identifier):
     #import pdb; pdb.set_trace()
     use_case = get_object_or_404(UseCase, identifier=use_case_identifier)
-    context_agent = EconomicAgent.objects.context_agents()[0]
+    context_agent = None
+    context_types = AgentType.objects.context_types_string()
+    context_agents = EconomicAgent.objects.context_agents() or None
+    if context_agents:
+        context_agent = context_agents[0]
     exchange_form = ExchangeForm(use_case, context_agent)
     if request.method == "POST":
         ca_id = request.POST.get("context_agent")
@@ -7634,6 +7638,7 @@ def create_exchange(request, use_case_identifier):
         "exchange_form": exchange_form,
         "use_case": use_case,
         "context_agent": context_agent,
+        "context_types": context_types,
     }, context_instance=RequestContext(request))
 
 '''

@@ -1125,12 +1125,21 @@ class EconomicResourceType(models.Model):
             if stage.process_type not in pts:
                 pts.append(stage.process_type)
         return pts
+        
+    def recipe_needs_starting_resource(self):
+        seq = self.staged_commitment_type_sequence()
+        ct0 = seq[0]
+        if ct0.event_type.name == 'To Be Changed':
+            return True
+        else:
+            return False
 
-    def generate_staged_work_order(self, start_date, user):
+    def generate_staged_work_order(self, order_name, start_date, user):
         pts = self.staged_process_type_sequence()
         #import pdb; pdb.set_trace()
         order = Order(
             order_type="rand",
+            name=order_name,
             order_date=datetime.date.today(),
             due_date=start_date,
             created_by=user)
@@ -1146,12 +1155,12 @@ class EconomicResourceType(models.Model):
                 ct.independent_demand = order
                 ct.save()
         last_process = processes[-1]
-        order_name = ""
         for ct in last_process.outgoing_commitments():
             ct.order = order
-            " ".join([order_name, ct.resource_type.name])
+            if not order_name:
+                order_name = " ".join([order_name, ct.resource_type.name])
+                order.name = order_name
             ct.save()
-        order.name = order_name
         order.due_date = last_process.end_date
         order.save()
         return order

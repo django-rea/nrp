@@ -7062,7 +7062,7 @@ def plan_from_recipe(request):
         
             #import pdb; pdb.set_trace()      
             if forward_schedule:
-                demand = produced_rt.generate_staged_work_order(start_date, request.user)
+                demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)
             else:
                 
                 demand = Order(

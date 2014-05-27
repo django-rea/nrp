@@ -2284,13 +2284,35 @@ def order_schedule(request, order_id):
     #import pdb; pdb.set_trace()
     error_message = ""
     processes = order.all_processes()
+    resource_qty_form = None
+    unit = None
+    if order.is_workflow_order:
+        qty = order.workflow_quantity()
+        unit = order.workflow_unit()
+        init = {'quantity': qty,}
+        resource_qty_form = ResourceQuantityForm(initial=init)
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
         "agent": agent,
         "processes": processes,
+        "resource_qty_form": resource_qty_form,
+        "unit": unit,
         "error_message": error_message,
     }, context_instance=RequestContext(request))
 
+@login_required    
+def change_commitment_quantities(request, order_id):
+    order = get_object_or_404(Order, pk=order_id)
+    qty_form = ResourceQuantityForm(data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if qty_form.is_valid():
+            data = qty_form.cleaned_data
+            new_qty = data["quantity"]
+            order.change_commitment_quantities(new_qty)   
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+    
 def demand(request):
     agent = get_agent(request)
     orders = Order.objects.filter(order_type='customer')

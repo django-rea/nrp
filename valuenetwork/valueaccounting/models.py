@@ -1164,7 +1164,41 @@ class EconomicResourceType(models.Model):
         order.due_date = last_process.end_date
         order.save()
         return order
-        
+    
+    def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
+        pts = self.staged_process_type_sequence()
+        #import pdb; pdb.set_trace()
+        order = Order(
+            order_type="rand",
+            name=order_name,
+            order_date=datetime.date.today(),
+            due_date=start_date,
+            created_by=user)
+        order.save()
+        resource.independent_demand = order
+        processes = []
+        new_start_date = start_date
+        for pt in pts:
+            p = pt.create_process(new_start_date, user)
+            new_start_date = p.end_date
+            processes.append(p)
+        for process in processes:
+            for ct in process.commitments.all():
+                ct.independent_demand = order
+                if ct.resource_type == self:
+                    ct.quantity = resource.quantity
+                ct.save()
+        last_process = processes[-1]
+        for ct in last_process.outgoing_commitments():
+            ct.order = order
+            if not order_name:
+                order_name = " ".join([order_name, ct.resource_type.name])
+                order.name = order_name
+            ct.save()
+        order.due_date = last_process.end_date
+        order.save()
+        return order 
+    
     def is_process_output(self):
         #import pdb; pdb.set_trace()
         #todo: does this still return false positives?
@@ -1993,6 +2027,9 @@ class Order(models.Model):
         if self.order_type == "customer":
             provider_label = ", Seller:"
             receiver_label = ", Buyer:"
+        due_label = " due:"
+        if provider_name or receiver_name:
+            due_label = ", due:"
         return " ".join(
             [self.get_order_type_display(), 
             str(self.id), 
@@ -2001,7 +2038,7 @@ class Order(models.Model):
             provider_name, 
             receiver_label, 
             receiver_name, 
-            ", due:",
+            due_label,
             self.due_date.strftime('%Y-%m-%d'),
             ])
 
@@ -4003,8 +4040,6 @@ class Commitment(models.Model):
         return self.quantity - self.fulfilled_quantity()
 
     def onhand(self):
-        #todo: filter resources by r.order==self.independent_demand
-        #if not RT.substitutable
         answer = []
         rt = self.resource_type
         resources = EconomicResource.goods.filter(resource_type=self.resource_type)

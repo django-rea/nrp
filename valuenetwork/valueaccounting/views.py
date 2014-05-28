@@ -3615,7 +3615,7 @@ def add_process_citation(request, process_id):
 def add_process_worker(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         form = WorkCommitmentForm(data=request.POST, prefix='work')
         if form.is_valid():
             input_data = form.cleaned_data
@@ -4422,8 +4422,14 @@ def process_oriented_logging(request, process_id):
         if "work" in slots:
             work_resource_types = pattern.work_resource_types()
             if logger:
-                add_work_form = WorkCommitmentForm(prefix='work')
-                add_work_form.fields["resource_type"].queryset = work_resource_types
+                if work_resource_types:
+                    work_unit = work_resource_types[0].unit
+                    work_init = {"unit_of_quantity": work_unit,}
+                    add_work_form = WorkCommitmentForm(initial=work_init, prefix='work', pattern=pattern)
+                else:
+                    add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
+                #add_work_form = WorkCommitmentForm(prefix='work')
+                #add_work_form.fields["resource_type"].queryset = work_resource_types
             work_init = {
                 "from_agent": agent,
             }             
@@ -6437,6 +6443,24 @@ def create_rand(request):
         "output_formset": output_formset,
         "input_formset": input_formset,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def change_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    #import pdb; pdb.set_trace()
+    order_init = {
+        'receiver': order.receiver, 
+        'provider': order.provider,
+    }
+    order_form = OrderChangeForm(instance=order, data=request.POST or None)
+    if request.method == "POST":
+        if order_form.is_valid():
+            order = order_form.save()
+            return HttpResponseRedirect("/accounting/demand")
+    return render_to_response("valueaccounting/change_order.html", {
+        "order_form": order_form,
+        "order": order,
+    }, context_instance=RequestContext(request))
 
 #todo: obsolete
 @login_required
@@ -7020,6 +7044,7 @@ def plan_from_recipe(request):
     resource_types = []
     selected_context_agent = None
     forward_schedule = False
+    resource_driven = False
     ca_form = ProjectSelectionForm()
     init = {"date": datetime.date.today(),}
     date_name_form = OrderDateAndNameForm(data=request.POST or None)
@@ -7031,6 +7056,11 @@ def plan_from_recipe(request):
             date_name_form = OrderDateAndNameForm(initial=init)
             if selected_context_agent:
                 resource_types = selected_context_agent.get_resource_types_with_recipe()
+                for rt in resource_types:
+                    if rt.recipe_needs_starting_resource():
+                        rt.onhand_resources = []
+                        for oh in rt.onhand():
+                            rt.onhand_resources.append(oh)
         else:
             #import pdb; pdb.set_trace()
             rp = request.POST
@@ -7047,11 +7077,17 @@ def plan_from_recipe(request):
                     context_agent_id = key.split("~")[1]
                     selected_context_agent = EconomicAgent.objects.get(id=context_agent_id)
                     continue
-                if key == "workflow" or key == "assembly":
+                if key == "rt":
                     produced_id = int(value[0])
                     produced_rt = EconomicResourceType.objects.get(id=produced_id)
-                    if key == "workflow":
+                    if produced_rt.recipe_is_staged():
                         forward_schedule = True
+                        if produced_rt.recipe_needs_starting_resource():
+                            resource_driven = True
+                if "resourcesFor" in key:
+                    #import pdb; pdb.set_trace()
+                    resource_id = int(value[0])
+                    resource = EconomicResource.objects.get(id=resource_id)
             if forward_schedule:
                 if start_or_due == "start":
                     start_date = due_date
@@ -7062,7 +7098,10 @@ def plan_from_recipe(request):
         
             #import pdb; pdb.set_trace()      
             if forward_schedule:
-                demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)
+                if resource_driven:
+                    demand = produced_rt.generate_staged_work_order_from_resource(resource, order_name, start_date, request.user)
+                else:
+                    demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)
             else:
                 
                 demand = Order(

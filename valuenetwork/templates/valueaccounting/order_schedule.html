@@ -60,6 +60,10 @@ li {
         {% include "_messages.html" %}
 	<div>
 		<legend>{% trans "Schedule for " %}{{ order }}</legend>
+		
+            {% if order.description %}
+                <p>{{ order.description|urlize|linebreaks }}</p>
+            {% endif %}
 
             <h3>
 			    {% if order.order_type == "customer" %}

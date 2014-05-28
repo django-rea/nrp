@@ -30,6 +30,9 @@ li {
     font-weight: bold;
     font-size: 1.1em;
     margin-top: .8em;
+    background-color: lightyellow;
+    border: 1px solid gainsboro;
+    padding: 1em;
 }
 
 .resource-type {
@@ -42,12 +45,13 @@ li {
     font-style: italic;
     font-weight: normal;
 }
-
 .section {
     color:     #008A2E;
     font-size: 1em;
 }
-
+.indent {
+    margin-left: 1em;
+}
 
 </style>
 
@@ -82,20 +86,45 @@ li {
                                 @{{ item.stage.name }}
                             {% endif %}
                         </span> {{ item.quantity }} {{ item.unit_of_quantity }}
+                        {% if item.stage %}
+                            <div style="display: inline;" >
+                                <a href="#resourceQuantity" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change Quantity" %}</a>
+                            </div>
+                        {% endif %}
 			            {% if item.description %}
 			               <div class="req-description"> {{ item.description|urlize|linebreaks }}</div>
 		                {% endif %}
 				    </li>
 				{% endfor %}
 			</ul>
+
+			<div class="modal hide fade" id="resourceQuantity" tabindex="-1" role="dialog" aria-labelledby="resource-qty-label" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="resource-qty-label">{% trans "Change resource quantity for workflow plan" %} </h3>
+                </div>
+                <div class="modal-body">
+                    <form class="resource-qty-form" enctype="multipart/form-data" action="{% url change_commitment_quantities order_id=order.id %}" method="POST" >
+                        {% csrf_token %}
+                        {{ resource_qty_form }} {{ unit }}
+                        <p>This will change all the planned quantities for the workflow resource on all processes for this order.</p>
+                        <p>If work inputs also are using the same quantity and unit, they will also be changed.</p>
+                        <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                        <div class="modal-footer">
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                            <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                        </div>
+                    </form>
+                </div>
+			</div>
 			
 			<div class="row-fluid">
 
 				<div class="span12">
 					<h3 style="margin-bottom: 4px;" >
-					    {% trans "Production Schedule" %}:&nbsp;&nbsp;&nbsp;&nbsp;
-					    <a href="{% url processes_graph object_type='O' object_id=order.id %}">Process graph diagram</a>
-				    </h3>
+					    {% trans "Production Schedule" %}:
+					    <a class="indent" href="{% url processes_graph object_type='O' object_id=order.id %}">Process graph diagram</a>
+				    </h3> 
 					
 					{% for process in processes %}
 					    {% comment %}

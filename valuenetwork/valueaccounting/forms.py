@@ -111,6 +111,9 @@ class CreateEconomicResourceForm(forms.ModelForm):
         model = EconomicResource
         exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand')
 
+class ResourceQuantityForm(forms.Form):
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+            
 class ResourceRoleAgentForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)
     role = forms.ModelChoiceField(

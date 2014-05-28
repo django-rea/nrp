@@ -923,6 +923,12 @@ class EventType(models.Model):
     def stage_to_be_changed(self):
         return self.resource_effect == ">~"
         
+    def is_work(self):
+        if self.relationship == "work":
+            return True
+        else:
+            return False
+        
 
 class AccountingReference(models.Model):
     code = models.CharField(_('code'), max_length=128, unique=True)
@@ -2123,6 +2129,38 @@ class Order(models.Model):
         ordered_processes = list(set(ordered_processes))
         ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
         return ordered_processes
+        
+    def is_workflow_order(self):
+        last_process = self.all_processes()[-1]
+        return last_process.is_staged()
+        
+    def workflow_quantity(self):
+        if self.is_workflow_order():
+            return self.all_processes()[-1].main_outgoing_commitment().quantity
+        else:
+            return None
+        
+    def workflow_unit(self):
+        if self.is_workflow_order():
+            return self.all_processes()[-1].main_outgoing_commitment().unit_of_quantity
+        else:
+            return None  
+    
+    def change_commitment_quantities(self, qty):
+        #import pdb; pdb.set_trace()
+        if self.is_workflow_order():
+            processes = self.all_processes()
+            for process in processes:
+                for commitment in process.commitments.all():
+                    if commitment.is_change_related():
+                        commitment.quantity = qty
+                        commitment.save()
+                    elif commitment.is_work():
+                        if commitment.quantity == self.workflow_quantity() and commitment.unit_of_quantity == self.workflow_unit():
+                            commitment.quantity = qty
+                            commitment.save()
+        return self
+        
 
 class ProcessType(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -3226,6 +3264,10 @@ class Process(models.Model):
             event_type__relationship='work',
         )
         
+    def create_changeable_requirements(self):
+        return self.commitments.filter(
+        event_type__name="Create Changeable")        
+        
     def to_be_changed_requirements(self):
         return self.commitments.filter(
             event_type__name="To Be Changed")
@@ -3236,6 +3278,12 @@ class Process(models.Model):
             
     def paired_change_requirements(self):
         return self.to_be_changed_requirements(), self.changeable_requirements()
+        
+    def is_staged(self):
+        if self.create_changeable_requirements() or self.changeable_requirements():
+            return True
+        else:
+            return False
 
     def working_agents(self):
         reqs = self.work_requirements()
@@ -4205,6 +4253,12 @@ class Commitment(models.Model):
             return rt.active_producing_commitments()
         else:
             return self.associated_producing_commitments()
+            
+    def is_change_related(self):
+        return self.event_type.is_change_related()
+        
+    def is_work(self):
+        return self.event_type.is_work()
         
     
 #todo: not used.

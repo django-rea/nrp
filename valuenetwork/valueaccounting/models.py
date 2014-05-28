@@ -1070,7 +1070,6 @@ class EconomicResourceType(models.Model):
                 return one_ptrt
             else:
                 if one_ptrt.stage:
-                    #todo: middle of infinite loop
                     stages = self.staged_commitment_type_sequence()
                     if stages:
                         one_ptrt = stages[-1]
@@ -1081,18 +1080,6 @@ class EconomicResourceType(models.Model):
             return None
             
     def recipe_is_staged(self):
-        #import pdb; pdb.set_trace()
-        #todo: cause of infinite loop
-        # called by staged_commitment_type_sequence
-        # 
-        #rel = self.main_producing_process_type_relationship()
-        #if rel:
-        #    if rel.stage:
-        #        return True
-        #    else:
-        #        return False
-        #else:
-        #    return False
         staged_commitments = self.process_types.filter(stage__isnull=False)
         if staged_commitments:
             return True
@@ -1118,9 +1105,6 @@ class EconomicResourceType(models.Model):
         return list(set(pts))
         
     def staged_commitment_type_sequence(self):
-        #todo: remove dependency on creation_et
-        #import pdb; pdb.set_trace()
-        #todo: infinite loop
         staged_commitments = self.process_types.filter(stage__isnull=False)
         if not staged_commitments:
             return []
@@ -1146,7 +1130,6 @@ class EconomicResourceType(models.Model):
         return pts
         
     def recipe_needs_starting_resource(self):
-        #todo: kicks off infinite loop
         if not self.recipe_is_staged():
             return False
         seq = self.staged_commitment_type_sequence()
@@ -1205,15 +1188,10 @@ class EconomicResourceType(models.Model):
             p = pt.create_process(new_start_date, user)
             new_start_date = p.end_date
             processes.append(p)
-        for process in processes:
-            for ct in process.commitments.all():
-                ct.independent_demand = order
-                if ct.resource_type == self:
-                    ct.quantity = resource.quantity
-                ct.save()
         if processes:
             last_process = processes[-1]
             for ct in last_process.outgoing_commitments():
+                order_qty = ct.quantity
                 ct.order = order
                 if not order_name:
                     order_name = " ".join([order_name, ct.resource_type.name])
@@ -1221,6 +1199,16 @@ class EconomicResourceType(models.Model):
                 ct.save()
             order.due_date = last_process.end_date
             order.save()
+        for process in processes:
+            for commitment in process.commitments.all():
+                commitment.independent_demand = order
+                if commitment.resource_type == self:
+                    commitment.quantity = resource.quantity
+                elif commitment.is_work():
+                    if commitment.quantity == order_qty and commitment.unit_of_quantity == self.unit:
+                        commitment.quantity = resource.quantity
+                commitment.save()
+
         return order 
     
     def is_process_output(self):

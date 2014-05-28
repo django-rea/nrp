@@ -1160,15 +1160,16 @@ class EconomicResourceType(models.Model):
             for ct in process.commitments.all():
                 ct.independent_demand = order
                 ct.save()
-        last_process = processes[-1]
-        for ct in last_process.outgoing_commitments():
-            ct.order = order
-            if not order_name:
-                order_name = " ".join([order_name, ct.resource_type.name])
-                order.name = order_name
-            ct.save()
-        order.due_date = last_process.end_date
-        order.save()
+        if processes:
+            last_process = processes[-1]
+            for ct in last_process.outgoing_commitments():
+                ct.order = order
+                if not order_name:
+                    order_name = " ".join([order_name, ct.resource_type.name])
+                    order.name = order_name
+                ct.save()
+            order.due_date = last_process.end_date
+            order.save()
         return order
     
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
@@ -1194,15 +1195,16 @@ class EconomicResourceType(models.Model):
                 if ct.resource_type == self:
                     ct.quantity = resource.quantity
                 ct.save()
-        last_process = processes[-1]
-        for ct in last_process.outgoing_commitments():
-            ct.order = order
-            if not order_name:
-                order_name = " ".join([order_name, ct.resource_type.name])
-                order.name = order_name
-            ct.save()
-        order.due_date = last_process.end_date
-        order.save()
+        if processes:
+            last_process = processes[-1]
+            for ct in last_process.outgoing_commitments():
+                ct.order = order
+                if not order_name:
+                    order_name = " ".join([order_name, ct.resource_type.name])
+                    order.name = order_name
+                ct.save()
+            order.due_date = last_process.end_date
+            order.save()
         return order 
     
     def is_process_output(self):
@@ -2128,21 +2130,31 @@ class Order(models.Model):
             root.all_previous_processes(ordered_processes, visited, 0)
         ordered_processes = list(set(ordered_processes))
         ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
-        return ordered_processes
-        
+        return ordered_processes      
+    
+    def last_process_in_order(self):
+        processes = self.all_processes()
+        if processes:
+            return processes[-1]
+        else:
+            return None
+    
     def is_workflow_order(self):
-        last_process = self.all_processes()[-1]
-        return last_process.is_staged()
+        last_process = self.last_process_in_order()
+        if last_process:
+            return last_process.is_staged()
+        else:
+            return False
         
     def workflow_quantity(self):
         if self.is_workflow_order():
-            return self.all_processes()[-1].main_outgoing_commitment().quantity
+            return self.last_process_in_order().main_outgoing_commitment().quantity
         else:
             return None
         
     def workflow_unit(self):
         if self.is_workflow_order():
-            return self.all_processes()[-1].main_outgoing_commitment().unit_of_quantity
+            return self.last_process_in_order().main_outgoing_commitment().unit_of_quantity
         else:
             return None  
     

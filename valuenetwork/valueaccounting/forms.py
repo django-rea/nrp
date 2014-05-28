@@ -203,6 +203,16 @@ class ScheduleProcessForm(forms.ModelForm):
     class Meta:
         model = Process
         fields = ('start_date', 'end_date', 'notes' )
+        
+        
+class PlanProcessForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    
+    class Meta:
+        model = Process
+        fields = ('name', 'start_date', 'end_date')
 
 
 class AddProcessFromResourceForm(forms.ModelForm):

@@ -3464,6 +3464,12 @@ class Process(models.Model):
         from valuenetwork.valueaccounting.forms import ScheduleProcessForm
         init = {"start_date": self.start_date, "end_date": self.end_date, "notes": self.notes}
         return ScheduleProcessForm(prefix=str(self.id),initial=init)
+        
+    def plan_change_form(self):
+        from valuenetwork.valueaccounting.forms import PlanProcessForm
+        init = {"start_date": self.start_date, "end_date": self.end_date, "name": self.name}
+        return PlanProcessForm(prefix=str(self.id),initial=init)       
+        
 
 
 class ExchangeManager(models.Manager):

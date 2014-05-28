@@ -23,6 +23,10 @@
 #div_id_start_date, #rts {
     margin-top: 20px
 }
+.resources {
+    display: none;
+    margin-left: 2em;
+}
 
 </style>
 {% endblock %}
@@ -59,11 +63,15 @@
                     <div id="rts">
                         {% for item in resource_types %}
 	                        <p>
-	                            <input type="radio" id="rt-{{ item.id }}" 
+	                            <input type="radio" id="rt-{{ item.id }}" name="rt" 
 	                            {% if item.recipe_is_staged %} 
-                                    name="workflow" 
+                                    {% if item.recipe_needs_starting_resource %} 
+                                        class="resourceflow" 
+                                    {% else %}
+                                        class="workflow"
+                                    {% endif %}
                                 {% else %}
-                                    name="assembly" 
+                                    class="assembly" 
                                 {% endif %}
                                 value="{{ item.id }}" />
 	                            {{ item }} ( {{ item.facet_values_list }} ) 
@@ -73,6 +81,17 @@
                                     Assembly Recipe
                                 {% endif %}
                             </p>
+                            {% if item.onhand_resources %}
+                                <div id="resources-{{ item.id }}" class = "resources" >
+                                <p>This recipe needs a starting resource</p>
+                                {% for resource in item.onhand_resources %}
+                                    <p>
+                                        <input type="radio" id="resource-{{ resource.id }}" name="resourcesFor-{{ item.id }}" value="{{ resource.id }}" />
+                                        {{ resource.identifier }}
+                                    </p>
+                                {% endfor %}
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
               </div>
@@ -141,14 +160,52 @@
       			$( this ).valid();
 			}
 		 });
-
+        
+        /*
+            Todos for next function:
+            1. If a resourceflow radio button is clicked, 
+                autoselect the first resource.
+            2. If a resourceflow radio button is deselected,
+                unselect the resources and hide the div.
+            
+        */
         $("[type=radio]").click(function() {
-            var name = $(this).attr('name'); 
-            if (name == "workflow")
+            var cls = $(this).attr('class'); 
+            if (cls == "workflow")
             {
                 $("#date-choice").show();
                 $("#dateLabel").html('Date');
             }
+            else if (cls == "resourceflow")
+            {
+                $("#date-choice").hide();
+                $("#dateLabel").html('Start Date');
+                var itemId = $(this).attr('id'); 
+                var itemNbr = itemId.split("-")[1];
+                var resourcesId = "#resources-" + itemNbr;
+                $(resourcesId).show();
+            }
+
+            $( "input[type=radio]" ).each(function() {
+                if ($( this ).attr( "name" ) == "rt")
+                {   
+                    if ($( this ).attr( "class" ) == "resourceflow")
+                    {
+                        var itemId = $(this).attr('id'); 
+                        var itemNbr = itemId.split("-")[1];
+                        var resourcesId = "#resources-" + itemNbr;
+                        if ($( this ).prop( "checked" ))
+                        {
+                            var x = $(resourcesId);
+                        }
+                        else
+                        {
+                            $(resourcesId).hide();
+                        }
+                    }
+                }
+                    
+            });
         });
 
 	}); // end document.ready

@@ -1080,13 +1080,9 @@ class EconomicResourceType(models.Model):
             return None
             
     def recipe_is_staged(self):
-        #import pdb; pdb.set_trace()
-        rel = self.main_producing_process_type_relationship()
-        if rel:
-            if rel.stage:
-                return True
-            else:
-                return False
+        staged_commitments = self.process_types.filter(stage__isnull=False)
+        if staged_commitments:
+            return True
         else:
             return False
 
@@ -1109,8 +1105,9 @@ class EconomicResourceType(models.Model):
         return list(set(pts))
         
     def staged_commitment_type_sequence(self):
-        #todo: remove dependency on creation_et
-        #import pdb; pdb.set_trace()
+        staged_commitments = self.process_types.filter(stage__isnull=False)
+        if not staged_commitments:
+            return []
         creation_et = EventType.objects.get(name='Create Changeable') 
         chain = []
         try:
@@ -1133,6 +1130,8 @@ class EconomicResourceType(models.Model):
         return pts
         
     def recipe_needs_starting_resource(self):
+        if not self.recipe_is_staged():
+            return False
         seq = self.staged_commitment_type_sequence()
         ct0 = seq[0]
         if ct0.event_type.name == 'To Be Changed':
@@ -1160,17 +1159,58 @@ class EconomicResourceType(models.Model):
             for ct in process.commitments.all():
                 ct.independent_demand = order
                 ct.save()
-        last_process = processes[-1]
-        for ct in last_process.outgoing_commitments():
-            ct.order = order
-            if not order_name:
-                order_name = " ".join([order_name, ct.resource_type.name])
-                order.name = order_name
-            ct.save()
-        order.due_date = last_process.end_date
-        order.save()
+        if processes:
+            last_process = processes[-1]
+            for ct in last_process.outgoing_commitments():
+                ct.order = order
+                if not order_name:
+                    order_name = " ".join([order_name, ct.resource_type.name])
+                    order.name = order_name
+                ct.save()
+            order.due_date = last_process.end_date
+            order.save()
         return order
-        
+    
+    def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
+        pts = self.staged_process_type_sequence()
+        #import pdb; pdb.set_trace()
+        order = Order(
+            order_type="rand",
+            name=order_name,
+            order_date=datetime.date.today(),
+            due_date=start_date,
+            created_by=user)
+        order.save()
+        resource.independent_demand = order
+        processes = []
+        new_start_date = start_date
+        for pt in pts:
+            p = pt.create_process(new_start_date, user)
+            new_start_date = p.end_date
+            processes.append(p)
+        if processes:
+            last_process = processes[-1]
+            for ct in last_process.outgoing_commitments():
+                order_qty = ct.quantity
+                ct.order = order
+                if not order_name:
+                    order_name = " ".join([order_name, ct.resource_type.name])
+                    order.name = order_name
+                ct.save()
+            order.due_date = last_process.end_date
+            order.save()
+        for process in processes:
+            for commitment in process.commitments.all():
+                commitment.independent_demand = order
+                if commitment.resource_type == self:
+                    commitment.quantity = resource.quantity
+                elif commitment.is_work():
+                    if commitment.quantity == order_qty and commitment.unit_of_quantity == self.unit:
+                        commitment.quantity = resource.quantity
+                commitment.save()
+
+        return order 
+    
     def is_process_output(self):
         #import pdb; pdb.set_trace()
         #todo: does this still return false positives?
@@ -1999,6 +2039,9 @@ class Order(models.Model):
         if self.order_type == "customer":
             provider_label = ", Seller:"
             receiver_label = ", Buyer:"
+        due_label = " due:"
+        if provider_name or receiver_name:
+            due_label = ", due:"
         return " ".join(
             [self.get_order_type_display(), 
             str(self.id), 
@@ -2007,7 +2050,7 @@ class Order(models.Model):
             provider_name, 
             receiver_label, 
             receiver_name, 
-            ", due:",
+            due_label,
             self.due_date.strftime('%Y-%m-%d'),
             ])
 
@@ -2091,21 +2134,31 @@ class Order(models.Model):
             root.all_previous_processes(ordered_processes, visited, 0)
         ordered_processes = list(set(ordered_processes))
         ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
-        return ordered_processes
-        
+        return ordered_processes      
+    
+    def last_process_in_order(self):
+        processes = self.all_processes()
+        if processes:
+            return processes[-1]
+        else:
+            return None
+    
     def is_workflow_order(self):
-        last_process = self.all_processes()[-1]
-        return last_process.is_staged()
+        last_process = self.last_process_in_order()
+        if last_process:
+            return last_process.is_staged()
+        else:
+            return False
         
     def workflow_quantity(self):
         if self.is_workflow_order():
-            return self.all_processes()[-1].main_outgoing_commitment().quantity
+            return self.last_process_in_order().main_outgoing_commitment().quantity
         else:
             return None
         
     def workflow_unit(self):
         if self.is_workflow_order():
-            return self.all_processes()[-1].main_outgoing_commitment().unit_of_quantity
+            return self.last_process_in_order().main_outgoing_commitment().unit_of_quantity
         else:
             return None  
     
@@ -4057,8 +4110,6 @@ class Commitment(models.Model):
         return self.quantity - self.fulfilled_quantity()
 
     def onhand(self):
-        #todo: filter resources by r.order==self.independent_demand
-        #if not RT.substitutable
         answer = []
         rt = self.resource_type
         resources = EconomicResource.goods.filter(resource_type=self.resource_type)

@@ -172,7 +172,27 @@ class RandOrderForm(forms.ModelForm):
     class Meta:
         model = Order
         fields = ('receiver', 'provider')
+        
+        
+class OrderChangeForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    receiver = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.all(),
+        label="Receiver (optional)", 
+        required=False)
+    provider = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.all(), 
+        label="Provider (optional)", 
+        required=False)
+    due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'description',}))
 
+    class Meta:
+        model = Order
+        fields = ('name', 'receiver', 'provider', 'due_date', 'description')
+        
 
 class ProcessForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
@@ -736,14 +756,13 @@ class ChangeCommitmentForm(forms.ModelForm):
 class ChangeWorkCommitmentForm(forms.ModelForm):
     due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(
-        label="Estimated hours (optional)",
         required=False, 
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
 
     class Meta:
         model = Commitment
-        fields = ('due_date', 'quantity', 'description')
+        fields = ('due_date', 'quantity', 'unit_of_quantity', 'description')
 
 
 
@@ -865,18 +884,16 @@ class WorkCommitmentForm(forms.ModelForm):
         label="Type of work",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
+            attrs={'class': 'chzn-select resourceType resource-type-selector'})) 
     quantity = forms.DecimalField(required=True,
-        widget=DecimalDurationWidget,
-        label="Estimated time",
-        help_text="hours, minutes")
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
    
     class Meta:
         model = Commitment
-        fields = ('resource_type','quantity', 'description')
+        fields = ('resource_type','quantity', 'unit_of_quantity', 'description')
 
     def __init__(self, pattern=None, *args, **kwargs):
         #import pdb; pdb.set_trace()

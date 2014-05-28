@@ -418,7 +418,7 @@ li {
 								                <div class="modal-body">
 									                <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_work_event event_id=event.id %}" method="POST" >
 										                {% csrf_token %}
-										                {{ event.work_event_change_form|as_bootstrap }}
+										                {{ event.change_form|as_bootstrap }}
 										                <input type="hidden" id="next" name="next" value="process" />
                                                         <div class="modal-footer">
                                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -1398,8 +1398,6 @@ li {
 			});
 		});
 
-		
-
 	    $(".resource-type-selector").change(getUnit);
 
 		function getUnit(event)
@@ -1479,7 +1477,7 @@ li {
 
 		$( "#addWorkForm" ).validate({
 			rules: {
-			    'input-resource_type': {
+			    'resource_type': {
                     required: true
 				}
 			},

@@ -911,9 +911,10 @@ def unscheduled_time_contributions(request):
         if time_formset.is_valid():
             events = time_formset.save(commit=False)
             pattern = None
-            try:
-                pattern = PatternUseCase.objects.get(use_case__identifier='non_prod').pattern
-            except PatternUseCase.DoesNotExist:
+            patterns = PatternUseCase.objects.filter(use_case__identifier='non_prod')
+            if patterns:
+                pattern = patterns[0].pattern
+            else:
                 raise ValidationError("no non-production ProcessPattern")
             if pattern:
                 unit = Unit.objects.filter(
@@ -2129,9 +2130,10 @@ def cleanup_resources(request):
 
 @login_required
 def create_order(request):
-    try:
-        pattern = PatternUseCase.objects.get(use_case__identifier='cust_orders').pattern
-    except PatternUseCase.DoesNotExist:
+    patterns = PatternUseCase.objects.filter(use_case__identifier='cust_orders')
+    if patterns:
+        pattern = patterns[0].pattern
+    else:
         raise ValidationError("no Customer Order ProcessPattern")
     rts = pattern.all_resource_types()
     item_forms = []
@@ -2454,10 +2456,11 @@ def work(request):
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
     ca_form = ProjectSelectionFormOptional(data=request.POST or None)
     chosen_context_agent = None
-    try:
-        pattern = PatternUseCase.objects.get(use_case__identifier='todo').pattern
+    patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
+    if patterns:
+        pattern = patterns[0].pattern
         todo_form = TodoForm(pattern=pattern)
-    except PatternUseCase.DoesNotExist:
+    else:
         todo_form = TodoForm()
     #import pdb; pdb.set_trace()
     if request.method == "POST":
@@ -2517,10 +2520,11 @@ def today(request):
 def add_todo(request):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        try:
-            pattern = PatternUseCase.objects.get(use_case__identifier='todo').pattern
+        patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
+        if patterns:
+            pattern = patterns[0].pattern
             form = TodoForm(data=request.POST, pattern=pattern)
-        except PatternUseCase.DoesNotExist:
+        else:
             form = TodoForm(request.POST)
         next = request.POST.get("next")
         agent = get_agent(request)
@@ -2728,10 +2732,11 @@ def start(request):
             event_type__relationship="work")
     todos = Commitment.objects.todos().filter(from_agent=agent)
     init = {"from_agent": agent,}
-    try:
-        pattern = PatternUseCase.objects.get(use_case__identifier='todo').pattern
+    patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
+    if patterns:
+        pattern = patterns[0].pattern
         todo_form = TodoForm(pattern=pattern, initial=init)
-    except PatternUseCase.DoesNotExist:
+    else:
         todo_form = TodoForm(initial=init)
     work_now = settings.USE_WORK_NOW
     return render_to_response("valueaccounting/start.html", {

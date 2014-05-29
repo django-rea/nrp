@@ -193,35 +193,31 @@ $(document).ready(function(){
             
     $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
+    //$('.validateMe').each( function(){
+    //    var form = $(this);
+    //    form.validate({
+    //        highlight: function(label) {
+    //            $(label).closest('.control-group').addClass('error');
+    //            }
+    //    });
+    //});
+
     jQuery.validator.setDefaults({ 
-    success: function(label) {
-        label
-        .text('').addClass('valid')
-        .closest('.control-group').addClass('success');
+        success: function(label) {
+            label
+            .text('').addClass('valid')
+            .closest('.control-group').addClass('success');
         }
     });
         
     $.validator.addClassRules("quantity", { 
         required: true, 
         number: true,
-        max: 999999.99 
+        max: 999999.99, 
     });
+    
+    $.validator.addClassRules("date-entry", { required: true, date: true, });
         
-    $( ".process-change-formm" ).validate({
-        rules: {
-            'end_date': {
-                required: true,
-                date: true
-            },
-            'start_date': {
-                required: true,
-                date: true
-            }
-        },
-        highlight: function(label) {
-            $(label).closest('.control-group').addClass('error');
-        },
-    });
 
 });
 </script>

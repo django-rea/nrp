@@ -6,6 +6,8 @@
 
 {% block extra_head %}
 
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
 <style>
 
 .error {
@@ -51,6 +53,9 @@ li {
 }
 .indent {
     margin-left: 1em;
+}
+.process-btn {
+    margin-top: 10px;
 }
 
 </style>
@@ -127,12 +132,32 @@ li {
 				    </h3> 
 					
 					{% for process in processes %}
-					    {% comment %}
-						<ul style="margin-left:{{ process.depth|add:"4" }}em" >
-						{% endcomment %}
-						<ul>
-						    <li class="process" >{% include  "valueaccounting/_process_for_order.html" %}</li>
-						 </ul>
+                        <div class="row-fluid">
+                            <div class="span9">
+                                <div class="process" >{% include  "valueaccounting/_process_for_order.html" %}</div>
+                            </div>
+                            <div class="span3">
+                                <a href="#processChangeForm{{ process.id }}" role="button" class="btn btn-primary process-btn" data-toggle="modal">{% trans "Change process plan" %}</a>
+                                
+                                <div class="modal hide fade processForm" id="processChangeForm{{ process.id }}" tabindex="-1" role="dialog" aria-labelledby="process-change-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="process-change-label">{% trans "Change" %} {{ process.name }}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="process-change-form" action="{% url change_process_plan process_id=process.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ process.plan_change_form }}
+                                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                            <div class="modal-footer">
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>                                
+                            </div>
+						 </div>
 
 					{% empty %}
 					    <p class="text-error" >{{ error_message }}</p>
@@ -141,6 +166,60 @@ li {
 
 			</div>
 
-	</div>
+        </div>
     </div>
+{% endblock %}
+{% block extra_script %}
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+{{ block.super }}
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+    
+    //$('#demand').addClass('active');
+    
+    $( "#help" ).toggle( function(){
+        $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+        $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+            $( "#help" ).text("Show Help");
+    })
+            
+    $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+    //$('.validateMe').each( function(){
+    //    var form = $(this);
+    //    form.validate({
+    //        highlight: function(label) {
+    //            $(label).closest('.control-group').addClass('error');
+    //            }
+    //    });
+    //});
+
+    jQuery.validator.setDefaults({ 
+        success: function(label) {
+            label
+            .text('').addClass('valid')
+            .closest('.control-group').addClass('success');
+        }
+    });
+        
+    $.validator.addClassRules("quantity", { 
+        required: true, 
+        number: true,
+        max: 999999.99, 
+    });
+    
+    $.validator.addClassRules("date-entry", { required: true, date: true, });
+        
+
+});
+</script>
+
 {% endblock %}

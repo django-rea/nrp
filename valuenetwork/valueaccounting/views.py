@@ -2314,6 +2314,23 @@ def change_commitment_quantities(request, order_id):
             order.change_commitment_quantities(new_qty)   
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
+
+@login_required    
+def change_process_plan(request, process_id):
+    process = get_object_or_404(Process, pk=process_id)
+    form = PlanProcessForm(prefix=process_id, data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if form.is_valid():
+            data = form.cleaned_data
+            process.start_date = data["start_date"]
+            process.end_date = data["end_date"]
+            process.name = data["name"]
+            process.changed_by = request.user
+            process.save()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+    
     
 def demand(request):
     agent = get_agent(request)

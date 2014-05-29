@@ -329,5 +329,7 @@ urlpatterns = patterns("",
         name="agent_associations"),
     url(r"^change-commitment-quantities/(?P<order_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_commitment_quantities', 
         name="change_commitment_quantities"),
+    url(r"^change-process-plan/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_process_plan', 
+        name="change_process_plan"),
 )
 

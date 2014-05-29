@@ -19,6 +19,11 @@ class AgentModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.name
 
+        
+class WorkModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.name
+
 
 class AgentForm(forms.Form):
     nick = forms.CharField(label="ID", widget=forms.TextInput(attrs={'class': 'required-field',}))
@@ -285,6 +290,47 @@ class ProcessInputForm(forms.ModelForm):
             if use_pattern:
                 self.pattern = pattern
                 self.fields["resource_type"].queryset = pattern.input_resource_types()
+                
+#new
+class UnplannedWorkEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
+        label="Type of work done",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector resourceType chzn-select'})) 
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Work done by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))   
+    quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        queryset=Unit.objects.exclude(unit_type='value'), 
+        label=_("Unit"),
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+   
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'resource_type', 'from_agent', 'quantity', 'unit_of_quantity', 'description')
+
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(UnplannedWorkEventForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["from_agent"].queryset = context_agent.all_members()
 
 
 class ProcessConsumableForm(forms.ModelForm):
@@ -509,12 +555,7 @@ class UnorderedReceiptForm(forms.ModelForm):
         if context_agent:
             self.context_agent = context_agent
             self.fields["from_agent"].queryset = context_agent.all_suppliers()
-
-
-class WorkModelChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return obj.name
-
+            
 
 class TodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
@@ -792,7 +833,7 @@ class PastWorkForm(forms.ModelForm):
         fields = ('id', 'event_date', 'quantity', 'description')
 
 
-class UnplannedWorkEventForm(forms.ModelForm):
+class OldUnplannedWorkEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     resource_type = WorkModelChoiceField(
         queryset=EconomicResourceType.objects.all(),

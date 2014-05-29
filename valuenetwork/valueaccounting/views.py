@@ -3642,7 +3642,7 @@ def add_process_citation(request, process_id):
 def add_process_worker(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
     if request.method == "POST":
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         form = WorkCommitmentForm(data=request.POST, prefix='work')
         if form.is_valid():
             input_data = form.cleaned_data
@@ -4453,15 +4453,16 @@ def process_oriented_logging(request, process_id):
                     work_unit = work_resource_types[0].unit
                     work_init = {"unit_of_quantity": work_unit,}
                     add_work_form = WorkCommitmentForm(initial=work_init, prefix='work', pattern=pattern)
+                
+                    work_init = {
+                        "from_agent": agent,
+                        "unit_of_quantity": work_unit,
+                    }             
+                    unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
+                    unplanned_work_form.fields["resource_type"].queryset = work_resource_types 
                 else:
                     add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
-                #add_work_form = WorkCommitmentForm(prefix='work')
-                #add_work_form.fields["resource_type"].queryset = work_resource_types
-            work_init = {
-                "from_agent": agent,
-            }             
-            unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
-            unplanned_work_form.fields["resource_type"].queryset = work_resource_types 
+                    unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern, context_agent=context_agent, initial=work_init)
         if "cite" in slots:
             unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)
             if logger:
@@ -4725,7 +4726,7 @@ def log_payment_for_commitment(request, commitment_id):
 @login_required
 def add_work_event(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
-    form = ct.work_event_form(data=request.POST)
+    form = ct.input_event_form(data=request.POST)
     if form.is_valid():
         event = form.save(commit=False)
         event.commitment = ct
@@ -4798,12 +4799,8 @@ def add_use_event(request, commitment_id, resource_id):
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     prefix = resource.form_prefix()
     unit = ct.resource_type.directional_unit("use")
-    if unit.unit_type == "time":
-        form = TimeEventForm(prefix=prefix, data=request.POST)
-    else:
-        qty_help = " ".join(["unit:", unit.abbrev])
-        form = InputEventForm(qty_help=qty_help, prefix=prefix, data=request.POST)
-    #form = WorkEventForm(prefix=prefix, data=request.POST)
+    qty_help = " ".join(["unit:", unit.abbrev])
+    form = InputEventForm(qty_help=qty_help, prefix=prefix, data=request.POST)
     if form.is_valid():
         agent = get_agent(request)
         event = form.save(commit=False)
@@ -5676,7 +5673,7 @@ def change_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     commitment = event.commitment
     process = event.process
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     if request.method == "POST":
         form = WorkEventChangeForm(instance=event, data=request.POST)
         if form.is_valid():

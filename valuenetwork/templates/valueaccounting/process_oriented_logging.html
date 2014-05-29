@@ -384,7 +384,7 @@ li {
 					                <div class="modal-body">
 						                <form class="eventForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url add_work_event commitment_id=item.id %}" method="POST" >
 							                {% csrf_token %}
-							                {{ item.work_event_form|as_bootstrap }}
+							                {{ item.input_event_form|as_bootstrap }}
 						                  <div class="modal-footer">
 							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 							                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -1363,7 +1363,15 @@ li {
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
 		$(".res-ajax").change(getResources);
-
+		
+		jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places "
+        );
+        
         jQuery.validator.setDefaults({ 
             success: function(label) {
 		        label
@@ -1372,7 +1380,10 @@ li {
 	        }
         });
 
-        $.validator.addClassRules("quantity", { required: true, number: true, });
+        $.validator.addClassRules("quantity", { 
+            required: true, 
+            quantity: true,
+        });
 		$.validator.addClassRules("url", { url: true, maxlength: 255 });
         $.validator.addClassRules("resourceType", { required: true});
         $.validator.addClassRules("hours", { 

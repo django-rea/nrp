@@ -2661,18 +2661,21 @@ class EconomicResource(models.Model):
     def consumption_event_form(self):        
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
-        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev])
+        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix)
 
-    def use_event_form(self):        
-        from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
+    def use_event_form(self, data=None):        
+        from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
         unit = self.resource_type.directional_unit("use")
-        if unit.unit_type == "time":
-            return TimeEventForm(prefix=prefix)
-        else:
-            qty_help = " ".join(["unit:", unit.abbrev])
-            return InputEventForm(qty_help=qty_help, prefix=prefix) 
+        qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+        return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
+            
+    def input_event_form(self, data=None):
+        from valuenetwork.valueaccounting.forms import InputEventForm
+        prefix=self.form_prefix()
+        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
+        return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
             
     def owner(self):
         owner_roles = self.agent_resource_roles.filter(role__is_owner=True)
@@ -4022,31 +4025,45 @@ class Commitment(models.Model):
         prefix=self.form_prefix()
         return TodoForm(instance=self, prefix=prefix)
 
-    def work_event_form(self, data=None):        
+    #obsolete
+    def work_event_form(self, data=None):   
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
         unit = self.resource_type.unit
         if unit.unit_type == "time":
             return TimeEventForm(prefix=prefix, data=data)
         else:
-            qty_help = " ".join(["unit:", unit.abbrev])
+            qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
             return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
+            
+    def input_event_form(self, data=None):
+        from valuenetwork.valueaccounting.forms import InputEventForm
+        prefix=self.form_prefix()
+        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
+        return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
 
     def consumption_event_form(self):        
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
-        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev])
+        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix)
 
-    def use_event_form(self):        
+    def old_use_event_form(self):        
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
         unit = self.resource_type.directional_unit("use")
         if unit.unit_type == "time":
             return TimeEventForm(prefix=prefix)
         else:
-            qty_help = " ".join(["unit:", unit.abbrev])
+            qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
             return InputEventForm(qty_help=qty_help, prefix=prefix)
+            
+    def use_event_form(self, data=None):        
+        from valuenetwork.valueaccounting.forms import InputEventForm
+        prefix=self.form_prefix()
+        unit = self.resource_type.directional_unit("use")
+        qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+        return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
             
     def ready_resource(self):
         resource = None
@@ -4594,19 +4611,24 @@ class EconomicEvent(models.Model):
             str(self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)),
             self.unit(),
             ])
+            
+    def form_prefix(self):
+        return "-".join(["EVT", str(self.id)])
 
     def work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import WorkEventChangeForm
         return WorkEventChangeForm(instance=self)
         
-    def change_form(self, data):
+    def change_form(self, data=None):
+        #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         unit = self.resource_type.unit
+        prefix = self.form_prefix()
         if unit.unit_type == "time":
-            return TimeEventForm(instance=self, data=data)
+            return TimeEventForm(instance=self, prefix=prefix, data=data)
         else:
-            qty_help = " ".join(["unit:", unit.abbrev])
-            return InputEventForm(qty_help=qty_help, instance=self, data=data)
+            qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+            return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
 
     def unplanned_work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm

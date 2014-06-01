@@ -4481,15 +4481,15 @@ def process_oriented_logging(request, process_id):
                     add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern, context_agent=context_agent, initial=work_init)
         if "cite" in slots:
-            unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)
+            unplanned_cite_form = UnplannedCiteEventForm(prefix='unplannedcite', pattern=pattern)
             if logger:
                 add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)   
         if "consume" in slots:
-            unplanned_consumption_form = UnplannedInputEventForm(prefix='unplanned-consumption', pattern=pattern)
+            unplanned_consumption_form = UnplannedInputEventForm(prefix='unplannedconsumption', pattern=pattern)
             if logger:
                 add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
         if "use" in slots:
-            unplanned_use_form = UnplannedInputEventForm(prefix='unplanned-use', pattern=pattern)
+            unplanned_use_form = UnplannedInputEventForm(prefix='unplannedusable', pattern=pattern)
             if logger:
                 add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
        
@@ -4621,10 +4621,10 @@ def add_unplanned_input_event(request, process_id, slot):
     #import pdb; pdb.set_trace()
     if pattern:
         if slot == "c":
-            prefix = "unplanned-consumption"  
+            prefix = "unplannedconsumption"  
             et = "consume"  
         else:
-            prefix = "unplanned-use"  
+            prefix = "unplannedusable"  
             et = "use" 
         form = UnplannedInputEventForm(
             prefix=prefix, 

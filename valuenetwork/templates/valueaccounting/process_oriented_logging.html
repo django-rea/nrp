@@ -1524,7 +1524,8 @@ li {
         var selectedRT = event.target.value;
         var selectId = event.target.id;
         var selectSplit = selectId.split("-");
-        var resourcePrefix = selectSplit[0] + "-" + selectSplit[1];
+        //var resourcePrefix = selectSplit[0] + "-" + selectSplit[1];
+        var resourcePrefix = selectSplit[0];
         var resourceFieldId = "#" + resourcePrefix + "-resource";
         var jsonUrl = encodeURI("/accounting/json-resourcetype-resources/" + selectedRT + "/");
         $(resourceFieldId).empty();

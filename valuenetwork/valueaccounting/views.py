@@ -521,7 +521,7 @@ def change_pattern(request, pattern_id, use_case_id):
         #todo: weird, this rts form does not do anything
         slot.rts = ResourceTypeSelectionForm(
             qs=slot.resource_types,
-            prefix=slot.relationship)
+            prefix=slot.slug)
         #import pdb; pdb.set_trace()
     slot_ids = [slot.id for slot in slots]
 

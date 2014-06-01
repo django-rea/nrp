@@ -139,6 +139,10 @@ th, td {
     margin-top: 1em;
 }
 
+.selections {
+    margin-left: 5em;
+}
+
 .odd {
     background-color: #F9F9F7;
 }
@@ -177,7 +181,8 @@ th, td {
                         <div class="row-fluid">
                             <div class="span12">
                                     <span class="slot-label" >{{ slot.label|capfirst }}</span> 
-                                    {% trans "Selections" %}: {{ slot.rts.resource_type }}
+                                    {% trans "Selections you will see in forms" %}: </br>
+                                    <span class="selections">{{ slot.rts.resource_type }}</br>
                             </div>
                         </div>
                         <div class="row-fluid">

@@ -2952,7 +2952,14 @@ class ProcessTypeResourceType(models.Model):
         return [self.resource_type, self]
 
     def node_id(self):
-        return "-".join(["ProcessResource", str(self.id)])
+        #todo: where is this used? Did I break it with this change?
+        #(adding stage and state)
+        answer = "-".join(["ProcessResource", str(self.id)])
+        if self.stage:
+            answer = "-".join([answer, str(self.stage.id)])
+        if self.state:
+            answer = "-".join([answer, self.state.name])
+        return answer
 
     def xbill_change_prefix(self):
         return "".join(["PTRT", str(self.id)])
@@ -3941,6 +3948,10 @@ class Commitment(models.Model):
         if self.state:
             state_id = str(self.state.id)
         return "-".join([str(self.resource_type.id), stage_id, state_id])
+        
+    def resource_type_node_id(self):
+        answer = "-".join(["ProcessResource", self.cycle_id()])
+        return answer
 
     def commitment_type(self):
         rt = self.resource_type

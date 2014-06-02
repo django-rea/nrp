@@ -214,11 +214,12 @@ def project_process_resource_agent_graph(project_list, process_list):
             }
         processes[p.node_id()] = dp
         p.dp = dp
-        rts = p.output_resource_types()
-        for rt in rts:
-            if rt not in rt_set:
-                rt_set.add(rt)
-        next_ids = [rt.node_id() for rt in p.output_resource_types()]
+        #rts = p.output_resource_types()
+        orts = p.outgoing_commitments()
+        for ort in orts:
+            if ort not in rt_set:
+                rt_set.add(ort)
+        next_ids = [ort.resource_type_node_id() for ort in p.outgoing_commitments()]
         dp["next"].extend(next_ids)       
         agnts = p.working_agents()
         for a in agnts:
@@ -226,19 +227,32 @@ def project_process_resource_agent_graph(project_list, process_list):
                 agent_dict[a] = []
             agent_dict[a].append(p)
     #import pdb; pdb.set_trace()
-    for rt in rt_set:
+    for ort in rt_set:
+        rt = ort.resource_type
+        name = rt.name
+        if ort.stage:
+            name = "@".join([name, ort.stage.name])
         drt = {
-            "name": rt.name,
+            "name": name,
             "type": "resourcetype",
             "url": "".join([url_starter, rt.get_absolute_url()]),
             "photo-url": rt.photo_url,
             "next": []
             }
-        for p in rt.wanting_processes():
-            p_id = p.node_id()
-            if p_id in processes:
-                drt["next"].append(p_id)
-        resource_types[rt.node_id()] = drt
+        #import pdb; pdb.set_trace()
+        #for p in rt.wanting_processes():
+        for wct in rt.wanting_commitments():
+            match = False
+            if ort.stage:
+                if wct.stage == ort.stage:
+                    match = True
+            else:
+                match = True
+            if match:
+                p_id = wct.process.node_id()
+                if p_id in processes:
+                    drt["next"].append(p_id)
+        resource_types[ort.resource_type_node_id()] = drt
     #import pdb; pdb.set_trace()
     for order in order_set:
         receiver_name = ""

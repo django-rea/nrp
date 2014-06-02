@@ -414,6 +414,7 @@ def agent(request, agent_id):
         "user_agent": user_agent,
         "has_associations": has_associations,
         "is_associated_with": is_associated_with,
+        "help": get_help("agent"),
     }, context_instance=RequestContext(request))
     
 def accounting(request, agent_id):
@@ -1002,6 +1003,7 @@ def agent_associations(request, agent_id):
         "agent": agent,
         "has_associates_formset": has_associates_formset,
         "is_associates_formset": is_associates_formset,
+        "help": get_help("associations"),
     }, context_instance=RequestContext(request))
 
 def json_resource_type_resources(request, resource_type_id):
@@ -1193,7 +1195,7 @@ def edit_extended_bill(request, resource_type_id):
         "resource_type_form": resource_type_form,
         "feature_form": feature_form,
         "resource_names": resource_names,
-        "help": get_help("edit_recipes"),
+        "help": get_help("ed_asmbly_recipe"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -1210,7 +1212,7 @@ def edit_stream_recipe(request, resource_type_id):
         "resource_names": resource_names,
         "photo_size": (128, 128),
         "resource_type_form": resource_type_form,
-        "help": get_help("edit_stream_recipe"),
+        "help": get_help("ed_wf_recipe"),
     }, context_instance=RequestContext(request))
         
 
@@ -1225,7 +1227,7 @@ def view_stream_recipe(request, resource_type_id):
         "process_types": process_types,
         "resource_names": resource_names,
         "photo_size": (128, 128),
-        "help": get_help("edit_stream_recipe"),
+        "help": get_help("ed_wf_recipe"),
     }, context_instance=RequestContext(request))
                     
     
@@ -7076,7 +7078,7 @@ def process_selections(request, rand=0):
         "process_form": process_form,
         "demand_form": demand_form,
         "rand": rand,
-        "help": get_help("process_selections"),
+        "help": get_help("process_select"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -7311,7 +7313,7 @@ def plan_from_rt_recipe(request, resource_type_id):
     return render_to_response("valueaccounting/plan_from_rt_recipe.html", {
         "date_name_form": date_name_form,
         "resource_type": resource_type,
-        "help": get_help("plan_from_rt_recipe"),
+        "help": get_help("plan_fr_rt_rcpe"),
     }, context_instance=RequestContext(request))
 
 
@@ -7719,6 +7721,7 @@ def create_exchange(request, use_case_identifier):
         "use_case": use_case,
         "context_agent": context_agent,
         "context_types": context_types,
+        "help": get_help("create_exchange"),
     }, context_instance=RequestContext(request))
 
 '''

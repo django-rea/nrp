@@ -40,7 +40,7 @@ textarea {
     font-weight: bold;
     font-size: 1.1em;
 }
-.for, .req-description {
+.for, .req-description p {
     font-size: .8em;
     font-style: italic;
     font-weight: normal;
@@ -69,7 +69,7 @@ textarea {
 		<legend>{% trans "Schedule for " %}{{ order }}</legend>
 		
             {% if order.description %}
-                <p class="req-description">{{ order.description|urlize|linebreaks }}</p>
+                <div class="req-description">{{ order.description|urlize|linebreaks }}</div>
             {% endif %}
 
             <h3>
@@ -150,7 +150,7 @@ textarea {
                                         <h3 id="process-insert-label">{% blocktrans %}Insert process for {% endblocktrans %} {{ order }} </h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="process-form" action="{% url insert_process_for_streaming process_id=process.id %}" method="POST">
+                                    <form class="process-form validateMe" action="{% url insert_process_for_streaming order_id=order.id process_id=process.id %}" method="POST">
                                             {% csrf_token %}
                                             {{ process.insert_process_form }}
                                             <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
@@ -211,7 +211,7 @@ textarea {
                                         <h3 id="process-add-label">{% blocktrans %}Add process for {% endblocktrans %} {{ order }} </h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="process-form" action="{% url create_process_for_streaming order_id=order.id %}" method="POST">
+                                    <form class="process-form validateMe" action="{% url create_process_for_streaming order_id=order.id %}" method="POST">
                                             {% csrf_token %}
                                             {{ add_process_form }}
                                             <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
@@ -288,6 +288,10 @@ $(document).ready(function(){
         });
     
     $.validator.addClassRules("date-entry", { required: true, date: true, });
+    
+    $.validator.addClassRules("name", { required: true, });
+    
+    $.validator.addClassRules("process-type", { required: true, });
         
 
 });

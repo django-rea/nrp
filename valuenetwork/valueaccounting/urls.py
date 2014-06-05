@@ -333,7 +333,7 @@ urlpatterns = patterns("",
         name="change_process_plan"),
     url(r"^create-process-for-streaming/(?P<order_id>\d+)/$", 'valuenetwork.valueaccounting.views.create_process_for_streaming', 
         name="create_process_for_streaming"),
-    url(r"^insert-process-for-streaming/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.insert_process_for_streaming', 
+    url(r"^insert-process-for-streaming/(?P<order_id>\d+)/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.insert_process_for_streaming', 
         name="insert_process_for_streaming"),
 )
 

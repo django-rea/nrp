@@ -2340,7 +2340,7 @@ def change_process_plan(request, process_id):
     return HttpResponseRedirect(next)
 
 @login_required    
-def create_process_for_streaming(request, order_id):
+def create_process_for_streaming(request, order_id): #at the end of the order
     order = get_object_or_404(Order, pk=order_id)
     form = WorkflowProcessForm(data=request.POST or None, order=order)
     if request.method == "POST":
@@ -2349,24 +2349,22 @@ def create_process_for_streaming(request, order_id):
             process = form.save(commit=False)
             process.changed_by = request.user
             process.save()
-            last_process = order.last_process_in_order() 
-            process.add_stream_commitments(last_process=last_process, user=request.user)
+            order.adjust_workflow_commitments_process_added(process=process, user=request.user)
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
 @login_required    
-def insert_process_for_streaming(request, process_id):
-    process = get_object_or_404(Process, pk=process_id)
-    form = WorkflowProcessForm(prefix=process_id, data=request.POST or None)
+def insert_process_for_streaming(request, order_id, process_id):
+    order = get_object_or_404(Order, pk=order_id)
+    next_process = Process.objects.get(id=process_id)
+    form = WorkflowProcessForm(prefix=process_id, data=request.POST or None, order=order)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if form.is_valid():
-            data = form.cleaned_data
-            process.start_date = data["start_date"]
-            process.end_date = data["end_date"]
-            process.name = data["name"]
+            process = form.save(commit=False)
             process.changed_by = request.user
             process.save()
+            order.adjust_workflow_commitments_process_inserted(process=process, next_process=next_process, user=request.user)
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
                 

@@ -221,13 +221,14 @@ class ProcessForm(forms.ModelForm):
         self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()  
         
 class WorkflowProcessForm(forms.ModelForm):
-    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge name',}))
     process_pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(),
         empty_label=None)
     process_type = forms.ModelChoiceField(
         queryset=ProcessType.objects.none(),
-        empty_label=None)
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'process-type'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
         label=_("Project"),

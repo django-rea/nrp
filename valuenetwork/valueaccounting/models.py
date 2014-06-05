@@ -2139,7 +2139,9 @@ class Order(models.Model):
         for root in roots:
             root.all_previous_processes(ordered_processes, visited, 0)
         ordered_processes = list(set(ordered_processes))
-        ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
+        #ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
+        ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
+        ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
         return ordered_processes      
     
     def last_process_in_order(self):
@@ -2199,6 +2201,24 @@ class Order(models.Model):
                             commitment.save()
         return self
         
+    def adjust_workflow_commitments_process_added(self, process, user): #process added to the end of the order
+        #import pdb; pdb.set_trace()
+        last_process = self.last_process_in_order() 
+        process.add_stream_commitments(last_process=last_process, user=user)
+        last_commitment = last_process.main_outgoing_commitment()
+        last_commitment.remove_order()
+        
+    def adjust_workflow_commitments_process_inserted(self, process, next_process, user):
+        #import pdb; pdb.set_trace()
+        all_procs = self.all_processes()
+        process_index = all_procs.index(next_process)
+        if process_index > 0:
+            last_process = all_procs[process_index - 1]
+        else:
+            last_process = None
+        process.insert_stream_commitments(last_process=last_process, user=user)
+        next_commitment = next_process.to_be_changed_requirements()[0]
+        next_commitment.update_stage(process.process_type)      
 
 class ProcessTypeManager(models.Manager):
     
@@ -3431,9 +3451,12 @@ class Process(models.Model):
             stage=None,
             state=None,
             from_agent=None,
-            to_agent=None):
+            to_agent=None,
+            order=None,
+            ):
         ct = Commitment(
             independent_demand=demand,
+            order=order,
             process=self,
             context_agent=self.context_agent,
             event_type=event_type,
@@ -3449,7 +3472,28 @@ class Process(models.Model):
         ct.save()
         return ct
         
-    def add_stream_commitments(self, last_process, user):
+    def add_stream_commitments(self, last_process, user): #for adding to the end of the order
+        last_commitment = last_process.main_outgoing_commitment()
+        ets = self.process_pattern.change_event_types()
+        for et in ets:
+            if et.relationship == "out":
+                stage = self.process_type
+                order = last_commitment.independent_demand
+            else:
+                stage = last_process.process_type
+                order = None
+            ct = self.add_commitment(
+                resource_type=last_commitment.resource_type, 
+                demand=last_commitment.independent_demand,
+                order=order,
+                quantity=last_commitment.quantity, 
+                event_type=et,
+                unit=last_commitment.unit_of_quantity, 
+                user=user,
+                stage=stage,
+            )
+            
+    def insert_stream_commitments(self, last_process, user): #for inserting in order
         last_commitment = last_process.main_outgoing_commitment()
         ets = self.process_pattern.change_event_types()
         for et in ets:
@@ -3458,16 +3502,13 @@ class Process(models.Model):
             else:
                 stage = last_process.process_type
             ct = self.add_commitment(
-                last_commitment.resource_type, 
-                last_commitment.independent_demand,
-                last_commitment.quantity, 
-                et,
-                last_commitment.unit_of_quantity, 
-                user,
-                stage,
-                None,
-                None,
-                None
+                resource_type=last_commitment.resource_type, 
+                demand=last_commitment.independent_demand,
+                quantity=last_commitment.quantity, 
+                event_type=et,
+                unit=last_commitment.unit_of_quantity, 
+                user=user,
+                stage=stage,
             )
 
     def explode_demands(self, demand, user, visited):
@@ -4369,6 +4410,14 @@ class Commitment(models.Model):
     def is_work(self):
         return self.event_type.is_work()
         
+    def remove_order(self):
+        self.order = None
+        self.save()
+        
+    def update_stage(self, process_type):
+        self.stage = process_type
+        self.save()
+    
     
 #todo: not used.
 class Reciprocity(models.Model):

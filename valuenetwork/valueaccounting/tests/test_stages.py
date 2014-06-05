@@ -102,7 +102,7 @@ class StageTest(TestCase):
         
     def test_staged_schedule(self):
         start = datetime.date.today()
-        order = self.sow.generate_staged_work_order(start, self.user)
+        order = self.sow.generate_staged_work_order("test order", start, self.user)
         #import pdb; pdb.set_trace()
         processes = order.all_processes()
         self.assertEqual(len(processes), 3)

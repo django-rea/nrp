@@ -219,7 +219,35 @@ class ProcessForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProcessForm, self).__init__(*args, **kwargs)
         self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()  
-
+        
+class WorkflowProcessForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.none(),
+        empty_label=None)
+    process_type = forms.ModelChoiceField(
+        queryset=ProcessType.objects.none(),
+        empty_label=None)
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Project"),
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    
+    class Meta:
+        model = Process
+        fields = ('name', 'context_agent', 'process_pattern', 'process_type', 'start_date', 'end_date', 'notes' )
+        
+    def __init__(self, order, next_date=None, *args, **kwargs):
+        super(WorkflowProcessForm, self).__init__(*args, **kwargs)
+        if next_date:
+            self.fields["start_date"] = next_date
+            self.fields["end_date"] = next_date
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.recipe_patterns() 
+        #import pdb; pdb.set_trace()
+        self.fields["process_type"].queryset = order.available_workflow_process_types()
 
 class ScheduleProcessForm(forms.ModelForm):
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -247,10 +275,6 @@ class AddProcessFromResourceForm(forms.ModelForm):
         label=_("Project"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
-    #project = forms.ModelChoiceField(
-    #    queryset=Project.objects.all(),
-    #    required=False,
-    #    empty_label=None)
     process_pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(),
         required=False,

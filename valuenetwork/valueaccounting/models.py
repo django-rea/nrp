@@ -2149,6 +2149,22 @@ class Order(models.Model):
             return last_process.is_staged()
         else:
             return False
+            
+    def process_types(self):
+        pts = []
+        for process in self.all_processes():
+            if process.process_type:
+                pts.append(process.process_type)
+        return pts
+            
+    def available_workflow_process_types(self):
+        all_pts = ProcessType.objects.workflow_process_types()
+        my_pts = self.process_types()
+        available_pt_ids = []
+        for pt in all_pts:
+            if pt not in my_pts:
+                available_pt_ids.append(pt.id)
+        return ProcessType.objects.filter(id__in=available_pt_ids)
         
     def workflow_quantity(self):
         if self.is_workflow_order():
@@ -2178,6 +2194,16 @@ class Order(models.Model):
         return self
         
 
+class ProcessTypeManager(models.Manager):
+    
+    def workflow_process_types(self):
+        pts = ProcessType.objects.all()
+        workflow_pts = []
+        for pt in pts:
+            if pt.is_workflow_process_type():
+                workflow_pts.append(pt)
+        return workflow_pts
+                
 class ProcessType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
@@ -2200,9 +2226,11 @@ class ProcessType(models.Model):
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
     
+    objects = ProcessTypeManager()
+    
     class Meta:
         ordering = ('name',)
-        
+            
     def __unicode__(self):
         return self.name
             
@@ -2293,6 +2321,9 @@ class ProcessType(models.Model):
     def all_input_resource_types(self):
         return [ptrt.resource_type for ptrt in self.all_input_resource_type_relationships()]
         
+    def stream_resource_type_relationships(self):
+        return self.resource_types.filter(Q(event_type__name='To Be Changed')|Q(event_type__name='Change')|Q(event_type__name='Create Changeable'))
+        
     def input_stream_resource_type_relationship(self):
         return self.resource_types.filter(event_type__name='To Be Changed')
         
@@ -2303,6 +2334,12 @@ class ProcessType(models.Model):
                 return True
             else:
                 return False
+        else:
+            return False
+            
+    def is_workflow_process_type(self):
+        if self.stream_resource_type_relationships():
+            return True
         else:
             return False
         
@@ -2986,9 +3023,6 @@ class Process(models.Model):
         blank=True, null=True,
         verbose_name=_('process type'), related_name='processes',
         on_delete=models.SET_NULL)
-    #project = models.ForeignKey(Project,
-    #    blank=True, null=True,
-    #    verbose_name=_('project'), related_name='processes')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         verbose_name=_('context agent'), related_name='processes')
@@ -2997,10 +3031,6 @@ class Process(models.Model):
     end_date = models.DateField(_('end date'), blank=True, null=True)
     started = models.DateField(_('started'), blank=True, null=True)
     finished = models.BooleanField(_('finished'), default=False)
-    # managed_by = models.ForeignKey(EconomicAgent, related_name="managed_processes",
-    #     verbose_name=_('managed by'), blank=True, null=True)
-    # owner = models.ForeignKey(EconomicAgent, related_name="owned_processes",
-    #     verbose_name=_('owner'), blank=True, null=True)
     notes = models.TextField(_('notes'), blank=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='processes_created', blank=True, null=True, editable=False)
@@ -3399,12 +3429,33 @@ class Process(models.Model):
             state=state,
             quantity=quantity,
             unit_of_quantity=unit,
-            due_date=self.start_date,
+            due_date=self.start_date, #ask bob: why is this? in vs out commitments?
             from_agent=from_agent,
             to_agent=to_agent,
             created_by=user)
         ct.save()
         return ct
+        
+    def add_stream_commitments(self, last_process, user):
+        last_commitment = last_process.main_outgoing_commitment()
+        ets = self.process_pattern.change_event_types()
+        for et in ets:
+            if et.relationship == "out":
+                stage = self.process_type
+            else:
+                stage = last_process.process_type
+            ct = self.add_commitment(
+                last_commitment.resource_type, 
+                last_commitment.independent_demand,
+                last_commitment.quantity, 
+                et,
+                last_commitment.unit_of_quantity, 
+                user,
+                stage,
+                None,
+                None,
+                None
+            )
 
     def explode_demands(self, demand, user, visited):
         """This method assumes the output commitment from this process 
@@ -3524,9 +3575,14 @@ class Process(models.Model):
     def plan_change_form(self):
         from valuenetwork.valueaccounting.forms import PlanProcessForm
         init = {"start_date": self.start_date, "end_date": self.end_date, "name": self.name}
-        return PlanProcessForm(prefix=str(self.id),initial=init)       
+        return PlanProcessForm(prefix=str(self.id),initial=init)      
         
-
+    def insert_process_form(self):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import WorkflowProcessForm
+        init = {"start_date": self.start_date, "end_date": self.start_date}
+        return WorkflowProcessForm(prefix=str(self.id),initial=init, order=self.independent_demand())      
+        
 
 class ExchangeManager(models.Manager):
 
@@ -3842,9 +3898,6 @@ class Commitment(models.Model):
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='commitments')
-    #project = models.ForeignKey(Project,
-    #    blank=True, null=True,
-    #    verbose_name=_('project'), related_name='commitments')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         verbose_name=_('context agent'), related_name='commitments')

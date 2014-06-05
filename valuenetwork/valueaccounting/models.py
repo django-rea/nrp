@@ -1536,8 +1536,8 @@ class ProcessPattern(models.Model):
         facets = self.facets.all()
         slots = [facet.event_type for facet in facets]
         slots = list(set(slots))
-        slots.sort(lambda x, y: cmp(x.label, y.label))
-        slots = sorted(slots, key=attrgetter('label'))
+        #slots.sort(lambda x, y: cmp(x.label, y.label))
+        #slots = sorted(slots, key=attrgetter('label'))
         slots = sorted(slots, key=attrgetter('relationship'), reverse=True)
         return slots
 

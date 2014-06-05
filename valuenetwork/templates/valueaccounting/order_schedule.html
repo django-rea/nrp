@@ -13,13 +13,14 @@
 .error {
     color: red;
 }
-
 .reskedForm {
     display: inline;
 }
-
 li {
     list-style-type: none;
+}
+textarea {
+    width: 480px;
 }
 .project-line {
     font-size: 1.2em;
@@ -27,7 +28,6 @@ li {
     font-weight: bold;
     margin-top: 1.5em;
 }
-
 .process {
     font-weight: bold;
     font-size: 1.1em;
@@ -36,12 +36,10 @@ li {
     border: 1px solid gainsboro;
     padding: 1em;
 }
-
 .resource-type {
     font-weight: bold;
     font-size: 1.1em;
 }
-
 .for, .req-description {
     font-size: .8em;
     font-style: italic;
@@ -71,7 +69,7 @@ li {
 		<legend>{% trans "Schedule for " %}{{ order }}</legend>
 		
             {% if order.description %}
-                <p>{{ order.description|urlize|linebreaks }}</p>
+                <p class="req-description">{{ order.description|urlize|linebreaks }}</p>
             {% endif %}
 
             <h3>
@@ -91,10 +89,12 @@ li {
                                 @{{ item.stage.name }}
                             {% endif %}
                         </span> {{ item.quantity }} {{ item.unit_of_quantity }}
-                        {% if item.stage %}
+                        {% if agent %}
+                          {% if item.stage %}
                             <div style="display: inline;" >
                                 <a href="#resourceQuantity" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change Quantity" %}</a>
                             </div>
+                          {% endif %}
                         {% endif %}
 			            {% if item.description %}
 			               <div class="req-description"> {{ item.description|urlize|linebreaks }}</div>
@@ -103,7 +103,8 @@ li {
 				{% endfor %}
 			</ul>
 
-			<div class="modal hide fade" id="resourceQuantity" tabindex="-1" role="dialog" aria-labelledby="resource-qty-label" aria-hidden="true">
+			{% if agent %}
+			  <div class="modal hide fade" id="resourceQuantity" tabindex="-1" role="dialog" aria-labelledby="resource-qty-label" aria-hidden="true">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                     <h3 id="resource-qty-label">{% trans "Change resource quantity for workflow plan" %} </h3>
@@ -121,7 +122,8 @@ li {
                         </div>
                     </form>
                 </div>
-			</div>
+			  </div>
+			{% endif %}
 			
 			<div class="row-fluid">
 
@@ -132,11 +134,43 @@ li {
 				    </h3> 
 					
 					{% for process in processes %}
+					
+					    {% if agent %}
+                          {% if process.to_be_changed_requirements %}
+                            <div class="row-fluid">
+                                <div class="span12">
+                                    <a href="#insertProcessForm{{ process.id }}" role="button" class="btn btn-info process-btn" data-toggle="modal">
+                                    {% blocktrans %}Insert a process here {% endblocktrans %}
+                                    </a>
+                                </div>
+                                
+                                <div class="modal hide fade processForm" id="insertProcessForm{{ process.id }}" tabindex="-1" role="dialog" aria-labelledby="process-insert-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="process-insert-label">{% blocktrans %}Insert process for {% endblocktrans %} {{ order }} </h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="process-form" action="{% url insert_process_for_streaming process_id=process.id %}" method="POST">
+                                            {% csrf_token %}
+                                            {{ process.insert_process_form }}
+                                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                            <div class="modal-footer">
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>            
+                            </div>
+                          {% endif %}
+					    {% endif %}
+					
                         <div class="row-fluid">
                             <div class="span9">
                                 <div class="process" >{% include  "valueaccounting/_process_for_order.html" %}</div>
                             </div>
                             <div class="span3">
+                              {% if agent %}
                                 <a href="#processChangeForm{{ process.id }}" role="button" class="btn btn-primary process-btn" data-toggle="modal">{% trans "Change process plan" %}</a>
                                 
                                 <div class="modal hide fade processForm" id="processChangeForm{{ process.id }}" tabindex="-1" role="dialog" aria-labelledby="process-change-label" aria-hidden="true">
@@ -155,13 +189,43 @@ li {
                                             </div>
                                         </form>
                                     </div>
-                                </div>                                
+                                </div>  
+                              {% endif %}
                             </div>
 						 </div>
 
-					{% empty %}
-					    <p class="text-error" >{{ error_message }}</p>
 					{% endfor %}
+					
+					{% if agent %}
+                        {% if order.is_workflow_order %}
+                            <div class="row-fluid">
+                                <div class="span12">
+                                    <a href="#addProcessForm{{ process.id }}" role="button" class="btn btn-info process-btn" data-toggle="modal">
+                                    {% blocktrans %}Add a process here {% endblocktrans %}
+                                    </a>
+                                </div>
+                                
+                                <div class="modal hide fade processForm" id="addProcessForm{{ process.id }}" tabindex="-1" role="dialog" aria-labelledby="process-add-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="process-add-label">{% blocktrans %}Add process for {% endblocktrans %} {{ order }} </h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="process-form" action="{% url create_process_for_streaming order_id=order.id %}" method="POST">
+                                            {% csrf_token %}
+                                            {{ add_process_form }}
+                                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                            <div class="modal-footer">
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>            
+                            </div>
+                        {% endif %}
+					{% endif %}
+					
 				</div>
 
 			</div>

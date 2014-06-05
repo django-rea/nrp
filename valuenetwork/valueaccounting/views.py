@@ -2289,18 +2289,24 @@ def order_schedule(request, order_id):
     error_message = ""
     processes = order.all_processes()
     resource_qty_form = None
+    add_process_form = None
     unit = None
     if order.is_workflow_order:
         qty = order.workflow_quantity()
         unit = order.workflow_unit()
         init = {'quantity': qty,}
         resource_qty_form = ResourceQuantityForm(initial=init)
+        last_date = order.last_process_in_order().end_date
+        next_date = last_date + datetime.timedelta(days=1)
+        init = {"start_date": next_date, "end_date": next_date}
+        add_process_form = WorkflowProcessForm(initial=init, order=order)
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
         "agent": agent,
         "processes": processes,
         "resource_qty_form": resource_qty_form,
         "unit": unit,
+        "add_process_form": add_process_form,
         "error_message": error_message,
     }, context_instance=RequestContext(request))
 
@@ -2332,8 +2338,38 @@ def change_process_plan(request, process_id):
             process.save()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
-    
-    
+
+@login_required    
+def create_process_for_streaming(request, order_id):
+    order = get_object_or_404(Order, pk=order_id)
+    form = WorkflowProcessForm(data=request.POST or None, order=order)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if form.is_valid():
+            process = form.save(commit=False)
+            process.changed_by = request.user
+            process.save()
+            last_process = order.last_process_in_order() 
+            process.add_stream_commitments(last_process=last_process, user=request.user)
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+
+@login_required    
+def insert_process_for_streaming(request, process_id):
+    process = get_object_or_404(Process, pk=process_id)
+    form = WorkflowProcessForm(prefix=process_id, data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if form.is_valid():
+            data = form.cleaned_data
+            process.start_date = data["start_date"]
+            process.end_date = data["end_date"]
+            process.name = data["name"]
+            process.changed_by = request.user
+            process.save()
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+                
 def demand(request):
     agent = get_agent(request)
     orders = Order.objects.filter(order_type='customer')

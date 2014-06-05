@@ -372,7 +372,7 @@ li {
 				                <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your work" >
 					                {% trans "Log work" %}
 				                </a>
-				                {% if work_now %}
+				                {% if work_now and item.unit_of_quantity.unit_type == "time" %}
 				                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
 			                    {% endif %}
 			
@@ -1369,7 +1369,7 @@ li {
                 var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
                 return this.optional(element) || isValidQuantity;
             },
-            "Please enter a number less than 1000000 with no more than 2 decimal places "
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
         );
         
         jQuery.validator.setDefaults({ 
@@ -1524,7 +1524,8 @@ li {
         var selectedRT = event.target.value;
         var selectId = event.target.id;
         var selectSplit = selectId.split("-");
-        var resourcePrefix = selectSplit[0] + "-" + selectSplit[1];
+        //var resourcePrefix = selectSplit[0] + "-" + selectSplit[1];
+        var resourcePrefix = selectSplit[0];
         var resourceFieldId = "#" + resourcePrefix + "-resource";
         var jsonUrl = encodeURI("/accounting/json-resourcetype-resources/" + selectedRT + "/");
         $(resourceFieldId).empty();

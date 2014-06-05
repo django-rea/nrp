@@ -51,21 +51,21 @@ class FacetAdmin(admin.ModelAdmin):
 admin.site.register(Facet, FacetAdmin)
 
 
-class PatternFacetInline(admin.TabularInline):
-    model = PatternFacetValue
-    fields = ('event_type', 'facet_value')
+#class PatternFacetInline(admin.TabularInline):
+#    model = PatternFacetValue
+#    fields = ('event_type', 'facet_value')
 
 
-class PatternUseCaseInline(admin.TabularInline):
-    model = PatternUseCase
-    extra = 1
+#class PatternUseCaseInline(admin.TabularInline):
+#    model = PatternUseCase
+#    extra = 1
     
 
-class ProcessPatternAdmin(admin.ModelAdmin):
-    list_display = ('name', 'use_case_list')
-    inlines = [ PatternFacetInline, PatternUseCaseInline]
+#class ProcessPatternAdmin(admin.ModelAdmin):
+#    list_display = ('name', 'use_case_list')
+#    inlines = [ PatternFacetInline, PatternUseCaseInline]
 
-admin.site.register(ProcessPattern, ProcessPatternAdmin)
+#admin.site.register(ProcessPattern, ProcessPatternAdmin)
 
 
 class AgentUserInline(admin.TabularInline):

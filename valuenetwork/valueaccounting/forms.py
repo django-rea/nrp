@@ -730,23 +730,29 @@ class UnplannedCiteEventForm(forms.Form):
                 resources = EconomicResource.objects.all()
                 self.fields["resource"].choices = [('', '----------')] + [(r.id, r) for r in resources]
 
-
+#todo: test this
 class UnplannedInputEventForm(forms.Form):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
-        widget=forms.Select(attrs={'class': 'input-xxlarge resourceType res-ajax'}))
+        widget=forms.Select(attrs={'class': 'input-xxlarge resourceType resource-type-selector res-ajax'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
     quantity = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    unit_of_quantity = forms.ModelChoiceField(
+        required = False,
+        label = _("Unit"),
+        queryset=Unit.objects.exclude(unit_type='value'),  
+        widget=forms.Select())
 
     def __init__(self, pattern, load_resources=False, *args, **kwargs):
         #import pdb; pdb.set_trace()
         super(UnplannedInputEventForm, self).__init__(*args, **kwargs)
         if pattern:
+            #import pdb; pdb.set_trace()
             self.pattern = pattern
             prefix = kwargs["prefix"]
-            if prefix == "unplanned-use":
+            if prefix == "unplannedusable":
                 self.fields["resource_type"].queryset = pattern.usables_with_resources()
             else:
                 self.fields["resource_type"].queryset = pattern.consumables_with_resources()

@@ -123,22 +123,28 @@ class HomePageLayout(models.Model):
 
 #for help text
 PAGE_CHOICES = (
-    ('home', _('Home')),
+    ('agent', _('Agent')),
+    ('all_work', _('All Work')),
+    ('create_exchange', _('Create Exchange')),
     ('demand', _('Demand')),
-    ('supply', _('Supply')),
+    ('ed_asmbly_recipe', _('Edit Assembly Recipes')),
+    ('ed_wf_recipe', _('Edit Workflow Recipes')),
+    ('exchange', _('Exchange')),
+    ('home', _('Home')),
     ('inventory', _('Inventory')),
+    ('labnotes', _('Labnotes Form')),
+    ('associations', _('Maintain Associations')),
+    ('my_work', _('My Work')),
+    ('projects', _('Organization')),
+    ("plan_from_recipe", _('Plan from recipe')),
+    ("plan_from_rt", _('Plan from Resource Type')),
+    ("plan_fr_rt_rcpe", _('Plan from Resource Type Recipe')),
+    ('process', _('Process')),
+    ('process_select', _('Process Selections')),
+    ('recipes', _('Recipes')),
     ('resource_types', _('Resource Types')),
     ('resource_type', _('Resource Type')),
-    ('edit_assembly_recipes', _('Edit Assembly Recipes')),
-    ('edit_workflow_recipes', _('Edit Workflow Recipes')),
-    ('recipes', _('Recipes')),
-    ('projects', _('Projects')),
-    ('my_work', _('My Work')),
-    ('labnotes', _('Labnotes Form')),
-    ('labnote', _('Labnote view page')),
-    ('all_work', _('All Work')),
-    ('process', _('Process')),
-    ('exchange', _('Exchange')),
+    ('supply', _('Supply')),
 )
 
 class Help(models.Model):
@@ -2989,7 +2995,14 @@ class ProcessTypeResourceType(models.Model):
         return [self.resource_type, self]
 
     def node_id(self):
-        return "-".join(["ProcessResource", str(self.id)])
+        #todo: where is this used? Did I break it with this change?
+        #(adding stage and state)
+        answer = "-".join(["ProcessResource", str(self.id)])
+        if self.stage:
+            answer = "-".join([answer, str(self.stage.id)])
+        if self.state:
+            answer = "-".join([answer, self.state.name])
+        return answer
 
     def xbill_change_prefix(self):
         return "".join(["PTRT", str(self.id)])
@@ -3994,6 +4007,10 @@ class Commitment(models.Model):
         if self.state:
             state_id = str(self.state.id)
         return "-".join([str(self.resource_type.id), stage_id, state_id])
+        
+    def resource_type_node_id(self):
+        answer = "-".join(["ProcessResource", self.cycle_id()])
+        return answer
 
     def commitment_type(self):
         rt = self.resource_type

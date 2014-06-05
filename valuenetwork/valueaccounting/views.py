@@ -414,6 +414,7 @@ def agent(request, agent_id):
         "user_agent": user_agent,
         "has_associations": has_associations,
         "is_associated_with": is_associated_with,
+        "help": get_help("agent"),
     }, context_instance=RequestContext(request))
     
 def accounting(request, agent_id):
@@ -521,7 +522,7 @@ def change_pattern(request, pattern_id, use_case_id):
         #todo: weird, this rts form does not do anything
         slot.rts = ResourceTypeSelectionForm(
             qs=slot.resource_types,
-            prefix=slot.relationship)
+            prefix=slot.slug)
         #import pdb; pdb.set_trace()
     slot_ids = [slot.id for slot in slots]
 
@@ -1002,6 +1003,7 @@ def agent_associations(request, agent_id):
         "agent": agent,
         "has_associates_formset": has_associates_formset,
         "is_associates_formset": is_associates_formset,
+        "help": get_help("associations"),
     }, context_instance=RequestContext(request))
 
 def json_resource_type_resources(request, resource_type_id):
@@ -1193,7 +1195,7 @@ def edit_extended_bill(request, resource_type_id):
         "resource_type_form": resource_type_form,
         "feature_form": feature_form,
         "resource_names": resource_names,
-        "help": get_help("edit_recipes"),
+        "help": get_help("ed_asmbly_recipe"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -1210,7 +1212,7 @@ def edit_stream_recipe(request, resource_type_id):
         "resource_names": resource_names,
         "photo_size": (128, 128),
         "resource_type_form": resource_type_form,
-        "help": get_help("edit_stream_recipe"),
+        "help": get_help("ed_wf_recipe"),
     }, context_instance=RequestContext(request))
         
 
@@ -1225,7 +1227,7 @@ def view_stream_recipe(request, resource_type_id):
         "process_types": process_types,
         "resource_names": resource_names,
         "photo_size": (128, 128),
-        "help": get_help("edit_stream_recipe"),
+        "help": get_help("ed_wf_recipe"),
     }, context_instance=RequestContext(request))
                     
     
@@ -4517,15 +4519,15 @@ def process_oriented_logging(request, process_id):
                     add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern, context_agent=context_agent, initial=work_init)
         if "cite" in slots:
-            unplanned_cite_form = UnplannedCiteEventForm(prefix='unplanned-cite', pattern=pattern)
+            unplanned_cite_form = UnplannedCiteEventForm(prefix='unplannedcite', pattern=pattern)
             if logger:
                 add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)   
         if "consume" in slots:
-            unplanned_consumption_form = UnplannedInputEventForm(prefix='unplanned-consumption', pattern=pattern)
+            unplanned_consumption_form = UnplannedInputEventForm(prefix='unplannedconsumption', pattern=pattern)
             if logger:
                 add_consumable_form = ProcessConsumableForm(prefix='consumable', pattern=pattern)
         if "use" in slots:
-            unplanned_use_form = UnplannedInputEventForm(prefix='unplanned-use', pattern=pattern)
+            unplanned_use_form = UnplannedInputEventForm(prefix='unplannedusable', pattern=pattern)
             if logger:
                 add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
        
@@ -4657,10 +4659,10 @@ def add_unplanned_input_event(request, process_id, slot):
     #import pdb; pdb.set_trace()
     if pattern:
         if slot == "c":
-            prefix = "unplanned-consumption"  
+            prefix = "unplannedconsumption"  
             et = "consume"  
         else:
-            prefix = "unplanned-use"  
+            prefix = "unplannedusable"  
             et = "use" 
         form = UnplannedInputEventForm(
             prefix=prefix, 
@@ -7112,7 +7114,7 @@ def process_selections(request, rand=0):
         "process_form": process_form,
         "demand_form": demand_form,
         "rand": rand,
-        "help": get_help("process_selections"),
+        "help": get_help("process_select"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -7347,7 +7349,7 @@ def plan_from_rt_recipe(request, resource_type_id):
     return render_to_response("valueaccounting/plan_from_rt_recipe.html", {
         "date_name_form": date_name_form,
         "resource_type": resource_type,
-        "help": get_help("plan_from_rt_recipe"),
+        "help": get_help("plan_fr_rt_rcpe"),
     }, context_instance=RequestContext(request))
 
 
@@ -7755,6 +7757,7 @@ def create_exchange(request, use_case_identifier):
         "use_case": use_case,
         "context_agent": context_agent,
         "context_types": context_types,
+        "help": get_help("create_exchange"),
     }, context_instance=RequestContext(request))
 
 '''

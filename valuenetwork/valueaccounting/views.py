@@ -2347,6 +2347,17 @@ def create_process_for_streaming(request, order_id): #at the end of the order
         #import pdb; pdb.set_trace()
         if form.is_valid():
             process = form.save(commit=False)
+            data = form.cleaned_data
+            pt = data["process_type"]
+            if not pt:
+                new_pt_name = data["new_process_type_name"]
+                pt = ProcessType(
+                    name=new_pt_name,
+                    process_pattern=process.process_pattern,
+                    created_by=request.user,
+                )
+                pt.save()
+                process.process_type=pt
             process.changed_by = request.user
             process.save()
             order.adjust_workflow_commitments_process_added(process=process, user=request.user)
@@ -2362,6 +2373,17 @@ def insert_process_for_streaming(request, order_id, process_id):
         #import pdb; pdb.set_trace()
         if form.is_valid():
             process = form.save(commit=False)
+            data = form.cleaned_data
+            pt = data["process_type"]
+            if not pt:
+                new_pt_name = data["new_process_type_name"]
+                pt = ProcessType(
+                    name=new_pt_name,
+                    process_pattern=process.process_pattern,
+                    created_by=request.user,
+                )
+                pt.save()
+                process.process_type=pt
             process.changed_by = request.user
             process.save()
             order.adjust_workflow_commitments_process_inserted(process=process, next_process=next_process, user=request.user)

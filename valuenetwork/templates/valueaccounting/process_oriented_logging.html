@@ -1083,6 +1083,7 @@ li {
 		    <h4>{% trans "Process context" %}:</h4>
 		    <p>
 		        {% if process.process_pattern %}
+                    {% trans "Pattern" %}:
 		            {{ process.process_pattern }}
 	            {% else %}
 	                {% if agent %}

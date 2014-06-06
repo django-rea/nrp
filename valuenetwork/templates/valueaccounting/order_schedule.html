@@ -152,7 +152,28 @@ textarea {
                                     <div class="modal-body">
                                     <form class="process-form validateMe" action="{% url insert_process_for_streaming order_id=order.id process_id=process.id %}" method="POST">
                                             {% csrf_token %}
-                                            {{ process.insert_process_form }}
+                                            
+                                            {% with process.insert_process_form as processForm %}
+                                                <table>
+                                                    <tr><td>{{ processForm.name.label }}</td></tr>
+                                                    <tr><td>{{ processForm.name }}</td></tr>
+                                                    <tr><td>{{ processForm.context_agent.label }}</td></tr>
+                                                    <tr><td>{{ processForm.context_agent }}</td></tr>
+                                                    <tr><td>{{ processForm.process_pattern.label }}</td></tr>
+                                                    <tr><td>{{ processForm.process_pattern }}</td></tr>
+                                                    <tr><td>{{ processForm.process_type.label }}</td></tr>
+                                                    <tr><td>{{ processForm.process_type }}</td></tr>
+                                                    <tr><td>{{ processForm.new_process_type_name.label }}</td></tr>
+                                                    <tr><td>{{ processForm.new_process_type_name }}</td></tr>
+                                                    <tr><td>{{ processForm.start_date.label }}</td></tr>
+                                                    <tr><td>{{ processForm.start_date }}</td></tr>
+                                                    <tr><td>{{ processForm.end_date.label }}</td>
+                                                    <tr><td>{{ processForm.end_date }}</td></tr></tr>
+                                                    <tr><td>{{ processForm.notes.label }}</td></tr>
+                                                    <tr><td>{{ processForm.notes }}</td></tr>
+                                                </table>
+                                            {% endwith %}
+                                            
                                             <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -213,7 +234,26 @@ textarea {
                                     <div class="modal-body">
                                     <form class="process-form validateMe" action="{% url create_process_for_streaming order_id=order.id %}" method="POST">
                                             {% csrf_token %}
-                                            {{ add_process_form }}
+
+                                            <table>
+                                                <tr><td>{{ add_process_form.name.label }}</td></tr>
+                                                <tr><td>{{ add_process_form.name }}</td></tr>
+                                                <tr><td>{{ add_process_form.context_agent.label }}</td></tr>
+                                                <tr><td>{{ add_process_form.context_agent }}</td></tr>
+                                                <tr><td>{{ add_process_form.process_pattern.label }}</td></tr>
+                                                <tr><td>{{ add_process_form.process_pattern }}</td></tr>
+                                                <tr><td>{{ add_process_form.process_type.label }}</td></tr>
+                                                <tr><td>{{ add_process_form.process_type }}</td></tr>
+                                                <tr><td>{{ add_process_form.new_process_type_name.label }}</td></tr>
+                                                <tr><td>{{ add_process_form.new_process_type_name }}</td></tr>
+                                                <tr><td>{{ add_process_form.start_date.label }}</td></tr>
+                                                <tr><td>{{ add_process_form.start_date }}</td></tr>
+                                                <tr><td>{{ add_process_form.end_date.label }}</td>
+                                                <tr><td>{{ add_process_form.end_date }}</td></tr></tr>
+                                                <tr><td>{{ add_process_form.notes.label }}</td></tr>
+                                                <tr><td>{{ add_process_form.notes }}</td></tr>
+                                            </table>
+                                            
                                             <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -281,6 +321,21 @@ $(document).ready(function(){
             },
             "Please enter a number less than 1000000 with no more than 2 decimal places"
         );
+   jQuery.validator.addMethod("require_from_group", function(value, element, options) {
+        var selector = options[1];
+        var validOrNot = $(selector, element.form).filter(function() {
+            return $(this).val();
+        }).length >= options[0];
+
+        if(!$(element).data('being_validated')) {
+            var fields = $(selector, element.form);
+            fields.data('being_validated', true);
+            fields.valid();
+            fields.data('being_validated', false);
+        }
+        return validOrNot;
+    }, jQuery.format("Please fill at least {0} of these fields."));     
+
         
     $.validator.addClassRules("quantity", { 
             required: true, 
@@ -291,7 +346,8 @@ $(document).ready(function(){
     
     $.validator.addClassRules("name", { required: true, });
     
-    $.validator.addClassRules("process-type", { required: true, });
+    $.validator.addClassRules("process-type", {require_from_group: [1,".process-info"]});
+    $.validator.addClassRules("new-pt-name", {require_from_group: [1,".process-info"]});
         
 
 });

@@ -226,9 +226,15 @@ class WorkflowProcessForm(forms.ModelForm):
         queryset=ProcessPattern.objects.none(),
         empty_label=None)
     process_type = forms.ModelChoiceField(
+        required=False,
         queryset=ProcessType.objects.none(),
-        empty_label=None,
-        widget=forms.Select(attrs={'class': 'process-type'}))
+        label=_("Select an existing Process Type..."),
+        #empty_label=None,
+        widget=forms.Select(attrs={'class': 'process-type process-info'}))
+    new_process_type_name = forms.CharField(
+        required=False,
+        label=_("...or create a new Process Type named:"),
+        widget=forms.TextInput(attrs={'class': 'new-pt-name process-info input-xlarge',}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
         label=_("Project"),
@@ -250,6 +256,7 @@ class WorkflowProcessForm(forms.ModelForm):
         #import pdb; pdb.set_trace()
         self.fields["process_type"].queryset = order.available_workflow_process_types()
 
+        
 class ScheduleProcessForm(forms.ModelForm):
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     end_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

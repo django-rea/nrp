@@ -2367,7 +2367,10 @@ class ProcessType(models.Model):
         if self.stream_resource_type_relationships():
             return True
         else:
-            return False
+            if self.resource_types.all().exists():
+                return False
+            else:
+                return True
         
     def previous_process_types(self):
         return []

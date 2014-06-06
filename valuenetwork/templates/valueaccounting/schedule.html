@@ -182,9 +182,9 @@ th, td {
 		        {% trans "Work in Process" %} 
 	        </legend>
 	        
-            {% if projects %}
+            {% if context_agents %}
 
-                {% for project, processes in projects.items %}
+                {% for project, processes in context_agents.items %}
                     <div class="project-line"> 
                         {% trans "Project" %}: {% if project %} {{ project.name }} {% else %} No project {% endif %}
                     </div>

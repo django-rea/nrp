@@ -46,28 +46,35 @@ def get_help(page_name):
 
 def home(request):
     layout = None
+    work_to_do = None
+    stuff_to_buy = None
+    value_creations = None
     try:
         layout = HomePageLayout.objects.get(id=1)
     except HomePageLayout.DoesNotExist:
         pass
-    work_to_do = Commitment.objects.unfinished().filter(
-            from_agent=None, 
-            event_type__relationship="work")
-    #todo: reqs needs a lot of work
-    reqs = Commitment.objects.to_buy()
-    stuff = SortedDict()
-    for req in reqs:
-        if req.resource_type not in stuff:
-            stuff[req.resource_type] = Decimal("0")
-        stuff[req.resource_type] += req.purchase_quantity
-    vcs = Commitment.objects.filter(event_type__relationship="out")
-    value_creations = []
-    rts = []
-    for vc in vcs:
-        if vc.fulfilling_events():
-            if vc.resource_type not in rts:
-                rts.append(vc.resource_type)
-                value_creations.append(vc)
+    if layout:
+        if layout.use_work_panel:
+            work_to_do = Commitment.objects.unfinished().filter(
+                    from_agent=None, 
+                    event_type__relationship="work")
+        if layout.use_needs_panel:
+            #todo: reqs needs a lot of work
+            reqs = Commitment.objects.to_buy()
+            stuff = SortedDict()
+            for req in reqs:
+                if req.resource_type not in stuff:
+                    stuff[req.resource_type] = Decimal("0")
+                stuff[req.resource_type] += req.purchase_quantity
+        if layout.use_creations_panel:
+            vcs = Commitment.objects.filter(event_type__relationship="out")
+            value_creations = []
+            rts = []
+            for vc in vcs:
+                if vc.fulfilling_events():
+                    if vc.resource_type not in rts:
+                        rts.append(vc.resource_type)
+                        value_creations.append(vc)
     return render_to_response("homepage.html", {
         "layout": layout,
         "work_to_do": work_to_do,
@@ -2568,8 +2575,8 @@ def schedule(request, context_agent_slug=None):
     context_agent = None
     if context_agent_slug:
         context_agent = get_object_or_404(EconomicAgent, slug=context_agent_slug)
-    start = None
-    end = None
+    start = datetime.date.today() - datetime.timedelta(weeks=4)
+    end = datetime.date.today() + datetime.timedelta(weeks=4)
     #import pdb; pdb.set_trace()
     processes, context_agents = assemble_schedule(start, end, context_agent)
     return render_to_response("valueaccounting/schedule.html", {

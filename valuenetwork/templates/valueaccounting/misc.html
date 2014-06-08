@@ -1,0 +1,58 @@
+{% extends "site_base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Miscellaneous pages and pagelets" %}{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+</style>
+{% endblock %}
+
+{% block body_class %}cleanup{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+        <h3>Miscellaneous pages</h3>
+        
+        <p><a href="{% url cleanup %}">Cleanup functions</a></p>
+        
+        <h3>Pagelets</h3>
+        <p>These pagelets display information about a context agent (e.g. a Project) without any site decorations.</p>
+        <p>They are presented for a representative context agent ({{ context_agent }}), but can be used for any context agent.</p>
+        
+        {% if context_agent %}
+            <p><a href="{% url schedule context_agent_slug=context_agent.slug %}">Project schedule</a></p>
+            <p><a href="{% url project_roles context_agent_slug=context_agent.slug %}">Project roles</a></p>
+            <p><a href="{% url project_stats context_agent_slug=context_agent.slug %}">Project stats</a></p>
+        {% else %}
+            <p>Pagelets require a context agent.</p>
+        {% endif %}
+
+    
+    </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+
+    }); // end document.ready
+
+     
+    </script>
+
+{% endblock %}

@@ -14,6 +14,7 @@
 				{% endif %}
 				{% if user.is_superuser %}
 	                <li><a href="{% url create_user_and_agent %}"><i class="icon-user"></i> Create Agent and User</a></li>
+	                <li><a href="{% url misc %}"><i class="icon-cog"></i> Miscellaneous pages</a></li>
 				{% endif %}
                 <li class="divider"></li>
                 <li><a href="{% url account_logout %}"><i class="icon-off"></i> Log out</a></li>

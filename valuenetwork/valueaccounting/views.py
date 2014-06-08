@@ -2107,6 +2107,23 @@ def cleanup(request):
     }, context_instance=RequestContext(request))
 
 @login_required
+def misc(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html') 
+    
+    context_agent = None
+    context_agents = EconomicAgent.objects.context_agents()
+    if context_agents:
+        context_agent = context_agents[0]
+        for ca in context_agents:
+            if ca.events.all().count() > context_agent.events.all().count():
+                context_agent = ca
+
+    return render_to_response("valueaccounting/misc.html", {
+        "context_agent": context_agent,
+    }, context_instance=RequestContext(request))
+    
+@login_required
 def cleanup_processes(request):
     if not request.user.is_superuser:
         return render_to_response('valueaccounting/no_permission.html')

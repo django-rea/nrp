@@ -2315,7 +2315,7 @@ def order_schedule(request, order_id):
     resource_qty_form = None
     add_process_form = None
     unit = None
-    if order.is_workflow_order:
+    if order.is_workflow_order():
         qty = order.workflow_quantity()
         unit = order.workflow_unit()
         init = {'quantity': qty,}

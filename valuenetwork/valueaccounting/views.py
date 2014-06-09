@@ -7178,12 +7178,17 @@ def plan_from_recipe(request):
             selected_context_agent = EconomicAgent.objects.get(id=request.POST.get("context_agent"))
             date_name_form = OrderDateAndNameForm(initial=init)
             if selected_context_agent:
-                resource_types = selected_context_agent.get_resource_types_with_recipe()
-                for rt in resource_types:
+                candidate_resource_types = selected_context_agent.get_resource_types_with_recipe()
+                for rt in candidate_resource_types:
                     if rt.recipe_needs_starting_resource():
                         rt.onhand_resources = []
-                        for oh in rt.onhand():
-                            rt.onhand_resources.append(oh)
+                        onhand = rt.onhand()
+                        if onhand:
+                            resource_types.append(rt)
+                            for oh in onhand:
+                                rt.onhand_resources.append(oh)
+                    else:
+                        resource_types.append(rt)
         else:
             #import pdb; pdb.set_trace()
             rp = request.POST

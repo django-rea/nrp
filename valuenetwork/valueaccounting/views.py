@@ -47,7 +47,7 @@ def get_help(page_name):
 def home(request):
     layout = None
     work_to_do = None
-    stuff_to_buy = None
+    stuff = None
     value_creations = None
     try:
         layout = HomePageLayout.objects.get(id=1)

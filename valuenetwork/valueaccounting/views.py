@@ -2350,7 +2350,7 @@ def change_commitment_quantities(request, order_id):
 @login_required    
 def change_process_plan(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
-    form = PlanProcessForm(prefix=process_id, data=request.POST or None)
+    form = PlanProcessForm(prefix=process.plan_form_prefix(), data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if form.is_valid():
@@ -2411,6 +2411,18 @@ def insert_process_for_streaming(request, order_id, process_id):
             process.changed_by = request.user
             process.save()
             order.adjust_workflow_commitments_process_inserted(process=process, next_process=next_process, user=request.user)
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+    
+@login_required    
+def delete_workflow_process(request, order_id, process_id):
+    order = get_object_or_404(Order, pk=order_id)
+    process = Process.objects.get(id=process_id)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if process.is_deletable():
+            order.adjust_workflow_commitments_process_deleted(process=process, user=request.user)
+            process.delete()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
                 

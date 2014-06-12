@@ -72,6 +72,7 @@ li {
 .item-description {
     height: 100px;
     width: 480px;
+}
 
 </style>
 
@@ -102,9 +103,12 @@ li {
 	            {% endif %}
 {% endcomment %}
 	            {% if agent %}
-	                <a href="#unorderedReceiptModal" role="button" id="btnAddReceipt" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt with no order record" >
-		                {% trans "Log a receipt" %}
+	                <a href="#unorderedReceiptModal" role="button" id="btnAddReceipt" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt that creates a new resource" >
+		                {% trans "Receive a new resource" %}
 	                </a>
+	                <a href="#addToResourceModal" role="button" id="btnAddReceipt" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt that adds to an existing resource" >
+                        {% trans "Add to an existing resource" %}
+                    </a>
 	            {% endif %}
                 <span class="total">Total: {{ receipt_total }}</span>
 	        </h3>
@@ -149,7 +153,15 @@ li {
                             </form>
 		                {% endif %}
                         {% if event.resource %} 
-                            <div class = "notes">Resource created quantity = {{ event.quantity }} {{ event.unit_of_quantity }} </div>
+                            <div class="notes"> 
+                                <a href="{{ event.resource.get_absolute_url }}">
+                                    {{ event.resource.identifier }} 
+                                    {% if event.resource.current_location %}
+                                        at {{ event.resource.current_location }}
+                                    {% endif %}
+                                </a>
+                            </div>
+                            <div class = "notes">Receipt quantity = {{ event.quantity }} {{ event.unit_of_quantity }} </div>
                         {% endif %} 
          			    {% if event.description %}
 		                   <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
@@ -458,6 +470,23 @@ li {
             </form>
         </div>
     </div>
+    
+    <div class="modal hide fade" id="addToResourceModal" tabindex="-1" role="dialog" aria-labelledby="add-to-resource" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="add-to-resource">{% trans "Add Receipt to Resource" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="validateMe" id="addToResourceForm" enctype="multipart/form-data" action="{% url add_receipt_to_resource exchange_id=exchange.id %}" method="POST" >
+                {% csrf_token %}
+                {{ add_to_resource_form|as_bootstrap }}
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+              </div>
+            </form>
+        </div>
+    </div>
 
 
        <div class="modal hide fade" id="expenseModal" tabindex="-1" role="dialog" aria-labelledby="expense" aria-hidden="true">
@@ -575,6 +604,14 @@ li {
 		$(".chzn-select").chosen();
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+		
+		jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
 
         jQuery.validator.setDefaults({ 
             success: function(label) {
@@ -584,7 +621,7 @@ li {
 	        }
         });
 
-        $.validator.addClassRules("quantity", { required: true, number: true, });
+        $.validator.addClassRules("quantity", { required: true, quantity: true, });
         $.validator.addClassRules("value", { required: true, number: true });
 		$.validator.addClassRules("url", { url: true });
         $.validator.addClassRules("resourceType", { required: true});
@@ -644,6 +681,36 @@ li {
                 JsonSetUnitAndRule(resourceTypeId, targetId);
 		    }
 	    }
+	    
+	    $(".resource-type-for-resource").change(getResources);
+        
+        function getResources(event)
+        {
+            var resourceTypeId = event.target.value;
+            if (resourceTypeId)
+            {
+                var targetId = event.target.id;
+                var prefix = targetId.split('-')[0];
+                var resourceFieldId = "#" + prefix + "-resource";
+                $(resourceFieldId).empty();
+                var jsonUrl = encodeURI("/accounting/json-resourcetype-resources-locations/" + resourceTypeId + "/");
+                $.get(jsonUrl,
+                    function(data){
+                    for(var i=0 ; i<data.length ; i++)
+                    {
+                        var id = data[i].fields['pk'];
+                        var name = data[i].fields['identifier']; 
+                        var loc = data[i].fields['location']; 
+                        if (loc){
+                            name = name + " at " + loc;
+                        }
+                        $(resourceFieldId).append('<option value="' + id + '">' + name + '</option>') 
+                    }
+                    $(".chzn-select").trigger("liszt:updated");
+                });
+            }
+        }
+        
 
         if($( '#use-case' ).val() == 'res_contr' || $( '#use-case' ).val() == 'cash_contr')
         {

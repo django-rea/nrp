@@ -197,12 +197,19 @@ li {
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete output requirement" >X</button>
                             </form>
                             
-                            <a href="#resourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Create a Resource" >{% trans "Log Resource" %}</a>
+                            <a href="#resourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Create a new Resource" >
+                                {% trans "Log new Resource" %}
+                            </a>
+                            {% if item.addable_resources %}
+                                <a href="#addToResourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Add to an existing Resource" >
+                                    {% trans "Add to Resource" %}
+                                </a>
+                            {% endif %}
             
                             <div class="modal hide fade resourceModal" id="resourceModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                    <h3 id="resource-label">{% trans "Create" %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
+                                    <h3 id="resource-label">{% trans "Log new" %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
                                 </div>
                                 <div class="modal-body">
                                     <form class="resource-form validateMe" id="resourceForm{{ item.id }}" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >
@@ -215,6 +222,24 @@ li {
                                     </form>
                                 </div>
                             </div>
+                            
+                            <div class="modal hide fade addToResourceModal" id="addToResourceModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="add-to-resource-label" aria-hidden="true">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h3 id="add-to-resource-label">{% trans "Add to " %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="add-to-resource-form validateMe" id="addToResourceForm{{ item.id }}" enctype="multipart/form-data" action="{% url add_to_resource_for_commitment commitment_id=item.id %}" method="POST" >
+                                        {% csrf_token %}
+                                        {{ item.select_resource_form|as_bootstrap }}
+                                    <div class="modal-footer">
+                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                        <button class="btn btn-primary">{% trans "Save" %}</button>
+                                    </div>
+                                    </form>
+                                </div>
+                            </div>
+                            
                         {% endif %}
 			        {% elif changeable_requirement %}
                         <div>
@@ -251,7 +276,7 @@ li {
 			    {% for event in item.fulfilling_events %}
 				    <div class="event" >
 					    <span class="event-label">{% trans "Completed" %}:</span> <span class="event" >
-                            {{ event.event_type.inverse_label }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
+                            {{ event.event_type.label }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
                         </span>
 					    {% if logger %}
 					        {% comment %}
@@ -1387,6 +1412,7 @@ li {
         });
 		$.validator.addClassRules("url", { url: true, maxlength: 255 });
         $.validator.addClassRules("resourceType", { required: true});
+        $.validator.addClassRules("resource", { required: true});
         $.validator.addClassRules("hours", { 
 			required: true,
 			number: true,

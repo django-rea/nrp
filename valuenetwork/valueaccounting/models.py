@@ -1667,6 +1667,11 @@ class ProcessPattern(models.Model):
 
     def receipt_resource_types(self):
         return self.resource_types_for_relationship("receive")
+        
+    def receipt_resource_types_with_resources(self):
+        rts = [rt for rt in self.resource_types_for_relationship("receive") if rt.onhand()]
+        rt_ids = [rt.id for rt in rts]
+        return EconomicResourceType.objects.filter(id__in=rt_ids)
 
     def expense_resource_types(self):
         #import pdb; pdb.set_trace()
@@ -4121,16 +4126,34 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import ChangeWorkCommitmentForm
         prefix=self.form_prefix()
         return ChangeWorkCommitmentForm(instance=self, prefix=prefix)
+    
+    def can_add_to_resource(self):
+        if self.resource_type.substitutable:
+            if not self.stage:
+                return True
+        return False
 
-    def resource_create_form(self):
+    def addable_resources(self):
+        if self.can_add_to_resource():
+            if self.onhand():
+                return True
+        return False
+        
+    def resource_create_form(self, data=None):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
         init = {
             "quantity": self.quantity,
-            "stage": self.stage,
-            "state": self.state,
             "unit_of_quantity": self.resource_type.unit,
         }
-        return EconomicResourceForm(prefix=self.form_prefix(), initial=init)
+        return EconomicResourceForm(prefix=self.form_prefix(), initial=init, data=data)
+        
+    def select_resource_form(self, data=None):
+        from valuenetwork.valueaccounting.forms import SelectResourceForm
+        init = {
+            "quantity": self.quantity,
+            #"unit_of_quantity": self.resource_type.unit,
+        }
+        return SelectResourceForm(prefix=self.form_prefix(), resource_type=self.resource_type, initial=init, data=data)
 
     def resource_change_form(self):
         resource = self.output_resource()

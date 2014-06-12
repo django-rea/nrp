@@ -1017,6 +1017,23 @@ def json_resource_type_resources(request, resource_type_id):
     #import pdb; pdb.set_trace()
     json = serializers.serialize("json", EconomicResource.objects.filter(resource_type=resource_type_id), fields=('identifier'))
     return HttpResponse(json, mimetype='application/json')
+    
+def json_resource_type_resources_with_locations(request, resource_type_id):
+    #import pdb; pdb.set_trace()
+    rs = EconomicResource.objects.filter(resource_type=resource_type_id)
+    resources = []
+    for r in rs:
+        loc = ""
+        if r.current_location:
+            loc = r.current_location.name
+        fields = {
+            "pk": r.pk,
+            "identifier": r.identifier,
+            "location": loc,
+        }
+        resources.append({"fields": fields})
+    data = simplejson.dumps(resources, ensure_ascii=False)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
 
 
 class EventSummary(object):
@@ -3518,6 +3535,51 @@ def add_unordered_receipt(request, exchange_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
+def add_receipt_to_resource(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        form = SelectResourceOfTypeForm(
+            prefix='addtoresource', 
+            pattern=pattern, 
+            posting=True,
+            data=request.POST)
+        if form.is_valid():
+            output_data = form.cleaned_data
+            resource = output_data["resource"]
+            if resource:
+                quantity = output_data["quantity"]
+                resource.quantity += quantity
+                resource.save()
+                value = output_data["value"] 
+                unit_of_value = output_data["unit_of_value"]
+                description = output_data["description"]
+                context_agent = exchange.context_agent
+                resource_type = resource.resource_type
+                event_type = pattern.event_type_for_resource_type("receive", resource_type)
+                event = EconomicEvent(
+                    event_type = event_type,
+                    event_date = datetime.date.today(),
+                    resource = resource,
+                    resource_type = resource_type,
+                    exchange = exchange,
+                    from_agent = exchange.supplier,
+                    to_agent = context_agent.default_agent(),
+                    context_agent = context_agent,
+                    quantity = quantity,
+                    unit_of_quantity = resource_type.unit,
+                    value = value,
+                    unit_of_value = unit_of_value,
+                    description = description,
+                    created_by = request.user,
+                    changed_by = request.user,
+                )
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+        
 
 @login_required
 def add_unplanned_payment(request, exchange_id):
@@ -4748,6 +4810,56 @@ def add_unplanned_input_event(request, process_id, slot):
         % ('accounting/process', process.id))
 
 @login_required
+def log_resource_for_commitment_x(request, commitment_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    prefix = ct.form_prefix()
+    form = ct.resource_create_form(data=request.POST)
+    if form.is_valid():
+        #import pdb; pdb.set_trace()
+        agent = get_agent(request)
+        event_type = ct.event_type
+        data = form.cleaned_data
+        quantity = data["quantity"]
+        resource = None
+        if ct.can_add_to_resource():
+            resource = data["resource"]
+        if resource:
+            resource.quantity += quantity
+            resource.changed_by = request.user
+            resource.save()
+        else:
+            resource = form.save(commit=False)
+            resource.resource_type = ct.resource_type
+            resource.created_by=request.user
+            if not ct.resource_type.substitutable:
+                resource.independent_demand = ct.independent_demand
+            if event_type.applies_stage():
+                resource.stage = ct.stage
+            resource.save()
+        
+        default_agent = ct.process.default_agent()
+        event = EconomicEvent(
+            resource = resource,
+            commitment = ct,
+            event_date = resource.created_date,
+            event_type = event_type,
+            from_agent = default_agent,
+            to_agent = default_agent,
+            resource_type = ct.resource_type,
+            process = ct.process,
+            context_agent = ct.context_agent,
+            quantity = quantity,
+            unit_of_quantity = ct.unit_of_quantity,
+            #quality = resource.quality,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', ct.process.id))
+
+@login_required    
 def log_resource_for_commitment(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     prefix = ct.form_prefix()
@@ -4779,15 +4891,50 @@ def log_resource_for_commitment(request, commitment_id):
             context_agent = ct.context_agent,
             quantity = resource.quantity,
             unit_of_quantity = ct.unit_of_quantity,
-            #quality = resource.quality,
             created_by = request.user,
             changed_by = request.user,
         )
         event.save()
-
+        
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
-
+        
+@login_required    
+def add_to_resource_for_commitment(request, commitment_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    form = ct.select_resource_form(data=request.POST)
+    if form.is_valid():
+        #import pdb; pdb.set_trace()
+        data = form.cleaned_data
+        agent = get_agent(request)
+        resource = data["resource"]
+        quantity = data["quantity"]
+        if resource and quantity:
+            resource.quantity += quantity
+            resource.changed_by=request.user
+            resource.save()
+            event_type = ct.event_type
+            default_agent = ct.process.default_agent()
+            event = EconomicEvent(
+                resource = resource,
+                commitment = ct,
+                event_date = datetime.date.today(),
+                event_type = event_type,
+                from_agent = default_agent,
+                to_agent = default_agent,
+                resource_type = ct.resource_type,
+                process = ct.process,
+                context_agent = ct.context_agent,
+                quantity = quantity,
+                unit_of_quantity = ct.unit_of_quantity,
+                created_by = request.user,
+                changed_by = request.user,
+            )
+            event.save()
+        
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', ct.process.id))
+        
 '''
 @login_required
 #todo: make this work for payments when we add payment commitments, check form etc.
@@ -7633,6 +7780,7 @@ def exchange_logging(request, exchange_id):
     pattern = exchange.process_pattern
     exchange_form = ExchangeForm(use_case, context_agent, instance=exchange, data=request.POST or None)
     add_receipt_form = None
+    add_to_resource_form = None
     add_payment_form = None
     add_expense_form = None
     add_material_form = None
@@ -7728,6 +7876,7 @@ def exchange_logging(request, exchange_id):
             add_receipt_form = UnorderedReceiptForm(prefix='unorderedreceipt', initial=receipt_init, pattern=pattern, context_agent=context_agent)
             #import pdb; pdb.set_trace()
             create_receipt_role_formset = resource_role_agent_formset(prefix='receiptrole')
+            add_to_resource_form = SelectResourceOfTypeForm(prefix='addtoresource', pattern=pattern)
         if "cash" in slots:
             cash_init = {
                 "event_date": exchange.start_date,
@@ -7766,6 +7915,7 @@ def exchange_logging(request, exchange_id):
         "cash_events": cash_events,
         "material_events": material_events,
         "add_receipt_form": add_receipt_form,
+        "add_to_resource_form": add_to_resource_form,
         "add_payment_form": add_payment_form,
         "add_expense_form": add_expense_form,
         "add_material_form": add_material_form,

@@ -23,6 +23,14 @@ class AgentModelChoiceField(forms.ModelChoiceField):
 class WorkModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.name
+        
+class ResourceModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        label = obj.identifier
+        if obj.current_location:
+            loc = obj.current_location.name
+            label = " ".join([obj.identifier, "at", loc])
+        return label
 
 
 class AgentForm(forms.Form):
@@ -97,16 +105,70 @@ class LocationForm(forms.ModelForm):
         model = Location
 
 
+
+class SelectResourceForm(forms.Form):
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Add quantity to selected resource",
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+
+    def __init__(self, resource_type=None, *args, **kwargs):
+        super(SelectResourceForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if resource_type:
+            self.fields["resource"].queryset = EconomicResource.goods.filter(resource_type=resource_type)
+
+            
+class SelectOrCreateResourceForm(forms.ModelForm):
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Add to selected resource or create new resource below",
+        required=False,
+        widget=forms.Select(attrs={'class': 'input-xlarge chzn-select',}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    unit_of_quantity = forms.ModelChoiceField(
+        queryset=Unit.objects.exclude(unit_type='value'), 
+        label=_("Unit"),
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    identifier = forms.CharField(
+        required=False, 
+        label="Identifier",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    current_location = forms.ModelChoiceField(
+        queryset=Location.objects.all(), 
+        required=False,
+        label=_("Current Resource Location"),
+        widget=forms.Select(attrs={'class': 'input-medium chzn-select',}))
+    url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    notes = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    
+    class Meta:
+        model = EconomicResource
+        fields = ('quantity', 'unit_of_quantity', 'identifier', 'current_location', 'url', 'photo_url', 'notes')
+        
+    def __init__(self, resource_type=None, *args, **kwargs):
+        super(SelectOrCreateResourceForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if resource_type:
+            self.fields["resource"].queryset = EconomicResource.goods.filter(resource_type=resource_type)
+
+
 class EconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
-    #quality = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'quality input-small',}))
 
     class Meta:
         model = EconomicResource
         exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo',  'quality', 'independent_demand', 'stage', 'state')
 
+        
 class CreateEconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
@@ -485,6 +547,7 @@ class ProcessOutputForm(forms.ModelForm):
 class UnplannedOutputForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
+        empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
     identifier = forms.CharField(
@@ -596,8 +659,45 @@ class UnorderedReceiptForm(forms.ModelForm):
             self.fields["resource_type"].queryset = pattern.receipt_resource_types()
         if context_agent:
             self.context_agent = context_agent
-            self.fields["from_agent"].queryset = context_agent.all_suppliers()
+            self.fields["from_agent"].queryset = context_agent.all_suppliers()            
+
             
+class SelectResourceOfTypeForm(forms.Form):
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        empty_label=None,
+        help_text="If you don't see the resource type you want, please contact an admin.",
+        widget=forms.Select(
+            attrs={'class': 'resource-type-for-resource resourceType chzn-select input-xlarge'}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.none(), 
+        label="Add quantity to selected resource",
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'resource input-xxlarge chzn-select',}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    value = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    description = forms.CharField(
+        required=False,
+        label="Event Description", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    
+    def __init__(self, pattern=None, posting=False, *args, **kwargs):
+        super(SelectResourceOfTypeForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            rts = pattern.receipt_resource_types_with_resources()
+            self.fields["resource_type"].queryset = rts
+            if posting:
+                self.fields["resource"].queryset = EconomicResource.objects.all()
+            else:
+                if rts:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                
 
 class TodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(

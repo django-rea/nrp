@@ -55,6 +55,9 @@ textarea {
 .process-btn {
     margin-top: 10px;
 }
+.btn-warning {
+    margin-top: 5px;
+}
 
 </style>
 
@@ -92,7 +95,7 @@ textarea {
                         {% if agent %}
                           {% if item.stage %}
                             <div style="display: inline;" >
-                                <a href="#resourceQuantity" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change Quantity" %}</a>
+                                <a href="#resourceQuantity" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Change Quantity" %}</a>
                             </div>
                           {% endif %}
                         {% endif %}
@@ -139,7 +142,7 @@ textarea {
                           {% if process.to_be_changed_requirements %}
                             <div class="row-fluid">
                                 <div class="span12">
-                                    <a href="#insertProcessForm{{ process.id }}" role="button" class="btn btn-info process-btn" data-toggle="modal">
+                                    <a href="#insertProcessForm{{ process.id }}" role="button" class="btn btn-info btn-mini process-btn" data-toggle="modal">
                                     {% blocktrans %}Insert a process here {% endblocktrans %}
                                     </a>
                                 </div>
@@ -190,9 +193,10 @@ textarea {
                             <div class="span9">
                                 <div class="process" >{% include  "valueaccounting/_process_for_order.html" %}</div>
                             </div>
+                            
                             <div class="span3">
                               {% if agent %}
-                                <a href="#processChangeForm{{ process.id }}" role="button" class="btn btn-primary process-btn" data-toggle="modal">{% trans "Change process plan" %}</a>
+                              <a href="#processChangeForm{{ process.id }}" role="button" class="btn btn-primary btn-mini process-btn" data-toggle="modal">{% trans "Change process plan" %}</a>
                                 
                                 <div class="modal hide fade processForm" id="processChangeForm{{ process.id }}" tabindex="-1" role="dialog" aria-labelledby="process-change-label" aria-hidden="true">
                                     <div class="modal-header">
@@ -211,6 +215,19 @@ textarea {
                                         </form>
                                     </div>
                                 </div>  
+                                
+                                {% if order.is_workflow_order %}
+                                 {% if process.is_deletable %}
+                                  <form
+                                    id="deleteProcessForm{{ process.id }}" 
+                                    action="{% url delete_workflow_process order_id=order.id process_id=process.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                    <button class="btn btn-warning btn-mini" title="Delete this process" >Delete process</button>
+                                  </form>    
+                                {% endif %}
+                               {% endif %}
                               {% endif %}
                             </div>
 						 </div>

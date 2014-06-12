@@ -2212,6 +2212,7 @@ class Order(models.Model):
         process.add_stream_commitments(last_process=last_process, user=user)
         last_commitment = last_process.main_outgoing_commitment()
         last_commitment.remove_order()
+        return self
         
     def adjust_workflow_commitments_process_inserted(self, process, next_process, user):
         #import pdb; pdb.set_trace()
@@ -2221,9 +2222,33 @@ class Order(models.Model):
             last_process = all_procs[process_index - 1]
         else:
             last_process = None
-        process.insert_stream_commitments(last_process=last_process, user=user)
         next_commitment = next_process.to_be_changed_requirements()[0]
-        next_commitment.update_stage(process.process_type)      
+        if last_process:
+            process.insert_stream_commitments(last_process=last_process, user=user)
+        else:
+            process.insert_first_stream_commitments(next_commitment=next_commitment, user=user)
+        next_commitment.update_stage(process.process_type)
+        return self
+        
+    def adjust_workflow_commitments_process_deleted(self, process, user):
+        all_procs = self.all_processes()
+        process_index = all_procs.index(process)
+        last_process = None
+        next_commitment = None
+        if process_index > 0:
+            last_process = all_procs[process_index - 1]
+        if process == self.last_process_in_order():
+            if last_process:
+                last_commitment = last_process.main_outgoing_commitment()
+                last_commitment.order = self
+                last_commitment.save()
+        else:
+            next_process = all_procs[process_index + 1]
+            next_commitment = next_process.to_be_changed_requirements()[0]
+        if last_process and next_commitment:    
+            next_commitment.update_stage(last_process.process_type)
+        return self
+        
 
 class ProcessTypeManager(models.Manager):
     
@@ -3232,6 +3257,13 @@ class Process(models.Model):
         return self.events.filter(
             event_type__relationship='work',
             commitment=None)
+            
+    def has_events(self):
+        #import pdb; pdb.set_trace()
+        if self.events.count() > 0:
+            return True
+        else:
+            return False
 
     def main_outgoing_commitment(self):
         cts = self.outgoing_commitments()
@@ -3501,7 +3533,7 @@ class Process(models.Model):
                 stage=stage,
             )
             
-    def insert_stream_commitments(self, last_process, user): #for inserting in order
+    def insert_stream_commitments(self, last_process, user): #for inserting in order (not first and not last process in order)
         last_commitment = last_process.main_outgoing_commitment()
         ets = self.process_pattern.change_event_types()
         for et in ets:
@@ -3515,6 +3547,23 @@ class Process(models.Model):
                 quantity=last_commitment.quantity, 
                 event_type=et,
                 unit=last_commitment.unit_of_quantity, 
+                user=user,
+                stage=stage,
+            )
+            
+    def insert_first_stream_commitments(self, next_commitment, user): #for inserting as first process in order
+        ets = self.process_pattern.change_event_types()
+        for et in ets:
+            if et.relationship == "out":
+                stage = self.process_type
+            else:
+                stage = None
+            ct = self.add_commitment(
+                resource_type=next_commitment.resource_type, 
+                demand=next_commitment.independent_demand,
+                quantity=next_commitment.quantity, 
+                event_type=et,
+                unit=next_commitment.unit_of_quantity, 
                 user=user,
                 stage=stage,
             )
@@ -3628,6 +3677,9 @@ class Process(models.Model):
 
     def bumped_processes(self):
         return [p for p in self.next_processes() if self.end_date > p.start_date]
+        
+    def plan_form_prefix(self):
+        return "-".join(["PCF", str(self.id)])
 
     def schedule_form(self):
         from valuenetwork.valueaccounting.forms import ScheduleProcessForm
@@ -3637,7 +3689,7 @@ class Process(models.Model):
     def plan_change_form(self):
         from valuenetwork.valueaccounting.forms import PlanProcessForm
         init = {"start_date": self.start_date, "end_date": self.end_date, "name": self.name}
-        return PlanProcessForm(prefix=str(self.id),initial=init)      
+        return PlanProcessForm(prefix=self.plan_form_prefix(),initial=init)      
         
     def insert_process_form(self):
         #import pdb; pdb.set_trace()

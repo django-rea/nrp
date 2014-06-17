@@ -1111,18 +1111,23 @@ class EconomicResourceType(models.Model):
         return list(set(pts))
         
     def staged_commitment_type_sequence(self):
+        #import pdb; pdb.set_trace()
         staged_commitments = self.process_types.filter(stage__isnull=False)
         if not staged_commitments:
             return []
         creation_et = EventType.objects.get(name='Create Changeable') 
         chain = []
+        creation = None
         try:
             creation = self.process_types.get(
                 stage__isnull=False,
                 event_type=creation_et)
         except ProcessTypeResourceType.DoesNotExist:
-            creation = self.process_types.get(
-                stage__isnull=True)
+            try:
+                creation = self.process_types.get(
+                    stage__isnull=True)
+            except ProcessTypeResourceType.DoesNotExist:
+                pass
         if creation:
             creation.follow_stage_chain(chain)
         return chain

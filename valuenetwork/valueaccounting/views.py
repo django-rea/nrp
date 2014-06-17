@@ -1246,8 +1246,10 @@ def view_stream_recipe(request, resource_type_id):
     process_types = rt.staged_process_type_sequence()
     names = EconomicResourceType.objects.values_list('name', flat=True)
     resource_names = '~'.join(names)
+    agent = get_agent(request)
     return render_to_response("valueaccounting/view_stream_recipe.html", {
         "resource_type": rt,
+        "agent": agent,
         "process_types": process_types,
         "resource_names": resource_names,
         "photo_size": (128, 128),

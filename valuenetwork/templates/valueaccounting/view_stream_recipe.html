@@ -109,7 +109,14 @@ textarea {
     <div class="container-fluid">
         {% include "_messages.html" %}
       <div>
-        <legend>{% trans "View Workflow Recipe for " %} {{ resource_type }}</legend>
+        <legend>
+            {% trans "View Workflow Recipe for " %} {{ resource_type }} 
+            {% if agent %}
+                <a href="{% url edit_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+                    {% trans "Change Recipe" %}
+                </a>
+            {% endif %}
+        </legend>
 
         <h4>
             {% if resource_type.url %}

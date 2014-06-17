@@ -1121,7 +1121,7 @@ li {
 	            {% endif %}
 		        
 		        <br />
-		        {% trans "Context" %}: {{ process.context_agent }}
+		        {% trans "Context" %}: <a href="{{ process.context_agent.get_absolute_url }}">{{ process.context_agent }}</a>
 
             {% if process.independent_demand %}
 		        <br />

@@ -14,15 +14,20 @@
     {% for item in work_to_do %}
         <li>
             <b>{{ item.resource_type.name }}:</b> {% trans "due" %} {{ item.due_date }}
+            <p style="margin-left: 1em; margin-bottom: 0; font-size: 90%;">
+                <a href="{% url unfold_commitment commitment_id=item.id %}">Learn more...</a>
+            </p>
             
+                {% comment %}
                 <div style="display: inline;" >
                     <a href="" role="button" class="btn btn-info" title="This button does not work yet. It will soon.">
                         {% trans "do this work?" %}
                     </a>
-                </div>
+                </div>                
                 <p style="margin-left: 1em; margin-bottom: 0; font-size: 90%;">
-                    {% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process.name }}</a>
+                    {% trans "for process" %}: <a href="{% url unfold process_id=item.process.id %}">{{ item.process.name }}</a>
                 </p>
+                {% endcomment %}
         </li>
     {% endfor %}
 </ul>

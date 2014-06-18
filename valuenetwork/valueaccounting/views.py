@@ -2116,6 +2116,22 @@ def json_context_agent_suppliers(request, agent_id):
 def explore(request):
     return render_to_response("valueaccounting/explore.html", {
     }, context_instance=RequestContext(request))
+    
+def unfold_commitment(request, commitment_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    process = commitment.process
+    return render_to_response("valueaccounting/unfold.html", {
+        "commitment": commitment,
+        "process": process,
+    }, context_instance=RequestContext(request))
+    
+def unfold_process(request, process_id):
+    process = get_object_or_404(Process, pk=process_id)
+    commitment = None
+    return render_to_response("valueaccounting/unfold.html", {
+        "commitment": commitment,
+        "process": process,
+    }, context_instance=RequestContext(request))
 
 @login_required
 def cleanup(request):

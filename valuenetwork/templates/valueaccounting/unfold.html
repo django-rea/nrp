@@ -43,12 +43,18 @@
                 <a href="{{ process.context_agent.get_absolute_url }}">{{ process.context_agent }}</a> 
                 </br>A Process happens in an organizational Context.
             </p>
-            <p><a href="{% url demand %}">{% trans "All Orders" %}</a></p>
-            <p>
-                <span class="emph" >{% trans "For Order" %}:</span> 
-                <a href="{% url order_schedule order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
-                </br>A Process may be connected to other processes to fulfill a customer or work order.
-            </p>
+            {% if process.independent_demand %}
+                <p><a href="{% url demand %}">{% trans "All Orders" %}</a></p>
+                <p>
+                    <span class="emph" >{% trans "For Order" %}:</span> 
+                    <a href="{% url order_schedule order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
+                    {% if process.next_processes or process.previous_processes %}
+                        </br>This process is connected to other processes to fulfill a {{ process.independent_demand.get_order_type_display }}.
+                    {% else %}
+                        </br>This process fulfills a customer or work order.
+                    {% endif %}
+                </p>
+            {% endif %}
         </div>
         <div class="span3">
         </div>

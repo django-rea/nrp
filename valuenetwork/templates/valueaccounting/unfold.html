@@ -8,6 +8,9 @@
 {% block extra_head %}
 
 <style>
+.title {
+    color: firebrick;
+}
 .emph {
     font-weight: bold;
 }
@@ -28,14 +31,23 @@
     font-size: 8pt;
 }
 .explain {
-    color: slategray;
+    color: #9EA6AE;
 }
 .et {
     color: forestgreen;
     font-weight: bold;
 }
-.prevnext, #focus {
-    margin-top: 15px;
+.section {
+    border: solid 1px gainsboro;
+    margin-top: 20px;
+    padding: 5px;
+}
+.this {
+    color: #B82E8A;
+    font-weight: bold;
+}
+.text-center {
+    text-align: center;
 }
 
 </style>
@@ -44,28 +56,22 @@
 {% block body_class %}unfold{% endblock %}
 
 {% block body_base %}
-    <div class="container">
+<div class="container">
         {% include "_messages.html" %}
-    <div class="row-fluid">      
-        <div class="span3 explain">
-            {% if commitment %}
-                The work of {{ commitment.resource_type.name }} 
-                contributes to the Process in the center of this page. 
-                A Process takes inputs and transforms them into outputs, 
-                and may be connected to other Processes in process flows.
-            {% endif %}
-        </div>
-        <div class="span6">
-            <p>
+    <div class="row-fluid">  
+        <div class="span4">
+            <div>
                 <span class="explain">A Process happens in an organizational Context.</span></br>
                 <span class="emph" >{% trans "Context" %}:</span> The {{ process.context_agent.agent_type }} 
                 <a href="{{ process.context_agent.get_absolute_url }}">{{ process.context_agent }}</a> 
                 {% if process.context_agent.description %}
                     <div class="description">{{ process.context_agent.description|urlize|linebreaks }}</div>
                 {% endif %} 
-            </p>
+            </div>
+        </div>    
+        <div class="span6">
             {% if process.independent_demand %}
-                <p><span class="explain">
+                <div><span class="explain">
                     {% if process.next_processes or process.previous_processes %}
                         This process is connected to other processes to fulfill a {{ process.independent_demand.get_order_type_display }}.</br>
                     {% else %}
@@ -77,83 +83,99 @@
                         <div class="description">{{ process.independent_demand.description|urlize|linebreaks }}</div>
                     {% endif %}
                     
-                </p>
+                </div>
             {% endif %}
         </div>
-        <div class="span3">
-            <p><a href="{% url projects %}">{% trans "All Contexts" %}</a></p>
+        <div class="span2">
+            <div><a href="{% url projects %}">{% trans "All Contexts" %}</a></div>
             {% if process.independent_demand %}
-                <p><a href="{% url demand %}">{% trans "All Orders" %}</a></p>
+                <div><a href="{% url demand %}">{% trans "All Orders" %}</a></div>
             {% endif %}
         </div>
     </div>
-    <div class="row-fluid">      
-        <div class="span3">
-
-        </div>
-        <div class="span6" id="focus" >
-        <h4>{% trans "This Process" %}:</h4>
-            <a href="{{ process.get_absolute_url }}">{{ process }}</a>
-            {% if process.notes %}
-                <div class="description">{{ process.notes|urlize|linebreaks }}</div>
-            {% endif %}
-        </div>
-        <div class="span3">
-            
-        </div>
-    </div>
-    <div class="row-fluid">      
-        <div class="span3 prevnext">
-            <h4>{% trans "Previous processes" %}:</h4>
-            {% for proc in process.previous_processes %}
-                <p><span class="process" ><a href="{% url unfold_process process_id=proc.id %}">{{ proc }}</a></span></p>
-            {% endfor %}
-        </div>
-        <div class="span6">
-            <div class="row-fluid">
-                <div class="span6">
-                    <h4>{% trans "Input requirements" %}:</h4>
-                    {% for item in process.incoming_commitments %}
-                        <div>
-                            <span class="et">{{ item.event_type }}</span> {{ item.resource_type }}
-                            {% if item.event_type.name != "Citation" %}
-                                 {{ item.quantity }} {{ item.unit_of_quantity }}
-                            {% endif %}
-                        </div>
-                        {% if item.description %}
-                            <div class="description">{{ item.description|urlize|linebreaks }}</div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                <div class="span6">
-                    <h4>{% trans "Output plans" %}:</h4>
-                    {% for item in process.outgoing_commitments %}
-                        <div>{{ item.resource_type }} {{ item.quantity }} {{ item.unit_of_quantity }}</div>
-                        {% if item.description %}
-                            <div class="description">{{ item.description|urlize|linebreaks }}</div>
-                        {% endif %}
-                    {% endfor %}
-                    {% if process.production_events %}
-                        <h4>{% trans "Resources created" %}:</h4>
-                        {% for item in process.production_events %}
-                            <div>
-                                <a href="{{ item.resource.get_absolute_url }}">{{ item.resource }}</a>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                </div>
+    <div class="section">
+        <div class="row-fluid">      
+            <div class="span12 explain">
+                <p class="text-center">A Process takes inputs and transforms them into outputs, 
+                and may be connected to other Processes in process flows.
+                {% if commitment %}
+                    <br />
+                    The work of <span class="this">{{ commitment.resource_type.name }}</span> 
+                    contributes to This Process. </p>
+                {% endif %}
             </div>
         </div>
-        <div class="span3 prevnext">
-            <h4>{% trans "Next processes" %}:</h4>
-            {% for proc in process.next_processes %}
-                <p><span class="process" ><a href="{% url unfold_process process_id=proc.id %}">{{ proc }}</a></span></p>
-            {% endfor %}
+        <div class="row-fluid">      
+            <div class="span3 prevnext">
+                <h4 class="title">{% trans "Previous processes" %}:</h4>
+                {% for proc in process.previous_processes %}
+                    <p><span class="process" ><a href="{% url unfold_process process_id=proc.id %}">{{ proc }}</a></span></p>
+                {% endfor %}
+            </div>
+            <div class="span6" id="focus" >
+                <h4 class="title">{% trans "This Process" %}:</h4>
+                <a href="{{ process.get_absolute_url }}">{{ process }}</a>
+                {% if process.notes %}
+                    <div class="description">{{ process.notes|urlize|linebreaks }}</div>
+                {% endif %}
+            </div>
+            <div class="span3 prevnext">
+                <h4 class="title">{% trans "Next processes" %}:</h4>
+                {% for proc in process.next_processes %}
+                    <p><span class="process" ><a href="{% url unfold_process process_id=proc.id %}">{{ proc }}</a></span></p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row-fluid">      
+            <div class="span3">
+            </div>
+            <div class="span6">
+                <div class="row-fluid">
+                    <div class="span6">
+                        <h4>{% trans "Input requirements" %}:</h4>
+                        {% for item in process.incoming_commitments %}
+                            <div>
+                                <span class="et">{{ item.event_type }}</span> 
+                                    {% if item.id == commitment.id %}<span class="this">{% endif %}
+                                    {{ item.resource_type }}
+                                    {% if item.id == commitment.id %}</span>{% endif %}
+                                {% if item.event_type.name != "Citation" %}
+                                    {{ item.quantity }} {{ item.unit_of_quantity }}
+                                {% endif %}
+                            </div>
+                            {% if item.description %}
+                                <div class="description">{{ item.description|urlize|linebreaks }}</div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="span6">
+                        <h4>{% trans "Output plans" %}:</h4>
+                        {% for item in process.outgoing_commitments %}
+                            <div>{{ item.resource_type }} {{ item.quantity }} {{ item.unit_of_quantity }}</div>
+                            {% if item.description %}
+                                <div class="description">{{ item.description|urlize|linebreaks }}</div>
+                            {% endif %}
+                        {% endfor %}
+                        {% if process.production_events %}
+                            <h4>{% trans "Resources created" %}:</h4>
+                            {% for item in process.production_events %}
+                                <div>
+                                    <a href="{{ item.resource.get_absolute_url }}">
+                                    {{ item.resource }}
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="span3">
+            </div>
         </div>
     </div>
 
-    </div>
-    </div>
+</div>
+    
 {% endblock %}
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>

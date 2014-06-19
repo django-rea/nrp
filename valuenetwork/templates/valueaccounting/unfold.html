@@ -64,7 +64,7 @@
             <div>
                 <span class="explain">A Process happens in an organizational Context.</span></br>
                 <span class="emph" >{% trans "Context" %}:</span> The {{ process.context_agent.agent_type }} 
-                <a href="{{ process.context_agent.get_absolute_url }}">{{ process.context_agent }}</a> 
+                <a href="{{ process.context_agent.get_absolute_url }}">{{ process.context_agent.name }}</a> 
                 {% if process.context_agent.description %}
                     <div class="description">{{ process.context_agent.description|urlize|linebreaks }}</div>
                 {% endif %} 

@@ -39,23 +39,27 @@
         <div class="span6">
             <p><a href="{% url projects %}">{% trans "All Contexts" %}</a></p>
             <p>
-                <span class="emph" >{% trans "In Context" %}:</span> The {{ process.context_agent.agent_type }} 
+                A Process happens in an organizational Context.</br>
+                <span class="emph" >{% trans "Context" %}:</span> The {{ process.context_agent.agent_type }} 
                 <a href="{{ process.context_agent.get_absolute_url }}">{{ process.context_agent }}</a> 
-                </br>A Process happens in an organizational Context.
+                {% if process.context_agent.description %}
+                    <div>{{ process.context_agent.description|urlize|linebreaks }}</div>
+                {% endif %} 
             </p>
             {% if process.independent_demand %}
                 <p><a href="{% url demand %}">{% trans "All Orders" %}</a></p>
                 <p>
-                    <span class="emph" >{% trans "For Order" %}:</span> 
+                    {% if process.next_processes or process.previous_processes %}
+                        This process is connected to other processes to fulfill a {{ process.independent_demand.get_order_type_display }}.</br>
+                    {% else %}
+                        This process fulfills a {{ process.independent_demand.get_order_type_display }}.</br>
+                    {% endif %}
+                    <span class="emph" >{% trans "Order" %}:</span> 
                     <a href="{% url order_schedule order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
                     {% if process.independent_demand.description %}
                         <div>{{ process.independent_demand.description|urlize|linebreaks }}</div>
                     {% endif %}
-                    {% if process.next_processes or process.previous_processes %}
-                        </br>This process is connected to other processes to fulfill a {{ process.independent_demand.get_order_type_display }}.
-                    {% else %}
-                        </br>This process fulfills a customer or work order.
-                    {% endif %}
+                    
                 </p>
             {% endif %}
         </div>

@@ -17,11 +17,26 @@
     padding: 4px;
     margin-bottom: 7px;   
 }
+.prevnext {
+    border: solid 1px gainsboro;
+    background-color: whitesmoke; 
+    padding: 4px;
+    margin-bottom: 7px;   
+    }
 .description {
     font-style: italic;
-    font-size: 9pt;
+    font-size: 8pt;
 }
-
+.explain {
+    color: slategray;
+}
+.et {
+    color: forestgreen;
+    font-weight: bold;
+}
+.prevnext, #focus {
+    margin-top: 15px;
+}
 
 </style>
 {% endblock %}
@@ -32,7 +47,7 @@
     <div class="container">
         {% include "_messages.html" %}
     <div class="row-fluid">      
-        <div class="span3">
+        <div class="span3 explain">
             {% if commitment %}
                 The work of {{ commitment.resource_type.name }} 
                 contributes to the Process in the center of this page. 
@@ -41,59 +56,58 @@
             {% endif %}
         </div>
         <div class="span6">
-            <p><a href="{% url projects %}">{% trans "All Contexts" %}</a></p>
             <p>
-                A Process happens in an organizational Context.</br>
+                <span class="explain">A Process happens in an organizational Context.</span></br>
                 <span class="emph" >{% trans "Context" %}:</span> The {{ process.context_agent.agent_type }} 
                 <a href="{{ process.context_agent.get_absolute_url }}">{{ process.context_agent }}</a> 
                 {% if process.context_agent.description %}
-                    <div>{{ process.context_agent.description|urlize|linebreaks }}</div>
+                    <div class="description">{{ process.context_agent.description|urlize|linebreaks }}</div>
                 {% endif %} 
             </p>
             {% if process.independent_demand %}
-                <p><a href="{% url demand %}">{% trans "All Orders" %}</a></p>
-                <p>
+                <p><span class="explain">
                     {% if process.next_processes or process.previous_processes %}
                         This process is connected to other processes to fulfill a {{ process.independent_demand.get_order_type_display }}.</br>
                     {% else %}
                         This process fulfills a {{ process.independent_demand.get_order_type_display }}.</br>
-                    {% endif %}
+                    {% endif %}</span>
                     <span class="emph" >{% trans "Order" %}:</span> 
                     <a href="{% url order_schedule order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
                     {% if process.independent_demand.description %}
-                        <div>{{ process.independent_demand.description|urlize|linebreaks }}</div>
+                        <div class="description">{{ process.independent_demand.description|urlize|linebreaks }}</div>
                     {% endif %}
                     
                 </p>
             {% endif %}
         </div>
         <div class="span3">
+            <p><a href="{% url projects %}">{% trans "All Contexts" %}</a></p>
+            {% if process.independent_demand %}
+                <p><a href="{% url demand %}">{% trans "All Orders" %}</a></p>
+            {% endif %}
         </div>
     </div>
     <div class="row-fluid">      
         <div class="span3">
-            <h4>{% trans "Previous processes" %}:</h4>
-            {% for proc in process.previous_processes %}
-                <p><span class="process" ><a href="{% url unfold_process process_id=proc.id %}">{{ proc }}</a></span></p>
-            {% endfor %}
+
         </div>
         <div class="span6" id="focus" >
         <h4>{% trans "This Process" %}:</h4>
             <a href="{{ process.get_absolute_url }}">{{ process }}</a>
             {% if process.notes %}
-                <div>{{ process.notes|urlize|linebreaks }}</div>
+                <div class="description">{{ process.notes|urlize|linebreaks }}</div>
             {% endif %}
         </div>
         <div class="span3">
-            <h4>{% trans "Next processes" %}:</h4>
-            {% for proc in process.next_processes %}
-                <p><span class="process" ><a href="{% url unfold_process process_id=proc.id %}">{{ proc }}</a></span></p>
-            {% endfor %}
-            <br />
+            
         </div>
     </div>
     <div class="row-fluid">      
-        <div class="span3">
+        <div class="span3 prevnext">
+            <h4>{% trans "Previous processes" %}:</h4>
+            {% for proc in process.previous_processes %}
+                <p><span class="process" ><a href="{% url unfold_process process_id=proc.id %}">{{ proc }}</a></span></p>
+            {% endfor %}
         </div>
         <div class="span6">
             <div class="row-fluid">
@@ -101,13 +115,13 @@
                     <h4>{% trans "Input requirements" %}:</h4>
                     {% for item in process.incoming_commitments %}
                         <div>
-                            {{ item.event_type }} {{ item.resource_type }}
+                            <span class="et">{{ item.event_type }}</span> {{ item.resource_type }}
                             {% if item.event_type.name != "Citation" %}
                                  {{ item.quantity }} {{ item.unit_of_quantity }}
                             {% endif %}
                         </div>
                         {% if item.description %}
-                            <div>{{ item.description|urlize|linebreaks }}</div>
+                            <div class="description">{{ item.description|urlize|linebreaks }}</div>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -116,7 +130,7 @@
                     {% for item in process.outgoing_commitments %}
                         <div>{{ item.resource_type }} {{ item.quantity }} {{ item.unit_of_quantity }}</div>
                         {% if item.description %}
-                            <div>{{ item.description|urlize|linebreaks }}</div>
+                            <div class="description">{{ item.description|urlize|linebreaks }}</div>
                         {% endif %}
                     {% endfor %}
                     {% if process.production_events %}
@@ -130,7 +144,11 @@
                 </div>
             </div>
         </div>
-        <div class="span3">
+        <div class="span3 prevnext">
+            <h4>{% trans "Next processes" %}:</h4>
+            {% for proc in process.next_processes %}
+                <p><span class="process" ><a href="{% url unfold_process process_id=proc.id %}">{{ proc }}</a></span></p>
+            {% endfor %}
         </div>
     </div>
 

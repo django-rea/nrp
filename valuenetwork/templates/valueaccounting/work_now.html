@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Labnotes for " %} {{ commitment.from_agent.name }} doing {{ commitment.resource_type.name }} on {{ process.name }}{% endblock %}
+{% block head_title %}{% trans "Work Notes for " %} {{ commitment.from_agent.name }} doing {{ commitment.resource_type.name }} on {{ process.name }}{% endblock %}
 
 {% block extra_head %}
 
@@ -97,7 +97,7 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>
-			{% trans "Labnotes for " %} <i>{{ commitment.from_agent.name }}</i>
+			{% trans "Work Notes for " %} <i>{{ commitment.from_agent.name }}</i>
 			<span style="font-size: 60%;" > 
 			    {% trans "doing" %}: <i>{{ commitment.resource_type.name }}</i> {% trans "on Process" %}:  <i>{{ process.name }}</i> {% trans "due" %}:  <i>{{ process.end_date }}</i> 
 				{% trans "Estimated duration" %}: <i>{{ commitment.quantity }} {{ commitment.unit_of_quantity.abbrev }}</i>
@@ -120,7 +120,7 @@
 							<li>
 								<b>{{ item.from_agent }}</b> {% trans "doing" %} {{ item.resource_type }}
                                 {% if item.has_labnotes %}
-									<a href="{% url labnote commitment_id=item.id %}" target="_blank" class="lablink">Labnotes</a>
+									<a href="{% url labnote commitment_id=item.id %}" target="_blank" class="lablink">Work Now</a>
 								{% endif %}
 							</li>
 

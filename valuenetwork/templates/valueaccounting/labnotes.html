@@ -2,7 +2,7 @@
 
 {% load i18n %}
 
-{% block head_title %}{% trans "Labnotes for Process" %}: {{ process }}{% endblock %}
+{% block head_title %}{% trans "Work Notes for Process" %}: {{ process }}{% endblock %}
 
 {% block body_class %}work{% endblock %}
 
@@ -11,7 +11,7 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>
-			{% trans "Labnotes for Process" %}: {{ process }} {% if process.started %} - {% trans "Started" %} {{ process.started }}{% endif %} 
+			{% trans "Work Notes for Process" %}: {{ process }} {% if process.started %} - {% trans "Started" %} {{ process.started }}{% endif %} 
 		</legend>
 
 		<p>
@@ -39,7 +39,7 @@
 				</div>
 		</div>
 
-		<h3 style="margin-bottom: 4px;" >{% trans "Labnotes" %}:</h3>
+		<h3 style="margin-bottom: 4px;" >{% trans "Work Notes" %}:</h3>
 		{% for commitment in process.work_requirements %}
 		    {% if commitment.fulfilling_events %}
 			    <p>

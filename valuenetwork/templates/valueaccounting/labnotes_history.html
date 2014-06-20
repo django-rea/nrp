@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load thumbnail %}
 
-{% block head_title %}{% trans "Labnotes History" %}{% endblock %}
+{% block head_title %}{% trans "Work Notes History" %}{% endblock %}
 {% block extra_head %}
 
 <style>
@@ -47,7 +47,7 @@ li {
         {% include "_messages.html" %}
 	<div>
 		<legend>
-			{% trans "Labnotes History" %}
+			{% trans "Work Notes History" %}
 		</legend>
         {% if processes %}
             <ul>
@@ -57,7 +57,7 @@ li {
 		                {% for req in process.work_requirements %}
 		                    {% if req.description %}
 		                        <li class="who" ><span class="name" >{{ req.from_agent }}</span> 
-		                            <a href="{% url labnote commitment_id=req.id %}">{% trans "labnotes" %}:</a>
+		                            <a href="{% url labnote commitment_id=req.id %}">{% trans "Work Notes" %}:</a>
 		                            {% if agent == req.from_agent %}
 		                                <a href="{% url work_now process_id=process.id commitment_id=req.id %}" role="button" class="btn btn-info btn-mini" >
 		                                    {% trans "Open" %}

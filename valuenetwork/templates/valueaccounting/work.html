@@ -192,7 +192,7 @@ th, td {
 {% endcomment %}
 		        <a href="{% url timeline %}">{% trans "Timeline" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        <a href="{% url processes_graph %}">{% trans "Process Diagram" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
-		        <a href="{% url labnotes_history %}">{% trans "Labnotes History" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
+		        <a href="{% url labnotes_history %}">{% trans "Work Notes History" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        {% if agent %}
 					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Work" %}</a>
 					<a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan Work Using Recipe" %}</a>

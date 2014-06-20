@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Labnotes for " %} {{ process.name }} {% trans "from " %} {{ commitment.from_agent.name }}{% endblock %}
+{% block head_title %}{% trans "Work Notes for " %} {{ process.name }} {% trans "from " %} {{ commitment.from_agent.name }}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
@@ -25,11 +25,11 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>
-			{% trans "Labnotes for " %} 
+			{% trans "Work Notes for " %} 
 			    <a href="{{ process.get_absolute_url }}">{{ process.name }}</a>  
 			    {% trans "from " %} {{ commitment.from_agent.name }}
 			{% if author %}
-			    <a href="{% url work_now process_id=process.id commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Open Labnotes" %}</a> 
+			    <a href="{% url work_now process_id=process.id commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Work Now" %}</a> 
 			    <a class="btn btn-info" href="{% url change_process process_id=commitment.process.id %}">{% trans "Change Process" %}</a>
 			{% endif %}
 		</legend>

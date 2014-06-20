@@ -1035,7 +1035,28 @@ def json_resource_type_resources_with_locations(request, resource_type_id):
     data = simplejson.dumps(resources, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
-
+def json_resource(request, resource_id):
+    #import pdb; pdb.set_trace()
+    r = get_object_or_404(EconomicResource, pk=resource_id)
+    loc = ""
+    if r.current_location:
+        loc = r.current_location.name
+    rdict = {
+        "class": "EconomicResource",
+        "id": r.id,
+        "identifier": r.identifier,
+        "location": loc,
+        "quantity": str(r.quantity),
+        "unit": r.unit_of_quantity.name,
+        "access_rules": r.access_rules,
+    }
+    assignments = {}
+    for item in r.agent_resource_roles.all():
+        assignments[item.role.name] = item.agent.name
+    rdict["assignments"] = assignments
+    data = simplejson.dumps(rdict)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    
 class EventSummary(object):
     def __init__(self, agent, role, quantity, value=Decimal('0.0')):
         self.agent = agent

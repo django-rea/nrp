@@ -242,7 +242,7 @@ urlpatterns = patterns("",
         name="json_resource_type_resources"),
     url(r"^json-resourcetype-resources-locations/(?P<resource_type_id>\d+)/$", 'valuenetwork.valueaccounting.views.json_resource_type_resources_with_locations', 
         name="json_resource_type_resources_with_locations"),
-        
+    url(r"^json-resource/(?P<resource_id>\d+)/$", 'valuenetwork.valueaccounting.views.json_resource', name="json_resource"),
     #url(r"^create-resource/(?P<resource_type_id>\d+)/$", 'valuenetwork.valueaccounting.views.create_resource', 
     #    name="create_resource"),
     url(r"^change-resource/(?P<resource_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_resource', 

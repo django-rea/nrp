@@ -139,6 +139,9 @@ th, td {
 .top-buttons a {
     margin-right: 30px;
 }
+.cancel {
+    width: 80px;
+}
 
 </style>
 {% endblock %}
@@ -187,7 +190,7 @@ th, td {
 								<li>
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 									{% if work_now %}
-									    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
+									    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
 									{% endif %}
 								</li>
 								<p style="margin-left: 1em; margin-bottom: 0;">
@@ -231,7 +234,7 @@ th, td {
 							        {{ todo_form|as_bootstrap }}
 							        <input type="hidden" name="next" value="{% url start %}" />
 						          <div class="modal-footer">
-							        <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+							        <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
 							        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Add" %}' />
 						          </div>
 						        </form>
@@ -315,7 +318,7 @@ th, td {
 	                                                {{ todo.todo_change_form|as_bootstrap }}
 	                                                <input type="hidden" name="next" value="{% url start %}" />
                                                   <div class="modal-footer">
-	                                                <input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+	                                                <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
 	                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
                                                   </div>
                                                 </form>
@@ -405,7 +408,7 @@ th, td {
 															{{ item.commitment_form|as_bootstrap }}
 															<input type="hidden" name="next" value="{% url start %}" />
 														  <div class="modal-footer">
-															<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+															<input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
 															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
 															{% if work_now %}
 															    <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
@@ -531,7 +534,7 @@ th, td {
 															{{ item.commitment_form|as_bootstrap }}
 															<input type="hidden" name="next" value="{% url start %}" />
 														  <div class="modal-footer">
-															<input type="cancel" class="btn" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
+															<input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
 															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
 															{% if work_now %}
 															    <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />

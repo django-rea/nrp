@@ -398,7 +398,7 @@ li {
 					                {% trans "Log work" %}
 				                </a>
 				                {% if work_now and item.unit_of_quantity.unit_type == "time" %}
-				                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Labnotes" %}</a>
+				                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
 			                    {% endif %}
 			
 				                <div class="modal hide fade workEventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
@@ -1101,7 +1101,7 @@ li {
 
 		    {% if labnotes %}
 			    <h4>
-				    <a href="{% url labnotes process_id=process.id %}">Labnotes for this process</a>
+				    <a href="{% url labnotes process_id=process.id %}">Notes for this process</a>
 			    </h4>
 		    {% endif %}
 

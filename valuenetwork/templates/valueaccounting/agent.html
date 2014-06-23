@@ -121,17 +121,19 @@
 	                        <td>{{ agent.description }}</td>
                         </tr>
                     {% endif %}
-                    {% if agent.email %}
-                        <tr>
-	                        <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
-	                        <td>{{ agent.email }}</td>
-                        </tr>
-                    {% endif %}
-                    {% if agent.address %}
-                        <tr>
-	                        <th style="text-align: right; vertical-align: top; ">{% trans "Address" %}</th>
-	                        <td>{{ agent.address }}</td>
-                        </tr>
+                    {% if user_agent %}
+                        {% if agent.email %}
+                            <tr>
+                                <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
+                                <td>{{ agent.email }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if agent.address %}
+                            <tr>
+                                <th style="text-align: right; vertical-align: top; ">{% trans "Address" %}</th>
+                                <td>{{ agent.address }}</td>
+                            </tr>
+                        {% endif %}
                     {% endif %}
                     {% if agent.photo %}
 	                	<tr>

@@ -1,0 +1,178 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Cash Receipt" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+#id_notes
+{
+  width: 32em;
+}
+
+#id_url
+{
+  width: 32em;
+}
+
+.item-description
+{
+	width: 32em;
+    height: 40px;
+}
+
+</style>
+{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+	{% if context_agent %}
+        <legend>{% trans "Cash Receipt" %}</legend>
+		<form id="exchangeForm" method="POST" action="">
+			{% csrf_token %}
+			<div class="span12">
+				{{ exchange_form|as_bootstrap }}
+				<div class="form-actions">
+					<input type="submit" name="save" value="{% trans 'Save and go to step 2' %}" class="btn btn-primary" /> 
+			   	</div>
+			</div>
+            <input type="hidden" id="use-case" name="next" value= "{{ use_case.identifier }}" />
+		</div>
+		</form>
+    {% else %}
+        <h2>You need a {{ context_types }}.</h2>
+        <p>
+            Read the 
+            <a href="https://docs.google.com/presentation/d/1ztnDX-Cf-PmQPUNxAfntNBBpLH9mhsQ2lrJ77Ty8Plw/edit?usp=sharing" target= "_blank">
+                Network Setup tutorial</a> 
+            and create one.
+        </p>
+    {% endif %}
+    </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+	
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+				label
+					.text('').addClass('valid')
+					.closest('.control-group').addClass('success');
+			}
+        });
+
+        $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+
+    	$( "#exchangeForm" ).validate({
+			rules: {
+				process_pattern: {
+					required: true
+				},
+				start_date: {
+					required: true,
+					date: true
+				},
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+		$("#id_context_agent").change(getCustomers);
+		$("#id_customer").change(getOrders);
+		$("#id_order").change(getCustomer);
+        
+
+	}); // end document.ready
+	
+    function getCustomers()
+    {
+        var selectedAgent = document.getElementById('id_context_agent').value;
+        var jsonUrl = encodeURI("/accounting/json-context-agent-customers/" + selectedAgent + "/");
+        $("#id_customer").empty();
+        $.get(jsonUrl,
+        function(data){
+            $("#id_customer").append('<option value="">' + '--------' + '</option>'); 
+            for(var i=0 ; i<data.length ; i++)
+            {
+                var id = data[i]['pk'];
+                var name = data[i].fields['nick']; 
+                $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
+            }
+        });
+    }
+    
+    function getOrders()
+    {
+        var selectedCustomer = document.getElementById('id_customer').value;
+        if (selectedCustomer == '')
+        {
+            selectedCustomer = '0'
+        }
+        var jsonUrl = encodeURI("/accounting/json-customer-orders/" + selectedCustomer + "/");
+        $("#id_order").empty();
+        $.get(jsonUrl,
+        function(data){
+            $("#id_order").append('<option value="">' + '--------' + '</option>'); 
+            for(var i=0 ; i<data.length ; i++)
+            {
+                var id = data[i]['pk'];
+                var name = data[i].fields['name']; 
+                $("#id_order").append('<option value="' + id + '">' + name + '</option>'); 
+            }
+        });
+    }
+                
+    function getCustomer()
+    {
+        var selectedOrder = document.getElementById('id_order').value;
+        if (selectedOrder == '')
+        {
+            selectedOrder = '0'
+        }
+        var selectedAgent = document.getElementById('id_context_agent').value;
+        var jsonUrl = encodeURI("/accounting/json-order-customer/" + selectedOrder + "/" + selectedAgent + "/");
+        $("#id_customer").empty();
+        $.get(jsonUrl,
+        function(data){
+            $("#id_customer").append('<option value="">' + '--------' + '</option>'); 
+            for(var i=0 ; i<data.length ; i++)
+            {
+                var id = data[i]['pk'];
+                var name = data[i].fields['nick']; 
+                $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
+            } 
+        });
+    }
+    
+    </script>
+
+{% endblock %}

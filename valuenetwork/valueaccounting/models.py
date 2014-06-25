@@ -135,6 +135,7 @@ PAGE_CHOICES = (
     ('labnotes', _('Labnotes Form')),
     ('associations', _('Maintain Associations')),
     ('my_work', _('My Work')),
+    ('non_production', _('Non-production time logging')),
     ('projects', _('Organization')),
     ("plan_from_recipe", _('Plan from recipe')),
     ("plan_from_rt", _('Plan from Resource Type')),

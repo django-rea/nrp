@@ -115,7 +115,7 @@
                     <hr />                
                     <div class="select-buttons">
                             <p>
-                                <input type="submit" name="create-order" value="{% trans 'Create plan from recipe' %}" class="btn btn-primary" />
+                                <input type="submit" name="create-order" id="createOrder" value="{% trans 'Create plan from recipe' %}" disabled="true" class="btn btn-primary" />
                             </p>
                     </div>
                </div>
@@ -171,6 +171,7 @@
         */
         $("[type=radio]").click(function() {
             var cls = $(this).attr('class'); 
+            $("#createOrder").removeAttr("disabled");  
             if (cls == "workflow")
             {
                 $("#date-choice").show();

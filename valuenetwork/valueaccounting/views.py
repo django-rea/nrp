@@ -46,18 +46,18 @@ def get_help(page_name):
 
 def home(request):
     layout = None
-    work_to_do = None
-    stuff = None
-    value_creations = None
     try:
         layout = HomePageLayout.objects.get(id=1)
     except HomePageLayout.DoesNotExist:
         pass
+    template_params = {
+        "layout": layout,
+        "photo_size": (128, 128),
+        "help": get_help("home"),
+    }
     if layout:
         if layout.use_work_panel:
-            work_to_do = Commitment.objects.unfinished().filter(
-                    from_agent=None, 
-                    event_type__relationship="work")
+            template_params = work_to_do(template_params)
         if layout.use_needs_panel:
             #todo: reqs needs a lot of work
             reqs = Commitment.objects.to_buy()
@@ -66,6 +66,7 @@ def home(request):
                 if req.resource_type not in stuff:
                     stuff[req.resource_type] = Decimal("0")
                 stuff[req.resource_type] += req.purchase_quantity
+            template_params["stuff_to_buy"] = stuff
         if layout.use_creations_panel:
             vcs = Commitment.objects.filter(event_type__relationship="out")
             value_creations = []
@@ -75,14 +76,16 @@ def home(request):
                     if vc.resource_type not in rts:
                         rts.append(vc.resource_type)
                         value_creations.append(vc)
-    return render_to_response("homepage.html", {
-        "layout": layout,
-        "work_to_do": work_to_do,
-        "stuff_to_buy": stuff,
-        "value_creations": value_creations,
-        "photo_size": (128, 128),
-        "help": get_help("home"),
-    }, context_instance=RequestContext(request))
+            template_params["value_creations"] = value_creations
+    return render_to_response("homepage.html",
+        template_params,
+        context_instance=RequestContext(request))
+    
+def work_to_do(template_params):
+    template_params["work_to_do"] = Commitment.objects.unfinished().filter(
+        from_agent=None, 
+        event_type__relationship="work")
+    return template_params
 
 @login_required
 def create_agent(request):
@@ -949,6 +952,7 @@ def unscheduled_time_contributions(request):
     return render_to_response("valueaccounting/unscheduled_time_contributions.html", {
         "member": member,
         "time_formset": time_formset,
+        "help": get_help("non_production"),
     }, context_instance=RequestContext(request))
 
 @login_required

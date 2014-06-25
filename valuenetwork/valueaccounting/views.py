@@ -952,6 +952,7 @@ def unscheduled_time_contributions(request):
     return render_to_response("valueaccounting/unscheduled_time_contributions.html", {
         "member": member,
         "time_formset": time_formset,
+        "help": get_help("non_production"),
     }, context_instance=RequestContext(request))
 
 @login_required

@@ -361,9 +361,6 @@ class EconomicAgent(models.Model):
     url = models.CharField(_('url'), max_length=255, blank=True)
     agent_type = models.ForeignKey(AgentType,
         verbose_name=_('agent type'), related_name='agents')
-    #agent_type_old = models.ForeignKey(AgentType,
-    #    blank=True, null=True, default=1,
-    #    verbose_name=_('agent type old'), related_name='agents_old')
     description = models.TextField(_('description'), blank=True, null=True)
     address = models.CharField(_('address'), max_length=255, blank=True)
     email = models.EmailField(_('email address'), max_length=96, blank=True, null=True)
@@ -679,6 +676,16 @@ class EconomicAgent(models.Model):
         sup_ids = [sup.id for sup in sups]
         return EconomicAgent.objects.filter(pk__in=sup_ids)
         
+    def all_customers(self):
+        #import pdb; pdb.set_trace()
+        custs = list(self.customers())
+        parent = self.parent()
+        while parent:
+            custs.extend(parent.customers())
+            parent = parent.parent()
+        cust_ids = [cust.id for cust in custs]
+        return EconomicAgent.objects.filter(pk__in=cust_ids)
+                
     def all_members(self): 
         mems = list(self.members())
         parent = self.parent()
@@ -812,6 +819,7 @@ DIRECTION_CHOICES = (
     ('expense', _('expense')),
     ('cash', _('cash contribution')),
     ('resource', _('resource contribution')),
+    ('receivecash', _('cash receipt')),
 )
 
 RELATED_CHOICES = (
@@ -1887,6 +1895,8 @@ def create_use_cases(app, **kwargs):
     UseCase.create('res_contr', _('Material Contribution'))
     UseCase.create('purch_contr', _('Purchase Contribution'))
     UseCase.create('exp_contr', _('Expense Contribution'), True)
+    UseCase.create('sale', _('Sale'))
+    UseCase.create('distribution', _('Distribution'), True)
     print "created use cases"
 
 post_migrate.connect(create_use_cases)
@@ -1915,6 +1925,8 @@ def create_event_types(app, **kwargs):
     EventType.create('Create Changeable', _('creates changeable'), 'changeable created', 'out', 'process', '+~', 'quantity')  
     EventType.create('To Be Changed', _('to be changed'), '', 'in', 'process', '>~', 'quantity')  
     EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
+    EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
+    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '-', 'value')  
 
     print "created event types"
 
@@ -1983,6 +1995,9 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('exp_contr', 'Time Contribution')
     UseCaseEventType.create('exp_contr', 'Expense')
     UseCaseEventType.create('exp_contr', 'Payment')
+    UseCaseEventType.create('sale', 'Shipment')
+    UseCaseEventType.create('sale', 'Cash Receipt')
+    UseCaseEventType.create('distribution', 'Distribution')
 
     print "created use case event type associations"
 
@@ -2009,6 +2024,12 @@ ORDER_TYPE_CHOICES = (
     ('holder', _('Placeholder order')),
 )
 
+
+class OrderManager(models.Manager):
+    
+    def customer_orders(self):
+        return Order.objects.filter(order_type="customer")
+        
 #todo: Order is used for both of the above types.
 #maybe shd be renamed?
 class Order(models.Model):
@@ -2032,6 +2053,8 @@ class Order(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
+    objects = OrderManager()
+    
     class Meta:
         ordering = ('due_date',)
 
@@ -3706,7 +3729,15 @@ class Process(models.Model):
 class ExchangeManager(models.Manager):
 
     def financial_contributions(self):
-        return Exchange.objects.exclude(use_case__identifier="res_contr")
+        return Exchange.objects.filter(
+            Q(use_case__identifier="cash_contr")|
+            Q(use_case__identifier="purch_contr")|
+            Q(use_case__identifier="exp_contr"))
+        
+    def sales_and_distributions(self):
+        return Exchange.objects.filter(
+            Q(use_case__identifier="sale")|
+            Q(use_case__identifier="distribution"))
 
 class Exchange(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
@@ -3716,18 +3747,21 @@ class Exchange(models.Model):
     use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
         verbose_name=_('use case'), related_name='exchanges')
-    #project = models.ForeignKey(Project,
-    #    blank=True, null=True,
-    #    verbose_name=_('project'), related_name='exchanges')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         verbose_name=_('context agent'), related_name='exchanges')
-    url = models.CharField(_('url'), max_length=255, blank=True)
+    url = models.CharField(_('url'), max_length=255, blank=True, null=True)
     start_date = models.DateField(_('start date'))
     notes = models.TextField(_('notes'), blank=True)
     supplier = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        related_name="exchange", verbose_name=_('supplier'))
+        related_name="exchanges_as_supplier", verbose_name=_('supplier'))
+    customer = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="exchanges_as_customer", verbose_name=_('customer'))
+    order = models.ForeignKey(Order,
+        blank=True, null=True,
+        related_name="cash_receipts", verbose_name=_('order'))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='exchanges_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

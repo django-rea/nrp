@@ -6,6 +6,11 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<style>
+.btn {
+    margin-bottom: 1px;
+}
+</style>
 {% endblock %}
 
 {% block body_class %}demand{% endblock %}
@@ -20,7 +25,8 @@
 					<a class="btn btn-primary" href="{% url create_order %}">{% trans "Create Customer Order" %}</a>
 					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Work" %}</a>
 					<a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan Work Using Recipe" %}</a>
-				</p>
+					<a class="btn btn-info" href="{% url create_sale %}">{% trans "Customer Cash Receipt" %}</a>
+                </p>
 			{% endif %}
 			{% if orders %}
 		        <h3 style="margin-bottom: 4px;" >{% trans "Open Customer Orders" %}:</h3>

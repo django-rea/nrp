@@ -2170,5 +2170,41 @@ class ExchangeForm(forms.ModelForm):
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
         if context_agent:
             self.fields["supplier"].queryset = context_agent.all_suppliers()
-
-
+            
+class SaleForm(forms.ModelForm):
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.none(), 
+        label=_("Pattern"),
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 'pattern-selector'}))
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Project"),
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    start_date = forms.DateField(required=True, 
+        label=_("Date"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    customer = forms.ModelChoiceField(required=False,
+        queryset=EconomicAgent.objects.none(),
+        label="Customer",
+        widget=forms.Select(attrs={'class': 'chzn-select'})) 
+    order = forms.ModelChoiceField(
+        queryset=Order.objects.customer_orders(), 
+        label=_("Order"), 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    notes = forms.CharField(required=False, 
+        label=_("Comments"),
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    
+    class Meta:
+        model = Exchange
+        fields = ('process_pattern', 'context_agent', 'customer', 'order', 'start_date', 'notes')
+        
+    def __init__(self, context_agent, *args, **kwargs):
+        super(SaleForm, self).__init__(*args, **kwargs)
+        use_case = UseCase.objects.get(identifier="sale")
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
+        if context_agent:
+            self.fields["customer"].queryset = context_agent.all_customers()

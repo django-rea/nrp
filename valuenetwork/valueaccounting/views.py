@@ -2133,7 +2133,44 @@ def json_context_agent_suppliers(request, agent_id):
     agent = EconomicAgent.objects.get(id=agent_id)
     json = serializers.serialize("json", agent.all_suppliers(), fields=('pk', 'nick'))
     return HttpResponse(json, mimetype='application/json')
-
+    
+def json_context_agent_customers(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = EconomicAgent.objects.get(id=agent_id)
+    json = serializers.serialize("json", agent.all_customers(), fields=('pk', 'nick'))
+    return HttpResponse(json, mimetype='application/json')
+    
+def json_order_customer(request, order_id, agent_id):
+    #import pdb; pdb.set_trace()
+    if order_id == '0':
+        agent = EconomicAgent.objects.get(id=agent_id)
+        json = serializers.serialize("json", agent.all_customers(), fields=('pk', 'nick'))
+    else:
+        order = Order.objects.get(id=order_id)
+        provider = order.provider
+        customers = []
+        customers.append(provider)
+        json = serializers.serialize("json", customers, fields=('pk', 'nick'))
+    return HttpResponse(json, mimetype='application/json')       
+    
+def json_customer_orders(request, customer_id):
+    #import pdb; pdb.set_trace()
+    if customer_id == '0':
+        os = Order.objects.customer_orders()
+    else:
+        customer = EconomicAgent.objects.get(id=customer_id)
+        os = customer.sales_orders.all()
+    orders = []
+    for order in os:
+        fields = {
+            "pk": order.pk,
+            "name": unicode(order)
+        }
+        orders.append({"fields": fields})
+    data = simplejson.dumps(orders, ensure_ascii=False)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+   
+        
 def explore(request):
     return render_to_response("valueaccounting/explore.html", {
     }, context_instance=RequestContext(request))
@@ -8009,7 +8046,34 @@ def create_exchange(request, use_case_identifier):
         "context_types": context_types,
         "help": get_help("create_exchange"),
     }, context_instance=RequestContext(request))
-
+    
+@login_required
+def create_sale(request):
+    #import pdb; pdb.set_trace()
+    context_agent = None
+    context_types = AgentType.objects.context_types_string()
+    context_agents = EconomicAgent.objects.context_agents() or None
+    if context_agents:
+        context_agent = context_agents[0]
+    exchange_form = SaleForm(context_agent)
+    if request.method == "POST":
+        ca_id = request.POST.get("context_agent")
+        context_agent = EconomicAgent.objects.get(id=ca_id)
+        exchange_form = SaleForm(context_agent, data=request.POST)
+        if exchange_form.is_valid():
+            exchange = exchange_form.save(commit=False)
+            exchange.use_case = UseCase.objects.get(identifier="sale")
+            exchange.created_by = request.user
+            exchange.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/exchange', exchange.id))
+    return render_to_response("valueaccounting/create_sale.html", {
+        "exchange_form": exchange_form,
+        "context_agent": context_agent,
+        "context_types": context_types,
+        "help": get_help("create_sale"),
+    }, context_instance=RequestContext(request))
+                    
 '''
 #todo: this is not tested, is for exchange 
 @login_required

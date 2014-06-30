@@ -13,8 +13,8 @@
 <ul>
     {% for item in work_to_do %}
         <li>
-            <b>{{ item.resource_type.name }}:</b> {% trans "due" %} {{ item.due_date }}</br>
-            <i>for process {{ item.process.name_with_order }}</i>
+            {% trans "Type of work" %}: <b>{{ item.resource_type.name }}:</b> {% trans "due" %} {{ item.due_date }}</br>
+            <i>{% trans "Purpose: to " %} {{ item.process.independent_demand.name }}</i>
             <p style="margin-left: 1em; margin-bottom: 0; font-size: 90%;">
                 <a href="{% url unfold_commitment commitment_id=item.id %}">Learn more...</a>
             </p>

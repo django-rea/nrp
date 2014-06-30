@@ -3124,7 +3124,7 @@ class Process(models.Model):
         if order:
             order_name = order.name
             if order_name:
-                order_name = " ".join(["for", order_name])
+                order_name = " ".join(["to", order_name])
         return " ".join([
             self.name,
             order_name,

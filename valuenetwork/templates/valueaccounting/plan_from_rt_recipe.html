@@ -13,6 +13,10 @@
 
 <style>
 
+#resources {
+    margin-left: 6em;
+    margin-bottom: 2em;
+}
 
 </style>
 {% endblock %}
@@ -27,7 +31,25 @@
 		<form class="form-horizontal" id="processForm" method="POST" action=".">
 	        {% csrf_token %}
             {{ date_name_form|as_bootstrap }}
-            <input type="submit" name="create-process" value="{% trans 'Create plan' %}" class="btn btn-primary" />
+            
+            {% if resource_required %}
+                <div id="resources" class = "resources" >
+                    <p>This recipe needs a starting resource</p>
+                    {% for resource in resource_type.onhand %}
+                        <p>
+                            <input type="radio" id="resource-{{ resource.id }}" name="resource" value="{{ resource.id }}" />
+                            {{ resource.identifier }}
+                        </p>
+                    {% empty %}
+                        <p>Sorry, no starting resources exist.</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% if resource_required %}
+                <input type="submit" id="submit" name="create-process" disabled="true" value="{% trans 'Create plan' %}" class="btn btn-primary" />
+            {% else %}
+                <input type="submit" id="submit" name="create-process" value="{% trans 'Create plan' %}" class="btn btn-primary" />
+            {% endif %}
 		</form>
       </div>
     </div>
@@ -57,18 +79,13 @@
         //$(".chzn-select").chosen();
 
         $( "#id_due_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+        $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+        $( "#id_date" ).datepicker({ dateFormat: "yy-mm-dd" });
 
-		$( "#date_name_form" ).validate({
-			rules: {
-				due_date: {
-					required: true,
-					date: true
-				}
-			},
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			},
-		});
+        $("[type=radio]").click(function() {
+            $("#submit").removeAttr("disabled");
+        });
+		
 
 	}); // end document.ready
 

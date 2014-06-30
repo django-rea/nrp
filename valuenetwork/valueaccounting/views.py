@@ -6092,7 +6092,7 @@ def change_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     commitment = event.commitment
     process = event.process
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     if request.method == "POST":
         form = WorkEventChangeForm(instance=event, data=request.POST)
         if form.is_valid():
@@ -7718,56 +7718,88 @@ def plan_from_rt(request, resource_type_id):
 def plan_from_rt_recipe(request, resource_type_id):
     #import pdb; pdb.set_trace()
     resource_type = EconomicResourceType.objects.get(id=resource_type_id)
-    init = {"due_date": datetime.date.today(), "order_name": resource_type.name}
-    date_name_form = DueDateAndNameForm(initial=init, data=request.POST or None)
+    resource_required = False
+    recipe_type = "assembly"
+    if resource_type.recipe_is_staged():
+        recipe_type = "workflow"
+        if resource_type.recipe_needs_starting_resource():
+            recipe_type = "resource_driven"
+    if recipe_type == "workflow":
+        init = {"date": datetime.date.today(), "order_name": resource_type.name}
+        date_name_form = OrderDateAndNameForm(initial=init, data=request.POST or None)
+    elif recipe_type == "resource_driven":
+        init = {"start_date": datetime.date.today(), "order_name": resource_type.name}
+        date_name_form = StartDateAndNameForm(initial=init, data=request.POST or None)
+        resource_required = True
+    else:
+        init = {"due_date": datetime.date.today(), "order_name": resource_type.name}
+        date_name_form = DueDateAndNameForm(initial=init, data=request.POST or None)
     if request.method == "POST":
         if date_name_form.is_valid():
-            due_date = date_name_form.cleaned_data["due_date"]
+            schedule = True
             order_name = date_name_form.cleaned_data["order_name"]
-
-            demand = Order(
-                order_type="rand",
-                order_date=datetime.date.today(),
-                due_date=due_date,
-                name=order_name,
-                created_by=request.user)
-            demand.save()
-            #todo: add stage and state as args
-            pt = resource_type.main_producing_process_type()
-            ptrt = ProcessTypeResourceType.objects.get(process_type=pt, resource_type=resource_type)
-            et = ptrt.event_type
-            if et:
-                commitment = demand.add_commitment(
-                    resource_type=resource_type,
-                    quantity=Decimal("1"),
-                    event_type=et,
-                    unit=resource_type.unit,
-                    stage=ptrt.stage,
-                    state=ptrt.stage,)
-                commitment.created_by=request.user
-                commitment.save()
-                process = commitment.generate_producing_process(request.user, [], explode=True)
-                if notification:
-                    #import pdb; pdb.set_trace()
-                    agent = get_agent(request)
-                    work_cts = Commitment.objects.filter(
-                        independent_demand=demand, 
-                        event_type__relationship="work")
-                    for ct in work_cts:                           
-                        users = ct.possible_source_users()
-                        if users:
-                            notification.send(
-                                users, 
-                                "valnet_new_task", 
-                                {"resource_type": ct.resource_type,
-                                "due_date": ct.due_date,
-                                "hours": ct.quantity,
-                                "unit": ct.resource_type.unit,
-                                "description": ct.description or "",
-                                "process": ct.process,
-                                "creator": agent,
-                                }
-                            )
+            if recipe_type == "workflow":
+                order_date = date_name_form.cleaned_data["date"]
+                start_or_due = date_name_form.cleaned_data["start_date_or_due_date"]
+                if start_or_due == "start":
+                    demand = resource_type.generate_staged_work_order(order_name, order_date, request.user)
+                    schedule = False
+                else:
+                    due_date = order_date
+            elif recipe_type == "resource_driven":
+                start_date = date_name_form.cleaned_data["start_date"]
+                #import pdb; pdb.set_trace()
+                rid = request.POST.get("resource")
+                if rid:
+                    resource_id = int(rid)
+                    resource = EconomicResource.objects.get(id=resource_id)
+                    demand = resource_type.generate_staged_work_order_from_resource(resource, order_name, start_date, request.user)
+                schedule = False
+            else:
+                due_date = date_name_form.cleaned_data["due_date"]
+            #import pdb; pdb.set_trace()
+            if schedule:
+                demand = Order(
+                    order_type="rand",
+                    order_date=datetime.date.today(),
+                    due_date=due_date,
+                    name=order_name,
+                    created_by=request.user)
+                demand.save()
+                ptrt = resource_type.main_producing_process_type_relationship()
+                et = ptrt.event_type
+                if et:
+                    commitment = demand.add_commitment(
+                        resource_type=resource_type,
+                        quantity=Decimal("1"),
+                        event_type=et,
+                        unit=resource_type.unit,
+                        stage=ptrt.stage,
+                        state=ptrt.state,)
+                    commitment.created_by=request.user
+                    commitment.save()
+                    process = commitment.generate_producing_process(request.user, [], explode=True)
+            if notification:
+                #import pdb; pdb.set_trace()
+                agent = get_agent(request)
+                work_cts = Commitment.objects.filter(
+                    independent_demand=demand, 
+                    event_type__relationship="work")
+                for ct in work_cts:                           
+                    users = ct.possible_source_users()
+                    if users:
+                        notification.send(
+                            users, 
+                            "valnet_new_task", 
+                            {"resource_type": ct.resource_type,
+                            "due_date": ct.due_date,
+                            "hours": ct.quantity,
+                            "unit": ct.resource_type.unit,
+                            "description": ct.description or "",
+                            "process": ct.process,
+                            "creator": agent,
+                            }
+                        )
  
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/order-schedule', demand.id))                 
@@ -7775,6 +7807,8 @@ def plan_from_rt_recipe(request, resource_type_id):
     return render_to_response("valueaccounting/plan_from_rt_recipe.html", {
         "date_name_form": date_name_form,
         "resource_type": resource_type,
+        "resource_required": resource_required,
+        "recipe_type": recipe_type,
         "help": get_help("plan_fr_rt_rcpe"),
     }, context_instance=RequestContext(request))
 

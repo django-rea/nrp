@@ -577,6 +577,16 @@ class EconomicAgent(models.Model):
             parent = associations[0].has_associate
         return parent
         
+    def all_ancestors(self):
+        parent_ids = []
+        parent_ids.append(self.id)
+        parent = self.parent()
+        while parent:
+            parent_ids.append(parent.id)
+            parent = parent.parent()
+        parents = EconomicAgent.objects.filter(pk__in=parent_ids)
+        return parents
+        
     def children(self): #returns a list or None
         associations = self.has_associates.filter(association_type__identifier="child").filter(state="active")
         children = None
@@ -821,6 +831,7 @@ DIRECTION_CHOICES = (
     ('cash', _('cash contribution')),
     ('resource', _('resource contribution')),
     ('receivecash', _('cash receipt')),
+    ('shipment', _('shipment')),
 )
 
 RELATED_CHOICES = (
@@ -1693,10 +1704,27 @@ class ProcessPattern(models.Model):
 
     def cash_contr_resource_types(self):
         return self.resource_types_for_relationship("cash")
-
+    
+    def shipment_resource_types(self):
+        return self.resource_types_for_relationship("shipment")
+        
+    def shipment_resources(self):
+        #import pdb; pdb.set_trace()
+        rts = self.shipment_resource_types()
+        resources = []
+        for rt in rts:
+            rt_resources = rt.onhand()
+            for res in rt_resources:
+                resources.append(res)
+        resource_ids = [res.id for res in resources]
+        return EconomicResource.objects.filter(id__in=resource_ids)
+                
     def material_contr_resource_types(self):
         return self.resource_types_for_relationship("resource")
-
+        
+    def cash_receipt_resource_types(self):
+        return self.resource_types_for_relationship("receivecash")
+            
     def facets_for_event_type(self, event_type):
         return self.facets.filter(event_type=event_type)
 
@@ -1918,7 +1946,7 @@ def create_event_types(app, **kwargs):
     EventType.create('Work Provision', _('provides'), _('provided by'), 'out', 'agent', '+', 'time') 
     EventType.create('Receipt', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity') 
     EventType.create('Sale', _('sells'), _('sold by'), 'out', 'agent', '=', '') 
-    EventType.create('Shipment', _('ships'), _('shipped by'), 'out', 'agent', '-', 'quantity') 
+    EventType.create('Shipment', _('ships'), _('shipped by'), 'shipment', 'exchange', '-', 'quantity') 
     EventType.create('Supply', _('supplies'), _('supplied by'), 'out', 'agent', '=', '') 
     EventType.create('Todo', _('todo'), '', 'todo', 'agent', '=', '')
     EventType.create('Resource use', _('uses'), _('used by'), 'use', 'process', '=', 'time') 
@@ -1998,7 +2026,9 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('exp_contr', 'Payment')
     UseCaseEventType.create('sale', 'Shipment')
     UseCaseEventType.create('sale', 'Cash Receipt')
+    UseCaseEventType.create('sale', 'Time Contribution')
     UseCaseEventType.create('distribution', 'Distribution')
+    UseCaseEventType.create('distribution', 'Time Contribution')
 
     print "created use case event type associations"
 
@@ -3851,6 +3881,14 @@ class Exchange(models.Model):
     def cash_contribution_events(self):
         return self.events.filter(
             event_type__relationship='cash')
+    
+    def cash_receipt_events(self):
+        return self.events.filter(
+            event_type__relationship='receivecash')
+            
+    def shipment_events(self):
+        return self.events.filter(
+            event_type__relationship='shipment')
 
     def sorted_events(self):
         events = self.events.all().order_by("event_type__name")
@@ -4632,10 +4670,6 @@ class EconomicEvent(models.Model):
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
-    #project = models.ForeignKey(Project,
-    #    blank=True, null=True,
-    #    verbose_name=_('project'), related_name='events',
-    #    on_delete=models.SET_NULL)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         related_name="events", verbose_name=_('context agent'),

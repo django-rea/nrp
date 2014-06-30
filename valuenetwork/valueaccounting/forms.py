@@ -1272,6 +1272,123 @@ class PaymentEventForm(forms.ModelForm):
             self.fields["to_agent"].queryset = context_agent.all_suppliers()
             self.fields["from_agent"].queryset = context_agent.all_members()
 
+class CashReceiptForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    to_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Payment received by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Payment made by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(
+        label="Receipt amount",
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        label="Unit of receipt",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'to_agent', 'quantity', 'resource_type', 'description')
+
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
+        super(CashReceiptForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.cash_receipt_resource_types()
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["to_agent"].queryset = context_agent.all_ancestors()
+            self.fields["from_agent"].queryset = context_agent.all_customers()
+
+class CashReceiptForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    to_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Payment received by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(
+        label="Receipt amount",
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        label="Unit of receipt",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'description')
+
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
+        super(CashReceiptForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.cash_receipt_resource_types()
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["to_agent"].queryset = context_agent.all_ancestors()
+
+class ShipmentForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Project",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(
+        label="Quantity shipped",
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Resource shipped",
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
+    value = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'quantity', 'resource', 'value', 'unit_of_value', 'description')
+
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
+        super(ShipmentForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource"].queryset = pattern.shipment_resources()
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["from_agent"].queryset = context_agent.all_ancestors()
+
 class ExpenseEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     resource_type = forms.ModelChoiceField(
@@ -2190,17 +2307,13 @@ class SaleForm(forms.ModelForm):
         queryset=EconomicAgent.objects.none(),
         label="Customer",
         widget=forms.Select(attrs={'class': 'chzn-select'})) 
-    order = forms.ModelChoiceField(
-        queryset=Order.objects.customer_orders(), 
-        label=_("Order"), 
-        widget=forms.Select(attrs={'class': 'chzn-select'}))
     notes = forms.CharField(required=False, 
         label=_("Comments"),
         widget=forms.Textarea(attrs={'class': 'item-description',}))
     
     class Meta:
         model = Exchange
-        fields = ('process_pattern', 'context_agent', 'customer', 'order', 'start_date', 'notes')
+        fields = ('process_pattern', 'context_agent', 'customer', 'start_date', 'notes')
         
     def __init__(self, context_agent, *args, **kwargs):
         super(SaleForm, self).__init__(*args, **kwargs)
@@ -2208,3 +2321,4 @@ class SaleForm(forms.ModelForm):
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
         if context_agent:
             self.fields["customer"].queryset = context_agent.all_customers()
+

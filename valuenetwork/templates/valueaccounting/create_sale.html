@@ -12,15 +12,6 @@
 
 <style>
 
-#id_notes
-{
-  width: 32em;
-}
-
-#id_url
-{
-  width: 32em;
-}
 
 .item-description
 {
@@ -108,7 +99,7 @@
 
 		$("#id_context_agent").change(getCustomers);
 		$("#id_customer").change(getOrders);
-		$("#id_order").change(getCustomer);
+		//$("#id_order").change(getCustomer);
         
 
 	}); // end document.ready
@@ -117,19 +108,27 @@
     {
         var selectedAgent = document.getElementById('id_context_agent').value;
         var jsonUrl = encodeURI("/accounting/json-context-agent-customers/" + selectedAgent + "/");
+        var selectedCustomer = document.getElementById('id_customer').value;
+        //var selectedOrder = document.getElementById('id_order').value;
         $("#id_customer").empty();
         $.get(jsonUrl,
         function(data){
             $("#id_customer").append('<option value="">' + '--------' + '</option>'); 
+            //var hasSameCustomer = false;
             for(var i=0 ; i<data.length ; i++)
             {
                 var id = data[i]['pk'];
                 var name = data[i].fields['nick']; 
-                $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
+                if (selectedCustomer == id) {
+                    $("#id_customer").append('<option value="' + id + '" selected>' + name + '</option>');
+                    //hasSameCustomer = true;
+                } else {
+                    $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
+                }
             }
         });
     }
-    
+/*    
     function getOrders()
     {
         var selectedCustomer = document.getElementById('id_customer').value;
@@ -154,6 +153,7 @@
     function getCustomer()
     {
         var selectedOrder = document.getElementById('id_order').value;
+        //alert(selectedOrder); --the above is not working under some conditions.....?????
         if (selectedOrder == '')
         {
             selectedOrder = '0'
@@ -168,11 +168,15 @@
             {
                 var id = data[i]['pk'];
                 var name = data[i].fields['nick']; 
-                $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
+                if (selectedOrder == '0') {
+                    $("#id_customer").append('<option value="' + id + '">' + name + '</option>');
+                } else {
+                    $("#id_customer").append('<option value="' + id + '" selected>' + name + '</option>');
+                }
             } 
         });
     }
-    
+ */   
     </script>
 
 {% endblock %}

@@ -151,9 +151,13 @@ container li {
 	            {% for pt in resource_type.wanting_process_types %}
 	                {% with pt.main_produced_resource_type as output %}
 	                    {% if output %}
-	                        <li>
-                                <a href="{% url extended_bill resource_type_id=output.id %}">{{ pt }}</a>
-	                        </li>
+                            <li>
+                                {% if output.recipe_is_staged %}
+                                    <a href="{% url view_stream_recipe resource_type_id=output.id %}">{{ pt }}</a>
+                                {% else %}
+                                    <a href="{% url extended_bill resource_type_id=output.id %}">{{ pt }}</a>
+                                {% endif %}
+                            </li>
 	                    {% endif %}
 	                {% endwith %}
 	            {% endfor %}

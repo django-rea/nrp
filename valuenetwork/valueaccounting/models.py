@@ -3588,13 +3588,18 @@ class Process(models.Model):
         visited_id = output.cycle_id()
         if visited_id not in visited:
             visited.append(visited_id)
-        for ptrt in pt.all_input_resource_type_relationships():   
+        for ptrt in pt.all_input_resource_type_relationships():
+            #import pdb; pdb.set_trace()
+            if output.stage:
+                qty = ptrt.quantity
+            else:
+                qty = output.quantity * ptrt.quantity
             commitment = self.add_commitment(
                 resource_type=ptrt.resource_type,
                 demand=demand,
                 stage=ptrt.stage,
                 state=ptrt.state,
-                quantity=output.quantity * ptrt.quantity,
+                quantity=qty,
                 event_type=ptrt.event_type,
                 unit=ptrt.resource_type.unit,
                 user=user,
@@ -3610,7 +3615,7 @@ class Process(models.Model):
                     #shd pt create process?
                     #shd pptr create next_commitment, and then 
                     #shd next_commitment.generate_producing_process?
-                    
+                    #import pdb; pdb.set_trace()
                     pptr = ptrt.resource_type.main_producing_process_type_relationship(
                         stage=commitment.stage,
                         state=commitment.state)
@@ -3629,12 +3634,17 @@ class Process(models.Model):
                         )
                         next_process.save()
                         #this is the output commitment
+                        #import pdb; pdb.set_trace()
+                        if output.stage:
+                            qty = pptr.quantity
+                        else:
+                            qty = qty_to_explode * pptr.quantity
                         next_commitment = next_process.add_commitment(
                             resource_type=pptr.resource_type,
                             stage=pptr.stage,
                             state=pptr.state,
                             demand=demand,
-                            quantity=qty_to_explode * pptr.quantity,
+                            quantity=qty,
                             event_type=pptr.event_type,
                             unit=pptr.resource_type.unit,
                             user=user,

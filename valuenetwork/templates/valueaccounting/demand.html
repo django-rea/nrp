@@ -10,6 +10,11 @@
 .btn {
     margin-bottom: 1px;
 }
+.report {
+    margin-left: 2em;
+    font-size: 1.6em;
+    margin-bottom: 0;
+}
 </style>
 {% endblock %}
 
@@ -26,6 +31,7 @@
 					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Work" %}</a>
 					<a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan Work Using Recipe" %}</a>
 					<a class="btn btn-info" href="{% url create_sale %}">{% trans "Sale Without Order" %}</a>
+					<a class="report" href="{% url sales_and_distributions %}">{% trans "Sales and Distributions" %}</a>
                 </p>
 			{% endif %}
 			{% if orders %}

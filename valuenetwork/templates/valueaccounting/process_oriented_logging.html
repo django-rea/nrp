@@ -131,7 +131,13 @@ li {
             {% endif %}
 		{% endif %}
 	</legend>
-
+    
+    {% if not agent %}
+        <p class="notes">
+            If you were logged in and working on this process, you would log your work on this page.
+        </p>
+    {% endif %}
+	
 	<div class="row-fluid">
 
 		<div class="span8">
@@ -153,15 +159,17 @@ li {
 		    {% for item in process.outgoing_commitments %}
 			    <div>
 				    <b>{% trans "Scheduled" %}:</b> 
+				    
+                    <span class="output-requirement" >
+                        <b>{{ item.resource_type.name }}
+                        {% if item.stage %}
+                            @{{ item.stage.name }}
+                        {% endif %}</b>
+                            {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
+                    </span>
+                    
 				    {% if add_output_form %}
 				    
-                        <span class="output-requirement" >
-                            <b>{{ item.resource_type.name }}
-                            {% if item.stage %}
-                                @{{ item.stage.name }}
-                            {% endif %}</b>
-                             {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
-                        </span>
                         {% if logger %}
 
                             <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change output requirement">

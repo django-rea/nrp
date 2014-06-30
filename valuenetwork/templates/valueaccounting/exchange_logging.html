@@ -442,7 +442,8 @@ li {
                 {% for event in shipment_events %}
                     <div>
                         <span class="event" ><span class="event-label">{% trans "Shipped" %}: </span> 
-                        <b>{{ event.quantity }} {{ event.unit_of_quantity }}  {{ event.resource }}</b> from {{ event.from_agent.nick }} to <b>{{ event.to_agent.nick }}</b> {{ event.event_date }}</span>
+                        <b>{{ event.quantity }} {{ event.unit_of_quantity }}  {{ event.resource }}</b> from {{ event.from_agent.nick }} 
+                        to {{ event.to_agent.nick }} price <b> {{ event.value }} {{ event.unit_of_value }}</b> {{ event.event_date }} </span>
                         {% if agent == event.from_agent or logger  %}
                             
                             <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
@@ -500,7 +501,7 @@ li {
                 {% for event in cash_receipt_events %}
                     <div>
                         <span class="event" ><span class="event-label">{% trans "Received" %}: </span> 
-                        <b>{{ event.quantity }} {{ event.unit_of_quantity }}</b> from {{ event.from_agent.nick }} to <b>{{ event.to_agent.nick }}</b> {{ event.event_date }}</span>
+                        <b>{{ event.quantity }} {{ event.unit_of_quantity }}</b> from {{ event.from_agent.nick }} to {{ event.to_agent.nick }} {{ event.event_date }}</span>
                         {% if agent == event.from_agent or logger  %}
                             
                             <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
@@ -1037,22 +1038,20 @@ li {
         var selectedAgent = document.getElementById('id_context_agent').value;
         var jsonUrl = encodeURI("/accounting/json-context-agent-customers/" + selectedAgent + "/");
         var selectedCustomer = document.getElementById('id_customer').value;
-        //var selectedOrder = document.getElementById('id_order').value;
         $("#id_customer").empty();
         $.get(jsonUrl,
         function(data){
             $("#id_customer").append('<option value="">' + '--------' + '</option>'); 
-            //var hasSameCustomer = false;
             for(var i=0 ; i<data.length ; i++)
             {
                 var id = data[i]['pk'];
                 var name = data[i].fields['nick']; 
                 if (selectedCustomer == id) {
                     $("#id_customer").append('<option value="' + id + '" selected>' + name + '</option>');
-                    //hasSameCustomer = true;
                 } else {
                     $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
                 }
+//alert("added option " + name);
             }
         });
     }

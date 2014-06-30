@@ -6185,25 +6185,6 @@ def change_receipt_event(request, event_id):
         % ('accounting/exchange', exchange.id))
 
 @login_required
-def change_receipt_event(request, event_id):
-    event = get_object_or_404(EconomicEvent, id=event_id)
-    exchange = event.exchange
-    pattern = exchange.process_pattern
-    if pattern:
-        #import pdb; pdb.set_trace()
-        if request.method == "POST":
-            form = UnorderedReceiptForm(
-                pattern=pattern,
-                instance=event, 
-                prefix=str(event.id), 
-                data=request.POST)
-            if form.is_valid():
-                data = form.cleaned_data
-                form.save()
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
-
-@login_required
 def change_cash_receipt_event(request, event_id):
     #import pdb; pdb.set_trace()
     event = get_object_or_404(EconomicEvent, id=event_id)
@@ -6230,7 +6211,7 @@ def change_shipment_event(request, event_id):
     pattern = exchange.process_pattern
     if pattern:
         if request.method == "POST":
-            form = CashReceiptForm(
+            form = ShipmentForm(
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id), 
@@ -8275,11 +8256,11 @@ def create_sale(request):
     context_agents = EconomicAgent.objects.context_agents() or None
     if context_agents:
         context_agent = context_agents[0]
-    exchange_form = SaleForm(context_agent)
+    exchange_form = SaleForm(context_agent=context_agent)
     if request.method == "POST":
         ca_id = request.POST.get("context_agent")
         context_agent = EconomicAgent.objects.get(id=ca_id)
-        exchange_form = SaleForm(context_agent, data=request.POST)
+        exchange_form = SaleForm(context_agent=context_agent, data=request.POST)
         if exchange_form.is_valid():
             exchange = exchange_form.save(commit=False)
             exchange.use_case = UseCase.objects.get(identifier="sale")

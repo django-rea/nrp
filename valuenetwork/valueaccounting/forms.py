@@ -2321,7 +2321,8 @@ class SaleForm(forms.ModelForm):
         model = Exchange
         fields = ('process_pattern', 'context_agent', 'customer', 'start_date', 'notes')
         
-    def __init__(self, context_agent, *args, **kwargs):
+    def __init__(self, context_agent=None, *args, **kwargs):
+        #import pdb; pdb.set_trace()
         super(SaleForm, self).__init__(*args, **kwargs)
         use_case = UseCase.objects.get(identifier="sale")
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 

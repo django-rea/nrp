@@ -109,19 +109,16 @@
         var selectedAgent = document.getElementById('id_context_agent').value;
         var jsonUrl = encodeURI("/accounting/json-context-agent-customers/" + selectedAgent + "/");
         var selectedCustomer = document.getElementById('id_customer').value;
-        //var selectedOrder = document.getElementById('id_order').value;
         $("#id_customer").empty();
         $.get(jsonUrl,
         function(data){
             $("#id_customer").append('<option value="">' + '--------' + '</option>'); 
-            //var hasSameCustomer = false;
             for(var i=0 ; i<data.length ; i++)
             {
                 var id = data[i]['pk'];
                 var name = data[i].fields['nick']; 
                 if (selectedCustomer == id) {
                     $("#id_customer").append('<option value="' + id + '" selected>' + name + '</option>');
-                    //hasSameCustomer = true;
                 } else {
                     $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
                 }

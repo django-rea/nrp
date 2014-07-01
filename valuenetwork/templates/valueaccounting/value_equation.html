@@ -40,7 +40,12 @@ th
     <div class="container">
       {% include "_messages.html" %}
 	  <div>
-		<legend>{% trans "Value Time Contributions for " %} {{ project }}</legend>
+		<legend>{% trans "Value Time Contributions for " %} {{ project }}
+		{% comment %}
+            <a class="btn btn-info" href="{% url create_distribution %}">{% trans "Distribute Income" %}</a>
+            <a class="report" href="{% url sales_and_distributions agent_id=agent_id %}">{% trans "Sales and Distributions" %}</a>
+		{% endcomment %}
+		</legend>
 		<form method="POST" action=".">
 		    {% csrf_token %}
             <p class="temp">This page is a demo/prototype page for working on the value equation and the 

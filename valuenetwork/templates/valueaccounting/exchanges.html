@@ -79,7 +79,7 @@
         </div>
         <div class="span3 filter">
             <div>
-                <a href=" {% url financial_contributions_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
+                <a href=" {% url exchange_events_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
             </div>
             <h3>{% trans "Filter the List" %}</h3>
             <form id="filter-form" action="." method="POST">

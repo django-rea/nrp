@@ -2137,7 +2137,44 @@ def json_context_agent_suppliers(request, agent_id):
     agent = EconomicAgent.objects.get(id=agent_id)
     json = serializers.serialize("json", agent.all_suppliers(), fields=('pk', 'nick'))
     return HttpResponse(json, mimetype='application/json')
-
+    
+def json_context_agent_customers(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = EconomicAgent.objects.get(id=agent_id)
+    json = serializers.serialize("json", agent.all_customers(), fields=('pk', 'nick'))
+    return HttpResponse(json, mimetype='application/json')
+    
+def json_order_customer(request, order_id, agent_id):
+    #import pdb; pdb.set_trace()
+    if order_id == '0':
+        agent = EconomicAgent.objects.get(id=agent_id)
+        json = serializers.serialize("json", agent.all_customers(), fields=('pk', 'nick'))
+    else:
+        customers = []
+        order = Order.objects.get(id=order_id)
+        if order.provider:
+            customers.append(order.provider)
+        json = serializers.serialize("json", customers, fields=('pk', 'nick'))
+    return HttpResponse(json, mimetype='application/json')       
+    
+def json_customer_orders(request, customer_id):
+    #import pdb; pdb.set_trace()
+    if customer_id == '0':
+        os = Order.objects.customer_orders()
+    else:
+        customer = EconomicAgent.objects.get(id=customer_id)
+        os = customer.sales_orders.all()
+    orders = []
+    for order in os:
+        fields = {
+            "pk": order.pk,
+            "name": unicode(order)
+        }
+        orders.append({"fields": fields})
+    data = simplejson.dumps(orders, ensure_ascii=False)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+   
+        
 def explore(request):
     return render_to_response("valueaccounting/explore.html", {
     }, context_instance=RequestContext(request))
@@ -3782,6 +3819,87 @@ def add_cash_contribution(request, exchange_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
+@login_required
+def add_unplanned_payment(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        context_agent = exchange.context_agent
+        form = PaymentEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='pay')
+        if form.is_valid():
+            payment_data = form.cleaned_data
+            qty = payment_data["quantity"] 
+            if qty:
+                event = form.save(commit=False)
+                rt = payment_data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("pay", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.context_agent = exchange.context_agent
+                event.unit_of_quantity = rt.unit
+                event.is_contribution = True
+                event.created_by = request.user
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+@login_required
+def add_cash_receipt(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        context_agent = exchange.context_agent
+        form = CashReceiptForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='cr')
+        if form.is_valid():
+            payment_data = form.cleaned_data
+            qty = payment_data["quantity"] 
+            if qty:
+                event = form.save(commit=False)
+                rt = payment_data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("receivecash", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.context_agent = exchange.context_agent
+                event.unit_of_quantity = rt.unit
+                event.is_contribution = False
+                event.created_by = request.user
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+@login_required
+def add_shipment(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        context_agent = exchange.context_agent
+        form = ShipmentForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='ship')
+        if form.is_valid():
+            data = form.cleaned_data
+            qty = data["quantity"] 
+            if qty:
+                event = form.save(commit=False)
+                resource = data["resource"]
+                rt = resource.resource_type
+                event_type = pattern.event_type_for_resource_type("shipment", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.context_agent = exchange.context_agent
+                event.resource_type = rt
+                event.unit_of_quantity = rt.unit
+                event.to_agent = exchange.customer
+                event.is_contribution = False
+                event.created_by = request.user
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_process_input(request, process_id, slot):
@@ -3941,7 +4059,6 @@ def delete_exchange_commitment(request, commitment_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
-
 @login_required
 def change_event_date(request):
     #import pdb; pdb.set_trace()
@@ -3951,7 +4068,6 @@ def change_event_date(request):
     if form.is_valid():
         data = form.cleaned_data
         event = form.save()
-
     return HttpResponse("Ok", mimetype="text/plain")
 
 @login_required
@@ -3963,7 +4079,6 @@ def change_event_qty(request):
     if form.is_valid():
         data = form.cleaned_data
         event = form.save()
-
     return HttpResponse("Ok", mimetype="text/plain")
 
 @login_required
@@ -4062,9 +4177,14 @@ def delete_exchange(request, exchange_id):
     if request.method == "POST":
         exchange = get_object_or_404(Exchange, pk=exchange_id)
         if exchange.is_deletable:
-            exchange.delete()        
-        return HttpResponseRedirect('/%s/'
-            % ('accounting/exchanges'))
+            exchange.delete()           
+        next = request.POST.get("next")
+        if next == "exchanges":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/exchanges'))
+        if next == "sales_and_distributions":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/sales-and-distributions'))
 
 
 @login_required
@@ -6069,6 +6189,44 @@ def change_receipt_event(request, event_id):
         % ('accounting/exchange', exchange.id))
 
 @login_required
+def change_cash_receipt_event(request, event_id):
+    #import pdb; pdb.set_trace()
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    exchange = event.exchange
+    pattern = exchange.process_pattern
+    if pattern:
+        if request.method == "POST":
+            form = CashReceiptForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id), 
+                data=request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                form.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+@login_required
+def change_shipment_event(request, event_id):
+    #import pdb; pdb.set_trace()
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    exchange = event.exchange
+    pattern = exchange.process_pattern
+    if pattern:
+        if request.method == "POST":
+            form = ShipmentForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id), 
+                data=request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                form.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+@login_required
 def change_expense_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     exchange = event.exchange
@@ -7816,7 +7974,87 @@ def exchanges(request):
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
-def financial_contributions_csv(request):
+def sales_and_distributions(request):
+    #import pdb; pdb.set_trace()
+    end = datetime.date.today()
+    start = datetime.date(end.year, 1, 1)
+    init = {"start_date": start, "end_date": end}
+    dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
+    et_cash_receipt = EventType.objects.get(name="Cash Receipt")
+    et_shipment = EventType.objects.get(name="Shipment")   
+    et_distribution = EventType.objects.get(name="Distribution")   
+    references = AccountingReference.objects.all()
+    event_ids = ""
+    select_all = True
+    selected_values = "all"
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        dt_selection_form = DateSelectionForm(data=request.POST)
+        if dt_selection_form.is_valid():
+            start = dt_selection_form.cleaned_data["start_date"]
+            end = dt_selection_form.cleaned_data["end_date"]
+            exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.sales_and_distributions()            
+        selected_values = request.POST["categories"]
+        if selected_values:
+            sv = selected_values.split(",")
+            vals = []
+            for v in sv:
+                vals.append(v.strip())
+            if vals[0] == "all":
+                select_all = True
+            else:
+                select_all = False
+                events_included = []
+                exchanges_included = []
+                for ex in exchanges:
+                    for event in ex.events.all():
+                        if event.resource_type.accounting_reference:
+                            if event.resource_type.accounting_reference.code in vals:
+                                events_included.append(event)
+                    if events_included != []:   
+                        ex.event_list = events_included
+                        exchanges_included.append(ex)
+                        events_included = []
+                exchanges = exchanges_included
+    else:
+        exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end])
+
+    total_cash_receipts = 0
+    total_shipments = 0
+    total_distributions = 0
+    comma = ""
+    #import pdb; pdb.set_trace()
+    for x in exchanges:
+        try:
+            xx = x.event_list
+        except AttributeError:
+            x.event_list = x.events.all()
+        for event in x.event_list:
+            if event.event_type == et_cash_receipt:
+                total_cash_receipts = total_cash_receipts + event.quantity
+            elif event.event_type == et_shipment:
+                total_shipments = total_shipments + event.value
+            elif event.event_type == et_distribution:
+                total_distributions = total_distributions + event.quantity
+            event_ids = event_ids + comma + str(event.id)
+            comma = ","
+    #import pdb; pdb.set_trace()
+
+    return render_to_response("valueaccounting/sales_and_distributions.html", {
+        "exchanges": exchanges,
+        "dt_selection_form": dt_selection_form,
+        "total_cash_receipts": total_cash_receipts,
+        "total_shipments": total_shipments,
+        "total_distributions": total_distributions,
+        "select_all": select_all,
+        "selected_values": selected_values,
+        "references": references,
+        "event_ids": event_ids,
+    }, context_instance=RequestContext(request))
+    
+def exchange_events_csv(request):
     #import pdb; pdb.set_trace()
     event_ids = request.GET.get("event-ids")
     response = HttpResponse(mimetype='text/csv')
@@ -7860,7 +8098,7 @@ def financial_contributions_csv(request):
             ]
         )
     return response
-    
+
 def exchange_logging(request, exchange_id):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
@@ -7870,6 +8108,7 @@ def exchange_logging(request, exchange_id):
     context_agent = exchange.context_agent
     pattern = exchange.process_pattern
     exchange_form = ExchangeForm(use_case, context_agent, instance=exchange, data=request.POST or None)
+    sale_form = SaleForm(context_agent, instance=exchange, data=request.POST or None)
     add_receipt_form = None
     add_to_resource_form = None
     add_payment_form = None
@@ -7877,6 +8116,8 @@ def exchange_logging(request, exchange_id):
     add_material_form = None
     add_cash_form = None
     add_work_form = None
+    add_cash_receipt_form = None
+    add_shipment_form = None
     create_material_role_formset = None
     create_receipt_role_formset = None
     #add_commit_receipt_form = None
@@ -7893,6 +8134,8 @@ def exchange_logging(request, exchange_id):
     work_events = exchange.work_events()
     cash_events = exchange.cash_contribution_events()
     material_events = exchange.material_contribution_events()
+    cash_receipt_events = exchange.cash_receipt_events()
+    shipment_events = exchange.shipment_events()
 
     if agent and pattern:
         #import pdb; pdb.set_trace()
@@ -7925,6 +8168,18 @@ def exchange_logging(request, exchange_id):
         for event in receipt_events:
             receipt_total = receipt_total + event.value
             event.changeform = UnorderedReceiptForm(
+                pattern=pattern,
+                context_agent=context_agent,
+                instance=event, 
+                prefix=str(event.id))
+        for event in cash_receipt_events:
+            event.changeform = CashReceiptForm(
+                pattern=pattern,
+                context_agent=context_agent,
+                instance=event, 
+                prefix=str(event.id))
+        for event in shipment_events:
+            event.changeform = ShipmentForm(
                 pattern=pattern,
                 context_agent=context_agent,
                 instance=event, 
@@ -7982,17 +8237,40 @@ def exchange_logging(request, exchange_id):
             add_material_form = MaterialContributionEventForm(prefix='material', initial=matl_init, pattern=pattern, context_agent=context_agent)
             #import pdb; pdb.set_trace()
             create_material_role_formset = resource_role_agent_formset(prefix='materialrole')
+        if "receivecash" in slots:
+            #import pdb; pdb.set_trace()
+            cr_init = {
+                "event_date": exchange.start_date,
+                "to_agent": context_agent,
+            }      
+            add_cash_receipt_form = CashReceiptForm(prefix='cr', initial=cr_init, pattern=pattern, context_agent=context_agent)
+        if "shipment" in slots:
+            #import pdb; pdb.set_trace()
+            ship_init = {
+                "event_date": exchange.start_date,
+                "from_agent": context_agent,
+            }      
+            add_shipment_form = ShipmentForm(prefix='ship', initial=cr_init, pattern=pattern, context_agent=context_agent)
+         
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        if exchange_form.is_valid():
-            exchange = exchange_form.save()
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/exchange', exchange.id))
+        if sale_form:
+            if sale_form.is_valid():
+                exchange = sale_form.save()
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/exchange', exchange.id))
+        else:
+            if exchange_form.is_valid():
+                exchange = exchange_form.save()
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/exchange', exchange.id))
 
     return render_to_response("valueaccounting/exchange_logging.html", {
+        "use_case": use_case,
         "exchange": exchange,
         "exchange_form": exchange_form,
+        "sale_form": sale_form,
         "agent": agent,
         "user": request.user,
         "logger": logger,
@@ -8004,6 +8282,8 @@ def exchange_logging(request, exchange_id):
         "expense_events": expense_events,
         "work_events": work_events,
         "cash_events": cash_events,
+        "cash_receipt_events": cash_receipt_events,
+        "shipment_events": shipment_events,
         "material_events": material_events,
         "add_receipt_form": add_receipt_form,
         "add_to_resource_form": add_to_resource_form,
@@ -8011,6 +8291,8 @@ def exchange_logging(request, exchange_id):
         "add_expense_form": add_expense_form,
         "add_material_form": add_material_form,
         "add_cash_form": add_cash_form,
+        "add_cash_receipt_form": add_cash_receipt_form,
+        "add_shipment_form": add_shipment_form,
         "add_work_form": add_work_form,
         "create_material_role_formset": create_material_role_formset,
         "create_receipt_role_formset": create_receipt_role_formset,
@@ -8049,7 +8331,34 @@ def create_exchange(request, use_case_identifier):
         "context_types": context_types,
         "help": get_help("create_exchange"),
     }, context_instance=RequestContext(request))
-
+    
+@login_required
+def create_sale(request):
+    #import pdb; pdb.set_trace()
+    context_agent = None
+    context_types = AgentType.objects.context_types_string()
+    context_agents = EconomicAgent.objects.context_agents() or None
+    if context_agents:
+        context_agent = context_agents[0]
+    exchange_form = SaleForm(context_agent=context_agent)
+    if request.method == "POST":
+        ca_id = request.POST.get("context_agent")
+        context_agent = EconomicAgent.objects.get(id=ca_id)
+        exchange_form = SaleForm(context_agent=context_agent, data=request.POST)
+        if exchange_form.is_valid():
+            exchange = exchange_form.save(commit=False)
+            exchange.use_case = UseCase.objects.get(identifier="sale")
+            exchange.created_by = request.user
+            exchange.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/exchange', exchange.id))
+    return render_to_response("valueaccounting/create_sale.html", {
+        "exchange_form": exchange_form,
+        "context_agent": context_agent,
+        "context_types": context_types,
+        "help": get_help("create_sale"),
+    }, context_instance=RequestContext(request))
+                    
 '''
 #todo: this is not tested, is for exchange 
 @login_required

@@ -2266,6 +2266,8 @@ def create_order(request):
                                 description=data["description"],
                                 quantity=qty,
                                 unit_of_quantity=rt.unit,
+                                stage=ptrt.stage,
+                                state=ptrt.state,
                                 created_by=request.user,
                             )
                             commitment.save()
@@ -7448,7 +7450,7 @@ def plan_from_recipe(request):
 
                     commitment = demand.add_commitment(
                         resource_type=produced_rt,
-                        quantity=Decimal("1"),
+                        quantity=ptrt.quantity,
                         event_type=et,
                         unit=produced_rt.unit,
                         stage=ptrt.stage,
@@ -7596,7 +7598,7 @@ def plan_from_rt_recipe(request, resource_type_id):
                 if et:
                     commitment = demand.add_commitment(
                         resource_type=resource_type,
-                        quantity=Decimal("1"),
+                        quantity=ptrt.quantity,
                         event_type=et,
                         unit=resource_type.unit,
                         stage=ptrt.stage,

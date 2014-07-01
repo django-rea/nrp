@@ -2045,7 +2045,7 @@ class Order(models.Model):
         if process:
             process_name = ", " + process.name
         if self.name:
-            process_name = " ".join(["for", self.name])
+            process_name = " ".join(["to", self.name])
         if self.provider:
             provider_name = self.provider.name
             provider_label = ", provider:"
@@ -2138,6 +2138,7 @@ class Order(models.Model):
         return ct
 
     def all_processes(self):
+        #todo: this method omits processes that are not linked to deliverables
         #import pdb; pdb.set_trace()
         deliverables = self.commitments.filter(event_type__relationship="out")
         processes = [d.process for d in deliverables if d.process]
@@ -2150,7 +2151,6 @@ class Order(models.Model):
         for root in roots:
             root.all_previous_processes(ordered_processes, visited, 0)
         ordered_processes = list(set(ordered_processes))
-        #ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
         ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
         ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
         return ordered_processes      
@@ -3591,7 +3591,8 @@ class Process(models.Model):
         for ptrt in pt.all_input_resource_type_relationships():
             #import pdb; pdb.set_trace()
             if output.stage:
-                qty = ptrt.quantity
+                #if output.resource_type == ptrt.resource_type:
+                qty = output.quantity
             else:
                 qty = output.quantity * ptrt.quantity
             commitment = self.add_commitment(
@@ -3636,7 +3637,7 @@ class Process(models.Model):
                         #this is the output commitment
                         #import pdb; pdb.set_trace()
                         if output.stage:
-                            qty = pptr.quantity
+                            qty = output.quantity
                         else:
                             qty = qty_to_explode * pptr.quantity
                         next_commitment = next_process.add_commitment(

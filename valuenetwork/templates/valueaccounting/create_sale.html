@@ -9,6 +9,7 @@
 {% block extra_head %}
 
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
 
@@ -55,6 +56,7 @@
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -71,7 +73,9 @@
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
-
+        
+        $(".chzn-select").chosen();
+        
         jQuery.validator.setDefaults({ 
             success: function(label) {
 				label
@@ -98,7 +102,7 @@
 		});
 
 		$("#id_context_agent").change(getCustomers);
-		$("#id_customer").change(getOrders);
+		//$("#id_customer").change(getOrders);
 		//$("#id_order").change(getCustomer);
         
 
@@ -123,6 +127,7 @@
                     $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
                 }
             }
+            $(".chzn-select").trigger("liszt:updated");
         });
     }
 /*    

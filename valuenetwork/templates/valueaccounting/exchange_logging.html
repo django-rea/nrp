@@ -1035,9 +1035,11 @@ li {
     {% if use_case.identifier == 'sale' %}
     function getCustomers()
     {
+        $(".chzn-select").trigger("liszt:updated");
         var selectedAgent = document.getElementById('id_context_agent').value;
         var jsonUrl = encodeURI("/accounting/json-context-agent-customers/" + selectedAgent + "/");
         var selectedCustomer = document.getElementById('id_customer').value;
+        //var customerField =  $("#id_customer");
         $("#id_customer").empty();
         $.get(jsonUrl,
         function(data){
@@ -1051,8 +1053,8 @@ li {
                 } else {
                     $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
                 }
-//alert("added option " + name);
             }
+            $(".chzn-select").trigger("liszt:updated");
         });
     }
     {% endif %}

@@ -2291,6 +2291,9 @@ def create_order(request):
                         if pt:
                             #todo: add stage and state as args?
                             ptrt = rt.main_producing_process_type_relationship()
+                            #flow todo: add order_item
+                            #this is the order item, so can't sent as arg
+                            #maybe better to ask the order to create it.
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
@@ -2315,6 +2318,8 @@ def create_order(request):
                                 related_to="process",
                                 relationship="out")
                             event_type = ets[0]
+                            #flow todo: add order_item
+                            #see also comment above
                             commitment = Commitment(
                                 order=order,
                                 independent_demand=order,
@@ -2336,6 +2341,8 @@ def create_order(request):
                                 option = Option.objects.get(id=option_id)
                                 component = option.component
                                 feature = ftr.feature
+                                #flow todo: add order_item
+                                #see also comments above
                                 commitment = Commitment(
                                     order=order,
                                     independent_demand=order,
@@ -2362,6 +2369,8 @@ def create_order(request):
     }, context_instance=RequestContext(request))
 
 #todo: s/b refactored in a commitment method
+#flow todo: shd order_item be used here?
+#I think not.
 def schedule_commitment(
         commitment, 
         schedule, 
@@ -3294,6 +3303,8 @@ def new_process_output(request, commitment_id):
                 ct.event_type = event_type
                 ct.process = process
                 ct.context_agent = process.context_agent
+                #flow todo: add order_item
+                #or is this obsolete?
                 ct.independent_demand = commitment.independent_demand
                 ct.due_date = process.end_date
                 ct.created_by = request.user
@@ -3348,6 +3359,8 @@ def new_process_input(request, commitment_id, slot):
                 event_type = pattern.event_type_for_resource_type(rel, rt)
                 ct.event_type = event_type
                 ct.process = process
+                #flow todo: add order_item
+                #or is this obsolete?
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
@@ -3395,6 +3408,7 @@ def new_process_citation(request, commitment_id):
             event_type = pattern.event_type_for_resource_type("cite", rt)
             agent = get_agent(request)
             #todo: sub process.add_commitment()
+            #flow todo: add order_item
             ct = Commitment(
                 process=process,
                 #from_agent=agent,
@@ -3445,6 +3459,8 @@ def new_process_worker(request, commitment_id):
             event_type = pattern.event_type_for_resource_type("work", rt)
             ct = form.save(commit=False)
             ct.process=process
+            #flow todo: add order_item
+            #or is this obsolete?
             ct.independent_demand=demand
             ct.event_type=event_type
             ct.due_date=process.end_date
@@ -3494,6 +3510,7 @@ def add_process_output(request, process_id):
                 ct.process = process
                 #ct.project = process.project
                 ct.context_agent = process.context_agent
+                #flow todo: add order_item
                 ct.independent_demand = process.independent_demand()
                 ct.due_date = process.end_date
                 ct.created_by = request.user
@@ -3536,6 +3553,7 @@ def add_unplanned_output(request, process_id):
                 demand = None
                 if not rt.substitutable:
                     demand = process.independent_demand()
+                    #flow todo: add order_item
                 resource = EconomicResource(
                     resource_type=rt,
                     identifier=identifier,
@@ -3926,6 +3944,7 @@ def add_process_input(request, process_id, slot):
                 ct.process = process
                 #ct.project = process.project
                 ct.context_agent=process.context_agent
+                #flow todo: add order_item
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
@@ -3955,6 +3974,7 @@ def add_process_citation(request, process_id):
             event_type = pattern.event_type_for_resource_type("cite", rt)
             agent = get_agent(request)
             #todo: sub process.add_commitment()
+            #flow todo: add order_item
             ct = Commitment(
                 process=process,
                 #from_agent=agent,
@@ -3988,6 +4008,7 @@ def add_process_worker(request, process_id):
             event_type = pattern.event_type_for_resource_type("work", rt)
             ct = form.save(commit=False)
             ct.process=process
+            #flow todo: add order_item
             ct.independent_demand=demand
             ct.event_type=event_type
             ct.due_date=process.end_date
@@ -5010,6 +5031,7 @@ def log_resource_for_commitment_x(request, commitment_id):
             resource.created_by=request.user
             if not ct.resource_type.substitutable:
                 resource.independent_demand = ct.independent_demand
+                resource.order_item = ct.order_item
             if event_type.applies_stage():
                 resource.stage = ct.stage
             resource.save()
@@ -5051,6 +5073,7 @@ def log_resource_for_commitment(request, commitment_id):
         event_type = ct.event_type
         if not ct.resource_type.substitutable:
             resource.independent_demand = ct.independent_demand
+            resource.order_item = ct.order_item
         if event_type.applies_stage():
             resource.stage = ct.stage
         resource.save()
@@ -5582,6 +5605,7 @@ def production_event_for_commitment(request):
         demand = None
         if not rt.substitutable:
             demand = ct.independent_demand
+            order_item = ct.order_item
         resource = EconomicResource(
             resource_type = ct.resource_type,
             created_date = event_date,
@@ -5589,6 +5613,7 @@ def production_event_for_commitment(request):
             unit_of_quantity = ct.unit_of_quantity,
             created_by=request.user,
             independent_demand=demand,
+            order_item=order_item,
         )
         resource.save()
         event = EconomicEvent(
@@ -5652,6 +5677,7 @@ def resource_event_for_commitment(request, commitment_id):
             resource.resource_type = rt
             if not rt.substitutable:
                 resource.independent_demand = ct.independent_demand
+                resource.order_item = ct.order_item
             resource.created_by=request.user
             resource.save()
             event = EconomicEvent(
@@ -5945,6 +5971,7 @@ def create_process(request):
                         ct.event_type = rel.event_type
                         ct.process = process
                         ct.context_agent = process.context_agent
+                        #flow todo: add order_item
                         ct.independent_demand = demand
                         ct.due_date = process.end_date
                         ct.created_by = request.user
@@ -5960,6 +5987,7 @@ def create_process(request):
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
+                        #flow todo: add order_item
                         ct.independent_demand = demand
                         ct.due_date = process.start_date
                         ct.created_by = request.user
@@ -6055,6 +6083,7 @@ def copy_process(request, process_id):
                         ct.event_type = rel.event_type
                         ct.process = process
                         ct.context_agent = process.context_agent
+                        #flow todo: add order_item
                         ct.independent_demand = demand
                         ct.due_date = process.end_date
                         ct.created_by = request.user
@@ -6070,6 +6099,7 @@ def copy_process(request, process_id):
                         ct.relationship = rel
                         ct.event_type = rel.event_type
                         ct.process = process
+                        #flow todo: add order_item
                         ct.independent_demand = demand
                         ct.due_date = process.start_date
                         ct.created_by = request.user
@@ -6441,6 +6471,7 @@ def change_process(request, process_id):
                         ct = form.save(commit=False)
                         #this was wrong. Would it ever be correct?
                         #ct.order = demand
+                        #flow todo: add order_item
                         ct.independent_demand = demand
                         ct.context_agent = process.context_agent
                         ct.due_date = process.end_date
@@ -6472,6 +6503,7 @@ def change_process(request, process_id):
                             rt = citation_data["resource_type"]
                             if rt:
                                 ct = form.save(commit=False)
+                                #flow todo: add order_item
                                 ct.independent_demand = demand
                                 ct.context_agent = process.context_agent
                                 ct.due_date = process.end_date
@@ -6508,6 +6540,7 @@ def change_process(request, process_id):
                             rt = work_data["resource_type"]
                             if rt:
                                 ct = form.save(commit=False)
+                                #flow todo: add order_item
                                 ct.independent_demand = demand
                                 ct.context_agent = process.context_agent
                                 ct.due_date = process.end_date
@@ -6571,6 +6604,7 @@ def change_process(request, process_id):
                     else:
                         ct = form.save(commit=False)
                         ct.due_date = process.start_date
+                        #flow todo: add order_item
                         ct.independent_demand = demand
                         if ct_from_id:
                             producers = ct.resource_type.producing_commitments()
@@ -6579,6 +6613,7 @@ def change_process(request, process_id):
                             old_rt = old_ct.resource_type
                             explode = True
                             for pc in producers:
+                                #flow todo: shd this be order_item?
                                 if demand:
                                     if pc.independent_demand == demand:
                                         propagators.append(pc) 
@@ -6594,6 +6629,7 @@ def change_process(request, process_id):
                             if ct.resource_type != old_rt:
                                 old_ct.delete()
                                 for ex_ct in old_rt.producing_commitments():
+                                    #flow todo: shd this be order_item?
                                     if demand == ex_ct.independent_demand:
                                         trash = []
                                         visited_resources = set()
@@ -6627,6 +6663,7 @@ def change_process(request, process_id):
                             event_type = pattern.event_type_for_resource_type("consume", rt)
                             ct.event_type = event_type
                             ct.process = process
+                            #flow todo: add order_item
                             ct.independent_demand = demand
                             ct.created_by = request.user
                             #todo: add stage and state as args
@@ -6662,6 +6699,7 @@ def change_process(request, process_id):
                     else:
                         ct = form.save(commit=False)
                         ct.due_date = process.start_date
+                        #flow todo: add order_item
                         ct.independent_demand = demand
                         if ct_from_id:
                             producers = ct.resource_type.producing_commitments()
@@ -6671,6 +6709,7 @@ def change_process(request, process_id):
                             #probly not needed for usables
                             explode = True
                             for pc in producers:
+                                #flow todo: shd this be order_item?
                                 if demand:
                                     if pc.independent_demand == demand:
                                         propagators.append(pc) 
@@ -6687,6 +6726,7 @@ def change_process(request, process_id):
                                 old_ct.delete()
                                 #todo: needed for usables?
                                 for ex_ct in old_rt.producing_commitments():
+                                    #flow todo: shd this be order_item?
                                     if demand == ex_ct.independent_demand:
                                         trash = []
                                         visited_resources = set()
@@ -6722,6 +6762,7 @@ def change_process(request, process_id):
                             event_type = pattern.event_type_for_resource_type("use", rt)
                             ct.event_type = event_type
                             ct.process = process
+                            #flow todo: add order_item
                             ct.independent_demand = demand
                             ct.due_date = process.start_date
                             ct.created_by = request.user
@@ -6779,6 +6820,7 @@ def explode_dependent_demands(commitment, user):
             )
             feeder_process.save()
             #todo: sub process.add_commitment()
+            #flow todo: add order_item
             output_commitment = Commitment(
                 independent_demand=demand,
                 event_type=ptrt.event_type,
@@ -6807,6 +6849,7 @@ def propagate_qty_change(commitment, delta, visited):
                 ic.save()
                 rt = ic.resource_type
                 demand = ic.independent_demand
+                #flow todo: shd be order_item
                 for pc in rt.producing_commitments():
                     if pc.independent_demand == demand:
                         propagate_qty_change(pc, new_delta, visited)
@@ -6822,6 +6865,7 @@ def propagate_changes(commitment, delta, old_demand, new_demand, visited):
             ratio = ic.quantity / commitment.quantity 
             new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
             ic.quantity += new_delta
+            #flow todo: shd be order_item
             ic.independent_demand = new_demand
             ic.save()
             rt = ic.resource_type
@@ -6830,6 +6874,7 @@ def propagate_changes(commitment, delta, old_demand, new_demand, visited):
                 if pc.independent_demand == old_demand:
                     propagate_changes(pc, new_delta, old_demand, new_demand, visited)
     commitment.quantity += delta
+    #flow todo: add order_item
     commitment.independent_demand = new_demand
     commitment.save()    
 
@@ -6888,6 +6933,7 @@ def create_rand(request):
                             event_type = pattern.event_type_for_resource_type("out", rt)
                             ct.event_type = event_type
                             ct.order = rand
+                            #flow todo: add order_item
                             ct.independent_demand = rand
                             ct.process = process
                             ct.context_agent = process.context_agent
@@ -6906,6 +6952,7 @@ def create_rand(request):
                             rt = input_data["resource_type"]
                             
                             ct.event_type = rel.event_type
+                            #flow todo: add order_item
                             ct.independent_demand = rand
                             ct.process = process
                             ct.due_date = process.start_date
@@ -7038,6 +7085,7 @@ def copy_rand(request, rand_id):
                             ct.relationship = rel
                             ct.event_type = rel.event_type
                             ct.order = rand
+                            #flow todo: add order_item
                             ct.independent_demand = rand
                             ct.process = process
                             ct.context_agent = process.context_agent
@@ -7057,6 +7105,7 @@ def copy_rand(request, rand_id):
                             #rel = 
                             ct.relationship = rel
                             ct.event_type = rel.event_type
+                            #flow todo: add order_item
                             ct.independent_demand = rand
                             ct.process = process
                             ct.due_date = process.start_date
@@ -7166,6 +7215,7 @@ def change_rand(request, rand_id):
                                 event_type = pattern.event_type_for_resource_type("out", rt)
                                 ct.event_type = event_type
                                 ct.order = rand
+                                #flow todo: add order_item
                                 ct.independent_demand = rand
                                 ct.context_agent = process.context_agent
                                 ct.from_agent_type=agent_type
@@ -7203,6 +7253,7 @@ def change_rand(request, rand_id):
                                     #import pdb; pdb.set_trace()
                                     old_ct.delete()
                                     for ex_ct in old_rt.producing_commitments():
+                                        #flow todo: shd this be order_item?
                                         if rand == ex_ct.independent_demand:
                                             trash = []
                                             visited_resources = set()
@@ -7222,6 +7273,7 @@ def change_rand(request, rand_id):
                                     #import pdb; pdb.set_trace()
                                     delta = qty - old_ct.quantity
                                     for pc in ct.resource_type.producing_commitments():
+                                        #flow todo: shd this be order_item?
                                         if pc.independent_demand == demand:
                                             propagate_qty_change(pc, delta, [])                                
                                 ct.changed_by = request.user
@@ -7233,6 +7285,7 @@ def change_rand(request, rand_id):
                                 rt = input_data["resource_type"]
                                 event_type = pattern.event_type_for_resource_type("in", rt)
                                 ct.event_type = event_type
+                                #flow todo: add order_item
                                 ct.independent_demand = rand
                                 ct.process = process
                                 ct.due_date = process.start_date
@@ -7392,6 +7445,7 @@ def process_selections(request, rand=0):
                 resource_types.append(rt)
                 et = selected_pattern.event_type_for_resource_type("out", rt)
                 if et:
+                    #flow todo: add order_item
                     commitment = process.add_commitment(
                         resource_type= rt,
                         demand=demand,
@@ -7427,6 +7481,7 @@ def process_selections(request, rand=0):
             for rt in cited_rts:
                 et = selected_pattern.event_type_for_resource_type("cite", rt)
                 if et:
+                    #flow todo: add order_item
                     commitment = process.add_commitment(
                         resource_type= rt,
                         demand=demand,
@@ -7439,6 +7494,7 @@ def process_selections(request, rand=0):
                     resource_types.append(rt)
                     et = selected_pattern.event_type_for_resource_type("use", rt)
                     if et:
+                        #flow todo: add order_item
                         commitment = process.add_commitment(
                             resource_type= rt,
                             demand=demand,
@@ -7452,6 +7508,7 @@ def process_selections(request, rand=0):
                     resource_types.append(rt)
                     et = selected_pattern.event_type_for_resource_type("consume", rt)
                     if et:
+                        #flow todo: add order_item
                         commitment = process.add_commitment(
                             resource_type= rt,
                             demand=demand,
@@ -7467,6 +7524,7 @@ def process_selections(request, rand=0):
                     agent = get_agent(request)
                 et = selected_pattern.event_type_for_resource_type("work", rt)
                 if et:
+                    #flow todo: add order_item
                     work_commitment = process.add_commitment(
                         resource_type= rt,
                         demand=demand,
@@ -7605,7 +7663,7 @@ def plan_from_recipe(request):
                 ptrt = produced_rt.main_producing_process_type_relationship()
                 et = ptrt.event_type
                 if et:
-
+                    #flow todo: add order_item
                     commitment = demand.add_commitment(
                         resource_type=produced_rt,
                         quantity=ptrt.quantity,
@@ -7674,7 +7732,7 @@ def plan_from_rt(request, resource_type_id):
                 name=resource_type.name,
                 created_by=request.user)
             demand.save()
-
+            #flow todo: add order_item
             com = Commitment()
             com.context_agent = process.context_agent
             com.independent_demand = demand
@@ -7754,6 +7812,7 @@ def plan_from_rt_recipe(request, resource_type_id):
                 ptrt = resource_type.main_producing_process_type_relationship()
                 et = ptrt.event_type
                 if et:
+                    #flow todo: add order_item
                     commitment = demand.add_commitment(
                         resource_type=resource_type,
                         quantity=ptrt.quantity,

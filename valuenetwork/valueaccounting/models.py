@@ -1186,20 +1186,29 @@ class EconomicResourceType(models.Model):
             p = pt.create_process(new_start_date, user)
             new_start_date = p.end_date
             processes.append(p)
-        for process in processes:
-            for ct in process.commitments.all():
-                ct.independent_demand = order
-                ct.save()
         if processes:
             last_process = processes[-1]
-            for ct in last_process.outgoing_commitments():
+            octs = last_process.outgoing_commitments()
+            order_item = None
+            for ct in octs:
                 ct.order = order
                 if not order_name:
                     order_name = " ".join([order_name, ct.resource_type.name])
                     order.name = order_name
                 ct.save()
+            assert octs.count == 1, 'generate_staged_work_order assumes one and only one order item'
+            order_item = octs[0]
             order.due_date = last_process.end_date
             order.save()
+        #flow todo: order_item fields set, but problem may arise
+        #if multiple order items exist.
+        #None exist now, but may in future.
+        #Thus the assert statement above.
+        for process in processes:
+            for ct in process.commitments.all():
+                ct.independent_demand = order
+                ct.order_item = order_item
+                ct.save()
         return order
     
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
@@ -1212,7 +1221,6 @@ class EconomicResourceType(models.Model):
             due_date=start_date,
             created_by=user)
         order.save()
-        resource.independent_demand = order
         processes = []
         new_start_date = start_date
         for pt in pts:
@@ -1221,18 +1229,26 @@ class EconomicResourceType(models.Model):
             processes.append(p)
         if processes:
             last_process = processes[-1]
-            for ct in last_process.outgoing_commitments():
+            octs = last_process.outgoing_commitments()
+            order_item = None
+            for ct in octs:
                 order_qty = ct.quantity
                 ct.order = order
                 if not order_name:
                     order_name = " ".join([order_name, ct.resource_type.name])
                     order.name = order_name
                 ct.save()
+            assert octs.count == 1, 'generate_staged_work_order_from_resource assumes one and only one order item'
+            order_item = octs[0]
             order.due_date = last_process.end_date
             order.save()
+            resource.independent_demand = order
+            resource.order_item = order_item
+            resource.save()
         for process in processes:
             for commitment in process.commitments.all():
                 commitment.independent_demand = order
+                commitment.order_item = order_item
                 if commitment.resource_type == self:
                     commitment.quantity = resource.quantity
                 elif commitment.is_work():
@@ -2186,6 +2202,8 @@ class Order(models.Model):
             quantity=quantity,
             unit_of_quantity=unit,
             due_date=due)
+        ct.save()
+        ct.order_item = ct
         ct.save()
         #todo: shd this generate_producing_process?
         return ct

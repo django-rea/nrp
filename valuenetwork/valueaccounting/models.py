@@ -1212,7 +1212,6 @@ class EconomicResourceType(models.Model):
             due_date=start_date,
             created_by=user)
         order.save()
-        resource.independent_demand = order
         processes = []
         new_start_date = start_date
         for pt in pts:
@@ -1230,6 +1229,8 @@ class EconomicResourceType(models.Model):
                 ct.save()
             order.due_date = last_process.end_date
             order.save()
+            resource.independent_demand = order
+            resource.save()
         for process in processes:
             for commitment in process.commitments.all():
                 commitment.independent_demand = order

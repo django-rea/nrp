@@ -1212,7 +1212,6 @@ class EconomicResourceType(models.Model):
             due_date=start_date,
             created_by=user)
         order.save()
-        resource.independent_demand = order
         processes = []
         new_start_date = start_date
         for pt in pts:
@@ -1230,6 +1229,8 @@ class EconomicResourceType(models.Model):
                 ct.save()
             order.due_date = last_process.end_date
             order.save()
+            resource.independent_demand = order
+            resource.save()
         for process in processes:
             for commitment in process.commitments.all():
                 commitment.independent_demand = order
@@ -2098,7 +2099,7 @@ class Order(models.Model):
         if process:
             process_name = ", " + process.name
         if self.name:
-            process_name = " ".join(["for", self.name])
+            process_name = " ".join(["to", self.name])
         if self.provider:
             provider_name = self.provider.name
             provider_label = ", provider:"
@@ -2191,6 +2192,7 @@ class Order(models.Model):
         return ct
 
     def all_processes(self):
+        #todo: this method omits processes that are not linked to deliverables
         #import pdb; pdb.set_trace()
         deliverables = self.commitments.filter(event_type__relationship="out")
         processes = [d.process for d in deliverables if d.process]
@@ -2203,7 +2205,6 @@ class Order(models.Model):
         for root in roots:
             root.all_previous_processes(ordered_processes, visited, 0)
         ordered_processes = list(set(ordered_processes))
-        #ordered_processes.sort(lambda x, y: cmp(x.start_date, y.start_date))
         ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
         ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
         return ordered_processes      
@@ -2654,7 +2655,10 @@ class EconomicResource(models.Model):
     identifier = models.CharField(_('identifier'), blank=True, max_length=128)
     independent_demand = models.ForeignKey(Order,
         blank=True, null=True,
-        related_name="dependent_resources", verbose_name=_('independent_demand'))
+        related_name="dependent_resources", verbose_name=_('independent demand'))
+    order_item = models.ForeignKey("Commitment",
+        blank=True, null=True,
+        related_name="stream_resources", verbose_name=_('order item'))
     stage = models.ForeignKey(ProcessType, related_name="resources_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
     state = models.ForeignKey(ResourceState, related_name="resources_at_state",
@@ -3644,7 +3648,8 @@ class Process(models.Model):
         for ptrt in pt.all_input_resource_type_relationships():
             #import pdb; pdb.set_trace()
             if output.stage:
-                qty = ptrt.quantity
+                #if output.resource_type == ptrt.resource_type:
+                qty = output.quantity
             else:
                 qty = output.quantity * ptrt.quantity
             commitment = self.add_commitment(
@@ -3689,7 +3694,7 @@ class Process(models.Model):
                         #this is the output commitment
                         #import pdb; pdb.set_trace()
                         if output.stage:
-                            qty = pptr.quantity
+                            qty = output.quantity
                         else:
                             qty = qty_to_explode * pptr.quantity
                         next_commitment = next_process.add_commitment(
@@ -4068,7 +4073,10 @@ class Commitment(models.Model):
         related_name="commitments", verbose_name=_('order'))
     independent_demand = models.ForeignKey(Order,
         blank=True, null=True,
-        related_name="dependent_commitments", verbose_name=_('independent_demand'))
+        related_name="dependent_commitments", verbose_name=_('independent demand'))
+    order_item = models.ForeignKey("self",
+        blank=True, null=True,
+        related_name="stream_commitments", verbose_name=_('order item'))
     event_type = models.ForeignKey(EventType, 
         related_name="commitments", verbose_name=_('event type'))
     stage = models.ForeignKey(ProcessType, related_name="commitments_at_stage",

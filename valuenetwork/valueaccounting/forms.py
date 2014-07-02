@@ -1315,21 +1315,21 @@ class CashReceiptForm(forms.ModelForm):
             self.fields["to_agent"].queryset = context_agent.all_ancestors()
             self.fields["from_agent"].queryset = context_agent.all_customers()
 
-class CashReceiptForm(forms.ModelForm):
+class DistributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     to_agent = forms.ModelChoiceField(
         required=True,
         queryset=EconomicAgent.objects.all(),
-        label="Payment received by",  
+        label="Distributed to",  
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     quantity = forms.DecimalField(
-        label="Receipt amount",
+        label="Distribution amount",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
-        label="Unit of receipt",
+        label="Unit",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
@@ -1341,14 +1341,11 @@ class CashReceiptForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'description')
 
-    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
-        super(CashReceiptForm, self).__init__(*args, **kwargs)
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(DistributionEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.cash_receipt_resource_types()
-        if context_agent:
-            self.context_agent = context_agent
-            self.fields["to_agent"].queryset = context_agent.all_ancestors()
+            self.fields["resource_type"].queryset = pattern.distribution_resource_types()
 
 class ShipmentForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -2350,5 +2347,5 @@ class DistributionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
         super(DistributionForm, self).__init__(*args, **kwargs)
-        use_case = UseCase.objects.get(identifier="sale")
+        use_case = UseCase.objects.get(identifier="distribution")
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 

@@ -3900,6 +3900,34 @@ def add_shipment(request, exchange_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
+@login_required
+def add_distribution(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        context_agent = exchange.context_agent
+        form = DistributionEventForm(data=request.POST, pattern=pattern, prefix='dist')
+        if form.is_valid():
+            data = form.cleaned_data
+            qty = data["quantity"] 
+            if qty:
+                event = form.save(commit=False)
+                rt = data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("distribute", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.context_agent = exchange.context_agent
+                event.resource_type = rt
+                event.unit_of_quantity = rt.unit
+                event.from_agent = exchange.context_agent
+                event.is_contribution = False
+                event.created_by = request.user
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
 
 @login_required
 def add_process_input(request, process_id, slot):
@@ -6227,6 +6255,25 @@ def change_shipment_event(request, event_id):
         % ('accounting/exchange', exchange.id))
 
 @login_required
+def change_distribution_event(request, event_id):
+    #import pdb; pdb.set_trace()
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    exchange = event.exchange
+    pattern = exchange.process_pattern
+    if pattern:
+        if request.method == "POST":
+            form = DistributionEventForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id), 
+                data=request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                form.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+@login_required
 def change_expense_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     exchange = event.exchange
@@ -8109,6 +8156,7 @@ def exchange_logging(request, exchange_id):
     pattern = exchange.process_pattern
     exchange_form = ExchangeForm(use_case, context_agent, instance=exchange, data=request.POST or None)
     sale_form = SaleForm(context_agent, instance=exchange, data=request.POST or None)
+    distribution_form = DistributionForm(instance=exchange, data=request.POST or None)
     add_receipt_form = None
     add_to_resource_form = None
     add_payment_form = None
@@ -8118,6 +8166,7 @@ def exchange_logging(request, exchange_id):
     add_work_form = None
     add_cash_receipt_form = None
     add_shipment_form = None
+    add_distribution_form = None
     create_material_role_formset = None
     create_receipt_role_formset = None
     #add_commit_receipt_form = None
@@ -8125,6 +8174,7 @@ def exchange_logging(request, exchange_id):
     slots = []
     expense_total = 0
     receipt_total = 0
+    distribution_total = 0
 
     #receipt_commitments = exchange.receipt_commitments()
     #payment_commitments = exchange.payment_commitments()
@@ -8136,6 +8186,7 @@ def exchange_logging(request, exchange_id):
     material_events = exchange.material_contribution_events()
     cash_receipt_events = exchange.cash_receipt_events()
     shipment_events = exchange.shipment_events()
+    distribution_events = exchange.distribution_events()
 
     if agent and pattern:
         #import pdb; pdb.set_trace()
@@ -8182,6 +8233,12 @@ def exchange_logging(request, exchange_id):
             event.changeform = ShipmentForm(
                 pattern=pattern,
                 context_agent=context_agent,
+                instance=event, 
+                prefix=str(event.id))
+        for event in distribution_events:
+            distribution_total = distribution_total + event.quantity
+            event.changeform = DistributionEventForm(
+                pattern=pattern,
                 instance=event, 
                 prefix=str(event.id))
         #for event in cash_events:
@@ -8250,7 +8307,13 @@ def exchange_logging(request, exchange_id):
                 "event_date": exchange.start_date,
                 "from_agent": context_agent,
             }      
-            add_shipment_form = ShipmentForm(prefix='ship', initial=cr_init, pattern=pattern, context_agent=context_agent)
+            add_shipment_form = ShipmentForm(prefix='ship', initial=ship_init, pattern=pattern, context_agent=context_agent)
+        if "distribute" in slots:
+            #import pdb; pdb.set_trace()
+            dist_init = {
+                "event_date": exchange.start_date,
+            }      
+            add_distribution_form = DistributionEventForm(prefix='dist', initial=dist_init, pattern=pattern)
          
 
     if request.method == "POST":
@@ -8258,6 +8321,11 @@ def exchange_logging(request, exchange_id):
         if sale_form:
             if sale_form.is_valid():
                 exchange = sale_form.save()
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/exchange', exchange.id))
+        elif distribution_form:
+            if distribution_form.is_valid():
+                exchange = distribution_form.save()
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/exchange', exchange.id))
         else:
@@ -8271,6 +8339,7 @@ def exchange_logging(request, exchange_id):
         "exchange": exchange,
         "exchange_form": exchange_form,
         "sale_form": sale_form,
+        "distribution_form": distribution_form,
         "agent": agent,
         "user": request.user,
         "logger": logger,
@@ -8283,6 +8352,7 @@ def exchange_logging(request, exchange_id):
         "work_events": work_events,
         "cash_events": cash_events,
         "cash_receipt_events": cash_receipt_events,
+        "distribution_events": distribution_events,
         "shipment_events": shipment_events,
         "material_events": material_events,
         "add_receipt_form": add_receipt_form,
@@ -8293,6 +8363,7 @@ def exchange_logging(request, exchange_id):
         "add_cash_form": add_cash_form,
         "add_cash_receipt_form": add_cash_receipt_form,
         "add_shipment_form": add_shipment_form,
+        "add_distribution_form": add_distribution_form,
         "add_work_form": add_work_form,
         "create_material_role_formset": create_material_role_formset,
         "create_receipt_role_formset": create_receipt_role_formset,
@@ -8300,6 +8371,7 @@ def exchange_logging(request, exchange_id):
         #"add_commit_payment_form": add_commit_payment_form,
         "expense_total": expense_total,
         "receipt_total": receipt_total,
+        "distribution_total": distribution_total,
         "help": get_help("exchange"),
     }, context_instance=RequestContext(request))
 

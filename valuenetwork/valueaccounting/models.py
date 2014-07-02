@@ -2654,7 +2654,10 @@ class EconomicResource(models.Model):
     identifier = models.CharField(_('identifier'), blank=True, max_length=128)
     independent_demand = models.ForeignKey(Order,
         blank=True, null=True,
-        related_name="dependent_resources", verbose_name=_('independent_demand'))
+        related_name="dependent_resources", verbose_name=_('independent demand'))
+    order_item = models.ForeignKey("Commitment",
+        blank=True, null=True,
+        related_name="stream_resources", verbose_name=_('order item'))
     stage = models.ForeignKey(ProcessType, related_name="resources_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
     state = models.ForeignKey(ResourceState, related_name="resources_at_state",
@@ -4069,7 +4072,10 @@ class Commitment(models.Model):
         related_name="commitments", verbose_name=_('order'))
     independent_demand = models.ForeignKey(Order,
         blank=True, null=True,
-        related_name="dependent_commitments", verbose_name=_('independent_demand'))
+        related_name="dependent_commitments", verbose_name=_('independent demand'))
+    order_item = models.ForeignKey("self",
+        blank=True, null=True,
+        related_name="stream_commitments", verbose_name=_('order item'))
     event_type = models.ForeignKey(EventType, 
         related_name="commitments", verbose_name=_('event type'))
     stage = models.ForeignKey(ProcessType, related_name="commitments_at_stage",

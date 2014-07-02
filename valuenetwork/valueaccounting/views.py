@@ -8356,7 +8356,28 @@ def create_sale(request):
         "context_types": context_types,
         "help": get_help("create_sale"),
     }, context_instance=RequestContext(request))
-                    
+    
+@login_required
+def create_distribution(request, agent_id):
+    #import pdb; pdb.set_trace()
+    context_agent = get_object_or_404(EconomicAgent, id=agent_id)
+    exchange_form = DistributionForm()
+    if request.method == "POST":
+        exchange_form = DistributionForm(data=request.POST)
+        if exchange_form.is_valid():
+            exchange = exchange_form.save(commit=False)
+            exchange.use_case = UseCase.objects.get(identifier="distribution")
+            exchange.context_agent = context_agent
+            exchange.created_by = request.user
+            exchange.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/exchange', exchange.id))
+    return render_to_response("valueaccounting/create_distribution.html", {
+        "exchange_form": exchange_form,
+        "context_agent": context_agent,
+        "help": get_help("create_sale"),
+    }, context_instance=RequestContext(request))
+                                        
 '''
 #todo: this is not tested, is for exchange 
 @login_required

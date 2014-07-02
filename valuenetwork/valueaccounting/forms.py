@@ -2328,4 +2328,27 @@ class SaleForm(forms.ModelForm):
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
         if context_agent:
             self.fields["customer"].queryset = context_agent.all_customers()
-
+            
+class DistributionForm(forms.ModelForm):
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.none(), 
+        label=_("Pattern"),
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 'pattern-selector'}))
+    start_date = forms.DateField(required=True, 
+        label=_("Date"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    notes = forms.CharField(required=False, 
+        label=_("Comments"),
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    
+    class Meta:
+        model = Exchange
+        fields = ('process_pattern', 'start_date', 'notes')
+        
+    def __init__(self, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(DistributionForm, self).__init__(*args, **kwargs)
+        use_case = UseCase.objects.get(identifier="sale")
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 

@@ -1196,7 +1196,8 @@ class EconomicResourceType(models.Model):
                     order_name = " ".join([order_name, ct.resource_type.name])
                     order.name = order_name
                 ct.save()
-            assert octs.count == 1, 'generate_staged_work_order assumes one and only one order item'
+            #import pdb; pdb.set_trace()
+            assert octs.count() == 1, 'generate_staged_work_order assumes one and only one order item'
             order_item = octs[0]
             order.due_date = last_process.end_date
             order.save()
@@ -1238,7 +1239,7 @@ class EconomicResourceType(models.Model):
                     order_name = " ".join([order_name, ct.resource_type.name])
                     order.name = order_name
                 ct.save()
-            assert octs.count == 1, 'generate_staged_work_order_from_resource assumes one and only one order item'
+            assert octs.count() == 1, 'generate_staged_work_order_from_resource assumes one and only one order item'
             order_item = octs[0]
             order.due_date = last_process.end_date
             order.save()

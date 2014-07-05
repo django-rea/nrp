@@ -34,6 +34,7 @@
 				<th>{% trans "Date" %}</th>
 				<th>{% trans "Type" %}</th>
 				<th>{% trans "From" %}</th>
+				<th>{% trans "Project" %}</th>
 				<th>{% trans "Resource Type" %}</th>
 				<th>{% trans "Qty" %}</th>
 				<th>{% trans "URL" %}</th>
@@ -48,6 +49,7 @@
 						<td>{{ event.event_date }}</td>
 						<td>{{ event.event_type }}</td>
 						<td>{{ event.from_agent }}</td>
+						<td>{{ event.context_agent }}</td>
 						<td>{{ event.resource_type }}</td>
 						<td style="text-align: right;" >{{ event.quantity_formatted }}</td>
 						<td>

@@ -105,9 +105,8 @@ li {
 
 	  <div class="span7">
         <div class="totals">
-            <span class="total-top">{% trans "Money" %}-- </span>
-            <span class="total-top">Total in: {{ total_in }} </span> 
-            <span class="total-top">Total out: {{ total_out }} </span> 
+            <span class="total-top">{% trans "Total money in" %}: {{ total_in }} </span> 
+            <span class="total-top">{% trans "Total money out" %}: {{ total_out }} </span> 
             <br />
         </div>
         {% if receipt_events or "receive" in slots %}

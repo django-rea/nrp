@@ -8041,8 +8041,10 @@ def exchanges(request):
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
-def sales_and_distributions(request):
+def sales_and_distributions(request, agent_id=None):
     #import pdb; pdb.set_trace()
+    if agent_id:
+        agent = EconomicAgent.objects.get(pk=agent_id)
     end = datetime.date.today()
     start = datetime.date(end.year, 1, 1)
     init = {"start_date": start, "end_date": end}
@@ -8062,7 +8064,9 @@ def sales_and_distributions(request):
             end = dt_selection_form.cleaned_data["end_date"]
             exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end])
         else:
-            exchanges = Exchange.objects.sales_and_distributions()            
+            exchanges = Exchange.objects.sales_and_distributions()
+        if agent_id:
+            exchanges = exchanges.filter(context_agent=agent)
         selected_values = request.POST["categories"]
         if selected_values:
             sv = selected_values.split(",")
@@ -8086,7 +8090,10 @@ def sales_and_distributions(request):
                         events_included = []
                 exchanges = exchanges_included
     else:
-        exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end])
+        if agent_id:
+            exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end]).filter(context_agent=agent)
+        else:
+            exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end])
 
     total_cash_receipts = 0
     total_shipments = 0

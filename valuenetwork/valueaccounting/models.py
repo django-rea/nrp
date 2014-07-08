@@ -1715,7 +1715,7 @@ class ProcessPattern(models.Model):
         rts = self.shipment_resource_types()
         resources = []
         for rt in rts:
-            rt_resources = rt.onhand()
+            rt_resources = rt.all_resources()
             for res in rt_resources:
                 resources.append(res)
         resource_ids = [res.id for res in resources]

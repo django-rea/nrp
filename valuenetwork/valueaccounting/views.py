@@ -3896,6 +3896,10 @@ def add_shipment(request, exchange_id):
                 event.is_contribution = False
                 event.created_by = request.user
                 event.save()
+                resource.quantity = resource.quantity - qty
+                if resource.quantity < 0:
+                    resource.quantity = 0
+                resource.save()
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
@@ -6239,6 +6243,8 @@ def change_cash_receipt_event(request, event_id):
 def change_shipment_event(request, event_id):
     #import pdb; pdb.set_trace()
     event = get_object_or_404(EconomicEvent, id=event_id)
+    old_resource = event.resource
+    old_qty = event.quantity
     exchange = event.exchange
     pattern = exchange.process_pattern
     if pattern:
@@ -6251,6 +6257,20 @@ def change_shipment_event(request, event_id):
             if form.is_valid():
                 data = form.cleaned_data
                 form.save()
+                if event.resource:
+                    resource = event.resource
+                    if resource != old_resource:
+                        old_resource.quantity = old_resource.quantity + old_qty
+                        old_resource.save()
+                        resource.quantity = resource.quantity - event.quantity
+                    else:
+                        changed_qty = event.quantity - old_qty
+                        if changed_qty != 0:
+                            resource.quantity = resource.quantity - changed_qty
+                    if resource.quantity < 0:
+                        resource.quantity = 0
+                    resource.save()
+
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
@@ -8174,7 +8194,8 @@ def exchange_logging(request, exchange_id):
     slots = []
     expense_total = 0
     receipt_total = 0
-    distribution_total = 0
+    total_in = 0
+    total_out = 0
 
     #receipt_commitments = exchange.receipt_commitments()
     #payment_commitments = exchange.payment_commitments()
@@ -8198,6 +8219,7 @@ def exchange_logging(request, exchange_id):
         #for req in payment_commitments:
         #    req.changeform = req.change_form()
         for event in payment_events:
+            total_out = total_out + event.quantity
             event.changeform = PaymentEventForm(
                 pattern=pattern,
                 context_agent=context_agent,
@@ -8205,6 +8227,7 @@ def exchange_logging(request, exchange_id):
                 prefix=str(event.id))
         for event in expense_events:
             expense_total = expense_total + event.value
+            total_in = total_in + event.value
             event.changeform = ExpenseEventForm(
                 pattern=pattern,
                 context_agent=context_agent,
@@ -8218,29 +8241,40 @@ def exchange_logging(request, exchange_id):
                 prefix=str(event.id))
         for event in receipt_events:
             receipt_total = receipt_total + event.value
+            total_in = total_in + event.value
             event.changeform = UnorderedReceiptForm(
                 pattern=pattern,
                 context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         for event in cash_receipt_events:
+            total_in = total_in + event.quantity
             event.changeform = CashReceiptForm(
                 pattern=pattern,
                 context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         for event in shipment_events:
+            total_out = total_out + event.value
             event.changeform = ShipmentForm(
                 pattern=pattern,
                 context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
         for event in distribution_events:
-            distribution_total = distribution_total + event.quantity
+            total_out = total_out + event.quantity
             event.changeform = DistributionEventForm(
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id))
+        for event in cash_events:
+            total_in = total_in + event.value
+            #event.changeform = CashEventForm(
+            #    pattern=pattern,
+            #    instance=event, 
+            #    prefix=str(event.id))
+        for event in material_events:
+            total_in = total_in + event.value
         #for event in cash_events:
         #    event.changeform = CashContributionEventForm(
         #        pattern=pattern,
@@ -8371,7 +8405,8 @@ def exchange_logging(request, exchange_id):
         #"add_commit_payment_form": add_commit_payment_form,
         "expense_total": expense_total,
         "receipt_total": receipt_total,
-        "distribution_total": distribution_total,
+        "total_in": total_in,
+        "total_out": total_out,
         "help": get_help("exchange"),
     }, context_instance=RequestContext(request))
 

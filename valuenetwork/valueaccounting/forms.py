@@ -605,6 +605,7 @@ class UnorderedReceiptForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
     value = forms.DecimalField(
+        help_text="Total value for all received, not value for each.",
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
@@ -1409,10 +1410,15 @@ class ExpenseEventForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
     value = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    resource = ResourceModelChoiceField(
+        required=False,
+        queryset=EconomicResource.objects.all(), 
+        label="Resource to reference",
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'from_agent', 'description')
+        fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'from_agent', 'resource', 'description')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(ExpenseEventForm, self).__init__(*args, **kwargs)
@@ -1482,6 +1488,13 @@ class MaterialContributionEventForm(forms.ModelForm):
         empty_label=None,
         label=_("Unit"),
         widget=forms.Select(attrs={'class': 'input-medium',}))
+    value = forms.DecimalField(required=False,
+        label="Approximate Value",
+        widget=forms.TextInput(attrs={'value': '0', 'class': 'quantity  input-small'}))
+    unit_of_value = forms.ModelChoiceField(required=False,
+        queryset=Unit.objects.filter(unit_type='value'),
+        label=_("Unit of Value"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
     description = forms.CharField(
         required=False,
         label="Event Description", 
@@ -1514,7 +1527,7 @@ class MaterialContributionEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'quantity', 'resource_type', 'unit_of_quantity', 'description')
+        fields = ('event_date', 'from_agent', 'quantity', 'resource_type', 'unit_of_quantity', 'value', 'unit_of_value', 'description')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(MaterialContributionEventForm, self).__init__(*args, **kwargs)

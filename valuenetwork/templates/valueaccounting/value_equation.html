@@ -29,6 +29,10 @@ th
 #id_equation {
     height: 40px;
 }
+.btn-head {
+    margin-left: 4em;
+    margin-bottom: 3px;
+}
 
 </style>
 
@@ -41,10 +45,8 @@ th
       {% include "_messages.html" %}
 	  <div>
 		<legend>{% trans "Value Time Contributions for " %} {{ project }}
-		{% comment %}
-            <a class="btn btn-info" href="{% url create_distribution %}">{% trans "Distribute Income" %}</a>
-            <a class="report" href="{% url sales_and_distributions agent_id=agent_id %}">{% trans "Sales and Distributions" %}</a>
-		{% endcomment %}
+            <a class="btn btn-info btn-head" href="{% url 'create_distribution' agent_id=project.id %}">{% trans "Distribute Income" %}</a>
+            &nbsp;<a href="{% url 'sales_and_distributions' agent_id=project.id %}">{% trans "Sales and Distributions" %}</a>
 		</legend>
 		<form method="POST" action=".">
 		    {% csrf_token %}

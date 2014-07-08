@@ -56,7 +56,7 @@ li {
     width: 32em;
 }
 .notes {
-    margin-left: 4em;
+    margin-left: 2em;
     padding-right: 2em;
     font-style: italic;
 }
@@ -73,6 +73,16 @@ li {
     height: 100px;
     width: 480px;
 }
+.totals {
+    border: solid 2px firebrick;
+    background-color: oldlace;
+    margin-bottom: 12px;
+    padding-left: 1em;
+}
+.total-top {
+    font-weight: bold;
+    padding-right: 2em;
+}
 
 </style>
 
@@ -86,11 +96,20 @@ li {
 	<div>
 	<legend>
 		<span>{{ exchange }}</span>
+        {% if use_case.identifier == "distribution" %}
+            for {{ exchange.context_agent }}
+        {% endif %}
 	</legend>
 
 	<div class="row-fluid">
 
 	  <div class="span7">
+        <div class="totals">
+            <span class="total-top">{% trans "Money" %}-- </span>
+            <span class="total-top">Total in: {{ total_in }} </span> 
+            <span class="total-top">Total out: {{ total_out }} </span> 
+            <br />
+        </div>
         {% if receipt_events or "receive" in slots %}
           <div class="log-section">
 		    <h3 style="margin-bottom: 4px;" >
@@ -114,8 +133,8 @@ li {
 	        </h3>
             {% if receipt_events %}
 		        {% for event in receipt_events %}
-			        <div>
-				        <span class="event" ><span class="event-label">{% trans "Received" %}: </span> 
+			        <div class="event">
+				        <span ><span class="event-label">{% trans "Received" %}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}
                         </span>
      	                {% if agent == event.from_agent or logger  %}
@@ -186,8 +205,8 @@ li {
 
             {% if expense_events %}
 		        {% for event in expense_events %}
-			        <div>
-				        <span class="event" ><span class="event-label">{% trans "Expensed" %}: </span> 
+			        <div class="event">
+				        <span ><span class="event-label">{% trans "Expensed" %}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
      	                {% if agent == event.from_agent or logger  %}
                             
@@ -232,25 +251,24 @@ li {
           </div>
         {%endif%}
 
-        {% if distribution_events or "distribution" in slots %}
+        {% if distribution_events or "distribute" in slots %}
           <div class="log-section">
             <h3 style="margin-bottom: 4px;" >
-                {% trans "Expense" %}:  
+                {% trans "Distribution" %}:  
                 {% if agent %}
-                    <a href="#expenseModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an expense (no receipt of resource)" >
-                        {% trans "Log an expense" %}
+                    <a href="#distributionModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a distribution of income" >
+                        {% trans "Log a distribution" %}
                     </a>
                 {% endif %}
-                <span class="total">Total: {{ expense_total }}</span>
             </h3>
 
-            {% if expense_events %}
-                {% for event in expense_events %}
-                    <div>
-                        <span class="event" ><span class="event-label">{% trans "Expensed" %}: </span> 
-                            <b>{{ event.value }} {{ event.unit_of_value}}</b> for <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
-                        {% if agent == event.from_agent or logger  %}
-                            
+            {% if distribution_events %}
+                {% for event in distribution_events %}
+                    <div class="event">
+                        <span ><span class="event-label">{% trans "Distributed" %}: </span> 
+                            <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> to <b>{{ event.to_agent }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
+                        {% if agent == event.to_agent or logger  %}
+
                             <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                <i class="icon-edit"></i>
                             </a>
@@ -258,10 +276,10 @@ li {
                             <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                    <h3 id="event-label">{% trans "Change Expense Event" %}</h3>
+                                    <h3 id="event-label">{% trans "Change Distribution Event" %}</h3>
                                 </div>
                                 <div class="modal-body">
-                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_expense_event event_id=event.id %}" method="POST" >
+                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_distribution_event event_id=event.id %}" method="POST" >
                                         {% csrf_token %}
                                         {{ event.changeform|as_bootstrap }}
                                         <input type="hidden" id="next" name="next" value="exchange" />
@@ -306,8 +324,8 @@ li {
             {% if payment_events %}
                 <!--<h4 class="unplanned">{% trans "Payments" %}:</h4>-->
 		        {% for event in payment_events %}
-			        <div>
-				        <span class="event" ><span class="event-label">{% trans "Paid" %}: </span> 
+			        <div class="event">
+				        <span ><span class="event-label">{% trans "Paid" %}: </span> 
 				            <b>{{ event.quantity }} {{ event.unit_of_quantity }}</b> from {{ event.from_agent.nick }} to <b>{{ event.to_agent.nick }}</b> {{ event.event_date }}</span>
      	                {% if agent == event.from_agent or logger  %}
                             
@@ -363,8 +381,8 @@ li {
 	        </h3>
             {% if material_events %}
 		        {% for event in material_events %}
-			        <div>
-				        <span class="event" ><span class="event-label">{% trans "Contributed" %}: </span> 
+			        <div class="event">
+				        <span ><span class="event-label">{% trans "Contributed" %}: </span> 
 				            <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}
                         </span>
      	                {% if logger or event.from_agent = agent  %}
@@ -403,8 +421,8 @@ li {
 	        </h3>
             {% if cash_events %}
 		        {% for event in cash_events %}
-			        <div>
-				        <span class="event" ><span class="event-label">{% trans "Contributed" %}: </span> 
+			        <div class="event">
+				        <span ><span class="event-label">{% trans "Contributed" %}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> from <b>{{ event.from_agent.nick }}</b> {{ event.event_date }}</span>
      	                {% if logger or event.from_agent = agent  %}
 		                    <form
@@ -440,8 +458,8 @@ li {
 
             {% if shipment_events %}
                 {% for event in shipment_events %}
-                    <div>
-                        <span class="event" ><span class="event-label">{% trans "Shipped" %}: </span> 
+                    <div class="event">
+                        <span ><span class="event-label">{% trans "Shipped" %}: </span> 
                         <b>{{ event.quantity }} {{ event.unit_of_quantity }}  {{ event.resource }}</b> from {{ event.from_agent.nick }} 
                         to {{ event.to_agent.nick }} price <b> {{ event.value }} {{ event.unit_of_value }}</b> {{ event.event_date }} </span>
                         {% if agent == event.from_agent or logger  %}
@@ -499,8 +517,8 @@ li {
 
             {% if cash_receipt_events %}
                 {% for event in cash_receipt_events %}
-                    <div>
-                        <span class="event" ><span class="event-label">{% trans "Received" %}: </span> 
+                    <div class="event">
+                        <span ><span class="event-label">{% trans "Received" %}: </span> 
                         <b>{{ event.quantity }} {{ event.unit_of_quantity }}</b> from {{ event.from_agent.nick }} to {{ event.to_agent.nick }} {{ event.event_date }}</span>
                         {% if agent == event.from_agent or logger  %}
                             
@@ -556,8 +574,8 @@ li {
             </h3>
 
             {% for event in work_events %}
-	            <div >
-		            <span class="event" ><span class="event-label">{% trans "Work event" %}: </span><b> {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span></span>
+	            <div class="event" >
+		            <span ><span class="event-label">{% trans "Work event" %}: </span><b> {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span></span>
  	                {% if agent == event.from_agent or logger  %}
                         
 		                <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
@@ -609,6 +627,8 @@ li {
             {% csrf_token %}
             {% if use_case.identifier == 'sale' %}
                 {{ sale_form|as_bootstrap }}
+            {% elif use_case.identifier == 'distribution' %}
+                {{ distribution_form|as_bootstrap }}
             {% else %}
                 {{ exchange_form|as_bootstrap }}
             {% endif %}
@@ -622,6 +642,23 @@ li {
 
 
     {% if logger %} <!-- add modals -->
+
+        <div class="modal hide fade" id="distributionModal" tabindex="-1" role="dialog" aria-labelledby="distribution" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="distribution">{% trans "Log a Distribution" %}</h3>
+            </div>
+            <div class="modal-body">
+                <form class="validateMe" id="distributionForm" enctype="multipart/form-data" action="{% url add_distribution exchange_id=exchange.id %}" method="POST" >
+                    {% csrf_token %}
+                    {{ add_distribution_form|as_bootstrap }}
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                  </div>
+                </form>
+            </div>
+        </div>
 
         <div class="modal hide fade" id="shipmentModal" tabindex="-1" role="dialog" aria-labelledby="shipment" aria-hidden="true">
             <div class="modal-header">

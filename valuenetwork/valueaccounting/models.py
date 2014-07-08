@@ -832,6 +832,7 @@ DIRECTION_CHOICES = (
     ('resource', _('resource contribution')),
     ('receivecash', _('cash receipt')),
     ('shipment', _('shipment')),
+    ('distribute', _('distribution')),
 )
 
 RELATED_CHOICES = (
@@ -1714,7 +1715,7 @@ class ProcessPattern(models.Model):
         rts = self.shipment_resource_types()
         resources = []
         for rt in rts:
-            rt_resources = rt.onhand()
+            rt_resources = rt.all_resources()
             for res in rt_resources:
                 resources.append(res)
         resource_ids = [res.id for res in resources]
@@ -1726,6 +1727,9 @@ class ProcessPattern(models.Model):
     def cash_receipt_resource_types(self):
         return self.resource_types_for_relationship("receivecash")
             
+    def distribution_resource_types(self):
+        return self.resource_types_for_relationship("distribute")
+        
     def facets_for_event_type(self, event_type):
         return self.facets.filter(event_type=event_type)
 
@@ -3905,6 +3909,10 @@ class Exchange(models.Model):
         return self.events.filter(
             event_type__relationship='shipment')
 
+    def distribution_events(self):
+        return self.events.filter(
+            event_type__relationship='distribute')
+            
     def sorted_events(self):
         events = self.events.all().order_by("event_type__name")
         return events

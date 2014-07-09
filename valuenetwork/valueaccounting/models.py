@@ -2255,8 +2255,8 @@ class Order(models.Model):
             if not p.next_processes():
                 roots.append(p)
         ordered_processes = []
-        visited = []
         for root in roots:
+            visited = []
             root.all_previous_processes(ordered_processes, visited, 0)
         ordered_processes = list(set(ordered_processes))
         ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
@@ -3303,6 +3303,16 @@ class Process(models.Model):
                 return ics[0].independent_demand
         return None
 
+    def order_item(self):
+        moc = self.main_outgoing_commitment()
+        if moc:
+            return moc.order_item
+        else:
+            ics = self.incoming_commitments()
+            if ics:
+                return ics[0].order_item
+        return None
+        
     def timeline_title(self):
         #return " ".join([self.name, "Process"])
         return self.name
@@ -3424,20 +3434,19 @@ class Process(models.Model):
         return answer
 
     def all_previous_processes(self, ordered_processes, visited, depth):
-        #todo: needs stages and states
+        #import pdb; pdb.set_trace()
         self.depth = depth * 2
         ordered_processes.append(self)
         output = self.main_outgoing_commitment()
         if not output:
             return []
         depth = depth + 1
-        if output.cycle_id not in visited:
-            visited.append(output.cycle_id)
+        if output.cycle_id() not in visited:
+            visited.append(output.cycle_id())
             for process in self.previous_processes():
                 process.all_previous_processes(ordered_processes, visited, depth)
 
     def next_processes(self):
-        #flow todo: needs order_item to replace independent_demand
         answer = []
         #import pdb; pdb.set_trace()
         input_ids = [ic.cycle_id() for ic in self.incoming_commitments()]
@@ -4657,6 +4666,12 @@ class Commitment(models.Model):
     def update_stage(self, process_type):
         self.stage = process_type
         self.save()
+        
+    def process_chain(self):
+        #import pdb; pdb.set_trace()
+        processes = []
+        self.process.all_previous_processes(processes, [], 0)
+        return processes
     
     
 #todo: not used.

@@ -254,6 +254,10 @@ class OrderTest(WebTest):
         self.assertEqual(len(processes), 4)
         self.assertEqual(len(process1.previous_processes()), 1)
         self.assertEqual(len(process2.previous_processes()), 1)
+        chain = commitment1.process_chain()
+        self.assertEqual(len(chain), 2)
+        chain = commitment2.process_chain()
+        self.assertEqual(len(chain), 2)
         #import pdb; pdb.set_trace()
         
         

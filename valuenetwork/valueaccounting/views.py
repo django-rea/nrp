@@ -2254,6 +2254,7 @@ def cleanup_resources(request):
 @login_required
 def create_order(request):
     patterns = PatternUseCase.objects.filter(use_case__identifier='cust_orders')
+    #import pdb; pdb.set_trace()
     if patterns:
         pattern = patterns[0].pattern
     else:
@@ -2311,6 +2312,8 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             commitment.save()
+                            commitment.order_item = commitment
+                            commitment.save()
                             commitment.generate_producing_process(request.user, [], explode=True)                           
                         else:
                             #todo: this could be wrong (but won't crash)
@@ -2335,6 +2338,8 @@ def create_order(request):
                                 created_by=request.user,
                             )
                             commitment.save()
+                            commitment.order_item = commitment
+                            commitment.save()
                         for ftr in form.features:
                             if ftr.is_valid():
                                 option_id = ftr.cleaned_data["options"]
@@ -2356,6 +2361,8 @@ def create_order(request):
                                     unit_of_quantity=component.unit,
                                     created_by=request.user,
                                 )
+                                commitment.save()
+                                commitment.order_item = commitment
                                 commitment.save()
                                 commitment.generate_producing_process(request.user, [], explode=True) 
 

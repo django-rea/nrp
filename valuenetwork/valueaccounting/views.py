@@ -6196,7 +6196,8 @@ def change_unplanned_payment_event(request, event_id):
                 prefix=str(event.id), 
                 data=request.POST)
             if form.is_valid():
-                data = form.cleaned_data
+                form.save(commit=False)
+                event.unit_of_quantity = event.resource_type.unit
                 form.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
@@ -6234,7 +6235,8 @@ def change_cash_receipt_event(request, event_id):
                 prefix=str(event.id), 
                 data=request.POST)
             if form.is_valid():
-                data = form.cleaned_data
+                form.save(commit=False)
+                event.unit_of_quantity = event.resource_type.unit
                 form.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
@@ -6288,7 +6290,8 @@ def change_distribution_event(request, event_id):
                 prefix=str(event.id), 
                 data=request.POST)
             if form.is_valid():
-                data = form.cleaned_data
+                form.save(commit=False)
+                event.unit_of_quantity = event.resource_type.unit
                 form.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))

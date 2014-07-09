@@ -79,6 +79,7 @@
 
             <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>
             <a class="indent" href="{% url all_contributions %}">{% trans "All contributions" %}</a>
+            <a class="indent" href="{% url sales_and_distributions %}">{% trans "All sales and distributions" %}</a>
             <a class="indent" href="{% url project_network %}">{% trans "Network diagram" %}</a>
                 
         </legend>
@@ -101,6 +102,7 @@
                     {% if node.wip %}
                         <a class="indent" href="{% url project_wip project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
                     {% endif %}
+                    <a class="indent" href="{% url sales_and_distributions agent_id=node.id %}">{% trans "Sales and Distributions" %}: {{ node.sales_and_distributions_count }}</a>
                     <a class="indent" href="{% url value_equation project_id=node.id %}"><b>{% trans "Value Equation" %}</b></a>
                     {% if node.description %}
                         <div class="description" >{{ node.description|urlize|linebreaks }}</div>

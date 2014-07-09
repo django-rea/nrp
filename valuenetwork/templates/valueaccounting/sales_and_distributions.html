@@ -35,7 +35,7 @@
     <div class="container">
         {% include "_messages.html" %}
 		<legend>{% trans "Sales and Distributions" %}
-            {% if agent %} for {{ agent.name }} {% endif %}
+            {% if agent %} for {{ agent.agent_type }} {{ agent.name }} {% endif %}
         </legend>
 
         <div class="span8">

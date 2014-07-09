@@ -8043,6 +8043,7 @@ def exchanges(request):
 
 def sales_and_distributions(request, agent_id=None):
     #import pdb; pdb.set_trace()
+    agent = None
     if agent_id:
         agent = EconomicAgent.objects.get(pk=agent_id)
     end = datetime.date.today()
@@ -8126,6 +8127,7 @@ def sales_and_distributions(request, agent_id=None):
         "selected_values": selected_values,
         "references": references,
         "event_ids": event_ids,
+        "agent": agent,
     }, context_instance=RequestContext(request))
     
 def exchange_events_csv(request):

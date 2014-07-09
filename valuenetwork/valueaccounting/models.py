@@ -524,6 +524,9 @@ class EconomicAgent(models.Model):
                 aa = AgentAccount(self, et, count, quantity, events)
                 answer.append(aa)
         return answer
+        
+    def sales_and_distributions_count(self):
+        return Exchange.objects.sales_and_distributions().filter(context_agent=self).count()
                
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association

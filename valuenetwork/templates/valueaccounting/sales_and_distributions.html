@@ -34,7 +34,9 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-		<legend>{% trans "Sales and Distributions" %}</legend>
+		<legend>{% trans "Sales and Distributions" %}
+            {% if agent %} for {{ agent.agent_type }} {{ agent.name }} {% endif %}
+        </legend>
 
         <div class="span8">
           <div class="totals">

@@ -3328,9 +3328,9 @@ class Process(models.Model):
     def is_orphan(self):
         #todo: if agents on graph, stop excluding work
         answer = True
-        if self.commitments.exclude(event_type__relationship='work').count():
+        if self.commitments.exclude(event_type__relationship='work'):
             answer = False
-        if self.events.exclude(event_type__relationship='work').count():
+        if self.events.all():
             answer = False
         return answer
 
@@ -3400,7 +3400,6 @@ class Process(models.Model):
             return None
 
     def previous_processes(self):
-        #flow todo: needs order_item to replace independent_demand
         answer = []
         dmnd = None
         moc = self.main_outgoing_commitment()
@@ -3688,10 +3687,10 @@ class Process(models.Model):
                 stage = self.process_type
             else:
                 stage = None
-                #flow todo: add order_item
             ct = self.add_commitment(
                 resource_type=next_commitment.resource_type, 
                 demand=next_commitment.independent_demand,
+                order_item=next_commitment.order_item,
                 quantity=next_commitment.quantity, 
                 event_type=et,
                 unit=next_commitment.unit_of_quantity, 
@@ -3734,6 +3733,7 @@ class Process(models.Model):
             )
             #cycles broken here
             #flow todo: consider order_item for non-substitutables?
+            # seemed to work without doing that...?
             #import pdb; pdb.set_trace()
             visited_id = ptrt.cycle_id()
             if visited_id not in visited:
@@ -4598,7 +4598,6 @@ class Commitment(models.Model):
                 process.save()
                 self.process=process
                 self.save()
-                #flow todo: add order_item
                 if explode:
                     process.explode_demands(demand, user, visited)
         return process
@@ -4672,6 +4671,16 @@ class Commitment(models.Model):
         processes = []
         self.process.all_previous_processes(processes, [], 0)
         return processes
+        
+    def find_order_item(self):
+        answer = None
+        if self.independent_demand:
+            ois = self.independent_demand.order_items()
+            if ois:
+                if ois.count() == 1:
+                    return ois[0]
+                else:
+                    return ois
     
     
 #todo: not used.

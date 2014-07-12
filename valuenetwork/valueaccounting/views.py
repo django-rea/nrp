@@ -3852,7 +3852,7 @@ def add_cash_receipt(request, exchange_id):
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
-        form = CashReceiptForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='cr')
+        form = CashReceiptForm(data=request.POST, pattern=pattern, context_agent=context_agent, posting=True, prefix='cr')
         if form.is_valid():
             payment_data = form.cleaned_data
             qty = payment_data["quantity"] 
@@ -3866,6 +3866,47 @@ def add_cash_receipt(request, exchange_id):
                 event.unit_of_quantity = rt.unit
                 event.is_contribution = False
                 event.created_by = request.user
+                event.save()
+                resource = event.resource
+                if resource:
+                    resource.quantity = resource.quantity + qty
+                    resource.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+@login_required
+def add_cash_receipt_resource(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        context_agent = exchange.context_agent
+        form = CashReceiptResourceForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='crr')
+        if form.is_valid():
+            payment_data = form.cleaned_data
+            qty = payment_data["quantity"] 
+            if qty:
+                event = form.save(commit=False)
+                rt = payment_data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("receivecash", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.context_agent = exchange.context_agent
+                event.unit_of_quantity = rt.unit
+                event.is_contribution = False
+                event.created_by = request.user
+                resource = EconomicResource(
+                    identifier=payment_data["identifier"],
+                    resource_type=rt,
+                    quantity=qty,
+                    unit_of_quantity=event.unit_of_quantity,
+                    notes=payment_data["notes"],
+                    current_location=payment_data["current_location"],
+                    created_by=request.user
+                    )
+                resource.save()
+                event.resource = resource
                 event.save()
                 
     return HttpResponseRedirect('/%s/%s/'
@@ -6225,19 +6266,41 @@ def change_receipt_event(request, event_id):
 def change_cash_receipt_event(request, event_id):
     #import pdb; pdb.set_trace()
     event = get_object_or_404(EconomicEvent, id=event_id)
+    old_resource = event.resource
+    old_qty = event.quantity
     exchange = event.exchange
     pattern = exchange.process_pattern
     if pattern:
         if request.method == "POST":
             form = CashReceiptForm(
                 pattern=pattern,
-                instance=event, 
+                instance=event,
+                posting=True,
                 prefix=str(event.id), 
                 data=request.POST)
             if form.is_valid():
                 form.save(commit=False)
                 event.unit_of_quantity = event.resource_type.unit
                 form.save()
+                #import pdb; pdb.set_trace()
+                if event.resource:
+                    resource = event.resource
+                    if old_resource:
+                        if resource != old_resource:
+                            old_resource.quantity = old_resource.quantity - old_qty
+                            old_resource.save()
+                            resource.quantity = resource.quantity + event.quantity
+                        else:
+                            changed_qty = event.quantity - old_qty
+                            if changed_qty != 0:
+                                resource.quantity = resource.quantity + changed_qty
+                    else:
+                        resource.quantity = resource.quantity + event.quantity
+                    resource.save()
+                else:
+                    if old_resource:
+                        old_resource.quantity = old_resource.quantity - old_qty
+                        old_resource.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
@@ -6272,7 +6335,6 @@ def change_shipment_event(request, event_id):
                     if resource.quantity < 0:
                         resource.quantity = 0
                     resource.save()
-
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
@@ -8197,6 +8259,7 @@ def exchange_logging(request, exchange_id):
     add_cash_form = None
     add_work_form = None
     add_cash_receipt_form = None
+    add_cash_receipt_resource_form = None
     add_shipment_form = None
     add_distribution_form = None
     create_material_role_formset = None
@@ -8261,6 +8324,7 @@ def exchange_logging(request, exchange_id):
                 prefix=str(event.id))
         for event in cash_receipt_events:
             total_in = total_in + event.quantity
+            #import pdb; pdb.set_trace()
             event.changeform = CashReceiptForm(
                 pattern=pattern,
                 context_agent=context_agent,
@@ -8347,6 +8411,7 @@ def exchange_logging(request, exchange_id):
                 "to_agent": context_agent,
             }      
             add_cash_receipt_form = CashReceiptForm(prefix='cr', initial=cr_init, pattern=pattern, context_agent=context_agent)
+            add_cash_receipt_resource_form = CashReceiptResourceForm(prefix='crr', initial=cr_init, pattern=pattern, context_agent=context_agent)
         if "shipment" in slots:
             #import pdb; pdb.set_trace()
             ship_init = {
@@ -8408,6 +8473,7 @@ def exchange_logging(request, exchange_id):
         "add_material_form": add_material_form,
         "add_cash_form": add_cash_form,
         "add_cash_receipt_form": add_cash_receipt_form,
+        "add_cash_receipt_resource_form": add_cash_receipt_resource_form,
         "add_shipment_form": add_shipment_form,
         "add_distribution_form": add_distribution_form,
         "add_work_form": add_work_form,

@@ -1514,7 +1514,12 @@ class CashContributionEventForm(forms.ModelForm):
         label="Unit",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
+            attrs={'class': 'resource-type-for-resource chzn-select'}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Cash resource account or earmark to increase",
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))  
     from_agent = forms.ModelChoiceField(
         required=False,
         queryset=EconomicAgent.objects.all(),
@@ -1528,10 +1533,63 @@ class CashContributionEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'value', 'resource_type', 'resource', 'description', 'is_contribution')
+
+    def __init__(self, pattern=None, context_agent=None, posting=False, *args, **kwargs):
+        super(CashContributionEventForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            rts = pattern.cash_contr_resource_types()
+            self.fields["resource_type"].queryset = rts
+            if posting:
+                self.fields["resource"].queryset = EconomicResource.objects.all()
+            else:
+                if rts:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["from_agent"].queryset = context_agent.all_members()          
+
+class CashContributionResourceEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    value = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        label="Unit",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.all(),
+        label="Contributor",
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    identifier = forms.CharField(
+        required=False, 
+        label="<b>Create the resource:</b><br><br>Identifier",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    current_location = forms.ModelChoiceField(
+        queryset=Location.objects.all(), 
+        required=False,
+        label=_("Current Resource Location"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    notes = forms.CharField(
+        required=False,
+        label="Resource Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = EconomicEvent
         fields = ('event_date', 'from_agent', 'value', 'resource_type', 'description', 'is_contribution')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
-        super(CashContributionEventForm, self).__init__(*args, **kwargs)
+        super(CashContributionResourceEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             #import pdb; pdb.set_trace()
@@ -1539,7 +1597,7 @@ class CashContributionEventForm(forms.ModelForm):
         if context_agent:
             self.context_agent = context_agent
             self.fields["from_agent"].queryset = context_agent.all_members()
-
+            
 class MaterialContributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     from_agent = forms.ModelChoiceField(

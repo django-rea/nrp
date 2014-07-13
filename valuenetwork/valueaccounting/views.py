@@ -3799,7 +3799,7 @@ def add_cash_contribution(request, exchange_id):
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
-        form = CashContributionEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='cash')
+        form = CashContributionEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, posting=True, prefix='cash')
         if form.is_valid():
             cash_data = form.cleaned_data
             value = cash_data["value"] 
@@ -3811,11 +3811,53 @@ def add_cash_contribution(request, exchange_id):
                 event.exchange = exchange
                 event.context_agent = context_agent
                 event.to_agent = event.default_agent()
-                event.quantity = 1
+                event.quantity = value
+                event.unit_of_quantity = rt.unit
                 event.unit_of_value = rt.unit
                 event.created_by = request.user
                 event.save()
-                
+                resource = event.resource
+                if resource:
+                    resource.quantity = resource.quantity + value
+                    resource.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+@login_required
+def add_cash_resource_contribution(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        context_agent = exchange.context_agent
+        form = CashContributionResourceEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='cashres')
+        if form.is_valid():
+            cash_data = form.cleaned_data
+            value = cash_data["value"] 
+            if value:
+                event = form.save(commit=False)
+                rt = cash_data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("cash", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.context_agent = context_agent
+                event.to_agent = event.default_agent()
+                event.quantity = value
+                event.unit_of_quantity = rt.unit
+                event.unit_of_value = rt.unit
+                event.created_by = request.user
+                resource = EconomicResource(
+                    identifier=cash_data["identifier"],
+                    resource_type=rt,
+                    quantity=value,
+                    unit_of_quantity=event.unit_of_value,
+                    notes=cash_data["notes"],
+                    current_location=cash_data["current_location"],
+                    created_by=request.user
+                    )
+                resource.save()
+                event.resource = resource
+                event.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
@@ -8257,6 +8299,7 @@ def exchange_logging(request, exchange_id):
     add_expense_form = None
     add_material_form = None
     add_cash_form = None
+    add_cash_resource_form = None
     add_work_form = None
     add_cash_receipt_form = None
     add_cash_receipt_resource_form = None
@@ -8396,6 +8439,7 @@ def exchange_logging(request, exchange_id):
                 "from_agent": agent
             }      
             add_cash_form = CashContributionEventForm(prefix='cash', initial=cash_init, pattern=pattern, context_agent=context_agent)
+            add_cash_resource_form = CashContributionResourceEventForm(prefix='cashres', initial=cash_init, pattern=pattern, context_agent=context_agent)
         if "resource" in slots:
             matl_init = {
                 "event_date": exchange.start_date,
@@ -8472,6 +8516,7 @@ def exchange_logging(request, exchange_id):
         "add_expense_form": add_expense_form,
         "add_material_form": add_material_form,
         "add_cash_form": add_cash_form,
+        "add_cash_resource_form": add_cash_resource_form,
         "add_cash_receipt_form": add_cash_receipt_form,
         "add_cash_receipt_resource_form": add_cash_receipt_resource_form,
         "add_shipment_form": add_shipment_form,

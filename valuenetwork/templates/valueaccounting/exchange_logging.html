@@ -416,6 +416,9 @@ li {
 	                <a href="#addCashModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log receipt of a cash contribution" >
 		                {% trans "Log a cash contribution" %}
 	                </a>
+                    <a href="#addCashResourceModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log receipt of a cash contribution and a new cash resource" >
+                        {% trans "Log a cash contribution to new account" %}
+                    </a>
 	             {% endif %}
 	        </h3>
             {% if cash_events %}
@@ -818,6 +821,23 @@ li {
                 <form class="validateMe" id="cashForm" enctype="multipart/form-data" action="{% url add_cash_contribution exchange_id=exchange.id %}" method="POST" >
                     {% csrf_token %}
                     {{ add_cash_form|as_bootstrap }}
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                  </div>
+                </form>
+            </div>
+        </div>
+    
+        <div class="modal hide fade" id="addCashResourceModal" tabindex="-1" role="dialog" aria-labelledby="cash-resource-label" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="cash-resource-label">{% trans "Add Cash Contribution to New Account" %}</h3>
+            </div>
+            <div class="modal-body">
+                <form class="validateMe" id="cashResourceForm" enctype="multipart/form-data" action="{% url add_cash_resource_contribution exchange_id=exchange.id %}" method="POST" >
+                    {% csrf_token %}
+                    {{ add_cash_resource_form|as_bootstrap }}
                   <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                     <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />

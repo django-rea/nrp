@@ -3868,7 +3868,7 @@ def add_unplanned_payment(request, exchange_id):
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
-        form = PaymentEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='pay')
+        form = PaymentEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, posting=True, prefix='pay')
         if form.is_valid():
             payment_data = form.cleaned_data
             qty = payment_data["quantity"] 
@@ -3883,7 +3883,10 @@ def add_unplanned_payment(request, exchange_id):
                 event.is_contribution = True
                 event.created_by = request.user
                 event.save()
-                
+                resource = event.resource
+                if resource:
+                    resource.quantity = resource.quantity - qty
+                    resource.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
@@ -6272,6 +6275,8 @@ def change_exchange_work_event(request, event_id):
 @login_required
 def change_unplanned_payment_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
+    old_resource = event.resource
+    old_qty = event.quantity
     exchange = event.exchange
     pattern = exchange.process_pattern
     if pattern:
@@ -6279,13 +6284,33 @@ def change_unplanned_payment_event(request, event_id):
         if request.method == "POST":
             form = PaymentEventForm(
                 pattern=pattern,
-                instance=event, 
+                instance=event,
+                posting=True,
                 prefix=str(event.id), 
                 data=request.POST)
             if form.is_valid():
                 form.save(commit=False)
                 event.unit_of_quantity = event.resource_type.unit
                 form.save()
+                #import pdb; pdb.set_trace()
+                if event.resource:
+                    resource = event.resource
+                    if old_resource:
+                        if resource != old_resource:
+                            old_resource.quantity = old_resource.quantity + old_qty
+                            old_resource.save()
+                            resource.quantity = resource.quantity - event.quantity
+                        else:
+                            changed_qty = event.quantity - old_qty
+                            if changed_qty != 0:
+                                resource.quantity = resource.quantity - changed_qty
+                    else:
+                        resource.quantity = resource.quantity - event.quantity
+                    resource.save()
+                else:
+                    if old_resource:
+                        old_resource.quantity = old_resource.quantity + old_qty
+                        old_resource.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 

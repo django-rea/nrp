@@ -1254,20 +1254,38 @@ class PaymentEventForm(forms.ModelForm):
         label="Unit of payment",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
+            attrs={'class': 'resource-type-for-resource chzn-select'}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Cash resource account or earmark to decrease",
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',})) 
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'to_agent', 'from_agent', 'quantity', 'resource_type', 'description')
+        fields = ('event_date', 'to_agent', 'from_agent', 'quantity', 'resource_type', 'resource', 'description')
 
-    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
+    def __init__(self, pattern=None, context_agent=None, posting=False, *args, **kwargs):
         super(PaymentEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.payment_resource_types()
+            rts = pattern.payment_resource_types()
+            self.fields["resource_type"].queryset = rts
+            if posting:
+                self.fields["resource"].queryset = EconomicResource.objects.all()
+            else:
+                if rts:
+                    if self.instance.id:
+                        rt = self.instance.resource_type
+                        if rt:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
+                        else:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                    else:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
         if context_agent:
             self.context_agent = context_agent
             self.fields["to_agent"].queryset = context_agent.all_suppliers()

@@ -1408,20 +1408,38 @@ class DistributionEventForm(forms.ModelForm):
         label="Unit",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
+            attrs={'class': 'resource-type-for-resource chzn-select'}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Cash resource account or earmark to decrease",
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'description')
+        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'resource', 'description')
 
-    def __init__(self, pattern=None, *args, **kwargs):
+    def __init__(self, pattern=None, posting=False, *args, **kwargs):
         super(DistributionEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.distribution_resource_types()
+            rts = pattern.distribution_resource_types()
+            self.fields["resource_type"].queryset = rts
+            if posting:
+                self.fields["resource"].queryset = EconomicResource.objects.all()
+            else:
+                if rts:
+                    if self.instance.id:
+                        rt = self.instance.resource_type
+                        if rt:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
+                        else:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                    else:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
 
 class ShipmentForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

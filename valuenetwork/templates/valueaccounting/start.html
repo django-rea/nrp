@@ -438,8 +438,8 @@ th, td {
 																		<b>{% trans "Onhand" %}:</b> {{ resource.quantity }} {{ resource.unit_of_quantity }}
 																	</p>
 																{% endfor %}
-															{% elif reqmt.resource_type.active_producing_commitments %}
-																{% for ct in reqmt.resource_type.active_producing_commitments %}
+															{% elif reqmt.associated_producing_commitments %}
+																{% for ct in reqmt.associated_producing_commitments %}
 																	<p style="margin-left: 2em;">
 																		<b>{% trans "Scheduled" %}:</b> {{ ct.quantity }} {{ ct.unit_of_quantity }} {{ ct.due_date }}
 																	</p>

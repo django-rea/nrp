@@ -565,10 +565,10 @@ def backschedule_process(order, process, events):
         )
         events['events'].append(te.dictify())
         resource_type = ic.resource_type
-        pcs = resource_type.producing_commitments()
+        pcs = ic.associated_producing_commitments()
         if pcs:
             for pc in pcs:
-                if pc.independent_demand == order:
+                if pc.order_item == ic.order_item:
                     te = TimelineEvent(
                         pc,
                         pc.due_date,

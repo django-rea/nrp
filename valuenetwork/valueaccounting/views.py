@@ -2004,20 +2004,8 @@ def timeline(request):
     }, context_instance=RequestContext(request))
 
 def json_timeline(request):
-    #data = "{ 'wiki-url':'http://simile.mit.edu/shelf/', 'wiki-section':'Simile JFK Timeline', 'dateTimeFormat': 'Gregorian','events': [{'start':'May 28 2006 09:00:00 GMT-0600','title': 'Writing Timeline documentation','link':'http://google.com','description':'Write some doc already','durationEvent':false }, {'start': 'Jun 16 2006 00:00:00 GMT-0600' ,'end':  'Jun 26 2006 00:00:00 GMT-0600' ,'durationEvent':true,'title':'Friends wedding'}]}"
-    #import pdb; pdb.set_trace()
-    #orders = Order.objects.all()
-    #processes = []
-    #for order in orders:
-    #    for commitment in order.producing_commitments():
-    #        processes.append(commitment.process)
     events = {'dateTimeFormat': 'Gregorian','events':[]}
-    #for process in processes:
-    #    backschedule_events(process, events)
-    #for order in orders:
-    #    backschedule_order(order, events)
     orders = Order.objects.all()
-    #processes = Process.objects.all()
     processes = Process.objects.unfinished()
     create_events(orders, processes, events)
     data = simplejson.dumps(events, ensure_ascii=False)
@@ -2347,7 +2335,7 @@ def create_order(request):
 
 #todo: s/b refactored in a commitment method
 #flow todo: shd order_item be used here?
-#I think not.
+#I think not. Used only in delete_order_confirmation.
 def schedule_commitment(
         commitment, 
         schedule, 
@@ -2375,7 +2363,7 @@ def schedule_commitment(
             resource_type = inp.resource_type
             if resource_type not in visited_resources:
                 #visited_resources.add(resource_type)
-                pcs = resource_type.producing_commitments()
+                pcs = inp.associated_producing_commitments()
                 if pcs:
                     for pc in pcs:
                         if pc.independent_demand == order:
@@ -6655,46 +6643,6 @@ def change_process(request, process_id):
                         if ct_from_id:
                             old_ct = Commitment.objects.get(id=ct_from_id.id)
                             explode = handle_commitment_changes(old_ct, ct.resource_type, qty, existing_demand, demand)
-                            """
-                            producers = ct.resource_type.producing_commitments()
-                            propagators = []
-                            
-                            old_rt = old_ct.resource_type
-                            explode = True
-                            for pc in producers:
-                                #flow todo: shd this be order_item?
-                                if demand:
-                                    if pc.independent_demand == demand:
-                                        propagators.append(pc) 
-                                        explode = False
-                                    elif pc.independent_demand == existing_demand:
-                                        propagators.append(pc) 
-                                        explode = False
-                                else:
-                                    if pc.due_date == process.start_date:
-                                        if pc.quantity == old_ct.quantity:
-                                            propagators.append(pc)
-                                            explode = False 
-                            if ct.resource_type != old_rt:
-                                for ex_ct in old_ct.associated_producing_commitments():
-                                    if ct.order_item == ex_ct.order_item:
-                                        ex_ct.delete_dependants()
-                                old_ct.delete()
-                                explode = True                                 
-                            elif qty != old_ct.quantity:
-                                delta = qty - old_ct.quantity
-                                for pc in propagators:
-                                    if demand != existing_demand:
-                                        propagate_changes(pc, delta, existing_demand, demand, [])
-                                    else:
-                                        propagate_qty_change(pc, delta, []) 
-                            else:
-                                if demand != existing_demand:
-                                    #this is because we are just changing the order
-                                    delta = Decimal("0")
-                                    for pc in propagators:
-                                        propagate_changes(pc, delta, existing_demand, demand, []) 
-                            """
                             ct.changed_by = request.user
                             rt = input_data["resource_type"]
                             event_type = pattern.event_type_for_resource_type("consume", rt)
@@ -6870,22 +6818,20 @@ def propagate_qty_change(commitment, delta, visited):
 def propagate_changes(commitment, delta, old_demand, new_demand, visited):
     #import pdb; pdb.set_trace()
     process = commitment.process
+    order_item = commitment.order_item
     if process not in visited:
         visited.append(process)
         for ic in process.incoming_commitments():
             ratio = ic.quantity / commitment.quantity 
             new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
             ic.quantity += new_delta
-            #flow todo: shd be order_item
-            ic.independent_demand = new_demand
+            ic.order_item = order_item
             ic.save()
             rt = ic.resource_type
-            demand = ic.independent_demand
-            for pc in rt.producing_commitments():
-                if pc.independent_demand == old_demand:
+            for pc in ic.associated_producing_commitments():
+                if pc.order_item == order_item:
                     propagate_changes(pc, new_delta, old_demand, new_demand, visited)
     commitment.quantity += delta
-    #flow todo: add order_item
     commitment.independent_demand = new_demand
     commitment.save()    
 

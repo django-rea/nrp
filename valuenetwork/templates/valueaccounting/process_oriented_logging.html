@@ -252,9 +252,9 @@ li {
 			        {% elif changeable_requirement %}
                         <div>
                             {{ to_be_changed_requirement.resource_type.name }}@{{ to_be_changed_requirement.stage }} change to: @{{ changeable_requirement.stage }}
-                            {% if to_be_changed_requirement.ready_resource %}
+                            {% if to_be_changed_requirement.resource_ready_to_be_changed %}
                                 {% if logger %}
-                                    {% with to_be_changed_requirement.ready_resource as resource %}
+                                    {% with to_be_changed_requirement.resource_ready_to_be_changed as resource %}
                                         <div>
                                             {% trans "Resource" %}: <a href="{% url resource resource_id=resource.id  %}">{{ resource }}</a>
                                             <form

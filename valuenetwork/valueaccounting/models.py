@@ -84,7 +84,35 @@ def _slug_strip(value, separator=None):
         value = re.sub('%s+' % re_sep, separator, value)
     return re.sub(r'^%s+|%s+$' % (re_sep, re_sep), '', value)
 
+def collect_trash(commitment, trash):
+    # this method works for output commitments
+    # collect_lower_trash works for inputs
+    #import pdb; pdb.set_trace()
+    order_item = commitment.order_item
+    process = commitment.process
+    if process:
+        if process in trash:
+            return trash
+        trash.append(process)
+        for inp in process.incoming_commitments():
+            pcs = inp.associated_producing_commitments()
+            if pcs:
+                for pc in pcs:
+                    if pc.order_item == order_item:
+                        collect_trash(pc, trash)
+    return trash
 
+def collect_lower_trash(commitment, trash):
+    # this method works for input commitments
+    # collect_trash works for outputs
+    order_item = commitment.order_item
+    pcs = commitment.associated_producing_commitments()
+    if pcs:
+        for pc in pcs:
+            if pc.order_item == order_item:
+                collect_trash(pc, trash)
+    return trash
+    
 #class Stage(models.Model):
 #    name = models.CharField(_('name'), max_length=32)
 #    sequence = models.IntegerField(_('sequence'), default=0)
@@ -557,14 +585,15 @@ class EconomicAgent(models.Model):
         return self.active_processes()
         
     def get_resource_types_with_recipe(self):
-        rts = [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self)]
+        rts = [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self) if pt.main_produced_resource_type()]
+        #import pdb; pdb.set_trace()
         parents = []
         parent = self.parent()
         while parent:
             parents.append(parent)
             parent = parent.parent()
         for p in parents:
-            rts.extend([pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=p)])
+            rts.extend([pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=p) if pt.main_produced_resource_type()])
         return list(set(rts))
                 
     #from here are new methods for context agent code
@@ -3728,7 +3757,7 @@ class Process(models.Model):
                 state=ptrt.state,
                 quantity=qty,
                 event_type=ptrt.event_type,
-                unit=ptrt.resource_type.unit,
+                unit=ptrt.resource_type.directional_unit(ptrt.event_type.relationship),
                 user=user,
             )
             #cycles broken here
@@ -3769,6 +3798,7 @@ class Process(models.Model):
                             qty = output.quantity
                         else:
                             qty = qty_to_explode * pptr.quantity
+                        #print "is this an output commitment?", pptr.resource_type, pptr.event_type.relationship
                         next_commitment = next_process.add_commitment(
                             resource_type=pptr.resource_type,
                             stage=pptr.stage,
@@ -4429,14 +4459,14 @@ class Commitment(models.Model):
         qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
             
-    def ready_resource(self):
+    def resource_ready_to_be_changed(self):
         resource = None
         if self.event_type.stage_to_be_changed():
             if not self.resource_type.substitutable:
                 resource = EconomicResource.objects.filter(
                     resource_type=self.resource_type,
                     stage=self.stage,
-                    independent_demand=self.independent_demand)
+                    order_item=self.order_item)
                 if resource:
                     resource = resource[0]
         return resource
@@ -4457,6 +4487,16 @@ class Commitment(models.Model):
         else:
             return True
 
+    def delete_dependants(self):
+        trash = []
+        if self.event_type.relationship == "out":
+            collect_trash(self, trash)
+        else:
+            collect_lower_trash(self, trash)
+        for proc in trash:
+            if proc.outgoing_commitments().count() <= 1:
+                proc.delete()
+            
     def fulfilling_events_from_agent(self, agent):
         return self.fulfillment_events.filter(from_agent=agent)
 
@@ -4489,7 +4529,6 @@ class Commitment(models.Model):
         rt = self.resource_type
         resources = EconomicResource.goods.filter(resource_type=self.resource_type)
         if not rt.substitutable:
-            #resources = resources.filter(independent_demand=self.independent_demand)
             resources = resources.filter(order_item=self.order_item)
         for resource in resources:
             if resource.quantity > 0:
@@ -4528,8 +4567,10 @@ class Commitment(models.Model):
     def net(self):
         #import pdb; pdb.set_trace()
         rt = self.resource_type
+        #if rt.id == 68:
+        #    import pdb; pdb.set_trace()
         if not rt.substitutable:
-            #todo: or, get resources where r.order == self.independent_demand
+            #todo: or, get resources where r.order_item == self.order_item
             #in rt.ohqfc?
             #or not rt.substitutable means will never be netted anyway so don't bother?
             return self.quantity
@@ -4580,7 +4621,6 @@ class Commitment(models.Model):
         process=None
         if qty_required:  
             ptrt = rt.main_producing_process_type_relationship(stage=self.stage, state=self.state)
-            demand = self.independent_demand
             if ptrt:
                 pt = ptrt.process_type
                 start_date = self.due_date - datetime.timedelta(minutes=pt.estimated_duration)
@@ -4599,6 +4639,7 @@ class Commitment(models.Model):
                 self.process=process
                 self.save()
                 if explode:
+                    demand = self.independent_demand
                     process.explode_demands(demand, user, visited)
         return process
 
@@ -4639,11 +4680,11 @@ class Commitment(models.Model):
         wanters = self.resource_type.wanting_commitments().exclude(id=self.id)
         if self.stage:
             wanters = wanters.filter(stage=self.stage)
-        return [ct for ct in wanters if ct.independent_demand == self.independent_demand]
+        return [ct for ct in wanters if ct.order_item == self.order_item]
 
     def associated_producing_commitments(self):
         producers = self.resource_type.producing_commitments().exclude(id=self.id)
-        return [ct for ct in producers if ct.independent_demand == self.independent_demand]
+        return [ct for ct in producers if ct.order_item == self.order_item]
 
     def scheduled_receipts(self):
         rt = self.resource_type
@@ -4673,6 +4714,7 @@ class Commitment(models.Model):
         return processes
         
     def find_order_item(self):
+        #this is a temporary method for data migration after the flows branch is deployed
         answer = None
         if self.independent_demand:
             ois = self.independent_demand.order_items()

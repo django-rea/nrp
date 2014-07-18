@@ -552,6 +552,9 @@ class EconomicAgent(models.Model):
                 aa = AgentAccount(self, et, count, quantity, events)
                 answer.append(aa)
         return answer
+        
+    def sales_and_distributions_count(self):
+        return Exchange.objects.sales_and_distributions().filter(context_agent=self).count()
                
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
@@ -615,7 +618,7 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         parents = EconomicAgent.objects.filter(pk__in=parent_ids)
         return parents
-        
+                
     def children(self): #returns a list or None
         associations = self.has_associates.filter(association_type__identifier="child").filter(state="active")
         children = None
@@ -727,13 +730,24 @@ class EconomicAgent(models.Model):
         return EconomicAgent.objects.filter(pk__in=cust_ids)
                 
     def all_members(self): 
+        mems = self.all_members_list()
+        mem_ids = [mem.id for mem in mems]
+        return EconomicAgent.objects.filter(pk__in=mem_ids)
+        
+    def all_members_list(self):
         mems = list(self.members())
         parent = self.parent()
         while parent:
             mems.extend(parent.members())
             parent = parent.parent()
-        mem_ids = [mem.id for mem in mems]
-        return EconomicAgent.objects.filter(pk__in=mem_ids)
+        return mems
+        
+    def all_ancestors_and_members(self):
+        #import pdb; pdb.set_trace()
+        agent_list = list(self.all_ancestors())
+        agent_list.extend(self.all_members_list())
+        agent_ids = [agent.id for agent in agent_list]
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def all_has_associates(self):
         return self.has_associates.all().order_by('association_type__name', 'is_associate__nick')
@@ -861,6 +875,7 @@ DIRECTION_CHOICES = (
     ('resource', _('resource contribution')),
     ('receivecash', _('cash receipt')),
     ('shipment', _('shipment')),
+    ('distribute', _('distribution')),
 )
 
 RELATED_CHOICES = (
@@ -1795,7 +1810,7 @@ class ProcessPattern(models.Model):
         rts = self.shipment_resource_types()
         resources = []
         for rt in rts:
-            rt_resources = rt.onhand()
+            rt_resources = rt.all_resources()
             for res in rt_resources:
                 resources.append(res)
         resource_ids = [res.id for res in resources]
@@ -1807,6 +1822,9 @@ class ProcessPattern(models.Model):
     def cash_receipt_resource_types(self):
         return self.resource_types_for_relationship("receivecash")
             
+    def distribution_resource_types(self):
+        return self.resource_types_for_relationship("distribute")
+        
     def facets_for_event_type(self, event_type):
         return self.facets.filter(event_type=event_type)
 
@@ -4008,6 +4026,10 @@ class Exchange(models.Model):
         return self.events.filter(
             event_type__relationship='shipment')
 
+    def distribution_events(self):
+        return self.events.filter(
+            event_type__relationship='distribute')
+            
     def sorted_events(self):
         events = self.events.all().order_by("event_type__name")
         return events

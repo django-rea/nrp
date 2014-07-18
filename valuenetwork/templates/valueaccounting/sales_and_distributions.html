@@ -2,7 +2,7 @@
 
 {% load i18n %}
 
-{% block head_title %}{% trans "Exchanges" %}{% endblock %}
+{% block head_title %}{% trans "Sales and Distributions" %}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
@@ -34,14 +34,15 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-		<legend>{% trans "Financial Contributions" %}</legend>
+		<legend>{% trans "Sales and Distributions" %}
+            {% if agent %} for {{ agent.agent_type }} {{ agent.name }} {% endif %}
+        </legend>
 
         <div class="span8">
           <div class="totals">
-            <span class="total">Payment total: {{ total_payments }} </span> 
-            <span class="total">Receipt total: {{ total_receipts }} </span> 
-            <span class="total">Expense total: {{ total_expenses }} </span>
-            <span class="total">Cash contribution total: {{ total_cash }} </span>
+            <span class="total">Cash Receipts total: {{ total_cash_receipts }} </span> 
+            <span class="total">Shipments total: {{ total_shipments }} </span> 
+            <span class="total">Distributions total: {{ total_distributions }} </span> 
             <br />
             * Note these totals are valid only if the events selected all use the same currency.
           </div>  
@@ -60,8 +61,8 @@
                                     action="{% url delete_exchange exchange_id=x.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
-                                	<input type="hidden" id="next" name="next" value="exchanges" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >Delete</button>
+                                	<input type="hidden" id="next" name="next" value="sales_and_distributions" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete item" >Delete</button>
                                 </form>
                     	    {% endif %}
 						{% endif %}
@@ -78,11 +79,11 @@
 		  {% endif %}
         </div>
         <div class="span3 filter">
-            {% if exchanges %}
-                <div>
-                    <a href=" {% url exchange_events_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
-                </div>
-            {% endif %}
+          {% if exchanges %}
+            <div>
+                <a href=" {% url exchange_events_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
+            </div>
+          {% endif %}
             <h3>{% trans "Filter the List" %}</h3>
             <form id="filter-form" action="." method="POST">
 	            {% csrf_token %}

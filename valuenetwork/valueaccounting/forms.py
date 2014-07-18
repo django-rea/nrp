@@ -605,6 +605,7 @@ class UnorderedReceiptForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'resource-type-selector resourceType chzn-select input-xlarge'}))
     value = forms.DecimalField(
+        help_text="Total value for all received, not value for each.",
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
@@ -1253,26 +1254,106 @@ class PaymentEventForm(forms.ModelForm):
         label="Unit of payment",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
+            attrs={'class': 'resource-type-for-resource chzn-select'}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Cash resource account or earmark to decrease",
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',})) 
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'to_agent', 'from_agent', 'quantity', 'resource_type', 'description')
+        fields = ('event_date', 'to_agent', 'from_agent', 'quantity', 'resource_type', 'resource', 'description')
 
-    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
+    def __init__(self, pattern=None, context_agent=None, posting=False, *args, **kwargs):
         super(PaymentEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.payment_resource_types()
+            rts = pattern.payment_resource_types()
+            self.fields["resource_type"].queryset = rts
+            if posting:
+                self.fields["resource"].queryset = EconomicResource.objects.all()
+            else:
+                if rts:
+                    if self.instance.id:
+                        rt = self.instance.resource_type
+                        if rt:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
+                        else:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                    else:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
         if context_agent:
             self.context_agent = context_agent
             self.fields["to_agent"].queryset = context_agent.all_suppliers()
-            self.fields["from_agent"].queryset = context_agent.all_members()
+            self.fields["from_agent"].queryset = context_agent.all_ancestors_and_members()
 
 class CashReceiptForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    to_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Payment received by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Payment made by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(
+        label="Receipt amount",
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        label="Unit of receipt",
+        empty_label=None,
+        widget=forms.Select(
+        attrs={'class': 'resource-type-for-resource resourceType chzn-select'})) 
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Cash resource account or earmark to increase",
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))    
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'to_agent', 'quantity', 'resource_type', 'resource', 'description')
+
+    def __init__(self, pattern=None, context_agent=None, posting=False, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(CashReceiptForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            rts = pattern.cash_receipt_resource_types()
+            self.fields["resource_type"].queryset = rts
+            if posting:
+                self.fields["resource"].queryset = EconomicResource.objects.all()
+            else:
+                if rts:
+                    if self.instance.id:
+                        rt = self.instance.resource_type
+                        if rt:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
+                        else:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                    else:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["to_agent"].queryset = context_agent.all_ancestors()
+            self.fields["from_agent"].queryset = context_agent.all_customers()
+
+class CashReceiptResourceForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     to_agent = forms.ModelChoiceField(
         required=True,
@@ -1300,13 +1381,26 @@ class CashReceiptForm(forms.ModelForm):
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    identifier = forms.CharField(
+        required=False, 
+        label="<b>Create the resource:</b><br><br>Identifier",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    current_location = forms.ModelChoiceField(
+        queryset=Location.objects.all(), 
+        required=False,
+        label=_("Current Resource Location"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    notes = forms.CharField(
+        required=False,
+        label="Resource Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
 
     class Meta:
         model = EconomicEvent
         fields = ('event_date', 'from_agent', 'to_agent', 'quantity', 'resource_type', 'description')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
-        super(CashReceiptForm, self).__init__(*args, **kwargs)
+        super(CashReceiptResourceForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].queryset = pattern.cash_receipt_resource_types()
@@ -1315,40 +1409,55 @@ class CashReceiptForm(forms.ModelForm):
             self.fields["to_agent"].queryset = context_agent.all_ancestors()
             self.fields["from_agent"].queryset = context_agent.all_customers()
 
-class CashReceiptForm(forms.ModelForm):
+class DistributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     to_agent = forms.ModelChoiceField(
         required=True,
         queryset=EconomicAgent.objects.all(),
-        label="Payment received by",  
+        label="Distributed to",  
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     quantity = forms.DecimalField(
-        label="Receipt amount",
+        label="Distribution amount",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
-        label="Unit of receipt",
+        label="Unit",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
+            attrs={'class': 'resource-type-for-resource chzn-select'}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Cash resource account or earmark to decrease",
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'description')
+        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'resource', 'description')
 
-    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
-        super(CashReceiptForm, self).__init__(*args, **kwargs)
+    def __init__(self, pattern=None, posting=False, *args, **kwargs):
+        super(DistributionEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.cash_receipt_resource_types()
-        if context_agent:
-            self.context_agent = context_agent
-            self.fields["to_agent"].queryset = context_agent.all_ancestors()
+            rts = pattern.distribution_resource_types()
+            self.fields["resource_type"].queryset = rts
+            if posting:
+                self.fields["resource"].queryset = EconomicResource.objects.all()
+            else:
+                if rts:
+                    if self.instance.id:
+                        rt = self.instance.resource_type
+                        if rt:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
+                        else:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                    else:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
 
 class ShipmentForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -1412,10 +1521,15 @@ class ExpenseEventForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
     value = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    resource = ResourceModelChoiceField(
+        required=False,
+        queryset=EconomicResource.objects.all(), 
+        label="Resource to reference",
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'from_agent', 'description')
+        fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'from_agent', 'resource', 'description')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(ExpenseEventForm, self).__init__(*args, **kwargs)
@@ -1436,7 +1550,12 @@ class CashContributionEventForm(forms.ModelForm):
         label="Unit",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
+            attrs={'class': 'resource-type-for-resource chzn-select'}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Cash resource account or earmark to increase",
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))  
     from_agent = forms.ModelChoiceField(
         required=False,
         queryset=EconomicAgent.objects.all(),
@@ -1450,10 +1569,63 @@ class CashContributionEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'value', 'resource_type', 'resource', 'description', 'is_contribution')
+
+    def __init__(self, pattern=None, context_agent=None, posting=False, *args, **kwargs):
+        super(CashContributionEventForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            rts = pattern.cash_contr_resource_types()
+            self.fields["resource_type"].queryset = rts
+            if posting:
+                self.fields["resource"].queryset = EconomicResource.objects.all()
+            else:
+                if rts:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["from_agent"].queryset = context_agent.all_members()          
+
+class CashContributionResourceEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    value = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        label="Unit",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.all(),
+        label="Contributor",
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    identifier = forms.CharField(
+        required=False, 
+        label="<b>Create the resource:</b><br><br>Identifier",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    current_location = forms.ModelChoiceField(
+        queryset=Location.objects.all(), 
+        required=False,
+        label=_("Current Resource Location"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    notes = forms.CharField(
+        required=False,
+        label="Resource Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = EconomicEvent
         fields = ('event_date', 'from_agent', 'value', 'resource_type', 'description', 'is_contribution')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
-        super(CashContributionEventForm, self).__init__(*args, **kwargs)
+        super(CashContributionResourceEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             #import pdb; pdb.set_trace()
@@ -1461,7 +1633,7 @@ class CashContributionEventForm(forms.ModelForm):
         if context_agent:
             self.context_agent = context_agent
             self.fields["from_agent"].queryset = context_agent.all_members()
-
+            
 class MaterialContributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     from_agent = forms.ModelChoiceField(
@@ -1484,6 +1656,13 @@ class MaterialContributionEventForm(forms.ModelForm):
         queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'), 
         empty_label=None,
         label=_("Unit"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    value = forms.DecimalField(required=False,
+        label="Approximate Value",
+        widget=forms.TextInput(attrs={'value': '0', 'class': 'quantity  input-small'}))
+    unit_of_value = forms.ModelChoiceField(required=False,
+        queryset=Unit.objects.filter(unit_type='value'),
+        label=_("Unit of Value"),
         widget=forms.Select(attrs={'class': 'input-medium',}))
     description = forms.CharField(
         required=False,
@@ -1517,7 +1696,7 @@ class MaterialContributionEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'quantity', 'resource_type', 'unit_of_quantity', 'description')
+        fields = ('event_date', 'from_agent', 'quantity', 'resource_type', 'unit_of_quantity', 'value', 'unit_of_value', 'description')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(MaterialContributionEventForm, self).__init__(*args, **kwargs)
@@ -2328,4 +2507,27 @@ class SaleForm(forms.ModelForm):
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
         if context_agent:
             self.fields["customer"].queryset = context_agent.all_customers()
-
+            
+class DistributionForm(forms.ModelForm):
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.none(), 
+        label=_("Pattern"),
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 'pattern-selector'}))
+    start_date = forms.DateField(required=True, 
+        label=_("Date"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    notes = forms.CharField(required=False, 
+        label=_("Comments"),
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    
+    class Meta:
+        model = Exchange
+        fields = ('process_pattern', 'start_date', 'notes')
+        
+    def __init__(self, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(DistributionForm, self).__init__(*args, **kwargs)
+        use_case = UseCase.objects.get(identifier="distribution")
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 

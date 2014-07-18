@@ -80,8 +80,7 @@ class ExplosionTest(TestCase):
         process = commitment.generate_producing_process(self.user, visited, explode=True)
         child_input = process.incoming_commitments()[0]
         self.assertEqual(child_input.quantity, Decimal("8"))
-        rt = child_input.resource_type
-        child_output=rt.producing_commitments()[0]
+        child_output=child_input.associated_producing_commitments()[0]
         self.assertEqual(child_output.quantity, Decimal("5"))
         child_process=child_output.process
         grandchild_input = child_process.incoming_commitments()[0]
@@ -117,8 +116,7 @@ class ExplosionTest(TestCase):
         process = commitment.generate_producing_process(self.user, visited, explode=True)
         child_input = process.incoming_commitments()[0]
         self.assertEqual(child_input.quantity, Decimal("8"))
-        rt = child_input.resource_type
-        child_output=rt.producing_commitments()[0]
+        child_output=child_input.associated_producing_commitments()[0]
         self.assertEqual(child_output.quantity, Decimal("5"))
         child_process=child_output.process
         grandchild_input = child_process.incoming_commitments()[0]
@@ -162,28 +160,31 @@ class ExplosionTest(TestCase):
         cts = self.order.order_items()
         commitment = cts[0]
         visited = []
+        
         #When I generate a producing process and explode the dependent demands,
         process = commitment.generate_producing_process(self.user, visited, explode=True)
         child_input = process.incoming_commitments()[0]
         rt = child_input.resource_type
         child_output=rt.producing_commitments()[0]
-        child_process=child_output.process
+        child_process=child_output.process       
         #then the child_process will have been backscheduled into the past,
         self.assertTrue(child_process.too_late())
         grandchild_input = child_process.incoming_commitments()[0]
-        source = grandchild_input.sources()[0]
+        source = grandchild_input.sources()[0]      
         #and the purchase lead time will also go into the past.
         self.assertTrue(source.too_late)
         lag = datetime.date.today() - child_process.start_date
         delta_days = lag.days + 1
+        
         #When I reschedule the child process forward,
-        child_process.reschedule_forward(delta_days, self.user)
+        child_process.reschedule_forward(delta_days, self.user)        
         #(get the parent_process again because it has changed)
-        parent_process = child_input.process
+        parent_process = child_input.process        
         #then the child_process will no longer start in the past,
-        self.assertFalse(child_process.too_late())
+        self.assertFalse(child_process.too_late())        
         #and the end item due date will now be in the future.
         self.assertTrue(parent_process.end_date > datetime.date.today())
+        
         #When I reschedule forward from the purchase lead time,
         grandchild_input.reschedule_forward_from_source(source.lead_time, self.user)
         #(get the grandchild_input and source again because they have changed)
@@ -192,3 +193,92 @@ class ExplosionTest(TestCase):
         #then the purchase date will no longer be in the past.
         self.assertFalse(source.too_late)
         
+    def test_commitment_change_propagation(self):
+        """Propagate changes to dependants
+
+        """
+            
+        cts = self.order.order_items()
+        commitment = cts[0]
+        
+        # set up the process flow to be changed
+        visited = []
+        process = commitment.generate_producing_process(self.user, visited, explode=True)
+        child_input = process.incoming_commitments()[0]
+        self.assertEqual(child_input.quantity, Decimal("8"))
+        child_output=child_input.associated_producing_commitments()[0]
+        self.assertEqual(child_output.quantity, Decimal("5"))
+        child_process=child_output.process
+        grandchild_input = child_process.incoming_commitments()[0]
+        self.assertEqual(grandchild_input.quantity, Decimal("15"))
+        
+        #change input quantity
+        new_rt = child_input.resource_type
+        new_qty = Decimal("10")
+        explode = handle_commitment_changes(
+            child_input, 
+            new_rt, 
+            new_qty, 
+            self.order, 
+            self.order)
+        child_input.quantity = new_qty
+        child_input.save()
+        child_output=child_input.associated_producing_commitments()[0]
+        child_process=child_output.process
+        grandchild_input = child_process.incoming_commitments()[0]
+        self.assertEqual(child_output.quantity, Decimal("7"))
+        self.assertEqual(grandchild_input.quantity, Decimal("21"))
+        self.assertFalse(explode)
+        new_qty = Decimal("8")
+        explode = handle_commitment_changes(
+            child_input, 
+            new_rt, 
+            new_qty, 
+            self.order, 
+            self.order)
+        child_input.quantity = new_qty
+        child_input.save()
+        child_output=child_input.associated_producing_commitments()[0]
+        child_process=child_output.process
+        grandchild_input = child_process.incoming_commitments()[0]
+        self.assertEqual(child_output.quantity, Decimal("5"))
+        child_process=child_output.process
+        grandchild_input = child_process.incoming_commitments()[0]
+        self.assertEqual(grandchild_input.quantity, Decimal("15"))        
+        
+        # change output quantity
+        new_rt = commitment.resource_type
+        new_qty = Decimal("8")
+        explode = handle_commitment_changes(
+            commitment, 
+            new_rt, 
+            new_qty, 
+            self.order, 
+            self.order)
+        child_input.quantity = new_qty
+        child_input.save()
+        child_output=child_input.associated_producing_commitments()[0]
+        child_process=child_output.process
+        grandchild_input = child_process.incoming_commitments()[0]
+        self.assertEqual(child_output.quantity, Decimal("18"))
+        self.assertEqual(grandchild_input.quantity, Decimal("54"))
+        self.assertFalse(explode)
+        
+        #change input resource type
+        new_rt = EconomicResourceType(
+            name="changed resource type",
+        )
+        new_rt.save()
+        explode = handle_commitment_changes(
+            child_input, 
+            new_rt, 
+            new_qty, 
+            self.order, 
+            self.order)
+        child_input.resource_type = new_rt
+        child_input.save()
+        child_outputs=child_input.associated_producing_commitments()
+        self.assertEqual(len(child_outputs), 0)
+        self.assertTrue(explode)
+        #import pdb; pdb.set_trace()
+

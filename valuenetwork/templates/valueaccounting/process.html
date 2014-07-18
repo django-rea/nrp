@@ -223,8 +223,8 @@ body .modal {
 						    <b>{% trans "Consumed" %}:</b> {{ item.fulfilled_quantity }}
 					    </p>
 				    </p>
-			    {% elif item.resource_type.producing_commitments %}
-                	{% for ct in item.resource_type.producing_commitments %}
+			    {% elif item.associated_producing_commitments %}
+                	{% for ct in item.associated_producing_commitments %}
 					    <p style="margin-left: 2em;">
 						    <b>{% trans "Scheduled" %}:</b> 
 						    <a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a>
@@ -287,8 +287,8 @@ body .modal {
 						    <b>{% trans "Used" %}:</b> {{ item.fulfilled_quantity }} {{ item.resource_type.unit_of_use }}
 					    </p>
 				    </p>
-			    {% elif item.resource_type.producing_commitments %}
-                	{% for ct in item.resource_type.producing_commitments %}
+			    {% elif item.associated_producing_commitments %}
+                	{% for ct in item.associated_producing_commitments %}
 					    <p style="margin-left: 2em;">
 						    <b>{% trans "Scheduled" %}:</b> 
 						    <a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a>

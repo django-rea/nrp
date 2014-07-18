@@ -27,6 +27,11 @@
     height: 64px;
 }
 
+.heading
+{
+    font-weight: bold;
+}
+
 #id_description
 {
   width: 53em;
@@ -45,25 +50,25 @@
 
 		<legend>{% trans "Create Order" %}</legend>
 
-		<form method="POST" action="">
+		<form method="POST" action="" id="orderForm" >
 			{% csrf_token %}
 			<div class="row-fluid">
 				<div class="span3 control-group">
-					<b>{% trans "Seller" %}:</b></br>
+					<div class="heading" >{% trans "Seller" %}:</div>
 					{{ order_form.provider }}
 				</div>
 				<div class="span3 control-group">
-					<b>{% trans "Buyer" %}:</b></br>
+					<div class="heading" >{% trans "Buyer" %}:</div>
 					{{ order_form.receiver }}
 				</div>
 				<div class="span2 control-group">
-					<b>{% trans "Due date" %}:</b></br>
+					<div class="heading" >{% trans "Due date" %}:</div>
 					{{ order_form.due_date }}
 				</div>
 			</div>
 			<div class="row-fluid">
 				<div class="span8 control-group">
-						<b>{% trans "Notes" %}:</b></br>
+						<b>{% trans "Notes" %}:</b>
 						{{ order_form.description }}
 				</div>
 				<div class="form-actions span2">

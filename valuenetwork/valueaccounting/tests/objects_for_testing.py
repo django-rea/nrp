@@ -144,7 +144,166 @@ class Recipe(object):
             lead_time=20,
         )
         source.save()
+
         
+class WorkFlowRecipe(object):
+    def __init__(self, 
+        changeable=None, 
+        unit=None,
+        create_event_type=None,
+        to_be_event_type=None,
+        change_event_type=None,
+    ):
+        self.changeable = changeable
+        self.unit = unit
+        self.create_event_type = create_event_type
+        self.to_be_event_type = to_be_event_type
+        self.change_event_type = change_event_type
+
+        if not changeable:
+            self.changeable = EconomicResourceType(
+                name="changeable",
+                substitutable=False,
+            )
+            self.changeable.save()
+            
+        self.another_changeable = EconomicResourceType(
+            name="another changeable",
+            substitutable=False,
+        )
+        self.another_changeable.save()
+
+        if not unit:
+            self.unit = Unit(
+                unit_type="quantity",
+                abbrev="Words",
+                name="words",
+            )
+            self.unit.save()
+
+        if not create_event_type:
+            try:
+                et = EventType.objects.get(name="Create Changeable")
+                self.create_event_type = et
+            except EventType.DoesNotExist:
+                self.create_event_type = EventType(
+                    name="Create Changeable",
+                    label="creates changeable",
+                    relationship="out",
+                    resource_effect="+~",
+                )
+                self.create_event_type.save()
+                
+        if not to_be_event_type:
+            try:
+                et = EventType.objects.get(name="To Be Changed")
+                self.to_be_event_type = et
+            except EventType.DoesNotExist:
+                self.to_be_event_type = EventType(
+                    name="To Be Changed",
+                    label="To Be Changed",
+                    relationship="in",
+                    resource_effect=">~",
+                )
+                self.to_be_event_type.save()
+
+        if not change_event_type:
+            try:
+                et = EventType.objects.get(label="Change")
+                self.change_event_type = et
+            except EventType.DoesNotExist:
+                self.change_event_type = EventType(
+                    name="Change",
+                    label="changes",
+                    relationship="out",
+                    resource_effect="~>",
+                )
+                self.change_event_type.save()
+
+        change_pt = ProcessType(
+            name="change",
+            estimated_duration=7200,
+        )
+        change_pt.save()
+
+        create_pt = ProcessType(
+            name="create",
+            estimated_duration=14400,
+        )
+        create_pt.save()
+     
+        change_output = ProcessTypeResourceType(
+            process_type=change_pt,
+            stage=change_pt,
+            resource_type=self.changeable,
+            event_type=self.change_event_type,
+            quantity=Decimal("1000"),
+            unit_of_quantity=self.unit,
+        )
+        change_output.save()
+
+        change_input = ProcessTypeResourceType(
+            process_type=change_pt,
+            resource_type=self.changeable,
+            stage=create_pt,
+            event_type=self.to_be_event_type,
+            quantity=Decimal("1000"),
+            unit_of_quantity=self.unit,
+        )
+        change_input.save()
+
+        create_output = ProcessTypeResourceType(
+            process_type=create_pt,
+            stage=create_pt,
+            resource_type=self.changeable,
+            event_type=self.create_event_type,
+            quantity=Decimal("1000"),
+            unit_of_quantity=self.unit,
+        )
+        create_output.save()
+        
+        change_pt = ProcessType(
+            name="change",
+            estimated_duration=7200,
+        )
+        change_pt.save()
+
+        create_pt = ProcessType(
+            name="create",
+            estimated_duration=14400,
+        )
+        create_pt.save()
+     
+        change_output = ProcessTypeResourceType(
+            process_type=change_pt,
+            stage=change_pt,
+            resource_type=self.another_changeable,
+            event_type=self.change_event_type,
+            quantity=Decimal("3000"),
+            unit_of_quantity=self.unit,
+        )
+        change_output.save()
+
+        change_input = ProcessTypeResourceType(
+            process_type=change_pt,
+            resource_type=self.another_changeable,
+            stage=create_pt,
+            event_type=self.to_be_event_type,
+            quantity=Decimal("3000"),
+            unit_of_quantity=self.unit,
+        )
+        change_input.save()
+
+        create_output = ProcessTypeResourceType(
+            process_type=create_pt,
+            stage=create_pt,
+            resource_type=self.another_changeable,
+            event_type=self.create_event_type,
+            quantity=Decimal("3000"),
+            unit_of_quantity=self.unit,
+        )
+        create_output.save()
+
 
 class Facets(object):
     def __init__(self, 

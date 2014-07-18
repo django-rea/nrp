@@ -6773,22 +6773,15 @@ def explode_dependent_demands(commitment, user):
     
 def propagate_qty_change(commitment, delta, visited):
     #import pdb; pdb.set_trace()
-    print "commitment:", commitment
-    print "delta:", delta
-    print "result:", commitment.quantity + delta
     process = commitment.process
     if commitment not in visited:
         visited.append(commitment)
         for ic in process.incoming_commitments():
             if ic.event_type.relationship != "cite":
-                print "---incoming commitment:", ic
                 input_ctype = ic.commitment_type()
                 output_ctype = commitment.commitment_type()
-                #ratio = ic.quantity / commitment.quantity 
                 ratio = input_ctype.quantity / output_ctype.quantity
-                print "---ratio:", ratio
                 new_delta = (delta * ratio).quantize(Decimal('.01'), rounding=ROUND_UP)
-                print "---tentative_delta:", new_delta
                 
                 ic.quantity += new_delta
                 ic.save()
@@ -6803,12 +6796,7 @@ def propagate_qty_change(commitment, delta, visited):
                     if oh_qty:
                         delta_delta = ic.quantity - oh_qty
                         new_delta = delta_delta
-                        print "oh_qty:", oh_qty
-                        print "delta_delta:", delta_delta
-                        print "---new_delta:", new_delta
-                print "---result:", ic.quantity
                 order_item = ic.order_item
-                #flow todo: shd be order_item
                 for pc in pcs:
                     if pc.order_item == order_item:
                         propagate_qty_change(pc, new_delta, visited)

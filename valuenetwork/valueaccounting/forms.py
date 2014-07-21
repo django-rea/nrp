@@ -1301,10 +1301,9 @@ class CashReceiptForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     from_agent = forms.ModelChoiceField(
-        required=True,
+        required=False,
         queryset=EconomicAgent.objects.all(),
-        label="Payment made by",  
-        empty_label=None,
+        label="Payment made by",
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     quantity = forms.DecimalField(
@@ -1351,7 +1350,8 @@ class CashReceiptForm(forms.ModelForm):
         if context_agent:
             self.context_agent = context_agent
             self.fields["to_agent"].queryset = context_agent.all_ancestors()
-            self.fields["from_agent"].queryset = context_agent.all_customers()
+            self.fields["from_agent"].choices = [('', '----------')] + [(ca.id, ca.nick) for ca in context_agent.all_customers()]
+            
 
 class CashReceiptResourceForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -1363,10 +1363,9 @@ class CashReceiptResourceForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     from_agent = forms.ModelChoiceField(
-        required=True,
+        required=False,
         queryset=EconomicAgent.objects.all(),
-        label="Payment made by",  
-        empty_label=None,
+        label="Payment made by",
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     quantity = forms.DecimalField(
@@ -1407,7 +1406,8 @@ class CashReceiptResourceForm(forms.ModelForm):
         if context_agent:
             self.context_agent = context_agent
             self.fields["to_agent"].queryset = context_agent.all_ancestors()
-            self.fields["from_agent"].queryset = context_agent.all_customers()
+            self.fields["from_agent"].choices = [('', '----------')] + [(ca.id, ca.nick) for ca in context_agent.all_customers()]
+            
 
 class DistributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

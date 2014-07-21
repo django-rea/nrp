@@ -8286,7 +8286,8 @@ def sales_and_distributions(request, agent_id=None):
         "event_ids": event_ids,
         "agent": agent,
     }, context_instance=RequestContext(request))
-    
+
+@login_required    
 def exchange_events_csv(request):
     #import pdb; pdb.set_trace()
     event_ids = request.GET.get("event-ids")

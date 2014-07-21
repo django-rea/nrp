@@ -2286,7 +2286,6 @@ def create_order(request):
                                 independent_demand=order,
                                 event_type=event_type,
                                 due_date=order.due_date,
-                                from_agent_type=order.provider.agent_type,
                                 from_agent=order.provider,
                                 to_agent=order.receiver,
                                 resource_type=rt,

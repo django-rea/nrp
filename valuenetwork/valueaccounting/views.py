@@ -2186,6 +2186,18 @@ def cleanup_processes(request):
     return render_to_response("valueaccounting/cleanup_processes.html", {
         "orphans": orphans,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def cleanup_old_processes(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    old_date = datetime.date.today() - datetime.timedelta(days=30)
+    orphans = Process.objects.unfinished().filter(
+        end_date__lt=old_date)
+
+    return render_to_response("valueaccounting/cleanup_old_processes.html", {
+        "orphans": orphans,
+    }, context_instance=RequestContext(request))
 
 @login_required
 def cleanup_resourcetypes(request):
@@ -4372,6 +4384,9 @@ def process_finished(request, process_id):
         if next == "cleanup-processes":
             return HttpResponseRedirect('/%s/'
                 % ('accounting/cleanup-processes'))
+        if next == "cleanup-old-processes":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/cleanup-old-processes'))
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process_id))
 

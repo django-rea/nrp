@@ -2163,14 +2163,6 @@ class OrderManager(models.Manager):
         
     def rand_orders(self):
         return Order.objects.filter(order_type="rand")
-        
-    def open_customer_orders(self):
-        orders = self.customer_orders()
-        open_orders = []
-        for order in orders:
-            if order.has_open_processes():
-                open_orders.append(order)
-        return open_orders
                 
     def open_rand_orders(self):
         orders = self.rand_orders()

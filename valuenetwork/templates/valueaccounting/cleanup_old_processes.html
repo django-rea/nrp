@@ -24,7 +24,7 @@
     <ul>
         {% for orphan in orphans %}
             <li>
-                <a href="{{ orphan.get_absolute_url }}">{{ orphan }}</a> created by: {{ orphan.created_by }} created date: {{ orphan.created_date }} Finished: {{ orphan.finished }}
+                <a href="{{ orphan.get_absolute_url }}">#{{ orphan.id }}: {{ orphan }}</a> created by: {{ orphan.created_by }} created date: {{ orphan.created_date }} Finished: {{ orphan.finished }}
                 {% if not orphan.finished %}
                     <form
                         style="display: inline;" 

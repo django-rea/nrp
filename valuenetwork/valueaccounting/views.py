@@ -2193,7 +2193,7 @@ def cleanup_old_processes(request):
         return render_to_response('valueaccounting/no_permission.html')
     old_date = datetime.date.today() - datetime.timedelta(days=30)
     orphans = Process.objects.unfinished().filter(
-        end_date__lt=old_date)
+        end_date__lt=old_date).order_by("end_date")
 
     return render_to_response("valueaccounting/cleanup_old_processes.html", {
         "orphans": orphans,

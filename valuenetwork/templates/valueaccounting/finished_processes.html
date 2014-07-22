@@ -1,0 +1,96 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Finished processes for " %} {{ project }}{% endblock %}
+
+{% block extra_head %}
+<style>
+
+    tr.even td 
+    {
+        color:#000000;
+        background-color:#EAF2D3;
+    }
+
+    th
+    {
+        background-color:#C8D6E8;
+    }
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+        <legend>
+            {% trans "Finished processes for " %} {{ project.agent_type }} {{ project }} 
+        </legend>
+
+        <ul>
+            {% for process in processes %}
+                <li>
+                    <a href="{% url process_details process_id=process.id %}">{{ process }}</a>
+                </li>
+                <ul>
+                    {% if process.independent_demand %}
+                        <li>{% trans "For" %} {{ process.independent_demand }}</li>
+                    {% endif %}
+                    {% if process.work_requirements %}
+                        <li>{% trans "Work Requirements" %}:</li>
+                        <ul>
+                            {% for item in process.work_requirements %}
+                                <li>
+                                    {{ item.timeline_title }} 
+                                    {% if not item.from_agent %}
+                                        <div style="display: inline;" >
+                                            <a href="" role="button" class="btn btn-info" title="This button does not work yet. It will soon.">
+                                                {% trans "Take this task" %}
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </ul>            
+            {% endfor %}
+        </ul>
+
+        
+<div class="pagination">
+    <span class="step-links">
+        {% if processes.has_previous %}
+            <a href="?page={{ events.previous_page_number }}">{% trans "previous" %}</a>
+        {% endif %}
+
+        <span class="current">
+            {% trans "Page" %} {{ processes.number }} {% trans "of" %} {{ processes.paginator.num_pages }}.
+        </span>
+
+        {% if events.has_next %}
+            <a href="?page={{ processes.next_page_number }}">{% trans "next" %}</a>
+        {% endif %}
+    </span>
+</div>
+
+    </div>
+    </div>
+{% endblock %}
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $('#projects').addClass('active');
+
+    }); // end document.ready
+
+    </script>
+{% endblock %}

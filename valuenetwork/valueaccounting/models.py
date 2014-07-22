@@ -3512,7 +3512,7 @@ class Process(models.Model):
                                 if pc.quantity >= ic.quantity:
                                     if pc.due_date <= self.start_date:
                                         answer.append(pc.process)
-        for ie in self.uncommitted_input_events():
+        for ie in self.incoming_events():
             if ie.resource:
                 for evt in ie.resource.producing_events():
                     if evt.process:
@@ -3559,7 +3559,7 @@ class Process(models.Model):
                                     if cc.due_date >= compare_date:
                                         if cc.process not in answer:
                                             answer.append(cc.process)
-        for oe in self.uncommitted_production_events():
+        for oe in self.production_events():
             rt = oe.resource_type
             if oe.cycle_id() not in input_ids:
                 if oe.resource:

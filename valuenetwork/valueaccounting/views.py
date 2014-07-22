@@ -1384,6 +1384,7 @@ def delete_order_confirmation(request, order_id):
     work = []
     tools = []
     #import pdb; pdb.set_trace()
+    next = request.POST.get("next")
     if pcs:
         visited_resources = set()
         for ct in pcs:
@@ -1395,6 +1396,7 @@ def delete_order_confirmation(request, order_id):
             "reqs": reqs,
             "work": work,
             "tools": tools,
+            "next": next,
         }, context_instance=RequestContext(request))
     else:
         commitments = Commitment.objects.filter(independent_demand=order)
@@ -1409,17 +1411,23 @@ def delete_order_confirmation(request, order_id):
                 "reqs": reqs,
                 "work": work,
                 "tools": tools,
+                "next": next,
             }, context_instance=RequestContext(request))
         else:
             order.delete()
-            return HttpResponseRedirect('/%s/'
-                % ('accounting/demand'))
+            if next == "demand":
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/demand'))
+            if next == "closed_work_orders":
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/closed-work-orders'))
 
 @login_required
 def delete_order(request, order_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         order = get_object_or_404(Order, pk=order_id)
+        next = request.POST.get("next")
         trash = []
         visited_resources = set()
         pcs = order.producing_commitments()
@@ -1446,12 +1454,18 @@ def delete_order(request, order_id):
                 for process in processes:
                     process.delete()
             order.delete()
-        next = request.POST.get("next")
-        if next:
-            return HttpResponseRedirect(next)
-        else:
+        #next = request.POST.get("next")
+        #if next:
+        #    return HttpResponseRedirect(next)
+        #else:
+        #    return HttpResponseRedirect('/%s/'
+        #        % ('accounting/demand'))
+        if next == "demand":
             return HttpResponseRedirect('/%s/'
                 % ('accounting/demand'))
+        if next == "closed_work_orders":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/closed-work-orders'))
 
 @login_required
 def delete_process_input(request, 
@@ -7205,7 +7219,14 @@ def change_order(request, order_id):
     if request.method == "POST":
         if order_form.is_valid():
             order = order_form.save()
-            return HttpResponseRedirect("/accounting/demand")
+            #return HttpResponseRedirect("/accounting/demand")
+            next = request.POST.get("next")
+            if next == "demand":
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/demand'))
+            if next == "closed_work_orders":
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/closed-work-orders'))
     return render_to_response("valueaccounting/change_order.html", {
         "order_form": order_form,
         "order": order,

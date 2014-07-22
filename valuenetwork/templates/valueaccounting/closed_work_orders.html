@@ -28,13 +28,34 @@
             {% for rand in rands %}
                 <li>
                     <a href="{% url order_schedule order_id=rand.id %}">{{ rand }}</a>  {% trans "created by" %} {{ rand.created_by }}
-                    {% if user = rand.created_by %}
-                        <a class="btn btn-info" href="{% url change_order order_id=rand.id %}">{% trans "Change" %}</a>  
-                        <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
+                    {% if user = rand.created_by %} 
+                        <form
+                            style="display: inline;"  
+                            action="{% url change_order order_id=rand.id %}" 
+                            method="POST" >
+                            {% csrf_token %}
+                            <input type="hidden" id="next" name="next" value="closed_work_orders" />
+                            <button style="display: inline;"  class="btn btn-info" title="Change Order" >Change</button>
+                        </form> 
+                        <form
+                            style="display: inline;"  
+                            action="{% url delete_order_confirmation order_id=rand.id %}" 
+                            method="POST" >
+                            {% csrf_token %}
+                            <input type="hidden" id="next" name="next" value="closed_work_orders" />
+                            <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >Delete</button>
+                        </form>                    
                     {% else %}
                         {% if agent %}
                             {% if user.is_superuser %}
-                                <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
+                                <form
+                                    style="display: inline;"  
+                                    action="{% url delete_order_confirmation order_id=rand.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="closed_work_orders" />
+                                    <button style="display: inline;"  class="btn btn-warning" title="Delete Order" >Delete</button>
+                                </form>                            
                             {% endif %}
                         {% endif %}
                     {% endif %}

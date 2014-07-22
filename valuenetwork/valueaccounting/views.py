@@ -2520,8 +2520,18 @@ def demand(request):
         "rands": rands,
         "agent": agent,
         "help": help,
-    }, context_instance=RequestContext(request))
-
+    }, context_instance=RequestContext(request))     
+        
+def closed_work_orders(request):
+    agent = get_agent(request)
+    orders = Order.objects.closed_work_orders()
+    #help = get_help("demand")
+    return render_to_response("valueaccounting/closed_work_orders.html", {
+        "rands": orders,
+        "agent": agent,
+        #"help": help,
+    }, context_instance=RequestContext(request))        
+        
 def supply_old(request):
     mreqs = []
     #todo: needs a lot of work
@@ -8720,5 +8730,4 @@ def payment_event_for_commitment(request):
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
 '''
-
 

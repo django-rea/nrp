@@ -721,7 +721,7 @@ class EconomicAgent(models.Model):
         return None
         
     def default_agent(self):
-        return self.exchange_firm() or self
+        return self
         
     def all_suppliers(self):
         sups = list(self.suppliers())
@@ -3375,7 +3375,7 @@ class Process(models.Model):
 
     def default_agent(self):
         if self.context_agent:
-            return self.context_agent.exchange_firm() or self.context_agent
+            return self.context_agent.default_agent()
         return None
         
     def flow_type(self):
@@ -5043,7 +5043,7 @@ class EconomicEvent(models.Model):
         
     def default_agent(self):
         if self.context_agent:
-            return self.context_agent.exchange_firm() or self.context_agent
+            return self.context_agent.default_agent()
         return None 
         
     def cycle_id(self):

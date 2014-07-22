@@ -485,11 +485,18 @@ class EconomicAgent(models.Model):
         aps = [p for p in self.worked_processes() if p.finished==False]
         return aps
         
+    def finished_worked_processes(self):
+        aps = [p for p in self.worked_processes() if p.finished==True]
+        return aps
+        
     def context_processes(self):
         return self.processes.all()
         
     def active_context_processes(self):
         return self.context_processes().filter(finished=False)
+        
+    def finished_context_processes(self):
+        return self.context_processes().filter(finished=True)
         
     def is_individual(self):
         return self.agent_type.party_type == "individual"
@@ -499,6 +506,12 @@ class EconomicAgent(models.Model):
             return self.active_worked_processes()
         else:
             return self.active_context_processes()
+            
+    def finished_processes(self):
+        if self.is_individual():
+            return self.finished_worked_processes()
+        else:
+            return self.finished_context_processes()
             
     def all_processes(self):
         if self.is_individual():

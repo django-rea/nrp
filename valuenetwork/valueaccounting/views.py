@@ -870,6 +870,27 @@ def project_wip(request, project_id):
         "project": project,
         "processes": processes,
     }, context_instance=RequestContext(request))
+  
+def finished_processes(request, agent_id):
+    #import pdb; pdb.set_trace()
+    project = get_object_or_404(EconomicAgent, pk=agent_id)
+    process_list = project.finished_processes()
+    paginator = Paginator(process_list, 25)
+
+    page = request.GET.get('page')
+    try:
+        processes = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        processes = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        processes = paginator.page(paginator.num_pages)
+    
+    return render_to_response("valueaccounting/finished_processes.html", {
+        "project": project,
+        "processes": processes,
+    }, context_instance=RequestContext(request))
 
 @login_required
 def contribution_history(request, agent_id):

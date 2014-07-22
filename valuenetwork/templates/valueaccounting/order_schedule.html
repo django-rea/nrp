@@ -103,6 +103,8 @@ textarea {
 			               <div class="req-description"> {{ item.description|urlize|linebreaks }}</div>
 		                {% endif %}
 				    </li>
+                {% empty %}
+                    None
 				{% endfor %}
 			</ul>
 

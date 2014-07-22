@@ -2501,8 +2501,8 @@ def delete_workflow_process(request, order_id, process_id):
                 
 def demand(request):
     agent = get_agent(request)
-    orders = Order.objects.filter(order_type='customer')
-    rands = Order.objects.filter(order_type='rand')
+    orders = Order.objects.open_customer_orders()
+    rands = Order.objects.open_rand_orders()
     help = get_help("demand")
     return render_to_response("valueaccounting/demand.html", {
         "orders": orders,

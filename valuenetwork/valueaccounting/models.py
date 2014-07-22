@@ -2108,11 +2108,11 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('recipe', 'Change')
     UseCaseEventType.create('recipe', 'Create Changeable')
     UseCaseEventType.create('todo', 'Todo')
-    UseCaseEventType.create('cust_orders', 'Damage')
-    UseCaseEventType.create('cust_orders', 'Payment')
-    UseCaseEventType.create('cust_orders', 'Receipt')
+    #UseCaseEventType.create('cust_orders', 'Damage')
+    #UseCaseEventType.create('cust_orders', 'Payment')
+    #UseCaseEventType.create('cust_orders', 'Receipt')
     UseCaseEventType.create('cust_orders', 'Sale')
-    UseCaseEventType.create('cust_orders', 'Shipment')
+    #UseCaseEventType.create('cust_orders', 'Shipment')
     UseCaseEventType.create('purchasing', 'Payment') 
     UseCaseEventType.create('purchasing', 'Receipt') 
     UseCaseEventType.create('res_contr', 'Time Contribution')
@@ -2160,6 +2160,25 @@ class OrderManager(models.Manager):
     
     def customer_orders(self):
         return Order.objects.filter(order_type="customer")
+        
+    def rand_orders(self):
+        return Order.objects.filter(order_type="rand")
+        
+    def open_customer_orders(self):
+        orders = self.customer_orders()
+        open_orders = []
+        for order in orders:
+            if order.has_open_processes():
+                open_orders.append(order)
+        return open_orders
+                
+    def open_rand_orders(self):
+        orders = self.rand_orders()
+        open_orders = []
+        for order in orders:
+            if order.has_open_processes():
+                open_orders.append(order)
+        return open_orders
         
 #todo: Order is used for both of the above types.
 #maybe shd be renamed?
@@ -2308,8 +2327,17 @@ class Order(models.Model):
         ordered_processes = list(set(ordered_processes))
         ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
         ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
-        return ordered_processes      
-    
+        return ordered_processes    
+        
+    def has_open_processes(self):
+        answer = False
+        processes = self.all_processes()
+        for process in processes:
+            if process.finished == False:
+                answer = True
+                break
+        return answer
+
     def last_process_in_order(self):
         processes = self.all_processes()
         if processes:

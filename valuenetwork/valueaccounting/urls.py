@@ -368,11 +368,12 @@ urlpatterns = patterns("",
         name="change_commitment_quantities"),
     url(r"^change-process-plan/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_process_plan', 
         name="change_process_plan"),
-        url(r"^delete-workflow-process/(?P<order_id>\d+)/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.delete_workflow_process', 
+    url(r"^delete-workflow-process/(?P<order_id>\d+)/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.delete_workflow_process', 
         name="delete_workflow_process"),
     url(r"^create-process-for-streaming/(?P<order_id>\d+)/$", 'valuenetwork.valueaccounting.views.create_process_for_streaming', 
         name="create_process_for_streaming"),
     url(r"^insert-process-for-streaming/(?P<order_id>\d+)/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.insert_process_for_streaming', 
         name="insert_process_for_streaming"),
+    url(r"^closed-work-orders/$", 'valuenetwork.valueaccounting.views.closed_work_orders', name="closed_work_orders"),  
 )
 

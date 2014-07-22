@@ -2185,6 +2185,14 @@ class OrderManager(models.Manager):
                 open_orders.append(order)
         return open_orders
         
+    def closed_work_orders(self):
+        orders = self.rand_orders()
+        closed_orders = []
+        for order in orders:
+            if not order.has_open_processes():
+                closed_orders.append(order)
+        return closed_orders        
+        
 #todo: Order is used for both of the above types.
 #maybe shd be renamed?
 class Order(models.Model):

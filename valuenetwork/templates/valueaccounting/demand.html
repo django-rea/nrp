@@ -12,7 +12,6 @@
 }
 .report {
     margin-left: 2em;
-    font-size: 1.6em;
     margin-bottom: 0;
 }
 </style>
@@ -24,55 +23,57 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Demand" %}</legend>
-			{% if agent %}
-				<p>
-					<a class="btn btn-primary" href="{% url create_order %}">{% trans "Create Customer Order" %}</a>
-					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Work" %}</a>
-					<a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan Work Using Recipe" %}</a>
-					<a class="btn btn-info" href="{% url create_sale %}">{% trans "Sale Without Order" %}</a>
-					<a class="report" href="{% url sales_and_distributions %}">{% trans "Sales and Distributions" %}</a>
-                </p>
-			{% endif %}
-			{% if orders %}
-		        <h3 style="margin-bottom: 4px;" >{% trans "Open Customer Orders" %}:</h3>
-				<ul>
-				    {% for order in orders %}
-						<li>
-                            <a href="{% url order_schedule order_id=order.id %}">{{ order }}</a> {% trans "created by" %} {{ order.created_by }}
-							{% if user = order.created_by or user.is_superuser %}
-                            	<a class="btn btn-warning" href="{% url delete_order_confirmation order_id=order.id %}">{% trans "Delete" %}</a>
-							{% endif %}
-							{% if order.description %}
-                                <p>{{ order.description|urlize|linebreaks }}</p>
+        <legend>{% trans "Demand" %}
+            <a class="report" href="{% url closed_work_orders %}">{% trans "Closed Work Orders" %}</a>
+            <a class="report" href="{% url sales_and_distributions %}">{% trans "Sales and Distributions" %}</a>
+		</legend>
+        {% if agent %}
+            <p>
+                <a class="btn btn-primary" href="{% url create_order %}">{% trans "Create Customer Order" %}</a>
+                <a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Work" %}</a>
+                <a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan Work Using Recipe" %}</a>
+                <a class="btn btn-info" href="{% url create_sale %}">{% trans "Cash Receipt Without Order" %}</a>
+            </p>
+        {% endif %}
+        {% if orders %}
+            <h3 style="margin-bottom: 4px;" >{% trans "Open Customer Orders" %}:</h3>
+            <ul>
+                {% for order in orders %}
+                    <li>
+                        <a href="{% url order_schedule order_id=order.id %}">{{ order }}</a> {% trans "created by" %} {{ order.created_by }}
+                        {% if user = order.created_by or user.is_superuser %}
+                            <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=order.id %}">{% trans "Delete" %}</a>
+                        {% endif %}
+                        {% if order.description %}
+                            <p>{{ order.description|urlize|linebreaks }}</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% if rands %}
+            <h3 style="margin-bottom: 4px;" >{% trans "Open Work Orders" %}:</h3>
+            <ul>
+                {% for rand in rands %}
+                    <li>
+                        <a href="{% url order_schedule order_id=rand.id %}">{{ rand }}</a>  {% trans "created by" %} {{ rand.created_by }}
+                        {% if user = rand.created_by %}
+                            <a class="btn btn-info" href="{% url change_order order_id=rand.id %}">{% trans "Change" %}</a>  
+                            <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
+                        {% else %}
+                            {% if agent %}
+                                {% if user.is_superuser %}
+                                    <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
+                                {% endif %}
                             {% endif %}
-                        </li>
-					{% endfor %}
-				</ul>
-			{% endif %}
-			{% if rands %}
-		        <h3 style="margin-bottom: 4px;" >{% trans "Open Work Orders" %}:</h3>
-				<ul>
-				    {% for rand in rands %}
-						<li>
-                            <a href="{% url order_schedule order_id=rand.id %}">{{ rand }}</a>  {% trans "created by" %} {{ rand.created_by }}
-							{% if user = rand.created_by %}
-                            	<a class="btn btn-info" href="{% url change_order order_id=rand.id %}">{% trans "Change" %}</a>  
-                            	<a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
-							{% else %}
-							    {% if agent %}
-							        {% if user.is_superuser %}
-							            <a class="btn btn-warning" href="{% url delete_order_confirmation order_id=rand.id %}">{% trans "Delete" %}</a>
-							        {% endif %}
-                        	    {% endif %}
-							{% endif %}
-							{% if rand.description %}
-                                <p>{{ rand.description|urlize|linebreaks }}</p>
-							{% endif %}
-                        </li>
-					{% endfor %}
-				</ul>
-			{% endif %}
+                        {% endif %}
+                        {% if rand.description %}
+                            <p>{{ rand.description|urlize|linebreaks }}</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
 
 
 	</div>

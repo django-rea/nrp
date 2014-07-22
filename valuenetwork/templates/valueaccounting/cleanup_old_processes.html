@@ -1,0 +1,100 @@
+{% extends "site_base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Cleanup Old Processes" %}{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+</style>
+{% endblock %}
+
+{% block body_class %}cleanup{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+
+    <legend>These processes are more than 30 days old and unfinished</legend>
+    
+    <ul>
+        {% for orphan in orphans %}
+            <li>
+                <a href="{{ orphan.get_absolute_url }}">#{{ orphan.id }}: {{ orphan }}</a> created by: {{ orphan.created_by }} created date: {{ orphan.created_date }} Finished: {{ orphan.finished }}
+                {% if not orphan.finished %}
+                    <form
+                        style="display: inline;" 
+                        class="finish-form" 
+                        id="finishProcessForm{{ orphan.id }}" 
+                        action="{% url process_finished process_id=orphan.id %}" 
+                        method="POST" >
+                        {% csrf_token %}
+                        <input type="hidden" id="next" name="next" value="cleanup-old-processes" />
+                        <button style="display: inline;"  class="btn btn-info btn-mini" title="Finish process" >Finish</button>
+                    </form>
+                {% endif %}
+                {% if orphan.is_deletable %}
+                    <form
+                        style="display: inline;" 
+                        class="delete-process-form" 
+                        id="deleteProcessForm{{ orphan.id }}" 
+                        action="{% url delete_process process_id=orphan.id %}" 
+                        method="POST" >
+                        {% csrf_token %}
+                        <input type="hidden" id="next" name="next" value="cleanup-old-processes" />
+                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete process" >X</button>
+                    </form>
+                {% endif %}
+            </li>
+            {% if orphan.notes %}
+                <p>{{ orphan.notes|urlize|linebreaks }}</p>
+            {% endif %}
+            {% if orphan.events.all %}
+                <ul>
+                {% for event in orphan.events.all %}
+                    <li>
+                        {{ event }}
+                        {% if not event.quantity %}
+                            <form
+                                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" id="next" name="next" value="cleanup-processes" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete event" >X</button>
+                            </form>
+                        {% endif %}
+                    </lu>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endfor %}
+    </ul>
+
+    </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+
+    }); // end document.ready
+
+     
+    </script>
+
+{% endblock %}

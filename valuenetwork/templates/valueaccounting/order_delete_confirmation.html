@@ -10,37 +10,53 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Are you sure you want to delete " %}{{ order }}?</legend>
-		
-		<h3>{% trans "The following objects will be also deleted" %}:</h3>
+		<legend>
+            {% trans "Are you sure you want to delete " %}{{ order }}?</br>
+            {% trans "The following processes and commitments will be deleted and the events will be orphaned" %}:
+        </legend>
 
-			{% if order_type == "customer" %}
+			{% if order.order_type == "customer" %}
 		        <h3 style="margin-top: 1em;" >{% trans "Order Items" %}:</h3>
 				<ul>
 				    {% for item in order.producing_commitments %}
 						<li>{{ item.quantity }} {{ item.unit_of_quantity }} {{ item.resource_type }} {{ item.feature_label }}</li>
+                    {% empty %}
+                        None
 					{% endfor %}
 				</ul>
 			{% endif %}	
 
 
+            <div class="row-fluid">
+                <div class="span12">
+                    
+                    {% for item in sked %}
+                        <p style="margin-left:{{ item.depth }}em" >
+                            <b>{{ item.class_label }}:</b> {{ item }} 
+                            {% if item.fulfilling_events %}
+                                <ul>
+                                {% for event in item.fulfilling_events %}
+                                    <li>
+                                        <b>{{ event.class_label }}:</b> {{ event }}
+                                    </li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+
+{% comment %}
 			<div class="row-fluid">
 
 				<div class="span6">
 					<h3 style="margin-bottom: 4px;" >{% trans "Production Schedule" %}:</h3>
-					{% for item in sked %}
-						<p style="margin-left:{{ item.depth }}em" >
-							<b>{{ item.label }}:</b> {{ item }} 
-						</p>
-					{% endfor %}
-				</div>
-
-				<div class="span6">
-
+					
 					<h3 style="margin-bottom: 4px;" >{% trans "Requirements" %}:</h3>
 					{% for item in reqs %}
 						<p>
-							<b>{{ item.label }}:</b> <b>{{ item.resource_type }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+							<b>{{ item.class_label }}:</b> <b>{{ item.resource_type }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 						</p>
 						<p style="margin-left: 2em;">
 							{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
@@ -51,7 +67,7 @@
 							</p>
 						{% endfor %}
 					{% endfor %}
-{% comment %}
+
 					<h3 style="margin-bottom: 4px;" >{% trans "Work Requirements" %}:</h3>
 					{% for item in work %}
 						<p>
@@ -81,11 +97,12 @@
 							</p>
 						{% endfor %}
 					{% endfor %}
-{% endcomment %}
+
 
 				</div>
 
 			</div>
+{% endcomment %}
 
 		<div>
 	<form style="display: inline;" action="{% url delete_order order_id=order.id %}" method="POST">

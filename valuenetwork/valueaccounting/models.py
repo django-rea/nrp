@@ -2293,10 +2293,16 @@ class Order(models.Model):
         return ct
 
     def all_processes(self):
-        #todo: this method omits processes that are not linked to deliverables
         #import pdb; pdb.set_trace()
         deliverables = self.commitments.filter(event_type__relationship="out")
-        processes = [d.process for d in deliverables if d.process]
+        if deliverables:
+            processes = [d.process for d in deliverables if d.process]
+        else:
+            processes = []
+            commitments = Commitment.objects.filter(independent_demand=self)
+            for c in commitments:
+                processes.append(c.process)
+            processes = list(set(processes))
         roots = []
         for p in processes:
             if not p.next_processes():
@@ -3300,6 +3306,9 @@ class Process(models.Model):
             if order_name:
                 answer = " ".join([self.name, "for", order_name])
         return answer
+    
+    def class_label(self):
+        return "Process"
     
     @models.permalink
     def get_absolute_url(self):
@@ -4321,6 +4330,9 @@ class Commitment(models.Model):
     def label(self):
         return self.event_type.get_relationship_display()
         
+    def class_label(self):
+        return " ".join(["Commitment for", self.label()])
+        
     def cycle_id(self):
         stage_id = ""
         if self.stage:
@@ -5001,6 +5013,9 @@ class EconomicEvent(models.Model):
         if self.resource.state:
             state_id = str(self.resource.state.id)
         return "-".join([str(self.resource_type.id), stage_id, state_id])
+        
+    def class_label(self):
+        return "Economic Event"
         
     def recipient(self):
         return self.to_agent or self.default_agent()

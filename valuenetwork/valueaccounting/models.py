@@ -2325,6 +2325,7 @@ class Order(models.Model):
         return ct
 
     def all_processes(self):
+        # this method includes only processes for this order
         #import pdb; pdb.set_trace()
         deliverables = self.commitments.filter(event_type__relationship="out")
         if deliverables:
@@ -2337,12 +2338,12 @@ class Order(models.Model):
             processes = list(set(processes))
         roots = []
         for p in processes:
-            if not p.next_processes():
+            if not p.next_processes_for_order(self):
                 roots.append(p)
         ordered_processes = []
         for root in roots:
             visited = []
-            root.all_previous_processes(ordered_processes, visited, 0)
+            root.all_previous_processes_for_order(self, ordered_processes, visited, 0)
         ordered_processes = list(set(ordered_processes))
         ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
         ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
@@ -3528,6 +3529,27 @@ class Process(models.Model):
                             if evt.process not in answer:
                                 answer.append(evt.process)
         return answer
+        
+    def previous_processes_for_order(self, order):
+        answer = []
+        dmnd = None
+        moc = self.main_outgoing_commitment()
+        #import pdb; pdb.set_trace()
+        if moc:
+            dmnd = moc.order_item
+        #output_rts = [oc.resource_type for oc in self.outgoing_commitments()]
+        for ic in self.incoming_commitments():
+            rt = ic.resource_type
+            stage = ic.stage
+            state = ic.state
+            # this is maybe a better way to block cycles
+            for pc in rt.producing_commitments():
+                if pc.process != self:
+                    if pc.stage == stage and pc.state == state:
+                        if dmnd:
+                            if pc.order_item == dmnd:
+                                answer.append(pc.process)
+        return answer
 
     def all_previous_processes(self, ordered_processes, visited, depth):
         #import pdb; pdb.set_trace()
@@ -3541,6 +3563,19 @@ class Process(models.Model):
             visited.append(output.cycle_id())
             for process in self.previous_processes():
                 process.all_previous_processes(ordered_processes, visited, depth)
+                
+    def all_previous_processes_for_order(self, order, ordered_processes, visited, depth):
+        #import pdb; pdb.set_trace()
+        self.depth = depth * 2
+        ordered_processes.append(self)
+        output = self.main_outgoing_commitment()
+        if not output:
+            return []
+        depth = depth + 1
+        if output.cycle_id() not in visited:
+            visited.append(output.cycle_id())
+            for process in self.previous_processes_for_order(order):
+                process.all_previous_processes_for_order(order, ordered_processes, visited, depth)
 
     def next_processes(self):
         answer = []
@@ -3576,6 +3611,25 @@ class Process(models.Model):
                             if evt.process not in answer:
                                 answer.append(evt.process)
         return answer
+        
+    def next_processes_for_order(self, order):
+        answer = []
+        #import pdb; pdb.set_trace()
+        input_ids = [ic.cycle_id() for ic in self.incoming_commitments()]
+        for oc in self.outgoing_commitments():
+            dmnd = oc.order_item
+            stage = oc.stage
+            state = oc.state
+            rt = oc.resource_type
+            if oc.cycle_id() not in input_ids:
+                for cc in rt.wanting_commitments():
+                    if cc.stage == stage and cc.state == state:
+                        if dmnd:
+                            if cc.order_item == dmnd:
+                                if cc.process not in answer:
+                                    answer.append(cc.process)
+        return answer
+
 
     def consumed_input_requirements(self):
         return self.commitments.filter(

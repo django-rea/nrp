@@ -1,6 +1,7 @@
 {% extends "site_base.html" %}
 
 {% load i18n %}
+{% load url from future %}
 
 {% block head_title %}{% trans "Confirm deletion of " %}{{ order }}{% endblock %}
 
@@ -47,71 +48,15 @@
                 </div>
             </div>
 
-{% comment %}
-			<div class="row-fluid">
-
-				<div class="span6">
-					<h3 style="margin-bottom: 4px;" >{% trans "Production Schedule" %}:</h3>
-					
-					<h3 style="margin-bottom: 4px;" >{% trans "Requirements" %}:</h3>
-					{% for item in reqs %}
-						<p>
-							<b>{{ item.class_label }}:</b> <b>{{ item.resource_type }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-						</p>
-						<p style="margin-left: 2em;">
-							{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
-						</p>
-						{% for source in item.resource_type.producing_agent_relationships %}
-							<p style="margin-left: 2em;">
-								<b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-							</p>
-						{% endfor %}
-					{% endfor %}
-
-					<h3 style="margin-bottom: 4px;" >{% trans "Work Requirements" %}:</h3>
-					{% for item in work %}
-						<p>
-							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-						</p>
-						<p style="margin-left: 2em;">
-							{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
-						</p>
-						{% for source in item.resource_type.producing_agent_relationships %}
-							<p style="margin-left: 2em;">
-								<b>{% trans "Source" %}:</b> {{ source.agent.name }}
-							</p>
-						{% endfor %}
-					{% endfor %}
-
-					<h3 style="margin-bottom: 4px;" >{% trans "Tool Requirements" %}:</h3>
-					{% for item in tools %}
-						<p>
-							<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-						</p>
-						<p style="margin-left: 2em;">
-							{% trans "for process" %}: <a href="{{ item.process.get_absolute_url }}">{{ item.process }}</a>
-						</p>
-						{% for source in item.resource_type.producing_agent_relationships %}
-							<p style="margin-left: 2em;">
-								<b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
-							</p>
-						{% endfor %}
-					{% endfor %}
-
-				</div>
-
-			</div>
-{% endcomment %}
-
             <div>
-                <form style="display: inline;" action="{% url delete_order order_id=order.id %}" method="POST">
+                <form style="display: inline;" action="{% url 'delete_order' order_id=order.id %}" method="POST">
                     {% csrf_token %}
                     <input type="submit" value="{% trans 'Delete' %}" class="btn btn-warning" />
                     <input type="hidden" id="next" name="next" value="{{ next }}" />
                 </form>
-                <form style="display: inline;" action="{% url demand %}" method="GET">
+
+                <form style="display: inline;" action="{% url next %}" method="GET">
                     <input type="submit" value="{% trans 'Cancel' %}" class="btn btn-info" />
-                    <input type="hidden" id="next" name="next" value="{{ next }}" />
                 </form>
 
             </div>

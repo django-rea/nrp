@@ -7211,26 +7211,31 @@ def create_rand(request):
 def change_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     #import pdb; pdb.set_trace()
-    order_init = {
-        'receiver': order.receiver, 
-        'provider': order.provider,
-    }
     order_form = OrderChangeForm(instance=order, data=request.POST or None)
     if request.method == "POST":
-        if order_form.is_valid():
-            order = order_form.save()
-            #return HttpResponseRedirect("/accounting/demand")
-            next = request.POST.get("next")
-            if next == "demand":
-                return HttpResponseRedirect('/%s/'
-                    % ('accounting/demand'))
-            if next == "closed_work_orders":
-                return HttpResponseRedirect('/%s/'
-                    % ('accounting/closed-work-orders'))
-    return render_to_response("valueaccounting/change_order.html", {
-        "order_form": order_form,
-        "order": order,
-    }, context_instance=RequestContext(request))
+        next = request.POST.get("next")
+        if request.POST.get("from") == "report":
+            return render_to_response("valueaccounting/change_order.html", {
+                "order_form": order_form,
+                "order": order,
+                "next": next,
+            }, context_instance=RequestContext(request))    
+        else:
+            if order_form.is_valid():
+                order = order_form.save()
+                #return HttpResponseRedirect("/accounting/demand")
+                if next == "demand":
+                    return HttpResponseRedirect('/%s/'
+                        % ('accounting/demand'))
+                if next == "closed_work_orders":
+                    return HttpResponseRedirect('/%s/'
+                        % ('accounting/closed-work-orders'))
+            else:
+                return render_to_response("valueaccounting/change_order.html", {
+                    "order_form": order_form,
+                    "order": order,
+                    "next": next,
+                }, context_instance=RequestContext(request))                 
 
 #todo: obsolete
 @login_required

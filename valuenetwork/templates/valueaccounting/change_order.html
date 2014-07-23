@@ -30,12 +30,12 @@
     <form id="orderForm" class="form-horizontal" method="POST" action="">
         {% csrf_token %}
 
-                {{ order_form|as_bootstrap }}
+        {{ order_form|as_bootstrap }}
 
         <div class="form-actions">
             <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
         </div>
-
+        <input type="hidden" id="next" name="next" value="{{ next }}" />
     </form>
 
 </div>

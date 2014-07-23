@@ -7214,28 +7214,23 @@ def change_order(request, order_id):
     order_form = OrderChangeForm(instance=order, data=request.POST or None)
     if request.method == "POST":
         next = request.POST.get("next")
-        if request.POST.get("from") == "report":
-            return render_to_response("valueaccounting/change_order.html", {
-                "order_form": order_form,
-                "order": order,
-                "next": next,
-            }, context_instance=RequestContext(request))    
-        else:
-            if order_form.is_valid():
-                order = order_form.save()
-                #return HttpResponseRedirect("/accounting/demand")
-                if next == "demand":
-                    return HttpResponseRedirect('/%s/'
-                        % ('accounting/demand'))
-                if next == "closed_work_orders":
-                    return HttpResponseRedirect('/%s/'
-                        % ('accounting/closed-work-orders'))
-            else:
-                return render_to_response("valueaccounting/change_order.html", {
-                    "order_form": order_form,
-                    "order": order,
-                    "next": next,
-                }, context_instance=RequestContext(request))                 
+        if order_form.is_valid():
+            order = order_form.save()
+            if next == "demand":
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/demand'))
+            if next == "closed_work_orders":
+                return HttpResponseRedirect('/%s/'
+                    % ('accounting/closed-work-orders'))
+    else:
+        next = request.GET.get("next")
+
+    return render_to_response("valueaccounting/change_order.html", {
+        "order_form": order_form,
+        "order": order,
+        "next": next,
+    }, context_instance=RequestContext(request))    
+                
 
 #todo: obsolete
 @login_required

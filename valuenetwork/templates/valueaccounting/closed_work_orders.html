@@ -32,7 +32,7 @@
                         <form
                             style="display: inline;"  
                             action="{% url change_order order_id=rand.id %}" 
-                            method="POST" >
+                            method="GET" >
                             {% csrf_token %}
                             <input type="hidden" id="next" name="next" value="closed_work_orders" />
                             <input type="hidden" id="from" name="from" value="report" />

@@ -6565,7 +6565,7 @@ def handle_commitment_changes(old_ct, new_rt, new_qty, old_demand, new_demand):
                     propagators.append(dep) 
                     explode = False
             else:
-                if dep.due_date == process.start_date:
+                if dep.due_date == old_ct.process.start_date:
                     if dep.quantity == old_ct.quantity:
                         propagators.append(dep)
                         explode = False 

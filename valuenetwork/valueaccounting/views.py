@@ -4445,6 +4445,9 @@ def delete_process(request, process_id):
         if next == "cleanup-processes":
             return HttpResponseRedirect('/%s/'
                 % ('accounting/cleanup-processes'))
+        if next == "cleanup-old-processes":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/cleanup-old-processes'))
     return HttpResponseRedirect('/%s/'
         % ('accounting/cleanup-processes'))
   

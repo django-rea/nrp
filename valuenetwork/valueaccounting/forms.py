@@ -1151,6 +1151,7 @@ class WorkEventForm(forms.ModelForm):
 
 
 class TimeEventForm(forms.ModelForm):
+    id = forms.CharField(required=False, widget=forms.HiddenInput)
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
@@ -1161,7 +1162,7 @@ class TimeEventForm(forms.ModelForm):
 	
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'quantity', 'description')
+        fields = ('id', 'event_date', 'quantity', 'description')
 
 
 class InputEventForm(forms.ModelForm):

@@ -6298,8 +6298,10 @@ def change_work_event(request, event_id):
     process = event.process
     #import pdb; pdb.set_trace()
     if request.method == "POST":
-        form = WorkEventChangeForm(instance=event, data=request.POST)
+        prefix = event.form_prefix()
+        form = TimeEventForm(instance=event, prefix=prefix, data=request.POST)
         if form.is_valid():
+            #import pdb; pdb.set_trace()
             data = form.cleaned_data
             form.save()
     next = request.POST.get("next")

@@ -156,6 +156,8 @@ class CommitmentInline(admin.TabularInline):
 
 class OrderItemInline(admin.TabularInline):
     model = Commitment
+    verbose_name = "order item"
+    verbose_name_plural = "order items"
     fk_name = 'order'
     fields = ('event_type', 'due_date', 'resource_type', 'quantity', 'unit_of_quantity', 'process')
 

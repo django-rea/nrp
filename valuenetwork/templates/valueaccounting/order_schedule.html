@@ -110,7 +110,7 @@ textarea {
                                 </div>
 
                                 <div class="modal-body">
-                                    <form class="resource-qty-form validateMe" enctype="multipart/form-data" action="{% url change_commitment_quantities order_id=order.id %}" method="POST" >
+                                    <form class="resource-qty-form validateMe" enctype="multipart/form-data" action="{% url change_commitment_quantities order_item_id=item.id %}" method="POST" >
                                         {% csrf_token %}
                                         {{ item.resource_qty_form }} {{ unit }}
                                         <p>This will change all the planned quantities for the workflow resource on all processes for this order item.</p>

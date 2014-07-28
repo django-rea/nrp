@@ -2447,15 +2447,15 @@ def order_schedule(request, order_id):
     }, context_instance=RequestContext(request))
 
 @login_required    
-def change_commitment_quantities(request, order_id):
-    order = get_object_or_404(Order, pk=order_id)
+def change_commitment_quantities(request, order_item_id):
+    order_item = get_object_or_404(Commitment, pk=order_item_id)
     qty_form = ResourceQuantityForm(data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if qty_form.is_valid():
             data = qty_form.cleaned_data
             new_qty = data["quantity"]
-            order.change_commitment_quantities(new_qty)   
+            order_item.change_commitment_quantities(new_qty)   
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
@@ -2501,10 +2501,10 @@ def create_process_for_streaming(request, order_id): #at the end of the order
     return HttpResponseRedirect(next)
 
 @login_required    
-def insert_process_for_streaming(request, order_id, process_id):
-    order = get_object_or_404(Order, pk=order_id)
+def insert_process_for_streaming(request, order_item_id, process_id):
+    order_item = get_object_or_404(Commitment, pk=order_item_id)
     next_process = Process.objects.get(id=process_id)
-    form = WorkflowProcessForm(prefix=process_id, data=request.POST or None, order=order)
+    form = WorkflowProcessForm(prefix=process_id, data=request.POST or None, order_item=order_item)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if form.is_valid():
@@ -2522,7 +2522,7 @@ def insert_process_for_streaming(request, order_id, process_id):
                 process.process_type=pt
             process.changed_by = request.user
             process.save()
-            order.adjust_workflow_commitments_process_inserted(process=process, next_process=next_process, user=request.user)
+            order_item.adjust_workflow_commitments_process_inserted(process=process, next_process=next_process, user=request.user)
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
     

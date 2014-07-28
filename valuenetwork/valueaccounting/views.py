@@ -2258,7 +2258,6 @@ def cleanup_resources(request):
 @login_required
 def create_order(request):
     patterns = PatternUseCase.objects.filter(use_case__identifier='cust_orders')
-    #import pdb; pdb.set_trace()
     if patterns:
         pattern = patterns[0].pattern
     else:
@@ -2292,6 +2291,8 @@ def create_order(request):
                         rt_id = data["resource_type_id"]
                         rt = EconomicResourceType.objects.get(id=rt_id)
                         #todo: add stage and state as args?
+                        #also, this assumes a manufactured item
+                        #what about reselling purchased items?
                         pt = rt.main_producing_process_type()
                         if pt:
                             #todo: add stage and state as args?
@@ -2322,6 +2323,7 @@ def create_order(request):
                             commitment.generate_producing_process(request.user, [], explode=True)                           
                         else:
                             #todo: this could be wrong (but won't crash)
+                            #tis wrong for reselling purchased items
                             ets = EventType.objects.filter(
                                 related_to="process",
                                 relationship="out")
@@ -2433,20 +2435,35 @@ def order_schedule(request, order_id):
     processes = order.all_processes()
     resource_qty_form = None
     add_process_form = None
+    add_order_item_form = None
     unit = None
-    if order.is_workflow_order():
-        qty = order.workflow_quantity()
-        unit = order.workflow_unit()
-        init = {'quantity': qty,}
-        resource_qty_form = ResourceQuantityForm(initial=init)
-        last_date = order.last_process_in_order().end_date
-        next_date = last_date + datetime.timedelta(days=1)
-        init = {"start_date": next_date, "end_date": next_date}
-        add_process_form = WorkflowProcessForm(initial=init, order=order)
+    rts = None
+    if agent:
+        if order.order_type == "customer":
+            patterns = PatternUseCase.objects.filter(use_case__identifier='cust_orders')
+            if patterns:
+                pattern = patterns[0].pattern
+            else:
+                raise ValidationError("no Customer Order ProcessPattern")
+            rts = pattern.all_resource_types()
+        else:
+            rts = ProcessPattern.objects.all_production_resource_types()
+        if rts:
+            add_order_item_form = AddOrderItemForm(resource_types=rts)
+        if order.is_workflow_order():
+            qty = order.workflow_quantity()
+            unit = order.workflow_unit()
+            init = {'quantity': qty,}
+            resource_qty_form = ResourceQuantityForm(initial=init)
+            last_date = order.last_process_in_order().end_date
+            next_date = last_date + datetime.timedelta(days=1)
+            init = {"start_date": next_date, "end_date": next_date}
+            add_process_form = WorkflowProcessForm(initial=init, order=order)
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
         "agent": agent,
         "processes": processes,
+        "add_order_item_form": add_order_item_form,
         "resource_qty_form": resource_qty_form,
         "unit": unit,
         "add_process_form": add_process_form,
@@ -2465,7 +2482,26 @@ def change_commitment_quantities(request, order_id):
             order.change_commitment_quantities(new_qty)   
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
-
+    
+@login_required
+def add_order_item(
+    request, order_id):
+    order = get_object_or_404(Order, pk=order_id)
+    rts = EconomicResourceType.objects.all()
+    form = AddOrderItemForm(resource_types=rts, data=request.POST)
+    #import pdb; pdb.set_trace()
+    if form.is_valid():
+        data = form.cleaned_data
+        rt = data["resource_type"]
+        qty = data["quantity"]
+        order.create_order_item(
+            resource_type=rt,
+            quantity=qty,
+            user=request.user)
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+    
+    
 @login_required    
 def change_process_plan(request, process_id):
     process = get_object_or_404(Process, pk=process_id)

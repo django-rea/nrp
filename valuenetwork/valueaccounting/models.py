@@ -1656,6 +1656,13 @@ class ProcessPatternManager(models.Manager):
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
         
+    def all_production_resource_types(self):
+        patterns = self.production_patterns()
+        rt_ids = []
+        for pat in patterns:
+            rt_ids.extend([rt.id for rt in pat.output_resource_types()])
+        return EconomicResourceType.objects.filter(id__in=rt_ids)
+        
 
 class ProcessPattern(models.Model):
     name = models.CharField(_('name'), max_length=32)
@@ -1751,11 +1758,12 @@ class ProcessPattern(models.Model):
             return EconomicResourceType.objects.none()
 
     def all_resource_types(self):
-        answer = []
+        rts = []
         ets = self.event_types()
         for et in ets:
-            answer.extend(self.get_resource_types(et))
-        return answer
+            rts.extend(self.get_resource_types(et))
+        rt_ids = [rt.id for rt in rts]
+        return EconomicResourceType.objects.filter(id__in=rt_ids)
         
     def work_resource_types(self):
         return self.resource_types_for_relationship("work")
@@ -2324,6 +2332,28 @@ class Order(models.Model):
         #todo: shd this generate_producing_process?
         return ct
 
+    def create_order_item(self,
+            resource_type,
+            quantity,
+            user):
+        #todo: this assumes created items
+        ptrt = resource_type.main_producing_process_type_relationship()
+        if ptrt:
+            event_type=ptrt.event_type
+            stage=ptrt.stage
+            state=ptrt.state
+        else:
+            event_type = what
+        commitment = self.add_commitment(
+            resource_type,
+            quantity,
+            event_type=ptrt.event_type,
+            unit=resource_type.unit,
+            stage=stage,
+            state=state)
+        commitment.generate_producing_process(user, [], explode=True)
+        return commitment
+        
     def all_processes(self):
         # this method includes only processes for this order
         #import pdb; pdb.set_trace()

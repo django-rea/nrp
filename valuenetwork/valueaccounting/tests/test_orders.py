@@ -260,4 +260,18 @@ class OrderTest(WebTest):
         self.assertEqual(len(chain), 2)
         #import pdb; pdb.set_trace()
         
-        
+    def test_create_order_item(self):
+        due_date = datetime.date.today()
+        order = Order(
+            name="test",
+            due_date=due_date,
+        )
+        order.save()
+        oi = order.create_order_item(
+            resource_type=self.parent,
+            quantity=Decimal("1.0"),
+            user=self.user,
+        )
+        import pdb; pdb.set_trace()
+            
+            

@@ -1,12 +1,15 @@
 {% extends "site_base.html" %}
 
+{% load staticfiles %}
 {% load i18n %}
+{% load bootstrap_tags %}
 
 {% block head_title %}{% trans "Schedule for " %}{{ order }}{% endblock %}
 
 {% block extra_head %}
 
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
 
@@ -78,9 +81,12 @@ textarea {
             <h3>
 			    {% if order.order_type == "customer" %}
 		            {% trans "Order Items" %}:
+		            <a href="#addOrderItem" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Add an Order Item" %}</a>
 	            {% else %}
 	                {% trans "Deliverables" %}:
+	                <a href="#addOrderItem" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Add a Deliverable" %}</a>
 	            {% endif %}
+	            
 	        </h3>
         
 			<ul>
@@ -109,6 +115,23 @@ textarea {
 			</ul>
 
 			{% if agent %}
+                <div class="modal hide fade" id="addOrderItem" tabindex="-1" role="dialog" aria-labelledby="order-item-label" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 id="order-item-label">{% trans "Add another Order Item" %} </h3>
+                    </div>
+                    <div class="modal-body">
+                        <form class="order-item-form validateMe" enctype="multipart/form-data" action="{% url add_order_item order_id=order.id %}" method="POST" >
+                            {% csrf_token %}
+                            {{ add_order_item_form|as_bootstrap }}
+                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                            <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                            </div>
+                        </form>
+                    </div>
+              </div>
 			  <div class="modal hide fade" id="resourceQuantity" tabindex="-1" role="dialog" aria-labelledby="resource-qty-label" aria-hidden="true">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -295,6 +318,7 @@ textarea {
 {% block extra_script %}
 <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -314,6 +338,8 @@ $(document).ready(function(){
             $( "#help" ).text("Show Help");
     })
             
+    $(".chzn-select").chosen();
+    
     $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
     $('.validateMe').each( function(){
@@ -340,6 +366,8 @@ $(document).ready(function(){
             },
             "Please enter a number less than 1000000 with no more than 2 decimal places"
         );
+        
+
    jQuery.validator.addMethod("require_from_group", function(value, element, options) {
         var selector = options[1];
         var validOrNot = $(selector, element.form).filter(function() {
@@ -362,7 +390,7 @@ $(document).ready(function(){
         });
     
     $.validator.addClassRules("date-entry", { required: true, date: true, });
-    
+    $.validator.addClassRules("resourceType", { required: true});
     $.validator.addClassRules("name", { required: true, });
     
     $.validator.addClassRules("process-type", {require_from_group: [1,".process-info"]});

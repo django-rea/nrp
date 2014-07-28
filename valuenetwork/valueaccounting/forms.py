@@ -178,9 +178,24 @@ class CreateEconomicResourceForm(forms.ModelForm):
         model = EconomicResource
         exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand', 'stage', 'state')
 
+
 class ResourceQuantityForm(forms.Form):
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
-            
+
+    
+class AddOrderItemForm(forms.Form):
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector chzn-select input-xlarge'}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+
+    def __init__(self, resource_types, *args, **kwargs):
+        super(AddOrderItemForm, self).__init__(*args, **kwargs)
+        self.fields["resource_type"].queryset = resource_types
+        
+
 class ResourceRoleAgentForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)
     role = forms.ModelChoiceField(

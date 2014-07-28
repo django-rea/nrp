@@ -2430,29 +2430,19 @@ def order_schedule(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
     #import pdb; pdb.set_trace()
     error_message = ""
-    #processes = order.all_processes()
-    #resource_qty_form = None
-    #add_process_form = None
-    #unit = None
     order_items = order.order_items()
     for order_item in order_items:
-        #processes = order_item.process_chain()
         if order_item.is_workflow_order_item():
-            #qty = order.workflow_quantity()
-            #unit = order.workflow_unit()
-            init = {'quantity': qty,}
-            resource_qty_form = ResourceQuantityForm(initial=init)
-            last_date = order_item.last_process_in_order().end_date
+            init = {'quantity': order_item.quantity,}
+            order_item.resource_qty_form = ResourceQuantityForm(initial=init)
+            last_date = order_item.process.end_date
             next_date = last_date + datetime.timedelta(days=1)
             init = {"start_date": next_date, "end_date": next_date}
-            order_item.add_process_form = WorkflowProcessForm(initial=init, order=order)
+            order_item.add_process_form = WorkflowProcessForm(initial=init, order_item=order_item)
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
         "agent": agent,
         "order_items": order_items,
-        #"resource_qty_form": resource_qty_form,
-        #"unit": unit,
-        #"add_process_form": add_process_form,
         "error_message": error_message,
     }, context_instance=RequestContext(request))
 

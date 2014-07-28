@@ -4768,13 +4768,12 @@ class Commitment(models.Model):
                     return ois
 
     def all_processes_in_my_order_item(self):
-        processes = []
-        ordered_proccesses = []
+        ordered_processes = []
         if self.order_item:
             commitments = Commitment.objects.filter(order_item=self.order_item)
             for c in commitments:
-                processes.append(c.process)
-                processes = list(set(processes))
+                ordered_processes.append(c.process)
+            ordered_processes = list(set(ordered_processes))
             ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
             ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
         return ordered_processes

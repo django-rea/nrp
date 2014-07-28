@@ -2293,7 +2293,7 @@ class Order(models.Model):
     def work_requirements(self):
         return []
 
-    def process(self):
+    def process(self): #todo: should this be on order_item?
         answer = None
         #todo: why rand, what difference does it make?
         if self.order_type == 'rand':
@@ -2394,99 +2394,13 @@ class Order(models.Model):
             return processes[-1]
         else:
             return None
-    
-    def is_workflow_order(self):
-        last_process = self.last_process_in_order()
-        if last_process:
-            return last_process.is_staged()
-        else:
-            return False
-            
+                
     def process_types(self):
         pts = []
         for process in self.all_processes():
             if process.process_type:
                 pts.append(process.process_type)
         return pts
-            
-    def available_workflow_process_types(self):
-        all_pts = ProcessType.objects.workflow_process_types()
-        my_pts = self.process_types()
-        available_pt_ids = []
-        for pt in all_pts:
-            if pt not in my_pts:
-                available_pt_ids.append(pt.id)
-        return ProcessType.objects.filter(id__in=available_pt_ids)
-        
-    def workflow_quantity(self):
-        if self.is_workflow_order():
-            return self.last_process_in_order().main_outgoing_commitment().quantity
-        else:
-            return None
-        
-    def workflow_unit(self):
-        if self.is_workflow_order():
-            return self.last_process_in_order().main_outgoing_commitment().unit_of_quantity
-        else:
-            return None  
-    
-    def change_commitment_quantities(self, qty):
-        #import pdb; pdb.set_trace()
-        if self.is_workflow_order():
-            processes = self.all_processes()
-            for process in processes:
-                for commitment in process.commitments.all():
-                    if commitment.is_change_related():
-                        commitment.quantity = qty
-                        commitment.save()
-                    elif commitment.is_work():
-                        if commitment.quantity == self.workflow_quantity() and commitment.unit_of_quantity == self.workflow_unit():
-                            commitment.quantity = qty
-                            commitment.save()
-        return self
-        
-    def adjust_workflow_commitments_process_added(self, process, user): #process added to the end of the order
-        #import pdb; pdb.set_trace()
-        last_process = self.last_process_in_order() 
-        process.add_stream_commitments(last_process=last_process, user=user)
-        last_commitment = last_process.main_outgoing_commitment()
-        last_commitment.remove_order()
-        return self
-        
-    def adjust_workflow_commitments_process_inserted(self, process, next_process, user):
-        #import pdb; pdb.set_trace()
-        all_procs = self.all_processes()
-        process_index = all_procs.index(next_process)
-        if process_index > 0:
-            last_process = all_procs[process_index - 1]
-        else:
-            last_process = None
-        next_commitment = next_process.to_be_changed_requirements()[0]
-        if last_process:
-            process.insert_stream_commitments(last_process=last_process, user=user)
-        else:
-            process.insert_first_stream_commitments(next_commitment=next_commitment, user=user)
-        next_commitment.update_stage(process.process_type)
-        return self
-        
-    def adjust_workflow_commitments_process_deleted(self, process, user):
-        all_procs = self.all_processes()
-        process_index = all_procs.index(process)
-        last_process = None
-        next_commitment = None
-        if process_index > 0:
-            last_process = all_procs[process_index - 1]
-        if process == self.last_process_in_order():
-            if last_process:
-                last_commitment = last_process.main_outgoing_commitment()
-                last_commitment.order = self
-                last_commitment.save()
-        else:
-            next_process = all_procs[process_index + 1]
-            next_commitment = next_process.to_be_changed_requirements()[0]
-        if last_process and next_commitment:    
-            next_commitment.update_stage(last_process.process_type)
-        return self
         
 
 class ProcessTypeManager(models.Manager):
@@ -4882,8 +4796,124 @@ class Commitment(models.Model):
                     return ois[0]
                 else:
                     return ois
+
+    def all_processes_in_my_order_item(self):
+        ordered_processes = []
+        if self.order_item:
+            commitments = Commitment.objects.filter(order_item=self.order_item)
+            for c in commitments:
+                ordered_processes.append(c.process)
+            ordered_processes = list(set(ordered_processes))
+            ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
+            ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
+        return ordered_processes
+        
+    def last_process_in_my_order_item(self):
+        processes = self.all_processes_in_my_order_item()
+        if processes:
+            return processes[-1]
+        else:
+            return None
+         
+    def is_order_item(self):
+        if self.order:
+            return True
+        else:
+            return False
+            
+    def is_workflow_order_item(self):
+        if self.process and self.order:
+            return self.process.is_staged()
+        else:
+            return False
+            
+    def process_types(self):
+        pts = []
+        for process in self.all_processes_in_my_order_item():
+            if process.process_type:
+                pts.append(process.process_type)
+        return list(set(pts))
+        
+    def available_workflow_process_types(self):
+        all_pts = ProcessType.objects.workflow_process_types()
+        my_pts = self.process_types()
+        available_pt_ids = []
+        for pt in all_pts:
+            if pt not in my_pts:
+                available_pt_ids.append(pt.id)
+        return ProcessType.objects.filter(id__in=available_pt_ids)
+        
+    def workflow_quantity(self):
+        if self.is_workflow_order_item():
+            return self.quantity
+        else:
+            return None
+        
+    def workflow_unit(self):
+        if self.is_workflow_order_item():
+            return self.unit_of_quantity
+        else:
+            return None  
     
-    
+    def change_commitment_quantities(self, qty):
+        #import pdb; pdb.set_trace()
+        if self.is_workflow_order_item():
+            processes = self.process_chain()
+            for process in processes:
+                for commitment in process.commitments.all():
+                    if commitment.is_change_related():
+                        commitment.quantity = qty
+                        commitment.save()
+                    elif commitment.is_work():
+                        if commitment.quantity == self.workflow_quantity() and commitment.unit_of_quantity == self.workflow_unit():
+                            commitment.quantity = qty
+                            commitment.save()
+        return self
+        
+    def adjust_workflow_commitments_process_added(self, process, user): #process added to the end of the order item
+        #import pdb; pdb.set_trace()
+        last_process = self.last_process_in_my_order_item() 
+        process.add_stream_commitments(last_process=last_process, user=user)
+        last_commitment = last_process.main_outgoing_commitment()
+        last_commitment.remove_order()
+        return self
+        
+    def adjust_workflow_commitments_process_inserted(self, process, next_process, user):
+        #import pdb; pdb.set_trace()
+        all_procs = self.all_processes_in_my_order_item()
+        process_index = all_procs.index(next_process)
+        if process_index > 0:
+            last_process = all_procs[process_index - 1]
+        else:
+            last_process = None
+        next_commitment = next_process.to_be_changed_requirements()[0]
+        if last_process:
+            process.insert_stream_commitments(last_process=last_process, user=user)
+        else:
+            process.insert_first_stream_commitments(next_commitment=next_commitment, user=user)
+        next_commitment.update_stage(process.process_type)
+        return self
+        
+    def adjust_workflow_commitments_process_deleted(self, process, user):
+        all_procs = self.all_processes_in_my_order_item()
+        process_index = all_procs.index(process)
+        last_process = None
+        next_commitment = None
+        if process_index > 0:
+            last_process = all_procs[process_index - 1]
+        if process == self.last_process_in_my_order_item():
+            if last_process:
+                last_commitment = last_process.main_outgoing_commitment()
+                last_commitment.order = self
+                last_commitment.save()
+        else:
+            next_process = all_procs[process_index + 1]
+            next_commitment = next_process.to_be_changed_requirements()[0]
+        if last_process and next_commitment:    
+            next_commitment.update_stage(last_process.process_type)
+        return self
+        
+
 #todo: not used.
 class Reciprocity(models.Model):
     """One Commitment reciprocating another.

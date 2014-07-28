@@ -324,14 +324,14 @@ class WorkflowProcessForm(forms.ModelForm):
         model = Process
         fields = ('name', 'context_agent', 'process_pattern', 'process_type', 'start_date', 'end_date', 'notes' )
         
-    def __init__(self, order, next_date=None, *args, **kwargs):
+    def __init__(self, order_item, next_date=None, *args, **kwargs):
         super(WorkflowProcessForm, self).__init__(*args, **kwargs)
         if next_date:
             self.fields["start_date"] = next_date
             self.fields["end_date"] = next_date
         self.fields["process_pattern"].queryset = ProcessPattern.objects.recipe_patterns() 
         #import pdb; pdb.set_trace()
-        self.fields["process_type"].queryset = order.available_workflow_process_types()
+        self.fields["process_type"].queryset = order_item.available_workflow_process_types()
 
         
 class ScheduleProcessForm(forms.ModelForm):

@@ -43,6 +43,12 @@ textarea {
     font-weight: bold;
     font-size: 1.1em;
 }
+.oi {
+    color: firebrick;
+}
+.space-down {
+    margin-top: 12px;
+}
 .for, .req-description p {
     font-size: .8em;
     font-style: italic;
@@ -90,18 +96,39 @@ textarea {
 	        </h3>
         
 			<ul>
-			    {% for item in order.producing_commitments %}
+			    {% for item in order_items %}
 					<li>
-					    <span class="resource-type">
+					    <a class="resource-type" href="#item-{{ item.id }}">
                             {{ item.resource_type }}
                             {% if item.stage %}
                                 @{{ item.stage.name }}
                             {% endif %}
-                        </span> {{ item.quantity }} {{ item.unit_of_quantity }}
+                        </a> {{ item.quantity }} {{ item.unit_of_quantity }}
                         {% if agent %}
                           {% if item.stage %}
                             <div style="display: inline;" >
-                                <a href="#resourceQuantity" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Change Quantity" %}</a>
+                                <a href="#resourceQuantity-{{ item.id }}" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Change Quantity" %}</a>
+                            </div>
+                            <div class="modal hide fade" id="resourceQuantity-{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-qty-label" aria-hidden="true">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h3 id="resource-qty-label">{% trans "Change resource quantity for workflow plan" %} </h3>
+                                </div>
+
+                                <div class="modal-body">
+                                    <form class="resource-qty-form validateMe" enctype="multipart/form-data" action="{% url change_commitment_quantities order_item_id=item.id %}" method="POST" >
+                                        {% csrf_token %}
+                                        {{ item.resource_qty_form }} {{ unit }}
+                                        <p>This will change all the planned quantities for the workflow resource on all processes for this order item.</p>
+                                        <p>If work inputs also are using the same quantity and unit, they will also be changed.</p>
+                                        <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                                        </div>
+                                    </form>
+                                </div>
+
                             </div>
                           {% endif %}
                         {% endif %}
@@ -161,11 +188,19 @@ textarea {
 					    <a class="indent" href="{% url processes_graph object_type='O' object_id=order.id %}">Process graph diagram</a>
 				    </h3> 
 					
-					{% for process in processes %}
+                    {% for item in order_items %}
+                      <div id="item-{{ item.id }}" class="resource-type space-down">
+                            <span class="oi">{% trans 'Order Item' %}:</span>
+                            {{ item.resource_type }}
+                            {% if item.stage %}
+                                @{{ item.stage.name }}
+                            {% endif %}
+                      </div>
+                      {% for process in item.all_processes_in_my_order_item %}
 					
 					    {% if agent %}
                           {% if process.to_be_changed_requirements %}
-                            <div class="row-fluid">
+                            <div class="row-fluid indent">
                                 <div class="span12">
                                     <a href="#insertProcessForm{{ process.id }}" role="button" class="btn btn-info btn-mini process-btn" data-toggle="modal">
                                     {% blocktrans %}Insert a process here {% endblocktrans %}
@@ -214,7 +249,7 @@ textarea {
                           {% endif %}
 					    {% endif %}
 					
-                        <div class="row-fluid">
+                        <div class="row-fluid indent">
                             <div class="span9">
                                 <div class="process" >{% include  "valueaccounting/_process_for_order.html" %}</div>
                             </div>
@@ -241,7 +276,7 @@ textarea {
                                     </div>
                                 </div>  
                                 
-                                {% if order.is_workflow_order %}
+                                {% if item.is_workflow_order_item %}
                                  {% if process.is_deletable %}
                                   <form
                                     id="deleteProcessForm{{ process.id }}" 
@@ -260,10 +295,10 @@ textarea {
 					{% endfor %}
 					
 					{% if agent %}
-                        {% if order.is_workflow_order %}
-                            <div class="row-fluid">
+                        {% if item.is_workflow_order_item %}
+                            <div class="row-fluid indent">
                                 <div class="span12">
-                                    <a href="#addProcessForm{{ process.id }}" role="button" class="btn btn-info process-btn" data-toggle="modal">
+                                    <a href="#addProcessForm{{ process.id }}" role="button" class="btn btn-info process-btn btn-mini" data-toggle="modal">
                                     {% blocktrans %}Add a process here {% endblocktrans %}
                                     </a>
                                 </div>
@@ -278,22 +313,22 @@ textarea {
                                             {% csrf_token %}
 
                                             <table>
-                                                <tr><td>{{ add_process_form.name.label }}</td></tr>
-                                                <tr><td>{{ add_process_form.name }}</td></tr>
-                                                <tr><td>{{ add_process_form.context_agent.label }}</td></tr>
-                                                <tr><td>{{ add_process_form.context_agent }}</td></tr>
-                                                <tr><td>{{ add_process_form.process_pattern.label }}</td></tr>
-                                                <tr><td>{{ add_process_form.process_pattern }}</td></tr>
-                                                <tr><td>{{ add_process_form.process_type.label }}</td></tr>
-                                                <tr><td>{{ add_process_form.process_type }}</td></tr>
-                                                <tr><td>{{ add_process_form.new_process_type_name.label }}</td></tr>
-                                                <tr><td>{{ add_process_form.new_process_type_name }}</td></tr>
-                                                <tr><td>{{ add_process_form.start_date.label }}</td></tr>
-                                                <tr><td>{{ add_process_form.start_date }}</td></tr>
-                                                <tr><td>{{ add_process_form.end_date.label }}</td>
-                                                <tr><td>{{ add_process_form.end_date }}</td></tr></tr>
-                                                <tr><td>{{ add_process_form.notes.label }}</td></tr>
-                                                <tr><td>{{ add_process_form.notes }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.name.label }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.name }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.context_agent.label }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.context_agent }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.process_pattern.label }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.process_pattern }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.process_type.label }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.process_type }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.new_process_type_name.label }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.new_process_type_name }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.start_date.label }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.start_date }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.end_date.label }}</td>
+                                                <tr><td>{{ item.add_process_form.end_date }}</td></tr></tr>
+                                                <tr><td>{{ item.add_process_form.notes.label }}</td></tr>
+                                                <tr><td>{{ item.add_process_form.notes }}</td></tr>
                                             </table>
                                             
                                             <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
@@ -307,7 +342,7 @@ textarea {
                             </div>
                         {% endif %}
 					{% endif %}
-					
+                  {% endfor %}
 				</div>
 
 			</div>

@@ -159,25 +159,6 @@ textarea {
                         </form>
                     </div>
               </div>
-			  <div class="modal hide fade" id="resourceQuantity" tabindex="-1" role="dialog" aria-labelledby="resource-qty-label" aria-hidden="true">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h3 id="resource-qty-label">{% trans "Change resource quantity for workflow plan" %} </h3>
-                </div>
-                <div class="modal-body">
-                    <form class="resource-qty-form validateMe" enctype="multipart/form-data" action="{% url change_commitment_quantities order_id=order.id %}" method="POST" >
-                        {% csrf_token %}
-                        {{ resource_qty_form }} {{ unit }}
-                        <p>This will change all the planned quantities for the workflow resource on all processes for this order.</p>
-                        <p>If work inputs also are using the same quantity and unit, they will also be changed.</p>
-                        <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
-                        <div class="modal-footer">
-                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                            <button class="btn btn-primary">{% trans "Save changes" %}</button>
-                        </div>
-                    </form>
-                </div>
-			  </div>
 			{% endif %}
 			
 			<div class="row-fluid">

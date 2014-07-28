@@ -2343,7 +2343,7 @@ class Order(models.Model):
             stage=ptrt.stage
             state=ptrt.state
         else:
-            event_type = what
+            assert ptrt, 'create_order_item assumes items with a producing process type'
         commitment = self.add_commitment(
             resource_type,
             quantity,

@@ -3938,7 +3938,7 @@ class Process(models.Model):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import WorkflowProcessForm
         init = {"start_date": self.start_date, "end_date": self.start_date}
-        return WorkflowProcessForm(prefix=str(self.id),initial=init, order=self.independent_demand())      
+        return WorkflowProcessForm(prefix=str(self.id),initial=init, order_item=self.order_item())      
         
 
 class ExchangeManager(models.Manager):
@@ -4904,14 +4904,14 @@ class Commitment(models.Model):
         if process == self.last_process_in_my_order_item():
             if last_process:
                 last_commitment = last_process.main_outgoing_commitment()
-                last_commitment.order = self
+                last_commitment.order = self.order
                 last_commitment.save()
         else:
             next_process = all_procs[process_index + 1]
             next_commitment = next_process.to_be_changed_requirements()[0]
         if last_process and next_commitment:    
             next_commitment.update_stage(last_process.process_type)
-        return self
+        return None
         
 
 #todo: not used.

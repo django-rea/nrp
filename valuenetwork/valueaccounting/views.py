@@ -2511,9 +2511,9 @@ def change_process_plan(request, process_id):
     return HttpResponseRedirect(next)
 
 @login_required    
-def create_process_for_streaming(request, order_id): #at the end of the order
-    order = get_object_or_404(Order, pk=order_id)
-    form = WorkflowProcessForm(data=request.POST or None, order=order)
+def create_process_for_streaming(request, order_item_id): #at the end of the order item
+    order_item = get_object_or_404(Commitment, pk=order_item_id)
+    form = WorkflowProcessForm(data=request.POST or None, order_item=order_item)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if form.is_valid():
@@ -2531,7 +2531,7 @@ def create_process_for_streaming(request, order_id): #at the end of the order
                 process.process_type=pt
             process.changed_by = request.user
             process.save()
-            order.adjust_workflow_commitments_process_added(process=process, user=request.user)
+            order_item.adjust_workflow_commitments_process_added(process=process, user=request.user)
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
@@ -2562,13 +2562,13 @@ def insert_process_for_streaming(request, order_item_id, process_id):
     return HttpResponseRedirect(next)
     
 @login_required    
-def delete_workflow_process(request, order_id, process_id):
-    order = get_object_or_404(Order, pk=order_id)
+def delete_workflow_process(request, order_item_id, process_id):
+    order_item = get_object_or_404(Commitment, pk=order_item_id)
     process = Process.objects.get(id=process_id)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if process.is_deletable():
-            order.adjust_workflow_commitments_process_deleted(process=process, user=request.user)
+            order_item.adjust_workflow_commitments_process_deleted(process=process, user=request.user)
             process.delete()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)

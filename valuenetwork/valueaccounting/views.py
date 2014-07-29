@@ -4394,6 +4394,9 @@ def delete_exchange(request, exchange_id):
         if next == "sales_and_distributions":
             return HttpResponseRedirect('/%s/'
                 % ('accounting/sales-and-distributions'))
+        if next == "material_contributions":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/material-contributions'))
 
 
 @login_required
@@ -8294,6 +8297,45 @@ def exchanges(request):
         "select_all": select_all,
         "selected_values": selected_values,
         "references": references,
+        "event_ids": event_ids,
+    }, context_instance=RequestContext(request))
+
+    
+def material_contributions(request):
+    #import pdb; pdb.set_trace()
+    end = datetime.date.today()
+    start = datetime.date(end.year, 1, 1)
+    init = {"start_date": start, "end_date": end}
+    dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
+    et_matl = EventType.objects.get(name="Resource Contribution")
+    event_ids = ""
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        dt_selection_form = DateSelectionForm(data=request.POST)
+        if dt_selection_form.is_valid():
+            start = dt_selection_form.cleaned_data["start_date"]
+            end = dt_selection_form.cleaned_data["end_date"]
+            exchanges = Exchange.objects.material_contributions().filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.material_contributions()
+    else:
+        exchanges = Exchange.objects.material_contributions().filter(start_date__range=[start, end])
+
+    comma = ""
+    #import pdb; pdb.set_trace()
+    for x in exchanges:
+        try:
+            xx = x.event_list
+        except AttributeError:
+            x.event_list = x.events.all()
+        for event in x.event_list:
+            event_ids = event_ids + comma + str(event.id)
+            comma = ","
+    #import pdb; pdb.set_trace()
+
+    return render_to_response("valueaccounting/material_contributions.html", {
+        "exchanges": exchanges,
+        "dt_selection_form": dt_selection_form,
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 

@@ -3957,6 +3957,9 @@ class ExchangeManager(models.Manager):
         return Exchange.objects.filter(
             Q(use_case__identifier="sale")|
             Q(use_case__identifier="distribution"))
+            
+    def material_contributions(self):
+        return Exchange.objects.filter(use_case__identifier="res_contr")
 
 class Exchange(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)

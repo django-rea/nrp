@@ -2837,6 +2837,10 @@ class EconomicResource(models.Model):
             if self.quality < 0:
                return self.events.filter(event_type__resource_effect='<') 
         return self.events.filter(event_type__relationship='out')
+        
+    def where_from_events(self):
+        return self.events.filter(
+            Q(event_type__relationship='out')|Q(event_type__relationship='receive'))
 
     def consuming_events(self):
         return self.events.filter(event_type__relationship='consume')

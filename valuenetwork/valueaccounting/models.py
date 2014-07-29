@@ -1660,7 +1660,7 @@ class ProcessPatternManager(models.Manager):
         patterns = self.production_patterns()
         rt_ids = []
         for pat in patterns:
-            rt_ids.extend([rt.id for rt in pat.output_resource_types()])
+            rt_ids.extend([rt.id for rt in pat.output_resource_types() if rt.main_producing_process_type_relationship()])
         return EconomicResourceType.objects.filter(id__in=rt_ids)
         
 
@@ -2343,7 +2343,10 @@ class Order(models.Model):
             stage=ptrt.stage
             state=ptrt.state
         else:
-            assert ptrt, 'create_order_item assumes items with a producing process type'
+            if order_type == "customer":
+                event_type = EventType.objects.get(relationship="shipment")
+            else:
+                assert ptrt, 'create_order_item for a work order assumes items with a producing process type'
         commitment = self.add_commitment(
             resource_type,
             quantity,
@@ -2351,7 +2354,8 @@ class Order(models.Model):
             unit=resource_type.unit,
             stage=stage,
             state=state)
-        commitment.generate_producing_process(user, [], explode=True)
+        if ptrt:
+            commitment.generate_producing_process(user, [], explode=True)
         return commitment
         
     def all_processes(self):

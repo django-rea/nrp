@@ -3755,6 +3755,52 @@ def add_receipt_to_resource(request, exchange_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
         
+def add_contribution_to_resource(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        form = SelectContrResourceOfTypeForm(
+            prefix='addtoresource', 
+            pattern=pattern, 
+            posting=True,
+            data=request.POST)
+        if form.is_valid():
+            output_data = form.cleaned_data
+            resource = output_data["resource"]
+            if resource:
+                quantity = output_data["quantity"]
+                resource.quantity += quantity
+                resource.save()
+                value = output_data["value"] 
+                unit_of_value = output_data["unit_of_value"]
+                from_agent = output_data["from_agent"]
+                description = output_data["description"]
+                context_agent = exchange.context_agent
+                resource_type = resource.resource_type
+                event_type = pattern.event_type_for_resource_type("resource", resource_type)
+                event = EconomicEvent(
+                    event_type = event_type,
+                    event_date = datetime.date.today(),
+                    resource = resource,
+                    resource_type = resource_type,
+                    exchange = exchange,
+                    from_agent = from_agent,
+                    to_agent = context_agent.default_agent(),
+                    context_agent = context_agent,
+                    quantity = quantity,
+                    unit_of_quantity = resource_type.unit,
+                    value = value,
+                    unit_of_value = unit_of_value,
+                    description = description,
+                    created_by = request.user,
+                    changed_by = request.user,
+                )
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+        
 
 @login_required
 def add_unplanned_payment(request, exchange_id):
@@ -4395,6 +4441,9 @@ def delete_exchange(request, exchange_id):
         if next == "sales_and_distributions":
             return HttpResponseRedirect('/%s/'
                 % ('accounting/sales-and-distributions'))
+        if next == "material_contributions":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/material-contributions'))
 
 
 @login_required
@@ -8298,6 +8347,45 @@ def exchanges(request):
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
+    
+def material_contributions(request):
+    #import pdb; pdb.set_trace()
+    end = datetime.date.today()
+    start = datetime.date(end.year, 1, 1)
+    init = {"start_date": start, "end_date": end}
+    dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
+    et_matl = EventType.objects.get(name="Resource Contribution")
+    event_ids = ""
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        dt_selection_form = DateSelectionForm(data=request.POST)
+        if dt_selection_form.is_valid():
+            start = dt_selection_form.cleaned_data["start_date"]
+            end = dt_selection_form.cleaned_data["end_date"]
+            exchanges = Exchange.objects.material_contributions().filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.material_contributions()
+    else:
+        exchanges = Exchange.objects.material_contributions().filter(start_date__range=[start, end])
+
+    comma = ""
+    #import pdb; pdb.set_trace()
+    for x in exchanges:
+        try:
+            xx = x.event_list
+        except AttributeError:
+            x.event_list = x.events.all()
+        for event in x.event_list:
+            event_ids = event_ids + comma + str(event.id)
+            comma = ","
+    #import pdb; pdb.set_trace()
+
+    return render_to_response("valueaccounting/material_contributions.html", {
+        "exchanges": exchanges,
+        "dt_selection_form": dt_selection_form,
+        "event_ids": event_ids,
+    }, context_instance=RequestContext(request))
+
 def sales_and_distributions(request, agent_id=None):
     #import pdb; pdb.set_trace()
     agent = None
@@ -8446,6 +8534,7 @@ def exchange_logging(request, exchange_id):
     distribution_form = DistributionForm(instance=exchange, data=request.POST or None)
     add_receipt_form = None
     add_to_resource_form = None
+    add_to_contr_resource_form = None
     add_payment_form = None
     add_expense_form = None
     add_material_form = None
@@ -8599,6 +8688,7 @@ def exchange_logging(request, exchange_id):
             add_material_form = MaterialContributionEventForm(prefix='material', initial=matl_init, pattern=pattern, context_agent=context_agent)
             #import pdb; pdb.set_trace()
             create_material_role_formset = resource_role_agent_formset(prefix='materialrole')
+            add_to_contr_resource_form = SelectContrResourceOfTypeForm(prefix='addtoresource', initial=matl_init, pattern=pattern)
         if "receivecash" in slots:
             #import pdb; pdb.set_trace()
             cr_init = {
@@ -8663,6 +8753,7 @@ def exchange_logging(request, exchange_id):
         "material_events": material_events,
         "add_receipt_form": add_receipt_form,
         "add_to_resource_form": add_to_resource_form,
+        "add_to_contr_resource_form": add_to_contr_resource_form,
         "add_payment_form": add_payment_form,
         "add_expense_form": add_expense_form,
         "add_material_form": add_material_form,

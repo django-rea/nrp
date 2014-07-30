@@ -74,15 +74,17 @@ h3 {
                 </div>
             {% endif %}
 {% endcomment %}
-            {% if agent %} 
+            <a class="report" href="{% url exchanges %}">{% trans "Financial contributions" %}</a>
+            <a class="report" href="{% url material_contributions %}">{% trans "Material contributions" %}</a>
+        </legend>
+        {% if agent %}
+            <div> 
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='purch_contr' %}">{% trans "Purchase contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='exp_contr' %}">{% trans "Expense contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='cash_contr' %}">{% trans "Cash contribution" %}</a>
                 <a class="btn btn-info" href="{% url create_exchange use_case_identifier='res_contr' %}">{% trans "Material contribution" %}</a>
-                <a class="report" href="{% url exchanges %}">{% trans "Financial contributions" %}</a>
-            {% endif %}
-        </legend>
-
+            </div>
+        {% endif %}
         <div class="reqs-supplier">
 		    <h3 style="margin-bottom: 4px;" >{% trans "Requirements by Supplier" %}:</h3>
 

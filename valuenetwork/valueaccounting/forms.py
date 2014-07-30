@@ -692,6 +692,7 @@ class SelectResourceOfTypeForm(forms.Form):
         widget=forms.Select(attrs={'class': 'resource input-xxlarge chzn-select',}))
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     value = forms.DecimalField(
+        label="Total value (not per unit)",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
@@ -713,7 +714,55 @@ class SelectResourceOfTypeForm(forms.Form):
             else:
                 if rts:
                     self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
-                
+            
+class SelectContrResourceOfTypeForm(forms.Form):
+    event_date = forms.DateField(
+        required=True, 
+        label="Received on",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Resource contributed by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        empty_label=None,
+        help_text="If you don't see the resource type you want, please contact an admin.",
+        widget=forms.Select(
+            attrs={'class': 'resource-type-for-resource resourceType chzn-select input-xlarge'}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.none(), 
+        label="Add quantity to selected resource",
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'resource input-xxlarge chzn-select',}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    value = forms.DecimalField(
+        label="Total value (not per unit)",
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    description = forms.CharField(
+        required=False,
+        label="Event Description", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    
+    def __init__(self, pattern=None, posting=False, *args, **kwargs):
+        super(SelectContrResourceOfTypeForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            rts = pattern.matl_contr_resource_types_with_resources()
+            self.fields["resource_type"].queryset = rts
+            if posting:
+                self.fields["resource"].queryset = EconomicResource.objects.all()
+            else:
+                if rts:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                                
 
 class TodoForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
@@ -733,11 +782,6 @@ class TodoForm(forms.ModelForm):
         label=_("Project"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
-    #project = forms.ModelChoiceField(
-    #    queryset=Project.objects.all(), 
-    #    empty_label=None,
-    #    widget=forms.Select(
-    #        attrs={'class': 'chzn-select'}))
     due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     description = forms.CharField(
         required=False, 
@@ -1721,7 +1765,7 @@ class MaterialContributionEventForm(forms.ModelForm):
             self.fields["resource_type"].queryset = pattern.material_contr_resource_types() 
         if context_agent:
             self.context_agent = context_agent
-            self.fields["from_agent"].queryset = context_agent.all_members()
+            #self.fields["from_agent"].queryset = context_agent.all_members()
 
 
 class WorkSelectionForm(forms.Form):

@@ -1815,7 +1815,13 @@ class ProcessPattern(models.Model):
         rts = [rt for rt in self.resource_types_for_relationship("receive") if rt.onhand()]
         rt_ids = [rt.id for rt in rts]
         return EconomicResourceType.objects.filter(id__in=rt_ids)
-
+        
+    def matl_contr_resource_types_with_resources(self):
+        #import pdb; pdb.set_trace()
+        rts = [rt for rt in self.resource_types_for_relationship("resource") if rt.onhand()]
+        rt_ids = [rt.id for rt in rts]
+        return EconomicResourceType.objects.filter(id__in=rt_ids)
+        
     def expense_resource_types(self):
         #import pdb; pdb.set_trace()
         return self.resource_types_for_relationship("expense")
@@ -1922,6 +1928,10 @@ class ProcessPattern(models.Model):
 
     def use_case_list(self):
         ucl = [uc.use_case.name for uc in self.use_cases.all()]
+        return ", ".join(ucl)
+    
+    def use_case_identifier_list(self):
+        ucl = [uc.use_case.identifier for uc in self.use_cases.all()]
         return ", ".join(ucl)
 
     def use_case_count(self):
@@ -3961,6 +3971,9 @@ class ExchangeManager(models.Manager):
         return Exchange.objects.filter(
             Q(use_case__identifier="sale")|
             Q(use_case__identifier="distribution"))
+            
+    def material_contributions(self):
+        return Exchange.objects.filter(use_case__identifier="res_contr")
 
 class Exchange(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)

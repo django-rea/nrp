@@ -2,7 +2,7 @@
 
 {% load i18n %}
 
-{% block head_title %}{% trans "Financial Contributions" %}{% endblock %}
+{% block head_title %}{% trans "Material Contributions" %}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
@@ -34,17 +34,9 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-		<legend>{% trans "Financial Contributions" %}</legend>
+		<legend>{% trans "Material Contributions" %}</legend>
 
         <div class="span8">
-          <div class="totals">
-            <span class="total">Payment total: {{ total_payments }} </span> 
-            <span class="total">Receipt total: {{ total_receipts }} </span> 
-            <span class="total">Expense total: {{ total_expenses }} </span>
-            <span class="total">Cash contribution total: {{ total_cash }} </span>
-            <br />
-            * Note these totals are valid only if the events selected all use the same currency.
-          </div>  
 		  {% if exchanges %}
 			<ul>
 			    {% for x in exchanges %}
@@ -60,7 +52,7 @@
                                     action="{% url delete_exchange exchange_id=x.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
-                                	<input type="hidden" id="next" name="next" value="exchanges" />
+                                	<input type="hidden" id="next" name="next" value="material_contributions" />
                                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >Delete</button>
                                 </form>
                     	    {% endif %}
@@ -102,12 +94,7 @@
                         {{ dt_selection_form.end_date }}
                     </div>
                 </div>
-	            <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All in the date range" %}</p>
-                <p class="title"> {% trans "Accounting Reference" %} </p>
-	            {% for ar in references %}
-	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
-	            {% endfor %}
-	            <input type='hidden' id='categories' name='categories' value=' {{ selected_values }} ' />
+
 	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
             </form>
         </div>

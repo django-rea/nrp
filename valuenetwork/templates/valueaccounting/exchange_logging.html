@@ -376,13 +376,16 @@ li {
 	                <a href="#addResourceModal" role="button" id="btnAddMaterial" class="btn btn-info btn-mini" data-toggle="modal" title="Log a receipt of a material contribution" >
 		                {% trans "Log a contributed resource" %}
 	                </a>
+                    <a href="#addToContributedResourceModal" role="button" id="btnAddReceipt" class="btn btn-info btn-mini" data-toggle="modal" title="Log a contribution that adds to an existing resource" >
+                        {% trans "Add to an existing resource" %}
+                    </a>
 	             {% endif %}
 	        </h3>
             {% if material_events %}
 		        {% for event in material_events %}
 			        <div class="event">
 				        <span ><span class="event-label">{% trans "Contributed" %}: </span> 
-				            <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}
+				           <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }} valued at <b>{{ event.value }} {{ event.unit_of_value}}</b>
                         </span>
      	                {% if logger or event.from_agent = agent  %}
 		                    <form
@@ -393,12 +396,20 @@ li {
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="exchange" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete cash contribution" >X</button>
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete material contribution" >X</button>
                             </form>
 		                {% endif %}
                         {% if event.resource %} 
-                            <div class = "notes">Resource created quantity = {{ event.quantity }} {{ event.unit_of_quantity }} </div>
-                        {% endif %} 
+                            <div class="notes"> 
+                                <a href="{{ event.resource.get_absolute_url }}">
+                                    {{ event.resource.identifier }} 
+                                    {% if event.resource.current_location %}
+                                        at {{ event.resource.current_location }}
+                                    {% endif %}
+                                </a>
+                            </div>
+                            <div class = "notes">Receipt quantity = {{ event.quantity }} {{ event.unit_of_quantity }} </div>
+                        {% endif %}
          			    {% if event.description %}
 		                   <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
 	                    {% endif %}                       
@@ -753,6 +764,23 @@ li {
                 <form class="validateMe" id="addToResourceForm" enctype="multipart/form-data" action="{% url add_receipt_to_resource exchange_id=exchange.id %}" method="POST" >
                     {% csrf_token %}
                     {{ add_to_resource_form|as_bootstrap }}
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="modal hide fade" id="addToContributedResourceModal" tabindex="-1" role="dialog" aria-labelledby="add-to-contr-resource" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="add-to-contr-resource">{% trans "Add Contribution to Resource" %}</h3>
+            </div>
+            <div class="modal-body">
+                <form class="validateMe" id="addToResourceForm" enctype="multipart/form-data" action="{% url add_contribution_to_resource exchange_id=exchange.id %}" method="POST" >
+                    {% csrf_token %}
+                    {{ add_to_contr_resource_form|as_bootstrap }}
                 <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                     <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />

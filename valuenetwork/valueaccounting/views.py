@@ -2476,6 +2476,7 @@ def order_schedule(request, order_id):
     error_message = ""
     order_items = order.order_items()
     rts = None
+    add_order_item_form = None
     if agent:
         if order.order_type == "customer":
             patterns = PatternUseCase.objects.filter(use_case__identifier='cust_orders')

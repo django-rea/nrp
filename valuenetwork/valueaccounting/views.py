@@ -415,8 +415,47 @@ def agent(request, agent_id):
     user_agent = get_agent(request)
     change_form = AgentCreateForm(instance=agent)
     has_associations = agent.all_has_associates()
-    is_associated_with = agent.all_is_associates()
+    is_associated_with = agent.all_is_associates()           
+    
+    headings = []
+    member_hours_stats = []
+    member_hours_roles = []
+    
+    if agent.is_context_agent():
+    
+        subs = agent.with_all_sub_agents()
+        ces = CachedEventSummary.objects.filter(
+            event_type__relationship="work",
+            context_agent__in=subs)
+            
+        if ces.count():
+            agents_stats = {}
+            for ce in ces:
+                agents_stats.setdefault(ce.agent, Decimal("0"))
+                agents_stats[ce.agent] += ce.quantity
+            for key, value in agents_stats.items():
+                member_hours_stats.append((key, value))
+            member_hours_stats.sort(lambda x, y: cmp(y[1], x[1]))
 
+            agents_roles = {}
+            roles = [ce.quantity_label() for ce in ces]
+            roles = list(set(roles))
+            for ce in ces:
+                if ce.quantity:
+                    nick = ce.agent.nick.capitalize()
+                    row = [nick, ]
+                    for i in range(0, len(roles)):
+                        row.append(Decimal("0.0"))
+                        key = ce.agent.name
+                    agents_roles.setdefault(key, row)
+                    idx = roles.index(ce.quantity_label()) + 1
+                    agents_roles[key][idx] += ce.quantity
+            headings = ["Member",]
+            headings.extend(roles)
+            for row in agents_roles.values():                
+                member_hours_roles.append(row)
+            member_hours_roles.sort(lambda x, y: cmp(x[0], y[0]))
+          
     return render_to_response("valueaccounting/agent.html", {
         "agent": agent,
         "photo_size": (128, 128),
@@ -424,6 +463,9 @@ def agent(request, agent_id):
         "user_agent": user_agent,
         "has_associations": has_associations,
         "is_associated_with": is_associated_with,
+        "headings": headings,
+        "member_hours_stats": member_hours_stats,   
+        "member_hours_roles": member_hours_roles,
         "help": get_help("agent"),
     }, context_instance=RequestContext(request))
     

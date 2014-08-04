@@ -772,6 +772,9 @@ class EconomicAgent(models.Model):
         return AgentAssociation.objects.filter(
             Q(has_associate=self ) | Q(is_associate=self))
             
+    def is_context_agent(self):
+        return self.agent_type.is_context
+            
         
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,

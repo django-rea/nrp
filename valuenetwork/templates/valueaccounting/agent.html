@@ -39,8 +39,15 @@
     margin-left: 3em;
 }
 .indent {
-    margin-left: 1.5em;
+    margin-left: .9em;
     }
+#chart_div1 {
+    margin-bottom: 25px;
+}
+#chart_div2 {
+    margin-bottom: 25px;
+    height: 400px;
+}
 </style>
 
 {% endblock %}
@@ -63,12 +70,12 @@
             {% else %}
                 <a class="indent" href="{% url contributions project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
 	        {% endif %}
+            {% if agent.is_context_agent %}
+                <a class="indent" href="{% url value_equation project_id=agent.id %}">{% trans "Value Equation" %} </a>
+            {% endif %}
 	        <a class="indent" href="{% url radial_graph agent_id=agent.id %}">{% trans "Association Graph" %}</a>
             <a class="indent" href="{% url agent_associations agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
             <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>
-	        
-	              
-
 		</legend>
 
         {% if user_agent and change_form %}
@@ -94,7 +101,7 @@
 
 		<div class="row-fluid">
 		
-		    <div class="span4 resource">
+		    <div class="span4">
 		
 	            <table class="table table-bordered" >
 	                <tr>
@@ -238,19 +245,33 @@
 
                     {% endfor %}
                 </ul>
-            {% else %}
-                <p>None</p>
+              {% else %}
+                    <p>None</p>
+
+              {% endif %}
+
+            </div>
+
+        </div>
+
+        <div class="row-fluid" tyle="margin-top:2em;">
+            {% if agent.is_context_agent %}
+                <hr />
+                <h3>Cumulative Time</h3>
+                <div id="chart_div1"></div>
+                <h3>Roles</h3>
+                <div id="chart_div2"></div>
 
             {% endif %}
-
-	    </div>
-
+        </div>
     </div>
+
 {% endblock %}
 
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 
 
@@ -284,6 +305,7 @@
 
         $.validator.addClassRules("select-role", { agentRequired: true });
 
+
     }); // end document.ready
 
 	$('.resource-change-form').each( function(){
@@ -295,14 +317,64 @@
 
 		});
 	});
-/*    
-    $("tr.role-row").each(function(i, tr) {
-        var role = $(tr).children().get(0);
-        alert("role " + role );
 
+        
+        google.load("visualization", "1", {packages:["corechart"]});
 
-    });
-*/
+        google.setOnLoadCallback(drawChart_stats);
+        function drawChart_stats() {
+            var data = google.visualization.arrayToDataTable([
+            ['Member', 'Hours'],
+            {% for member, hours in member_hours_stats %}
+                ['{{ member.nick }}',  {{ hours }} ],
+            {% endfor %}
+            ]);
+
+            var options = {
+            vAxis: {title: 'Member',  titleTextStyle: {color: 'red'}},
+            chartArea:{width:"80%",height:"80%"}
+            };
+
+            var chart = new google.visualization.PieChart(document.getElementById('chart_div1'));
+            chart.draw(data, options);
+        }
+        
+        google.setOnLoadCallback(drawChart_roles);
+        function drawChart_roles() {
+            var data = new google.visualization.DataTable();
+            {% for head in headings %}
+                {% if forloop.first %}
+                    data.addColumn('string','{{ head }}');
+                {% else %}
+                    data.addColumn('number','{{ head|safe }}');
+                {% endif %}
+            {% endfor %}
+            var rows = [];
+            {% for row in member_hours_roles %}
+                var thisRow = [];
+                {% for cell in row %}
+                    {% if forloop.first %}
+                        thisRow.push('{{ cell|safe }}');
+                    {% else %}
+                        thisRow.push({{ cell }});
+                    {% endif %}
+                {% endfor %}
+                rows.push(thisRow);
+            {% endfor %}
+            data.addRows(rows);
+
+            var chart = new google.visualization.BarChart(
+                document.getElementById('chart_div2'));
+            chart.draw(data, 
+                {
+                    'isStacked': true, 
+                    'legend': 'top',
+                    'hAxis': {'title': 'Hours'},
+                    'chartArea':{'width': '80%', 'height':'80%'}
+                }
+            );
+        }
+
     </script>
     
 {% endblock %}

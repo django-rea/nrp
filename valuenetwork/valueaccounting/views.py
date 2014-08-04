@@ -178,7 +178,8 @@ def create_user_and_agent(request):
                             agent = agent,
                             user = user)
                         au.save()
-                        return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
+                        return HttpResponseRedirect('/%s/%s/'
+                            % ('accounting/agent', agent.id))
     
     return render_to_response("valueaccounting/create_user_and_agent.html", {
         "user_form": user_form,

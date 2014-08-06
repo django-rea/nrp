@@ -111,7 +111,7 @@
                     <h3 id="create-user-label">{% trans "Create login user for" %} {{ agent.name }}</h3>
                 </div>
                 <div class="modal-body">
-                    <form enctype="multipart/form-data" action="{% url change_agent agent_id=agent.id %}" method="POST" >
+                    <form id="userForm" enctype="multipart/form-data" action="{% url create_user agent_id=agent.id %}" method="POST" >
                         {% csrf_token %}
                         {{ user_form|as_bootstrap }}
 
@@ -336,6 +336,33 @@
         }, "Both role and agent must be entered.");
 
         $.validator.addClassRules("select-role", { agentRequired: true });
+        
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
+        });
+       
+
+        $( "#userForm" ).validate({
+            rules: {
+                username: {
+                    required: true
+                },
+                password1: {
+                    required: true
+                },
+                password2: {
+                    required: true,
+                    equalTo: "#id_password1"
+                },               
+            },
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');   
+            },
+        });
 
 
     }); // end document.ready

@@ -99,6 +99,24 @@ def create_agent(request):
             agent.created_by=request.user
             agent.save()
     return HttpResponseRedirect("/accounting/agents/")
+    
+@login_required
+def create_user(request, agent_id):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    if request.method == "POST":
+        user_form = UserCreationForm(data=request.POST)
+        if user_form.is_valid():
+            user = user_form.save(commit=False)
+            user.email = agent.email
+            user.save()
+            au = AgentUser(
+                agent = agent,
+                user = user)
+            au.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/agent', agent.id))            
                                                                                     
 @login_required
 def create_user_and_agent(request):

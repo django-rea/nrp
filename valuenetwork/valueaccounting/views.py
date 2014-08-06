@@ -99,7 +99,6 @@ def create_agent(request):
             agent.created_by=request.user
             agent.save()
     return HttpResponseRedirect("/accounting/agents/")
-  
                                                                                     
 @login_required
 def create_user_and_agent(request):
@@ -414,6 +413,10 @@ def agent(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
     change_form = AgentCreateForm(instance=agent)
+    user_form = None
+    if not agent.username():
+        init = {"username": agent.nick,}
+        user_form = UserCreationForm(initial=init)
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()
 
@@ -421,6 +424,7 @@ def agent(request, agent_id):
         "agent": agent,
         "photo_size": (128, 128),
         "change_form": change_form,
+        "user_form": user_form,
         "user_agent": user_agent,
         "has_associations": has_associations,
         "is_associated_with": is_associated_with,

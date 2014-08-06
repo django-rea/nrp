@@ -57,6 +57,10 @@
 			{% if user_agent and change_form %}
 		        <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
 	        {% endif %}
+
+	        {% if user.is_superuser and user_form %}
+                <a href="#createUserForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create User" %}</a>
+            {% endif %}
 	        
 	        {% if agent.is_individual %}
                 <a class="indent" href="{% url contribution_history agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
@@ -65,9 +69,7 @@
 	        {% endif %}
 	        <a class="indent" href="{% url radial_graph agent_id=agent.id %}">{% trans "Association Graph" %}</a>
             <a class="indent" href="{% url agent_associations agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
-            <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>
-	        
-	              
+            <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>       
 
 		</legend>
 
@@ -91,6 +93,27 @@
 
 		    </div>
 	    {% endif %}
+	    
+	    {% if user.is_superuser and user_form %}
+            <div class="modal hide fade" id="createUserForm" tabindex="-1" role="dialog" aria-labelledby="create-user-label" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="create-user-label">{% trans "Create login user for" %} {{ agent.name }}</h3>
+                </div>
+                <div class="modal-body">
+                    <form enctype="multipart/form-data" action="{% url change_agent agent_id=agent.id %}" method="POST" >
+                        {% csrf_token %}
+                        {{ user_form|as_bootstrap }}
+
+                        <div class="modal-footer">
+                          <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                          <button class="btn btn-primary">{% trans "Save user" %}</button>
+                        </div>
+                    </form>
+              </div>
+
+            </div>
+        {% endif %}
 
 		<div class="row-fluid">
 		
@@ -101,6 +124,12 @@
                         <th style="text-align: right;">{% trans "Identifier" %}</th>
                         <td>{{ agent.nick }}</td>
                     </tr>
+                    {% if user_agent and agent.username %}
+                        <tr>
+                            <th style="text-align: right;">{% trans "Username" %}</th>
+                            <td>{{ agent.username }}</td>
+                        </tr>
+                    {% endif %}
                     <tr>
                         <th style="text-align: right;">{% trans "Name" %}</th>
                         <td>{{ agent.name }}</td>

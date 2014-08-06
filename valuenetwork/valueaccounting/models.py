@@ -473,6 +473,13 @@ class EconomicAgent(models.Model):
             return users[0]
         else:
             return None
+            
+    def username(self):
+        agent_user = self.user()
+        if agent_user:
+            return agent_user.user.username
+        else:
+            return ""
 
     def worked_processes(self):
         cts = self.given_commitments.all()

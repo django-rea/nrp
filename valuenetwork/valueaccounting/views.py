@@ -5183,10 +5183,10 @@ def process_oriented_logging(request, process_id):
 def add_unplanned_cite_event(request, process_id):
     process = get_object_or_404(Process, pk=process_id)
     pattern = process.process_pattern
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     if pattern:        
         form = UnplannedCiteEventForm(
-            prefix='unplanned-cite', 
+            prefix='unplannedcite', 
             data=request.POST, 
             pattern=pattern,
             load_resources=True)

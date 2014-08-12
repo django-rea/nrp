@@ -37,6 +37,7 @@ class ExplosionTest(TestCase):
             resource_type=self.parent,
             event_type=recipe.production_event_type,
             quantity=Decimal("4"),
+            description="Test",
             unit=self.unit,            
         )
 

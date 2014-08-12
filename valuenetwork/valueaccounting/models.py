@@ -2329,6 +2329,7 @@ class Order(models.Model):
             quantity,
             event_type,
             unit,
+            description,
             stage=None,
             state=None,
             due=None):
@@ -2341,6 +2342,7 @@ class Order(models.Model):
             independent_demand=self,
             event_type=event_type,
             resource_type=resource_type,
+            description=description,
             stage=stage,
             state=state,
             quantity=quantity,
@@ -2358,10 +2360,12 @@ class Order(models.Model):
             user):
         #todo: this assumes created items
         ptrt = resource_type.main_producing_process_type_relationship()
+        description = ""
         if ptrt:
             event_type=ptrt.event_type
             stage=ptrt.stage
             state=ptrt.state
+            description=ptrt.description
         else:
             if order_type == "customer":
                 event_type = EventType.objects.get(relationship="shipment")
@@ -2372,6 +2376,7 @@ class Order(models.Model):
             quantity,
             event_type=ptrt.event_type,
             unit=resource_type.unit,
+            description=description,
             stage=stage,
             state=state)
         if ptrt:
@@ -2484,6 +2489,7 @@ class ProcessType(models.Model):
         end_date = start_date + datetime.timedelta(minutes=self.estimated_duration)
         process = Process(          
             name=self.name,
+            notes=self.description or "",
             process_type=self,
             process_pattern=self.process_pattern,
             context_agent=self.context_agent,
@@ -3153,6 +3159,7 @@ class ProcessTypeResourceType(models.Model):
             process=process,
             stage=self.stage,
             state=self.state,
+            description=self.description,
             context_agent=process.context_agent,
             event_type=self.event_type,
             resource_type=self.resource_type,
@@ -3169,6 +3176,7 @@ class ProcessTypeResourceType(models.Model):
         commitment = Commitment(
             stage=self.stage,
             state=self.state,
+            description=self.description,
             context_agent=self.process_type.context_agent,
             event_type=self.event_type,
             resource_type=self.resource_type,
@@ -3743,11 +3751,17 @@ class Process(models.Model):
             to_agent=None,
             order=None,
             ):
+        description = ""
+        if self.process_type:
+            ctypes = self.process_type.produced_resource_type_relationships().filter(resource_type=resource_type)
+            if ctypes:
+                description = ctypes[0].description
         ct = Commitment(
             independent_demand=demand,
             order=order,
             order_item=order_item,
             process=self,
+            description=description,
             context_agent=self.context_agent,
             event_type=event_type,
             resource_type=resource_type,
@@ -3877,6 +3891,7 @@ class Process(models.Model):
                         start_date = self.start_date - datetime.timedelta(minutes=next_pt.estimated_duration)
                         next_process = Process(          
                             name=next_pt.name,
+                            notes=next_pt.description or "",
                             process_type=next_pt,
                             process_pattern=next_pt.process_pattern,
                             #project=next_pt.project,
@@ -4730,6 +4745,7 @@ class Commitment(models.Model):
                 start_date = self.due_date - datetime.timedelta(minutes=pt.estimated_duration)
                 process = Process(
                     name=pt.name,
+                    notes=pt.description or "",
                     process_type=pt,
                     process_pattern=pt.process_pattern,
                     #project=pt.project,

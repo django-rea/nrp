@@ -234,6 +234,7 @@ class OrderTest(WebTest):
             quantity=Decimal("2000"),
             event_type=et,
             unit=unit,
+            description="Test",
             stage=stage,
         )
         commitment1.generate_producing_process(self.user, [], explode=True)
@@ -243,6 +244,7 @@ class OrderTest(WebTest):
             quantity=Decimal("4000"),
             event_type=et,
             unit=unit,
+            description="Test",
             stage=stage,
             due=due,
         )
@@ -272,6 +274,7 @@ class OrderTest(WebTest):
             quantity=Decimal("1.0"),
             user=self.user,
         )
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
+        #todo: needs assertions
             
             

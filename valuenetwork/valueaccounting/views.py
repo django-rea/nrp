@@ -7831,6 +7831,7 @@ def process_selections(request, rand=0):
                         quantity=Decimal("1"),
                         event_type=et,
                         unit=rt.unit,
+                        description="",
                         user=request.user)
                     if rand:
                         if not added_to_order:
@@ -7867,6 +7868,7 @@ def process_selections(request, rand=0):
                         quantity=Decimal("1"),
                         event_type=et,
                         unit=rt.unit,
+                        description="",
                         user=request.user)
             for rt in used_rts:
                 if rt not in resource_types:
@@ -7880,6 +7882,7 @@ def process_selections(request, rand=0):
                             quantity=Decimal("1"),
                             event_type=et,
                             unit=rt.unit,
+                            description="",
                             user=request.user)
                         
             for rt in consumed_rts:
@@ -7894,6 +7897,7 @@ def process_selections(request, rand=0):
                             quantity=Decimal("1"),
                             event_type=et,
                             unit=rt.unit,
+                            description="",
                             user=request.user)
                             
             for rt in work_rts:
@@ -7911,6 +7915,7 @@ def process_selections(request, rand=0):
                         event_type=et,
                         unit=rt.unit,
                         from_agent=agent,
+                        description="",
                         user=request.user)
                     if notification:
                         #import pdb; pdb.set_trace()
@@ -8049,6 +8054,7 @@ def plan_from_recipe(request):
                         quantity=ptrt.quantity,
                         event_type=et,
                         unit=produced_rt.unit,
+                        description=ptrt.description or "",
                         stage=ptrt.stage,
                         state=ptrt.state,
                         )
@@ -8197,6 +8203,7 @@ def plan_from_rt_recipe(request, resource_type_id):
                         quantity=ptrt.quantity,
                         event_type=et,
                         unit=resource_type.unit,
+                        description=ptrt.description or "",
                         stage=ptrt.stage,
                         state=ptrt.state,)
                     commitment.created_by=request.user

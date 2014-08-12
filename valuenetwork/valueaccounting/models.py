@@ -3744,6 +3744,7 @@ class Process(models.Model):
             event_type,
             unit,
             user,
+            description,
             order_item=None,
             stage=None,
             state=None,
@@ -3751,11 +3752,6 @@ class Process(models.Model):
             to_agent=None,
             order=None,
             ):
-        description = ""
-        if self.process_type:
-            ctypes = self.process_type.produced_resource_type_relationships().filter(resource_type=resource_type)
-            if ctypes:
-                description = ctypes[0].description
         ct = Commitment(
             independent_demand=demand,
             order=order,
@@ -3791,6 +3787,7 @@ class Process(models.Model):
                 demand=last_commitment.independent_demand,
                 order_item=last_commitment.order_item,
                 order=order,
+                description="",
                 quantity=last_commitment.quantity, 
                 event_type=et,
                 unit=last_commitment.unit_of_quantity, 
@@ -3811,6 +3808,7 @@ class Process(models.Model):
                 demand=last_commitment.independent_demand,
                 order_item=last_commitment.order_item,
                 quantity=last_commitment.quantity, 
+                description="",
                 event_type=et,
                 unit=last_commitment.unit_of_quantity, 
                 user=user,
@@ -3830,6 +3828,7 @@ class Process(models.Model):
                 order_item=next_commitment.order_item,
                 quantity=next_commitment.quantity, 
                 event_type=et,
+                description="",
                 unit=next_commitment.unit_of_quantity, 
                 user=user,
                 stage=stage,
@@ -3860,6 +3859,7 @@ class Process(models.Model):
             commitment = self.add_commitment(
                 resource_type=ptrt.resource_type,
                 demand=demand,
+                description=ptrt.description or "",
                 order_item=order_item,
                 stage=ptrt.stage,
                 state=ptrt.state,
@@ -3917,6 +3917,7 @@ class Process(models.Model):
                             quantity=qty,
                             event_type=pptr.event_type,
                             unit=pptr.resource_type.unit,
+                            description=pptr.description or "",
                             user=user,
                         )
                         next_process.explode_demands(demand, user, visited)

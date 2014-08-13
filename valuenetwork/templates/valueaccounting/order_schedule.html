@@ -68,7 +68,9 @@ textarea {
 .btn-warning {
     margin-top: 5px;
 }
-
+.wf-project-form {
+    height: 400px;
+}
 </style>
 
 {% endblock %}
@@ -109,6 +111,7 @@ textarea {
                           {% if item.stage %}
                             <div style="display: inline;" >
                                 <a href="#resourceQuantity-{{ item.id }}" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Change Quantity" %}</a>
+                                <a href="#changeProject-{{ item.id }}" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Change Project" %}</a>
                             </div>
                             <div class="modal hide fade" id="resourceQuantity-{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-qty-label" aria-hidden="true">
                                 <div class="modal-header">
@@ -120,7 +123,7 @@ textarea {
                                     <form class="resource-qty-form validateMe" enctype="multipart/form-data" action="{% url change_commitment_quantities order_item_id=item.id %}" method="POST" >
                                         {% csrf_token %}
                                         {{ item.resource_qty_form }} {{ unit }}
-                                        <p>This will change all the planned quantities for the workflow resource on all processes for this order item.</p>
+                                        <p>This will change the planned quantity for the workflow resource on all processes for this order item.</p>
                                         <p>If work inputs also are using the same quantity and unit, they will also be changed.</p>
                                         <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
                                         <div class="modal-footer">
@@ -129,8 +132,28 @@ textarea {
                                         </div>
                                     </form>
                                 </div>
-
                             </div>
+
+                            <div class="modal hide fade" id="changeProject-{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="chg-proj-label" aria-hidden="true">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h3 id="chg-proj-label">{% trans "Change project for workflow plan" %} </h3>
+                                </div>
+
+                                <div class="modal-body">
+                                    <form class="wf-project-form validateMe" enctype="multipart/form-data" action="{% url change_workflow_project order_item_id=item.id %}" method="POST" >
+                                        {% csrf_token %}
+                                        {{ item.project_form }}
+                                        <p>This will change the project on all processes for this order item.</p>
+                                        <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
                           {% endif %}
                         {% endif %}
 			            {% if item.description %}
@@ -354,8 +377,10 @@ $(document).ready(function(){
             $('#help-content').hide("slide", { direction: "right" }, "slow"); 
             $( "#help" ).text("Show Help");
     })
-            
-    $(".chzn-select").chosen();
+      
+    //couldn't get this to work for project dropdown in change project for workflow order item
+    //$(".chzn-select").chosen();
+    //$(".chzn-select").trigger("liszt:updated");
     
     $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 

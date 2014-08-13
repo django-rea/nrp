@@ -4917,6 +4917,15 @@ class Commitment(models.Model):
                             commitment.quantity = qty
                             commitment.save()
         return self
+            
+    def change_workflow_project(self, project):
+        #import pdb; pdb.set_trace()
+        if self.is_workflow_order_item():
+            processes = self.process_chain()
+            for process in processes:
+                process.context_agent = project
+                process.save()
+        return self
         
     def adjust_workflow_commitments_process_added(self, process, user): #process added to the end of the order item
         #import pdb; pdb.set_trace()

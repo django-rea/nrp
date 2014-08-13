@@ -2514,12 +2514,15 @@ def order_schedule(request, order_id):
             add_order_item_form = AddOrderItemForm(resource_types=rts)
         for order_item in order_items:
             if order_item.is_workflow_order_item():
+                #import pdb; pdb.set_trace()
                 init = {'quantity': order_item.quantity,}
-                order_item.resource_qty_form = ResourceQuantityForm(initial=init)
+                order_item.resource_qty_form = ResourceQuantityForm(prefix=str(order_item.id), initial=init)
+                init = {'context_agent': order_item.context_agent,}
+                order_item.project_form = ProjectSelectionForm(prefix=str(order_item.id), initial=init)
                 last_date = order_item.process.end_date
                 next_date = last_date + datetime.timedelta(days=1)
                 init = {"start_date": next_date, "end_date": next_date}
-                order_item.add_process_form = WorkflowProcessForm(initial=init, order_item=order_item)
+                order_item.add_process_form = WorkflowProcessForm(prefix=str(order_item.id), initial=init, order_item=order_item)
     return render_to_response("valueaccounting/order_schedule.html", {
         "order": order,
         "agent": agent,
@@ -2531,7 +2534,7 @@ def order_schedule(request, order_id):
 @login_required    
 def change_commitment_quantities(request, order_item_id):
     order_item = get_object_or_404(Commitment, pk=order_item_id)
-    qty_form = ResourceQuantityForm(data=request.POST or None)
+    qty_form = ResourceQuantityForm(prefix=str(order_item.id), data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if qty_form.is_valid():
@@ -2540,7 +2543,20 @@ def change_commitment_quantities(request, order_item_id):
             order_item.change_commitment_quantities(new_qty)   
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
-    
+
+@login_required    
+def change_workflow_project(request, order_item_id):
+    order_item = get_object_or_404(Commitment, pk=order_item_id)
+    project_form = ProjectSelectionForm(prefix=str(order_item.id), data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if project_form.is_valid():
+            data = project_form.cleaned_data
+            new_proj = data["context_agent"]
+            order_item.change_workflow_project(new_proj)   
+    next = request.POST.get("next")
+    return HttpResponseRedirect(next)
+        
 @login_required
 def add_order_item(
     request, order_id):
@@ -2579,7 +2595,7 @@ def change_process_plan(request, process_id):
 @login_required    
 def create_process_for_streaming(request, order_item_id): #at the end of the order item
     order_item = get_object_or_404(Commitment, pk=order_item_id)
-    form = WorkflowProcessForm(data=request.POST or None, order_item=order_item)
+    form = WorkflowProcessForm(prefix=str(order_item.id), data=request.POST or None, order_item=order_item)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if form.is_valid():

@@ -1255,11 +1255,6 @@ class WorkContributionChangeForm(forms.ModelForm):
         label=_("Project"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
-    #project = forms.ModelChoiceField(
-    #    queryset=Project.objects.all(), 
-    #    empty_label=None,
-    #    widget=forms.Select(
-    #        attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(required=False,
         widget=DecimalDurationWidget,
         label = "Time spent",
@@ -1776,8 +1771,6 @@ class WorkSelectionForm(forms.Form):
         self.fields["type_of_work"].choices = [('', '----------')] + [(rt.id, rt.name) for rt in EconomicResourceType.objects.all()]
 
 
-#used in views process_selections and plan_from_recipe, 
-#fixed to select context_agents
 class ProjectSelectionForm(forms.Form):
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(),

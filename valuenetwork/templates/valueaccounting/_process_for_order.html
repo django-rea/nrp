@@ -14,6 +14,7 @@
     {% endif %}
 {% endif %}
 <ul>
+{% comment %}
     {% if process.independent_demand %}
         {% if process.independent_demand.order_type != 'holder' %}
             <li class="for" >
@@ -21,6 +22,9 @@
             </li>
         {% endif %}
     {% endif %}
+{% endcomment %}
+
+    <div class="description">{{ process.notes|urlize|linebreaks }}</div>
     
     {% if process.outgoing_commitments %}
         <li class="section deliverables-section">{% trans "Deliverables" %}:</li>

@@ -50,8 +50,8 @@ textarea {
 .space-down {
     margin-top: 12px;
 }
-.for, .req-description p {
-    font-size: .8em;
+.for, .req-description p, .description p {
+    font-size: 1em;
     font-style: italic;
     font-weight: normal;
 }
@@ -70,6 +70,9 @@ textarea {
 }
 .wf-project-form {
     height: 400px;
+}
+.btn-primary {
+    margin-bottom: 1px;
 }
 </style>
 
@@ -156,9 +159,6 @@ textarea {
 
                           {% endif %}
                         {% endif %}
-			            {% if item.description %}
-			               <div class="req-description"> {{ item.description|urlize|linebreaks }}</div>
-		                {% endif %}
 				    </li>
                 {% empty %}
                     None

@@ -303,12 +303,12 @@ textarea {
                         {% if item.is_workflow_order_item %}
                             <div class="row-fluid indent">
                                 <div class="span12">
-                                    <a href="#addProcessForm{{ process.id }}" role="button" class="btn btn-info process-btn btn-mini" data-toggle="modal">
+                                    <a href="#addProcessForm{{ item.id }}" role="button" class="btn btn-info process-btn btn-mini" data-toggle="modal">
                                     {% blocktrans %}Add a process here {% endblocktrans %}
                                     </a>
                                 </div>
                                 
-                                <div class="modal hide fade processForm" id="addProcessForm{{ process.id }}" tabindex="-1" role="dialog" aria-labelledby="process-add-label" aria-hidden="true">
+                                <div class="modal hide fade processForm" id="addProcessForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="process-add-label" aria-hidden="true">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                         <h3 id="process-add-label">{% blocktrans %}Add process for {% endblocktrans %} {{ order }} </h3>

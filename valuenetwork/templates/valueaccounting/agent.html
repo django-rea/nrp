@@ -151,7 +151,7 @@
 	                {% if agent.url %}
 	                    <tr>
 	                        <th style="text-align: right;">{% trans "URL" %}</th>
-	                        <td>{{ agent.url|urlize }}</td>
+	                        <td><a href="{{ agent.url }}">Open</a></td>
                         </tr>
                     {% endif %}
 	                {% if agent.description %}

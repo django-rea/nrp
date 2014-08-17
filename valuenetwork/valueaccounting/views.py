@@ -5719,6 +5719,8 @@ def resource(request, resource_id):
                 event.quantity = resource.quantity 
                 event.unit_of_quantity = resource.unit_of_quantity 
                 event.resource = resource
+                event.to_agent = event.context_agent
+                event.from_agent = event.context_agent
                 event.created_by = request.user
                 event.save()
                 return HttpResponseRedirect('/%s/%s/'

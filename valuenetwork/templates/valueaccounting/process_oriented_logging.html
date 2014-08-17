@@ -171,6 +171,7 @@ li {
 				    {% if add_output_form %}
 				    
                         {% if logger %}
+                          {% if not item.stage %}
 
                             <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change output requirement">
                             <i class="icon-edit"></i>
@@ -247,7 +248,7 @@ li {
                                     </form>
                                 </div>
                             </div>
-                            
+                          {% endif %}
                         {% endif %}
 			        {% elif changeable_requirement %}
                         <div>

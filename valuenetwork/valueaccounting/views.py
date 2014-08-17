@@ -3449,12 +3449,12 @@ def new_process_output(request, commitment_id):
                 ct.due_date = process.end_date
                 ct.created_by = request.user
                 ct.save()
-                if process.name == "Make something":
-                    process.name = " ".join([
-                                "Make",
-                                ct.resource_type.name,
-                            ])
-                    process.save()
+                #if process.name == "Make something":
+                #    process.name = " ".join([
+                #                "Make",
+                #                ct.resource_type.name,
+                #            ])
+                #    process.save()
     if reload == 'pastwork':
         return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
             % ('accounting/pastwork-reload', commitment.id, event_id, was_running, was_retrying))

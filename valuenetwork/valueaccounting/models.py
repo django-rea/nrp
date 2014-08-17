@@ -1537,13 +1537,15 @@ class EconomicResourceType(models.Model):
         
     def process_create_form(self):
         from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
-        init = {"name": " ".join(["Make", self.name])}
-        return XbillProcessTypeForm(initial=init, prefix=self.process_create_prefix())
+        #init = {"name": " ".join(["Make", self.name])}
+        #return XbillProcessTypeForm(initial=init, prefix=self.process_create_prefix())
+        return XbillProcessTypeForm(prefix=self.process_create_prefix())
         
     def process_stream_create_form(self):
         from valuenetwork.valueaccounting.forms import RecipeProcessTypeForm
-        init = {"name": " ".join(["Make", self.name])}
-        return RecipeProcessTypeForm(initial=init, prefix=self.process_create_prefix())
+        #init = {"name": " ".join(["Make", self.name])}
+        #return RecipeProcessTypeForm(initial=init, prefix=self.process_create_prefix())
+        return RecipeProcessTypeForm(prefix=self.process_create_prefix())
             
     def source_create_prefix(self):
         return "".join(["SRC", str(self.id)])
@@ -2535,8 +2537,8 @@ class ProcessType(models.Model):
         for oc in output_ctypes:
             oc.create_commitment_for_process(process, user)
         #todo: delete next lines, makes awkward process.names?
-        process.name = " ".join([process.name, oc.resource_type.name])
-        process.save()
+        #process.name = " ".join([process.name, oc.resource_type.name])
+        #process.save()
         return process
                             
     def produced_resource_type_relationships(self):
@@ -2745,8 +2747,9 @@ class ProcessType(models.Model):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import RecipeProcessTypeForm
         rt = self.stream_resource_type()
-        init = {"name": " ".join(["Make", rt.name])}
-        return RecipeProcessTypeForm(initial=init, prefix=self.stream_process_type_create_prefix())
+        #init = {"name": " ".join(["Make", rt.name])}
+        #return RecipeProcessTypeForm(initial=init, prefix=self.stream_process_type_create_prefix())
+        return RecipeProcessTypeForm(prefix=self.stream_process_type_create_prefix())
         
     def stream_resource_type(self):
         #import pdb; pdb.set_trace()

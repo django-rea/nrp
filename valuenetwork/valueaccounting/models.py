@@ -1629,6 +1629,36 @@ class EconomicResourceType(models.Model):
             answer = False
         return answer
 
+"""
+class ResourceTypeList(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    description = models.TextField(_('description'), blank=True, null=True)
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        verbose_name=_('context agent'), related_name='lists')
+        
+    class Meta:
+        ordering = ('name',)
+
+    def __unicode__(self):
+        return self.name
+
+        
+class ResourceTypeListElement(models.Model):
+    resource_type_list = models.ForeignKey(ResourceTypeList, 
+        verbose_name=_('resource type list'), related_name='resource_types')
+    resource_type = models.ForeignKey(EconomicResourceType, 
+        verbose_name=_('resource type'), related_name='lists')
+    default_quantity = models.DecimalField(_('default quantity'), max_digits=8, decimal_places=2, 
+        default=Decimal("1.0"))
+        
+    class Meta:
+        unique_together = ('resource_type_list', 'resource_type')
+        ordering = ('resource_type_list', 'resource_type')
+        
+    def __unicode__(self):
+        return ": ".join([self.resource_type_list.name, self.resource_type.facet.name])
+"""        
 
 class ResourceTypeFacetValue(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
@@ -2504,6 +2534,7 @@ class ProcessType(models.Model):
         output_ctypes = self.produced_resource_type_relationships()
         for oc in output_ctypes:
             oc.create_commitment_for_process(process, user)
+        #todo: delete next lines, makes awkward process.names?
         process.name = " ".join([process.name, oc.resource_type.name])
         process.save()
         return process

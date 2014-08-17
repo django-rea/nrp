@@ -5332,57 +5332,6 @@ def add_unplanned_input_event(request, process_id, slot):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
-@login_required
-def log_resource_for_commitment_x(request, commitment_id):
-    ct = get_object_or_404(Commitment, pk=commitment_id)
-    prefix = ct.form_prefix()
-    form = ct.resource_create_form(data=request.POST)
-    if form.is_valid():
-        #import pdb; pdb.set_trace()
-        agent = get_agent(request)
-        event_type = ct.event_type
-        data = form.cleaned_data
-        quantity = data["quantity"]
-        resource = None
-        if ct.can_add_to_resource():
-            resource = data["resource"]
-        if resource:
-            resource.quantity += quantity
-            resource.changed_by = request.user
-            resource.save()
-        else:
-            resource = form.save(commit=False)
-            resource.resource_type = ct.resource_type
-            resource.created_by=request.user
-            if not ct.resource_type.substitutable:
-                resource.independent_demand = ct.independent_demand
-                resource.order_item = ct.order_item
-            if event_type.applies_stage():
-                resource.stage = ct.stage
-            resource.save()
-        
-        default_agent = ct.process.default_agent()
-        event = EconomicEvent(
-            resource = resource,
-            commitment = ct,
-            event_date = resource.created_date,
-            event_type = event_type,
-            from_agent = default_agent,
-            to_agent = default_agent,
-            resource_type = ct.resource_type,
-            process = ct.process,
-            context_agent = ct.context_agent,
-            quantity = quantity,
-            unit_of_quantity = ct.unit_of_quantity,
-            #quality = resource.quality,
-            created_by = request.user,
-            changed_by = request.user,
-        )
-        event.save()
-
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', ct.process.id))
-
 @login_required    
 def log_resource_for_commitment(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)

@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-<span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process }}</a>
+<span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process.name }}</a>
 
 {% if agent %}
     {% if process.too_late %}

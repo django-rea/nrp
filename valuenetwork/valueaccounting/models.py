@@ -1631,7 +1631,7 @@ class EconomicResourceType(models.Model):
             answer = False
         return answer
 
-"""
+
 class ResourceTypeList(models.Model):
     name = models.CharField(_('name'), max_length=128)
     description = models.TextField(_('description'), blank=True, null=True)
@@ -1660,7 +1660,7 @@ class ResourceTypeListElement(models.Model):
         
     def __unicode__(self):
         return ": ".join([self.resource_type_list.name, self.resource_type.facet.name])
-"""        
+   
 
 class ResourceTypeFacetValue(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 

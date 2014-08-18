@@ -51,6 +51,13 @@ def agent_dfs_by_association(node, all_associations, depth): #works only for age
     node.depth = depth
     to_return = [node,]
     for association in all_associations:
+        #this method fails for Garden manager id == 239
+        # why?
+        #if node.id == 33:
+        #    if association.has_associate.id == 239:
+        #        import pdb; pdb.set_trace()
+        #    if association.is_associate.id == 239:
+        #        import pdb; pdb.set_trace()
         if association.has_associate.id == node.id and association.association_type.identifier == "child":
             to_return.extend(agent_dfs_by_association(association.is_associate, all_associations, depth+1))
     return to_return

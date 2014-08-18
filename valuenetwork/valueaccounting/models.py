@@ -601,7 +601,7 @@ class EconomicAgent(models.Model):
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
         #todo: figure out why this failed when AAs were ordered by from_agent
-        aas = AgentAssociation.objects.all().order_by("id")
+        aas = AgentAssociation.objects.filter(association_type__identifier="child").order_by("is_associate__name")
         return agent_dfs_by_association(self, aas, 1)
         
     def wip(self):

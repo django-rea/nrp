@@ -1637,6 +1637,7 @@ class ResourceTypeList(models.Model):
     description = models.TextField(_('description'), blank=True, null=True)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
         verbose_name=_('context agent'), related_name='lists')
         
     class Meta:
@@ -1644,11 +1645,24 @@ class ResourceTypeList(models.Model):
 
     def __unicode__(self):
         return self.name
+        
+    def resource_types_string(self):
+        return ", ".join([elem.resource_type.name for elem in self.list_elements.all()])
+        
+    def form_prefix(self):
+        return "-".join(["RTL", str(self.id)])
+   
+    def change_form(self):
+        from valuenetwork.valueaccounting.forms import ResourceTypeListForm
+        prefix=self.form_prefix()
+        rt_ids = [elem.resource_type.id for elem in self.resource_types.all()]
+        init = {"resource_types": rt_ids,}
+        return ResourceTypeListForm(instance=self, prefix=prefix, initial=init)
 
         
 class ResourceTypeListElement(models.Model):
     resource_type_list = models.ForeignKey(ResourceTypeList, 
-        verbose_name=_('resource type list'), related_name='resource_types')
+        verbose_name=_('resource type list'), related_name='list_elements')
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='lists')
     default_quantity = models.DecimalField(_('default quantity'), max_digits=8, decimal_places=2, 
@@ -1659,7 +1673,7 @@ class ResourceTypeListElement(models.Model):
         ordering = ('resource_type_list', 'resource_type')
         
     def __unicode__(self):
-        return ": ".join([self.resource_type_list.name, self.resource_type.facet.name])
+        return ": ".join([self.resource_type_list.name, self.resource_type.name])
    
 
 class ResourceTypeFacetValue(models.Model):
@@ -2483,6 +2497,7 @@ class ProcessType(models.Model):
         verbose_name=_('process pattern'), related_name='process_types')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
         verbose_name=_('context agent'), related_name='process_types')
     description = models.TextField(_('description'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
@@ -3317,6 +3332,7 @@ class Process(models.Model):
         on_delete=models.SET_NULL)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
         verbose_name=_('context agent'), related_name='processes')
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
@@ -4045,6 +4061,7 @@ class Exchange(models.Model):
         verbose_name=_('use case'), related_name='exchanges')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
         verbose_name=_('context agent'), related_name='exchanges')
     url = models.CharField(_('url'), max_length=255, blank=True, null=True)
     start_date = models.DateField(_('start date'))
@@ -4364,6 +4381,7 @@ class Commitment(models.Model):
         verbose_name=_('exchange'), related_name='commitments')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
         verbose_name=_('context agent'), related_name='commitments')
     description = models.TextField(_('description'), null=True, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
@@ -5102,6 +5120,7 @@ class EconomicEvent(models.Model):
         on_delete=models.SET_NULL)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
         related_name="events", verbose_name=_('context agent'),
         on_delete=models.SET_NULL)        
     url = models.CharField(_('url'), max_length=255, blank=True)

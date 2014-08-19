@@ -237,6 +237,30 @@ class OrderForm(forms.ModelForm):
         model = Order
         exclude = ('order_date', 'order_type')
 
+        
+class ResourceTypeListForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xxlarge', }))
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'description input-xxlarge',}))
+
+    class Meta:
+        model = ResourceTypeList
+
+        
+class ResourceTypeListElementForm(forms.ModelForm):
+    resource_type_id = forms.IntegerField(widget=forms.HiddenInput)
+    resource_type_name = forms.CharField(widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'input-xxlarge' }))
+    #resource_type_name = forms.CharField()
+    default_quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
+    added = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'added',}))
+    
+    class Meta:
+        model = ResourceTypeListElement
+        exclude = ('resource_type_list', 'resource_type')
+    
+    
 class RandOrderForm(forms.ModelForm):
     receiver = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.all(),
@@ -257,7 +281,7 @@ class RandOrderForm(forms.ModelForm):
         
         
 class OrderChangeForm(forms.ModelForm):
-    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': '',}))
     receiver = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.all(),
         label="Receiver (optional)", 

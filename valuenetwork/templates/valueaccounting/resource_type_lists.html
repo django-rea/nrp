@@ -1,0 +1,119 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "Resource Type Lists" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.name {
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.description {
+    font-style: italic;
+    margin-left: 1em;
+}
+
+.list {
+    margin-top: 1em;
+}
+
+.elements {
+    margin-left: 1em;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+
+        <legend>
+            {% trans "Resource Type Lists" %} &nbsp;&nbsp;&nbsp;
+            {% if agent %}
+                <div style="display: inline;" >
+                    <a href="{% url create_resource_type_list %}" role="button" class="btn btn-primary" >{% trans "Create new List" %}</a>
+                </div>
+            {% endif %}
+
+        </legend>
+        
+        <div class="row-fluid">
+            <div class="span12">
+            {% for rtl in rt_lists %}
+                <div class="list" >
+                    <span class="name">{{ rtl.name }}</span>
+                    {% if agent %}
+                        <div style="display: inline;" >
+                            <a href="{% url change_resource_type_list list_id=rtl.id %}" role="button" class="btn btn-primary btn-mini" >{% trans "Change" %}</a>
+                        </div>
+                    {% endif %}
+                        {% if rtl.description %}
+                        <div class="description">
+                            {{ rtl.description|urlize|linebreaks }}
+                        </div>
+                    {% endif %}
+                    {% if rtl.list_elements.all %}
+                        <div class="elements">
+                            {% trans "Resource Types" %}: {{ rtl.resource_types_string }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}           
+            </div>
+        </div>
+        
+
+
+
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+        
+        $('#resource-types').addClass('active');
+        $("select").chosen();
+        
+        $('.chzn-select').each( function(){
+            $(this).trigger("liszt:updated");
+        });
+
+    }); // end document.ready
+
+    </script>
+    
+{% endblock %}

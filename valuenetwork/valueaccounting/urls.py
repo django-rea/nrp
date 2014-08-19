@@ -383,5 +383,8 @@ urlpatterns = patterns("",
     url(r"^insert-process-for-streaming/(?P<order_item_id>\d+)/(?P<process_id>\d+)/$", 'valuenetwork.valueaccounting.views.insert_process_for_streaming', 
         name="insert_process_for_streaming"),
     url(r"^closed-work-orders/$", 'valuenetwork.valueaccounting.views.closed_work_orders', name="closed_work_orders"),  
+    url(r"^resource-type-lists/$", 'valuenetwork.valueaccounting.views.resource_type_lists', name="resource_type_lists"),
+    url(r"^create-resource-type-list/$", 'valuenetwork.valueaccounting.views.create_resource_type_list', name="create_resource_type_list"),
+    url(r"^change-resource-type-list/(?P<list_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_resource_type_list', name="change_resource_type_list"),
 )
 

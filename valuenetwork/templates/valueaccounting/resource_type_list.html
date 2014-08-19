@@ -1,0 +1,127 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+
+{% block head_title %}
+    {% trans "Resource Type List" %} 
+    {% if rt_list %}
+        {{ rt_list }}
+    {% endif %}
+{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+
+.headings
+{
+    background: lightgrey;
+}
+
+.hdg {
+    color: firebrick;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}log{% endblock %}
+
+{% block body_base %}
+<div class="container">
+    <legend> 
+        {% if rt_list %}
+            {% trans "Change Resource Type List" %} {{ rt_list }}
+        {% else %}
+            {% trans "Create Resource Type List" %}
+        {% endif %}
+    </legend>
+    
+
+    <form method="POST" action=".">
+        {% csrf_token %}
+        <div>
+            {{rtl_form|as_bootstrap}}
+        </div>
+        
+        <div class="row-fluid">
+            <div class="span8">
+            </div>
+            <div class="span4" >
+                <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
+            </div>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span8">
+                <table class="table table-condensed table-hover">
+                    <thead>
+                        <tr class="headings">
+                            <th>{% trans "Resource Type" %}</th>
+                            <th>{% trans "Default Quantity" %}</th>
+                            <th>{% trans "Selected" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for form in element_forms %}
+                        {{ form.resource_type_id }}
+                        <tr>
+                            <td>{{ form.resource_type_name }}</td>
+                            <td>{{ form.default_quantity }}</td>
+                            <td>{{ form.added }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="row-fluid">
+            <div class="span8">
+            </div>
+            <div class="span4" >
+                <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
+            </div>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}
+{% block extra_script %}
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $("select").chosen();
+        
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+
+    }); // end document.ready
+
+    </script>
+    
+{% endblock %}

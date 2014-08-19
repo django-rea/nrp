@@ -56,7 +56,10 @@ container li {
 	<div class="row-fluid">
 		<div class="span9">
 		
-			<legend>{% trans "Resource Types" %}</legend>
+			<legend>
+                {% trans "Resource Types" %}&nbsp;&nbsp;&nbsp;
+                <a href="{% url resource_type_lists %}">{% trans "Resource Type Lists" %}
+            </legend>
 
 			{% if user.is_authenticated %}
 				<div style="display: inline;" >

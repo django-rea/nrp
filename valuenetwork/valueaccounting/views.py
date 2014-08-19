@@ -2675,7 +2675,133 @@ def closed_work_orders(request):
         "rands": orders,
         "agent": agent,
         #"help": help,
-    }, context_instance=RequestContext(request))        
+    }, context_instance=RequestContext(request))    
+    
+def resource_type_lists(request):
+    agent = get_agent(request)
+    rt_lists = ResourceTypeList.objects.all()
+    rtl_form = ResourceTypeListForm(data=request.POST or None)
+    #help = get_help("demand")
+    if request.method == "POST":
+        if rtl_form.is_valid():
+            form_data = rtl_form.cleaned_data
+            rt_list = rtl_form.save()
+            rt_ids = form_data["resource_types"]
+            for rt_id in rt_ids:
+                rt = EconomicResourceType.objects.get(id=rt_id)
+                elem = ResourceTypeListElement(
+                    resource_type_list=rt_list,
+                    resource_type=rt)
+                elem.save()
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/resource-type-lists'))
+        
+    return render_to_response("valueaccounting/resource_type_lists.html", {
+        "rt_lists": rt_lists,
+        "rtl_form": rtl_form,
+        "agent": agent,
+        #"help": help,
+    }, context_instance=RequestContext(request)) 
+    
+@login_required
+def create_resource_type_list(request):
+    rtl_form = ResourceTypeListForm(data=request.POST or None)
+    element_forms = []
+    rrts = [rt for rt in EconomicResourceType.objects.all() if rt.producing_process_type_relationships()]
+    for rrt in rrts:
+        init = {
+            "resource_type_id": rrt.id,
+            "resource_type_name": rrt.name,
+            }
+        prefix = "".join(["RT", str(rrt.id)])
+        form = ResourceTypeListElementForm(prefix=prefix, initial=init, data=request.POST or None)
+        element_forms.append(form)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if rtl_form.is_valid():
+            rt_list = rtl_form.save()
+            for form in element_forms:
+                if form.is_valid():
+                    elem_data = form.cleaned_data
+                    added = elem_data["added"]
+                    if added:
+                        rt_id = elem_data["resource_type_id"]
+                        rt = EconomicResourceType.objects.get(id=rt_id)
+                        elem = form.save(commit=False)
+                        elem.resource_type_list=rt_list
+                        elem.resource_type=rt
+                        elem.save()
+
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/resource-type-lists'))
+
+    return render_to_response("valueaccounting/resource_type_list.html", {
+        "rtl_form": rtl_form,
+        "element_forms": element_forms,
+        #"help": get_help("associations"),
+    }, context_instance=RequestContext(request))
+    
+@login_required
+def change_resource_type_list(request, list_id):
+    rt_list = get_object_or_404(ResourceTypeList, id=list_id)
+    rtl_form = ResourceTypeListForm(instance=rt_list, data=request.POST or None)
+    element_forms = []
+    elems = rt_list.list_elements.all()
+    #import pdb; pdb.set_trace()
+    for elem in elems:
+        init = {
+            "resource_type_id": elem.resource_type.id,
+            "resource_type_name": elem.resource_type.name,
+            "added": True,
+            }
+        prefix = "".join(["ELEM", str(elem.resource_type.id)])
+        form = ResourceTypeListElementForm(instance=elem, prefix=prefix, initial=init, data=request.POST or None)
+        element_forms.append(form)
+    list_rt_ids = [elem.resource_type.id for elem in elems]
+    other_rts = EconomicResourceType.objects.exclude(id__in=list_rt_ids)
+    rrts = [rt for rt in other_rts if rt.producing_process_type_relationships()]
+    for rrt in rrts:
+        init = {
+            "resource_type_id": rrt.id,
+            "resource_type_name": rrt.name,
+            }
+        prefix = "".join(["RT", str(rrt.id)])
+        form = ResourceTypeListElementForm(prefix=prefix, initial=init, data=request.POST or None)
+        element_forms.append(form)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if rtl_form.is_valid():
+            rt_list = rtl_form.save()
+            for form in element_forms:
+                if form.is_valid():
+                    elem_data = form.cleaned_data
+                    added = elem_data["added"]
+                    elem = form.save(commit=False)
+                    instance = None
+                    if elem.id:
+                        instance = True
+                    if added: 
+                        if instance:
+                            elem.save()
+                        else:
+                            rt_id = elem_data["resource_type_id"]
+                            rt = EconomicResourceType.objects.get(id=rt_id)
+                            elem.resource_type_list=rt_list
+                            elem.resource_type=rt
+                            elem.save()
+                    else:
+                        if instance:
+                            elem = form.save()
+                            elem.delete()
+
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/resource-type-lists'))
+                
+    return render_to_response("valueaccounting/resource_type_list.html", {
+        "rtl_form": rtl_form,
+        "element_forms": element_forms,
+        #"help": get_help("associations"),
+    }, context_instance=RequestContext(request))
         
 def supply_old(request):
     mreqs = []

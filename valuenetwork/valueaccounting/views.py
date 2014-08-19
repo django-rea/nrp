@@ -2036,11 +2036,11 @@ def create_process_type_for_streaming(request, resource_type_id, process_type_id
             pt.created_by=request.user
             pt.changed_by=request.user
             pt.save()
-            quantity = data["quantity"]
+            #quantity = data["quantity"]
             pattern = pt.process_pattern
             ets = pattern.change_event_types()
             unit = rt.unit
-            quantity = Decimal(quantity)
+            #quantity = Decimal(quantity)
             for et in ets:
                 if et.relationship == "out":
                     stage = pt
@@ -2062,7 +2062,7 @@ def create_process_type_for_streaming(request, resource_type_id, process_type_id
                     event_type=et,
                     stage=stage,
                     unit_of_quantity=unit,
-                    quantity=quantity,
+                    quantity=1,
                     created_by=request.user,
                 )
                 ptrt.save()

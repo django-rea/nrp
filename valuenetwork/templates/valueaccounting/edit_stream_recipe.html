@@ -218,14 +218,12 @@ textarea {
                 </div>
             </div>
     
-            {% if not process_type.has_create_changeable_output %}
-                <form style="display: inline;" action="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
-                    <button class="btn btn-warning" title="Delete process type" >Delete</button>
-                </form>
-            {% endif %}
-             
+            <form style="display: inline;" action="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                <button class="btn btn-warning" title="Delete process type" >Delete</button>
+            </form>
+            
             {% if "Time Contribution" in process_type.process_pattern.non_change_event_type_names %}
                 <div style="display: inline;" >
                     <a href="#workForm{{ process_type.id }}" role="button" class="btn btn-info" data-toggle="modal">
@@ -552,6 +550,7 @@ textarea {
         }, "Name is not unique.");
 
         $.validator.addClassRules("url", { url: true });
+        $.validator.addClassRules("name", { required: true });
         $.validator.addClassRules("unique-name", { required: true, unique: nameArray });
 
         $.validator.addClassRules("resource-type-selector", { required: true });

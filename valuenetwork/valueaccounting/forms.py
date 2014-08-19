@@ -2088,6 +2088,7 @@ class AgentResourceTypeForm(forms.ModelForm):
 
 
 class XbillProcessTypeForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'name input-xlarge',}))
     process_pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(), 
         empty_label=None, 
@@ -2117,6 +2118,7 @@ class XbillProcessTypeForm(forms.ModelForm):
 
         
 class RecipeProcessTypeForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'name input-xlarge',}))
     process_pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(), 
         empty_label=None, 
@@ -2128,9 +2130,9 @@ class RecipeProcessTypeForm(forms.ModelForm):
         required=False, 
         #empty_label="---------",
         widget=forms.Select(attrs={'class': 'chzn-select'}))
-    quantity = forms.DecimalField(
-        max_digits=8, decimal_places=2,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    #quantity = forms.DecimalField(
+    #    max_digits=8, decimal_places=2,
+    #    widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     estimated_duration = forms.IntegerField(required=False,
         widget=DurationWidget,
         help_text="days, hours, minutes")
@@ -2138,7 +2140,7 @@ class RecipeProcessTypeForm(forms.ModelForm):
     
     class Meta:
         model = ProcessType
-        exclude = ('parent','project')
+        exclude = ('parent','project', 'quantity')
         
     def __init__(self, *args, **kwargs):
         super(RecipeProcessTypeForm, self).__init__(*args, **kwargs)

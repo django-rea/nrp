@@ -94,9 +94,11 @@ container li {
                     {% endif %}
 			        </a>
 			        {% if not resource_type.producing_process_type_relationships %}
+                      {% if not resource_type.substitutable %}
                         <a href="{% url edit_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
                         {% trans "Create Workflow Recipe" %}
                         </a>
+                      {% endif %}
                     {% endif %}
 		        {% endif %}
 		        <a href="{% url plan_from_rt resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan" %}</a>

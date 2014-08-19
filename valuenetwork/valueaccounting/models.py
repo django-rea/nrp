@@ -2088,9 +2088,9 @@ def create_use_cases(app, **kwargs):
     if app != "valueaccounting":
         return
     UseCase.create('cash_contr', _('Cash Contribution'), True) 
-    UseCase.create('non_prod', _('Non-production logging'), True)
-    UseCase.create('rand', _('Process logging'))
-    UseCase.create('recipe', _('Recipes'))
+    UseCase.create('non_prod', _('Non-production Logging'), True)
+    UseCase.create('rand', _('Manufacturing Recipes/Logging'))
+    UseCase.create('recipe', _('Workflow Recipes/Logging'))
     UseCase.create('todo', _('Todos'), True)
     UseCase.create('cust_orders', _('Customer Orders'))
     UseCase.create('purchasing', _('Purchasing')) 

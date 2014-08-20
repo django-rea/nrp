@@ -114,6 +114,7 @@ textarea {
                           {% if item.stage %}
                             <div style="display: inline;" >
                                 <a href="#resourceQuantity-{{ item.id }}" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Change Quantity" %}</a>
+                                {% trans "Project" %}: {{ item.context_agent }} 
                                 <a href="#changeProject-{{ item.id }}" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Change Project" %}</a>
                             </div>
                             <div class="modal hide fade" id="resourceQuantity-{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-qty-label" aria-hidden="true">

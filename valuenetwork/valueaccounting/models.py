@@ -618,6 +618,20 @@ class EconomicAgent(models.Model):
         for p in parents:
             rts.extend([pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=p) if pt.main_produced_resource_type()])
         return list(set(rts))
+        
+    def get_resource_type_lists(self):
+        rt_lists = list(self.lists.all())
+        #import pdb; pdb.set_trace()
+        parents = []
+        parent = self.parent()
+        while parent:
+            parents.append(parent)
+            parent = parent.parent()
+        for p in parents:
+            rt_lists.extend(list(p.lists.all()))
+        rt_lists = list(set(rt_lists))
+        rt_lists.sort(lambda x, y: cmp(x.name, y.name))
+        return rt_lists
                 
     #from here are new methods for context agent code
     def parent(self):
@@ -1236,6 +1250,14 @@ class EconomicResourceType(models.Model):
             return True
         else:
             return False
+            
+    def has_listable_recipe(self):
+        answer = False
+        if self.producing_process_type_relationships():
+            answer = True
+            if self.recipe_needs_starting_resource():
+                answer = False
+        return answer
 
     def generate_staged_work_order(self, order_name, start_date, user):
         pts = self.staged_process_type_sequence()
@@ -1294,19 +1316,13 @@ class EconomicResourceType(models.Model):
             order_item = None
             for ct in octs:
                 ct.order = order
-                if not order_name:
-                    order_name = " ".join([order_name, ct.resource_type.name])
-                    order.name = order_name
                 ct.save()
             #import pdb; pdb.set_trace()
-            assert octs.count() == 1, 'generate_staged_work_order assumes one and only one output'
+            assert octs.count() == 1, 'generate_staged_order_item assumes one and only one output'
             order_item = octs[0]
-            #order.due_date = last_process.end_date
-            #order.save()
-        #flow todo: order_item fields set, but problem may arise
-        #if multiple order items exist.
-        #None exist now, but may in future.
-        #Thus the assert statement above.
+            if order.due_date < last_process.end_date:
+                order.due_date = last_process.end_date
+                order.save()
         for process in processes:
             for ct in process.commitments.all():
                 ct.independent_demand = order
@@ -1658,6 +1674,13 @@ class ResourceTypeList(models.Model):
         rt_ids = [elem.resource_type.id for elem in self.resource_types.all()]
         init = {"resource_types": rt_ids,}
         return ResourceTypeListForm(instance=self, prefix=prefix, initial=init)
+        
+    def recipe_class(self):
+        answer = "workflow"
+        for elem in self.list_elements.all():
+            if not elem.resource_type.recipe_is_staged():
+                answer = "manufacturing"
+        return answer
 
         
 class ResourceTypeListElement(models.Model):
@@ -2487,7 +2510,8 @@ class ProcessTypeManager(models.Manager):
             if pt.is_workflow_process_type():
                 workflow_pts.append(pt)
         return workflow_pts
-                
+
+        
 class ProcessType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 

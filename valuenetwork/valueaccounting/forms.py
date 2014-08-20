@@ -166,7 +166,7 @@ class EconomicResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo',  'quality', 'independent_demand', 'stage', 'state')
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo',  'quality', 'independent_demand', 'order_item', 'stage', 'state')
 
         
 class CreateEconomicResourceForm(forms.ModelForm):
@@ -176,7 +176,7 @@ class CreateEconomicResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand', 'stage', 'state')
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand', 'order_item', 'stage', 'state')
 
 
 class ResourceQuantityForm(forms.Form):

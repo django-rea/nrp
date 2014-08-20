@@ -802,6 +802,7 @@ def resource_type(request, resource_type_id):
             if create_form.is_valid():
                 resource = create_form.save(commit=False)
                 resource.resource_type = resource_type
+                resource.created_by = request.user
                 resource.save()
                 role_formset =  resource_role_agent_formset(prefix="resource", data=request.POST)
                 for form_rra in role_formset.forms:
@@ -8075,7 +8076,7 @@ def plan_from_recipe(request):
             selected_context_agent = EconomicAgent.objects.get(id=request.POST.get("context_agent"))
             date_name_form = OrderDateAndNameForm(initial=init)
             if selected_context_agent:
-                #import pdb; pdb.set_trace()
+                import pdb; pdb.set_trace()
                 candidate_resource_types = selected_context_agent.get_resource_types_with_recipe()
                 #import pdb; pdb.set_trace()
                 for rt in candidate_resource_types:

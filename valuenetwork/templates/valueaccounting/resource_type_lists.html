@@ -30,6 +30,13 @@
 
 .elements {
     margin-left: 1em;
+    font-weight: bold;
+}
+.element {
+    color: green;
+}
+.element-list {
+    color: firebrick;
 }
 
 </style>
@@ -51,7 +58,7 @@
             {% endif %}
 
         </legend>
-        <div class="description">
+        <div>
             {% trans "Resource Type Lists may be used to schedule many deliverables on the same Work Order." %}
         </div>
         
@@ -72,7 +79,7 @@
                     {% endif %}
                     {% if rtl.list_elements.all %}
                         <div class="elements">
-                            {% trans "Resource Types" %}: {{ rtl.resource_types_string }}
+                            <span class="element">{% trans "Resource Types" %}: </span><span class="element-list">{{ rtl.resource_types_string }}</span>
                         </div>
                     {% endif %}
                 </div>

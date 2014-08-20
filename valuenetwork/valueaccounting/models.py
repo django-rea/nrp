@@ -1537,9 +1537,9 @@ class EconomicResourceType(models.Model):
         
     def process_create_form(self):
         from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
-        #init = {"name": " ".join(["Make", self.name])}
-        #return XbillProcessTypeForm(initial=init, prefix=self.process_create_prefix())
-        return XbillProcessTypeForm(prefix=self.process_create_prefix())
+        init = {"name": " ".join(["Make", self.name])}
+        return XbillProcessTypeForm(initial=init, prefix=self.process_create_prefix())
+        #return XbillProcessTypeForm(prefix=self.process_create_prefix())
         
     def process_stream_create_form(self):
         from valuenetwork.valueaccounting.forms import RecipeProcessTypeForm

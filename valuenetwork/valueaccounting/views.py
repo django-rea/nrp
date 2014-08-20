@@ -8126,11 +8126,11 @@ def plan_from_recipe(request):
                     else:
                         produced_id = int(value)
                         produced_rt = EconomicResourceType.objects.get(id=produced_id)
+                        rts_to_produce = [produced_rt,]
                         if produced_rt.recipe_is_staged():
                             forward_schedule = True
                             if produced_rt.recipe_needs_starting_resource():
-                                resource_driven = True
-                            rts_to_produce = [produced_rts,]
+                                resource_driven = True     
                 if "resourcesFor" in key:
                     #import pdb; pdb.set_trace()
                     resource_id = int(value[0])
@@ -8170,6 +8170,7 @@ def plan_from_recipe(request):
                     if et:
                         commitment = demand.add_commitment(
                             resource_type=produced_rt,
+                            context_agent=ptrt.process_type.context_agent,
                             quantity=ptrt.quantity,
                             event_type=et,
                             unit=produced_rt.unit,
@@ -8320,6 +8321,7 @@ def plan_from_rt_recipe(request, resource_type_id):
                 if et:
                     commitment = demand.add_commitment(
                         resource_type=resource_type,
+                        context_agent=ptrt.process_type.context_agent,
                         quantity=ptrt.quantity,
                         event_type=et,
                         unit=resource_type.unit,

@@ -2395,6 +2395,7 @@ class Order(models.Model):
 
     def add_commitment(self,
             resource_type,
+            context_agent,
             quantity,
             event_type,
             unit,
@@ -2411,6 +2412,7 @@ class Order(models.Model):
             independent_demand=self,
             event_type=event_type,
             resource_type=resource_type,
+            context_agent=context_agent,
             description=description,
             stage=stage,
             state=state,

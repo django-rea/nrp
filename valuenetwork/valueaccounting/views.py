@@ -2803,6 +2803,13 @@ def change_resource_type_list(request, list_id):
         "element_forms": element_forms,
         #"help": get_help("associations"),
     }, context_instance=RequestContext(request))
+    
+@login_required
+def delete_resource_type_list(request, list_id):
+    rt_list = get_object_or_404(ResourceTypeList, id=list_id)
+    rt_list.delete()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/resource-type-lists'))
         
 def supply_old(request):
     mreqs = []

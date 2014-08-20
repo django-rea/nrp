@@ -386,5 +386,6 @@ urlpatterns = patterns("",
     url(r"^resource-type-lists/$", 'valuenetwork.valueaccounting.views.resource_type_lists', name="resource_type_lists"),
     url(r"^create-resource-type-list/$", 'valuenetwork.valueaccounting.views.create_resource_type_list', name="create_resource_type_list"),
     url(r"^change-resource-type-list/(?P<list_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_resource_type_list', name="change_resource_type_list"),
+    url(r"^delete-resource-type-list/(?P<list_id>\d+)/$", 'valuenetwork.valueaccounting.views.delete_resource_type_list', name="delete_resource_type_list"),
 )
 

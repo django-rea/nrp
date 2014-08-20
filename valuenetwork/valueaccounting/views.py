@@ -2760,7 +2760,7 @@ def change_resource_type_list(request, list_id):
         element_forms.append(form)
     list_rt_ids = [elem.resource_type.id for elem in elems]
     other_rts = EconomicResourceType.objects.exclude(id__in=list_rt_ids)
-    rrts = [rt for rt in other_rts if rt.producing_process_type_relationships()]
+    rrts = [rt for rt in other_rts if rt.has_listable_recipe()]
     for rrt in rrts:
         init = {
             "resource_type_id": rrt.id,
@@ -2803,6 +2803,13 @@ def change_resource_type_list(request, list_id):
         "element_forms": element_forms,
         #"help": get_help("associations"),
     }, context_instance=RequestContext(request))
+    
+@login_required
+def delete_resource_type_list(request, list_id):
+    rt_list = get_object_or_404(ResourceTypeList, id=list_id)
+    rt_list.delete()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/resource-type-lists'))
         
 def supply_old(request):
     mreqs = []

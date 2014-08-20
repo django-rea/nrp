@@ -2760,7 +2760,7 @@ def change_resource_type_list(request, list_id):
         element_forms.append(form)
     list_rt_ids = [elem.resource_type.id for elem in elems]
     other_rts = EconomicResourceType.objects.exclude(id__in=list_rt_ids)
-    rrts = [rt for rt in other_rts if rt.producing_process_type_relationships()]
+    rrts = [rt for rt in other_rts if rt.has_listable_recipe()]
     for rrt in rrts:
         init = {
             "resource_type_id": rrt.id,

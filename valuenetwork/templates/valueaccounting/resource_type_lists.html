@@ -51,6 +51,9 @@
             {% endif %}
 
         </legend>
+        <div class="description">
+            {% trans "Resource Type Lists may be used to schedule many deliverables on the same Work Order." %}
+        </div>
         
         <div class="row-fluid">
             <div class="span12">
@@ -62,7 +65,7 @@
                             <a href="{% url change_resource_type_list list_id=rtl.id %}" role="button" class="btn btn-primary btn-mini" >{% trans "Change" %}</a>
                         </div>
                     {% endif %}
-                        {% if rtl.description %}
+                    {% if rtl.description %}
                         <div class="description">
                             {{ rtl.description|urlize|linebreaks }}
                         </div>

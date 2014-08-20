@@ -28,6 +28,19 @@
     margin-left: 2em;
 }
 
+.description {
+    font-style: italic;
+    margin-left: 1em;
+}
+
+.list {
+    margin-top: 1em;
+}
+
+.elements {
+    margin-left: 1em;
+}
+
 </style>
 {% endblock %}
 
@@ -60,40 +73,71 @@
 
 		    <div class="row-fluid">
 			  <div class="span6">
-                    <div id="rts">
-                        {% for item in resource_types %}
-	                        <p>
-	                            <input type="radio" id="rt-{{ item.id }}" name="rt" 
-	                            {% if item.recipe_is_staged %} 
-                                    {% if item.recipe_needs_starting_resource %} 
-                                        class="resourceflow" 
-                                    {% else %}
-                                        class="workflow"
-                                    {% endif %}
+			  
+                <div id="rts">
+                    <h3>{% trans "Choose a Resource Type..." %}</h3>
+                    {% for item in resource_types %}
+                        <p>
+                            <input type="radio" id="rt-{{ item.id }}" name="rt" 
+                            {% if item.recipe_is_staged %} 
+                                {% if item.recipe_needs_starting_resource %} 
+                                    class="resourceflow" 
                                 {% else %}
-                                    class="assembly" 
+                                    class="workflow"
                                 {% endif %}
-                                value="{{ item.id }}" />
-	                            {{ item }} ( {{ item.facet_values_list }} ) 
-	                            {% if item.recipe_is_staged %} 
-                                    Work Flow Recipe
-                                {% else %}
-                                    Assembly Recipe
-                                {% endif %}
-                            </p>
-                            {% if item.onhand_resources %}
-                                <div id="resources-{{ item.id }}" class = "resources" >
-                                <p>This recipe needs a starting resource</p>
-                                {% for resource in item.onhand_resources %}
-                                    <p>
-                                        <input type="radio" id="resource-{{ resource.id }}" name="resourcesFor-{{ item.id }}" value="{{ resource.id }}" />
-                                        {{ resource.identifier }}
-                                    </p>
-                                {% endfor %}
-                                </div>
+                            {% else %}
+                                class="manufacturing" 
                             {% endif %}
+                            value="{{ item.id }}" />
+                            {{ item }} ( {{ item.facet_values_list }} ) 
+                            {% if item.recipe_is_staged %} 
+                                Work Flow Recipe
+                            {% else %}
+                                Manufacturing Recipe
+                            {% endif %}
+                        </p>
+                        {% if item.onhand_resources %}
+                            <div id="resources-{{ item.id }}" class = "resources" >
+                            <p>This recipe needs a starting resource</p>
+                            {% for resource in item.onhand_resources %}
+                                <p>
+                                    <input type="radio" id="resource-{{ resource.id }}" name="resourcesFor-{{ item.id }}" value="{{ resource.id }}" />
+                                    {{ resource.identifier }}
+                                </p>
+                            {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                
+                {% if resource_type_lists %}
+                    <div id="lists">
+                        <h3>{% trans "...or choose a Resource Type List" %}</h3>
+                        {% for rtl in resource_type_lists %}
+                            <div>
+                                <input type="radio" id="list-{{ rtl.id }}" name="rt" class="{{ rtl.recipe_class }}" value="list-{{ rtl.id }}" />
+                                {{ rtl.name }} 
+                                {% if rtl.recipe_class == "workflow" %} 
+                                    - Work Flow Recipes
+                                {% else %}
+                                    - Manufacturing or mixed Recipes
+                                {% endif %}
+                                {% if rtl.description %}
+                                    <div class="description">
+                                        {{ rtl.description|urlize|linebreaks }}
+                                    </div>
+                                {% endif %}
+                                {% if rtl.list_elements.all %}
+                                    <div class="elements">
+                                        {% trans "Resource Types" %}: {{ rtl.resource_types_string }}
+                                    </div>
+                                {% endif %}
+                                
+                            </div>
                         {% endfor %}
                     </div>
+                {% endif %}
+                
               </div>
               <div class="span6">
                     <table>
@@ -177,7 +221,7 @@
                 $("#date-choice").show();
                 $("#dateLabel").html('Date');
             }
-            else if (cls == "assembly")
+            else if (cls == "manufacturing")
             {
                 $("#date-choice").hide();
                 $("#dateLabel").html('Due Date');

@@ -2707,7 +2707,7 @@ def resource_type_lists(request):
 def create_resource_type_list(request):
     rtl_form = ResourceTypeListForm(data=request.POST or None)
     element_forms = []
-    rrts = [rt for rt in EconomicResourceType.objects.all() if rt.producing_process_type_relationships()]
+    rrts = [rt for rt in EconomicResourceType.objects.all() if rt.has_listable_recipe()]
     for rrt in rrts:
         init = {
             "resource_type_id": rrt.id,
@@ -8062,6 +8062,7 @@ def process_selections(request, rand=0):
 def plan_from_recipe(request):
     #import pdb; pdb.set_trace()
     resource_types = []
+    resource_type_lists = []
     selected_context_agent = None
     forward_schedule = False
     resource_driven = False
@@ -8076,6 +8077,7 @@ def plan_from_recipe(request):
             date_name_form = OrderDateAndNameForm(initial=init)
             if selected_context_agent:
                 #import pdb; pdb.set_trace()
+                resource_type_lists = selected_context_agent.get_resource_type_lists()
                 candidate_resource_types = selected_context_agent.get_resource_types_with_recipe()
                 #import pdb; pdb.set_trace()
                 for rt in candidate_resource_types:
@@ -8105,12 +8107,22 @@ def plan_from_recipe(request):
                     selected_context_agent = EconomicAgent.objects.get(id=context_agent_id)
                     continue
                 if key == "rt":
-                    produced_id = int(value[0])
-                    produced_rt = EconomicResourceType.objects.get(id=produced_id)
-                    if produced_rt.recipe_is_staged():
-                        forward_schedule = True
-                        if produced_rt.recipe_needs_starting_resource():
-                            resource_driven = True
+                    value = value[0]
+                    if "list" in value:
+                        list_id = value.split("-")[1]
+                        rt_list = ResourceTypeList.objects.get(id=list_id)
+                        if rt_list.recipe_class() == "workflow":
+                            forward_schedule = True
+                        rts_to_produce = [elem.resource_type for elem in rt_list.list_elements.all()]
+                        item_number = 1
+                    else:
+                        produced_id = int(value)
+                        produced_rt = EconomicResourceType.objects.get(id=produced_id)
+                        if produced_rt.recipe_is_staged():
+                            forward_schedule = True
+                            if produced_rt.recipe_needs_starting_resource():
+                                resource_driven = True
+                            rts_to_produce = [produced_rts,]
                 if "resourcesFor" in key:
                     #import pdb; pdb.set_trace()
                     resource_id = int(value[0])
@@ -8123,14 +8135,8 @@ def plan_from_recipe(request):
 
             #pt = produced_rt.main_producing_process_type()
         
-            #import pdb; pdb.set_trace()      
-            if forward_schedule:
-                if resource_driven:
-                    demand = produced_rt.generate_staged_work_order_from_resource(resource, order_name, start_date, request.user)
-                else:
-                    demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)
-            else:
-                
+            #import pdb; pdb.set_trace() 
+            if not forward_schedule:
                 demand = Order(
                     order_type="rand",
                     order_date=today,
@@ -8138,24 +8144,36 @@ def plan_from_recipe(request):
                     name=order_name,
                     created_by=request.user)
                 demand.save()
+            
+            for produced_rt in rts_to_produce:
+                if forward_schedule:
+                    if resource_driven:
+                        demand = produced_rt.generate_staged_work_order_from_resource(resource, order_name, start_date, request.user)
+                    else:
+                        if len(rts_to_produce) > 1:
+                            if item_number == 1:
+                                item_number += 1
+                                demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)
+                            else:
+                                demand = produced_rt.generate_staged_order_item(demand, start_date, request.user)
+                else:
+                    ptrt = produced_rt.main_producing_process_type_relationship()
+                    et = ptrt.event_type
+                    if et:
+                        commitment = demand.add_commitment(
+                            resource_type=produced_rt,
+                            quantity=ptrt.quantity,
+                            event_type=et,
+                            unit=produced_rt.unit,
+                            description=ptrt.description or "",
+                            stage=ptrt.stage,
+                            state=ptrt.state,
+                            )
+                        commitment.created_by=request.user
+                        commitment.save()
 
-                ptrt = produced_rt.main_producing_process_type_relationship()
-                et = ptrt.event_type
-                if et:
-                    commitment = demand.add_commitment(
-                        resource_type=produced_rt,
-                        quantity=ptrt.quantity,
-                        event_type=et,
-                        unit=produced_rt.unit,
-                        description=ptrt.description or "",
-                        stage=ptrt.stage,
-                        state=ptrt.state,
-                        )
-                    commitment.created_by=request.user
-                    commitment.save()
-
-                    #import pdb; pdb.set_trace()
-                    process = commitment.generate_producing_process(request.user, [], explode=True)
+                        #import pdb; pdb.set_trace()
+                        process = commitment.generate_producing_process(request.user, [], explode=True)
                     
             if notification:
                 #import pdb; pdb.set_trace()
@@ -8187,6 +8205,7 @@ def plan_from_recipe(request):
         "ca_form": ca_form,
         "date_name_form": date_name_form,
         "resource_types": resource_types,
+        "resource_type_lists": resource_type_lists,
         "help": get_help("plan_from_recipe"),
     }, context_instance=RequestContext(request))
 

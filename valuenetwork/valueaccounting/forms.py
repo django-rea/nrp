@@ -92,17 +92,18 @@ class ProjectForm(forms.ModelForm):
 
 
 class LocationForm(forms.ModelForm):
+    address = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
-    address = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
     latitude = forms.FloatField(required=False, widget=forms.HiddenInput)
     longitude = forms.FloatField(required=False, widget=forms.HiddenInput)
 
     class Meta:
         model = Location
+        fields = ('address', 'name', 'description', 'latitude', 'longitude')
 
 
 
@@ -2044,6 +2045,12 @@ class OptionsForm(forms.Form):
         #    options = EconomicResourceType.objects.all()
         options = EconomicResourceType.objects.all()
         self.fields["options"].choices = [(rt.id, rt.name) for rt in options]
+        
+        
+def possible_parent_resource_types():
+    rt_ids = [rt.id for rt in EconomicResourceType.objects.all() if rt.can_be_parent()]
+    return EconomicResourceType.objects.filter(id__in=rt_ids)
+    
 
 class EconomicResourceTypeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))
@@ -2055,11 +2062,12 @@ class EconomicResourceTypeForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('parent', 'created_by', 'changed_by',)
+        exclude = ('created_by', 'changed_by',)
 
     def __init__(self, *args, **kwargs):
         super(EconomicResourceTypeForm, self).__init__(*args, **kwargs)
         self.fields["substitutable"].initial = settings.SUBSTITUTABLE_DEFAULT
+        self.fields["parent"].queryset = possible_parent_resource_types()
         
 
 class EconomicResourceTypeChangeForm(forms.ModelForm):
@@ -2070,7 +2078,11 @@ class EconomicResourceTypeChangeForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('parent', 'created_by', 'changed_by')
+        exclude = ('created_by', 'changed_by')
+        
+    def __init__(self, *args, **kwargs):
+        super(EconomicResourceTypeChangeForm, self).__init__(*args, **kwargs)
+        self.fields["parent"].queryset = possible_parent_resource_types()
 
 
 class EconomicResourceTypeAjaxForm(forms.ModelForm):

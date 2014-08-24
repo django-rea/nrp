@@ -5462,8 +5462,160 @@ class Compensation(models.Model):
         #if self.initiating_event.unit_of_value.id != self.compensating_event.unit_of_value.id:
         #    raise ValidationError('Initiating event and compensating event must have the same units of value.')
 
+        
+class Claim(models.Model):
+    claim_type = models.ForeignKey(EventType, 
+        related_name="claims", verbose_name=_('claim type'))
+    claim_date = models.DateField(_('claim date'))
+    has_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="has_claims", verbose_name=_('has'))
+    against_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="claims against", verbose_name=_('against'))
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
+        related_name="claims", verbose_name=_('context agent'),
+        on_delete=models.SET_NULL)        
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.0"))
+    unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit of value'), related_name="claim_value_units")
+    claim_creation_equation = models.TextField(_('creation equation'), null=True, blank=True)
+    
+    slug = models.SlugField(_("Page name"), editable=False)
 
+    class Meta:
+        ordering = ('-claim_date',)
 
+    def __unicode__(self):
+        if self.unit_of_value:
+            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(self.value)
+        has_agt = 'Unassigned'
+        if self.has_agent:
+            has_agt = self.has_agent.name
+        against_agt = 'Unassigned'
+        if self.against_agent():
+            against_agt = self.against_agent.name
+        return ' '.join([
+            'Claim',
+            has_agt,
+            'has against',
+            against_agt,
+            'for',
+            value_string,
+            'from',
+            self.event_date.strftime('%Y-%m-%d'),
+        ])
+
+EVENT_EFFECT_CHOICES = (
+    ('+', _('increase')),
+    ('-', _('decrease')),
+ )
+ 
+class ClaimEvent(models.Model):
+    event = models.ForeignKey(EconomicEvent, 
+        related_name="claim_events", verbose_name=_('claim event'))
+    claim = models.ForeignKey(Claim, 
+        related_name="claims", verbose_name=_('claims'))
+    claim_event_date = models.DateField(_('claim event date'), default=datetime.date.today)
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2)
+    unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit of value'), related_name="claim_event_value_units")
+    event_effect = models.CharField(_('event effect'), 
+        max_length=12, choices=EVENT_EFFECT_CHOICES)       
+    
+    class Meta:
+        ordering = ('claim_event_date',)
+
+    def __unicode__(self):
+        if self.unit_of_value:
+            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(self.value)
+        return ' '.join([
+            'event:',
+            self.event.__unicode__(),
+            'affecting claim:',
+            self.claim.__unicode__(),
+            'value:',
+            value_string,
+        ])
+
+class DistributionValueEquation(models.Model):
+    distribution_date = models.DateField(_('distribution date'))
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('distribution'), related_name='value equation')        
+    value_equation = models.TextField(_('value equation used'), null=True, blank=True)    
+
+class ValueEquation(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=True)
+    description = models.TextField(_('description'), null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='value_equations_created', blank=True, null=True)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+
+class AgentValueEquation(models.Model):
+    context_agent = models.ForeignKey(EconomicAgent,
+        limit_choices_to={"agent_type__is_context": True,},
+        related_name="value_equations", verbose_name=_('context agent'))  
+    value_equation = models.ForeignKey(ValueEquation,
+        verbose_name=_('value equation'), related_name='agents')
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='value_equations_assigned', blank=True, null=True)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)        
+
+class ValueEquationBucket(models.Model): 
+    name = models.CharField(_('name'), max_length=32)
+    sequence = models.IntegerField(_('sequence'), default=0)  
+    value_equation = models.ForeignKey(ValueEquation,
+        verbose_name=_('value equation'), related_name='buckets')
+    percentage = models.IntegerField(_('bucket percentage'), null=True)    
+    distribution_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="value_equation_buckets", verbose_name=_('distribution agent'))     
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='buckets_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='buckets_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
+DIVISION_RULE_CHOICES = (
+    ('percentage', _('percentage')),
+    ('fifo', _('oldest first')),
+)
+
+CLAIM_RULE_CHOICES = (
+    ('debt-like', _('until paid off')),
+    ('equity-like', _('forever')),
+    ('gift-like', _('no distribution expected')),
+)
+
+class ValueEquationBucketRule(models.Model): 
+    value_equation_bucket = models.ForeignKey(ValueEquationBucket,
+        verbose_name=_('value equation bucket'), related_name='bucket rules')
+    event_type = models.ForeignKey(EventType, 
+        related_name="value equation bucket rules", verbose_name=_('event type')) 
+    filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
+    division_rule =  models.CharField(_('division rule'), 
+        max_length=12, choices=DIVISION_RULE_CHOICES)
+    claim_rule_type = models.CharField(_('claim rule type'), 
+        max_length=12, choices=CLAIM_RULE_CHOICES)
+    claim_creation_equation = models.TextField(_('claim creation equation'), null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='rules_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='rules_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)    
+    
+    
+    
 class EventSummary(object):
     def __init__(self, agent, context_agent, resource_type, event_type, quantity, value=Decimal('0.0')):
         self.agent = agent

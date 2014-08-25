@@ -373,6 +373,7 @@ def explode(process_type_relationship, nodes, edges, depth, depth_limit):
         for art in rtr.resource_type.producing_agent_relationships():
             nodes.append(art.agent)
             edges.append(Edge(art.agent, rtr.resource_type, art.event_type.label))
+        #todo pr: shd this use own or own_or_parent_recipes?
         for pt in rtr.resource_type.producing_process_type_relationships():
             explode(pt, nodes, edges, depth+1, depth_limit)
 
@@ -382,6 +383,7 @@ def graphify(focus, depth_limit):
     for art in focus.consuming_agent_relationships():
         nodes.append(art.agent)
         edges.append(Edge(focus, art.agent, art.event_type.label))
+    #todo pr: shd this use own or own_or_parent_recipes?
     for ptr in focus.producing_process_type_relationships():
         explode(ptr, nodes, edges, 0, depth_limit)
     return [nodes, edges]

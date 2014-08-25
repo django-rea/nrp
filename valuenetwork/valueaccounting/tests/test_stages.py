@@ -86,7 +86,7 @@ class StageTest(TestCase):
         cts = sow.process_types.all()
         ct4 = cts[4]
         pt = ct4.process_type
-        stages = sow.staged_commitment_type_sequence()
+        stages, inherited = sow.staged_commitment_type_sequence()
         expected_stages = [
             self.ct1_create, 
             self.ct1_to_be, 

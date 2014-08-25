@@ -106,7 +106,6 @@ class LocationForm(forms.ModelForm):
         fields = ('address', 'name', 'description', 'latitude', 'longitude')
 
 
-
 class SelectResourceForm(forms.Form):
     resource = ResourceModelChoiceField(
         queryset=EconomicResource.objects.all(), 
@@ -2082,6 +2081,7 @@ class EconomicResourceTypeChangeForm(forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super(EconomicResourceTypeChangeForm, self).__init__(*args, **kwargs)
+        #todo pr: self.instance shd be excluded from parents
         self.fields["parent"].queryset = possible_parent_resource_types()
 
 

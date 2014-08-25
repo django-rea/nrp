@@ -9092,3 +9092,7 @@ def payment_event_for_commitment(request):
     return HttpResponse(data, mimetype="text/plain")
 '''
 
+#@login_required
+#def create_value_equation(request):
+    
+

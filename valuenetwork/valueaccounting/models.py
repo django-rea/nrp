@@ -5558,6 +5558,9 @@ class ValueEquation(models.Model):
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='value_equations_created', blank=True, null=True)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    
+    def __unicode__(self):
+        return self.name
 
 class AgentValueEquation(models.Model):
     context_agent = models.ForeignKey(EconomicAgent,
@@ -5584,6 +5587,18 @@ class ValueEquationBucket(models.Model):
         related_name='buckets_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    
+    class Meta:
+        ordering = ('sequence',)
+        
+    def __unicode__(self):
+        return ' '.join([
+            self.name,
+            'sequence',
+            str(self.sequence),
+            'percent',
+            str(self.percentage),
+        ])
 
 DIVISION_RULE_CHOICES = (
     ('percentage', _('percentage')),
@@ -5614,8 +5629,15 @@ class ValueEquationBucketRule(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)    
     
-    
-    
+    def __unicode__(self):
+        return ' '.join([
+            'rule for:',
+            self.value_equation_bucket.__unicode__(),
+            '-',
+            self.event_type.name,
+        ])
+
+
 class EventSummary(object):
     def __init__(self, agent, context_agent, resource_type, event_type, quantity, value=Decimal('0.0')):
         self.agent = agent

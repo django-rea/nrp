@@ -265,8 +265,7 @@ class StageTest(TestCase):
         prev_prev_next = prev_prev.next_processes()[0]
         self.assertEqual(prev_prev_next, prev)
         #import pdb; pdb.set_trace()
-        
-        
+          
     def test_resource_driven_order(self):
         repair_me = EconomicResource(
             resource_type = self.equip,
@@ -279,8 +278,7 @@ class StageTest(TestCase):
         order = self.equip.generate_staged_work_order_from_resource(repair_me, "Test repair", start, self.user)
         self.assertEqual(len(order.all_processes()), 3)
         #import pdb; pdb.set_trace()
-        
-        
+             
     def test_resource_driven_order_using_inherited_recipe(self):
         heir = EconomicResourceType(
             name="heir",

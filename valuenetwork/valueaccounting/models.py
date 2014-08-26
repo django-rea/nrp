@@ -1070,7 +1070,7 @@ class RecipeInheritance(object):
         if candidate == self.parent:
             return self.heir
         else:
-            return None
+            return candidate
             
 
 INVENTORY_RULE_CHOICES = (
@@ -1824,7 +1824,7 @@ class ProcessPatternManager(models.Manager):
         rt_ids = []
         for pat in patterns:
             #todo pr: shd this be own or own_or_parent_recipes?
-            rt_ids.extend([rt.id for rt in pat.output_resource_types() if rt.producing_process_type_relationship()])
+            rt_ids.extend([rt.id for rt in pat.output_resource_types() if rt.producing_process_type_relationships()])
         return EconomicResourceType.objects.filter(id__in=rt_ids)
         
 
@@ -2572,11 +2572,18 @@ class Order(models.Model):
         ordered_processes = list(set(ordered_processes))
         ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
         ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
-        return ordered_processes    
+        return ordered_processes 
         
+    def unordered_processes(self):
+        cts = Commitment.objects.filter(independent_demand=self)
+        processes = set()
+        for ct in cts:
+            processes.add(ct.process)
+        return processes
+
     def has_open_processes(self):
         answer = False
-        processes = self.all_processes()
+        processes = self.unordered_processes()
         for process in processes:
             if process.finished == False:
                 answer = True
@@ -3329,7 +3336,8 @@ class ProcessTypeResourceType(models.Model):
             due_date = process.start_date
         resource_type = self.resource_type
         if inheritance:
-            resource_type = inheritance.substitute(resource_type)
+            if resource_type == inheritance.parent:
+                resource_type = inheritance.substitute(resource_type)
         unit = self.resource_type.directional_unit(self.event_type.relationship)
         commitment = Commitment(
             process=process,
@@ -5009,6 +5017,7 @@ class Commitment(models.Model):
         return [ct for ct in producers if ct.order_item == self.order_item]
 
     def scheduled_receipts(self):
+        #import pdb; pdb.set_trace()
         rt = self.resource_type
         if rt.substitutable:
             return rt.active_producing_commitments()

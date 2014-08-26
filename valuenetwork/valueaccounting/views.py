@@ -1355,7 +1355,7 @@ def edit_stream_recipe(request, resource_type_id):
 def view_stream_recipe(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     #import pdb; pdb.set_trace()
-    process_types = rt.staged_process_type_sequence()
+    process_types, inheritance = rt.staged_process_type_sequence()
     names = EconomicResourceType.objects.values_list('name', flat=True)
     resource_names = '~'.join(names)
     agent = get_agent(request)
@@ -5813,6 +5813,7 @@ def resource(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     agent = get_agent(request)
     process_add_form = None
+    order_form = None
     RraFormSet = modelformset_factory(
         AgentResourceRole,
         form=ResourceRoleAgentForm,
@@ -5833,8 +5834,9 @@ def resource(request, resource_id):
     else:
         if agent:
             form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
-            process_add_form = AddProcessFromResourceForm(form_data)    
-       
+            process_add_form = AddProcessFromResourceForm(form_data)
+            init={"start_date": datetime.date.today(),}
+            order_form = StartDateAndNameForm(initial=init)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         process_save = request.POST.get("process-save")
@@ -5867,6 +5869,7 @@ def resource(request, resource_id):
         "resource": resource,
         "photo_size": (128, 128),
         "process_add_form": process_add_form,
+        "order_form": order_form,
         "role_formset": role_formset,
         "agent": agent,
     }, context_instance=RequestContext(request))
@@ -5883,7 +5886,25 @@ def resource_role_agent_formset(prefix, data=None):
     formset = RraFormSet(prefix=prefix, queryset=AgentResourceRole.objects.none(), data=data)
     return formset
 
-
+@login_required
+def plan_work_order_for_resource(request, resource_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        form = StartDateAndNameForm(data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            start = data["start_date"]
+            order_name = data["order_name"]
+            if not order_name:
+                order_name = resource.__unicode__()
+            resource = get_object_or_404(EconomicResource, id=resource_id)
+            agent = get_agent(request)
+            resource_type = resource.resource_type
+            order = resource_type.generate_staged_work_order_from_resource(resource, order_name, start, request.user)
+            if order:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/order-schedule', order.id))
+    
 def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     flows = resource.incoming_value_flows()

@@ -1279,10 +1279,10 @@ class EconomicResourceType(models.Model):
         creation = None
         try:
             if parent:
+                inheritance = RecipeInheritance(parent, self)
                 creation = parent.process_types.get(
                     stage__isnull=False,
                     event_type=creation_et)
-                inheritance = RecipeInheritance(parent, self)
             else:
                 creation = self.process_types.get(
                     stage__isnull=False,
@@ -1302,16 +1302,16 @@ class EconomicResourceType(models.Model):
         return chain, inheritance
         
     def staged_process_type_sequence(self):
-        #todo pr: shd this be own or own_or_parent_recipes?
+        #pr changed
         pts = []
         stages, inheritance = self.staged_commitment_type_sequence()
         for stage in stages:
             if stage.process_type not in pts:
                 pts.append(stage.process_type)
-        return pts
+        return pts, inheritance
         
     def recipe_needs_starting_resource(self):
-        #todo pr: shd this be own or own_or_parent_recipes?
+        #todo pr: shd probably pass inheritance on
         if not self.recipe_is_staged():
             return False
         seq, inheritance = self.staged_commitment_type_sequence()
@@ -1337,9 +1337,9 @@ class EconomicResourceType(models.Model):
         return answer
 
     def generate_staged_work_order(self, order_name, start_date, user):
-        #todo pr: this shd use own_or_parent_recipes
-        pts = self.staged_process_type_sequence()
+        #todo pr: needs own_or_parent_recipes
         #import pdb; pdb.set_trace()
+        pts, inheritance = self.staged_process_type_sequence()
         order = Order(
             order_type="rand",
             name=order_name,
@@ -1350,7 +1350,7 @@ class EconomicResourceType(models.Model):
         processes = []
         new_start_date = start_date
         for pt in pts:
-            p = pt.create_process(new_start_date, user)
+            p = pt.create_process(new_start_date, user, inheritance)
             new_start_date = p.end_date
             processes.append(p)
         if processes:
@@ -1381,7 +1381,7 @@ class EconomicResourceType(models.Model):
         
     def generate_staged_order_item(self, order, start_date, user):
         #todo pr: this shd use own_or_parent_recipes
-        pts = self.staged_process_type_sequence()
+        pts, inheritance = self.staged_process_type_sequence()
         #import pdb; pdb.set_trace()
         processes = []
         new_start_date = start_date
@@ -1411,7 +1411,7 @@ class EconomicResourceType(models.Model):
     
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
         #todo pr: this shd use own_or_parent_recipes
-        pts = self.staged_process_type_sequence()
+        pts, inheritance = self.staged_process_type_sequence()
         #import pdb; pdb.set_trace()
         order = Order(
             order_type="rand",
@@ -1423,7 +1423,7 @@ class EconomicResourceType(models.Model):
         processes = []
         new_start_date = start_date
         for pt in pts:
-            p = pt.create_process(new_start_date, user)
+            p = pt.create_process(new_start_date, user, inheritance)
             new_start_date = p.end_date
             processes.append(p)
         if processes:
@@ -2653,7 +2653,8 @@ class ProcessType(models.Model):
     def color(self):
         return "blue"
         
-    def create_process(self, start_date, user):
+    def create_process(self, start_date, user, inheritance=None):
+        #pr changed
         end_date = start_date + datetime.timedelta(minutes=self.estimated_duration)
         process = Process(          
             name=self.name,
@@ -2668,16 +2669,17 @@ class ProcessType(models.Model):
         process.save()
         input_ctypes = self.all_input_resource_type_relationships()
         for ic in input_ctypes:
-            ic.create_commitment_for_process(process, user)
+            ic.create_commitment_for_process(process, user, inheritance)
         output_ctypes = self.produced_resource_type_relationships()
         for oc in output_ctypes:
-            oc.create_commitment_for_process(process, user)
+            oc.create_commitment_for_process(process, user, inheritance)
         #todo: delete next lines, makes awkward process.names?
         #process.name = " ".join([process.name, oc.resource_type.name])
         #process.save()
         return process
                             
     def produced_resource_type_relationships(self):
+        #todo pr: needs own_or_parent_recipes
         return self.resource_types.filter(event_type__relationship='out')
                                 
     def produced_resource_types(self):
@@ -3319,11 +3321,15 @@ class ProcessTypeResourceType(models.Model):
             if next_in_chain:
                 next_in_chain[0].follow_stage_chain(chain)
                     
-    def create_commitment_for_process(self, process, user):
+    def create_commitment_for_process(self, process, user, inheritance):
+        #todo pr: needs own_or_parent_recipes
         if self.event_type.relationship == "out":
             due_date = process.end_date
         else:
             due_date = process.start_date
+        resource_type = self.resource_type
+        if inheritance:
+            resource_type = inheritance.substitute(resource_type)
         unit = self.resource_type.directional_unit(self.event_type.relationship)
         commitment = Commitment(
             process=process,
@@ -3332,7 +3338,7 @@ class ProcessTypeResourceType(models.Model):
             description=self.description,
             context_agent=process.context_agent,
             event_type=self.event_type,
-            resource_type=self.resource_type,
+            resource_type=resource_type,
             quantity=self.quantity,
             unit_of_quantity=unit,
             due_date=due_date,

@@ -1189,7 +1189,6 @@ class EconomicResourceType(models.Model):
         return self.process_types.filter(event_type__relationship='out')
         
     def own_or_parent_recipes(self):
-        #todo pr: shd this return parent, too?
         ptrs =  self.own_recipes()
         parent = None
         inheritance = None
@@ -1209,7 +1208,6 @@ class EconomicResourceType(models.Model):
     def main_producing_process_type_relationship(self, stage=None, state=None):
         #import pdb; pdb.set_trace()
         #pr changed
-        #todo pr: may need pass RecipeInheritance object
         ptrts, inheritance = self.own_or_parent_recipes()
         if stage or state:
             ptrts = ptrts.filter(stage=stage, state=state)
@@ -1229,6 +1227,7 @@ class EconomicResourceType(models.Model):
             return None, None
             
     def recipe_is_staged(self):
+        #todo pr: shd this use own_or_parent_recipes?
         staged_commitments = self.process_types.filter(stage__isnull=False)
         if staged_commitments:
             return True
@@ -1240,7 +1239,7 @@ class EconomicResourceType(models.Model):
         return [pt.process_type for pt in self.producing_process_type_relationships()]
 
     def main_producing_process_type(self, stage=None, state=None):
-        #todo pr: shd this be own or own_or_parent_recipes?
+        #todo pr: shd this return inheritance, too?
         ptrt, inheritance = self.main_producing_process_type_relationship(stage, state)
         if ptrt:
             return ptrt.process_type
@@ -1311,7 +1310,8 @@ class EconomicResourceType(models.Model):
         return pts, inheritance
         
     def recipe_needs_starting_resource(self):
-        #todo pr: shd probably pass inheritance on
+        #todo pr: shd this pass inheritance on?
+        #shd recipe_is_staged consider own_or_parent_recipes?
         if not self.recipe_is_staged():
             return False
         seq, inheritance = self.staged_commitment_type_sequence()
@@ -1337,7 +1337,7 @@ class EconomicResourceType(models.Model):
         return answer
 
     def generate_staged_work_order(self, order_name, start_date, user):
-        #todo pr: needs own_or_parent_recipes
+        #pr changed
         #import pdb; pdb.set_trace()
         pts, inheritance = self.staged_process_type_sequence()
         order = Order(
@@ -1380,7 +1380,7 @@ class EconomicResourceType(models.Model):
         return order
         
     def generate_staged_order_item(self, order, start_date, user):
-        #todo pr: this shd use own_or_parent_recipes
+        #pr changed
         pts, inheritance = self.staged_process_type_sequence()
         #import pdb; pdb.set_trace()
         processes = []
@@ -1410,7 +1410,7 @@ class EconomicResourceType(models.Model):
         return order
     
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
-        #todo pr: this shd use own_or_parent_recipes
+        #pr changed
         pts, inheritance = self.staged_process_type_sequence()
         #import pdb; pdb.set_trace()
         order = Order(
@@ -1441,9 +1441,11 @@ class EconomicResourceType(models.Model):
             order_item = octs[0]
             order.due_date = last_process.end_date
             order.save()
-            resource.independent_demand = order
-            resource.order_item = order_item
-            resource.save()
+            #pr changed
+            if not resource.resource_type.substitutable:
+                resource.independent_demand = order
+                resource.order_item = order_item
+                resource.save()
         for process in processes:
             for commitment in process.commitments.all():
                 commitment.independent_demand = order
@@ -2514,7 +2516,7 @@ class Order(models.Model):
             resource_type,
             quantity,
             user):
-        #todo pr: may need pass RecipeInheritance object
+        #todo pr: may need return inheritance?
         #import pdb; pdb.set_trace()
         ptrt, inheritance = resource_type.main_producing_process_type_relationship()
         description = ""
@@ -2545,7 +2547,6 @@ class Order(models.Model):
             stage=stage,
             state=state)
         if ptrt:
-            #todo pr: may need pass RecipeInheritance object
             commitment.generate_producing_process(user, [], inheritance, explode=True)
         return commitment
         
@@ -2580,6 +2581,9 @@ class Order(models.Model):
         for ct in cts:
             processes.add(ct.process)
         return processes
+        
+    def all_dependent_commitments(self):
+        return Commitment.objects.filter(independent_demand=self)
 
     def has_open_processes(self):
         answer = False
@@ -3329,7 +3333,7 @@ class ProcessTypeResourceType(models.Model):
                 next_in_chain[0].follow_stage_chain(chain)
                     
     def create_commitment_for_process(self, process, user, inheritance):
-        #todo pr: needs own_or_parent_recipes
+        #pr changed
         if self.event_type.relationship == "out":
             due_date = process.end_date
         else:
@@ -4074,7 +4078,7 @@ class Process(models.Model):
                     #shd pptr create next_commitment, and then 
                     #shd next_commitment.generate_producing_process?
                     #import pdb; pdb.set_trace()
-                    #todo pr: this shd probably use own_or_parent_recipes
+                    #pr changed
                     stage = commitment.stage
                     state = commitment.state
                     pptr, inheritance = resource_type.main_producing_process_type_relationship(stage=stage, state=state)
@@ -4946,7 +4950,7 @@ class Commitment(models.Model):
             qty_required = self.net()
         process=None
         if qty_required:
-            #todo pr: this shd probably use own_or_parent_recipes
+            #pr changed
             #import pdb; pdb.set_trace()
             ptrt, inheritance = rt.main_producing_process_type_relationship(stage=self.stage, state=self.state)
             if ptrt:

@@ -228,7 +228,8 @@ class OrderTest(WebTest):
         order.save()
         unit = self.wf_recipe.unit
         et = self.wf_recipe.change_event_type
-        stage = self.changeable.staged_process_type_sequence()[-1]
+        stages, inheritance = self.changeable.staged_process_type_sequence()
+        stage = stages[-1]
         commitment1 = order.add_commitment(
             resource_type=self.changeable,
             context_agent=None,

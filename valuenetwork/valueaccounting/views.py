@@ -1338,7 +1338,7 @@ def edit_extended_bill(request, resource_type_id):
 def edit_stream_recipe(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     #import pdb; pdb.set_trace()
-    process_types = rt.staged_process_type_sequence()
+    process_types, inheritance = rt.staged_process_type_sequence()
     resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
     names = EconomicResourceType.objects.values_list('name', flat=True)
     resource_names = '~'.join(names)
@@ -1605,7 +1605,7 @@ def delete_process_type(request, process_type_id):
         rt = pt.main_produced_resource_type()
         if rt:
             if rt.recipe_is_staged():
-                pts = rt.staged_process_type_sequence()
+                pts, inheritance = rt.staged_process_type_sequence()
                 index = pts.index(pt)
                 if index < len(pts) - 1:
                     if index == 0:
@@ -2046,7 +2046,7 @@ def create_process_type_for_streaming(request, resource_type_id, process_type_id
                 if et.relationship == "out":
                     stage = pt
                 else: #assumes only one input of stream/change type (or possibly none)
-                    pts = rt.staged_process_type_sequence()
+                    pts, inheritance = rt.staged_process_type_sequence()
                     if process_type_id:
                         next_input_ptrt = next_process_type.input_stream_resource_type_relationship()[0]
                         stage = next_input_ptrt.stage

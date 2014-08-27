@@ -19,6 +19,7 @@ class StageTest(TestCase):
         self.creation_et = EventType.objects.get(name='Create Changeable') 
         self.to_be_et = EventType.objects.get(name='To Be Changed')
         self.change_et = EventType.objects.get(name='Change')
+        self.work_et = EventType.objects.get(relationship='work')
         
         # create_changeable recipe
         self.sow = EconomicResourceType(
@@ -87,6 +88,10 @@ class StageTest(TestCase):
             substitutable=False)
         self.equip.save()
         
+        self.work = EconomicResourceType(
+            name="Repair work",)
+        self.work.save()
+        
         duration = 4320
         self.diagnose = ProcessType(name="Diagnose", estimated_duration=duration)
         self.diagnose.save()
@@ -123,6 +128,14 @@ class StageTest(TestCase):
             quantity=qty,
         )
         self.rd2_to_be.save()
+        
+        self.rd2_work = ProcessTypeResourceType(
+            process_type=self.repair,
+            resource_type=self.work,
+            event_type=self.work_et,
+            quantity=qty,
+        )
+        self.rd2_work.save()
         
         self.rd2_repair = ProcessTypeResourceType(
             process_type=self.repair,
@@ -300,4 +313,7 @@ class StageTest(TestCase):
         for process in processes:
             rt = process.output_resource_types()[0]
             self.assertEqual(rt, heir)
+        cts = order.all_dependent_commitments()
+        work = cts.filter(event_type__relationship="work")[0]
+        self.assertEqual(work.resource_type, self.work)
         #import pdb; pdb.set_trace()

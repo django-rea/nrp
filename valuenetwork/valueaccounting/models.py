@@ -5545,13 +5545,6 @@ class ClaimEvent(models.Model):
             value_string,
         ])
 
-class DistributionValueEquation(models.Model):
-    distribution_date = models.DateField(_('distribution date'))
-    exchange = models.ForeignKey(Exchange,
-        blank=True, null=True,
-        verbose_name=_('distribution'), related_name='value equation')        
-    value_equation = models.TextField(_('value equation used'), null=True, blank=True)    
-
 class ValueEquation(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=True)
     description = models.TextField(_('description'), null=True, blank=True)
@@ -5561,7 +5554,56 @@ class ValueEquation(models.Model):
     
     def __unicode__(self):
         return self.name
-
+        
+    def run_value_equation_and_save(self, exchange, resource, amount_to_distribute):
+        import pdb; pdb.set_trace()
+        context_agent = exchange.context_agent
+        
+        
+        distribution_events, updated_claims = self.run_value_equation(context_agent=context_agent, claims=claims, amount_to_distribute=money_to_distribute)
+        for event in distribution_events:
+            
+            
+            event.exchange = exchange
+            event.save()
+        for claim in updated_claims: #or attach appropriate claims inside run ve, then process as part of above loop?
+            claim.save()
+            for ce in claim.claim_events:
+                ce.save()
+        return exchange
+        
+    def run_value_equation(self, context_agent, amount_to_distribute):
+        import pdb; pdb.set_trace()
+        detail_sums = []
+        distribution_events = []
+        for bucket in self.buckets:
+            bucket_amount =  bucket.percentage * amount_to_distribute / 100
+            amount_to_distribute = amount_to_distribute - bucket_amount
+            if bucket.distribution_agent:
+                sum = agent.id + "~" + str(bucket_amount)
+                distribution_sums.append(sum)
+            else:
+                bucket_sums = bucket.run_bucket_value_equation(amount_to_distribute, context_agent)
+                for bsum in bucket_sums:
+                    distribution_sums.append(bsum)
+                    
+        #consolidate sums
+        #create events
+        #create claim events and update claims
+                
+            
+        return distribution_events
+        
+class DistributionValueEquation(models.Model):
+    distribution_date = models.DateField(_('distribution date'))
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('distribution'), related_name='value equation')    
+    value_equation_original = models.ForeignKey(ValueEquation,
+        blank=True, null=True,
+        verbose_name=_('value equation original'), related_name='distributions')
+    value_equation = models.TextField(_('value equation used'), null=True, blank=True)    
+        
 class AgentValueEquation(models.Model):
     context_agent = models.ForeignKey(EconomicAgent,
         limit_choices_to={"agent_type__is_context": True,},
@@ -5570,7 +5612,10 @@ class AgentValueEquation(models.Model):
         verbose_name=_('value equation'), related_name='agents')
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='value_equations_assigned', blank=True, null=True)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)        
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)     
+    
+    def __unicode__(self):
+        return self.value_equation.name
 
 class ValueEquationBucket(models.Model): 
     name = models.CharField(_('name'), max_length=32)
@@ -5594,11 +5639,16 @@ class ValueEquationBucket(models.Model):
     def __unicode__(self):
         return ' '.join([
             self.name,
-            'sequence',
+            '- sequence:',
             str(self.sequence),
-            'percent',
-            str(self.percentage),
+            'percent:',
+            str(self.percentage) + '%',
         ])
+        
+    def run_bucket_value_equation(self, amount_to_distribute, context_agent):
+        rules = self.bucket_rules
+        
+        
 
 DIVISION_RULE_CHOICES = (
     ('percentage', _('percentage')),
@@ -5613,9 +5663,9 @@ CLAIM_RULE_CHOICES = (
 
 class ValueEquationBucketRule(models.Model): 
     value_equation_bucket = models.ForeignKey(ValueEquationBucket,
-        verbose_name=_('value equation bucket'), related_name='bucket rules')
+        verbose_name=_('value equation bucket'), related_name='bucket_rules')
     event_type = models.ForeignKey(EventType, 
-        related_name="value equation bucket rules", verbose_name=_('event type')) 
+        related_name="bucket_rules", verbose_name=_('event type')) 
     filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
     division_rule =  models.CharField(_('division rule'), 
         max_length=12, choices=DIVISION_RULE_CHOICES)
@@ -5637,6 +5687,10 @@ class ValueEquationBucketRule(models.Model):
             self.event_type.name,
         ])
 
+    def gather_claims(self, context_agent):
+        return Claim.objects.filter(event_type=self.event_type) #todo: temp
+        
+    
 
 class EventSummary(object):
     def __init__(self, agent, context_agent, resource_type, event_type, quantity, value=Decimal('0.0')):

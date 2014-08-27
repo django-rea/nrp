@@ -2609,4 +2609,57 @@ class DistributionForm(forms.ModelForm):
         #import pdb; pdb.set_trace()
         super(DistributionForm, self).__init__(*args, **kwargs)
         use_case = UseCase.objects.get(identifier="distribution")
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
+        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case)
+  
+class DistributionValueEquationForm(forms.ModelForm):
+    process_pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.all(), 
+        label=_("Pattern"),
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 'pattern-selector'}))
+    start_date = forms.DateField(required=True, 
+        label=_("Date"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    value_equation = forms.ModelChoiceField(
+        queryset=ValueEquation.objects.all(), 
+        label=_("Value Equation"),
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 've-selector'}))
+    notes = forms.CharField(required=False, 
+        label=_("Comments"),
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    money_to_distribute = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money'}))
+    resource = forms.ModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Cash resource account",
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',})) 
+    #todo: choose cash receipts
+    
+    class Meta:
+        model = Exchange
+        fields = ('process_pattern', 'start_date', 'notes')
+        
+    def __init__(self, context_agent=None, post=False, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(DistributionValueEquationForm, self).__init__(*args, **kwargs)
+        if post == False:
+            use_case = UseCase.objects.get(identifier="distribution")
+            self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case)
+            if context_agent:
+                self.fields["value_equation"].queryset = context_agent.value_equations
+            if self.fields["process_pattern"].queryset.count > 0:
+                resources = []
+                pattern = self.fields["process_pattern"].queryset[0]
+                rts = pattern.distribution_resource_types()
+                if rts:
+                    for rt in rts:
+                        rss = rt.all_resources()
+                        for res in rss:
+                            resources.append(res)
+                self.fields["resource"].choices = [('', '----------')] + [(res.id, res.identifier) for res in resources]
+        #import pdb; pdb.set_trace()
+                       

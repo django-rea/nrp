@@ -3777,8 +3777,9 @@ class Process(models.Model):
                 if oe.resource:
                     for evt in oe.resource.all_usage_events():
                         if evt.process:
-                            if evt.process not in answer:
-                                answer.append(evt.process)
+                            if evt.process != self:
+                                if evt.process not in answer:
+                                    answer.append(evt.process)
         return answer
         
     def next_processes_for_order(self, order):
@@ -4782,17 +4783,20 @@ class Commitment(models.Model):
         qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
             
-    def resource_ready_to_be_changed(self):
-        resource = None
+    def resources_ready_to_be_changed(self):
+        #import pdb; pdb.set_trace()
+        resources = []
         if self.event_type.stage_to_be_changed():
-            if not self.resource_type.substitutable:
-                resource = EconomicResource.objects.filter(
+            if self.resource_type.substitutable:
+                resources = EconomicResource.objects.filter(
+                    resource_type=self.resource_type,
+                    stage=self.stage)
+            else:
+                resources = EconomicResource.objects.filter(
                     resource_type=self.resource_type,
                     stage=self.stage,
                     order_item=self.order_item)
-                if resource:
-                    resource = resource[0]
-        return resource
+        return resources
         
     def fulfilling_events(self):
         return self.fulfillment_events.all()

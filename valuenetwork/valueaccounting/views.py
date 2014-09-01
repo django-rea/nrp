@@ -2591,6 +2591,15 @@ def change_process_plan(request, process_id):
             process.name = data["name"]
             process.changed_by = request.user
             process.save()
+            for ct in process.incoming_commitments():
+                if ct.due_date != process.start_date:
+                    ct.due_date = process.start_date
+                    ct.save()
+            for ct in process.outgoing_commitments():
+                if ct.due_date != process.end_date:
+                    ct.due_date = process.end_date
+                    ct.save()
+                
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
@@ -7619,7 +7628,7 @@ def plan_from_recipe(request):
                 for rt in candidate_resource_types:
                     if rt.recipe_needs_starting_resource():
                         rt.onhand_resources = []
-                        onhand = rt.onhand()
+                        onhand = rt.onhand_for_resource_driven_recipe()
                         if onhand:
                             resource_types.append(rt)
                             for oh in onhand:
@@ -7669,8 +7678,6 @@ def plan_from_recipe(request):
                 else:
                     forward_schedule = False
 
-            #pt = produced_rt.main_producing_process_type()
-        
             #import pdb; pdb.set_trace() 
             if not forward_schedule:
                 demand = Order(
@@ -7693,7 +7700,6 @@ def plan_from_recipe(request):
                             else:
                                 demand = produced_rt.generate_staged_order_item(demand, start_date, request.user)
                 else:
-                    #todo pr: this shd probably use own_or_parent_recipes
                     ptrt, inheritance = produced_rt.main_producing_process_type_relationship()
                     et = ptrt.event_type
                     if et:
@@ -7711,7 +7717,7 @@ def plan_from_recipe(request):
                         commitment.save()
 
                         #import pdb; pdb.set_trace()
-                        process = commitment.generate_producing_process(request.user, [], explode=True)
+                        process = commitment.generate_producing_process(request.user, [], inheritance=inheritance, explode=True)
                     
             if notification:
                 #import pdb; pdb.set_trace()
@@ -7845,8 +7851,9 @@ def plan_from_rt_recipe(request, resource_type_id):
                     name=order_name,
                     created_by=request.user)
                 demand.save()
-                #todo pr: this shd probably use own_or_parent_recipes
+
                 ptrt, inheritance = resource_type.main_producing_process_type_relationship()
+
                 et = ptrt.event_type
                 if et:
                     commitment = demand.add_commitment(

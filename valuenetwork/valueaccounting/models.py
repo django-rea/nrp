@@ -617,6 +617,10 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         for p in parents:
             rts.extend([pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=p) if pt.main_produced_resource_type()])
+        parent_rts = rts
+        for rt in parent_rts:
+            rts.extend(rt.all_children())
+            
         return list(set(rts))
         
     def get_resource_type_lists(self):
@@ -1131,8 +1135,22 @@ class EconomicResourceType(models.Model):
         #unique_slugify(self, self.name)
         super(EconomicResourceType, self).save(*args, **kwargs)
 
-    def children(self):
+    def direct_children(self):
         return self.children.all()
+        
+    def with_all_children(self):
+        answer = [self,]
+        kids = self.direct_children()
+        for kid in kids:
+            answer.extend(kid.with_all_children())
+        return answer
+        
+    def all_children(self):
+        kids = self.direct_children()
+        answer = list(kids)
+        for kid in kids:
+            answer.extend(kid.all_children())
+        return answer
 
     def node_id(self):
         return "-".join(["ResourceType", str(self.id)])
@@ -1144,19 +1162,40 @@ class EconomicResourceType(models.Model):
         return EconomicResource.goods.filter(
             resource_type=self,
             quantity__gt=0)
+            
+    def onhand_for_stage(self, stage):
+        return EconomicResource.goods.filter(
+            resource_type=self,
+            stage=stage,
+            quantity__gt=0)
+    
+    def onhand_for_resource_driven_recipe(self):
+        return EconomicResource.goods.filter(
+            resource_type=self,
+            independent_demand__isnull=True,
+            stage__isnull=True,
+            quantity__gt=0)
 
     def all_resources(self):
         return self.resources.all()
 
     def onhand_qty(self):
         return sum(oh.quantity for oh in self.onhand())
+        
+    def onhand_qty_for_stage(self, stage):
+        return sum(oh.quantity for oh in self.onhand_for_stage(stage))
 
     def onhand_qty_for_commitment(self, commitment):
-        #todo pr: oh_qty shd filter for stage
+        #pr changed
         #does not need order_item because net already skipped non-subs
-        oh_qty = self.onhand_qty()
         due_date = commitment.due_date
-        priors = self.consuming_commitments().filter(due_date__lt=due_date)
+        stage = commitment.stage
+        if stage:
+            oh_qty = self.onhand_qty_for_stage(stage)
+            priors = self.consuming_commitments_for_stage(stage).filter(due_date__lt=due_date)
+        else:
+            oh_qty = self.onhand_qty()
+            priors = self.consuming_commitments().filter(due_date__lt=due_date)
         remainder = oh_qty - sum(p.quantity for p in priors)
         if remainder > 0:
             return remainder
@@ -1164,16 +1203,21 @@ class EconomicResourceType(models.Model):
             return Decimal("0")
 
     def scheduled_qty_for_commitment(self, commitment):
-        #todo pr: sked_rcts shd filter for stage
+        #pr changed
         #does not need order_item because net already skipped non-subs
         #import pdb; pdb.set_trace()
         due_date = commitment.due_date
-        
+        stage = commitment.stage
         sked_rcts = self.producing_commitments().filter(due_date__lte=due_date).exclude(id=commitment.id)
+        if stage:
+            sked_rcts = sked_rcts.filter(stage=stage)
         sked_qty = sum(pc.quantity for pc in sked_rcts)
         if not sked_qty:
             return Decimal("0")
-        priors = self.consuming_commitments().filter(due_date__lt=due_date)
+        if stage:
+            priors = self.consuming_commitments_for_stage(stage).filter(due_date__lt=due_date)
+        else:
+            priors = self.consuming_commitments().filter(due_date__lt=due_date)
         remainder = sked_qty - sum(p.quantity for p in priors)
         if remainder > 0:
             return remainder
@@ -1228,8 +1272,11 @@ class EconomicResourceType(models.Model):
             
     def recipe_is_staged(self):
         #todo pr: shd this use own_or_parent_recipes?
-        staged_commitments = self.process_types.filter(stage__isnull=False)
-        if staged_commitments:
+        #staged_commitments = self.process_types.filter(stage__isnull=False)
+        #pr changed
+        ptrts, inheritance = self.own_or_parent_recipes()
+        stages = [ct for ct in ptrts if ct.stage]
+        if stages:
             return True
         else:
             return False
@@ -1272,7 +1319,7 @@ class EconomicResourceType(models.Model):
                 else:
                     parent = parent.parent
         if not staged_commitments:
-            return []
+            return [], None
         creation_et = EventType.objects.get(name='Create Changeable') 
         chain = []
         creation = None
@@ -1331,10 +1378,7 @@ class EconomicResourceType(models.Model):
         return answer
         
     def can_be_parent(self):
-        answer = False
-        if self.own_recipes():
-            answer = True
-        return answer
+        return self.recipe_is_staged()
 
     def generate_staged_work_order(self, order_name, start_date, user):
         #pr changed
@@ -1531,6 +1575,12 @@ class EconomicResourceType(models.Model):
     def consuming_commitments(self):
         return self.commitments.filter(
             finished=False, event_type__resource_effect='-')
+            
+    def consuming_commitments_for_stage(self, stage):
+        return self.commitments.filter(
+            finished=False, 
+            stage=stage,
+            event_type__resource_effect='>~')
 
     def wanting_process_type_relationships(self):
         #todo pr: shd this be own or own_or_parent_recipes?
@@ -4895,9 +4945,6 @@ class Commitment(models.Model):
         #import pdb; pdb.set_trace()
         rt = self.resource_type
         if not rt.substitutable:
-            #todo: or, get resources where r.order_item == self.order_item
-            #in rt.ohqfc?
-            #or not rt.substitutable means will never be netted anyway so don't bother?
             return self.quantity
         oh_qty = rt.onhand_qty_for_commitment(self)
         if oh_qty >= self.quantity:
@@ -4977,7 +5024,6 @@ class Commitment(models.Model):
                 self.save()
                 if explode:
                     demand = self.independent_demand
-                    #todo pr: may need pass RecipeInheritance object
                     process.explode_demands(demand, user, visited, inheritance)
         return process
 

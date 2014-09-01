@@ -33,7 +33,7 @@ def flattened_children_by_association(node, all_associations, to_return): #works
     #import pdb; pdb.set_trace()
     to_return.append(node)
     for association in all_associations:
-        if association.has_associate.id == node.id and association.association_type.identifier == "child":
+        if association.has_associate.id == node.id and association.association_type.association_behavior == "child":
             flattened_children_by_association(association.is_associate, all_associations, to_return)
     return to_return
     

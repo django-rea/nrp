@@ -287,9 +287,6 @@ class AgentType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='sub-agents', editable=False)
-    #member_type = models.CharField(_('member type'), 
-    #    max_length=12, choices=ACTIVITY_CHOICES,
-    #    default='active')
     party_type = models.CharField(_('party type'), 
         max_length=12, choices=SIZE_CHOICES,
         default='individual')
@@ -601,7 +598,7 @@ class EconomicAgent(models.Model):
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
         #todo: figure out why this failed when AAs were ordered by from_agent
-        aas = AgentAssociation.objects.filter(association_type__identifier="child").order_by("is_associate__name")
+        aas = AgentAssociation.objects.filter(association_type__association_behavior="child").order_by("is_associate__name")
         return agent_dfs_by_association(self, aas, 1)
         
     def wip(self):
@@ -637,7 +634,7 @@ class EconomicAgent(models.Model):
     def parent(self):
         #assumes only one parent
         #import pdb; pdb.set_trace()
-        associations = self.is_associate_of.filter(association_type__identifier="child").filter(state="active")
+        associations = self.is_associate_of.filter(association_type__association_behavior="child").filter(state="active")
         parent = None
         if associations.count() > 0:
             parent = associations[0].has_associate
@@ -654,7 +651,7 @@ class EconomicAgent(models.Model):
         return parents
                 
     def children(self): #returns a list or None
-        associations = self.has_associates.filter(association_type__identifier="child").filter(state="active")
+        associations = self.has_associates.filter(association_type__association_behavior="child").filter(state="active")
         children = None
         if associations.count() > 0:
             children = []
@@ -670,32 +667,32 @@ class EconomicAgent(models.Model):
             
     def suppliers(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="supplier").filter(state="active").values_list('is_associate')
+        agent_ids = self.has_associates.filter(association_type__association_behavior="supplier").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
-    def exchange_firms(self):
+    def exchange_firms(self): #todo: 'legal' is not a behavior, will there ever be a need for this?
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="legal").filter(state="active").values_list('is_associate')
+        agent_ids = self.has_associates.filter(association_type__association_behavior="legal").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def members(self): 
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="member").filter(state="active").values_list('is_associate')
+        agent_ids = self.has_associates.filter(association_type__association_behavior="member").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
-    def affiliates(self):
-        #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('is_associate')
-        return EconomicAgent.objects.filter(pk__in=agent_ids)
+    #def affiliates(self):
+    #    #import pdb; pdb.set_trace()
+    #    agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('is_associate')
+    #    return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def customers(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="customer").filter(state="active").values_list('is_associate')
+        agent_ids = self.has_associates.filter(association_type__association_behavior="customer").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def potential_customers(self):
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__identifier="customer").filter(state="potential").values_list('is_associate')
+        agent_ids = self.has_associates.filter(association_type__association_behavior="customer").filter(state="potential").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def all_has_associates_by_type(self, assoc_type_identifier):
@@ -804,10 +801,20 @@ class AgentUser(models.Model):
         verbose_name=_('user'), related_name='agent')
 
 
+ASSOCIATION_BEHAVIOR_CHOICES = (
+    ('supplier', _('supplier')),
+    ('customer', _('customer')),
+    ('member', _('member')),
+    ('child', _('child')),
+)
+
 class AgentAssociationType(models.Model):
     identifier = models.CharField(_('identifier'), max_length=12, unique=True)
     name = models.CharField(_('name'), max_length=128)
     plural_name = models.CharField(_('plural name'), default="", max_length=128)
+    association_behavior = models.CharField(_('association behavior'), 
+        max_length=12, choices=ASSOCIATION_BEHAVIOR_CHOICES,
+        blank=True, null=True)
     description = models.TextField(_('description'), blank=True, null=True)
     label = models.CharField(_('label'), max_length=32, null=True)
     inverse_label = models.CharField(_('inverse label'), max_length=40, null=True)
@@ -816,7 +823,7 @@ class AgentAssociationType(models.Model):
         return self.name
         
     @classmethod
-    def create(cls, identifier, name, plural_name, label, inverse_label, verbosity=2):
+    def create(cls, identifier, name, plural_name, association_behavior, label, inverse_label, verbosity=2):
         """  
         Creates a new AgentType, updates an existing one, or does nothing.
         This is intended to be used as a post_syncdb manangement step.
@@ -829,6 +836,9 @@ class AgentAssociationType(models.Model):
                 updated = True
             if plural_name != agent_association_type.plural_name:
                 agent_association_type.plural_name = plural_name
+                updated = True
+            if association_behavior != agent_association_type.association_behavior:
+                agent_association_type.association_behavior = association_behavior
                 updated = True
             if label != agent_association_type.label:
                 agent_association_type.label = label
@@ -860,10 +870,10 @@ post_migrate.connect(create_agent_types)
 def create_agent_association_types(app, **kwargs):
     if app != "valueaccounting":
         return
-    AgentAssociationType.create('child', 'Child', 'Children', 'is child of', 'has child') 
-    AgentAssociationType.create('member', 'Member', 'Members', 'is member of', 'has member')  
-    AgentAssociationType.create('supplier', 'Supplier', 'Suppliers', 'is supplier of', 'has supplier') 
-    AgentAssociationType.create('customer', 'Customer', 'Customers', 'is customer of', 'has customer') 
+    AgentAssociationType.create('child', 'Child', 'Children', 'child', 'is child of', 'has child') 
+    AgentAssociationType.create('member', 'Member', 'Members', 'member', 'is member of', 'has member')  
+    AgentAssociationType.create('supplier', 'Supplier', 'Suppliers', 'supplier', 'is supplier of', 'has supplier') 
+    AgentAssociationType.create('customer', 'Customer', 'Customers', 'customer', 'is customer of', 'has customer') 
     print "created agent association types"
     
 post_migrate.connect(create_agent_association_types)  
@@ -5692,10 +5702,11 @@ class ValueEquationBucketRule(models.Model):
     def gather_claims(self, context_agent):
         return Claim.objects.filter(event_type=self.event_type) #todo: temp
         
-    def distribute_amount(self, amount_to_distribute, claims, context_agent, money_resource)
+    def distribute_amount(self, amount_to_distribute, claims, context_agent, money_resource):
         import pdb; pdb.set_trace()
         if self.division_rule == 'percentage':
             total_amount = 0
+            '''
             agent_amounts = {}
             for claim in claims:
                 total_amount = total_amount + claim.value
@@ -5722,15 +5733,16 @@ class ValueEquationBucketRule(models.Model):
                     unit_of_quantity = money_resource.unit_of_quantity,
                     is_contribution = False,
                 )
-                agent_claims = [claim for claim in claims if claim.has_agent.id == agent_id]
-                for claim in agent_claims:
-                    distr_amt = claim.value * portion_of_amount
-                    claim.value = claim.value - distr_amt
-                    claim_event = ClaimEvent(
+                #agent_claims = [claim for claim in claims if claim.has_agent.id == agent_id]
+                #for claim in agent_claims:
+                    #distr_amt = claim.value * portion_of_amount
+                    #claim.value = claim.value - distr_amt
+                    #claim_event = ClaimEvent(
                     
-                    )
-                distributions.append(distribution)
-                    
+                    #)
+                #distributions.append(distribution)
+                '''
+            return None          
                 
        
             

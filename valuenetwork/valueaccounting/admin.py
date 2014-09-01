@@ -21,6 +21,33 @@ class HelpAdmin(admin.ModelAdmin):
 
 admin.site.register(Help, HelpAdmin)
 
+class ValueEquationBucketInline(admin.TabularInline):
+    model = ValueEquationBucket
+    fk_name = 'value_equation'
+    fields = ('sequence', 'name', 'percentage', 'distribution_agent')
+
+class AgentValueEquationInline(admin.TabularInline):
+    model = AgentValueEquation
+    fk_name = 'value_equation'
+    fields = ('context_agent',)
+
+class ValueEquationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
+    inlines = [ ValueEquationBucketInline, AgentValueEquationInline, ]
+
+admin.site.register(ValueEquation, ValueEquationAdmin)
+
+class ValueEquationBucketRuleInline(admin.TabularInline):
+    model = ValueEquationBucketRule
+    fk_name = 'value_equation_bucket'
+    fields = ('event_type', 'filter_rule', 'division_rule', 'claim_rule_type', 'claim_creation_equation')
+        
+class ValueEquationBucketAdmin(admin.ModelAdmin):
+    list_display = ('sequence', 'name', 'percentage', )
+    inlines = [ ValueEquationBucketRuleInline, ]
+
+admin.site.register(ValueEquationBucket, ValueEquationBucketAdmin)
+
 class EconomicEventInline(admin.TabularInline):
     model = EconomicEvent
     fk_name = 'exchange'

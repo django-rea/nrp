@@ -5462,7 +5462,278 @@ class Compensation(models.Model):
         #if self.initiating_event.unit_of_value.id != self.compensating_event.unit_of_value.id:
         #    raise ValidationError('Initiating event and compensating event must have the same units of value.')
 
+        
+class Claim(models.Model):
+    claim_type = models.ForeignKey(EventType, 
+        related_name="claims", verbose_name=_('claim type'))
+    claim_date = models.DateField(_('claim date'))
+    has_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="has_claims", verbose_name=_('has'))
+    against_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="claims against", verbose_name=_('against'))
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
+        related_name="claims", verbose_name=_('context agent'),
+        on_delete=models.SET_NULL)        
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.0"))
+    unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit of value'), related_name="claim_value_units")
+    claim_creation_equation = models.TextField(_('creation equation'), null=True, blank=True)
+    
+    slug = models.SlugField(_("Page name"), editable=False)
 
+    class Meta:
+        ordering = ('claim_date',)
+
+    def __unicode__(self):
+        if self.unit_of_value:
+            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(self.value)
+        has_agt = 'Unassigned'
+        if self.has_agent:
+            has_agt = self.has_agent.name
+        against_agt = 'Unassigned'
+        if self.against_agent():
+            against_agt = self.against_agent.name
+        return ' '.join([
+            'Claim',
+            has_agt,
+            'has against',
+            against_agt,
+            'for',
+            value_string,
+            'from',
+            self.event_date.strftime('%Y-%m-%d'),
+        ])
+
+EVENT_EFFECT_CHOICES = (
+    ('+', _('increase')),
+    ('-', _('decrease')),
+ )
+ 
+class ClaimEvent(models.Model):
+    event = models.ForeignKey(EconomicEvent, 
+        related_name="claim_events", verbose_name=_('claim event'))
+    claim = models.ForeignKey(Claim, 
+        related_name="claims", verbose_name=_('claims'))
+    claim_event_date = models.DateField(_('claim event date'), default=datetime.date.today)
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2)
+    unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit of value'), related_name="claim_event_value_units")
+    event_effect = models.CharField(_('event effect'), 
+        max_length=12, choices=EVENT_EFFECT_CHOICES)       
+    
+    class Meta:
+        ordering = ('claim_event_date',)
+
+    def __unicode__(self):
+        if self.unit_of_value:
+            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(self.value)
+        return ' '.join([
+            'event:',
+            self.event.__unicode__(),
+            'affecting claim:',
+            self.claim.__unicode__(),
+            'value:',
+            value_string,
+        ])
+
+class ValueEquation(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=True)
+    description = models.TextField(_('description'), null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='value_equations_created', blank=True, null=True)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    
+    def __unicode__(self):
+        return self.name
+        
+    def run_value_equation_and_save(self, exchange, resource, amount_to_distribute):
+        import pdb; pdb.set_trace()
+        context_agent = exchange.context_agent
+        
+        
+        distribution_events, updated_claims = self.run_value_equation(context_agent=context_agent, claims=claims, amount_to_distribute=money_to_distribute)
+        for event in distribution_events:
+            
+            
+            event.exchange = exchange
+            event.save()
+        for claim in updated_claims: #or attach appropriate claims inside run ve, then process as part of above loop?
+            claim.save()
+            for ce in claim.claim_events:
+                ce.save()
+        return exchange
+        
+    def run_value_equation(self, context_agent, amount_to_distribute):
+        import pdb; pdb.set_trace()
+        detail_sums = []
+        distribution_events = []
+        for bucket in self.buckets:
+            bucket_amount =  bucket.percentage * amount_to_distribute / 100
+            amount_to_distribute = amount_to_distribute - bucket_amount
+            if bucket.distribution_agent:
+                sum = agent.id + "~" + str(bucket_amount)
+                detail_sums.append(sum)
+            else:
+                bucket_sums = bucket.run_bucket_value_equation(amount_to_distribute, context_agent)
+                for bsum in bucket_sums:
+                    distribution_sums.append(bsum)
+                    
+        #consolidate sums
+        #create events
+        #create claim events and update claims
+        
+        #put distributions on an exchange
+                
+            
+        return distribution_events
+        
+class DistributionValueEquation(models.Model):
+    distribution_date = models.DateField(_('distribution date'))
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('distribution'), related_name='value equation')    
+    value_equation_original = models.ForeignKey(ValueEquation,
+        blank=True, null=True,
+        verbose_name=_('value equation original'), related_name='distributions')
+    value_equation = models.TextField(_('value equation used'), null=True, blank=True)    
+        
+class AgentValueEquation(models.Model):
+    context_agent = models.ForeignKey(EconomicAgent,
+        limit_choices_to={"agent_type__is_context": True,},
+        related_name="value_equations", verbose_name=_('context agent'))  
+    value_equation = models.ForeignKey(ValueEquation,
+        verbose_name=_('value equation'), related_name='agents')
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='value_equations_assigned', blank=True, null=True)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)     
+    
+    def __unicode__(self):
+        return self.value_equation.name
+
+class ValueEquationBucket(models.Model): 
+    name = models.CharField(_('name'), max_length=32)
+    sequence = models.IntegerField(_('sequence'), default=0)  
+    value_equation = models.ForeignKey(ValueEquation,
+        verbose_name=_('value equation'), related_name='buckets')
+    percentage = models.IntegerField(_('bucket percentage'), null=True)    
+    distribution_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="value_equation_buckets", verbose_name=_('distribution agent'))     
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='buckets_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='buckets_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    
+    class Meta:
+        ordering = ('sequence',)
+        
+    def __unicode__(self):
+        return ' '.join([
+            self.name,
+            '- sequence:',
+            str(self.sequence),
+            'percent:',
+            str(self.percentage) + '%',
+        ])
+        
+    def run_bucket_value_equation(self, amount_to_distribute, context_agent):
+        rules = self.bucket_rules
+        
+        
+
+DIVISION_RULE_CHOICES = (
+    ('percentage', _('percentage')),
+    ('fifo', _('oldest first')),
+)
+
+CLAIM_RULE_CHOICES = (
+    ('debt-like', _('until paid off')),
+    ('equity-like', _('forever')),
+    ('gift-like', _('no distribution expected')),
+)
+
+class ValueEquationBucketRule(models.Model): 
+    value_equation_bucket = models.ForeignKey(ValueEquationBucket,
+        verbose_name=_('value equation bucket'), related_name='bucket_rules')
+    event_type = models.ForeignKey(EventType, 
+        related_name="bucket_rules", verbose_name=_('event type')) 
+    filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
+    division_rule =  models.CharField(_('division rule'), 
+        max_length=12, choices=DIVISION_RULE_CHOICES)
+    claim_rule_type = models.CharField(_('claim rule type'), 
+        max_length=12, choices=CLAIM_RULE_CHOICES)
+    claim_creation_equation = models.TextField(_('claim creation equation'), null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='rules_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='rules_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)    
+    
+    def __unicode__(self):
+        return ' '.join([
+            'rule for:',
+            self.value_equation_bucket.__unicode__(),
+            '-',
+            self.event_type.name,
+        ])
+
+    def gather_claims(self, context_agent):
+        return Claim.objects.filter(event_type=self.event_type) #todo: temp
+        
+    def distribute_amount(self, amount_to_distribute, claims, context_agent, money_resource)
+        import pdb; pdb.set_trace()
+        if self.division_rule == 'percentage':
+            total_amount = 0
+            agent_amounts = {}
+            for claim in claims:
+                total_amount = total_amount + claim.value
+                if claim.has_agent.id in agent_amounts:
+                    amt = agent_amounts[claim.has_agent.id]
+                    agent_amounts[claim.has_agent.id] = amt + claim.value
+                else:
+                    agent_amounts[claim.has_agent.id] = claim.value
+            portion_of_amount = total_amount / amount_to_distribute
+            if portion_of_amount > 1:
+                portion_of_amount = 1
+            distributions = []
+            et = EventType.objects.get(name='distribution')
+            for agent_id in agent_amounts:
+                distribution = EconomicEvent(
+                    event_type = et,
+                    event_date = datetime.date.today,
+                    from_agent = context_agent, 
+                    to_agent = EconomicAgent(objects.get(id=agentid),
+                    resource_type = money_resource.resource_type,
+                    resource = money_resource,
+                    context_agent = context_agent,
+                    quantity = agent_amounts[agent_id],
+                    unit_of_quantity = money_resource.unit_of_quantity,
+                    is_contribution = False,
+                )
+                agent_claims = [claim for claim in claims if claim.has_agent.id == agent_id]
+                for claim in agent_claims:
+                    distr_amt = claim.value * portion_of_amount
+                    claim.value = claim.value - distr_amt
+                    claim_event = ClaimEvent(
+                    
+                    )
+                distributions.append(distribution)
+                    
+                
+       
+            
 
 class EventSummary(object):
     def __init__(self, agent, context_agent, resource_type, event_type, quantity, value=Decimal('0.0')):

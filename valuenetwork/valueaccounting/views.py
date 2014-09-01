@@ -9043,7 +9043,40 @@ def create_distribution(request, agent_id):
     return render_to_response("valueaccounting/create_distribution.html", {
         "exchange_form": exchange_form,
         "context_agent": context_agent,
-        "help": get_help("create_sale"),
+        "help": get_help("create_distribution"),
+    }, context_instance=RequestContext(request))
+
+@login_required
+def create_distribution_using_value_equation(request, agent_id):
+    #import pdb; pdb.set_trace()
+    context_agent = get_object_or_404(EconomicAgent, id=agent_id)
+    if request.method == "POST":
+        exchange_form = DistributionValueEquationForm(context_agent=context_agent, post=True, data=request.POST)
+        if exchange_form.is_valid():
+            exchange = exchange_form.save(commit=False)
+            exchange.use_case = UseCase.objects.get(identifier="distribution")
+            exchange.context_agent = context_agent
+            exchange.created_by = request.user
+            exchange.save()
+            ve = exchange_form.cleaned_data["value_equation"]
+            dist_ve = DistributionValueEquation(
+                distribution_date = exchange.start_date,
+                exchange = exchange,
+                value_equation_original = ve,
+                value_equation = "need to serialize here", #todo
+            )
+            dist_ve.save()
+            resource = exchange_form.cleaned_data["resource"]
+            money = exchange_form.cleaned_data["money_to_distribute"]
+            ve.run_value_equation_and_save(exchange=exchange, resource=resource, amount_to_distribute=money)
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/exchange', exchange.id))
+    else:
+        exchange_form = DistributionValueEquationForm(context_agent=context_agent, post=False)
+    return render_to_response("valueaccounting/create_distribution_using_value_equation.html", {
+        "exchange_form": exchange_form,
+        "context_agent": context_agent,
+        "help": get_help("create_distribution"),
     }, context_instance=RequestContext(request))
                                         
 '''
@@ -9091,4 +9124,8 @@ def payment_event_for_commitment(request):
     data = "ok"
     return HttpResponse(data, mimetype="text/plain")
 '''
+
+
+    
+    
 

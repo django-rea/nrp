@@ -9048,7 +9048,7 @@ def create_distribution(request, agent_id):
 
 @login_required
 def create_distribution_using_value_equation(request, agent_id):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
     if request.method == "POST":
         exchange_form = DistributionValueEquationForm(context_agent=context_agent, post=True, data=request.POST)

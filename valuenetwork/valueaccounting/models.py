@@ -5487,7 +5487,7 @@ class Claim(models.Model):
     slug = models.SlugField(_("Page name"), editable=False)
 
     class Meta:
-        ordering = ('-claim_date',)
+        ordering = ('claim_date',)
 
     def __unicode__(self):
         if self.unit_of_value:
@@ -5581,7 +5581,7 @@ class ValueEquation(models.Model):
             amount_to_distribute = amount_to_distribute - bucket_amount
             if bucket.distribution_agent:
                 sum = agent.id + "~" + str(bucket_amount)
-                distribution_sums.append(sum)
+                detail_sums.append(sum)
             else:
                 bucket_sums = bucket.run_bucket_value_equation(amount_to_distribute, context_agent)
                 for bsum in bucket_sums:
@@ -5590,6 +5590,8 @@ class ValueEquation(models.Model):
         #consolidate sums
         #create events
         #create claim events and update claims
+        
+        #put distributions on an exchange
                 
             
         return distribution_events
@@ -5690,7 +5692,48 @@ class ValueEquationBucketRule(models.Model):
     def gather_claims(self, context_agent):
         return Claim.objects.filter(event_type=self.event_type) #todo: temp
         
-    
+    def distribute_amount(self, amount_to_distribute, claims, context_agent, money_resource)
+        import pdb; pdb.set_trace()
+        if self.division_rule == 'percentage':
+            total_amount = 0
+            agent_amounts = {}
+            for claim in claims:
+                total_amount = total_amount + claim.value
+                if claim.has_agent.id in agent_amounts:
+                    amt = agent_amounts[claim.has_agent.id]
+                    agent_amounts[claim.has_agent.id] = amt + claim.value
+                else:
+                    agent_amounts[claim.has_agent.id] = claim.value
+            portion_of_amount = total_amount / amount_to_distribute
+            if portion_of_amount > 1:
+                portion_of_amount = 1
+            distributions = []
+            et = EventType.objects.get(name='distribution')
+            for agent_id in agent_amounts:
+                distribution = EconomicEvent(
+                    event_type = et,
+                    event_date = datetime.date.today,
+                    from_agent = context_agent, 
+                    to_agent = EconomicAgent(objects.get(id=agentid),
+                    resource_type = money_resource.resource_type,
+                    resource = money_resource,
+                    context_agent = context_agent,
+                    quantity = agent_amounts[agent_id],
+                    unit_of_quantity = money_resource.unit_of_quantity,
+                    is_contribution = False,
+                )
+                agent_claims = [claim for claim in claims if claim.has_agent.id == agent_id]
+                for claim in agent_claims:
+                    distr_amt = claim.value * portion_of_amount
+                    claim.value = claim.value - distr_amt
+                    claim_event = ClaimEvent(
+                    
+                    )
+                distributions.append(distribution)
+                    
+                
+       
+            
 
 class EventSummary(object):
     def __init__(self, agent, context_agent, resource_type, event_type, quantity, value=Decimal('0.0')):

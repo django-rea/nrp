@@ -118,6 +118,12 @@ container li {
 		                  {% endif %}
                         {% endif %}
 
+                        {% if resource_type.parent %}
+                            <div class="parent" >
+                                {% trans "Parent" %}: 
+                                {{ resource_type.parent }}
+                            </div>
+                        {% endif %}
 		                <div class="facets" >{{ resource_type.facet_list }}</div>
 
 		                <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>

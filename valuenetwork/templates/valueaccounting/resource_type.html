@@ -140,6 +140,10 @@ container li {
                 </div>
             </div>
         {% endif %}
+        
+        <div class="facets" >{{ resource_type.facet_list }}</div>
+
+        <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
 
         {% with resource_type.parent as parent %}
             {% if parent %}
@@ -156,9 +160,21 @@ container li {
                 </div>
             {% endif %}
         {% endwith %}
-        <div class="facets" >{{ resource_type.facet_list }}</div>
-
-        <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
+        
+        
+        {% if resource_type.direct_children %}
+            <div class="children" >
+                <h3>{% trans "Children" %}: </h3>
+                <ul>
+                    {% for child in resource_type.direct_children %}
+                        <li>
+                            <span class="name"><a href="{% url resource_type resource_type_id=child.id %}">{{ child }}</a></span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        
 
 	    {% if resource_type.photo %}
             <img src="{% thumbnail resource_type.photo photo_size %}" />
@@ -167,7 +183,7 @@ container li {
         {% endif %}
 
 	    {% if resource_type.wanting_process_types %}
-	        <h3>{% trans "Used in these recipes" %}:</h4>
+	        <h3>{% trans "Used in these recipes" %}:</h3>
 	        <ul>
 	            {% for pt in resource_type.wanting_process_types %}
 	                {% with pt.main_produced_resource_type as output %}

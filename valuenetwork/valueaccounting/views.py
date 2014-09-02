@@ -2810,6 +2810,7 @@ def change_resource_type_list(request, list_id):
                 
     return render_to_response("valueaccounting/resource_type_list.html", {
         "rtl_form": rtl_form,
+        "rt_list": rt_list,
         "element_forms": element_forms,
         #"help": get_help("associations"),
     }, context_instance=RequestContext(request))

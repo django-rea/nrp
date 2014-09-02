@@ -251,14 +251,13 @@ class ResourceTypeListForm(forms.ModelForm):
 class ResourceTypeListElementForm(forms.ModelForm):
     resource_type_id = forms.IntegerField(widget=forms.HiddenInput)
     resource_type_name = forms.CharField(widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'input-xxlarge' }))
-    #resource_type_name = forms.CharField()
-    default_quantity = forms.DecimalField(required=False,
-        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
+    #default_quantity = forms.DecimalField(required=False,
+    #    widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
     added = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'added',}))
     
     class Meta:
         model = ResourceTypeListElement
-        exclude = ('resource_type_list', 'resource_type')
+        exclude = ('resource_type_list', 'resource_type', 'default_quantity')
     
     
 class RandOrderForm(forms.ModelForm):

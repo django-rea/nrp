@@ -2955,7 +2955,8 @@ class EconomicResource(models.Model):
         
     def where_from_events(self):
         return self.events.filter(
-            Q(event_type__relationship='out')|Q(event_type__relationship='receive'))
+            Q(event_type__relationship='out')|Q(event_type__relationship='receive')|Q(event_type__relationship='receivecash')
+            |Q(event_type__relationship='cash')|Q(event_type__relationship='resource'))
 
     def consuming_events(self):
         return self.events.filter(event_type__relationship='consume')
@@ -2964,7 +2965,7 @@ class EconomicResource(models.Model):
         return self.events.filter(event_type__relationship="use")
 
     def all_usage_events(self):
-        return self.events.exclude(event_type__relationship="out").exclude(event_type__relationship="receive").exclude(event_type__relationship="resource")
+        return self.events.exclude(event_type__relationship="out").exclude(event_type__relationship="receive").exclude(event_type__relationship="resource").exclude(event_type__relationship="cash")
 
     def demands(self):
         answer = self.resource_type.commitments.exclude(event_type__relationship="out")

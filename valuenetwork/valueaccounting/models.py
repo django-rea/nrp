@@ -1371,7 +1371,8 @@ class EconomicResourceType(models.Model):
     def has_listable_recipe(self):
         #todo pr: shd this be own or own_or_parent_recipes?
         answer = False
-        if self.producing_process_type_relationships():
+        ctype, inheritance = self.own_or_parent_recipes()
+        if ctype:
             answer = True
             if self.recipe_needs_starting_resource():
                 answer = False

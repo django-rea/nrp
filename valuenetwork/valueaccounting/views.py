@@ -7693,7 +7693,9 @@ def plan_from_recipe(request):
                     if resource_driven:
                         demand = produced_rt.generate_staged_work_order_from_resource(resource, order_name, start_date, request.user)
                     else:
-                        if len(rts_to_produce) > 1:
+                        if len(rts_to_produce) == 1:
+                            demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)
+                        else:
                             if item_number == 1:
                                 item_number += 1
                                 demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)

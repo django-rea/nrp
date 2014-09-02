@@ -1389,7 +1389,10 @@ class EconomicResourceType(models.Model):
         return answer
         
     def can_be_parent(self):
-        return self.recipe_is_staged()
+        if self.own_recipes():
+            if self.recipe_is_staged():
+                return True
+        return False
 
     def generate_staged_work_order(self, order_name, start_date, user):
         #pr changed

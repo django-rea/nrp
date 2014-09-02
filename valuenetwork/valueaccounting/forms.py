@@ -1330,7 +1330,7 @@ class PaymentEventForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
-        label="Unit of payment",
+        label="Cash resource type payment from",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-for-resource chzn-select'}))
@@ -1390,7 +1390,7 @@ class CashReceiptForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
-        label="Unit of receipt",
+        label="Cash resource type received into",
         empty_label=None,
         widget=forms.Select(
         attrs={'class': 'resource-type-for-resource resourceType chzn-select'})) 
@@ -1452,7 +1452,7 @@ class CashReceiptResourceForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
-        label="Unit of receipt",
+        label="Cash resource type received into",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
@@ -1502,7 +1502,7 @@ class DistributionEventForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
-        label="Unit",
+        label="From cash resource type",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-for-resource chzn-select'}))
@@ -1626,7 +1626,7 @@ class CashContributionEventForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
-        label="Unit",
+        label="Cash resource type",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-for-resource chzn-select'}))
@@ -1672,7 +1672,7 @@ class CashContributionResourceEventForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.none(),
-        label="Unit",
+        label="Cash resource type",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 

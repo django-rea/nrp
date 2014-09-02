@@ -851,7 +851,7 @@ class AgentAssociationType(models.Model):
                 if verbosity > 1:
                     print "Updated %s AgentAssociationType" % name
         except cls.DoesNotExist:
-            cls(identifier=identifier, name=name, label=label, inverse_label=inverse_label).save()
+            cls(identifier=identifier, name=name, plural_name=plural_name, association_behavior=association_behavior, label=label, inverse_label=inverse_label).save()
             if verbosity > 1:
                 print "Created %s AgentAssociationType" % name
 

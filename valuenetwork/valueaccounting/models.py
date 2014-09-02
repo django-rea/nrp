@@ -5531,7 +5531,7 @@ class ClaimEvent(models.Model):
     event = models.ForeignKey(EconomicEvent, 
         related_name="claim_events", verbose_name=_('claim event'))
     claim = models.ForeignKey(Claim, 
-        related_name="claims", verbose_name=_('claims'))
+        related_name="claim_events", verbose_name=_('claims'))
     claim_event_date = models.DateField(_('claim event date'), default=datetime.date.today)
     value = models.DecimalField(_('value'), max_digits=8, decimal_places=2)
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
@@ -5566,45 +5566,64 @@ class ValueEquation(models.Model):
     def __unicode__(self):
         return self.name
         
-    def run_value_equation_and_save(self, exchange, resource, amount_to_distribute):
+    def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute):
         import pdb; pdb.set_trace()
         context_agent = exchange.context_agent
-        
-        
-        distribution_events, updated_claims = self.run_value_equation(context_agent=context_agent, claims=claims, amount_to_distribute=money_to_distribute)
+        distribution_events = self.run_value_equation(
+            context_agent=context_agent, 
+            amount_to_distribute=money_to_distribute,
+            money_resource=money_resource)
         for event in distribution_events:
-            
-            
             event.exchange = exchange
             event.save()
-        for claim in updated_claims: #or attach appropriate claims inside run ve, then process as part of above loop?
-            claim.save()
-            for ce in claim.claim_events:
-                ce.save()
+            claim_events = event.claim_events
+            for claim_event in claim_events:
+                claim_event.claim.save()
+                claim_event.save()
         return exchange
         
-    def run_value_equation(self, context_agent, amount_to_distribute):
+    def run_value_equation(self, context_agent, amount_to_distribute, money_resource):
         import pdb; pdb.set_trace()
         detail_sums = []
-        distribution_events = []
+        claim_events = []
         for bucket in self.buckets:
             bucket_amount =  bucket.percentage * amount_to_distribute / 100
             amount_to_distribute = amount_to_distribute - bucket_amount
             if bucket.distribution_agent:
-                sum = agent.id + "~" + str(bucket_amount)
+                sum = str(agent.id) + "~" + str(bucket_amount)
                 detail_sums.append(sum)
             else:
-                bucket_sums = bucket.run_bucket_value_equation(amount_to_distribute, context_agent)
-                for bsum in bucket_sums:
-                    distribution_sums.append(bsum)
-                    
-        #consolidate sums
-        #create events
-        #create claim events and update claims
-        
-        #put distributions on an exchange
-                
-            
+                ces = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=context_agent)
+                for ce in ces:
+                    detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
+                claim_events.extend(ces)
+        agent_amounts = {}
+        for dtl in detail_sums:
+            detail = dtl.split("~")
+            if detail[0] in agent_amounts:
+                amt = agent_amounts[detail[0]]
+                agent_amounts[detail[0]] = amt + float(detail[1])
+            else:
+                agent_amounts[detail[0]] = float(detail[1])
+        et = EventType.objects.get(name='distribution')
+        distribution_events = []
+        for agent_id in agent_amounts:   
+            distribution = EconomicEvent(
+                event_type = et,
+                event_date = datetime.date.today,
+                from_agent = context_agent, 
+                to_agent = EconomicAgent.objects.get(id=int(agent_id)),
+                resource_type = money_resource.resource_type,
+                resource = money_resource,
+                context_agent = context_agent,
+                quantity = agent_amounts[agent_id],
+                unit_of_quantity = money_resource.unit_of_quantity,
+                is_contribution = False,
+            )
+            distribution_events.append(distribution)
+            agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == agent_id]
+            for ce in agent_claim_events:
+                ce.event = distribution
         return distribution_events
         
 class DistributionValueEquation(models.Model):
@@ -5660,7 +5679,22 @@ class ValueEquationBucket(models.Model):
         
     def run_bucket_value_equation(self, amount_to_distribute, context_agent):
         rules = self.bucket_rules
-        
+        claims = []
+        for vebr in rules:
+            vebr_claims = vebr.gather_claims(context_agent=context_agent)
+            claims.extend(vebr_claims)
+            vebr.claims = vebr_claims
+        total_amount = 0
+        for claim in claims:
+            total_amount = total_amount + claim.value
+        portion_of_amount = total_amount / amount_to_distribute
+        if portion_of_amount > 1:
+            portion_of_amount = 1
+        claim_events = []    
+        for vebr in rules:
+            ces = vebr.create_distribution_claim_events(claims=vebr.claims, portion_of_amount=portion_of_amount)
+            claim_events.extend(ces)
+        return claim_events
         
 
 DIVISION_RULE_CHOICES = (
@@ -5700,51 +5734,29 @@ class ValueEquationBucketRule(models.Model):
             self.event_type.name,
         ])
 
-    def gather_claims(self, context_agent):
+    def gather_claims(self):
+        #todo: need to sub in claims already decremented???
         return Claim.objects.filter(event_type=self.event_type) #todo: temp
         
-    def distribute_amount(self, amount_to_distribute, claims, context_agent, money_resource):
+    def create_distribution_claim_events(self, portion_of_amount, claims=None):
         import pdb; pdb.set_trace()
+        claim_events = []
+        if claims == None:
+            claims = self.gather_claims()
         if self.division_rule == 'percentage':
-            total_amount = 0
-            '''
-            agent_amounts = {}
             for claim in claims:
-                total_amount = total_amount + claim.value
-                if claim.has_agent.id in agent_amounts:
-                    amt = agent_amounts[claim.has_agent.id]
-                    agent_amounts[claim.has_agent.id] = amt + claim.value
-                else:
-                    agent_amounts[claim.has_agent.id] = claim.value
-            portion_of_amount = total_amount / amount_to_distribute
-            if portion_of_amount > 1:
-                portion_of_amount = 1
-            distributions = []
-            et = EventType.objects.get(name='distribution')
-            for agent_id in agent_amounts:
-                distribution = EconomicEvent(
-                    event_type = et,
-                    event_date = datetime.date.today,
-                    from_agent = context_agent, 
-                    to_agent = EconomicAgent(objects.get(id=agentid),
-                    resource_type = money_resource.resource_type,
-                    resource = money_resource,
-                    context_agent = context_agent,
-                    quantity = agent_amounts[agent_id],
-                    unit_of_quantity = money_resource.unit_of_quantity,
-                    is_contribution = False,
+                distr_amt = claim.value * portion_of_amount
+                claim.value = claim.value - distr_amt
+                claim_event = ClaimEvent(
+                    event = None, 
+                    claim = claim,
+                    value = distr_amt,
+                    unit_of_value = claim.unit_of_value,
+                    event_effect = "-",
                 )
-                #agent_claims = [claim for claim in claims if claim.has_agent.id == agent_id]
-                #for claim in agent_claims:
-                    #distr_amt = claim.value * portion_of_amount
-                    #claim.value = claim.value - distr_amt
-                    #claim_event = ClaimEvent(
-                    
-                    #)
-                #distributions.append(distribution)
-                '''
-            return None          
-                
+                claim_events.append(claim_event)
+        #elif:
+        return claim_events      
        
             
 

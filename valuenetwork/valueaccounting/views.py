@@ -9068,7 +9068,7 @@ def create_distribution_using_value_equation(request, agent_id):
             dist_ve.save()
             resource = exchange_form.cleaned_data["resource"]
             money = exchange_form.cleaned_data["money_to_distribute"]
-            ve.run_value_equation_and_save(exchange=exchange, resource=resource, amount_to_distribute=money)
+            ve.run_value_equation_and_save(exchange=exchange, money_resource=resource, amount_to_distribute=money)
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/exchange', exchange.id))
     else:

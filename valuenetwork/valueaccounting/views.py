@@ -1338,7 +1338,7 @@ def edit_extended_bill(request, resource_type_id):
 def edit_stream_recipe(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     #import pdb; pdb.set_trace()
-    process_types = rt.staged_process_type_sequence()
+    process_types, inheritance = rt.staged_process_type_sequence()
     resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
     names = EconomicResourceType.objects.values_list('name', flat=True)
     resource_names = '~'.join(names)
@@ -1355,7 +1355,7 @@ def edit_stream_recipe(request, resource_type_id):
 def view_stream_recipe(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     #import pdb; pdb.set_trace()
-    process_types = rt.staged_process_type_sequence()
+    process_types, inheritance = rt.staged_process_type_sequence()
     names = EconomicResourceType.objects.values_list('name', flat=True)
     resource_names = '~'.join(names)
     agent = get_agent(request)
@@ -1605,7 +1605,7 @@ def delete_process_type(request, process_type_id):
         rt = pt.main_produced_resource_type()
         if rt:
             if rt.recipe_is_staged():
-                pts = rt.staged_process_type_sequence()
+                pts, inheritance = rt.staged_process_type_sequence()
                 index = pts.index(pt)
                 if index < len(pts) - 1:
                     if index == 0:
@@ -2046,7 +2046,7 @@ def create_process_type_for_streaming(request, resource_type_id, process_type_id
                 if et.relationship == "out":
                     stage = pt
                 else: #assumes only one input of stream/change type (or possibly none)
-                    pts = rt.staged_process_type_sequence()
+                    pts, inheritance = rt.staged_process_type_sequence()
                     if process_type_id:
                         next_input_ptrt = next_process_type.input_stream_resource_type_relationship()[0]
                         stage = next_input_ptrt.stage
@@ -2362,7 +2362,8 @@ def create_order(request):
                         pt = rt.main_producing_process_type()
                         if pt:
                             #todo: add stage and state as args?
-                            ptrt = rt.main_producing_process_type_relationship()
+                            #todo pr: this shd probably use own_or_parent_recipes
+                            ptrt, inheritance = rt.main_producing_process_type_relationship()
                             #todo:
                             #this is the order item, so can't sent as arg
                             #maybe better to ask the order to create it.
@@ -2590,6 +2591,15 @@ def change_process_plan(request, process_id):
             process.name = data["name"]
             process.changed_by = request.user
             process.save()
+            for ct in process.incoming_commitments():
+                if ct.due_date != process.start_date:
+                    ct.due_date = process.start_date
+                    ct.save()
+            for ct in process.outgoing_commitments():
+                if ct.due_date != process.end_date:
+                    ct.due_date = process.end_date
+                    ct.save()
+                
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
 
@@ -2800,6 +2810,7 @@ def change_resource_type_list(request, list_id):
                 
     return render_to_response("valueaccounting/resource_type_list.html", {
         "rtl_form": rtl_form,
+        "rt_list": rt_list,
         "element_forms": element_forms,
         #"help": get_help("associations"),
     }, context_instance=RequestContext(request))
@@ -3639,8 +3650,9 @@ def new_process_input(request, commitment_id, slot):
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
-                #todo: add stage and state as args
-                ptrt = ct.resource_type.main_producing_process_type_relationship()
+                #todo: add stage and state as args?
+                #todo pr: this shd probably use own_or_parent_recipes
+                ptrt, inheritance = ct.resource_type.main_producing_process_type_relationship()
                 if ptrt:
                     ct.context_agent = ptrt.process_type.context_agent
                 ct.save()
@@ -4395,8 +4407,9 @@ def add_process_input(request, process_id, slot):
                 ct.independent_demand = demand
                 ct.due_date = process.start_date
                 ct.created_by = request.user
-                #todo: add stage and state as args
-                ptrt = ct.resource_type.main_producing_process_type_relationship()
+                #todo: add stage and state as args?
+                #todo pr: this shd probably use own_or_parent_recipes
+                ptrt, inheritance = ct.resource_type.main_producing_process_type_relationship()
                 if ptrt:
                     ct.context_agent = ptrt.process_type.context_agent
                 ct.save()
@@ -5810,6 +5823,7 @@ def resource(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     agent = get_agent(request)
     process_add_form = None
+    order_form = None
     RraFormSet = modelformset_factory(
         AgentResourceRole,
         form=ResourceRoleAgentForm,
@@ -5830,8 +5844,9 @@ def resource(request, resource_id):
     else:
         if agent:
             form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
-            process_add_form = AddProcessFromResourceForm(form_data)    
-       
+            process_add_form = AddProcessFromResourceForm(form_data)
+            init={"start_date": datetime.date.today(),}
+            order_form = StartDateAndNameForm(initial=init)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         process_save = request.POST.get("process-save")
@@ -5864,6 +5879,7 @@ def resource(request, resource_id):
         "resource": resource,
         "photo_size": (128, 128),
         "process_add_form": process_add_form,
+        "order_form": order_form,
         "role_formset": role_formset,
         "agent": agent,
     }, context_instance=RequestContext(request))
@@ -5880,7 +5896,25 @@ def resource_role_agent_formset(prefix, data=None):
     formset = RraFormSet(prefix=prefix, queryset=AgentResourceRole.objects.none(), data=data)
     return formset
 
-
+@login_required
+def plan_work_order_for_resource(request, resource_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        form = StartDateAndNameForm(data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            start = data["start_date"]
+            order_name = data["order_name"]
+            if not order_name:
+                order_name = resource.__unicode__()
+            resource = get_object_or_404(EconomicResource, id=resource_id)
+            agent = get_agent(request)
+            resource_type = resource.resource_type
+            order = resource_type.generate_staged_work_order_from_resource(resource, order_name, start, request.user)
+            if order:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/order-schedule', order.id))
+    
 def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     flows = resource.incoming_value_flows()
@@ -6333,95 +6367,6 @@ def failed_outputs(request, commitment_id):
 
 #todo: obsolete
 @login_required
-def create_process(request):
-    #import pdb; pdb.set_trace()
-    demand_form = DemandSelectionForm(data=request.POST or None)
-    process_form = ProcessForm(data=request.POST or None)
-    OutputFormSet = modelformset_factory(
-        Commitment,
-        form=ProcessOutputForm,
-        can_delete=True,
-        extra=2,
-        )
-    output_formset = OutputFormSet(
-        queryset=Commitment.objects.none(),
-        data=request.POST or None,
-        prefix='output')
-    InputFormSet = modelformset_factory(
-        Commitment,
-        form=ProcessInputForm,
-        can_delete=True,
-        extra=4,
-        )
-    input_formset = InputFormSet(
-        queryset=Commitment.objects.none(),
-        data=request.POST or None,
-        prefix='input')
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        keep_going = request.POST.get("keep-going")
-        just_save = request.POST.get("save")
-        if process_form.is_valid():
-            process_data = process_form.cleaned_data
-            process = process_form.save(commit=False)
-            process.created_by=request.user
-            process.save()
-            demand = None
-            if demand_form.is_valid():
-                demand = demand_form.cleaned_data["demand"]
-            for form in output_formset.forms:
-                if form.is_valid():
-                    output_data = form.cleaned_data
-                    qty = output_data["quantity"]
-                    if qty:
-                        ct = form.save(commit=False)
-                        rt = output_data["resource_type"]
-                        #rel = 
-                        ct.relationship = rel
-                        ct.event_type = rel.event_type
-                        ct.process = process
-                        ct.context_agent = process.context_agent
-                        #flow todo: add order_item
-                        #obsolete
-                        ct.independent_demand = demand
-                        ct.due_date = process.end_date
-                        ct.created_by = request.user
-                        ct.save()
-            for form in input_formset.forms:
-                if form.is_valid():
-                    input_data = form.cleaned_data
-                    qty = input_data["quantity"]
-                    if qty:
-                        ct = form.save(commit=False)
-                        rt = input_data["resource_type"]
-                        #rel = 
-                        ct.relationship = rel
-                        ct.event_type = rel.event_type
-                        ct.process = process
-                        #flow todo: add order_item
-                        #obsolete
-                        ct.independent_demand = demand
-                        ct.due_date = process.start_date
-                        ct.created_by = request.user
-                        rt = ct.resource_type
-                        ptrt = rt.main_producing_process_type_relationship()
-                        ct.save()
-                        explode_dependent_demands(ct, request.user)
-            if just_save:
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/process', process.id))
-            elif keep_going:
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/change-process', process.id))
-    return render_to_response("valueaccounting/create_process.html", {
-        "demand_form": demand_form,
-        "process_form": process_form,
-        "output_formset": output_formset,
-        "input_formset": input_formset,
-    }, context_instance=RequestContext(request))
-
-#todo: obsolete
-@login_required
 def copy_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     #import pdb; pdb.set_trace()
@@ -6518,7 +6463,9 @@ def copy_process(request, process_id):
                         ct.due_date = process.start_date
                         ct.created_by = request.user
                         rt = ct.resource_type
-                        ptrt = rt.main_producing_process_type_relationship()
+                        #todo pr: this shd probably use own_or_parent_recipes
+                        #obsolete
+                        ptrt, inheritance = rt.main_producing_process_type_relationship()
                         ct.save()
                         explode_dependent_demands(ct, request.user)
             if just_save:
@@ -7189,8 +7136,9 @@ def change_process(request, process_id):
                             ct.order_item = order_item
                             ct.independent_demand = demand
                             ct.created_by = request.user
-                            #todo: add stage and state as args
-                            ptrt = ct.resource_type.main_producing_process_type_relationship()
+                            #todo: add stage and state as args?
+                            #todo pr: this shd probably use own_or_parent_recipes
+                            ptrt, inheritance = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
                                 ct.context_agent = ptrt.process_type.context_agent
                         ct.save()
@@ -7235,7 +7183,8 @@ def change_process(request, process_id):
                             ct.due_date = process.start_date
                             ct.created_by = request.user
                             #todo: add stage and state as args
-                            ptrt = ct.resource_type.main_producing_process_type_relationship()
+                            #todo pr: this shd probably use own_or_parent_recipes
+                            ptrt, inheritance = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
                                 ct.context_agent = ptrt.process_type.context_agent
                         ct.save()
@@ -7271,7 +7220,8 @@ def explode_dependent_demands(commitment, user):
     if qty_to_explode:
         rt = commitment.resource_type
         #todo: add stage and state as args?
-        ptrt = rt.main_producing_process_type_relationship()
+        #todo pr: this shd probably use own_or_parent_recipes
+        ptrt, inheritance = rt.main_producing_process_type_relationship()
         demand = commitment.independent_demand
         if ptrt:
             pt = ptrt.process_type
@@ -7354,107 +7304,7 @@ def propagate_changes(commitment, delta, old_demand, new_demand, visited):
                     propagate_changes(pc, new_delta, old_demand, new_demand, visited)
     commitment.quantity += delta
     commitment.independent_demand = new_demand
-    commitment.save()    
-
-#todo: obsolete?
-@login_required
-def create_rand(request):
-    #import pdb; pdb.set_trace()
-    rand_form = RandOrderForm(data=request.POST or None)
-    process_form = ProcessForm(data=request.POST or None)
-    OutputFormSet = modelformset_factory(
-        Commitment,
-        form=ProcessOutputForm,
-        can_delete=True,
-        extra=2,
-        )
-    output_formset = OutputFormSet(
-        queryset=Commitment.objects.none(),
-        data=request.POST or None,
-        prefix='output')
-    InputFormSet = modelformset_factory(
-        Commitment,
-        form=ProcessInputForm,
-        can_delete=True,
-        extra=4,
-        )
-    input_formset = InputFormSet(
-        queryset=Commitment.objects.none(),
-        data=request.POST or None,
-        prefix='input')
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        keep_going = request.POST.get("keep-going")
-        just_save = request.POST.get("save")
-        if rand_form.is_valid():
-            rand = rand_form.save(commit=False)
-            rand.created_by = request.user
-            rand.order_type = 'rand'
-            if process_form.is_valid():
-                process_data = process_form.cleaned_data
-                process = process_form.save(commit=False)
-                process.created_by=request.user
-                process.save()
-                pattern = process.process_pattern
-                rand.due_date = process.end_date
-                rand.save()
-                for form in output_formset.forms:
-                    if form.is_valid():
-                        output_data = form.cleaned_data
-                        qty = output_data["quantity"]
-                        agent_type = None
-                        if rand.provider:
-                            agent_type = rand.provider.agent_type
-                        if qty:
-                            ct = form.save(commit=False)
-                            rt = output_data["resource_type"]
-                            event_type = pattern.event_type_for_resource_type("out", rt)
-                            ct.event_type = event_type
-                            ct.order = rand
-                            #flow todo: add order_item
-                            #obsolete
-                            ct.independent_demand = rand
-                            ct.process = process
-                            ct.context_agent = process.context_agent
-                            ct.from_agent_type=agent_type
-                            ct.from_agent=rand.provider
-                            ct.to_agent=rand.receiver
-                            ct.due_date = process.end_date
-                            ct.created_by = request.user
-                            ct.save()
-                for form in input_formset.forms:
-                    if form.is_valid():
-                        input_data = form.cleaned_data
-                        qty = input_data["quantity"]
-                        if qty:
-                            ct = form.save(commit=False)
-                            rt = input_data["resource_type"]
-                            
-                            ct.event_type = rel.event_type
-                            #flow todo: add order_item
-                            #obsolete
-                            ct.independent_demand = rand
-                            ct.process = process
-                            ct.due_date = process.start_date
-                            ct.created_by = request.user
-                            rt = ct.resource_type
-                            ptrt = rt.main_producing_process_type_relationship()
-                            if ptrt:
-                                ct.context_agent = ptrt.process_type.context_agent
-                            ct.save()
-                            explode_dependent_demands(ct, request.user)
-                if just_save:
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/order-schedule', rand.id))
-                elif keep_going:
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/change-rand', rand.id))
-    return render_to_response("valueaccounting/create_rand.html", {
-        "rand_form": rand_form,
-        "process_form": process_form,
-        "output_formset": output_formset,
-        "input_formset": input_formset,
-    }, context_instance=RequestContext(request))
+    commitment.save()
     
 @login_required
 def change_order(request, order_id):
@@ -7478,319 +7328,7 @@ def change_order(request, order_id):
         "order_form": order_form,
         "order": order,
         "next": next,
-    }, context_instance=RequestContext(request))    
-                
-
-#todo: obsolete
-@login_required
-def copy_rand(request, rand_id):
-    rand = get_object_or_404(Order, id=rand_id)
-    #import pdb; pdb.set_trace()
-    rand_init = {
-        'receiver': rand.receiver, 
-        'provider': rand.provider,
-    }
-    rand_form = RandOrderForm(initial=rand_init, data=request.POST or None)
-    process = None
-    for item in rand.producing_commitments():
-        if item.process:
-            process = item.process
-            break
-    process_init = {}
-    output_init = []
-    input_init = []
-    if process:
-        process_init = {
-            "project": process.context_agent,
-            "url": process.url,
-            "notes": process.notes,
-        }      
-        for op in process.outgoing_commitments():
-            output_init.append({
-                'resource_type': op.resource_type, 
-                'quantity': op.quantity, 
-                'description': op.description, 
-                'unit_of_quantity': op.unit_of_quantity,
-            })
-
-        for ip in process.incoming_commitments():
-            input_init.append({
-                'resource_type': ip.resource_type, 
-                'quantity': ip.quantity, 
-                'description': ip.description, 
-                'unit_of_quantity': ip.unit_of_quantity,
-            })
-    process_form = ProcessForm(initial=process_init, data=request.POST or None)
-    OutputFormSet = modelformset_factory(
-        Commitment,
-        form=ProcessOutputForm,
-        can_delete=True,
-        extra=2,
-        )
-    output_formset = OutputFormSet(
-        queryset=Commitment.objects.none(),
-        initial=output_init,
-        data=request.POST or None,
-        prefix='output')
-    InputFormSet = modelformset_factory(
-        Commitment,
-        form=ProcessInputForm,
-        can_delete=True,
-        extra=4,
-        )
-    input_formset = InputFormSet(
-        queryset=Commitment.objects.none(),
-        initial=input_init,
-        data=request.POST or None,
-        prefix='input')
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        keep_going = request.POST.get("keep-going")
-        just_save = request.POST.get("save")
-        if rand_form.is_valid():
-            rand = rand_form.save(commit=False)
-            rand.created_by = request.user
-            rand.order_type = 'rand'
-            if process_form.is_valid():
-                process_data = process_form.cleaned_data
-                process = process_form.save(commit=False)
-                process.created_by=request.user
-                process.save()
-                rand.due_date = process.end_date
-                rand.save()
-                for form in output_formset.forms:
-                    if form.is_valid():
-                        output_data = form.cleaned_data
-                        qty = output_data["quantity"]
-                        agent_type = None
-                        if rand.provider:
-                            agent_type = rand.provider.agent_type
-                        if qty:
-                            ct = form.save(commit=False)
-                            rt = output_data["resource_type"]
-                            #rel = 
-                            ct.relationship = rel
-                            ct.event_type = rel.event_type
-                            ct.order = rand
-                            #flow todo: add order_item
-                            #obsolete
-                            ct.independent_demand = rand
-                            ct.process = process
-                            ct.context_agent = process.context_agent
-                            ct.from_agent_type=agent_type
-                            ct.from_agent=rand.provider
-                            ct.to_agent=rand.receiver
-                            ct.due_date = process.end_date
-                            ct.created_by = request.user
-                            ct.save()
-                for form in input_formset.forms:
-                    if form.is_valid():
-                        input_data = form.cleaned_data
-                        qty = input_data["quantity"]
-                        if qty:
-                            ct = form.save(commit=False)
-                            rt = input_data["resource_type"]
-                            #rel = 
-                            ct.relationship = rel
-                            ct.event_type = rel.event_type
-                            #flow todo: add order_item
-                            #obsolete
-                            ct.independent_demand = rand
-                            ct.process = process
-                            ct.due_date = process.start_date
-                            ct.created_by = request.user
-                            rt = ct.resource_type
-                            ptrt = rt.main_producing_process_type_relationship()
-                            if ptrt:
-                                ct.context_agent = ptrt.process_type.context_agent
-                            ct.save()
-                            explode_dependent_demands(ct, request.user)
-                if just_save:
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/order-schedule', rand.id))
-                elif keep_going:
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/change-rand', rand.id))
-    return render_to_response("valueaccounting/create_rand.html", {
-        "rand_form": rand_form,
-        "process_form": process_form,
-        "output_formset": output_formset,
-        "input_formset": input_formset,
     }, context_instance=RequestContext(request))
-
-
-#todo: obsolete?
-@login_required
-def change_rand(request, rand_id):
-    #import pdb; pdb.set_trace()
-    rand = get_object_or_404(Order, id=rand_id)
-    rand_form = RandOrderForm(instance=rand,data=request.POST or None)
-    process = None
-    for item in rand.producing_commitments():
-        if item.process:
-            process = item.process
-            break
-    OutputFormSet = modelformset_factory(
-        Commitment,
-        form=ProcessOutputForm,
-        can_delete=True,
-        extra=2,
-        )
-    InputFormSet = modelformset_factory(
-        Commitment,
-        form=ProcessInputForm,
-        can_delete=True,
-        extra=4,
-        )
-    if process:
-        had_process = True
-        process_form = ProcessForm(instance=process, data=request.POST or None)
-        output_formset = OutputFormSet(
-            queryset=process.outgoing_commitments(),
-            data=request.POST or None,
-            prefix='output')
-        input_formset = InputFormSet(
-            queryset=process.incoming_commitments(),
-            data=request.POST or None,
-            prefix='input')
-    else:
-        had_process = False
-        process_form = ProcessForm(data=request.POST or None)
-        output_formset = OutputFormSet(
-            queryset=Commitment.objects.none(),
-            data=request.POST or None,
-            prefix='output')
-        input_formset = InputFormSet(
-            queryset=Commitment.objects.none(),
-            data=request.POST or None,
-            prefix='input')
-
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        keep_going = request.POST.get("keep-going")
-        just_save = request.POST.get("save")
-        if rand_form.is_valid():
-            rand = rand_form.save(commit=False)
-            rand.changed_by = request.user
-            if process_form.is_valid():
-                process_data = process_form.cleaned_data
-                process = process_form.save(commit=False)
-                if had_process:
-                    process.changed_by=request.user
-                else:
-                    process.created_by=request.user
-                process.save()
-                pattern = process.process_pattern
-                rand.due_date = process.end_date
-                rand.save()
-                for form in output_formset.forms:
-                    if form.is_valid():
-                        output_data = form.cleaned_data
-                        qty = output_data["quantity"]
-                        ct_from_id = output_data["id"]
-                        agent_type = None
-                        if rand.provider:
-                            agent_type = rand.provider.agent_type
-                        if qty:
-                            ct = form.save(commit=False)
-                            if ct_from_id:
-                                ct.changed_by = request.user
-                                ct.context_agent = process.context_agent
-                            else:
-                                ct.process = process
-                                ct.due_date = process.end_date
-                                ct.created_by = request.user
-                                rt = output_data["resource_type"]
-                                event_type = pattern.event_type_for_resource_type("out", rt)
-                                ct.event_type = event_type
-                                ct.order = rand
-                                #flow todo: add order_item
-                                #obsolete
-                                ct.independent_demand = rand
-                                ct.context_agent = process.context_agent
-                                ct.from_agent_type=agent_type
-                                ct.from_agent=rand.provider
-                                ct.to_agent=rand.receiver
-                                ct.created_by = request.user
-                            ct.due_date = process.end_date
-                            ct.save()
-                        elif ct_from_id:
-                            ct = form.save()
-                            ct.delete()
-                for form in input_formset.forms:
-                    #import pdb; pdb.set_trace()
-                    if form.is_valid():
-                        explode = False
-                        input_data = form.cleaned_data
-                        qty = input_data["quantity"]
-                        ct_from_id = input_data["id"]
-                        if not qty:
-                            if ct_from_id:
-                                ct = form.save()
-                                ct.delete_dependants()
-                                ct.delete()
-                        else:
-                            ct = form.save(commit=False)
-                            if ct_from_id:
-                                old_ct = Commitment.objects.get(id=ct_from_id.id)
-                                old_rt = old_ct.resource_type
-                                if ct.resource_type != old_rt:
-                                    #import pdb; pdb.set_trace()
-                                    old_ct.delete()
-                                    for ex_ct in old_rt.producing_commitments():
-                                        #flow todo: shd this be order_item?
-                                        #obsolete
-                                        if rand == ex_ct.independent_demand:
-                                            ex_ct.delete_dependants()
-                                    #todo: add stage and state as args
-                                    ptrt = ct.resource_type.main_producing_process_type_relationship()
-                                    if ptrt:
-                                        ct.context_agent = ptrt.process_type.context_agent
-                                    explode = True                                 
-                                elif qty != old_ct.quantity:
-                                    #import pdb; pdb.set_trace()
-                                    delta = qty - old_ct.quantity
-                                    for pc in ct.resource_type.producing_commitments():
-                                        #flow todo: shd this be order_item?
-                                        #obsolete
-                                        if pc.independent_demand == demand:
-                                            propagate_qty_change(pc, delta, [])                                
-                                ct.changed_by = request.user
-                                rt = input_data["resource_type"]
-                                event_type = pattern.event_type_for_resource_type("in", rt)
-                                ct.event_type = rel.event_type
-                            else:
-                                explode = True
-                                rt = input_data["resource_type"]
-                                event_type = pattern.event_type_for_resource_type("in", rt)
-                                ct.event_type = event_type
-                                #flow todo: add order_item
-                                #obsolete
-                                ct.independent_demand = rand
-                                ct.process = process
-                                ct.due_date = process.start_date
-                                ct.created_by = request.user
-                                #todo: add stage and state as args
-                                ptrt = ct.resource_type.main_producing_process_type_relationship()
-                                if ptrt:
-                                    ct.context_agent = ptrt.process_type.context_agent
-                            ct.save()
-                            if explode:
-                                explode_dependent_demands(ct, request.user)
-                if just_save:
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/order-schedule', rand.id))
-                elif keep_going:
-                    return HttpResponseRedirect('/%s/%s/'
-                        % ('accounting/change-rand', rand.id))
-    return render_to_response("valueaccounting/change_rand.html", {
-        "rand": rand,
-        "rand_form": rand_form,
-        "process_form": process_form,
-        "output_formset": output_formset,
-        "input_formset": input_formset,
-    }, context_instance=RequestContext(request))
-
 
 class ResourceType_EventType(object):
     def __init__(self, resource_type, event_type):
@@ -8091,7 +7629,7 @@ def plan_from_recipe(request):
                 for rt in candidate_resource_types:
                     if rt.recipe_needs_starting_resource():
                         rt.onhand_resources = []
-                        onhand = rt.onhand()
+                        onhand = rt.onhand_for_resource_driven_recipe()
                         if onhand:
                             resource_types.append(rt)
                             for oh in onhand:
@@ -8141,8 +7679,6 @@ def plan_from_recipe(request):
                 else:
                     forward_schedule = False
 
-            #pt = produced_rt.main_producing_process_type()
-        
             #import pdb; pdb.set_trace() 
             if not forward_schedule:
                 demand = Order(
@@ -8158,14 +7694,16 @@ def plan_from_recipe(request):
                     if resource_driven:
                         demand = produced_rt.generate_staged_work_order_from_resource(resource, order_name, start_date, request.user)
                     else:
-                        if len(rts_to_produce) > 1:
+                        if len(rts_to_produce) == 1:
+                            demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)
+                        else:
                             if item_number == 1:
                                 item_number += 1
                                 demand = produced_rt.generate_staged_work_order(order_name, start_date, request.user)
                             else:
                                 demand = produced_rt.generate_staged_order_item(demand, start_date, request.user)
                 else:
-                    ptrt = produced_rt.main_producing_process_type_relationship()
+                    ptrt, inheritance = produced_rt.main_producing_process_type_relationship()
                     et = ptrt.event_type
                     if et:
                         commitment = demand.add_commitment(
@@ -8182,7 +7720,7 @@ def plan_from_recipe(request):
                         commitment.save()
 
                         #import pdb; pdb.set_trace()
-                        process = commitment.generate_producing_process(request.user, [], explode=True)
+                        process = commitment.generate_producing_process(request.user, [], inheritance=inheritance, explode=True)
                     
             if notification:
                 #import pdb; pdb.set_trace()
@@ -8316,7 +7854,9 @@ def plan_from_rt_recipe(request, resource_type_id):
                     name=order_name,
                     created_by=request.user)
                 demand.save()
-                ptrt = resource_type.main_producing_process_type_relationship()
+
+                ptrt, inheritance = resource_type.main_producing_process_type_relationship()
+
                 et = ptrt.event_type
                 if et:
                     commitment = demand.add_commitment(

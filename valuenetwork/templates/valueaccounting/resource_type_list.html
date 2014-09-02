@@ -66,7 +66,7 @@
                     <thead>
                         <tr class="headings">
                             <th>{% trans "Resource Type" %}</th>
-                            <th>{% trans "Default Quantity" %}</th>
+                            {% comment %}<th>{% trans "Default Quantity" %}</th>{% endcomment %}
                             <th>{% trans "Selected" %}</th>
                         </tr>
                     </thead>
@@ -75,7 +75,7 @@
                         {{ form.resource_type_id }}
                         <tr>
                             <td>{{ form.resource_type_name }}</td>
-                            <td>{{ form.default_quantity }}</td>
+                            {% comment %}<td>{{ form.default_quantity }}</td>{% endcomment %}
                             <td>{{ form.added }}</td>
                         </tr>
                     {% endfor %}

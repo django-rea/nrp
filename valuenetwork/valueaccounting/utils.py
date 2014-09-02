@@ -51,13 +51,6 @@ def agent_dfs_by_association(node, all_associations, depth): #works only for age
     node.depth = depth
     to_return = [node,]
     for association in all_associations:
-        #this method fails for Garden manager id == 239
-        # why?
-        #if node.id == 33:
-        #    if association.has_associate.id == 239:
-        #        import pdb; pdb.set_trace()
-        #    if association.is_associate.id == 239:
-        #        import pdb; pdb.set_trace()
         if association.has_associate.id == node.id and association.association_type.identifier == "child":
             to_return.extend(agent_dfs_by_association(association.is_associate, all_associations, depth+1))
     return to_return
@@ -69,8 +62,6 @@ def group_dfs_by_has_associate(root, node, all_associations, visited, depth):
     visited.append(node)
     node.depth = depth
     to_return.append(node)
-    #if node.id == root.id:
-    #    import pdb; pdb.set_trace()
     for association in all_associations:
         if association.has_associate.id == node.id:
                 to_return.extend(group_dfs_by_has_associate(root, association.is_associate, all_associations, visited, depth+1))
@@ -82,8 +73,6 @@ def group_dfs_by_is_associate(root, node, all_associations, visited, depth):
     visited.append(node)
     node.depth = depth
     to_return.append(node)
-    #if node.id == root.id:
-    #    import pdb; pdb.set_trace()
     for association in all_associations:
         if association.is_associate.id == node.id:
                 to_return.extend(group_dfs_by_is_associate(root, association.has_associate, all_associations, visited, depth+1))
@@ -373,6 +362,7 @@ def explode(process_type_relationship, nodes, edges, depth, depth_limit):
         for art in rtr.resource_type.producing_agent_relationships():
             nodes.append(art.agent)
             edges.append(Edge(art.agent, rtr.resource_type, art.event_type.label))
+        #todo pr: shd this use own or own_or_parent_recipes?
         for pt in rtr.resource_type.producing_process_type_relationships():
             explode(pt, nodes, edges, depth+1, depth_limit)
 
@@ -382,6 +372,7 @@ def graphify(focus, depth_limit):
     for art in focus.consuming_agent_relationships():
         nodes.append(art.agent)
         edges.append(Edge(focus, art.agent, art.event_type.label))
+    #todo pr: shd this use own or own_or_parent_recipes?
     for ptr in focus.producing_process_type_relationships():
         explode(ptr, nodes, edges, 0, depth_limit)
     return [nodes, edges]

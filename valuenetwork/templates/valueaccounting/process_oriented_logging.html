@@ -167,95 +167,15 @@ li {
                         {% endif %}</b>
                             {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
                     </span>
-                    
-				    {% if add_output_form %}
+
 				    
-                        {% if logger %}
-                          {% if not item.stage %}
-
-                            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change output requirement">
-                            <i class="icon-edit"></i>
-                            </a>
-        
-                            <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                    <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
-                                </div>
-                                <div class="modal-body">
-                                    <form class="commitmentForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
-                                        {% csrf_token %}
-                                        {{ item.change_form|as_bootstrap }}
-                                        <input type="hidden" id="next" name="next" value="process" />
-                                        <div class="modal-footer">
-                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-
-                            <form
-                                style="display: inline;" 
-                                class="delete-commitment-form" 
-                                id="deleteCommitmentForm{{ item.id }}" 
-                                action="{% url delete_process_commitment commitment_id=item.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                                <input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete output requirement" >X</button>
-                            </form>
-                            
-                            <a href="#resourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Create a new Resource" >
-                                {% trans "Log new Resource" %}
-                            </a>
-                            {% if item.addable_resources %}
-                                <a href="#addToResourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Add to an existing Resource" >
-                                    {% trans "Add to Resource" %}
-                                </a>
-                            {% endif %}
-            
-                            <div class="modal hide fade resourceModal" id="resourceModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                    <h3 id="resource-label">{% trans "Log new" %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
-                                </div>
-                                <div class="modal-body">
-                                    <form class="resource-form validateMe" id="resourceForm{{ item.id }}" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >
-                                        {% csrf_token %}
-                                        {{ item.resource_create_form|as_bootstrap }}
-                                    <div class="modal-footer">
-                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                        <button class="btn btn-primary">{% trans "Save" %}</button>
-                                    </div>
-                                    </form>
-                                </div>
-                            </div>
-                            
-                            <div class="modal hide fade addToResourceModal" id="addToResourceModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="add-to-resource-label" aria-hidden="true">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                    <h3 id="add-to-resource-label">{% trans "Add to " %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
-                                </div>
-                                <div class="modal-body">
-                                    <form class="add-to-resource-form validateMe" id="addToResourceForm{{ item.id }}" enctype="multipart/form-data" action="{% url add_to_resource_for_commitment commitment_id=item.id %}" method="POST" >
-                                        {% csrf_token %}
-                                        {{ item.select_resource_form|as_bootstrap }}
-                                    <div class="modal-footer">
-                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                        <button class="btn btn-primary">{% trans "Save" %}</button>
-                                    </div>
-                                    </form>
-                                </div>
-                            </div>
-                          {% endif %}
-                        {% endif %}
-			        {% elif changeable_requirement %}
-                        <div>
-                            {{ to_be_changed_requirement.resource_type.name }}@{{ to_be_changed_requirement.stage }} change to: @{{ changeable_requirement.stage }}
-                            {% if to_be_changed_requirement.resource_ready_to_be_changed %}
-                                {% if logger %}
-                                    {% with to_be_changed_requirement.resource_ready_to_be_changed as resource %}
+				    
+                    {% if logger %}
+                        {% if changeable_requirement %}
+                            <div>
+                                {{ to_be_changed_requirement.resource_type.name }}@{{ to_be_changed_requirement.stage }} change to: @{{ changeable_requirement.stage }}
+                                {% if to_be_changed_requirement.resources_ready_to_be_changed %}
+                                    {% for resource in to_be_changed_requirement.resources_ready_to_be_changed %}
                                         <div>
                                             {% trans "Resource" %}: <a href="{% url resource resource_id=resource.id  %}">{{ resource }}</a>
                                             <form
@@ -271,10 +191,91 @@ li {
                                                 </button>
                                             </form>
                                         </div>
-                                    {% endwith %}
+                                    {% endfor %}
                                 {% endif %}
-                            {% endif %}
-                        </div>
+                            </div>
+                        {% else %}
+                            {% if add_output_form %}
+                                {% if not item.stage %}
+
+                                    <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change output requirement">
+                                    <i class="icon-edit"></i>
+                                    </a>
+                
+                                    <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                            <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form class="commitmentForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+                                                {% csrf_token %}
+                                                {{ item.change_form|as_bootstrap }}
+                                                <input type="hidden" id="next" name="next" value="process" />
+                                                <div class="modal-footer">
+                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <form
+                                        style="display: inline;" 
+                                        class="delete-commitment-form" 
+                                        id="deleteCommitmentForm{{ item.id }}" 
+                                        action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" id="next" name="next" value="process" />
+                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete output requirement" >X</button>
+                                    </form>
+                                {% endif %}
+                            
+                                <a href="#resourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Create a new Resource" >
+                                    {% trans "Log new Resource" %}
+                                </a>
+                                {% if item.addable_resources %}
+                                    <a href="#addToResourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Add to an existing Resource" >
+                                        {% trans "Add to Resource" %}
+                                    </a>
+                                {% endif %}
+                
+                                <div class="modal hide fade resourceModal" id="resourceModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="resource-label">{% trans "Log new" %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="resource-form validateMe" id="resourceForm{{ item.id }}" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ item.resource_create_form|as_bootstrap }}
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <button class="btn btn-primary">{% trans "Save" %}</button>
+                                        </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <div class="modal hide fade addToResourceModal" id="addToResourceModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="add-to-resource-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="add-to-resource-label">{% trans "Add to " %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="add-to-resource-form validateMe" id="addToResourceForm{{ item.id }}" enctype="multipart/form-data" action="{% url add_to_resource_for_commitment commitment_id=item.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ item.select_resource_form|as_bootstrap }}
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <button class="btn btn-primary">{% trans "Save" %}</button>
+                                        </div>
+                                        </form>
+                                    </div>
+                                </div>
+                          {% endif %}
+                        {% endif %}
 			        {% endif %}
 			    </div>
 			    

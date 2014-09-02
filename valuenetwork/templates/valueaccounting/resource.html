@@ -8,6 +8,8 @@
 
 {% block extra_head %}
 
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
 <style>
 
 .labnote {
@@ -49,6 +51,7 @@
 			{% trans "Resource" %}: {{ resource }} &nbsp;
 			{% if agent %}
 		        <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
+		        <a href="#resourceOrderForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Plan Work Order" %}</a>&nbsp;&nbsp;
 	        {% endif %}
             <a href="{% url incoming_value_flows resource_id=resource.id %}">{% trans "Incoming Value Flow" %}</a>
 		</legend>
@@ -86,9 +89,26 @@
 					      <button class="btn btn-primary">{% trans "Save changes" %}</button>
 				        </div>
 				    </form>
-		      </div>
+                </div>
+            </div>
+		      
+		      <div class="modal hide fade" id="resourceOrderForm" tabindex="-1" role="dialog" aria-labelledby="resource-order-label" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="resource-order-label">{% trans "Create Work Order for" %} {{ resource }}</h3>
+                </div>
+                <div class="modal-body">
+                    <form enctype="multipart/form-data" action="{% url plan_work_order_for_resource resource_id=resource.id %}" method="POST" >
+                        {% csrf_token %}
+                        {{ order_form|as_bootstrap }}
+                        <div class="modal-footer">
+                          <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                          <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                        </div>
+                    </form>
+              </div>
+            </div>
 
-		    </div>
 	    {% endif %}
 
 		<div class="row-fluid">
@@ -304,6 +324,8 @@
     $(document).ready(function(){
 
 		$('#inventory').addClass('active');
+		
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
 		$( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 

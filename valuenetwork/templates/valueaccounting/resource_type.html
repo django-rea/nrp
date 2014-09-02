@@ -29,6 +29,10 @@ container li {
 /*ul {
     list-style-type: none;
 }*/
+.parent {
+    font-weight: bold;
+    font-size: 1.1em;
+}
 .facet {
     font-weight: bold;
     font-size: 1.1em;
@@ -73,7 +77,7 @@ container li {
 
 		    {% endif %}
 	   
-            {% if resource_type.producing_process_type_relationships %}
+            {% if resource_type.own_recipes %}
                 {% if resource_type.recipe_is_staged %}
                     <a href="{% url view_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
                 {% else %}
@@ -87,18 +91,18 @@ container li {
                     {% else %}
                         <a href="{% url edit_extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
 			        {% endif %}
+			        
                     {% if resource_type.producing_process_type_relationships %}
                         {% trans "Change Recipe" %}
                     {% else %}
                         {% trans "Create Manufacturing Recipe" %}
                     {% endif %}
 			        </a>
+			        
 			        {% if not resource_type.producing_process_type_relationships %}
-                      {% if not resource_type.substitutable %}
                         <a href="{% url edit_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
                         {% trans "Create Workflow Recipe" %}
                         </a>
-                      {% endif %}
                     {% endif %}
 		        {% endif %}
 		        <a href="{% url plan_from_rt resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan" %}</a>
@@ -136,10 +140,41 @@ container li {
                 </div>
             </div>
         {% endif %}
-
+        
         <div class="facets" >{{ resource_type.facet_list }}</div>
 
         <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
+
+        {% with resource_type.parent as parent %}
+            {% if parent %}
+                <div class="parent" >
+                    {% trans "Parent" %}: {{ parent.name }} 
+                    {% if parent.own_recipes %}
+                        &nbsp;&nbsp;
+                        {% if parent.recipe_is_staged %}
+                            <a href="{% url view_stream_recipe resource_type_id=parent.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+                        {% else %}
+                            <a href="{% url extended_bill resource_type_id=parent.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        
+        {% if resource_type.direct_children %}
+            <div class="children" >
+                <h3>{% trans "Children" %}: </h3>
+                <ul>
+                    {% for child in resource_type.direct_children %}
+                        <li>
+                            <span class="name"><a href="{% url resource_type resource_type_id=child.id %}">{{ child }}</a></span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        
 
 	    {% if resource_type.photo %}
             <img src="{% thumbnail resource_type.photo photo_size %}" />
@@ -148,7 +183,7 @@ container li {
         {% endif %}
 
 	    {% if resource_type.wanting_process_types %}
-	        <h3>{% trans "Used in these recipes" %}:</h4>
+	        <h3>{% trans "Used in these recipes" %}:</h3>
 	        <ul>
 	            {% for pt in resource_type.wanting_process_types %}
 	                {% with pt.main_produced_resource_type as output %}

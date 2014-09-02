@@ -35,6 +35,7 @@ class ExplosionTest(TestCase):
 
         self.order.add_commitment(
             resource_type=self.parent,
+            context_agent=None,
             event_type=recipe.production_event_type,
             quantity=Decimal("4"),
             description="Test",

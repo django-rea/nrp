@@ -109,6 +109,7 @@ container li {
                     	    <img src="{{ resource_type.photo_url }}" width="128" height="96" />
 		                {% endif %}
 
+		                {% comment %}#todo pr: shd this use own or own_or_parent_recipes?{% endcomment %}
 		                {% if resource_type.producing_process_type_relationships %}
 		                  {% if resource_type.recipe_is_staged %}
                             <a href="{% url view_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
@@ -117,6 +118,12 @@ container li {
 		                  {% endif %}
                         {% endif %}
 
+                        {% if resource_type.parent %}
+                            <div class="parent" >
+                                {% trans "Parent" %}: 
+                                {{ resource_type.parent }}
+                            </div>
+                        {% endif %}
 		                <div class="facets" >{{ resource_type.facet_list }}</div>
 
 		                <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>

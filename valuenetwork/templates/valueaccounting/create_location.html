@@ -114,10 +114,12 @@
 
 		$( "#locationForm" ).validate({
 			rules: {
-			    'resource-identifier': {
+			    'address': {
                     required: true
 				},
-
+				'name': {
+                    required: true
+                },
 			},
 			highlight: function(label) {
 				$(label).closest('.control-group').addClass('error');

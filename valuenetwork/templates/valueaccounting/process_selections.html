@@ -91,11 +91,6 @@
 		                        <p>
 		                            <input type="checkbox" class="{{ slot }}" id="{{ slot }}-{{ item.id }}" name="{{ slot }}~{{ item.name }}" value="{{ item.id }}" />
 		                            {{ item }} ( {{ item.facet_values_list }} )
-{% comment %}
-                                    {% if item.producing_process_type_relationships and rand %}
-                                        <br />&nbsp;&nbsp;&nbsp;&nbsp;(will use recipe to create all needed processes and components)
-                                    {% endif %}
-{% endcomment %}
 	                            </p>
                             </div>
                         {% endfor %}

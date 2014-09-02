@@ -228,9 +228,11 @@ class OrderTest(WebTest):
         order.save()
         unit = self.wf_recipe.unit
         et = self.wf_recipe.change_event_type
-        stage = self.changeable.staged_process_type_sequence()[-1]
+        stages, inheritance = self.changeable.staged_process_type_sequence()
+        stage = stages[-1]
         commitment1 = order.add_commitment(
             resource_type=self.changeable,
+            context_agent=None,
             quantity=Decimal("2000"),
             event_type=et,
             unit=unit,
@@ -241,6 +243,7 @@ class OrderTest(WebTest):
         due = due_date + datetime.timedelta(days=10)
         commitment2 = order.add_commitment(
             resource_type=self.changeable,
+            context_agent=None,
             quantity=Decimal("4000"),
             event_type=et,
             unit=unit,
@@ -275,6 +278,64 @@ class OrderTest(WebTest):
             user=self.user,
         )
         #import pdb; pdb.set_trace()
-        #todo: needs assertions
+        self.assertEqual(order.order_items().count(), 1)
+        
+    def test_create_order_item_using_inherited_recipe(self):
+        due_date = datetime.date.today()
+        shipment_et = EventType.create('Shipment', 'ships', 'shipped by', 'shipment', 'exchange', '-', 'quantity')      
+        order = Order(
+            order_type="rand",
+            name="test",
+            due_date=due_date,
+        )
+        order.save()
+        heir = EconomicResourceType(
+            name="heir",
+            parent=self.parent,
+        )
+        heir.save()
+        oi = order.create_order_item(
+            resource_type=heir,
+            quantity=Decimal("1.0"),
+            user=self.user,
+        )
+        #import pdb; pdb.set_trace()
+        self.assertEqual(order.order_items().count(), 1)
+        rt = order.order_items()[0].resource_type
+        self.assertEqual(rt, heir)
+        self.assertEqual(len(order.all_processes()), 2)
+        
+    def test_create_order_item_using_inherited_workflow_recipe(self):
+        due_date = datetime.date.today()
+        shipment_et = EventType.create('Shipment', 'ships', 'shipped by', 'shipment', 'exchange', '-', 'quantity')      
+        order = Order(
+            order_type="rand",
+            name="test",
+            due_date=due_date,
+        )
+        order.save()
+        heir = EconomicResourceType(
+            name="heir",
+            parent=self.changeable,
+        )
+        heir.save()
+        oi = order.create_order_item(
+            resource_type=heir,
+            quantity=Decimal("1.0"),
+            user=self.user,
+        )
+        #import pdb; pdb.set_trace()
+        self.assertEqual(order.order_items().count(), 1)
+        rt = order.order_items()[0].resource_type
+        self.assertEqual(rt, heir)
+        self.assertEqual(len(order.all_processes()), 2)
+        #import pdb; pdb.set_trace()
+        p = order.all_processes()[1]
+        rt = p.incoming_commitments()[0].resource_type
+        #self.assertEqual(rt, heir)
+        #AssertionError: <EconomicResourceType: changeable> != <EconomicResourceType: heir>
+        p = order.all_processes()[0]
+        rt = p.output_resource_types()[0]
+        self.assertEqual(rt, heir)
             
             

@@ -5663,88 +5663,6 @@ class Compensation(models.Model):
         #if self.initiating_event.unit_of_value.id != self.compensating_event.unit_of_value.id:
         #    raise ValidationError('Initiating event and compensating event must have the same units of value.')
 
-        
-class Claim(models.Model):
-    claim_type = models.ForeignKey(EventType, 
-        related_name="claims", verbose_name=_('claim type'))
-    claim_date = models.DateField(_('claim date'))
-    has_agent = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        related_name="has_claims", verbose_name=_('has'))
-    against_agent = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        related_name="claims against", verbose_name=_('against'))
-    context_agent = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
-        related_name="claims", verbose_name=_('context agent'),
-        on_delete=models.SET_NULL)        
-    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
-        default=Decimal("0.0"))
-    unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
-        verbose_name=_('unit of value'), related_name="claim_value_units")
-    claim_creation_equation = models.TextField(_('creation equation'), null=True, blank=True)
-    
-    slug = models.SlugField(_("Page name"), editable=False)
-
-    class Meta:
-        ordering = ('claim_date',)
-
-    def __unicode__(self):
-        if self.unit_of_value:
-            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
-        else:
-            value_string = str(self.value)
-        has_agt = 'Unassigned'
-        if self.has_agent:
-            has_agt = self.has_agent.name
-        against_agt = 'Unassigned'
-        if self.against_agent():
-            against_agt = self.against_agent.name
-        return ' '.join([
-            'Claim',
-            has_agt,
-            'has against',
-            against_agt,
-            'for',
-            value_string,
-            'from',
-            self.event_date.strftime('%Y-%m-%d'),
-        ])
-
-EVENT_EFFECT_CHOICES = (
-    ('+', _('increase')),
-    ('-', _('decrease')),
- )
- 
-class ClaimEvent(models.Model):
-    event = models.ForeignKey(EconomicEvent, 
-        related_name="claim_events", verbose_name=_('claim event'))
-    claim = models.ForeignKey(Claim, 
-        related_name="claim_events", verbose_name=_('claims'))
-    claim_event_date = models.DateField(_('claim event date'), default=datetime.date.today)
-    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2)
-    unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
-        verbose_name=_('unit of value'), related_name="claim_event_value_units")
-    event_effect = models.CharField(_('event effect'), 
-        max_length=12, choices=EVENT_EFFECT_CHOICES)       
-    
-    class Meta:
-        ordering = ('claim_event_date',)
-
-    def __unicode__(self):
-        if self.unit_of_value:
-            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
-        else:
-            value_string = str(self.value)
-        return ' '.join([
-            'event:',
-            self.event.__unicode__(),
-            'affecting claim:',
-            self.claim.__unicode__(),
-            'value:',
-            value_string,
-        ])
 
 class ValueEquation(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=True)
@@ -5947,6 +5865,89 @@ class ValueEquationBucketRule(models.Model):
                 claim_events.append(claim_event)
         #elif:
         return claim_events      
+        
+class Claim(models.Model):
+    value_equation_bucket_rule = models.ForeignKey(ValueEquationBucketRule,
+        blank=True, null=True, 
+        related_name="claims", verbose_name=_('value equation bucket rule'))
+    claim_date = models.DateField(_('claim date'))
+    has_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="has_claims", verbose_name=_('has'))
+    against_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="claims against", verbose_name=_('against'))
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
+        related_name="claims", verbose_name=_('context agent'),
+        on_delete=models.SET_NULL)        
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.0"))
+    unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit of value'), related_name="claim_value_units")
+    claim_creation_equation = models.TextField(_('creation equation'), null=True, blank=True)
+    
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    class Meta:
+        ordering = ('claim_date',)
+
+    def __unicode__(self):
+        if self.unit_of_value:
+            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(self.value)
+        has_agt = 'Unassigned'
+        if self.has_agent:
+            has_agt = self.has_agent.name
+        against_agt = 'Unassigned'
+        if self.against_agent():
+            against_agt = self.against_agent.name
+        return ' '.join([
+            'Claim',
+            has_agt,
+            'has against',
+            against_agt,
+            'for',
+            value_string,
+            'from',
+            self.event_date.strftime('%Y-%m-%d'),
+        ])
+
+EVENT_EFFECT_CHOICES = (
+    ('+', _('increase')),
+    ('-', _('decrease')),
+ )
+ 
+class ClaimEvent(models.Model):
+    event = models.ForeignKey(EconomicEvent, 
+        related_name="claim_events", verbose_name=_('claim event'))
+    claim = models.ForeignKey(Claim, 
+        related_name="claim_events", verbose_name=_('claims'))
+    claim_event_date = models.DateField(_('claim event date'), default=datetime.date.today)
+    value = models.DecimalField(_('value'), max_digits=8, decimal_places=2)
+    unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit of value'), related_name="claim_event_value_units")
+    event_effect = models.CharField(_('event effect'), 
+        max_length=12, choices=EVENT_EFFECT_CHOICES)       
+    
+    class Meta:
+        ordering = ('claim_event_date',)
+
+    def __unicode__(self):
+        if self.unit_of_value:
+            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(self.value)
+        return ' '.join([
+            'event:',
+            self.event.__unicode__(),
+            'affecting claim:',
+            self.claim.__unicode__(),
+            'value:',
+            value_string,
+        ])
        
             
 

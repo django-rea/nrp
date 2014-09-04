@@ -14,6 +14,7 @@ admin.site.register(AgentResourceRole)
 admin.site.register(Location)
 admin.site.register(UseCaseEventType)
 admin.site.register(HomePageLayout)
+admin.site.register(ClaimEvent)
 
 
 class HelpAdmin(admin.ModelAdmin):
@@ -58,7 +59,7 @@ class ClaimAdmin(admin.ModelAdmin):
     inlines = [ ClaimEventInline, ]
 
 admin.site.register(Claim, ClaimAdmin)
-
+    
 class EconomicEventInline(admin.TabularInline):
     model = EconomicEvent
     fk_name = 'exchange'
@@ -226,7 +227,11 @@ class CommitmentAdmin(admin.ModelAdmin):
     
 admin.site.register(Commitment, CommitmentAdmin)
 
-
+class ClaimEvent2Inline(admin.TabularInline):
+    model = ClaimEvent
+    fk_name = 'event'
+    fields = ('claim', 'claim_event_date', 'value', 'unit_of_value', 'event_effect')
+    
 class EconomicEventAdmin(admin.ModelAdmin):
     date_hierarchy = 'event_date'
     list_display = ('event_type', 'event_date', 'from_agent', 'to_agent', 'context_agent', 'process', 'exchange',
@@ -234,6 +239,7 @@ class EconomicEventAdmin(admin.ModelAdmin):
     list_filter = ['event_type', 'context_agent', 'resource_type', 'from_agent', ]
     search_fields = ['event_type__name', 'from_agent__name', 'to_agent__name', 'resource_type__name']
     list_editable = ['event_date', 'context_agent']
+    inlines = [ ClaimEvent2Inline, ]
     
 admin.site.register(EconomicEvent, EconomicEventAdmin)
 

@@ -5736,10 +5736,10 @@ class ValueEquation(models.Model):
         for event in distribution_events:
             event.exchange = exchange
             event.save()
-            #claim_events = event.claim_events
-            #for claim_event in claim_events:
-            #    claim_event.claim.save()
-            #    claim_event.save()
+            for claim_event in event.new_claim_events:
+                claim_event.claim.save()
+                claim_event.event = event
+                claim_event.save()
         return exchange
         
     def run_value_equation(self, context_agent, amount_to_distribute, money_resource):
@@ -5749,14 +5749,18 @@ class ValueEquation(models.Model):
         for bucket in self.buckets.all():
             bucket_amount =  bucket.percentage * amount_to_distribute / 100
             amount_to_distribute = amount_to_distribute - bucket_amount
-            if bucket.distribution_agent:
-                sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
-                detail_sums.append(sum_a)
-            else:
-                ces = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=context_agent)
-                for ce in ces:
-                    detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
-                claim_events.extend(ces)
+            if amount_to_distribute < 0:
+                bucket_amount = bucket_amount - amount_to_distribute
+                amount_to_distribute = 0
+            if bucket_amount > 0:
+                if bucket.distribution_agent:
+                    sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
+                    detail_sums.append(sum_a)
+                else:
+                    ces = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=context_agent)
+                    for ce in ces:
+                        detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
+                    claim_events.extend(ces)
         agent_amounts = {}
         for dtl in detail_sums:
             detail = dtl.split("~")
@@ -5781,11 +5785,11 @@ class ValueEquation(models.Model):
                 unit_of_quantity = money_resource.unit_of_quantity,
                 is_contribution = False,
             )
-            distribution.save()
-            agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == agent_id]
+            #distribution.save()
+            agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
             for ce in agent_claim_events:
                 ce.event = distribution
-                ce.save()
+                #ce.save()
             distribution.new_claim_events = agent_claim_events
             distribution_events.append(distribution)
         #import pdb; pdb.set_trace()
@@ -5916,14 +5920,14 @@ class ValueEquationBucketRule(models.Model):
                 distr_amt = claim.value * portion_of_amount
                 if self.claim_rule_type == "debt-like":
                     claim.value = claim.value - distr_amt
-                    claim.save()
+                    #claim.save()
                 claim_event = ClaimEvent(
                     claim = claim,
                     value = distr_amt,
                     unit_of_value = claim.unit_of_value,
                     event_effect = "-",
                 )
-                claim_event.save()
+                #claim_event.save()
                 claim_events.append(claim_event)
         #elif:
         return claim_events      

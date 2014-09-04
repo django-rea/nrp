@@ -8124,7 +8124,7 @@ def sales_and_distributions(request, agent_id=None):
     #import pdb; pdb.set_trace()
     agent = None
     if agent_id:
-        agent = EconomicAgent.objects.get(pk=agent_id)
+        agent = get_object_or_404(EconomicAgent, id=agent_id)
     end = datetime.date.today()
     start = datetime.date(end.year, 1, 1)
     init = {"start_date": start, "end_date": end}

@@ -5302,26 +5302,6 @@ class SelectedOption(models.Model):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
 
 
-def update_summary(agent, context_agent, resource_type, event_type):
-    events = EconomicEvent.objects.filter(
-        from_agent=agent,
-        context_agent=context_agent,
-        resource_type=resource_type,
-        event_type=event_type,
-        is_contribution=True)
-    total = sum(event.quantity for event in events)
-    summary, created = CachedEventSummary.objects.get_or_create(
-        agent=agent,
-        context_agent=context_agent,
-        resource_type=resource_type,
-        event_type=event_type)
-    summary.quantity = total
-    if summary.quantity:
-        summary.save() 
-    else:
-        summary.delete()
-
-
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="events", verbose_name=_('event type'))
@@ -5401,43 +5381,14 @@ class EconomicEvent(models.Model):
         
     def save(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
-        #VE todo: all of the update_summary stuff can go away
         from_agt = 'Unassigned'
         agent = self.from_agent
-        #project = self.project
-        context_agent = self.context_agent
         resource_type = self.resource_type
         event_type = self.event_type
         delta = self.quantity
-        agent_change = False
-        project_change = False
-        resource_type_change = False
-        context_agent_change = False
-        event_type_change = False
         if self.pk:
-            prev_agent = self.from_agent
-            #prev_project = self.project
-            prev_context_agent = self.context_agent
-            prev_resource_type = self.resource_type
-            prev_event_type = self.event_type
-            prev = EconomicEvent.objects.get(pk=self.pk)
             if prev.quantity != self.quantity:
                 delta = self.quantity - prev.quantity
-            if prev.from_agent != self.from_agent:
-                agent_change = True
-                prev_agent = prev.from_agent
-            #if prev.project != self.project:
-            #    project_change = True
-            #    prev_project = prev.project 
-            if prev.context_agent != self.context_agent:
-                context_agent_change = True
-                prev_context_agent = prev.context_agent 
-            if prev.resource_type != self.resource_type:
-                resource_type_change = True
-                prev_resource_type = prev.resource_type
-            if prev.event_type != self.event_type:
-                event_type_change = True
-                prev_event_type = prev.event_type
         if agent:
             from_agt = agent.name
             if delta:
@@ -5447,13 +5398,13 @@ class EconomicEvent(models.Model):
                         art, created = AgentResourceType.objects.get_or_create(
                             agent=agent,
                             resource_type=resource_type,
-                            event_type=self.event_type)
+                            event_type=event_type)
                     except:
                         #todo: this shd not happen, but it does...
                         arts = AgentResourceType.objects.filter(
                             agent=agent,
                             resource_type=resource_type,
-                            event_type=self.event_type)
+                            event_type=event_type)
                         art = arts[0]
                     art.score += delta
                     art.save()
@@ -5465,32 +5416,8 @@ class EconomicEvent(models.Model):
         ])
         unique_slugify(self, slug)
         super(EconomicEvent, self).save(*args, **kwargs)
-        update_summary(agent, context_agent, resource_type, event_type)
-        if agent_change or resource_type_change or context_agent_change or event_type_change:
-            update_summary(prev_agent, prev_context_agent, prev_resource_type, prev_event_type)
 
     def delete(self, *args, **kwargs):
-        if self.event_type.relationship == "work":
-            if self.is_contribution:
-                agent = self.from_agent
-                #project = self.project
-                context_agent = self.context_agent
-                resource_type = self.resource_type
-                event_type = self.event_type
-                if agent and context_agent and resource_type:
-                    try:
-                        summary = CachedEventSummary.objects.get(
-                            agent=agent,
-                            context_agent=context_agent,
-                            resource_type=resource_type,
-                            event_type=event_type)
-                        summary.quantity -= self.quantity
-                        if summary.quantity:
-                            summary.save() 
-                        else:
-                            summary.delete()
-                    except CachedEventSummary.DoesNotExist:
-                        pass
         super(EconomicEvent, self).delete(*args, **kwargs)
         
     def outstanding_claims(self):
@@ -6048,14 +5975,12 @@ class EventSummary(object):
         return self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)
 
 
-
+#todo: this model is obsolete and can be deleted
+#as soon as we also remove the value equation demo page, view, etc.
 class CachedEventSummary(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         related_name="cached_events", verbose_name=_('agent'))
-    #project = models.ForeignKey(Project,
-    #    blank=True, null=True,
-    #    verbose_name=_('project'), related_name='cached_events')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         verbose_name=_('context agent'), related_name='context_cached_events')
@@ -6080,9 +6005,6 @@ class CachedEventSummary(models.Model):
         agent_name = "Unknown"
         if self.agent:
             agent_name = self.agent.name
-        #project_name = "Unknown"
-        #if self.project:
-        #    project_name = self.project.name
         context_agent_name = "Unknown"
         if self.context_agent:
             context_agent_name = self.context_agent.name

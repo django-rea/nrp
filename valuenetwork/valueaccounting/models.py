@@ -4291,7 +4291,7 @@ class Exchange(models.Model):
         related_name="exchanges_as_customer", verbose_name=_('customer'))
     order = models.ForeignKey(Order,
         blank=True, null=True,
-        related_name="cash_receipts", verbose_name=_('order'))
+        related_name="exchanges", verbose_name=_('order'))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='exchanges_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
@@ -5724,12 +5724,13 @@ class ValueEquation(models.Model):
         return self.name
         
     def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         context_agent = exchange.context_agent
         distribution_events = self.run_value_equation(
             context_agent=context_agent, 
-            amount_to_distribute=money_to_distribute,
+            amount_to_distribute=amount_to_distribute,
             money_resource=money_resource)
+        import pdb; pdb.set_trace()
         for event in distribution_events:
             event.exchange = exchange
             event.save()
@@ -5743,12 +5744,12 @@ class ValueEquation(models.Model):
         import pdb; pdb.set_trace()
         detail_sums = []
         claim_events = []
-        for bucket in self.buckets:
+        for bucket in self.buckets.all():
             bucket_amount =  bucket.percentage * amount_to_distribute / 100
             amount_to_distribute = amount_to_distribute - bucket_amount
             if bucket.distribution_agent:
-                sum = str(agent.id) + "~" + str(bucket_amount)
-                detail_sums.append(sum)
+                sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
+                detail_sums.append(sum_a)
             else:
                 ces = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=context_agent)
                 for ce in ces:
@@ -5762,7 +5763,8 @@ class ValueEquation(models.Model):
                 agent_amounts[detail[0]] = amt + float(detail[1])
             else:
                 agent_amounts[detail[0]] = float(detail[1])
-        et = EventType.objects.get(name='distribution')
+        import pdb; pdb.set_trace()
+        et = EventType.objects.get(name='Distribution')
         distribution_events = []
         for agent_id in agent_amounts:   
             distribution = EconomicEvent(
@@ -5777,10 +5779,12 @@ class ValueEquation(models.Model):
                 unit_of_quantity = money_resource.unit_of_quantity,
                 is_contribution = False,
             )
-            distribution_events.append(distribution)
             agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == agent_id]
             for ce in agent_claim_events:
                 ce.event = distribution
+            distribution.new_claim_events = agent_claim_events
+            distribution_events.append(distribution)
+        import pdb; pdb.set_trace()
         return distribution_events
         
 class DistributionValueEquation(models.Model):
@@ -5835,22 +5839,24 @@ class ValueEquationBucket(models.Model):
         ])
         
     def run_bucket_value_equation(self, amount_to_distribute, context_agent):
-        rules = self.bucket_rules
+        import pdb; pdb.set_trace()
+        rules = self.bucket_rules.all()
         claims = []
-        for vebr in rules:
-            vebr_claims = vebr.gather_claims(context_agent=context_agent)
-            claims.extend(vebr_claims)
-            vebr.claims = vebr_claims
-        total_amount = 0
-        for claim in claims:
-            total_amount = total_amount + claim.value
-        portion_of_amount = total_amount / amount_to_distribute
-        if portion_of_amount > 1:
-            portion_of_amount = 1
         claim_events = []    
         for vebr in rules:
-            ces = vebr.create_distribution_claim_events(claims=vebr.claims, portion_of_amount=portion_of_amount)
-            claim_events.extend(ces)
+            vebr_claims = list(vebr.gather_claims(context_agent=context_agent))
+            claims.extend(vebr_claims)
+            vebr.claims = vebr_claims
+        if claims:
+            total_amount = 0
+            for claim in claims:
+                total_amount = total_amount + claim.value
+            portion_of_amount = amount_to_distribute / total_amount
+            if portion_of_amount > 1:
+                portion_of_amount = 1
+            for vebr in rules:
+                ces = vebr.create_distribution_claim_events(claims=vebr.claims.all(), portion_of_amount=portion_of_amount)
+                claim_events.extend(ces)
         return claim_events
         
 
@@ -5891,21 +5897,29 @@ class ValueEquationBucketRule(models.Model):
             self.event_type.name,
         ])
 
-    def gather_claims(self):
+    def gather_claims(self, context_agent):
         #todo: need to sub in claims already decremented???
-        return Claim.objects.filter(event_type=self.event_type) #todo: temp
+        return Claim.objects.filter(value_equation_bucket_rule=self).filter(context_agent=context_agent) #todo: temp
         
     def create_distribution_claim_events(self, portion_of_amount, claims=None):
         import pdb; pdb.set_trace()
         claim_events = []
         if claims == None:
-            claims = self.gather_claims()
+            claims = list(self.gather_claims())
+        placeholder_distribution =  EconomicEvent(
+            event_type = EventType.objects.get(name='Distribution'),
+            event_date = datetime.date.today,
+            resource_type = EconomicResourceType.objects.get(id=1),
+            quantity = 1,
+            unit_of_quantity = Unit.objects.get(id=1),
+        )
         if self.division_rule == 'percentage':
             for claim in claims:
                 distr_amt = claim.value * portion_of_amount
-                claim.value = claim.value - distr_amt
+                if self.claim_rule_type == "debt-like":
+                    claim.value = claim.value - distr_amt
                 claim_event = ClaimEvent(
-                    event = None, 
+                    event = placeholder_distribution,
                     claim = claim,
                     value = distr_amt,
                     unit_of_value = claim.unit_of_value,
@@ -5932,6 +5946,9 @@ class Claim(models.Model):
         limit_choices_to={"agent_type__is_context": True,},
         related_name="claims", verbose_name=_('context agent'),
         on_delete=models.SET_NULL)        
+    order = models.ForeignKey(Order,
+        blank=True, null=True,
+        related_name="claims", verbose_name=_('order'))
     value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
         default=Decimal("0.0"))
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
@@ -5950,10 +5967,10 @@ class Claim(models.Model):
             value_string = str(self.value)
         has_agt = 'Unassigned'
         if self.has_agent:
-            has_agt = self.has_agent.name
+            has_agt = self.has_agent.nick
         against_agt = 'Unassigned'
-        if self.against_agent():
-            against_agt = self.against_agent.name
+        if self.against_agent:
+            against_agt = self.against_agent.nick
         return ' '.join([
             'Claim',
             has_agt,
@@ -5962,7 +5979,7 @@ class Claim(models.Model):
             'for',
             value_string,
             'from',
-            self.event_date.strftime('%Y-%m-%d'),
+            self.claim_date.strftime('%Y-%m-%d'),
         ])
 
 EVENT_EFFECT_CHOICES = (
@@ -5972,6 +5989,7 @@ EVENT_EFFECT_CHOICES = (
  
 class ClaimEvent(models.Model):
     event = models.ForeignKey(EconomicEvent, 
+        blank=True, null=True,
         related_name="claim_events", verbose_name=_('claim event'))
     claim = models.ForeignKey(Claim, 
         related_name="claim_events", verbose_name=_('claims'))

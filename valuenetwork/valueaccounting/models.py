@@ -5401,6 +5401,7 @@ class EconomicEvent(models.Model):
         
     def save(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
+        #VE todo: all of the update_summary stuff can go away
         from_agt = 'Unassigned'
         agent = self.from_agent
         #project = self.project
@@ -5492,6 +5493,54 @@ class EconomicEvent(models.Model):
                         pass
         super(EconomicEvent, self).delete(*args, **kwargs)
         
+    def outstanding_claims(self):
+        claim_events = self.claim_events.all()
+        return [ce.claim for ce in claim_events if claim.value > Decimal("0.0")]
+        
+    def outstanding_claims_for_bucket_rule(self, bucket_rule):
+        outstanding = self.outstanding_claims()
+        claims = [ce.claim for ce in outstanding if claim.value_equation_bucket_rule == bucket_rule]
+        return list(set(claims))  
+        
+    def compute_value(self):
+        value = self.value
+        if not value:
+            value = self.quantity * self.resource_type.rate
+        return value
+        
+    def create_claim(self, bucket_rule):
+        #VE todo: this shd also get order and apply to claim
+        import pdb; pdb.set_trace()
+        claims = self.outstanding_claims_for_bucket_rule(bucket_rule)
+        if not claims:
+            order = None
+            if self.commitment:
+                order = self.commitment.independent_demand
+            else:
+                if self.process:
+                    order = self.process.independent_demand()
+            claim = Claim(
+                order=order,
+                value_equation_bucket_rule=bucket_rule,
+                claim_date=datetime.date.today(),
+                has_agent=self.from_agent,
+                against_agent=self.to_agent,
+                context_agent=self.context_agent,
+                unit_of_value=self.unit_of_value,
+                claim_creation_equation=bucket_rule.claim_creation_equation,
+            )
+            claim.save()
+            claim_event = ClaimEvent(
+                event=self,
+                claim=claim,
+                claim_event_date=datetime.date.today(),
+                value=self.compute_value(),
+                unit_of_value=self.unit_of_value,
+                event_effect="+",
+            )
+            claim_event.save()
+            claim_event.update_claim()
+                
     def default_agent(self):
         if self.context_agent:
             return self.context_agent.default_agent()
@@ -5867,6 +5916,7 @@ class ValueEquationBucketRule(models.Model):
         return claim_events      
         
 class Claim(models.Model):
+    #VE todo: needs order field and anything else that might be part of the VEBR filter
     value_equation_bucket_rule = models.ForeignKey(ValueEquationBucketRule,
         blank=True, null=True, 
         related_name="claims", verbose_name=_('value equation bucket rule'))
@@ -5949,6 +5999,12 @@ class ClaimEvent(models.Model):
             value_string,
         ])
        
+    def update_claim(self):
+        if self.event_affect == "+":
+            self.claim.value += self.value
+        else:
+            self.claim.value -= self.value
+        self.claim.save()
             
 
 class EventSummary(object):

@@ -48,6 +48,17 @@ class ValueEquationBucketAdmin(admin.ModelAdmin):
 
 admin.site.register(ValueEquationBucket, ValueEquationBucketAdmin)
 
+class ClaimEventInline(admin.TabularInline):
+    model = ClaimEvent
+    fk_name = 'claim'
+    fields = ('event', 'claim_event_date', 'value', 'unit_of_value', 'event_effect')
+  
+class ClaimAdmin(admin.ModelAdmin):
+    list_display = ('claim_date', 'has_agent', 'against_agent', 'value_equation_bucket_rule', 'context_agent', 'value', 'unit_of_value', 'claim_creation_equation')
+    inlines = [ ClaimEventInline, ]
+
+admin.site.register(Claim, ClaimAdmin)
+
 class EconomicEventInline(admin.TabularInline):
     model = EconomicEvent
     fk_name = 'exchange'

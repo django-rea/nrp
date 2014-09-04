@@ -5495,12 +5495,12 @@ class EconomicEvent(models.Model):
         
     def outstanding_claims(self):
         claim_events = self.claim_events.all()
-        return [ce.claim for ce in claim_events if claim.value > Decimal("0.0")]
+        claims = [ce.claim for ce in claim_events if ce.claim.value > Decimal("0.0")]
+        return list(set(claims))
         
     def outstanding_claims_for_bucket_rule(self, bucket_rule):
-        outstanding = self.outstanding_claims()
-        claims = [ce.claim for ce in outstanding if claim.value_equation_bucket_rule == bucket_rule]
-        return list(set(claims))  
+        claims = self.outstanding_claims()
+        return [claim for claim in claims if claim.value_equation_bucket_rule==bucket_rule]
         
     def compute_value(self):
         value = self.value
@@ -5509,10 +5509,11 @@ class EconomicEvent(models.Model):
         return value
         
     def create_claim(self, bucket_rule):
-        #VE todo: this shd also get order and apply to claim
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         claims = self.outstanding_claims_for_bucket_rule(bucket_rule)
-        if not claims:
+        if claims:
+            return claims[0]
+        else:
             order = None
             if self.commitment:
                 order = self.commitment.independent_demand
@@ -5540,6 +5541,7 @@ class EconomicEvent(models.Model):
             )
             claim_event.save()
             claim_event.update_claim()
+            return claim
                 
     def default_agent(self):
         if self.context_agent:
@@ -6018,7 +6020,7 @@ class ClaimEvent(models.Model):
         ])
        
     def update_claim(self):
-        if self.event_affect == "+":
+        if self.event_effect == "+":
             self.claim.value += self.value
         else:
             self.claim.value -= self.value

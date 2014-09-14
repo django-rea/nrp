@@ -5436,6 +5436,8 @@ class EconomicEvent(models.Model):
         return value
         
     def create_claim(self, bucket_rule):
+        # this may be wrong
+        # see Tiddly notes
         #import pdb; pdb.set_trace()
         claims = self.outstanding_claims_for_bucket_rule(bucket_rule)
         if claims:

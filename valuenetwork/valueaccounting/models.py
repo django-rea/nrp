@@ -3218,6 +3218,17 @@ class EconomicResource(models.Model):
             return owner_roles[0].agent
         return None
              
+    def revert_to_previous_stage(self):
+        #import pdb; pdb.set_trace()
+        current_stage = self.stage
+        cts, inheritance = self.resource_type.staged_commitment_type_sequence()
+        for ct in cts:
+            if ct.stage == current_stage:
+                break
+            prev_stage = ct.stage
+        self.stage = prev_stage
+        self.save()
+        return prev_stage
 
 
 class AgentResourceType(models.Model):
@@ -4983,6 +4994,15 @@ class Commitment(models.Model):
 
     def consumes_resources(self):
         return self.event_type.consumes_resources()
+        
+    def is_change_related(self):
+        return self.event_type.is_change_related()
+            
+    def applies_stage(self):
+        return self.event_type.applies_stage()
+        
+    def changes_stage(self):
+        return self.event_type.changes_stage()
 
     def output_resources(self):
         answer = None
@@ -5615,6 +5635,15 @@ class EconomicEvent(models.Model):
 
     def consumes_resources(self):
         return self.event_type.consumes_resources()
+        
+    def is_change_related(self):
+        return self.event_type.is_change_related()
+            
+    def applies_stage(self):
+        return self.event_type.applies_stage()
+        
+    def changes_stage(self):
+        return self.event_type.changes_stage()
 
 
 #todo: not used

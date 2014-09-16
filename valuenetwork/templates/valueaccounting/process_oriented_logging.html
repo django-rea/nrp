@@ -385,6 +385,9 @@ li {
 		                        </div>
 	                        </div>
                         {% endif %}
+                        {% if item.description %}
+                            <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+                        {% endif %}
 
                     {% if item.from_agent %}
 				        <span class="taken">{% trans "Taken by" %}<span class="agent" > {{ item.from_agent.nick }}</span></span>
@@ -432,9 +435,7 @@ li {
 			                    <button class="btn btn-info btn-mini" title="Log work for {{ item.from_agent }}" >{% trans "Log work" %}</button>
 		                    {% endcomment %}
 			                {% endif %}
-                            {% if item.description %}
-                                <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
-                            {% endif %}
+
 			                {% if work_events %}
 			                    <div class="event">
 			                        <div class="subsection-label event-label" >{% trans "Work events" %}:</div>

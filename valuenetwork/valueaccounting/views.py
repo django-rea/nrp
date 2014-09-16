@@ -4604,6 +4604,8 @@ def delete_event(request, event_id):
                 resource.quantity += event.quantity
             if event.creates_resources():
                 resource.quantity -= event.quantity
+            if event.changes_stage():
+                resource.revert_to_previous_stage()
             event.delete()
             if resource.is_deletable():
                 resource.delete()

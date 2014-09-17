@@ -631,6 +631,21 @@ def change_pattern(request, pattern_id, use_case_id):
         "slots": slots,
         "use_case": use_case,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def change_pattern_name(request):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        pattern_id = request.POST.get("patternId")
+        try:
+            pattern = ProcessPattern.objects.get(id=pattern_id)
+        except ProcessPattern.DoesNotExist:
+            pattern = None
+        if pattern:
+            name = request.POST.get("name")
+            pattern.name = name
+            pattern.save()
+    return HttpResponse("Ok", mimetype="text/plain")
 
 @login_required
 def add_pattern_to_use_case(request, use_case_id):

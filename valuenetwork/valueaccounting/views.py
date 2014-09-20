@@ -5261,12 +5261,12 @@ def process_oriented_logging(request, process_id):
         if request.user.is_superuser or request.user == process.created_by:
             logger = True
             super_logger = True
+        #import pdb; pdb.set_trace()
         for req in work_reqs:
             req.changeform = req.change_work_form()
             if agent == req.from_agent:
                 logger = True
-                worker = True
-                break  
+                worker = True  
         for req in consume_reqs:
             req.changeform = req.change_form()
         for req in use_reqs:

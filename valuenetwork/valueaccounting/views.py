@@ -7492,6 +7492,7 @@ def process_selections(request, rand=0):
                     if rand:
                         if not added_to_order:
                             commitment.order = demand
+                            commitment.order_item = commitment
                             commitment.save()
                         '''
                         #use recipe

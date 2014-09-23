@@ -5420,6 +5420,9 @@ class EconomicEvent(models.Model):
     def delete(self, *args, **kwargs):
         super(EconomicEvent, self).delete(*args, **kwargs)
         
+    def seniority(self):
+        return (datetime.date.today() - self.event_date).days
+        
     def outstanding_claims(self):
         claim_events = self.claim_events.all()
         claims = [ce.claim for ce in claim_events if ce.claim.value > Decimal("0.0")]
@@ -5428,16 +5431,8 @@ class EconomicEvent(models.Model):
     def outstanding_claims_for_bucket_rule(self, bucket_rule):
         claims = self.outstanding_claims()
         return [claim for claim in claims if claim.value_equation_bucket_rule==bucket_rule]
-        
-    def compute_value(self):
-        value = self.value
-        if not value:
-            value = self.quantity * self.resource_type.rate
-        return value
-        
+               
     def create_claim(self, bucket_rule):
-        # this may be wrong
-        # see Tiddly notes
         #import pdb; pdb.set_trace()
         claims = self.outstanding_claims_for_bucket_rule(bucket_rule)
         if claims:
@@ -5464,7 +5459,7 @@ class EconomicEvent(models.Model):
                 event=self,
                 claim=claim,
                 claim_event_date=datetime.date.today(),
-                value=self.compute_value(),
+                value=bucket_rule.compute_claim_value(self),
                 unit_of_value=self.unit_of_value,
                 event_effect="+",
             )
@@ -5819,7 +5814,9 @@ class ValueEquationBucketRule(models.Model):
         max_length=12, choices=DIVISION_RULE_CHOICES)
     claim_rule_type = models.CharField(_('claim rule type'), 
         max_length=12, choices=CLAIM_RULE_CHOICES)
-    claim_creation_equation = models.TextField(_('claim creation equation'), null=True, blank=True)
+    claim_creation_equation = models.TextField(_('claim creation equation'), 
+        null=True, blank=True,
+        help_text=_('You may use quantity, value, and/or rate in math expressions, leaving a space between each element'))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='rules_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
@@ -5859,8 +5856,34 @@ class ValueEquationBucketRule(models.Model):
                 #claim_event.save()
                 claim_events.append(claim_event)
         #elif:
-        return claim_events      
+        return claim_events    
         
+    def normalize_equation(self):
+        eq = self.claim_creation_equation.split(" ")
+        for i, x in enumerate(eq):
+            try:
+                y = Decimal(x)
+                eq[i] = "".join(["Decimal('", x, "')"])
+            except InvalidOperation:
+                continue
+        s = " "
+        return s.join(eq)
+         
+    def compute_claim_value(self, event):
+        equation = self.normalize_equation()
+        safe_list = ['math',]
+        safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ])
+        safe_dict['Decimal'] = Decimal
+        safe_dict['quantity'] = event.quantity
+        safe_dict['rate'] = event.resource_type.rate
+        safe_dict['value'] = event.value
+        #safe_dict['importance'] = event.importance()
+        safe_dict['reputation'] = event.from_agent.reputation
+        safe_dict['seniority'] = Decimal(event.seniority())
+        value = eval(equation, {"__builtins__":None}, safe_dict)
+        return value
+
+            
 class Claim(models.Model):
     #VE todo: needs order field and anything else that might be part of the VEBR filter
     value_equation_bucket_rule = models.ForeignKey(ValueEquationBucketRule,
@@ -5894,7 +5917,10 @@ class Claim(models.Model):
 
     def __unicode__(self):
         if self.unit_of_value:
-            value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
+            if self.unit_of_value.symbol:
+                value_string = "".join([self.unit_of_value.symbol, str(self.value)])
+            else:
+                value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
         else:
             value_string = str(self.value)
         has_agt = 'Unassigned'

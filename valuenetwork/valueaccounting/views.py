@@ -8683,7 +8683,41 @@ def payment_event_for_commitment(request):
     return HttpResponse(data, mimetype="text/plain")
 '''
 
-
+#demo page for DHEN
+#@login_required
+def resource_flow(request):
+    #import pdb; pdb.set_trace()
+    pattern = ProcessPattern.objects.get(name="Change")
+    resource_form = ResourceFlowForm(pattern=pattern)
+    role_formset = resource_role_agent_formset(prefix='role')
     
+    return render_to_response("valueaccounting/resource_flow.html", {
+        "resource_form": resource_form,
+        "role_formset": role_formset,
+    }, context_instance=RequestContext(request))
     
-
+#demo page for DHEN and GT
+#@login_required
+def workflow_board_demo(request):
+    #import pdb; pdb.set_trace()
+    pattern = ProcessPattern.objects.get(name="Change")
+    resource_form = ResourceFlowForm(pattern=pattern)
+    process_form = PlanProcessForm()
+    
+    return render_to_response("valueaccounting/workflow_board_demo.html", {
+        "resource_form": resource_form,
+        "process_form": process_form,
+    }, context_instance=RequestContext(request))
+    
+#demo page for DHEN
+#@login_required
+def inventory_board_demo(request):
+    #import pdb; pdb.set_trace()
+    pattern = ProcessPattern.objects.get(name="Change")
+    resource_form = ResourceFlowForm(pattern=pattern)
+    process_form = PlanProcessForm()
+    
+    return render_to_response("valueaccounting/inventory_board_demo.html", {
+        "resource_form": resource_form,
+        "process_form": process_form,
+    }, context_instance=RequestContext(request))

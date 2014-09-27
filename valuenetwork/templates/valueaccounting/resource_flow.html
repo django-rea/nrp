@@ -1,0 +1,220 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "Resource Flow" %} {% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.btn-info {
+    margin-left: 10px;
+}
+.hdg {
+    color: firebrick;
+}
+.btn {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+#id_notes, #id_access_rules {
+  width: 400px;
+  height: 60px;    
+}
+.modal {
+    width: 600px;
+}
+.text-center {
+    text-align: center;
+}
+th {
+    padding-right: 1em;
+    text-align: right;
+    vertical-align: top;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+
+		<legend>
+			{% trans "Record New Resource Flow" %}
+		</legend>
+		
+		<div class="row-fluid">
+                
+                <h3 class="hdg">Resource</h3>		
+	            <table>
+                    <tr>
+                        <th>{% trans "Network" %}</th>
+                        <td>{{ resource_form.context_agent }}</td>
+                    </tr>
+	                <tr>
+                        <th>{% trans "Resource Type" %}</th>
+                        <td>{{ resource_form.resource_type }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Lot Identifier" %}</th>
+                        <td>{{ resource_form.identifier }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Current Location" %}</th>
+                        <td>{{ resource_form.current_location }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Owner" %}</th>
+                        <td>{{ resource_form.from_agent }}</td>
+                    </tr>
+	            </table>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span6">
+                <h3 class="hdg">Harvest</h3>
+                <table>
+                    <tr>
+                        <th>{% trans "Date" %}</th>
+                        <td>{{ resource_form.event_date }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Farm" %}</th>
+                        <td>{{ resource_form.from_agent }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Harvester" %}</th>
+                        <td>{{ resource_form.to_agent }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Quantity" %}</th>
+                        <td>{{ resource_form.quantity }} LB</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Notes" %}</th>
+                        <td>{{ resource_form.notes }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="span6">
+                <h3 class="hdg">or Receipt</h3>
+                <table>
+                    <tr>
+                        <th>{% trans "Date" %}</th>
+                        <td>{{ resource_form.event_date }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Farm" %}</th>
+                        <td>{{ resource_form.from_agent }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Quantity" %}</th>
+                        <td>{{ resource_form.quantity }} LB</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "If Paid, $" %}</th>
+                        <td>{{ resource_form.value }} <b>Paid By</b> {{ resource_form.to_agent }} </td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Notes" %}</th>
+                        <td>{{ resource_form.notes }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="row-fluid">
+                
+                <h3 class="hdg">Dry</h3>
+                <table>
+                    <tr>
+                        <th>{% trans "Date" %}</th>
+                        <td>{{ resource_form.event_date }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Facility" %}</th>
+                        <td>{{ resource_form.from_agent }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Quantity" %}</th>
+                        <td>{{ resource_form.quantity }} LB</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Notes" %}</th>
+                        <td>{{ resource_form.notes }}</td>
+                    </tr>
+                </table>
+		</div>
+
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+{% endblock %}
+
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+		$('#inventory').addClass('active');
+		
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        $('td.td-role > select').addClass('select-role');   
+        $('td.td-agent > select').addClass('select-agent');  
+
+        $.validator.addMethod("agentRequired", function (value, element) {
+            alert("value " + value + " element " + element);
+            //agent = element.closest(".select-agent");
+            //alert("agent " + agent);
+
+            return true;
+        }, "Both role and agent must be entered.");
+
+        $.validator.addClassRules("select-role", { agentRequired: true });
+
+    }); // end document.ready
+
+	$('.resource-change-form').each( function(){
+		var form = $(this);
+		form.validate({
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			}
+
+		});
+	});
+/*    
+    $("tr.role-row").each(function(i, tr) {
+        var role = $(tr).children().get(0);
+        alert("role " + role );
+
+
+    });
+*/
+    </script>
+    
+{% endblock %}

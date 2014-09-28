@@ -3049,7 +3049,7 @@ def add_todo(request):
                 todo = form.save(commit=False)
                 todo.to_agent=agent
                 todo.event_type=et
-                todo.quantity = Decimal("1")
+                todo.quantity = Decimal("0")
                 todo.unit_of_quantity=todo.resource_type.unit
                 todo.save()
                 if notification:
@@ -3078,7 +3078,7 @@ def create_event_from_todo(todo):
         resource_type=todo.resource_type,
         context_agent=todo.context_agent,
         url=todo.url,
-        quantity=Decimal("1"),
+        quantity=Decimal("0"),
         unit_of_quantity=todo.resource_type.unit,
         is_contribution=True,
     )

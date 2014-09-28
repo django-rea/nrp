@@ -2961,7 +2961,7 @@ def change_process_sked_ajax(request):
 def work(request):
     agent = get_agent(request)
     start = datetime.date.today()
-    end = start + datetime.timedelta(days=7)
+    end = start + datetime.timedelta(days=90)
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
     ca_form = ProjectSelectionFormOptional(data=request.POST or None)

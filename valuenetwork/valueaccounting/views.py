@@ -2961,7 +2961,7 @@ def change_process_sked_ajax(request):
 def work(request):
     agent = get_agent(request)
     start = datetime.date.today()
-    end = start + datetime.timedelta(days=7)
+    end = start + datetime.timedelta(days=90)
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
     ca_form = ProjectSelectionFormOptional(data=request.POST or None)
@@ -3049,7 +3049,7 @@ def add_todo(request):
                 todo = form.save(commit=False)
                 todo.to_agent=agent
                 todo.event_type=et
-                todo.quantity = Decimal("1")
+                todo.quantity = Decimal("0")
                 todo.unit_of_quantity=todo.resource_type.unit
                 todo.save()
                 if notification:
@@ -3078,7 +3078,7 @@ def create_event_from_todo(todo):
         resource_type=todo.resource_type,
         context_agent=todo.context_agent,
         url=todo.url,
-        quantity=Decimal("1"),
+        quantity=Decimal("0"),
         unit_of_quantity=todo.resource_type.unit,
         is_contribution=True,
     )
@@ -7492,6 +7492,7 @@ def process_selections(request, rand=0):
                     if rand:
                         if not added_to_order:
                             commitment.order = demand
+                            commitment.order_item = commitment
                             commitment.save()
                         '''
                         #use recipe
@@ -8682,7 +8683,41 @@ def payment_event_for_commitment(request):
     return HttpResponse(data, mimetype="text/plain")
 '''
 
-
+#demo page for DHEN
+#@login_required
+def resource_flow(request):
+    #import pdb; pdb.set_trace()
+    pattern = ProcessPattern.objects.get(name="Change")
+    resource_form = ResourceFlowForm(pattern=pattern)
+    role_formset = resource_role_agent_formset(prefix='role')
     
+    return render_to_response("valueaccounting/resource_flow.html", {
+        "resource_form": resource_form,
+        "role_formset": role_formset,
+    }, context_instance=RequestContext(request))
     
-
+#demo page for DHEN and GT
+#@login_required
+def workflow_board_demo(request):
+    #import pdb; pdb.set_trace()
+    pattern = ProcessPattern.objects.get(name="Change")
+    resource_form = ResourceFlowForm(pattern=pattern)
+    process_form = PlanProcessForm()
+    
+    return render_to_response("valueaccounting/workflow_board_demo.html", {
+        "resource_form": resource_form,
+        "process_form": process_form,
+    }, context_instance=RequestContext(request))
+    
+#demo page for DHEN
+#@login_required
+def inventory_board_demo(request):
+    #import pdb; pdb.set_trace()
+    pattern = ProcessPattern.objects.get(name="Change")
+    resource_form = ResourceFlowForm(pattern=pattern)
+    process_form = PlanProcessForm()
+    
+    return render_to_response("valueaccounting/inventory_board_demo.html", {
+        "resource_form": resource_form,
+        "process_form": process_form,
+    }, context_instance=RequestContext(request))

@@ -1,5 +1,7 @@
 To install on Ubuntu for development:
 
+You need python 2.7+, but *not* python 3+
+
 1. install pip globally:
 http://www.pip-installer.org/en/latest/installing.html#prerequisites
 

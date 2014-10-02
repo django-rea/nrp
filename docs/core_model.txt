@@ -34,7 +34,7 @@ UNIT_TYPE_CHOICES = (
     'value',
     'volume',
     'weight',
-    'ip', _('ip')),
+    'ideas',
 )
 
 Unit:

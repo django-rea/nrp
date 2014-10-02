@@ -15,6 +15,13 @@ https://github.com/valnet/valuenetwork/blob/master/valuenetwork/valueaccounting/
 We removed the Django-specific code in preparation for translating
 into various Linked Open Data formats.
 
+Some parts of the model are stable, some are not.
+The classes that are stable are marked with *.
+Even in the stable classes, however, some of the attributes may not be stable.
+
+We are currently working on another section of the model dealing with ValueEquations
+and income distribution that is not yet included here.
+
 """
 
 Location:
@@ -62,7 +69,7 @@ AgentType:
     is_context = boolean
     
   
-EconomicAgent:
+*EconomicAgent:
 "A person or organization that is authorized to perform
 EconomicEvents involving EconomicResources."
     name = text
@@ -143,7 +150,7 @@ RESOURCE_EFFECT_CHOICES = (
     'change', #change stage or state
 )
     
-EventType:
+*EventType:
 "Defines the behavior of EconomicEvents."
     name = text
     label = text
@@ -153,7 +160,7 @@ EventType:
     resource_effect = reference to one of a list of RESOURCE_EFFECT_CHOICES
     
   
-EconomicResourceType:
+*EconomicResourceType:
 "Defines the behavior of EconomicResources.
 Part of Recipes."
     name = text  
@@ -178,7 +185,7 @@ ORDER_TYPE_CHOICES = (
     'Work order', #an internal order to do something (what some people call a project)
 )
 
-Order:
+*Order:
     order_type =reference to one of a list of ORDER_TYPE_CHOICES
     name = text
     receiver = reference to an EconomicAgent
@@ -188,7 +195,7 @@ Order:
     description = text
     
     
-ProcessType:
+*ProcessType:
 "Defines the behavior of Processes.
 Part of Recipes."
     name = text
@@ -199,7 +206,7 @@ Part of Recipes."
     estimated_duration = number of hours
     
     
-CommitmentType:
+*CommitmentType:
 "Defines Commitments.
 Part of Recipes."
     process_type = reference to ProcessType
@@ -212,7 +219,7 @@ Part of Recipes."
     description = text
     
 
-Process:
+*Process:
 "Changing input EconomicResources into output EconomicResources."
     name = text
     parent = reference to another Process
@@ -239,7 +246,7 @@ between EconomicAgents."
     order = reference to an Order
     
     
-Commitment:
+*Commitment:
 "A promise or plan from one EconomicAgent 
 to another (or the same) EconomicAgent
 to perform one or more EconomicEvents in the future."
@@ -271,7 +278,7 @@ to perform one or more EconomicEvents in the future."
     unit_of_value = reference to a Unit
    
    
-EconomicResource:
+*EconomicResource:
 "Something of value in a context."
     resource_type = reference to an EconomicResourceType
     identifier = text
@@ -289,7 +296,7 @@ EconomicResource:
     current_location = reference to a Location
     
     
-EconomicEvent:
+*EconomicEvent:
 "A change in an EconomicResource.
 The type of change is defined by the EventType."
     event_type = reference to an EventType

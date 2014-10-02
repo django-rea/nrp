@@ -1,0 +1,313 @@
+""" Models based on REA
+
+These models are based on the Bill McCarthy's Resource-Event-Agent accounting model:
+https://www.msu.edu/~mccarth4/
+http://en.wikipedia.org/wiki/Resources,_events,_agents_(accounting_model)
+
+REA is also the basis for ISO/IEC FDIS 15944-4 ACCOUNTING AND ECONOMIC ONTOLOGY
+http://global.ihs.com/doc_detail.cfm?item_s_key=00495115&item_key_date=920616
+
+We have changed the classical REA model for value network purposes, as described here:
+https://docs.google.com/document/d/1YpFaytWfeuGMxZWW6yY59ZTfL0PseAQ_LxqjjBhGogs/edit?usp=sharing
+
+The model descriptions below are copied and pasted from 
+https://github.com/valnet/valuenetwork/blob/master/valuenetwork/valueaccounting/models.py
+We removed the Django-specific code in preparation for translating
+into various Linked Open Data formats.
+
+"""
+
+Location:
+"Should be part of another ontology and just referenced here."
+    name = text
+    description = text
+    address = text
+    latitude = float
+    longitude = float
+
+
+UNIT_TYPE_CHOICES = (
+    'area',
+    'length', _('length')),
+    'quantity',
+    'time',
+    'value',
+    'volume',
+    'weight',
+    'ip', _('ip')),
+)
+
+Unit:
+"Should be part of another ontology and just referenced here."
+    unit_type = reference to one of a list of UNIT_TYPE_CHOICES
+    abbrev = text
+    name = text
+    symbol = char
+
+    
+PARTY_TYPE_CHOICES = (
+    'individual'
+    'organization',
+    'network'
+    'project',
+    'community'
+)
+    
+    
+AgentType:
+    name = text
+    parent = reference to another AgentType
+    party_type = reference to one of a list of PARTY_TYPE_CHOICES
+    description = text
+    is_context = boolean
+    
+  
+EconomicAgent:
+"A person or organization that is authorized to perform
+EconomicEvents involving EconomicResources."
+    name = text
+    nick = text
+    url = url
+    agent_type = reference to an AgentType
+    description = text
+    address = text
+    email = email address
+    latitude = float
+    longitude = float
+    reputation = decimal number
+    photo = reference to a photo
+
+    
+ASSOCIATION_BEHAVIOR_CHOICES = (
+    'supplier',
+    'customer',
+    'member',
+    'child',
+)
+
+AgentAssociationType:
+    identifier = text
+    name = text
+    plural_name = text
+    association_behavior = reference to one of a list of ASSOCIATION_BEHAVIOR_CHOICES
+    description = text
+    label = text
+    inverse_label = text
+    
+
+RELATIONSHIP_STATE_CHOICES = (
+    'active'
+    'inactive'
+    'potential'
+)    
+
+AgentAssociation:
+"An organization-forming relationship."
+    is_associate = reference to an EconomicAgent
+    has_associate = reference to an EconomicAgent
+    association_type = reference to an AgentAssociationType
+    description = text
+    state = reference to one of a list of RELATIONSHIP_STATE_CHOICES
+
+    
+EVENT_TYPE_RELATIONSHIP_CHOICES_CHOICES = (
+    'consume', #the resources are gone
+    'use', #the resources are used for some time
+    'output', #the resources are created
+    'citation',
+    'work',
+    'payment',
+    'receipt',
+    'expense',
+    'cash contribution',
+    'resource contribution',
+    'cash receipt',
+    'shipment'
+    'distribution',
+)
+
+EVENT_TYPE_RELATED_CHOICES = (
+    'process',
+    'agent', #not used logically as an event type, rather for agent - resource type relationships
+    'exchange',
+)
+
+RESOURCE_EFFECT_CHOICES = (
+    'increase',
+    'decrease',
+    'transfer', #means - for from_agent, + for to_agent
+    'no effect',
+    'create to change', #create a resource which can change its stage
+    'to be changed', #prepare for change of stage or state
+    'change', #change stage or state
+)
+    
+EventType:
+"Defines the behavior of EconomicEvents."
+    name = text
+    label = text
+    inverse_label = text
+    relationship = reference to one of a list of EVENT_TYPE_RELATIONSHIP_CHOICES_CHOICES
+    related_to = reference to one of a list of EVENT_TYPE_RELATED_CHOICES
+    resource_effect = reference to one of a list of RESOURCE_EFFECT_CHOICES
+    
+
+    
+EconomicResourceType:
+"Defines the behavior of EconomicResources.
+Part of Recipes."
+    name = text  
+    parent = reference to another EconomicResourceType
+    unit = reference to a Unit
+        help_text=_('if this resource type has different units of use and inventory, this is the unit of inventory'))
+    unit_of_use = reference to a Unit
+        help_text=_('if this resource type has different units of use and inventory, this is the unit of use'))
+    substitutable = boolean
+        help_text=_('Can any resource of this type be substituted for any other resource of this type?'))
+    inventory_rule = reference to one of a list of inventory_rule_choices
+    photo = reference to a photo
+    url = url
+    description = text
+    rate = decimal number
+    
+  
+ORDER_TYPE_CHOICES = (
+    'Customer order', #from an EconomicAgent that is outside the Network
+    'Purchase order', #to an EconomicAgent that is outside the Network
+    'Transfer order', #between EconomicAgents that are part of the same Network
+    'Work order', #an internal order to do something (what some people call a project)
+)
+
+Order:
+    order_type =reference to one of a list of ORDER_TYPE_CHOICES
+    name = text
+    receiver = reference to an EconomicAgent
+    provider = reference to an EconomicAgent
+    order_date = date
+    due_date = date
+    description = text
+    
+    
+ProcessType:
+"Defines the behavior of Processes.
+Part of Recipes."
+    name = text
+    parent = reference to another ProcessType
+    context_agent = reference to an EconomicAgent
+    description = text
+    url = url
+    estimated_duration = number of hours
+    
+    
+EconomicResource:
+"Something of value in a context."
+    resource_type = reference to an EconomicResourceType
+    identifier = text
+    independent_demand = reference to an Order
+    order_item = reference to a Commitment
+    stage = reference to a ProcessType
+    state = reference to a ResourceState
+    url = url
+    quantity = decimal number
+    unit_of_quantity = reference to a Unit
+    quality = decimal number
+    notes = text
+    photo = reference to a photo
+    access_rules = text
+    current_location = reference to a Location
+    
+    
+CommitmentType:
+"Defines Commitments.
+Part of Recipes."
+    process_type = reference to ProcessType
+    resource_type = reference to an EconomicResourceType
+    event_type = reference to an EventType
+    stage = reference to a ProcessType
+    state = reference to a ResourceState
+    quantity = decimal number
+    unit_of_quantity = reference to Unit
+    description = text
+    
+
+Process:
+"Changing input EconomicResources into output EconomicResources."
+    name = text
+    parent = reference to another Process
+    process_type = reference to a ProcessType
+    context_agent = reference to an EconomicAgent
+    url = url
+    start_date = date
+    end_date = date
+    started = date
+    finished = boolean
+    notes = text
+    
+    
+Exchange:
+"Trading given EconomicResources for taken EconomicResources
+between EconomicAgents."
+    name = text
+    context_agent = reference to an EconomicAgent
+    url = url
+    start_date = date
+    notes = text
+    supplier = reference to an EconomicAgent
+    customer = reference to an EconomicAgent
+    order = reference to an Order
+    
+    
+Commitment:
+"A promise or plan from one EconomicAgent 
+to another (or the same) EconomicAgent
+to perform one or more EconomicEvents in the future."
+    order = reference to an Order
+    independent_demand = reference to an Order
+    order_item = reference to another Commitment
+    event_type = reference to an EventType
+    commitment_type = reference to a CommitmentType
+    stage = reference to a ProcessType
+    state = reference to a ResourceState
+    commitment_date = date
+    start_date = date
+    due_date = date
+    finished = boolean
+    from_agent_type = reference to an AgentType
+    from_agent = reference to an EconomicAgent
+    to_agent = reference to an EconomicAgent
+    resource_type = reference to an EconomicResourceType
+    resource = reference to an EconomicResource
+    process = reference to a Process
+    exchange = reference to an Exchange
+    context_agent = reference to an EconomicAgent
+    description = text
+    url = url
+    quantity = decimal number
+    unit_of_quantity = reference to a Unit
+    quality = decimal number
+    value = decimal number
+    unit_of_value = reference to a Unit
+    
+    
+EconomicEvent:
+"A change in an EconomicResource.
+The type of change is defined by the EventType."
+    event_type = reference to an EventType
+    event_date = date
+    from_agent = reference to an EconomicAgent
+    to_agent = reference to an EconomicAgent
+    resource_type = reference to an EconomicResourceType
+    resource = reference to an EconomicResource
+    process = reference to a Process
+    exchange = reference to an Exchange
+    context_agent = reference to an EconomicAgent     
+    url = url
+    description = text
+    quantity = decimal number
+    unit_of_quantity = reference to a Unit
+    quality = decimal number
+    value = decimal number
+    unit_of_value = reference to a Unit
+    commitment = reference to a Commitment
+    
+    

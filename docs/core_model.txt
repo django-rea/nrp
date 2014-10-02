@@ -110,9 +110,9 @@ AgentAssociation:
     state = reference to one of a list of RELATIONSHIP_STATE_CHOICES
 
     
-EVENT_TYPE_RELATIONSHIP_CHOICES_CHOICES = (
+EVENT_TYPE_RELATIONSHIP_CHOICES = (
     'consume', #the resources are gone
-    'use', #the resources are used for some time
+    'use', #the resources are used for some duration
     'output', #the resources are created
     'citation',
     'work',
@@ -128,7 +128,6 @@ EVENT_TYPE_RELATIONSHIP_CHOICES_CHOICES = (
 
 EVENT_TYPE_RELATED_CHOICES = (
     'process',
-    'agent', #not used logically as an event type, rather for agent - resource type relationships
     'exchange',
 )
 
@@ -136,8 +135,10 @@ RESOURCE_EFFECT_CHOICES = (
     'increase',
     'decrease',
     'transfer', #means - for from_agent, + for to_agent
-    'no effect',
-    'create to change', #create a resource which can change its stage
+    'no effect', #used for citations and currently for work resource types
+    #These last three are currently used by workflows which change resource stage.
+    #They are themselves subject to change.
+    'create to change', #create a resource which can change its stage or state
     'to be changed', #prepare for change of stage or state
     'change', #change stage or state
 )
@@ -147,12 +148,11 @@ EventType:
     name = text
     label = text
     inverse_label = text
-    relationship = reference to one of a list of EVENT_TYPE_RELATIONSHIP_CHOICES_CHOICES
+    relationship = reference to one of a list of EVENT_TYPE_RELATIONSHIP_CHOICES
     related_to = reference to one of a list of EVENT_TYPE_RELATED_CHOICES
     resource_effect = reference to one of a list of RESOURCE_EFFECT_CHOICES
     
-
-    
+  
 EconomicResourceType:
 "Defines the behavior of EconomicResources.
 Part of Recipes."
@@ -197,24 +197,6 @@ Part of Recipes."
     description = text
     url = url
     estimated_duration = number of hours
-    
-    
-EconomicResource:
-"Something of value in a context."
-    resource_type = reference to an EconomicResourceType
-    identifier = text
-    independent_demand = reference to an Order
-    order_item = reference to a Commitment
-    stage = reference to a ProcessType
-    state = reference to a ResourceState
-    url = url
-    quantity = decimal number
-    unit_of_quantity = reference to a Unit
-    quality = decimal number
-    notes = text
-    photo = reference to a photo
-    access_rules = text
-    current_location = reference to a Location
     
     
 CommitmentType:
@@ -287,6 +269,24 @@ to perform one or more EconomicEvents in the future."
     quality = decimal number
     value = decimal number
     unit_of_value = reference to a Unit
+   
+   
+EconomicResource:
+"Something of value in a context."
+    resource_type = reference to an EconomicResourceType
+    identifier = text
+    independent_demand = reference to an Order
+    order_item = reference to a Commitment
+    stage = reference to a ProcessType
+    state = reference to a ResourceState
+    url = url
+    quantity = decimal number
+    unit_of_quantity = reference to a Unit
+    quality = decimal number
+    notes = text
+    photo = reference to a photo
+    access_rules = text
+    current_location = reference to a Location
     
     
 EconomicEvent:

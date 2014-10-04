@@ -2862,7 +2862,12 @@ class ProcessType(models.Model):
 
     def xbill_change_form(self):
         from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
-        return XbillProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
+        qty = Decimal("0.0")
+        prtr = self.main_produced_resource_type_relationship()
+        if prtr:
+            qty = prtr.quantity
+        init = {"quantity": qty,}
+        return XbillProcessTypeForm(instance=self, initial=init, prefix=self.xbill_change_prefix())
     
     def recipe_change_form(self):
         from valuenetwork.valueaccounting.forms import RecipeProcessTypeChangeForm

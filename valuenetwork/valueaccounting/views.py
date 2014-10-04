@@ -1268,6 +1268,7 @@ def value_equation(request, project_id):
 
 def extended_bill(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    output_ctype, inheritance = rt.main_producing_process_type_relationship()
     #import pdb; pdb.set_trace()
     select_all = True
     facets = Facet.objects.all()
@@ -1314,6 +1315,7 @@ def extended_bill(request, resource_type_id):
         selected_vals = "all"
     return render_to_response("valueaccounting/extended_bill.html", {
         "resource_type": rt,
+        "output_ctype": output_ctype,
         "nodes": nodes,
         "depth": depth,
         "selected_depth": selected_depth,
@@ -1330,6 +1332,7 @@ def edit_extended_bill(request, resource_type_id):
 
     #start_time = time.time()
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    output_ctype, inheritance = rt.main_producing_process_type_relationship()
     #import pdb; pdb.set_trace()
     nodes = rt.generate_xbill()
     resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
@@ -1340,6 +1343,7 @@ def edit_extended_bill(request, resource_type_id):
     #print("edit_extended_bill view elapsed time was %g seconds" % (end_time - start_time))
     return render_to_response("valueaccounting/edit_xbill.html", {
         "resource_type": rt,
+        "output_ctype": output_ctype,
         "nodes": nodes,
         "photo_size": (128, 128),
         "big_photo_size": (200, 200),
@@ -1994,6 +1998,29 @@ def change_process_type(request, process_type_id):
         prefix = pt.xbill_change_prefix()
         form = ChangeProcessTypeForm(request.POST, instance=pt, prefix=prefix)
         if form.is_valid():
+            pt = form.save(commit=False)
+            pt.changed_by=request.user
+            pt.save()
+            next = request.POST.get("next")
+            return HttpResponseRedirect(next)
+        else:
+            raise ValidationError(form.errors)
+        
+@login_required
+def change_mfg_process_type(request, process_type_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        pt = get_object_or_404(ProcessType, pk=process_type_id)
+        prefix = pt.xbill_change_prefix()
+        form = XbillProcessTypeForm(request.POST, instance=pt, prefix=prefix)
+        if form.is_valid():
+            data = form.cleaned_data
+            qty = data["quantity"]
+            prtr = pt.main_produced_resource_type_relationship()
+            if prtr:
+                if qty != prtr.quantity:
+                    prtr.quantity = qty
+                    prtr.save()
             pt = form.save(commit=False)
             pt.changed_by=request.user
             pt.save()

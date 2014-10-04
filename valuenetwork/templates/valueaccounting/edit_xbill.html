@@ -120,6 +120,7 @@ ul {
 		<legend>{% trans "Edit Recipe for " %} {{ resource_type }}</legend>
 
         <h4>
+            {% trans "Produces" %} {{ output_ctype.quantity }} {{ output_ctype.unit_of_quantity.abbrev }} {% trans "of" %}
 			{% if resource_type.url %}
 				<a href="{{ resource_type.url }}" target="blank">{{ resource_type }}</a>
 			{% else %}
@@ -133,7 +134,7 @@ ul {
 		
 
 			<div style="display: inline;" >
-				<a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+				<a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change Resource Type" %}</a>
 			</div>
 
         </h4>
@@ -245,7 +246,7 @@ ul {
 							<h3 id="process-change-label">{% trans "Change" %} {{ xbill_object }}</h3>
 						  </div>
 						  <div class="modal-body">
-								<form class="process-change-form" action="{% url change_process_type process_type_id=xbill_object.id %}" method="POST" >
+								<form class="process-change-form" action="{% url change_mfg_process_type process_type_id=xbill_object.id %}" method="POST" >
 									{% csrf_token %}
 									{{ xbill_object.xbill_change_form }}
 									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />

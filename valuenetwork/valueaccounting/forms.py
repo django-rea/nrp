@@ -2136,6 +2136,7 @@ class XbillProcessTypeForm(forms.ModelForm):
         #empty_label="---------",
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(
+        label=_("Output quantity"),
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     estimated_duration = forms.IntegerField(required=False,

@@ -2756,6 +2756,13 @@ class ProcessType(models.Model):
     def produced_resource_type_relationships(self):
         #todo pr: needs own_or_parent_recipes
         return self.resource_types.filter(event_type__relationship='out')
+        
+    def main_produced_resource_type_relationship(self):
+        ptrs = self.produced_resource_type_relationships()
+        if ptrs:
+            return ptrs[0]
+        else:
+            return None
                                 
     def produced_resource_types(self):
         return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
@@ -4122,7 +4129,15 @@ class Process(models.Model):
                 #if output.resource_type == ptrt.resource_type:
                 qty = output.quantity
             else:
-                qty = output.quantity * ptrt.quantity
+                multiplier = output.quantity 
+                if output.process:
+                    if output.process.process_type:
+                        main_ptr = output.process.process_type.main_produced_resource_type_relationship()
+                        if main_ptr:
+                            if main_ptr.quantity:
+                                multiplier = output.quantity / main_ptr.quantity
+                qty = (multiplier * ptrt.quantity).quantize(Decimal('.01'), rounding=ROUND_UP)
+                #todo: must consider ratio of PT output qty to PT input qty
             #pr changed
             resource_type = ptrt.resource_type
             if inheritance:
@@ -4183,8 +4198,10 @@ class Process(models.Model):
                         if output.stage:
                             qty = output.quantity
                         else:
-                            qty = qty_to_explode * pptr.quantity
-                        #print "is this an output commitment?", pptr.resource_type, pptr.event_type.relationship
+                            if not multiplier:
+                                multiplier = pptr.quantity
+                            qty = (qty_to_explode * multiplier).quantize(Decimal('.01'), rounding=ROUND_UP)
+                        #todo: must consider ratio of PT output qty to PT input qty
                         next_commitment = next_process.add_commitment(
                             resource_type=resource_type,
                             stage=pptr.stage,

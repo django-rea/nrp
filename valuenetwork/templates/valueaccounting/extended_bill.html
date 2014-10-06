@@ -115,6 +115,7 @@ ul {
 		    </legend>
 
 		    <h4>
+                {% trans "Produces" %} {{ output_ctype.quantity }} {{ output_ctype.unit_of_quantity.abbrev }} {% trans "of" %}
 				{% if resource_type.url %}
 					<a href="{{ resource_type.url }}" target="blank">{{ resource_type }}</a>
 				{% else %}

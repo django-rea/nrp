@@ -3307,10 +3307,10 @@ def agent_stats(request, agent_id):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
-#todo: the next 2 methods will need to be changed from project to context_agent
 def project_stats(request, context_agent_slug):
     project = None
     member_hours = []
+    #import pdb; pdb.set_trace()
     if context_agent_slug:
         project = get_object_or_404(EconomicAgent, slug=context_agent_slug)
     if project:

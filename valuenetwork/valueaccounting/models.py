@@ -575,7 +575,8 @@ class EconomicAgent(models.Model):
                
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
-        return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
+        aas = AgentAssociation.objects.filter(association_type__association_behavior="child").order_by("is_associate__name")
+        return flattened_children_by_association(self, aas, [])
         
     def with_all_associations(self):
         from valuenetwork.valueaccounting.utils import group_dfs_by_has_associate, group_dfs_by_is_associate
@@ -5445,7 +5446,6 @@ class EconomicEvent(models.Model):
         #import pdb; pdb.set_trace()
         from_agt = 'Unassigned'
         agent = self.from_agent
-        #project = self.project
         context_agent = self.context_agent
         resource_type = self.resource_type
         event_type = self.event_type
@@ -5457,7 +5457,6 @@ class EconomicEvent(models.Model):
         event_type_change = False
         if self.pk:
             prev_agent = self.from_agent
-            #prev_project = self.project
             prev_context_agent = self.context_agent
             prev_resource_type = self.resource_type
             prev_event_type = self.event_type
@@ -5467,9 +5466,6 @@ class EconomicEvent(models.Model):
             if prev.from_agent != self.from_agent:
                 agent_change = True
                 prev_agent = prev.from_agent
-            #if prev.project != self.project:
-            #    project_change = True
-            #    prev_project = prev.project 
             if prev.context_agent != self.context_agent:
                 context_agent_change = True
                 prev_context_agent = prev.context_agent 

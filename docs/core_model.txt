@@ -153,11 +153,34 @@ RESOURCE_EFFECT_CHOICES = (
 *EventType:
 "Defines the behavior of EconomicEvents."
     name = text
-    label = text
-    inverse_label = text
+    label = text #used in graphs
+    inverse_label = text #used in graphs
     relationship = reference to one of a list of EVENT_TYPE_RELATIONSHIP_CHOICES
     related_to = reference to one of a list of EVENT_TYPE_RELATED_CHOICES
     resource_effect = reference to one of a list of RESOURCE_EFFECT_CHOICES
+    
+* EventType examples:
+
+name: 'Citation'
+label: 'cites'
+inverse_label: 'cited by'
+relationship: 'cite'
+related_to: 'process'
+resource_effect: 'no effect'
+
+name: 'Resource Consumption'
+label: 'consumes'
+inverse_label: 'consumed by'
+relationship: 'consume'
+related_to: 'process'
+resource_effect: 'decrease'
+
+name: 'Cash Receipt'
+label: 'receives cash'
+inverse_label: 'cash received by'
+relationship: 'receivecash'
+related_to: 'exchange'
+resource_effect: 'increase'
     
   
 *EconomicResourceType:
@@ -220,7 +243,7 @@ Part of Recipes."
     
 
 *Process:
-"Changing input EconomicResources into output EconomicResources."
+"Changes input EconomicResources into output EconomicResources."
     name = text
     parent = reference to another Process
     process_type = reference to a ProcessType
@@ -234,7 +257,7 @@ Part of Recipes."
     
     
 Exchange:
-"Trading given EconomicResources for taken EconomicResources
+"Trades given EconomicResources for taken EconomicResources
 between EconomicAgents."
     name = text
     context_agent = reference to an EconomicAgent
@@ -279,7 +302,7 @@ to perform one or more EconomicEvents in the future."
    
    
 *EconomicResource:
-"Something of value in a context."
+"Something of value to some EconomicAgents."
     resource_type = reference to an EconomicResourceType
     identifier = text
     independent_demand = reference to an Order
@@ -297,7 +320,7 @@ to perform one or more EconomicEvents in the future."
     
     
 *EconomicEvent:
-"A change in an EconomicResource.
+"A change in an EconomicResource, performed by some EconomicAgents.
 The type of change is defined by the EventType."
     event_type = reference to an EventType
     event_date = date

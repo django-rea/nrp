@@ -85,6 +85,7 @@ li {
     font-style: italic;
     font-weight: bold;
     color: #5C8A8A;
+    margin-left: 2em;
 }
 .unplanned {
     color: 	#7D1818;
@@ -105,7 +106,11 @@ li {
     margin-top: 1px;
     margin-bottom: 1px;
 }
-
+hr {
+    margin-top: 3px;
+    margin-bottom: 2px;
+    border-color: #AEC4C4;
+}
 </style>
 
 {% endblock %}
@@ -539,6 +544,7 @@ li {
 				            </p>
 			            {% endfor %}
 			        {% endif %}
+                    <hr />
 		        {% endfor %}
 		        
                 {% if unplanned_work %}
@@ -589,6 +595,7 @@ li {
 	                        {% endif %}
 				            
 			            </div>
+                        <hr />
 		            {% endfor %}
 		        {% endif %}
             </div>

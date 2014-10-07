@@ -336,3 +336,20 @@ The type of change is defined by the EventType."
     commitment = reference to a Commitment
     
     
+*Facet:
+"Used with FacetValue to classify ResourceTypes."
+    name = text
+    description = text
+
+
+*FacetValue:
+"Used with Facet to classify ResourceTypes."
+    facet = reference to Facet
+    value = text
+    description = text
+
+
+*ResourceTypeFacetValue:
+    resource_type = reference to EconomicResourceType
+    facet_value =FacetValue
+

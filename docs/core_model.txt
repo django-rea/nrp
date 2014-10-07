@@ -186,6 +186,7 @@ resource_effect: 'increase'
 Part of Recipes."
     name = text  
     parent = reference to another EconomicResourceType
+    species = #placeholder - need a more general term, and need to figure out if it is resource type or something new
     unit = reference to a Unit
         help_text=_('if this resource type has different units of use and inventory, this is the unit of inventory'))
     unit_of_use = reference to a Unit

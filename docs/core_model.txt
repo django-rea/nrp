@@ -351,5 +351,5 @@ The type of change is defined by the EventType."
 
 *ResourceTypeFacetValue:
     resource_type = reference to EconomicResourceType
-    facet_value =FacetValue
+    facet_value = reference to FacetValue
 

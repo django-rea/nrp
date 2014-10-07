@@ -57,7 +57,9 @@
 								<a href="{{ event.url }}" target="_blank">Open</a>
 							{% endif %}
 						</td>
-						<td>{{ event.description|urlize }}</td>
+						<td>{% if event.description %}{{ event.description|urlize }}
+                            {% else %} {{ event.commitment.description|urlize }} {% endif %}
+                       </td>
 						<td>
 							{% if event.process %}
 								<a href="{{ event.process.get_absolute_url }}" target="_blank">{{ event.process.name }}</a>

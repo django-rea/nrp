@@ -35,7 +35,7 @@ Location:
 
 UNIT_TYPE_CHOICES = (
     'area',
-    'length', _('length')),
+    'length',
     'quantity',
     'time',
     'value',
@@ -63,7 +63,6 @@ PARTY_TYPE_CHOICES = (
     
 AgentType:
     name = text
-    parent = reference to another AgentType
     party_type = reference to one of a list of PARTY_TYPE_CHOICES
     description = text
     is_context = boolean
@@ -77,10 +76,8 @@ EconomicEvents involving EconomicResources."
     url = url
     agent_type = reference to an AgentType
     description = text
-    address = text
     email = email address
-    latitude = float
-    longitude = float
+    location = reference to a Location
     reputation = decimal number
     photo = reference to a photo
 
@@ -143,9 +140,8 @@ RESOURCE_EFFECT_CHOICES = (
     'decrease',
     'transfer', #means - for from_agent, + for to_agent
     'no effect', #used for citations and currently for work resource types
-    #These last three are currently used by workflows which change resource stage.
+    #These last two are currently used by workflows which change resource stage.
     #They are themselves subject to change.
-    'create to change', #create a resource which can change its stage or state
     'to be changed', #prepare for change of stage or state
     'change', #change stage or state
 )
@@ -155,6 +151,8 @@ RESOURCE_EFFECT_CHOICES = (
     name = text
     label = text #used in graphs
     inverse_label = text #used in graphs
+    #(from Lynn) I think we need to clean this up, not sure if there is any difference between
+    #event type and event type.relationship.  But would have to think some more.
     relationship = reference to one of a list of EVENT_TYPE_RELATIONSHIP_CHOICES
     related_to = reference to one of a list of EVENT_TYPE_RELATED_CHOICES
     resource_effect = reference to one of a list of RESOURCE_EFFECT_CHOICES
@@ -222,11 +220,10 @@ ORDER_TYPE_CHOICES = (
 "Defines the behavior of Processes.
 Part of Recipes."
     name = text
-    parent = reference to another ProcessType
     context_agent = reference to an EconomicAgent
     description = text
     url = url
-    estimated_duration = number of hours
+    estimated_duration = number of days #hours? days-hours-minutes?
     
     
 *CommitmentType:
@@ -236,7 +233,7 @@ Part of Recipes."
     resource_type = reference to an EconomicResourceType
     event_type = reference to an EventType
     stage = reference to a ProcessType
-    state = reference to a ResourceState
+    state = reference to a ResourceState #we haven't implemented state yet, would need to add to this spec as a class
     quantity = decimal number
     unit_of_quantity = reference to Unit
     description = text
@@ -245,7 +242,6 @@ Part of Recipes."
 *Process:
 "Changes input EconomicResources into output EconomicResources."
     name = text
-    parent = reference to another Process
     process_type = reference to a ProcessType
     context_agent = reference to an EconomicAgent
     url = url
@@ -264,8 +260,6 @@ between EconomicAgents."
     url = url
     start_date = date
     notes = text
-    supplier = reference to an EconomicAgent
-    customer = reference to an EconomicAgent
     order = reference to an Order
     
     
@@ -279,7 +273,7 @@ to perform one or more EconomicEvents in the future."
     event_type = reference to an EventType
     commitment_type = reference to a CommitmentType
     stage = reference to a ProcessType
-    state = reference to a ResourceState
+    state = reference to a ResourceState #need class to reference
     commitment_date = date
     start_date = date
     due_date = date
@@ -290,7 +284,7 @@ to perform one or more EconomicEvents in the future."
     resource_type = reference to an EconomicResourceType
     resource = reference to an EconomicResource
     process = reference to a Process
-    exchange = reference to an Exchange
+    exchange = reference to an Exchange #process and exchange could be subclasses of something, making this one property.....
     context_agent = reference to an EconomicAgent
     description = text
     url = url
@@ -315,7 +309,7 @@ to perform one or more EconomicEvents in the future."
     quality = decimal number
     notes = text
     photo = reference to a photo
-    access_rules = text
+    access_rules = text #this needs to be more developed in the future, this is a placeholder
     current_location = reference to a Location
     
     

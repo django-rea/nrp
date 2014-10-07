@@ -25,12 +25,12 @@ export WORKON_HOME=~/Envs
 mkdir -p $WORKON_HOME
 source /usr/local/bin/virtualenvwrapper.sh
 
-Step 5 assumes virtualenvwrapper
+Step 6 assumes virtualenvwrapper
 
 4. unless you don't have it already: install git
 sudo apt-get install git
 
-4. We have had problems getting Pillow, one of the requirements, 
+5. We have had problems getting Pillow, one of the requirements, 
 to handle jpegs without installing some external libraries.
 
 It's gone from requirements.txt until we figure this out more.
@@ -54,17 +54,27 @@ git clone https://github.com/valnet/valuenetwork.git
 
 9. pip install -r requirements.txt
 
-10. create the sqlite database
+10. pip install –no-deps easy_thumbnails
+
+11. create the sqlite database
 ./manage.py syncdb
 and then
 ./manage.py migrate
 
-11. run the tests
+We've had some problems with easy_thumbnails migration.
+If you do, create a local_settings.py file
+in the same directory as settings.py and add:
+
+SOUTH_MIGRATION_MODULES = {
+    'easy_thumbnails': 'easy_thumbnails.south_migrations',
+}
+
+12. run the tests
 ./manage.py test valueaccounting
 
-12. crank up the django server
+13. crank up the django server
 ./manage.py runserver
 
-13. point browser at http://127.0.0.1:8000/
+14. point browser at http://127.0.0.1:8000/
 
 

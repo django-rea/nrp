@@ -96,7 +96,9 @@ textarea {
 		            <a href="#addOrderItem" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Add an Order Item" %}</a>
 	            {% else %}
 	                {% trans "Deliverables" %}:
+	                {% if agent %}
 	                <a href="#addOrderItem" role="button" class="btn btn-primary btn-mini indent" data-toggle="modal">{% trans "Add a Deliverable" %}</a>
+	                {% endif %}
 	            {% endif %}
 	            
 	        </h3>
@@ -191,7 +193,9 @@ textarea {
 				<div class="span12">
 					<h3 style="margin-bottom: 4px;" >
 					    {% trans "Production Schedule" %}:
-					    <a class="indent" href="{% url processes_graph object_type='O' object_id=order.id %}">Process graph diagram</a>
+					    {% if order.all_processes %}
+                            <a class="indent" href="{% url processes_graph object_type='O' object_id=order.id %}">Process graph diagram</a>
+					    {% endif %}
 				    </h3> 
 					
                     {% for item in order_items %}

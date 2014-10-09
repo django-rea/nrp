@@ -1,3 +1,8 @@
+DISCLAIMER: this is early work in process. Being revised, cleaned up,
+stuff changing, being deleted, etc. etc. Do not take this as "the model".
+Thank you very much.
+
+
 """ Models based on REA
 
 These models are based on the Bill McCarthy's Resource-Event-Agent accounting model:

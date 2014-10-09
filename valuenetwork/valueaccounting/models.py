@@ -1470,6 +1470,7 @@ class EconomicResourceType(models.Model):
     
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
         #pr changed
+        #import pdb; pdb.set_trace()
         pts, inheritance = self.staged_process_type_sequence()
         #import pdb; pdb.set_trace()
         order = Order(
@@ -3428,6 +3429,7 @@ class ProcessTypeResourceType(models.Model):
         else:
             due_date = process.start_date
         resource_type = self.resource_type
+        #todo dhen: this is where species would be used
         if inheritance:
             if resource_type == inheritance.parent:
                 resource_type = inheritance.substitute(resource_type)
@@ -4146,6 +4148,7 @@ class Process(models.Model):
                 #todo: must consider ratio of PT output qty to PT input qty
             #pr changed
             resource_type = ptrt.resource_type
+            #todo dhen: this is where species would be used
             if inheritance:
                 if resource_type == inheritance.parent:
                     resource_type = inheritance.substitute(resource_type)
@@ -4182,6 +4185,7 @@ class Process(models.Model):
                     pptr, inheritance = resource_type.main_producing_process_type_relationship(stage=stage, state=state)
                     if pptr:
                         resource_type = pptr.resource_type
+                        #todo dhen: this is where species would be used
                         if inheritance:
                             if resource_type == inheritance.parent:
                                 resource_type = inheritance.substitute(resource_type)
@@ -5172,10 +5176,13 @@ class Commitment(models.Model):
         if self.order_item:
             commitments = Commitment.objects.filter(order_item=self.order_item)
             for c in commitments:
-                ordered_processes.append(c.process)
-            ordered_processes = list(set(ordered_processes))
-            ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
-            ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
+                if c.process:
+                    ordered_processes.append(c.process)
+            #import pdb; pdb.set_trace()
+            if ordered_processes:
+                ordered_processes = list(set(ordered_processes))
+                ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
+                ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
         return ordered_processes
         
     def last_process_in_my_order_item(self):

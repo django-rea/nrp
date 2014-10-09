@@ -163,6 +163,7 @@ class EconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    created_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
 
     class Meta:
         model = EconomicResource

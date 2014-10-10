@@ -8748,3 +8748,12 @@ def inventory_board_demo(request):
         "resource_form": resource_form,
         "process_form": process_form,
     }, context_instance=RequestContext(request))
+
+def lots(request):
+    #import pdb; pdb.set_trace()
+    
+    
+    return render_to_response("valueaccounting/lots.html", {
+        "resource_form": resource_form,
+        "process_form": process_form,
+    }, context_instance=RequestContext(request))

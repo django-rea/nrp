@@ -390,5 +390,6 @@ urlpatterns = patterns("",
     url(r"^resource-flow/$", 'valuenetwork.valueaccounting.views.resource_flow', name="resource_flow"),
     url(r"^workflow-board-demo/$", 'valuenetwork.valueaccounting.views.workflow_board_demo', name="workflow_board_demo"),
     url(r"^inventory-board-demo/$", 'valuenetwork.valueaccounting.views.inventory_board_demo', name="inventory_board_demo"),
+    url(r"^lots/$", 'valuenetwork.valueaccounting.views.lots', name="lots"),
 )
 

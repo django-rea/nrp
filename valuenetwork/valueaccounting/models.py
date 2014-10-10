@@ -1315,9 +1315,7 @@ class EconomicResourceType(models.Model):
         
     def staged_commitment_type_sequence(self):
         #import pdb; pdb.set_trace()
-        #todo pr: shd this be own or own_or_parent?
         #pr changed
-        #todo pr: may need return RecipeInheritance object
         staged_commitments = self.process_types.filter(stage__isnull=False)
         parent = None
         inheritance = None
@@ -1357,11 +1355,63 @@ class EconomicResourceType(models.Model):
         if creation:
             creation.follow_stage_chain(chain)
         return chain, inheritance
+              
+    def staged_commitment_type_sequence_beyond_workflow(self):
+        #import pdb; pdb.set_trace()
+        #pr changed
+        staged_commitments = self.process_types.filter(stage__isnull=False)
+        parent = None
+        inheritance = None
+        if not staged_commitments:
+            parent = self.parent
+            while parent:
+                staged_commitments = parent.process_types.filter(stage__isnull=False)
+                if staged_commitments:
+                    break
+                else:
+                    parent = parent.parent
+        if not staged_commitments:
+            return [], None
+        creation_et = EventType.objects.get(name='Create Changeable') 
+        chain = []
+        creation = None
+        try:
+            if parent:
+                inheritance = RecipeInheritance(parent, self)
+                creation = parent.process_types.get(
+                    stage__isnull=False,
+                    event_type=creation_et)
+            else:
+                creation = self.process_types.get(
+                    stage__isnull=False,
+                    event_type=creation_et)
+        except ProcessTypeResourceType.DoesNotExist:
+            try:
+                if parent:
+                    creation = parent.process_types.get(
+                        stage__isnull=True)
+                else:
+                    creation = self.process_types.get(
+                        stage__isnull=True)
+            except ProcessTypeResourceType.DoesNotExist:
+                pass
+        if creation:
+            creation.follow_stage_chain_beyond_workflow(chain)
+        return chain, inheritance
         
     def staged_process_type_sequence(self):
         #pr changed
         pts = []
         stages, inheritance = self.staged_commitment_type_sequence()
+        for stage in stages:
+            if stage.process_type not in pts:
+                pts.append(stage.process_type)
+        return pts, inheritance
+        
+    def staged_process_type_sequence_beyond_workflow(self):
+        #pr changed
+        pts = []
+        stages, inheritance = self.staged_commitment_type_sequence_beyond_workflow()
         for stage in stages:
             if stage.process_type not in pts:
                 pts.append(stage.process_type)
@@ -1601,6 +1651,10 @@ class EconomicResourceType(models.Model):
     def wanting_process_type_relationships(self):
         #todo pr: shd this be own or own_or_parent_recipes?
         return self.process_types.exclude(event_type__relationship='out')
+        
+    def wanting_process_type_relationships_for_stage(self, stage):
+        #todo pr: shd this be own or own_or_parent_recipes?
+        return self.process_types.exclude(event_type__relationship='out').filter(stage=stage)
 
     def wanting_process_types(self):
         #todo pr: shd this be own or own_or_parent_recipes?
@@ -2765,6 +2819,12 @@ class ProcessType(models.Model):
             return ptrs[0]
         else:
             return None
+            
+    def is_stage(self):
+        ct = self.main_produced_resource_type_relationship()
+        if ct.stage:
+            return True
+        return False
                                 
     def produced_resource_types(self):
         return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
@@ -3438,6 +3498,20 @@ class ProcessTypeResourceType(models.Model):
                     event_type__resource_effect="~>")
             if next_in_chain:
                 next_in_chain[0].follow_stage_chain(chain)
+                
+    def follow_stage_chain_beyond_workflow(self, chain):
+        #import pdb; pdb.set_trace()
+        chain.append(self)
+        if self.event_type.is_change_related():
+            if self.event_type.relationship == "out":
+                next_in_chain = self.resource_type.wanting_process_type_relationships_for_stage(self.stage)
+            if self.event_type.relationship == "in":
+                next_in_chain = ProcessTypeResourceType.objects.filter(
+                    resource_type=self.resource_type,
+                    stage=self.process_type,
+                    event_type__resource_effect="~>")
+            if next_in_chain:
+                next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
                     
     def create_commitment_for_process(self, process, user, inheritance):
         #pr changed

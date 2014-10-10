@@ -67,15 +67,18 @@ PARTY_TYPE_CHOICES = (
     
     
 AgentType:
+"This and its party_type will be part of another ontology, which will have Person and Group
+as subclasses, and could also allow for additional types using AdditionalType."
     name = text
     party_type = reference to one of a list of PARTY_TYPE_CHOICES
     description = text
-    is_context = boolean
     
   
 *EconomicAgent:
 "A person or organization that is authorized to perform
-EconomicEvents involving EconomicResources."
+EconomicEvents involving EconomicResources.  This will be 
+part of another ontology
+with Agent as superclass, Person and Group as subclasses."
     name = text
     nick = text
     url = url
@@ -83,7 +86,7 @@ EconomicEvents involving EconomicResources."
     description = text
     email = email address
     location = reference to a Location
-    reputation = decimal number
+    reputation = decimal number #derived data
     photo = reference to a photo
 
     
@@ -94,7 +97,7 @@ ASSOCIATION_BEHAVIOR_CHOICES = (
     'child',
 )
 
-AgentAssociationType:
+AgentRelationshipRole:
     identifier = text
     name = text
     plural_name = text
@@ -110,11 +113,11 @@ RELATIONSHIP_STATE_CHOICES = (
     'potential'
 )    
 
-AgentAssociation:
-"An organization-forming relationship."
-    is_associate = reference to an EconomicAgent
-    has_associate = reference to an EconomicAgent
-    association_type = reference to an AgentAssociationType
+AgentRelationship:
+"An association between 2 agents, defining a role in relationship to each other."
+    is_associate = reference to an EconomicAgent #to Agent in other ontology
+    has_associate = reference to an EconomicAgent #to Agent in other ontology
+    relationship_type = reference to an AgentRelationshipRole
     description = text
     state = reference to one of a list of RELATIONSHIP_STATE_CHOICES
 
@@ -184,7 +187,13 @@ inverse_label: 'cash received by'
 relationship: 'receivecash'
 related_to: 'exchange'
 resource_effect: 'increase'
-    
+
+
+INVENTORY_RULE_CHOICES = (
+    ('yes', _('Keep inventory')),
+    ('no', _('Not worth it')),
+    ('never', _('Does not apply')),
+)    
   
 *EconomicResourceType:
 "Defines the behavior of EconomicResources.

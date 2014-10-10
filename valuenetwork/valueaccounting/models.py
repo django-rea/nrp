@@ -3169,6 +3169,23 @@ class EconomicResource(models.Model):
         if self.quantity != 0:
             return False
         return True
+        
+    def bill_of_lots(self):
+        flows = self.inputs_to_output()
+        lots = []
+        for flow in flows:
+            if type(flow) is EconomicEvent:
+                resource = flow.resource
+                if not resource == self:
+                    lots.append(resource)
+        lots = list(set(lots))
+        lots.append(self)
+        return lots
+
+    def inputs_to_output(self):
+        flows = self.incoming_value_flows()
+        flows.reverse()
+        return flows
 
     def incoming_value_flows(self):
         flows = []

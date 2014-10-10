@@ -212,6 +212,21 @@ Part of Recipes."
     url = url
     description = text
     rate = decimal number
+
+    
+AgentResourceType:
+"Defines the relationship between
+an Agent, an EconomicResourceType and an EventType.
+For example, a given Agent might sell one EconomicResourceType,
+buy another EconomicResourceType, and provide work of yet
+another EconomicResourceType."
+    agent = reference to an EconomicAgent
+    resource_type = reference to an EconomicResourceType
+    event_type = reference to an EventType
+    lead_time = number of days
+    value = a decimal number #could be price, pay rate, etc.
+    unit_of_value = reference to a Unit
+    description = models.TextField(_('description'), null=True, blank=True)
     
   
 ORDER_TYPE_CHOICES = (

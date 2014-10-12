@@ -3230,6 +3230,10 @@ class EconomicResource(models.Model):
             return False
         return True
         
+    def track_lot_forward(self):
+        pass
+        
+        
     def bill_of_lots(self):
         flows = self.inputs_to_output()
         lots = []
@@ -3279,6 +3283,34 @@ class EconomicResource(models.Model):
                                     resources.append(evt.resource)
             for resource in resources:
                 resource.incoming_value_flows_dfs(flows, visited, depth)
+                
+    def outgoing_value_flows(self):
+        flows = []
+        visited = []
+        depth = 0
+        self.depth = depth
+        flows.append(self)
+        self.outgoing_value_flows_dfs(flows, visited, depth)
+        return flows
+                
+    def outgoing_value_flows_dfs(self, flows, visited, depth):
+        #import pdb; pdb.set_trace()
+        if not self in visited:
+            visited.append(self)
+            depth += 1
+            for event in self.all_usage_events().order_by("id"):
+                event.depth = depth
+                flows.append(event)
+                p = event.process
+                if p:
+                    if not p in visited:
+                        depth += 1
+                        p.depth = depth
+                        flows.append(p)
+                        depth += 1
+                        for evt in p.production_events():
+                            evt.depth = depth
+                            flows.append(evt)
 
     def form_prefix(self):
         return "-".join(["RES", str(self.id)])

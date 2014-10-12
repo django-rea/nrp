@@ -157,6 +157,11 @@ th, td {
     font-size: 150%;
 }
 
+#saving {
+    color: green;
+}
+
+
 </style>
 {% endblock %}
 
@@ -167,7 +172,10 @@ th, td {
         {% include "_messages.html" %}
 	    <div>
 		    <legend>
-		        {% trans "Change Pattern" %}: {{ pattern.name }}&nbsp;&nbsp;&nbsp;<a href="{% url resource_facet_table %}">{% trans "Change Resource Type Facets" %}</a>
+		        {% trans "Change Pattern" %}: 
+		        <input id="patternName" name="patternName" value="{{ pattern.name }}" />
+		        &nbsp;&nbsp;&nbsp;<a href="{% url resource_facet_table %}">{% trans "Change Resource Type Facets" %}</a>
+		        &nbsp;&nbsp;&nbsp;<span id="saving"></span>
 	        </legend>
 
             <form id="facetsForm" action="." method="POST" >
@@ -270,9 +278,93 @@ th, td {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
+        
+        $("#patternName").blur(saveName);
 
 	}); // end document.ready
 	
+	function saveName(event)
+    {
+        var name = event.target.value;
+        id = {{ pattern.id }};
+        notifySaving();
+        var jqxhr = $.post("{% url change_pattern_name  %}",  { patternId: id, name: name },
+            function( data ) 
+            {
+                notifySaved();
+            })
+            .fail(function() 
+            { 
+                notifyProblem(); 
+            }
+        );   
+    }
+    
+    function notifySaving()
+    {
+        $("#saving").css("color","green"); 
+        $("#saving").text("Saving new name...");
+    }
+
+    function notifySaved()
+    {
+        $("#saving").css("color","green"); 
+        $("#saving").text("Saved new name");
+    }
+
+    function notifyProblem()
+    {
+        $("#saving").css("color","red"); 
+        $("#saving").text("Problem saving new name");
+    }
+
+    $(document).ajaxSend(function(event, xhr, settings) 
+    {
+        function getCookie(name) 
+        {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') 
+            {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) 
+                {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) 
+                    {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function sameOrigin(url) 
+        {
+            // url could be relative or scheme relative or absolute
+            var host = document.location.host; // host + port
+            var protocol = document.location.protocol;
+            var sr_origin = '//' + host;
+            var origin = protocol + sr_origin;
+            // Allow absolute or scheme relative URLs to same origin
+            return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+                (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+                // or any other URL that isn't scheme relative or absolute i.e relative.
+                !(/^(\/\/|http:|https:).*/.test(url));
+        }
+
+        function safeMethod(method) 
+        {
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        if (!safeMethod(settings.type) && sameOrigin(settings.url)) 
+        {
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        }
+    });
+    
     </script>
 
 {% endblock %}

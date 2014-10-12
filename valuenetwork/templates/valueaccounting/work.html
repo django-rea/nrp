@@ -174,6 +174,8 @@ th, td {
 }
 .tddesc {
     width: 20%;
+    color: firebrick;
+    font-weight: bold;
 }
 
 </style>
@@ -196,6 +198,10 @@ th, td {
 		        {% if agent %}
 					<a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Work" %}</a>
 					<a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan Work Using Recipe" %}</a>
+                    <a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" 
+                        title="When you are not creating resources." >
+                        {% trans "Log non-production work" %}
+                    </a>
 			    {% endif %}
 	        </legend>
 
@@ -411,7 +417,7 @@ th, td {
 	                                                <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url todo_time %}" method="POST" >
 								                        {% csrf_token %}
 	                                                    <input class="input-mini optional-quantity" id="{{ todo.id }}-timeId" name="{{ todo.id }}-time" type="text" size="6" 
-	                                                        {% if event %} value="{{ event.quantity }}" {% else %} value="1" {% endif %}
+	                                                        {% if event %} value="{{ event.quantity }}" {% else %} value="0" {% endif %}
 	                                                    />
                                                     </form>
 	                                            </td>

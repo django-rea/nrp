@@ -163,6 +163,7 @@ class EconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    created_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
 
     class Meta:
         model = EconomicResource
@@ -2136,6 +2137,7 @@ class XbillProcessTypeForm(forms.ModelForm):
         #empty_label="---------",
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(
+        label=_("Output quantity"),
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     estimated_duration = forms.IntegerField(required=False,
@@ -2673,4 +2675,85 @@ class DistributionValueEquationForm(forms.ModelForm):
                             resources.append(res)
                 self.fields["resource"].choices = [('', '----------')] + [(res.id, res.identifier) for res in resources]
         #import pdb; pdb.set_trace()
-                       
+        
+class ResourceFlowForm(forms.ModelForm):
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    event_date = forms.DateField(
+        required=True, 
+        label="Received on",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    to_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Supplier",  
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        help_text="If you don't see the resource type you want, please contact an admin.",
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector resourceType chzn-select input-large'}))
+    value = forms.DecimalField(
+        help_text="Total value for all received, not value for each.",
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    quantity = forms.DecimalField(required=True,
+        label="Quantity",
+        widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
+    unit_of_quantity = forms.ModelChoiceField(
+        queryset=Unit.objects.exclude(unit_type='value').exclude(unit_type='time'), 
+        empty_label=None,
+        label=_("Unit"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    description = forms.CharField(
+        required=False,
+        label="Event Description", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    identifier = forms.CharField(
+        required=False, 
+        label="<b>Create the resource:</b><br><br>Identifier",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    url = forms.URLField(
+        required=False, 
+        label="URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    photo_url = forms.URLField(
+        required=False, 
+        label="Photo URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    current_location = forms.ModelChoiceField(
+        queryset=Location.objects.all(), 
+        required=False,
+        label=_("Current Resource Location"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    notes = forms.CharField(
+        required=False,
+        label="Resource Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    access_rules = forms.CharField(
+        required=False,
+        label="Resource Access Rules", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+        
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'resource_type', 'value', 'unit_of_value', 'quantity', 'unit_of_quantity', 'description')
+
+    def __init__(self, pattern, *args, **kwargs):
+        super(ResourceFlowForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            et = EventType.objects.get(name="Change")
+            self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
+           

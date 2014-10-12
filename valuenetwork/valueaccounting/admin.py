@@ -131,7 +131,7 @@ class EconomicResourceTypeAdmin(admin.ModelAdmin):
     list_display = ('label', 'name', 'rate', 'unit', 'unit_of_use', 'description', 'substitutable', 'facet_list')
     list_filter = ['facets__facet_value']
     search_fields = ['name',]
-    list_editable = ['unit', 'unit_of_use', 'substitutable',]
+    list_editable = ['unit', 'unit_of_use', 'substitutable']
     inlines = [ ResourceTypeFacetInline, ]
     
 admin.site.register(EconomicResourceType, EconomicResourceTypeAdmin)
@@ -145,7 +145,7 @@ admin.site.register(AgentResourceType, AgentResourceTypeAdmin)
 
 
 class ProcessTypeResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('process_type', 'resource_type', 'event_type', 'unit_of_quantity')
+    list_display = ('process_type', 'resource_type', 'event_type', 'quantity', 'unit_of_quantity')
     list_filter = ['event_type', 'process_type', 'resource_type']
     search_fields = ['process_type__name','resource_type__name',]
     
@@ -208,12 +208,17 @@ class OrderAdmin(admin.ModelAdmin):
 admin.site.register(Order, OrderAdmin)
 
 
+class EventInline(admin.TabularInline):
+    model = EconomicEvent
+    fk_name = 'process'
+    fields = ('event_type', 'event_date', 'resource_type', 'resource', 'from_agent', 'to_agent', 'quantity', 'unit_of_quantity')
+
 class ProcessAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
     list_display = ('name', 'start_date', 'end_date', 'finished', 'process_type', 'context_agent')
     list_filter = ['process_type', 'finished', 'context_agent']
     search_fields = ['name', 'process_type__name', 'context_agent__name']
-    inlines = [ CommitmentInline, ]
+    inlines = [ CommitmentInline, EventInline]
     
 admin.site.register(Process, ProcessAdmin)
 

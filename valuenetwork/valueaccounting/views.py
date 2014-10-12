@@ -631,6 +631,21 @@ def change_pattern(request, pattern_id, use_case_id):
         "slots": slots,
         "use_case": use_case,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def change_pattern_name(request):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        pattern_id = request.POST.get("patternId")
+        try:
+            pattern = ProcessPattern.objects.get(id=pattern_id)
+        except ProcessPattern.DoesNotExist:
+            pattern = None
+        if pattern:
+            name = request.POST.get("name")
+            pattern.name = name
+            pattern.save()
+    return HttpResponse("Ok", mimetype="text/plain")
 
 @login_required
 def add_pattern_to_use_case(request, use_case_id):
@@ -1253,6 +1268,7 @@ def value_equation(request, project_id):
 
 def extended_bill(request, resource_type_id):
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    output_ctype, inheritance = rt.main_producing_process_type_relationship()
     #import pdb; pdb.set_trace()
     select_all = True
     facets = Facet.objects.all()
@@ -1299,6 +1315,7 @@ def extended_bill(request, resource_type_id):
         selected_vals = "all"
     return render_to_response("valueaccounting/extended_bill.html", {
         "resource_type": rt,
+        "output_ctype": output_ctype,
         "nodes": nodes,
         "depth": depth,
         "selected_depth": selected_depth,
@@ -1315,6 +1332,7 @@ def edit_extended_bill(request, resource_type_id):
 
     #start_time = time.time()
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    output_ctype, inheritance = rt.main_producing_process_type_relationship()
     #import pdb; pdb.set_trace()
     nodes = rt.generate_xbill()
     resource_type_form = EconomicResourceTypeChangeForm(instance=rt)
@@ -1325,6 +1343,7 @@ def edit_extended_bill(request, resource_type_id):
     #print("edit_extended_bill view elapsed time was %g seconds" % (end_time - start_time))
     return render_to_response("valueaccounting/edit_xbill.html", {
         "resource_type": rt,
+        "output_ctype": output_ctype,
         "nodes": nodes,
         "photo_size": (128, 128),
         "big_photo_size": (200, 200),
@@ -1979,6 +1998,29 @@ def change_process_type(request, process_type_id):
         prefix = pt.xbill_change_prefix()
         form = ChangeProcessTypeForm(request.POST, instance=pt, prefix=prefix)
         if form.is_valid():
+            pt = form.save(commit=False)
+            pt.changed_by=request.user
+            pt.save()
+            next = request.POST.get("next")
+            return HttpResponseRedirect(next)
+        else:
+            raise ValidationError(form.errors)
+        
+@login_required
+def change_mfg_process_type(request, process_type_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        pt = get_object_or_404(ProcessType, pk=process_type_id)
+        prefix = pt.xbill_change_prefix()
+        form = XbillProcessTypeForm(request.POST, instance=pt, prefix=prefix)
+        if form.is_valid():
+            data = form.cleaned_data
+            qty = data["quantity"]
+            prtr = pt.main_produced_resource_type_relationship()
+            if prtr:
+                if qty != prtr.quantity:
+                    prtr.quantity = qty
+                    prtr.save()
             pt = form.save(commit=False)
             pt.changed_by=request.user
             pt.save()
@@ -2946,7 +2988,7 @@ def change_process_sked_ajax(request):
 def work(request):
     agent = get_agent(request)
     start = datetime.date.today()
-    end = start + datetime.timedelta(days=7)
+    end = start + datetime.timedelta(days=90)
     init = {"start_date": start, "end_date": end}
     date_form = DateSelectionForm(initial=init, data=request.POST or None)
     ca_form = ProjectSelectionFormOptional(data=request.POST or None)
@@ -3034,7 +3076,7 @@ def add_todo(request):
                 todo = form.save(commit=False)
                 todo.to_agent=agent
                 todo.event_type=et
-                todo.quantity = Decimal("1")
+                todo.quantity = Decimal("0")
                 todo.unit_of_quantity=todo.resource_type.unit
                 todo.save()
                 if notification:
@@ -3063,7 +3105,7 @@ def create_event_from_todo(todo):
         resource_type=todo.resource_type,
         context_agent=todo.context_agent,
         url=todo.url,
-        quantity=Decimal("1"),
+        quantity=Decimal("0"),
         unit_of_quantity=todo.resource_type.unit,
         is_contribution=True,
     )
@@ -3265,10 +3307,10 @@ def agent_stats(request, agent_id):
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
-#todo: the next 2 methods will need to be changed from project to context_agent
 def project_stats(request, context_agent_slug):
     project = None
     member_hours = []
+    #import pdb; pdb.set_trace()
     if context_agent_slug:
         project = get_object_or_404(EconomicAgent, slug=context_agent_slug)
     if project:
@@ -4604,6 +4646,8 @@ def delete_event(request, event_id):
                 resource.quantity += event.quantity
             if event.creates_resources():
                 resource.quantity -= event.quantity
+            if event.changes_stage():
+                resource.revert_to_previous_stage()
             event.delete()
             if resource.is_deletable():
                 resource.delete()
@@ -5244,12 +5288,12 @@ def process_oriented_logging(request, process_id):
         if request.user.is_superuser or request.user == process.created_by:
             logger = True
             super_logger = True
+        #import pdb; pdb.set_trace()
         for req in work_reqs:
             req.changeform = req.change_work_form()
             if agent == req.from_agent:
                 logger = True
-                worker = True
-                break  
+                worker = True  
         for req in consume_reqs:
             req.changeform = req.change_form()
         for req in use_reqs:
@@ -7475,6 +7519,7 @@ def process_selections(request, rand=0):
                     if rand:
                         if not added_to_order:
                             commitment.order = demand
+                            commitment.order_item = commitment
                             commitment.save()
                         '''
                         #use recipe
@@ -8665,7 +8710,50 @@ def payment_event_for_commitment(request):
     return HttpResponse(data, mimetype="text/plain")
 '''
 
+#demo page for DHEN
+#@login_required
+def resource_flow(request):
+    #import pdb; pdb.set_trace()
+    pattern = ProcessPattern.objects.get(name="Change")
+    resource_form = ResourceFlowForm(pattern=pattern)
+    role_formset = resource_role_agent_formset(prefix='role')
+    
+    return render_to_response("valueaccounting/resource_flow.html", {
+        "resource_form": resource_form,
+        "role_formset": role_formset,
+    }, context_instance=RequestContext(request))
+    
+#demo page for DHEN and GT
+#@login_required
+def workflow_board_demo(request):
+    #import pdb; pdb.set_trace()
+    pattern = ProcessPattern.objects.get(name="Change")
+    resource_form = ResourceFlowForm(pattern=pattern)
+    process_form = PlanProcessForm()
+    
+    return render_to_response("valueaccounting/workflow_board_demo.html", {
+        "resource_form": resource_form,
+        "process_form": process_form,
+    }, context_instance=RequestContext(request))
+    
+#demo page for DHEN
+#@login_required
+def inventory_board_demo(request):
+    #import pdb; pdb.set_trace()
+    pattern = ProcessPattern.objects.get(name="Change")
+    resource_form = ResourceFlowForm(pattern=pattern)
+    process_form = PlanProcessForm()
+    
+    return render_to_response("valueaccounting/inventory_board_demo.html", {
+        "resource_form": resource_form,
+        "process_form": process_form,
+    }, context_instance=RequestContext(request))
 
+def lots(request):
+    #import pdb; pdb.set_trace()
     
     
-
+    return render_to_response("valueaccounting/lots.html", {
+        "resource_form": resource_form,
+        "process_form": process_form,
+    }, context_instance=RequestContext(request))

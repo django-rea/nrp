@@ -575,7 +575,8 @@ class EconomicAgent(models.Model):
                
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
-        return flattened_children_by_association(self, AgentAssociation.objects.all(), [])
+        aas = AgentAssociation.objects.filter(association_type__association_behavior="child").order_by("is_associate__name")
+        return flattened_children_by_association(self, aas, [])
         
     def with_all_associations(self):
         from valuenetwork.valueaccounting.utils import group_dfs_by_has_associate, group_dfs_by_is_associate
@@ -1314,9 +1315,7 @@ class EconomicResourceType(models.Model):
         
     def staged_commitment_type_sequence(self):
         #import pdb; pdb.set_trace()
-        #todo pr: shd this be own or own_or_parent?
         #pr changed
-        #todo pr: may need return RecipeInheritance object
         staged_commitments = self.process_types.filter(stage__isnull=False)
         parent = None
         inheritance = None
@@ -1356,11 +1355,63 @@ class EconomicResourceType(models.Model):
         if creation:
             creation.follow_stage_chain(chain)
         return chain, inheritance
+              
+    def staged_commitment_type_sequence_beyond_workflow(self):
+        #import pdb; pdb.set_trace()
+        #pr changed
+        staged_commitments = self.process_types.filter(stage__isnull=False)
+        parent = None
+        inheritance = None
+        if not staged_commitments:
+            parent = self.parent
+            while parent:
+                staged_commitments = parent.process_types.filter(stage__isnull=False)
+                if staged_commitments:
+                    break
+                else:
+                    parent = parent.parent
+        if not staged_commitments:
+            return [], None
+        creation_et = EventType.objects.get(name='Create Changeable') 
+        chain = []
+        creation = None
+        try:
+            if parent:
+                inheritance = RecipeInheritance(parent, self)
+                creation = parent.process_types.get(
+                    stage__isnull=False,
+                    event_type=creation_et)
+            else:
+                creation = self.process_types.get(
+                    stage__isnull=False,
+                    event_type=creation_et)
+        except ProcessTypeResourceType.DoesNotExist:
+            try:
+                if parent:
+                    creation = parent.process_types.get(
+                        stage__isnull=True)
+                else:
+                    creation = self.process_types.get(
+                        stage__isnull=True)
+            except ProcessTypeResourceType.DoesNotExist:
+                pass
+        if creation:
+            creation.follow_stage_chain_beyond_workflow(chain)
+        return chain, inheritance
         
     def staged_process_type_sequence(self):
         #pr changed
         pts = []
         stages, inheritance = self.staged_commitment_type_sequence()
+        for stage in stages:
+            if stage.process_type not in pts:
+                pts.append(stage.process_type)
+        return pts, inheritance
+        
+    def staged_process_type_sequence_beyond_workflow(self):
+        #pr changed
+        pts = []
+        stages, inheritance = self.staged_commitment_type_sequence_beyond_workflow()
         for stage in stages:
             if stage.process_type not in pts:
                 pts.append(stage.process_type)
@@ -1469,6 +1520,7 @@ class EconomicResourceType(models.Model):
     
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
         #pr changed
+        #import pdb; pdb.set_trace()
         pts, inheritance = self.staged_process_type_sequence()
         #import pdb; pdb.set_trace()
         order = Order(
@@ -1599,6 +1651,10 @@ class EconomicResourceType(models.Model):
     def wanting_process_type_relationships(self):
         #todo pr: shd this be own or own_or_parent_recipes?
         return self.process_types.exclude(event_type__relationship='out')
+        
+    def wanting_process_type_relationships_for_stage(self, stage):
+        #todo pr: shd this be own or own_or_parent_recipes?
+        return self.process_types.exclude(event_type__relationship='out').filter(stage=stage)
 
     def wanting_process_types(self):
         #todo pr: shd this be own or own_or_parent_recipes?
@@ -2756,6 +2812,19 @@ class ProcessType(models.Model):
     def produced_resource_type_relationships(self):
         #todo pr: needs own_or_parent_recipes
         return self.resource_types.filter(event_type__relationship='out')
+        
+    def main_produced_resource_type_relationship(self):
+        ptrs = self.produced_resource_type_relationships()
+        if ptrs:
+            return ptrs[0]
+        else:
+            return None
+            
+    def is_stage(self):
+        ct = self.main_produced_resource_type_relationship()
+        if ct.stage:
+            return True
+        return False
                                 
     def produced_resource_types(self):
         return [ptrt.resource_type for ptrt in self.produced_resource_type_relationships()]
@@ -2855,7 +2924,12 @@ class ProcessType(models.Model):
 
     def xbill_change_form(self):
         from valuenetwork.valueaccounting.forms import XbillProcessTypeForm
-        return XbillProcessTypeForm(instance=self, prefix=self.xbill_change_prefix())
+        qty = Decimal("0.0")
+        prtr = self.main_produced_resource_type_relationship()
+        if prtr:
+            qty = prtr.quantity
+        init = {"quantity": qty,}
+        return XbillProcessTypeForm(instance=self, initial=init, prefix=self.xbill_change_prefix())
     
     def recipe_change_form(self):
         from valuenetwork.valueaccounting.forms import RecipeProcessTypeChangeForm
@@ -3155,6 +3229,23 @@ class EconomicResource(models.Model):
         if self.quantity != 0:
             return False
         return True
+        
+    def bill_of_lots(self):
+        flows = self.inputs_to_output()
+        lots = []
+        for flow in flows:
+            if type(flow) is EconomicEvent:
+                resource = flow.resource
+                if not resource == self:
+                    lots.append(resource)
+        lots = list(set(lots))
+        lots.append(self)
+        return lots
+
+    def inputs_to_output(self):
+        flows = self.incoming_value_flows()
+        flows.reverse()
+        return flows
 
     def incoming_value_flows(self):
         flows = []
@@ -3218,6 +3309,17 @@ class EconomicResource(models.Model):
             return owner_roles[0].agent
         return None
              
+    def revert_to_previous_stage(self):
+        #import pdb; pdb.set_trace()
+        current_stage = self.stage
+        cts, inheritance = self.resource_type.staged_commitment_type_sequence()
+        for ct in cts:
+            if ct.stage == current_stage:
+                break
+            prev_stage = ct.stage
+        self.stage = prev_stage
+        self.save()
+        return prev_stage
 
 
 class AgentResourceType(models.Model):
@@ -3396,6 +3498,20 @@ class ProcessTypeResourceType(models.Model):
                     event_type__resource_effect="~>")
             if next_in_chain:
                 next_in_chain[0].follow_stage_chain(chain)
+                
+    def follow_stage_chain_beyond_workflow(self, chain):
+        #import pdb; pdb.set_trace()
+        chain.append(self)
+        if self.event_type.is_change_related():
+            if self.event_type.relationship == "out":
+                next_in_chain = self.resource_type.wanting_process_type_relationships_for_stage(self.stage)
+            if self.event_type.relationship == "in":
+                next_in_chain = ProcessTypeResourceType.objects.filter(
+                    resource_type=self.resource_type,
+                    stage=self.process_type,
+                    event_type__resource_effect="~>")
+            if next_in_chain:
+                next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
                     
     def create_commitment_for_process(self, process, user, inheritance):
         #pr changed
@@ -3404,6 +3520,7 @@ class ProcessTypeResourceType(models.Model):
         else:
             due_date = process.start_date
         resource_type = self.resource_type
+        #todo dhen: this is where species would be used
         if inheritance:
             if resource_type == inheritance.parent:
                 resource_type = inheritance.substitute(resource_type)
@@ -4111,9 +4228,18 @@ class Process(models.Model):
                 #if output.resource_type == ptrt.resource_type:
                 qty = output.quantity
             else:
-                qty = output.quantity * ptrt.quantity
+                multiplier = output.quantity 
+                if output.process:
+                    if output.process.process_type:
+                        main_ptr = output.process.process_type.main_produced_resource_type_relationship()
+                        if main_ptr:
+                            if main_ptr.quantity:
+                                multiplier = output.quantity / main_ptr.quantity
+                qty = (multiplier * ptrt.quantity).quantize(Decimal('.01'), rounding=ROUND_UP)
+                #todo: must consider ratio of PT output qty to PT input qty
             #pr changed
             resource_type = ptrt.resource_type
+            #todo dhen: this is where species would be used
             if inheritance:
                 if resource_type == inheritance.parent:
                     resource_type = inheritance.substitute(resource_type)
@@ -4150,6 +4276,7 @@ class Process(models.Model):
                     pptr, inheritance = resource_type.main_producing_process_type_relationship(stage=stage, state=state)
                     if pptr:
                         resource_type = pptr.resource_type
+                        #todo dhen: this is where species would be used
                         if inheritance:
                             if resource_type == inheritance.parent:
                                 resource_type = inheritance.substitute(resource_type)
@@ -4172,8 +4299,10 @@ class Process(models.Model):
                         if output.stage:
                             qty = output.quantity
                         else:
-                            qty = qty_to_explode * pptr.quantity
-                        #print "is this an output commitment?", pptr.resource_type, pptr.event_type.relationship
+                            if not multiplier:
+                                multiplier = pptr.quantity
+                            qty = (qty_to_explode * multiplier).quantize(Decimal('.01'), rounding=ROUND_UP)
+                        #todo: must consider ratio of PT output qty to PT input qty
                         next_commitment = next_process.add_commitment(
                             resource_type=resource_type,
                             stage=pptr.stage,
@@ -4983,6 +5112,15 @@ class Commitment(models.Model):
 
     def consumes_resources(self):
         return self.event_type.consumes_resources()
+        
+    def is_change_related(self):
+        return self.event_type.is_change_related()
+            
+    def applies_stage(self):
+        return self.event_type.applies_stage()
+        
+    def changes_stage(self):
+        return self.event_type.changes_stage()
 
     def output_resources(self):
         answer = None
@@ -5129,10 +5267,13 @@ class Commitment(models.Model):
         if self.order_item:
             commitments = Commitment.objects.filter(order_item=self.order_item)
             for c in commitments:
-                ordered_processes.append(c.process)
-            ordered_processes = list(set(ordered_processes))
-            ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
-            ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
+                if c.process:
+                    ordered_processes.append(c.process)
+            #import pdb; pdb.set_trace()
+            if ordered_processes:
+                ordered_processes = list(set(ordered_processes))
+                ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
+                ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
         return ordered_processes
         
     def last_process_in_my_order_item(self):
@@ -5383,12 +5524,30 @@ class EconomicEvent(models.Model):
         #import pdb; pdb.set_trace()
         from_agt = 'Unassigned'
         agent = self.from_agent
+        context_agent = self.context_agent
         resource_type = self.resource_type
         event_type = self.event_type
         delta = self.quantity
         if self.pk:
+            prev_agent = self.from_agent
+            prev_context_agent = self.context_agent
+            prev_resource_type = self.resource_type
+            prev_event_type = self.event_type
+            prev = EconomicEvent.objects.get(pk=self.pk)
             if prev.quantity != self.quantity:
                 delta = self.quantity - prev.quantity
+            if prev.from_agent != self.from_agent:
+                agent_change = True
+                prev_agent = prev.from_agent
+            if prev.context_agent != self.context_agent:
+                context_agent_change = True
+                prev_context_agent = prev.context_agent 
+            if prev.resource_type != self.resource_type:
+                resource_type_change = True
+                prev_resource_type = prev.resource_type
+            if prev.event_type != self.event_type:
+                event_type_change = True
+                prev_event_type = prev.event_type
         if agent:
             from_agt = agent.name
             if delta:
@@ -5590,6 +5749,15 @@ class EconomicEvent(models.Model):
 
     def consumes_resources(self):
         return self.event_type.consumes_resources()
+        
+    def is_change_related(self):
+        return self.event_type.is_change_related()
+            
+    def applies_stage(self):
+        return self.event_type.applies_stage()
+        
+    def changes_stage(self):
+        return self.event_type.changes_stage()
 
 
 #todo: not used

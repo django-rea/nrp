@@ -30,6 +30,9 @@ container li {
     font-size: 1.1em;
     font-weight: bold;
 }
+img {
+    margin-bottom: 2px;
+}
 </style>
 {% endblock %}
 
@@ -47,19 +50,35 @@ container li {
                 <div class="rtype"> <a href="{% url resource_type resource_type_id=rt.id %}">{{ rt.name }}</a> ( {{ rt.facet_list }} )</div>
                 {% for resource in rt.onhand %}
                     <div class="res">
-                     <a href="{% url resource resource_id=resource.id %}">{{ resource.label }}</a>
+                     <a href="{% url resource resource_id=resource.id %}" title="
+                        {{ resource.notes }}
+                        {{ resource.access_rules }}
+                        ">{{ resource.label }}
+                    </a>
 		             {% if resource.photo %}
 		            	<img src="{% thumbnail resource.photo photo_size %}" />
 	            	 {% elif resource.photo_url %}
 		            	<img src="{{ resource.photo_url }}" width="128" height="96" />
-		             {% endif %}
-                    </div>
-                    <div class="info"> {{ resource.quantity }} {{ resource.unit_of_quantity }} </div>
-                    <div class="info">Quality: {{ resource.quality }} </div>
+                    {% endif %}
+                    {% if resource.stage %}
+                        ~ Stage: {{ resource.stage }}
+                    {% endif %}
+                    ~ {{ resource.quantity }} {{ resource.unit_of_quantity }}
+                    {% if resource.current_location %}
+                        ~ Location: {{ resource.current_location }}
+                    {% endif %}
+                    {% if resource.agent_resource_roles.all %}
+                        {% for item in resource.agent_resource_roles.all %}
+                            ~ {{ item.role.name }}: {{ item.agent.nick }} 
+                        {% endfor %}
+                    {% endif %}
                     {% url 'path.to.view' as resource.url %}
                     {% if resource.url %}
-                        <div class="info"><a href="{{ resource.url }}">Documentation</a></div>
-                    {% endif %}                     
+                        ~ <a href="{{ resource.url }}">Documentation</a>
+                    {% endif %}
+                    </div>
+                    {% comment %}<div class="info">Quality: {{ resource.quality }} </div>{% endcomment %}
+                                        
                 {% endfor %}
             {% endfor %}
 		</div>

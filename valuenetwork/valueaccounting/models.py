@@ -5806,10 +5806,18 @@ class Compensation(models.Model):
         #if self.initiating_event.unit_of_value.id != self.compensating_event.unit_of_value.id:
         #    raise ValidationError('Initiating event and compensating event must have the same units of value.')
 
+        
+BUCKET_BEHAVIOR_CHOICES = (
+    ('remaining', _('remaining percentage')),
+    ('straight', _('straight percentage')),
+)
 
 class ValueEquation(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=True)
     description = models.TextField(_('description'), null=True, blank=True)
+    #uncomment the following when we make more model/migration changes
+    #bucket_behavior = models.CharField(_('bucket behavior'), 
+        #max_length=12, choices=BUCKET_BEHAVIOR_CHOICES)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='value_equations_created', blank=True, null=True)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
@@ -5969,7 +5977,7 @@ DIVISION_RULE_CHOICES = (
 CLAIM_RULE_CHOICES = (
     ('debt-like', _('until paid off')),
     ('equity-like', _('forever')),
-    ('gift-like', _('no distribution expected')),
+    ('one-distribution', _('once')),
 )
 
 class ValueEquationBucketRule(models.Model): 
@@ -6014,6 +6022,9 @@ class ValueEquationBucketRule(models.Model):
                 distr_amt = claim.value * portion_of_amount
                 if self.claim_rule_type == "debt-like":
                     claim.value = claim.value - distr_amt
+                    #claim.save()
+                elif self.claim_rule_type == "one-distribution":
+                    claim.value = 0
                     #claim.save()
                 claim_event = ClaimEvent(
                     claim = claim,

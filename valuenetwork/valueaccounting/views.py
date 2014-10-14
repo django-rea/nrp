@@ -892,6 +892,34 @@ def inventory(request):
         "help": get_help("inventory"),
     }, context_instance=RequestContext(request))
 
+def resource_flow_report(request):
+    #import pdb; pdb.set_trace()
+    rt = EconomicResourceType.objects.get(name="Herb - Dry") #TEMP!!!!!
+    pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+    lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
+    number_of_processes = 0
+    for lot in lot_list:
+        lot.lot_processes = lot.input_to_output_processes()
+        if len(lot.lot_processes) > number_of_processes:
+            number_of_processes = len(lot.lot_processes)
+        lot.orders = lot.lot_processes[-1].independent_demand()
+    paginator = Paginator(lot_list, 25)
+    page = request.GET.get('page')
+    try:
+        lots = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        lots = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        lots = paginator.page(paginator.num_pages)
+    
+    return render_to_response("valueaccounting/resource_flow_report.html", {
+        "lots": lots,
+        "pts": pts,
+        "number_of_processes": number_of_processes, 
+    }, context_instance=RequestContext(request))
+
 def all_contributions(request):
     event_list = EconomicEvent.objects.filter(is_contribution=True)
     paginator = Paginator(event_list, 25)

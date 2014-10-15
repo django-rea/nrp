@@ -3283,7 +3283,7 @@ class EconomicResource(models.Model):
                                     resources.append(evt.resource)
             for resource in resources:
                 resource.incoming_value_flows_dfs(flows, visited, depth)
-                
+         
     def outgoing_value_flows(self):
         #todo: needs rework, see next method
         flows = []
@@ -3352,6 +3352,18 @@ class EconomicResource(models.Model):
             #all_processes = list(set(all_processes))
             #processes.append(creation_event.process)
             creation_event.follow_process_chain_beyond_workflow(processes, all_events)
+
+    def outgoing_value_flows_processes(self):
+        #import pdb; pdb.set_trace()
+        in_out = self.outgoing_value_flows()
+        processes = []
+        for index, io in enumerate(in_out):
+            if io.__class__.__name__ == "Process":
+                if io not in processes:
+                    if in_out[index-1].__class__.__name__ == "EconomicEvent":
+                        io.input_event = in_out[index-1]
+                    io.output_event = in_out[index+1]
+                    processes.append(io)
         return processes
 
     def form_prefix(self):
@@ -3376,13 +3388,19 @@ class EconomicResource(models.Model):
         qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
             
-    def owner(self):
+    def owner(self): #returns first owner
         owner_roles = self.agent_resource_roles.filter(role__is_owner=True)
-        # todo: this allows one and only one owner
         if owner_roles:
             return owner_roles[0].agent
         return None
              
+    def all_owners(self):
+        owner_assns = self.agent_resource_roles.filter(role__is_owner=True)
+        owners = []
+        for own in owner_assns:
+            owners.append(own.agent.nick)
+        return owners
+           
     def revert_to_previous_stage(self):
         #import pdb; pdb.set_trace()
         current_stage = self.stage
@@ -3762,6 +3780,14 @@ class Process(models.Model):
             "starting",
             self.start_date.strftime('%Y-%m-%d'),
             "ending",
+            self.end_date.strftime('%Y-%m-%d'),
+            ])
+
+    def shorter_label(self):
+        return " ".join([
+            self.name,
+            self.start_date.strftime('%Y-%m-%d'),
+            "to",
             self.end_date.strftime('%Y-%m-%d'),
             ])
 
@@ -5701,6 +5727,25 @@ class EconomicEvent(models.Model):
                     except CachedEventSummary.DoesNotExist:
                         pass
         super(EconomicEvent, self).delete(*args, **kwargs)
+        
+    def shorter_label(self):
+        if self.unit_of_quantity:
+            quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
+        else:
+            quantity_string = str(self.quantity)
+        from_agt = 'Unassigned'
+        if self.from_agent:
+            from_agt = self.from_agent.nick
+        to_agt = 'Unassigned'
+        if self.recipient():
+            to_agt = self.recipient().nick
+        return ' '.join([
+            'from',
+            from_agt,
+            'to',
+            to_agt,
+            quantity_string,
+        ])
         
     def default_agent(self):
         if self.context_agent:

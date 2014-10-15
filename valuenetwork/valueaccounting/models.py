@@ -3284,14 +3284,14 @@ class EconomicResource(models.Model):
             for resource in resources:
                 resource.incoming_value_flows_dfs(flows, visited, depth)
          
-    def outgoing_value_flows(self):
+    def value_flow_going_forward(self):
         #todo: needs rework, see next method
         flows = []
         visited = []
         depth = 0
         self.depth = depth
         flows.append(self)
-        self.outgoing_value_flows_dfs(flows, visited, depth)
+        self.value_flow_going_forward_dfs(flows, visited, depth)
         creation_et = EventType.objects.get(name='Create Changeable')
         production_et = EventType.objects.get(name='Resource Production')
         receipt_et = EventType.objects.get(name='Receipt')
@@ -3302,10 +3302,11 @@ class EconomicResource(models.Model):
             Q(event_type=receipt_et))
         if events:
             creation_event = events[0]
+            flows.insert(0, creation_event)
             flows.insert(0, creation_event.process)
         return flows
                 
-    def outgoing_value_flows_dfs(self, flows, visited, depth):
+    def value_flow_going_forward_dfs(self, flows, visited, depth):
         #import pdb; pdb.set_trace()
         if not self in visited:
             visited.append(self)

@@ -912,6 +912,12 @@ def resource_flow_report(request):
         lot.lot_processes = lot_processes_in_columns
         lot.orders = lot_processes[-1].independent_demand()
         
+    sort_form = SortResourceReportForm(
+        data=request.POST or None)
+    if request.method == "POST":
+        sort = request.POST["choice"]
+        #lot_list
+
     paginator = Paginator(lot_list, 25)
     page = request.GET.get('page')
     try:
@@ -926,6 +932,7 @@ def resource_flow_report(request):
     return render_to_response("valueaccounting/resource_flow_report.html", {
         "lots": lots,
         "pts": pts,
+        "sort_form": sort_form,
     }, context_instance=RequestContext(request))
 
 def all_contributions(request):

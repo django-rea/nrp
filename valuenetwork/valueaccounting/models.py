@@ -3284,16 +3284,6 @@ class EconomicResource(models.Model):
             for resource in resources:
                 resource.incoming_value_flows_dfs(flows, visited, depth)
          
-    def input_to_output_processes(self):
-        #import pdb; pdb.set_trace()
-        in_out = self.inputs_to_output()
-        processes = []
-        for io in in_out:
-            if io.__class__.__name__ == "Process":
-                if io not in processes:
-                    processes.append(io)
-        return processes
-
     def outgoing_value_flows(self):
         flows = []
         visited = []
@@ -3321,6 +3311,19 @@ class EconomicResource(models.Model):
                         for evt in p.production_events():
                             evt.depth = depth
                             flows.append(evt)
+                            
+    def outgoing_value_flows_processes(self):
+        #import pdb; pdb.set_trace()
+        in_out = self.outgoing_value_flows()
+        processes = []
+        for index, io in enumerate(in_out):
+            if io.__class__.__name__ == "Process":
+                if io not in processes:
+                    if in_out[index-1].__class__.__name__ == "EconomicEvent":
+                        io.input_event = in_out[index-1]
+                    io.output_event = in_out[index+1]
+                    processes.append(io)
+        return processes
 
     def form_prefix(self):
         return "-".join(["RES", str(self.id)])

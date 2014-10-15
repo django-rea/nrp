@@ -3358,15 +3358,16 @@ class EconomicResource(models.Model):
             #processes.append(creation_event.process)
             creation_event.follow_process_chain_beyond_workflow(processes, all_events)
 
-    def outgoing_value_flows_processes(self):
+    def value_flow_going_forward_reorganized(self):
         #import pdb; pdb.set_trace()
-        in_out = self.outgoing_value_flows()
+        in_out = self.value_flow_going_forward()
         processes = []
         for index, io in enumerate(in_out):
             if io.__class__.__name__ == "Process":
                 if io not in processes:
-                    if in_out[index-1].__class__.__name__ == "EconomicEvent":
-                        io.input_event = in_out[index-1]
+                    if index > 0:
+                        if in_out[index-1].__class__.__name__ == "EconomicEvent":
+                            io.input_event = in_out[index-1]
                     io.output_event = in_out[index+1]
                     processes.append(io)
         return processes

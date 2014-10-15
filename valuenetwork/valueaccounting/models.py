@@ -3285,12 +3285,24 @@ class EconomicResource(models.Model):
                 resource.incoming_value_flows_dfs(flows, visited, depth)
          
     def outgoing_value_flows(self):
+        #todo: needs rework, see next method
         flows = []
         visited = []
         depth = 0
         self.depth = depth
         flows.append(self)
         self.outgoing_value_flows_dfs(flows, visited, depth)
+        creation_et = EventType.objects.get(name='Create Changeable')
+        production_et = EventType.objects.get(name='Resource Production')
+        receipt_et = EventType.objects.get(name='Receipt')
+        all_events = self.events.all()
+        events = all_events.filter(
+            Q(event_type=creation_et)|
+            Q(event_type=production_et)|
+            Q(event_type=receipt_et))
+        if events:
+            creation_event = events[0]
+            flows.insert(0, creation_event.process)
         return flows
                 
     def outgoing_value_flows_dfs(self, flows, visited, depth):
@@ -3298,6 +3310,7 @@ class EconomicResource(models.Model):
         if not self in visited:
             visited.append(self)
             depth += 1
+            #todo: this will break, depends on event creation order
             for event in self.all_usage_events().order_by("id"):
                 event.depth = depth
                 flows.append(event)
@@ -3312,6 +3325,34 @@ class EconomicResource(models.Model):
                             evt.depth = depth
                             flows.append(evt)
                             
+    def staged_process_sequence_beyond_workflow(self):
+        #todo: this was created for a DHen report 
+        # but does not work yet because the converted data
+        # has no commitments
+        # Plus, it can't be tested and so probably won't work.
+        processes = []
+        if not self.stage:
+            return processes
+        creation_event = None
+        #import pdb; pdb.set_trace()
+        creation_et = EventType.objects.get(name='Create Changeable')
+        production_et = EventType.objects.get(name='Resource Production')
+        receipt_et = EventType.objects.get(name='Receipt')
+        all_events = self.events.all()
+        events = all_events.filter(
+            Q(event_type=creation_et)|
+            Q(event_type=production_et)|
+            Q(event_type=receipt_et))
+        if events:
+            creation_event = events[0]
+        if not creation_event:
+            return processes
+        if creation_event.process:
+            #all_processes = [event.process for event in events if event.process]
+            #all_processes = list(set(all_processes))
+            #processes.append(creation_event.process)
+            creation_event.follow_process_chain_beyond_workflow(processes, all_events)
+
     def outgoing_value_flows_processes(self):
         #import pdb; pdb.set_trace()
         in_out = self.outgoing_value_flows()
@@ -5838,6 +5879,31 @@ class EconomicEvent(models.Model):
         
     def changes_stage(self):
         return self.event_type.changes_stage()
+        
+    def follow_process_chain_beyond_workflow(self, chain, all_events):
+        #import pdb; pdb.set_trace()
+        #todo: this was created for a DHen report 
+        # but does not work yet because the converted data
+        # has no commitments
+        # Plus, it can't be tested and so probably won't work.
+        if self.event_type.is_change_related():
+            if self.process not in chain:
+                chain.append(self.process)
+                stage = self.process.process_type
+                if stage:
+                    if self.event_type.relationship == "out":
+                        next_candidates = all_events.filter(
+                            commitment__stage=stage,
+                            event_type__relationship="in")
+                        if next_candidates:
+                            next_in_chain = next_candidates[0]
+                    if self.event_type.relationship == "in":
+                        next_candidates = self.process.events.filter(
+                            resource_type=self.resource_type,
+                            stage=stage,
+                            event_type__relationship="out")
+                    if next_in_chain:
+                        next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
 
 
 #todo: not used

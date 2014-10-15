@@ -38,23 +38,9 @@ Location:
     longitude = float
 
 
-UNIT_TYPE_CHOICES = (
-    'area',
-    'length',
-    'quantity',
-    'time',
-    'value',
-    'volume',
-    'weight',
-    'ideas',
-)
 
 Unit:
-"Should be part of another ontology and just referenced here."
-    unit_type = reference to one of a list of UNIT_TYPE_CHOICES
-    abbrev = text
-    name = text
-    symbol = char
+"Will become qudt:Unit"
 
     
 PARTY_TYPE_CHOICES = (

@@ -898,7 +898,7 @@ def resource_flow_report(request):
     pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
     lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
     for lot in lot_list:
-        lot_processes = lot.outgoing_value_flows_processes()
+        lot_processes = lot.value_flow_going_forward_reorganized()
         lot_processes_in_columns = []
         for pt in pts:
             appended = False
@@ -911,12 +911,12 @@ def resource_flow_report(request):
         lot.lot_processes = lot_processes_in_columns
         lot.orders = lot_processes[-1].independent_demand()
         
-    sort_form = SortResourceReportForm(
-        data=request.POST or None)
-    if request.method == "POST":
-        sort = request.POST["choice"]
-        #lot_list
-
+    #sort_form = SortResourceReportForm(
+    #    data=request.POST or None)
+    #if request.method == "POST":
+    #    sort = request.POST["choice"]
+    #    lot_list = sorted(lot_list, key=lambda lot: lot.sort) #todo: will this work using variable "sort"??
+        
     paginator = Paginator(lot_list, 25)
     page = request.GET.get('page')
     try:
@@ -931,7 +931,7 @@ def resource_flow_report(request):
     return render_to_response("valueaccounting/resource_flow_report.html", {
         "lots": lots,
         "pts": pts,
-        "sort_form": sort_form,
+        #"sort_form": sort_form,
     }, context_instance=RequestContext(request))
 
 def all_contributions(request):

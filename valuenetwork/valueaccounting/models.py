@@ -3301,9 +3301,13 @@ class EconomicResource(models.Model):
             Q(event_type=production_et)|
             Q(event_type=receipt_et))
         if events:
-            creation_event = events[0]
-            flows.insert(0, creation_event)
-            flows.insert(0, creation_event.process)
+            processes = []
+            for event in events:
+                flows.insert(0, event)
+                if event.process not in processes:
+                    processes.append(event.process)
+            for process in processes:
+                flows.insert(0, process)
         return flows
                 
     def value_flow_going_forward_dfs(self, flows, visited, depth):

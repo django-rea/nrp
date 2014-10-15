@@ -898,7 +898,6 @@ def resource_flow_report(request):
     pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
     lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
     for lot in lot_list:
-        
         lot_processes = lot.outgoing_value_flows_processes()
         lot_processes_in_columns = []
         for pt in pts:

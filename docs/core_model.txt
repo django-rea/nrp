@@ -350,7 +350,7 @@ The type of change is defined by the EventType."
 # I see a lot of implementations of Faceted Classification
 # in different semantic web formats.
 # We should pick one.
-
+# For some of the difficulties, see http://www.webpages.uidaho.edu/~mbolin/putkey.pdf
 *Facet:
 "Used with FacetValue to classify ResourceTypes."
     name = text

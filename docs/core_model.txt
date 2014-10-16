@@ -109,24 +109,16 @@ AgentRelationship:
 
     
 EVENT_TYPE_RELATIONSHIP_CHOICES = (
-    'consume', #the resources are gone
-    'use', #the resources are used for some duration
-    'output', #the resources are created
-    'citation',
-    'work',
-    'payment',
-    'receipt',
-    'expense',
-    'cash contribution',
-    'resource contribution',
-    'cash receipt',
-    'shipment'
-    'distribution',
+    'in',
+    'out',
+    'take',
+    'give',
 )
 
 EVENT_TYPE_RELATED_CHOICES = (
     'process',
     'exchange',
+    'agent'
 )
 
 RESOURCE_EFFECT_CHOICES = (
@@ -142,35 +134,55 @@ RESOURCE_EFFECT_CHOICES = (
     
 *EventType:
 "Defines the behavior of EconomicEvents."
+    identifier
     name = text
     label = text #used in graphs
     inverse_label = text #used in graphs
-    #(from Lynn) I think we need to clean this up, not sure if there is any difference between
-    #event type and event type.relationship.  But would have to think some more.
     relationship = reference to one of a list of EVENT_TYPE_RELATIONSHIP_CHOICES
     related_to = reference to one of a list of EVENT_TYPE_RELATED_CHOICES
     resource_effect = reference to one of a list of RESOURCE_EFFECT_CHOICES
     
-* EventType examples:
+* EventTypes in use:
+Resource Production
+Resource Consumption
+Citation
+Resource Use
+Time Contribution
+To Be Changed
+Change
+Cash Contribution
+Resource Contribution
+Receipt
+Expense
+Payment
+Cash Receipt
+Shipment
+Todo
+Damage
 
+* EventType example properties:
+
+identifier: 'citation'
 name: 'Citation'
 label: 'cites'
 inverse_label: 'cited by'
-relationship: 'cite'
+relationship: 'in'
 related_to: 'process'
 resource_effect: 'no effect'
 
+identifier: 'consumption'
 name: 'Resource Consumption'
 label: 'consumes'
 inverse_label: 'consumed by'
-relationship: 'consume'
+relationship: 'in'
 related_to: 'process'
 resource_effect: 'decrease'
 
+identifier: 'cash-receipt'
 name: 'Cash Receipt'
 label: 'receives cash'
 inverse_label: 'cash received by'
-relationship: 'receivecash'
+relationship: 'take'
 related_to: 'exchange'
 resource_effect: 'increase'
 
@@ -181,7 +193,7 @@ INVENTORY_RULE_CHOICES = (
     ('never', _('Does not apply')),
 )    
   
-*EconomicResourceType:
+*ResourceType:
 "Defines the behavior of EconomicResources.
 Part of Recipes."
     name = text  

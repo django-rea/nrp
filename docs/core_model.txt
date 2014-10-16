@@ -236,7 +236,6 @@ ORDER_TYPE_CHOICES = (
 "Defines the behavior of Processes.
 Part of Recipes."
     name = text
-    context_agent = reference to an EconomicAgent
     description = text
     url = url
     estimated_duration = number of days #hours? days-hours-minutes?
@@ -249,7 +248,6 @@ Part of Recipes."
     resource_type = reference to an EconomicResourceType
     event_type = reference to an EventType
     stage = reference to a ProcessType
-    state = reference to a ResourceState #we haven't implemented state yet, would need to add to this spec as a class
     quantity = decimal number
     unit_of_quantity = reference to Unit
     description = text
@@ -261,11 +259,11 @@ Part of Recipes."
     process_type = reference to a ProcessType
     context_agent = reference to an EconomicAgent
     url = url
-    start_date = date
-    end_date = date
-    started = date
-    finished = boolean
-    notes = text
+    plannedStartDate
+    plannedEndDate
+    startDate
+    endDate
+    description = text
     
     
 Exchange:
@@ -283,22 +281,25 @@ between EconomicAgents."
 "A promise or plan from one EconomicAgent 
 to another (or the same) EconomicAgent
 to perform one or more EconomicEvents in the future."
-    order = reference to an Order
-    independent_demand = reference to an Order
-    order_item = reference to another Commitment
+    independent_demand = reference to an Order      #Which of these two
+    order_item = reference to another Commitment    #did we decide to keep?
+                                                    #Could get independent_demand
+                                                    #from order_item...
     event_type = reference to an EventType
     commitment_type = reference to a CommitmentType
     stage = reference to a ProcessType
-    state = reference to a ResourceState #need class to reference
-    commitment_date = date
-    start_date = date
-    due_date = date
-    finished = boolean
-    from_agent_type = reference to an AgentType
+    commitDate
+    startDate
+    endDate
+    plannedStartDate
+    plannedEndDate
     from_agent = reference to an EconomicAgent
     to_agent = reference to an EconomicAgent
     resource_type = reference to an EconomicResourceType
+        #you don't always know the resource that is being committed
     resource = reference to an EconomicResource
+        #sometimes you do know 
+        #- reserving a room is a commitment, usually for an exact room
     process = reference to a Process
     exchange = reference to an Exchange #process and exchange could be subclasses of something, making this one property.....
     context_agent = reference to an EconomicAgent
@@ -314,19 +315,15 @@ to perform one or more EconomicEvents in the future."
 *EconomicResource:
 "Something of value to some EconomicAgents."
     resource_type = reference to an EconomicResourceType
-    identifier = text
-    independent_demand = reference to an Order
-    order_item = reference to a Commitment
+    tracking_id = text
     stage = reference to a ProcessType
-    state = reference to a ResourceState
     url = url
     quantity = decimal number
     unit_of_quantity = reference to a Unit
     quality = decimal number
-    notes = text
+    description = text
     photo = reference to a photo
-    access_rules = text #this needs to be more developed in the future, this is a placeholder
-    current_location = reference to a Location
+    location = reference to a Location
     
     
 *EconomicEvent:
@@ -350,7 +347,10 @@ The type of change is defined by the EventType."
     unit_of_value = reference to a Unit
     commitment = reference to a Commitment
     
-    
+# I see a lot of implementations of Faceted Classification
+# in different semantic web formats.
+# We should pick one.
+
 *Facet:
 "Used with FacetValue to classify ResourceTypes."
     name = text

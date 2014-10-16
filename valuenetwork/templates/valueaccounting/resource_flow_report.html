@@ -28,6 +28,15 @@
     font-style: italic;
     font-size: .9em;
 }
+li {
+    list-style-type: none;
+    margin: o;
+    padding:0;
+}
+ul {
+    margin: 0;
+    padding: 0;
+}
 </style>
 
 {% endblock %}
@@ -60,20 +69,26 @@
 						<td><a href="{{ lot.get_absolute_url }}">{{ lot.identifier }}</a></td>
 						<td>{{ lot.resource_type }}</td>
 						<td>{% for own in lot.all_owners %} {{ own }}, {% endfor %}</td>
-                        {% for process in lot.lot_processes %}
-                            <td>
-                                {% if process.input_event %}
-                                    <span class="hdg">Input: </span>{{ process.input_event.shorter_label }}
-                                {% endif %}
-                                {% if process %}<br /><span class="hdg">Process:</span>{% endif%}
-                                <a href="{{ process.get_absolute_url }}">{{ process.shorter_label }}</a>
-                                {% if process.notes %}<br /><span class="desc">{{ process.notes|urlize }}</span> {% endif %}
-                                {% if process.output_event %}
-                                    <br /><span class="hdg">Output: </span>{{ process.output_event.shorter_label }}
-                                {% endif %}
-                            </td>
+                        {% for pt in lot.pts_with_processes %}
+                            <td>{% if pt.pt_processes %}
+                                {% for process in pt.pt_processes %}
+                                    <ul>
+                                    {% for event in process.input_events %}
+                                        <li><span class="hdg">Input: </span>{{ event.shorter_label }}</li>
+                                    {% endfor %}
+                                    <li><span class="hdg">Process:</span>
+                                    <a href="{{ process.get_absolute_url }}">{{ process.shorter_label }}</a>
+                                    {% if process.notes %}<br /><span class="desc">{{ process.notes|urlize }}</span> {% endif%}</li>
+                                    {% for event in process.output_events %}
+                                        <li><span class="hdg">Output: </span>{{ event.shorter_label }}</li>
+                                    {% endfor %}
+                                    </ul>
+                                {% endfor %}
+                            {% endif %}</td>
                         {% endfor %}
-                        <td>{{ lot.orders }}</td>
+                        <td>
+                            {% for order in lot.orders %} <a href="{{ order.get_absolute_url }}">{{ order.shorter_label_customer_order }}</a><br /> {% endfor %}
+                        </td>
 					</tr>
 				{% endfor %}
 			</tbody>	

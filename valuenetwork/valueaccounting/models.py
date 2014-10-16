@@ -2559,6 +2559,21 @@ class Order(models.Model):
             due_label,
             self.due_date.strftime('%Y-%m-%d'),
             ])
+            
+    def shorter_label_customer_order(self):
+        receiver_label = ", buyer:"
+        receiver_name = ""
+        if self.receiver:
+            receiver_name = self.receiver.name
+        due_label = " on:"
+        return " ".join(
+            [self.get_order_type_display(), 
+            str(self.id),
+            receiver_label, 
+            receiver_name, 
+            due_label,
+            self.due_date.strftime('%Y-%m-%d'),
+            ])
 
     @models.permalink
     def get_absolute_url(self):
@@ -3362,14 +3377,27 @@ class EconomicResource(models.Model):
         #import pdb; pdb.set_trace()
         in_out = self.value_flow_going_forward()
         processes = []
+        save_process = None
+        new_process = None
         for index, io in enumerate(in_out):
-            if io.__class__.__name__ == "Process":
-                if io not in processes:
-                    if index > 0:
-                        if in_out[index-1].__class__.__name__ == "EconomicEvent":
-                            io.input_event = in_out[index-1]
-                    io.output_event = in_out[index+1]
-                    processes.append(io)
+            if io.__class__.__name__ == "EconomicEvent":
+                item_process = io.process
+            elif io.__class__.__name__ == "Process":
+                item_process = io
+            if item_process != save_process:
+                if new_process:
+                    processes.append(new_process)
+                new_process = item_process
+                new_process.input_events = []
+                new_process.output_events = []
+                save_process = new_process
+            if io.__class__.__name__ == "EconomicEvent":
+                if io.event_type.relationship == "out":
+                    new_process.output_events.append(io)
+                else:
+                    new_process.input_events.append(io)
+        if new_process:
+            processes.append(new_process)
         return processes
 
     def form_prefix(self):

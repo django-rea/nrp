@@ -25,7 +25,7 @@ The classes that are stable are marked with *.
 Even in the stable classes, however, some of the attributes may not be stable.
 
 We are currently working on another section of the model dealing with ValueEquations
-and income distribution that is not yet included here.
+and income distribution that is not yet included here, but should be when it is baked.
 
 """
 
@@ -111,8 +111,8 @@ AgentRelationship:
 EVENT_TYPE_RELATIONSHIP_CHOICES = (
     'in',
     'out',
-    'take',
     'give',
+    'take',
 )
 
 EVENT_TYPE_RELATED_CHOICES = (
@@ -133,7 +133,9 @@ RESOURCE_EFFECT_CHOICES = (
 )
     
 *EventType:
-"Defines the behavior of EconomicEvents."
+"Defines the behavior of EconomicEvents,
+and the relationships of CommitmentTypes and Commitments
+to EconomicInteractions."
     identifier
     name = text
     label = text #used in graphs
@@ -185,6 +187,13 @@ inverse_label: 'cash received by'
 relationship: 'take'
 related_to: 'exchange'
 resource_effect: 'increase'
+
+
+InteractionType
+"Supertype of ProcessType and ExchangeType"
+    name = text
+    description = text
+    url = url
 
 
 INVENTORY_RULE_CHOICES = (
@@ -244,31 +253,24 @@ ORDER_TYPE_CHOICES = (
     description = text
     
     
-*ProcessType:
+*ProcessType(InteractionType):
 "Defines the behavior of Processes.
 Part of Recipes."
-    name = text
-    description = text
-    url = url
     estimated_duration = number of days #hours? days-hours-minutes?
-    
-    
-*CommitmentType:
-"Defines Commitments.
-Part of Recipes."
-    process_type = reference to ProcessType
-    resource_type = reference to an EconomicResourceType
-    event_type = reference to an EventType
-    stage = reference to a ProcessType
-    quantity = decimal number
-    unit_of_quantity = reference to Unit
-    description = text
-    
+ 
+ 
+ExchangeType(InteractionType):
+"Defines the behavior of Exchanges."
+    #not used yet, included for consistency
+    #properties to come
+    #violation of minimalism
+    #consistency vs minimalism?
+    #consistency wins in this case.
 
-*Process:
-"Changes input EconomicResources into output EconomicResources."
+    
+EconomicInteraction:
+"Superclass of Process and Exchange"
     name = text
-    process_type = reference to a ProcessType
     context_agent = reference to an EconomicAgent
     url = url
     plannedStartDate
@@ -276,16 +278,29 @@ Part of Recipes."
     startDate
     endDate
     description = text
+
+    
+*CommitmentType:
+"Defines Commitments.
+Part of Recipes."
+    interaction_type = reference to an InteractionType
+    resource_type = reference to an EconomicResourceType
+    event_type = reference to an EventType
+    stage = reference to a ProcessType #should this be InteractionType?
+    quantity = decimal number
+    unit_of_quantity = reference to Unit
+    description = text
+    
+
+*Process(EconomicInteraction):
+"Changes input EconomicResources into output EconomicResources."
+    process_type = reference to a ProcessType
     
     
 Exchange:
 "Trades given EconomicResources for taken EconomicResources
 between EconomicAgents."
-    name = text
-    context_agent = reference to an EconomicAgent
-    url = url
-    start_date = date
-    notes = text
+    exchange_type = reference to an ExchangeType
     order = reference to an Order
     
     
@@ -312,8 +327,7 @@ to perform one or more EconomicEvents in the future."
     resource = reference to an EconomicResource
         #sometimes you do know 
         #- reserving a room is a commitment, usually for an exact room
-    process = reference to a Process
-    exchange = reference to an Exchange #process and exchange could be subclasses of something, making this one property.....
+    economic_interaction = reference to an EconomicInteraction
     context_agent = reference to an EconomicAgent
     description = text
     url = url
@@ -347,8 +361,7 @@ The type of change is defined by the EventType."
     to_agent = reference to an EconomicAgent
     resource_type = reference to an EconomicResourceType
     resource = reference to an EconomicResource
-    process = reference to a Process
-    exchange = reference to an Exchange
+    economic_interaction = reference to an EconomicInteraction
     context_agent = reference to an EconomicAgent     
     url = url
     description = text
@@ -358,7 +371,8 @@ The type of change is defined by the EventType."
     value = decimal number
     unit_of_value = reference to a Unit
     commitment = reference to a Commitment
-    
+   
+   
 # I see a lot of implementations of Faceted Classification
 # in different semantic web formats.
 # We should pick one.

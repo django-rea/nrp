@@ -899,18 +899,23 @@ def resource_flow_report(request):
     lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
     for lot in lot_list:
         lot_processes = lot.value_flow_going_forward_reorganized()
-        lot_processes_in_columns = []
-        for pt in pts:
-            appended = False
+        pts_with_processes, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+        for pt in pts_with_processes:
+            pt_processes = []
             for process in lot_processes:
                 if process.process_type == pt:
-                    lot_processes_in_columns.append(process)
-                    appended = True
-            if not appended:
-                lot_processes_in_columns.append(None)
-        lot.lot_processes = lot_processes_in_columns
-        lot.orders = lot_processes[-1].independent_demand()
+                    pt_processes.append(process)
+            pt.pt_processes = pt_processes
+        lot.pts_with_processes = pts_with_processes
         
+        orders = []
+        last_pt = pts_with_processes[-1]
+        for proc in last_pt.pt_processes:
+            order = proc.independent_demand()
+            if order:
+                orders.append(order)
+        lot.orders = orders
+    import pdb; pdb.set_trace()    
     #sort_form = SortResourceReportForm(
     #    data=request.POST or None)
     #if request.method == "POST":

@@ -256,16 +256,12 @@ ORDER_TYPE_CHOICES = (
 *ProcessType(InteractionType):
 "Defines the behavior of Processes.
 Part of Recipes."
-    estimated_duration = number of days #hours? days-hours-minutes?
+    estimated_duration = reference to a QuantityValue
  
  
 ExchangeType(InteractionType):
-"Defines the behavior of Exchanges."
-    #not used yet, included for consistency
-    #properties to come
-    #violation of minimalism
-    #consistency vs minimalism?
-    #consistency wins in this case.
+"Defines the behavior of Exchanges.
+Examples: Sale, Purchase, Customer Order, Distribution"
 
     
 EconomicInteraction:
@@ -286,7 +282,7 @@ Part of Recipes."
     interaction_type = reference to an InteractionType
     resource_type = reference to an EconomicResourceType
     event_type = reference to an EventType
-    stage = reference to a ProcessType #should this be InteractionType?
+    stage = reference to a ProcessType
     quantity = decimal number
     unit_of_quantity = reference to Unit
     description = text

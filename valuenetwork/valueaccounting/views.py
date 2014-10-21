@@ -8798,13 +8798,18 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
     if request.method == "POST":
         if filter_form.is_valid():
             data = filter_form.cleaned_data
+            process_types = data["process_types"]
+            resource_types = data["resource_types"]
             if filter_set == "Order":
-                pass
+                order = data["order"]
+                events = [e for e in order.all_events() if e.event_type==event_type]
+                if process_types:
+                    events = [e for e in events if e.process.process_type in process_types]
+                if resource_types:
+                    events = [e for e in events if e.resource_type in resource_types]
             elif filter_set == "Project":
                 start_date = data["start_date"]
                 end_date = data["end_date"]
-                process_types = data["process_types"]
-                resource_types = data["resource_types"]
                 events = EconomicEvent.objects.filter(context_agent=agent, event_type=event_type)
                 if start_date and end_date:
                     events = events.filter(event_date__range=(start_date, end_date))

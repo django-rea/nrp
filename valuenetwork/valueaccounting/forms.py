@@ -2794,6 +2794,7 @@ class OrderFilterSetForm(forms.Form):
         
     def __init__(self, project, event_type, pattern, *args, **kwargs):
         super(OrderFilterSetForm, self).__init__(*args, **kwargs)
+        self.fields["order"].queryset = project.orders_queryset()
         self.fields["process_types"].queryset = project.process_types_queryset()
         if pattern:
             self.pattern = pattern

@@ -42,9 +42,9 @@
                 <div>
                     {% for event in events %}
                         <p>
-                            {{ event }} 
+                            {{ event }} Context agent: {{ event.context_agent }}
                             {% if event.process %}
-                                PT: {{ event.process.process_type }}
+                                Process Type: {{ event.process.process_type }}
                             {% endif %}
                         </p>
                     {% endfor %}

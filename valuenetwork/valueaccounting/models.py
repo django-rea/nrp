@@ -2006,6 +2006,7 @@ class ProcessPattern(models.Model):
             that are not in the Pattern, they do not matter.
         """
         
+        #import pdb; pdb.set_trace()
         pattern_facet_values = self.facets_for_event_type(event_type)
         facet_values = [pfv.facet_value for pfv in pattern_facet_values]
         facets = {}
@@ -3307,6 +3308,14 @@ class EconomicResource(models.Model):
                                     resources.append(evt.resource)
             for resource in resources:
                 resource.incoming_value_flows_dfs(flows, visited, depth)
+                
+    def incoming_events(self):
+        flows = self.incoming_value_flows()
+        events = []
+        for flow in flows:
+            if type(flow) is EconomicEvent:
+                events.append(flow)
+        return events
 
     def form_prefix(self):
         return "-".join(["RES", str(self.id)])

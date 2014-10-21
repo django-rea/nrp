@@ -2867,4 +2867,13 @@ class DeliveryFilterSetForm(forms.Form):
             self.fields["resource_types"].queryset = pattern.get_resource_types(event_type=event_type)
         else:
             self.fields["resource_types"].queryset = EconomicResourceType.objects.all()
-            
+
+
+class SortResourceReportForm(forms.Form):
+    choice = forms.ChoiceField( 
+        widget=forms.Select(attrs={'class': 'input-xlarge'}))
+
+    def __init__(self, *args, **kwargs):
+        super(SortResourceReportForm, self).__init__(*args, **kwargs)
+        self.fields["choice"].choices = [('1', 'Resource Type'), ('2', 'Resource (Lot)'), ('3', 'Order')]
+

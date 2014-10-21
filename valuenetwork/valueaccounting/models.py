@@ -2577,6 +2577,21 @@ class Order(models.Model):
             due_label,
             self.due_date.strftime('%Y-%m-%d'),
             ])
+            
+    def shorter_label_customer_order(self):
+        receiver_label = ", buyer:"
+        receiver_name = ""
+        if self.receiver:
+            receiver_name = self.receiver.name
+        due_label = " on:"
+        return " ".join(
+            [self.get_order_type_display(), 
+            str(self.id),
+            receiver_label, 
+            receiver_name, 
+            due_label,
+            self.due_date.strftime('%Y-%m-%d'),
+            ])
 
     @models.permalink
     def get_absolute_url(self):
@@ -3259,6 +3274,10 @@ class EconomicResource(models.Model):
             return False
         return True
         
+    def track_lot_forward(self):
+        pass
+        
+        
     def bill_of_lots(self):
         flows = self.inputs_to_output()
         lots = []
@@ -3316,6 +3335,107 @@ class EconomicResource(models.Model):
             if type(flow) is EconomicEvent:
                 events.append(flow)
         return events
+         
+    def value_flow_going_forward(self):
+        #todo: needs rework, see next method
+        flows = []
+        visited = []
+        depth = 0
+        self.depth = depth
+        flows.append(self)
+        self.value_flow_going_forward_dfs(flows, visited, depth)
+        creation_et = EventType.objects.get(name='Create Changeable')
+        production_et = EventType.objects.get(name='Resource Production')
+        receipt_et = EventType.objects.get(name='Receipt')
+        all_events = self.events.all()
+        events = all_events.filter(
+            Q(event_type=creation_et)|
+            Q(event_type=production_et)|
+            Q(event_type=receipt_et))
+        if events:
+            processes = []
+            for event in events:
+                flows.insert(0, event)
+                if event.process not in processes:
+                    processes.append(event.process)
+            for process in processes:
+                flows.insert(0, process)
+        return flows
+                
+    def value_flow_going_forward_dfs(self, flows, visited, depth):
+        #import pdb; pdb.set_trace()
+        if not self in visited:
+            visited.append(self)
+            depth += 1
+            #todo: this will break, depends on event creation order
+            for event in self.all_usage_events().order_by("id"):
+                event.depth = depth
+                flows.append(event)
+                p = event.process
+                if p:
+                    if not p in visited:
+                        depth += 1
+                        p.depth = depth
+                        flows.append(p)
+                        depth += 1
+                        for evt in p.production_events():
+                            evt.depth = depth
+                            flows.append(evt)
+                            
+    def staged_process_sequence_beyond_workflow(self):
+        #todo: this was created for a DHen report 
+        # but does not work yet because the converted data
+        # has no commitments
+        # Plus, it can't be tested and so probably won't work.
+        processes = []
+        if not self.stage:
+            return processes
+        creation_event = None
+        #import pdb; pdb.set_trace()
+        creation_et = EventType.objects.get(name='Create Changeable')
+        production_et = EventType.objects.get(name='Resource Production')
+        receipt_et = EventType.objects.get(name='Receipt')
+        all_events = self.events.all()
+        events = all_events.filter(
+            Q(event_type=creation_et)|
+            Q(event_type=production_et)|
+            Q(event_type=receipt_et))
+        if events:
+            creation_event = events[0]
+        if not creation_event:
+            return processes
+        if creation_event.process:
+            #all_processes = [event.process for event in events if event.process]
+            #all_processes = list(set(all_processes))
+            #processes.append(creation_event.process)
+            creation_event.follow_process_chain_beyond_workflow(processes, all_events)
+
+    def value_flow_going_forward_reorganized(self):
+        #import pdb; pdb.set_trace()
+        in_out = self.value_flow_going_forward()
+        processes = []
+        save_process = None
+        new_process = None
+        for index, io in enumerate(in_out):
+            if io.__class__.__name__ == "EconomicEvent":
+                item_process = io.process
+            elif io.__class__.__name__ == "Process":
+                item_process = io
+            if item_process != save_process:
+                if new_process:
+                    processes.append(new_process)
+                new_process = item_process
+                new_process.input_events = []
+                new_process.output_events = []
+                save_process = new_process
+            if io.__class__.__name__ == "EconomicEvent":
+                if io.event_type.relationship == "out":
+                    new_process.output_events.append(io)
+                else:
+                    new_process.input_events.append(io)
+        if new_process:
+            processes.append(new_process)
+        return processes
 
     def form_prefix(self):
         return "-".join(["RES", str(self.id)])
@@ -3339,13 +3459,19 @@ class EconomicResource(models.Model):
         qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
             
-    def owner(self):
+    def owner(self): #returns first owner
         owner_roles = self.agent_resource_roles.filter(role__is_owner=True)
-        # todo: this allows one and only one owner
         if owner_roles:
             return owner_roles[0].agent
         return None
              
+    def all_owners(self):
+        owner_assns = self.agent_resource_roles.filter(role__is_owner=True)
+        owners = []
+        for own in owner_assns:
+            owners.append(own.agent.nick)
+        return owners
+           
     def revert_to_previous_stage(self):
         #import pdb; pdb.set_trace()
         current_stage = self.stage
@@ -3725,6 +3851,14 @@ class Process(models.Model):
             "starting",
             self.start_date.strftime('%Y-%m-%d'),
             "ending",
+            self.end_date.strftime('%Y-%m-%d'),
+            ])
+
+    def shorter_label(self):
+        return " ".join([
+            self.name,
+            self.start_date.strftime('%Y-%m-%d'),
+            "to",
             self.end_date.strftime('%Y-%m-%d'),
             ])
 
@@ -5688,6 +5822,25 @@ class EconomicEvent(models.Model):
             claim_event.update_claim()
             return claim
                 
+    def shorter_label(self):
+        if self.unit_of_quantity:
+            quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
+        else:
+            quantity_string = str(self.quantity)
+        from_agt = 'Unassigned'
+        if self.from_agent:
+            from_agt = self.from_agent.nick
+        to_agt = 'Unassigned'
+        if self.recipient():
+            to_agt = self.recipient().nick
+        return ' '.join([
+            'from',
+            from_agt,
+            'to',
+            to_agt,
+            quantity_string,
+        ])
+        
     def default_agent(self):
         if self.context_agent:
             return self.context_agent.default_agent()
@@ -5820,6 +5973,31 @@ class EconomicEvent(models.Model):
         
     def changes_stage(self):
         return self.event_type.changes_stage()
+        
+    def follow_process_chain_beyond_workflow(self, chain, all_events):
+        #import pdb; pdb.set_trace()
+        #todo: this was created for a DHen report 
+        # but does not work yet because the converted data
+        # has no commitments
+        # Plus, it can't be tested and so probably won't work.
+        if self.event_type.is_change_related():
+            if self.process not in chain:
+                chain.append(self.process)
+                stage = self.process.process_type
+                if stage:
+                    if self.event_type.relationship == "out":
+                        next_candidates = all_events.filter(
+                            commitment__stage=stage,
+                            event_type__relationship="in")
+                        if next_candidates:
+                            next_in_chain = next_candidates[0]
+                    if self.event_type.relationship == "in":
+                        next_candidates = self.process.events.filter(
+                            resource_type=self.resource_type,
+                            stage=stage,
+                            event_type__relationship="out")
+                    if next_in_chain:
+                        next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
 
 
 #todo: not used

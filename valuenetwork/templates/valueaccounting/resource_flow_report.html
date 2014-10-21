@@ -1,0 +1,126 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Resource Flow" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+
+	tr.even td 
+	{
+		color:#000000;
+		background-color:#EAF2D3;
+	}
+
+	th
+	{
+		background-color:#C8D6E8;
+	}
+
+.hdg {
+    color:  #7D1818;
+}
+.event {
+    margin-left: 1em;
+}
+.desc {
+    font-style: italic;
+    font-size: .9em;
+}
+li {
+    list-style-type: none;
+    margin: o;
+    padding:0;
+}
+ul {
+    margin: 0;
+    padding: 0;
+}
+</style>
+
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>{% trans "Lot Tracking" %}</legend>
+{% comment %}
+        <form id="sort" enctype="multipart/form-data" method="POST" >
+            {{ sort_form|as_bootstrap }}
+        </form>
+{% endcomment %}
+		<table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+			<thead>
+				<th>{% trans "Lot" %}</th>
+				<th>{% trans "Herb" %}</th>
+				<th>{% trans "Owners" %}</th>
+                {% for pt in pts %}
+                    <th>{{ pt.name }}</th>
+				{% endfor %}
+                <th>{% trans "Orders" %}</th>
+            </thead>
+			<tbody>	
+				{% for lot in lots %}
+					<tr class="{% cycle 'odd' 'even' %}">
+						<td><a href="{{ lot.get_absolute_url }}">{{ lot.identifier }}</a></td>
+						<td>{{ lot.resource_type }}</td>
+						<td>{% for own in lot.all_owners %} {{ own }}, {% endfor %}</td>
+                        {% for pt in lot.pts_with_processes %}
+                            <td>{% if pt.pt_processes %}
+                                {% for process in pt.pt_processes %}
+                                    <ul>
+                                    {% for event in process.input_events %}
+                                        <li><span class="hdg">Input: </span>{{ event.shorter_label }}</li>
+                                    {% endfor %}
+                                    <li><span class="hdg">Process:</span>
+                                    <a href="{{ process.get_absolute_url }}">{{ process.shorter_label }}</a>
+                                    {% if process.notes %}<br /><span class="desc">{{ process.notes|urlize }}</span> {% endif%}</li>
+                                    {% for event in process.output_events %}
+                                        <li><span class="hdg">Output: </span>{{ event.shorter_label }}</li>
+                                    {% endfor %}
+                                    </ul>
+                                {% endfor %}
+                            {% endif %}</td>
+                        {% endfor %}
+                        <td>
+                            {% for order in lot.orders %} <a href="{{ order.get_absolute_url }}">{{ order.shorter_label_customer_order }}</a><br /> {% endfor %}
+                        </td>
+					</tr>
+				{% endfor %}
+			</tbody>	
+		</table>
+<div class="pagination">
+    <span class="step-links">
+        {% if lots.has_previous %}
+            <a href="?page={{ lots.previous_page_number }}">{% trans "previous" %}</a>
+        {% endif %}
+
+        <span class="current">
+            {% trans "Page" %} {{ lots.number }} {% trans "of" %} {{ lots.paginator.num_pages }}.
+        </span>
+
+        {% if lots.has_next %}
+            <a href="?page={{ lots.next_page_number }}">{% trans "next" %}</a>
+        {% endif %}
+    </span>
+</div>
+
+	</div>
+    </div>
+{% endblock %}
+{% block extra_body %}
+	{{ block.super }}
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#inventory').addClass('active');
+
+	}); // end document.ready
+
+    </script>
+{% endblock %}

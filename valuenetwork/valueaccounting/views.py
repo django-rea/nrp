@@ -8765,7 +8765,7 @@ def bucket_filter_header(request):
     if request.method == "POST":
         if header_form.is_valid():
             data = header_form.cleaned_data
-            agent = data["context_agent"]
+            agent = data["context"]
             event_type = data["event_type"]
             pattern = data["pattern"]
             if pattern:
@@ -8791,7 +8791,7 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
         pattern = get_object_or_404(ProcessPattern, pk=pattern_id)
     if filter_set == "Order":
         filter_form = OrderFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
-    elif filter_set == "Project":
+    elif filter_set == "Context":
         filter_form = ProjectFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
     elif filter_set == "Delivery":
         filter_form = DeliveryFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
@@ -8807,7 +8807,7 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
                     events = [e for e in events if e.process.process_type in process_types]
                 if resource_types:
                     events = [e for e in events if e.resource_type in resource_types]
-            elif filter_set == "Project":
+            elif filter_set == "Context":
                 start_date = data["start_date"]
                 end_date = data["end_date"]
                 events = EconomicEvent.objects.filter(context_agent=agent, event_type=event_type)

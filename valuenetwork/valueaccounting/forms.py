@@ -2759,7 +2759,7 @@ class ResourceFlowForm(forms.ModelForm):
 
 
 class FilterSetHeaderForm(forms.Form):
-    context_agent = forms.ModelChoiceField(
+    context = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select',}))
@@ -2771,7 +2771,7 @@ class FilterSetHeaderForm(forms.Form):
         required=False, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     filter_set = forms.ChoiceField(
-        choices=(("Order", "Order"),("Project", "Project"), ("Delivery", "Delivery")),
+        choices=(("Order", "Order"),("Context", "Context"), ("Delivery", "Delivery")),
         widget=forms.Select(attrs={'class': 'input-small'}))
     
 

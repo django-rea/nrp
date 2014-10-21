@@ -12,12 +12,14 @@
 	                <li><a href="/admin/"><i class="icon-wrench"></i> Admin</a></li>
 	                <li><a href="{% url maintain_patterns %}"><i class="icon-cog"></i> Patterns</a></li>
 				{% endif %}
-                {% comment %}
+
 				{% if user.is_superuser %}
+                    {% comment %}
 	                <li><a href="{% url create_user_and_agent %}"><i class="icon-user"></i> Create Agent and User</a></li>
+                    {% endcomment %}
 	                <li><a href="{% url misc %}"><i class="icon-cog"></i> Miscellaneous pages</a></li>
 				{% endif %}
-				{% endcomment %}
+
                 <li class="divider"></li>
                 <li><a href="{% url account_logout %}"><i class="icon-off"></i> Log out</a></li>
             </ul>

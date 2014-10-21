@@ -8826,7 +8826,7 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
                 lots = [e.resource for e in shipment_events]
                 events = []
                 for lot in lots:
-                    events.extend(lot.incoming_events())
+                    events.extend([event for event in lot.incoming_events() if event.event_type==event_type])
                 if process_types:
                     events = [e for e in events if e.process.process_type in process_types]
                 if resource_types:

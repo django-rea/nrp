@@ -2859,7 +2859,8 @@ class DeliveryFilterSetForm(forms.Form):
         
     def __init__(self, project, event_type, pattern, *args, **kwargs):
         super(DeliveryFilterSetForm, self).__init__(*args, **kwargs)
-        self.fields["shipment_events"].queryset = EconomicEvent.objects.filter(context_agent=project, event_type=event_type)
+        ship = EventType.objects.get(label="ships")
+        self.fields["shipment_events"].queryset = EconomicEvent.objects.filter(context_agent=project, event_type=ship)
         self.fields["process_types"].queryset = project.process_types_queryset()
         if pattern:
             self.pattern = pattern

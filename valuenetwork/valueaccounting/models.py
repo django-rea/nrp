@@ -605,6 +605,15 @@ class EconomicAgent(models.Model):
     def wip(self):
         return self.active_processes()
         
+    def process_types_queryset(self):
+        pts = list(ProcessType.objects.filter(context_agent=self))
+        parent = self.parent()
+        while parent:
+            pts.extend(ProcessType.objects.filter(context_agent=parent))
+            parent = parent.parent()
+        pt_ids = [pt.id for pt in pts]
+        return ProcessType.objects.filter(id__in=pt_ids)
+        
     def get_resource_types_with_recipe(self):
         rts = [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self) if pt.main_produced_resource_type()]
         #import pdb; pdb.set_trace()
@@ -797,6 +806,14 @@ class EconomicAgent(models.Model):
             
     def is_context_agent(self):
         return self.agent_type.is_context
+        
+    def orders_queryset(self):
+        orders = []
+        for order in Order.objects.all():
+            if self in order.context_agents():
+                orders.append(order)
+        order_ids = [order.id for order in orders]
+        return Order.objects.filter(id__in=order_ids)
             
         
 class AgentUser(models.Model):
@@ -2727,6 +2744,17 @@ class Order(models.Model):
             if process.process_type:
                 pts.append(process.process_type)
         return pts
+        
+    def all_events(self):
+        processes = self.unordered_processes()
+        events = []
+        for process in processes:
+            events.extend(process.events.all())
+        return events
+        
+    def context_agents(self):
+        items = self.order_items()
+        return [item.context_agent for item in items]
         
 
 class ProcessTypeManager(models.Manager):

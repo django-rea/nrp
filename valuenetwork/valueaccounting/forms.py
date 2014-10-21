@@ -2756,4 +2756,113 @@ class ResourceFlowForm(forms.ModelForm):
             self.pattern = pattern
             et = EventType.objects.get(name="Change")
             self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
-           
+
+
+class FilterSetHeaderForm(forms.Form):
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select',}))
+    event_type = forms.ModelChoiceField(
+        queryset=EventType.objects.all(),
+        widget=forms.Select(attrs={'class': 'chzn-select',}))
+    pattern = forms.ModelChoiceField(
+        queryset=ProcessPattern.objects.all(), 
+        required=False, 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    filter_set = forms.ChoiceField(
+        choices=(("Order", "Order"),("Project", "Project"), ("Delivery", "Delivery")),
+        widget=forms.Select(attrs={'class': 'input-small'}))
+    
+
+class OrderFilterSetForm(forms.Form):
+    order = forms.ModelChoiceField(
+        required=True,
+        queryset=Order.objects.all(),
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'resource chzn-select input-xxlarge',}))
+    process_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=ProcessType.objects.none(),
+        label=_("Select one or more Process Types"),
+        widget=forms.SelectMultiple(attrs={'class': 'process-type chzn-select input-xxlarge'}))
+    resource_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicResourceType.objects.none(),
+        label=_("Select one or more Resource Types"),
+        widget=forms.SelectMultiple(attrs={'class': 'resource-type chzn-select input-xxlarge'}))
+        
+    def __init__(self, project, event_type, pattern, *args, **kwargs):
+        super(OrderFilterSetForm, self).__init__(*args, **kwargs)
+        self.fields["order"].queryset = project.orders_queryset()
+        self.fields["process_types"].queryset = project.process_types_queryset()
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_types"].queryset = pattern.get_resource_types(event_type=event_type)
+        else:
+            self.fields["resource_types"].queryset = EconomicResourceType.objects.all()
+    
+
+class ProjectFilterSetForm(forms.Form):
+    #or use django-filter DateRangeFilter
+    start_date = forms.DateField(
+        required=False, 
+        label="Start date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+    end_date = forms.DateField(
+        required=False, 
+        label="End date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+    #completeness = 
+    process_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=ProcessType.objects.none(),
+        label=_("Select one or more Process Types"),
+        widget=forms.SelectMultiple(attrs={'class': 'process-type chzn-select input-xxlarge'}))
+    resource_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicResourceType.objects.none(),
+        label=_("Select one or more Resource Types"),
+        widget=forms.SelectMultiple(attrs={'class': 'resource-type chzn-select input-xxlarge'}))
+        
+    def __init__(self, project, event_type, pattern, *args, **kwargs):
+        super(ProjectFilterSetForm, self).__init__(*args, **kwargs)
+        self.fields["process_types"].queryset = project.process_types_queryset()
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_types"].queryset = pattern.get_resource_types(event_type=event_type)
+        else:
+            self.fields["resource_types"].queryset = EconomicResourceType.objects.all()
+    
+    
+class DeliveryFilterSetForm(forms.Form):
+    shipment_events = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicEvent.objects.filter(
+            event_type__relationship="shipment",
+            #exclude customer order shipments?,
+            ),
+        label=_("Select one or more Shipment Events"),
+        #empty_label=None,
+        widget=forms.SelectMultiple(attrs={'class': 'shipment-event chzn-select input-xxlarge'}))
+    process_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=ProcessType.objects.none(),
+        label=_("Select one or more Process Types"),
+        widget=forms.SelectMultiple(attrs={'class': 'process-type chzn-select input-xxlarge'}))
+    resource_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicResourceType.objects.none(),
+        label=_("Select one or more Resource Types"),
+        widget=forms.SelectMultiple(attrs={'class': 'resource-type chzn-select input-xxlarge'}))
+        
+    def __init__(self, project, event_type, pattern, *args, **kwargs):
+        super(DeliveryFilterSetForm, self).__init__(*args, **kwargs)
+        self.fields["process_types"].queryset = project.process_types_queryset()
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_types"].queryset = pattern.get_resource_types(event_type=event_type)
+        else:
+            self.fields["resource_types"].queryset = EconomicResourceType.objects.all()
+            

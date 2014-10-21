@@ -141,6 +141,7 @@ INSTALLED_APPS = [
     'easy_thumbnails',
     #'report_builder',
     'notification',
+    #'django_filters',
     
     # project
     'valuenetwork.valueaccounting',

@@ -391,5 +391,7 @@ urlpatterns = patterns("",
     url(r"^workflow-board-demo/$", 'valuenetwork.valueaccounting.views.workflow_board_demo', name="workflow_board_demo"),
     url(r"^inventory-board-demo/$", 'valuenetwork.valueaccounting.views.inventory_board_demo', name="inventory_board_demo"),
     url(r"^lots/$", 'valuenetwork.valueaccounting.views.lots', name="lots"),
+    url(r"^bucket-filter-header/$", 'valuenetwork.valueaccounting.views.bucket_filter_header', name="bucket_filter_header"),
+    url(r"^bucket-filter/(?P<agent_id>\d+)/(?P<event_type_id>\d+)/(?P<pattern_id>\d+)/(?P<filter_set>\w+)/$", 'valuenetwork.valueaccounting.views.bucket_filter', name="bucket_filter"),
 )
 

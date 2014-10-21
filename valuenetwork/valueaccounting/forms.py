@@ -2759,7 +2759,7 @@ class ResourceFlowForm(forms.ModelForm):
 
 
 class FilterSetHeaderForm(forms.Form):
-    context_agent = forms.ModelChoiceField(
+    context = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select',}))
@@ -2771,7 +2771,7 @@ class FilterSetHeaderForm(forms.Form):
         required=False, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     filter_set = forms.ChoiceField(
-        choices=(("Order", "Order"),("Project", "Project"), ("Delivery", "Delivery")),
+        choices=(("Order", "Order"),("Context", "Context"), ("Delivery", "Delivery")),
         widget=forms.Select(attrs={'class': 'input-small'}))
     
 
@@ -2784,12 +2784,12 @@ class OrderFilterSetForm(forms.Form):
     process_types = forms.ModelMultipleChoiceField(
         required=False,
         queryset=ProcessType.objects.none(),
-        label=_("Select one or more Process Types"),
+        label=_("Select zero or more Process Types"),
         widget=forms.SelectMultiple(attrs={'class': 'process-type chzn-select input-xxlarge'}))
     resource_types = forms.ModelMultipleChoiceField(
         required=False,
         queryset=EconomicResourceType.objects.none(),
-        label=_("Select one or more Resource Types"),
+        label=_("Select zero or more Resource Types"),
         widget=forms.SelectMultiple(attrs={'class': 'resource-type chzn-select input-xxlarge'}))
         
     def __init__(self, project, event_type, pattern, *args, **kwargs):
@@ -2817,12 +2817,12 @@ class ProjectFilterSetForm(forms.Form):
     process_types = forms.ModelMultipleChoiceField(
         required=False,
         queryset=ProcessType.objects.none(),
-        label=_("Select one or more Process Types"),
+        label=_("Select zero or more Process Types"),
         widget=forms.SelectMultiple(attrs={'class': 'process-type chzn-select input-xxlarge'}))
     resource_types = forms.ModelMultipleChoiceField(
         required=False,
         queryset=EconomicResourceType.objects.none(),
-        label=_("Select one or more Resource Types"),
+        label=_("Select zero or more Resource Types"),
         widget=forms.SelectMultiple(attrs={'class': 'resource-type chzn-select input-xxlarge'}))
         
     def __init__(self, project, event_type, pattern, *args, **kwargs):
@@ -2849,12 +2849,12 @@ class DeliveryFilterSetForm(forms.Form):
     process_types = forms.ModelMultipleChoiceField(
         required=False,
         queryset=ProcessType.objects.none(),
-        label=_("Select one or more Process Types"),
+        label=_("Select zero or more Process Types"),
         widget=forms.SelectMultiple(attrs={'class': 'process-type chzn-select input-xxlarge'}))
     resource_types = forms.ModelMultipleChoiceField(
         required=False,
         queryset=EconomicResourceType.objects.none(),
-        label=_("Select one or more Resource Types"),
+        label=_("Select zero or more Resource Types"),
         widget=forms.SelectMultiple(attrs={'class': 'resource-type chzn-select input-xxlarge'}))
         
     def __init__(self, project, event_type, pattern, *args, **kwargs):

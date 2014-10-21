@@ -4513,6 +4513,14 @@ class Exchange(models.Model):
         return self.commitments.filter(
             event_type__relationship='pay')
 
+    def shipment_commitments(self):
+        return self.commitments.filter(
+            event_type__relationship='out')
+            
+    def cash_receipt_commitments(self):
+        return self.commitments.filter(
+            event_type__name='Cash Receipt')
+            
     def receipt_events(self):
         return self.events.filter(
             event_type__relationship='receive')
@@ -4554,7 +4562,10 @@ class Exchange(models.Model):
     def shipment_events(self):
         return self.events.filter(
             event_type__relationship='shipment')
-
+            
+    def shipment_events_no_commitment(self):
+        return self.events.filter(event_type__relationship='shipment').filter(commitment=None)
+            
     def distribution_events(self):
         return self.events.filter(
             event_type__relationship='distribute')
@@ -4835,6 +4846,20 @@ class Commitment(models.Model):
                 self.due_date.strftime('%Y-%m-%d'),          
         ])
 
+    def shorter_label(self):
+        quantity_string = str(self.quantity)
+        resource_name = ""
+        abbrev = ""
+        if self.unit_of_quantity:
+           abbrev = self.unit_of_quantity.abbrev
+        if self.resource_type:
+            resource_name = self.resource_type.name
+        return ' '.join([
+            quantity_string,
+            abbrev,
+            resource_name,         
+        ])
+        
     def save(self, *args, **kwargs):
         from_id = "Unassigned"
         if self.from_agent:

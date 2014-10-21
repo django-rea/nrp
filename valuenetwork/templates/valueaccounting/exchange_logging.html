@@ -46,6 +46,10 @@ li {
     font-weight: bold;
     font-style: normal;
 }
+.hdg {
+    font-weight: bold;
+    font-size: 1.1em;
+}
 .indent {
     margin-left: 3em;
 }
@@ -56,7 +60,7 @@ li {
     width: 32em;
 }
 .notes {
-    margin-left: 2em;
+    margin-left: 3em;
     padding-right: 2em;
     font-style: italic;
 }
@@ -463,13 +467,61 @@ li {
             <h3 style="margin-bottom: 4px;" >
                 {% trans "Shipments" %}:  
                 {% if agent %}
-                    <a href="#shipmentModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a shipment or delivery" >
-                        {% trans "Log a shipped item" %}
+                    <a href="#shipmentModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unordered shipment or delivery" >
+                        {% trans "Log an unordered shipped item" %}
                     </a>
                 {% endif %}
             </h3>
+            <div class="hdg">Ordered Items</div>
+            {% for item in exchange.shipment_commitments %}
+                <div class="commitment" >
+                    <span class="detail-line" >{{ item.shorter_label }}</span>
+                    {% if item.description %}
+                        <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+                    {% endif %}
+
+                </div>
+ {% comment %}               
+                {% if item.onhand %}
+                    {% for resource in item.onhand %}
+                            <div class="onhand" >
+                                <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
+                                {% if resource.id in shipped_ids %}
+                                    <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
+                                    {% if logger %}
+                                        <form
+                                            style="display: inline;" 
+                                            class="delete-citation-form" 
+                                            id="deleteForm{{ event.id }}" 
+                                            action="{% url delete_citation_event commitment_id=item.id resource_id=resource.id %}" 
+                                            method="POST" >
+                                            {% csrf_token %}
+                                            <input type="hidden" id="next" name="next" value="process" />
+                                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                    {% if logger %}
+                                        <form
+                                            style="display: inline;" 
+                                            class="citation-form" 
+                                            id="citationForm{{ item.id }}" 
+                                            action="{% url log_citation commitment_id=item.id resource_id=resource.id %}" 
+                                            method="POST" >
+                                            {% csrf_token %}
+                                            <input type="hidden" id="next" name="next" value="process" />
+                                            <button style="display: inline;"  class="btn btn-info btn-mini" title="Log citation" >{% trans "Log citation" %}</button>
+                                        </form>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                    {% endfor %}
+                {% endif %}
+{% endcomment %}
+            {% endfor %}
 
             {% if shipment_events %}
+                <div class="hdg">Unordered Shipped Items</div>
                 {% for event in shipment_events %}
                     <div class="event">
                         <span ><span class="event-label">{% trans "Shipped" %}: </span> 

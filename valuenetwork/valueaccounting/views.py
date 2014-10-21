@@ -8366,6 +8366,8 @@ def exchange_logging(request, exchange_id):
 
     #receipt_commitments = exchange.receipt_commitments()
     #payment_commitments = exchange.payment_commitments()
+    shipment_commitments = exchange.shipment_commitments()
+    cash_receipt_commitments = exchange.cash_receipt_commitments()
     receipt_events = exchange.receipt_events()
     payment_events = exchange.payment_events()
     expense_events = exchange.expense_events()
@@ -8373,7 +8375,7 @@ def exchange_logging(request, exchange_id):
     cash_events = exchange.cash_contribution_events()
     material_events = exchange.material_contribution_events()
     cash_receipt_events = exchange.cash_receipt_events()
-    shipment_events = exchange.shipment_events()
+    shipment_events = exchange.shipment_events_no_commitment()
     distribution_events = exchange.distribution_events()
 
     if agent and pattern:
@@ -8551,6 +8553,8 @@ def exchange_logging(request, exchange_id):
         "slots": slots,
         #"receipt_commitments": receipt_commitments,
         #"payment_commitments": payment_commitments,
+        "shipment_commitments": shipment_commitments,
+        "cash_receipt_commitments": cash_receipt_commitments,
         "receipt_events": receipt_events,
         "payment_events": payment_events,
         "expense_events": expense_events,

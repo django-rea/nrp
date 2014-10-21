@@ -8820,6 +8820,7 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
                 pass
         
     return render_to_response("valueaccounting/bucket_filter.html", {
+        "filter_set": filter_set,
         "context_agent": agent,
         "event_type": event_type,
         "pattern": pattern,

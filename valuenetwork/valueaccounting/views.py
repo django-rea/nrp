@@ -8822,7 +8822,11 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
                 if resource_types:
                     events = events.filter(resource_type__in=resource_types)
             elif filter_set == "Delivery":
-                pass
+                events = EconomicEvent.objects.filter(context_agent=agent, event_type=event_type)
+                if process_types:
+                    events = events.filter(process__process_type__in=process_types)
+                if resource_types:
+                    events = events.filter(resource_type__in=resource_types)
         
     return render_to_response("valueaccounting/bucket_filter.html", {
         "filter_set": filter_set,

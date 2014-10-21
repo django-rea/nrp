@@ -605,6 +605,15 @@ class EconomicAgent(models.Model):
     def wip(self):
         return self.active_processes()
         
+    def process_types_queryset(self):
+        pts = list(ProcessType.objects.filter(context_agent=self))
+        parent = self.parent()
+        while parent:
+            pts.extend(ProcessType.objects.filter(context_agent=parent))
+            parent = parent.parent()
+        pt_ids = [pt.id for pt in pts]
+        return ProcessType.objects.filter(id__in=pt_ids)
+        
     def get_resource_types_with_recipe(self):
         rts = [pt.main_produced_resource_type() for pt in ProcessType.objects.filter(context_agent=self) if pt.main_produced_resource_type()]
         #import pdb; pdb.set_trace()

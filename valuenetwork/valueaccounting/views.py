@@ -8757,3 +8757,72 @@ def lots(request):
         "resource_form": resource_form,
         "process_form": process_form,
     }, context_instance=RequestContext(request))
+
+#@login_required
+def bucket_filter_header(request):
+    #import pdb; pdb.set_trace()
+    header_form = FilterSetHeaderForm(data=request.POST or None)
+    if request.method == "POST":
+        if header_form.is_valid():
+            data = header_form.cleaned_data
+            agent = data["context_agent"]
+            event_type = data["event_type"]
+            pattern = data["pattern"]
+            if pattern:
+                pattern_id = pattern.id
+            else:
+                pattern_id = 0
+            #import pdb; pdb.set_trace()
+            filter_set = data["filter_set"]
+            return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+                % ('accounting/bucket-filter', agent.id, event_type.id, pattern_id, filter_set))
+    return render_to_response("valueaccounting/bucket_filter_header.html", {
+        "header_form": header_form,
+    }, context_instance=RequestContext(request))
+    
+#@login_required
+def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
+    agent = get_object_or_404(EconomicAgent, pk=agent_id)
+    event_type = get_object_or_404(EventType, pk=event_type_id)
+    events = None
+    pattern = None
+    pattern_id = int(pattern_id)
+    if pattern_id:
+        pattern = get_object_or_404(ProcessPattern, pk=pattern_id)
+    if filter_set == "Order":
+        filter_form = OrderFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
+    elif filter_set == "Project":
+        filter_form = ProjectFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
+    elif filter_set == "Delivery":
+        filter_form = DeliveryFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
+    if request.method == "POST":
+        if filter_form.is_valid():
+            data = filter_form.cleaned_data
+            if filter_set == "Order":
+                pass
+            elif filter_set == "Project":
+                start_date = data["start_date"]
+                end_date = data["end_date"]
+                process_types = data["process_types"]
+                resource_types = data["resource_types"]
+                events = EconomicEvent.objects.filter(context_agent=agent, event_type=event_type)
+                if start_date and end_date:
+                    events = events.filter(event_date__range=(start_date, end_date))
+                elif start_date:
+                    events = events.filter(event_date__gte=start_date)
+                elif end_date:
+                    events = events.filter(event_date__gte=end_date)
+                if process_types:
+                    events = events.filter(process__process_type__in=process_types)
+                if resource_types:
+                    events = events.filter(resource_type__in=resource_types)
+            elif filter_set == "Delivery":
+                pass
+        
+    return render_to_response("valueaccounting/bucket_filter.html", {
+        "context_agent": agent,
+        "event_type": event_type,
+        "pattern": pattern,
+        "filter_form": filter_form,
+        "events": events,
+    }, context_instance=RequestContext(request))

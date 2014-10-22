@@ -8899,6 +8899,7 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
     event_type = get_object_or_404(EventType, pk=event_type_id)
     events = None
     pattern = None
+    count = 0
     pattern_id = int(pattern_id)
     if pattern_id:
         pattern = get_object_or_404(ProcessPattern, pk=pattern_id)
@@ -8920,6 +8921,7 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
                     events = [e for e in events if e.process.process_type in process_types]
                 if resource_types:
                     events = [e for e in events if e.resource_type in resource_types]
+                count = len(events)
             elif filter_set == "Context":
                 start_date = data["start_date"]
                 end_date = data["end_date"]
@@ -8934,6 +8936,7 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
                     events = events.filter(process__process_type__in=process_types)
                 if resource_types:
                     events = events.filter(resource_type__in=resource_types)
+                count = events.count()
             elif filter_set == "Delivery":
                 shipment_events = data["shipment_events"]
                 lots = [e.resource for e in shipment_events]
@@ -8944,6 +8947,7 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
                     events = [e for e in events if e.process.process_type in process_types]
                 if resource_types:
                     events = [e for e in events if e.resource_type in resource_types]
+                count = len(events)
                 
     return render_to_response("valueaccounting/bucket_filter.html", {
         "filter_set": filter_set,
@@ -8952,4 +8956,6 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
         "pattern": pattern,
         "filter_form": filter_form,
         "events": events,
+        "count": count,
     }, context_instance=RequestContext(request))
+

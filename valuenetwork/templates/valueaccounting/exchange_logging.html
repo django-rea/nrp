@@ -489,9 +489,10 @@ li {
                 {% if item.onhand %}
                     {% for resource in item.onhand %}
                         <div class="onhand" >
-                            <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
+                            <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >
+                                {{ resource.identifier }} </a> {{ resource.quantity }} {{ resource.unit_of_quantity }}
                             {% if resource.id in shipped_ids %}
-                                <span style="color: green; font-weight: bold;">{% trans "Shipped" %}</span>
+                                <span style="color: green; font-weight: bold;">{% trans "Shipped" %}</span> 
                                 {% if logger %}
                                     <form
                                         style="display: inline;" 
@@ -521,6 +522,32 @@ li {
                         </div>
                     {% endfor %}
                 {% endif %}
+
+                {% for event in item.fulfilling_events %}
+                    <div class="event" >
+                        <span class="event-label">{% trans "Shipped" %}:</span> <span class="event" >
+                            {{ event.event_type.label }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
+                        </span>
+                        {% if logger %}
+                            {% comment %}
+                            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+                            {% endcomment %}
+                            <form
+                                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete production event" >X</button>
+                            </form>
+                        {% endif %}
+                        </br>
+                        &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a>
+                    
+                    </div>
+                {% endfor %}
 
             {% endfor %}
 

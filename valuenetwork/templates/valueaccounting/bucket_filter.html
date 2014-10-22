@@ -13,7 +13,11 @@
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
-
+.event-table, .event-table th, .event-table td {
+    border: solid 1px gainsboro;
+    padding-left: 5px;
+    padding-right: 5px;
+}
 
 
 </style>
@@ -26,7 +30,7 @@
         {% include "_messages.html" %}
         <div>
             <legend>
-                {% trans "Value Equation Bucket Filter demo" %} 
+                {% trans "Value Equation Bucket Filter demo" %} &nbsp;&nbsp;&nbsp;
                 <a href="{% url bucket_filter_header %}">{% trans "Start over" %}</a>
             </legend>
             <p>
@@ -42,7 +46,7 @@
             {% if events %}
                 <h3>{{count }} {% trans "Events" %}</h3>
                 <div>
-                    <table>
+                    <table class="event-table">
                         <thead>
                             <th>{% trans "Date" %}</th>
                             <th>{% trans "Event Type" %}</th>
@@ -58,11 +62,14 @@
                                     <td>{{ event.event_type }} </td>
                                     <td>{{ event.from_agent }} </td>
                                     <td>
+{% comment %}
                                         {% if event.from_agent != event.to_agent %}
                                             {{ event.to_agent }}
                                         {% else %}
                                             &nbsp;
                                         {% endif %}
+{% endcomment %}
+                                        {{ event.to_agent }}
                                     </td>
                                     <td>
                                         {{ event.quantity }} {{ event.unit_of_quantity.abbrev }} 

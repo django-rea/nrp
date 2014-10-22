@@ -25,7 +25,7 @@ The classes that are stable are marked with *.
 Even in the stable classes, however, some of the attributes may not be stable.
 
 We are currently working on another section of the model dealing with ValueEquations
-and income distribution that is not yet included here.
+and income distribution that is not yet included here, but should be when it is baked.
 
 """
 
@@ -38,23 +38,9 @@ Location:
     longitude = float
 
 
-UNIT_TYPE_CHOICES = (
-    'area',
-    'length',
-    'quantity',
-    'time',
-    'value',
-    'volume',
-    'weight',
-    'ideas',
-)
 
 Unit:
-"Should be part of another ontology and just referenced here."
-    unit_type = reference to one of a list of UNIT_TYPE_CHOICES
-    abbrev = text
-    name = text
-    symbol = char
+"Will become qudt:Unit"
 
     
 PARTY_TYPE_CHOICES = (
@@ -123,24 +109,16 @@ AgentRelationship:
 
     
 EVENT_TYPE_RELATIONSHIP_CHOICES = (
-    'consume', #the resources are gone
-    'use', #the resources are used for some duration
-    'output', #the resources are created
-    'citation',
-    'work',
-    'payment',
-    'receipt',
-    'expense',
-    'cash contribution',
-    'resource contribution',
-    'cash receipt',
-    'shipment'
-    'distribution',
+    'in',
+    'out',
+    'give',
+    'take',
 )
 
 EVENT_TYPE_RELATED_CHOICES = (
     'process',
     'exchange',
+    'agent'
 )
 
 RESOURCE_EFFECT_CHOICES = (
@@ -155,38 +133,67 @@ RESOURCE_EFFECT_CHOICES = (
 )
     
 *EventType:
-"Defines the behavior of EconomicEvents."
+"Defines the behavior of EconomicEvents,
+and the relationships of CommitmentTypes and Commitments
+to EconomicInteractions."
+    identifier
     name = text
     label = text #used in graphs
     inverse_label = text #used in graphs
-    #(from Lynn) I think we need to clean this up, not sure if there is any difference between
-    #event type and event type.relationship.  But would have to think some more.
     relationship = reference to one of a list of EVENT_TYPE_RELATIONSHIP_CHOICES
     related_to = reference to one of a list of EVENT_TYPE_RELATED_CHOICES
     resource_effect = reference to one of a list of RESOURCE_EFFECT_CHOICES
     
-* EventType examples:
+* EventTypes in use:
+Resource Production
+Resource Consumption
+Citation
+Resource Use
+Time Contribution
+To Be Changed
+Change
+Cash Contribution
+Resource Contribution
+Receipt
+Expense
+Payment
+Cash Receipt
+Shipment
+Todo
+Damage
 
+* EventType example properties:
+
+identifier: 'citation'
 name: 'Citation'
 label: 'cites'
 inverse_label: 'cited by'
-relationship: 'cite'
+relationship: 'in'
 related_to: 'process'
 resource_effect: 'no effect'
 
+identifier: 'consumption'
 name: 'Resource Consumption'
 label: 'consumes'
 inverse_label: 'consumed by'
-relationship: 'consume'
+relationship: 'in'
 related_to: 'process'
 resource_effect: 'decrease'
 
+identifier: 'cash-receipt'
 name: 'Cash Receipt'
 label: 'receives cash'
 inverse_label: 'cash received by'
-relationship: 'receivecash'
+relationship: 'take'
 related_to: 'exchange'
 resource_effect: 'increase'
+
+
+InteractionType
+"Supertype of ProcessType and ExchangeType"
+    name = text
+    description = text
+    url = url
 
 
 INVENTORY_RULE_CHOICES = (
@@ -195,7 +202,7 @@ INVENTORY_RULE_CHOICES = (
     ('never', _('Does not apply')),
 )    
   
-*EconomicResourceType:
+*ResourceType:
 "Defines the behavior of EconomicResources.
 Part of Recipes."
     name = text  
@@ -246,50 +253,50 @@ ORDER_TYPE_CHOICES = (
     description = text
     
     
-*ProcessType:
+*ProcessType(InteractionType):
 "Defines the behavior of Processes.
 Part of Recipes."
+    estimated_duration = reference to a QuantityValue
+ 
+ 
+ExchangeType(InteractionType):
+"Defines the behavior of Exchanges.
+Examples: Sale, Purchase, Customer Order, Distribution"
+
+    
+EconomicInteraction:
+"Superclass of Process and Exchange"
     name = text
     context_agent = reference to an EconomicAgent
-    description = text
     url = url
-    estimated_duration = number of days #hours? days-hours-minutes?
-    
+    plannedStartDate
+    plannedEndDate
+    startDate
+    endDate
+    description = text
+
     
 *CommitmentType:
 "Defines Commitments.
 Part of Recipes."
-    process_type = reference to ProcessType
+    interaction_type = reference to an InteractionType
     resource_type = reference to an EconomicResourceType
     event_type = reference to an EventType
     stage = reference to a ProcessType
-    state = reference to a ResourceState #we haven't implemented state yet, would need to add to this spec as a class
     quantity = decimal number
     unit_of_quantity = reference to Unit
     description = text
     
 
-*Process:
+*Process(EconomicInteraction):
 "Changes input EconomicResources into output EconomicResources."
-    name = text
     process_type = reference to a ProcessType
-    context_agent = reference to an EconomicAgent
-    url = url
-    start_date = date
-    end_date = date
-    started = date
-    finished = boolean
-    notes = text
     
     
 Exchange:
 "Trades given EconomicResources for taken EconomicResources
 between EconomicAgents."
-    name = text
-    context_agent = reference to an EconomicAgent
-    url = url
-    start_date = date
-    notes = text
+    exchange_type = reference to an ExchangeType
     order = reference to an Order
     
     
@@ -297,24 +304,26 @@ between EconomicAgents."
 "A promise or plan from one EconomicAgent 
 to another (or the same) EconomicAgent
 to perform one or more EconomicEvents in the future."
-    order = reference to an Order
-    independent_demand = reference to an Order
-    order_item = reference to another Commitment
+    independent_demand = reference to an Order      #Which of these two
+    order_item = reference to another Commitment    #did we decide to keep?
+                                                    #Could get independent_demand
+                                                    #from order_item...
     event_type = reference to an EventType
     commitment_type = reference to a CommitmentType
     stage = reference to a ProcessType
-    state = reference to a ResourceState #need class to reference
-    commitment_date = date
-    start_date = date
-    due_date = date
-    finished = boolean
-    from_agent_type = reference to an AgentType
+    commitDate
+    startDate
+    endDate
+    plannedStartDate
+    plannedEndDate
     from_agent = reference to an EconomicAgent
     to_agent = reference to an EconomicAgent
     resource_type = reference to an EconomicResourceType
+        #you don't always know the resource that is being committed
     resource = reference to an EconomicResource
-    process = reference to a Process
-    exchange = reference to an Exchange #process and exchange could be subclasses of something, making this one property.....
+        #sometimes you do know 
+        #- reserving a room is a commitment, usually for an exact room
+    economic_interaction = reference to an EconomicInteraction
     context_agent = reference to an EconomicAgent
     description = text
     url = url
@@ -328,19 +337,15 @@ to perform one or more EconomicEvents in the future."
 *EconomicResource:
 "Something of value to some EconomicAgents."
     resource_type = reference to an EconomicResourceType
-    identifier = text
-    independent_demand = reference to an Order
-    order_item = reference to a Commitment
+    tracking_id = text
     stage = reference to a ProcessType
-    state = reference to a ResourceState
     url = url
     quantity = decimal number
     unit_of_quantity = reference to a Unit
     quality = decimal number
-    notes = text
+    description = text
     photo = reference to a photo
-    access_rules = text #this needs to be more developed in the future, this is a placeholder
-    current_location = reference to a Location
+    location = reference to a Location
     
     
 *EconomicEvent:
@@ -352,8 +357,7 @@ The type of change is defined by the EventType."
     to_agent = reference to an EconomicAgent
     resource_type = reference to an EconomicResourceType
     resource = reference to an EconomicResource
-    process = reference to a Process
-    exchange = reference to an Exchange
+    economic_interaction = reference to an EconomicInteraction
     context_agent = reference to an EconomicAgent     
     url = url
     description = text
@@ -363,8 +367,12 @@ The type of change is defined by the EventType."
     value = decimal number
     unit_of_value = reference to a Unit
     commitment = reference to a Commitment
-    
-    
+   
+   
+# I see a lot of implementations of Faceted Classification
+# in different semantic web formats.
+# We should pick one.
+# For some of the difficulties, see http://www.webpages.uidaho.edu/~mbolin/putkey.pdf
 *Facet:
 "Used with FacetValue to classify ResourceTypes."
     name = text

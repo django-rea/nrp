@@ -892,6 +892,53 @@ def inventory(request):
         "help": get_help("inventory"),
     }, context_instance=RequestContext(request))
 
+def resource_flow_report(request):
+    #import pdb; pdb.set_trace()
+    rt = EconomicResourceType.objects.get(name="Herb - Dry") #todo: TEMP!!!!!
+    pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+    lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
+    for lot in lot_list:
+        lot_processes = lot.value_flow_going_forward_reorganized()
+        pts_with_processes, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+        for pt in pts_with_processes:
+            pt_processes = []
+            for process in lot_processes:
+                if process.process_type == pt:
+                    pt_processes.append(process)
+            pt.pt_processes = pt_processes
+        lot.pts_with_processes = pts_with_processes
+        
+        orders = []
+        last_pt = pts_with_processes[-1]
+        for proc in last_pt.pt_processes:
+            order = proc.independent_demand()
+            if order:
+                orders.append(order)
+        lot.orders = orders
+    #import pdb; pdb.set_trace()    
+    #sort_form = SortResourceReportForm(
+    #    data=request.POST or None)
+    #if request.method == "POST":
+    #    sort = request.POST["choice"]
+    #    lot_list = sorted(lot_list, key=lambda lot: lot.sort) #todo: will this work using variable "sort"??
+        
+    paginator = Paginator(lot_list, 25)
+    page = request.GET.get('page')
+    try:
+        lots = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        lots = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        lots = paginator.page(paginator.num_pages)
+    
+    return render_to_response("valueaccounting/resource_flow_report.html", {
+        "lots": lots,
+        "pts": pts,
+        #"sort_form": sort_form,
+    }, context_instance=RequestContext(request))
+
 def all_contributions(request):
     event_list = EconomicEvent.objects.filter(is_contribution=True)
     paginator = Paginator(event_list, 25)
@@ -2390,6 +2437,19 @@ def create_order(request):
             order.created_by=request.user
             order.order_type = "customer"
             order.save()
+            sale = UseCase.objects.get(identifier="sale")
+            patterns = ProcessPattern.objects.usecase_patterns(sale)
+            exchange = Exchange(
+                name="Sale for customer order " + str(order.id),
+                process_pattern=patterns[0],
+                use_case=sale,
+                context_agent=order.provider, #todo: this won't work when seller is an exchange firm?
+                start_date=order.due_date,
+                customer=order.receiver,
+                order=order,
+                created_by= request.user,
+            )
+            exchange.save()
             #import pdb; pdb.set_trace()
             for form in item_forms:
                 if form.is_valid():
@@ -2480,7 +2540,23 @@ def create_order(request):
                                 commitment.order_item = commitment
                                 commitment.save()
                                 commitment.generate_producing_process(request.user, [], explode=True) 
-
+                                
+            oi_commitments = Commitment.objects.filter(order=order)
+            for commit in oi_commitments:
+                commit.exchange = exchange
+                commit.save()
+            #todo: this should be able to figure out $ owed, including tax, etc.
+            cr_commit = Commitment(
+                event_type=EventType.objects.get(name="Cash Receipt"),
+                exchange=exchange,
+                due_date=exchange.start_date,
+                from_agent=order.receiver,
+                to_agent=order.provider,
+                context_agent=exchange.context_agent,
+                quantity=1,
+                created_by=request.user,
+            )
+            cr_commit.save()
                         
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/order-schedule', order.id))
@@ -8170,8 +8246,9 @@ def sales_and_distributions(request, agent_id=None):
     agent = None
     if agent_id:
         agent = get_object_or_404(EconomicAgent, id=agent_id)
-    end = datetime.date.today()
-    start = datetime.date(end.year, 1, 1)
+    today = datetime.date.today()
+    end =  today + datetime.timedelta(days=90)
+    start = datetime.date(today.year, 1, 1)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
     et_cash_receipt = EventType.objects.get(name="Cash Receipt")
@@ -8336,6 +8413,8 @@ def exchange_logging(request, exchange_id):
 
     #receipt_commitments = exchange.receipt_commitments()
     #payment_commitments = exchange.payment_commitments()
+    shipment_commitments = exchange.shipment_commitments()
+    cash_receipt_commitments = exchange.cash_receipt_commitments()
     receipt_events = exchange.receipt_events()
     payment_events = exchange.payment_events()
     expense_events = exchange.expense_events()
@@ -8343,7 +8422,7 @@ def exchange_logging(request, exchange_id):
     cash_events = exchange.cash_contribution_events()
     material_events = exchange.material_contribution_events()
     cash_receipt_events = exchange.cash_receipt_events()
-    shipment_events = exchange.shipment_events()
+    shipment_events = exchange.shipment_events_no_commitment()
     distribution_events = exchange.distribution_events()
 
     if agent and pattern:
@@ -8521,6 +8600,8 @@ def exchange_logging(request, exchange_id):
         "slots": slots,
         #"receipt_commitments": receipt_commitments,
         #"payment_commitments": payment_commitments,
+        "shipment_commitments": shipment_commitments,
+        "cash_receipt_commitments": cash_receipt_commitments,
         "receipt_events": receipt_events,
         "payment_events": payment_events,
         "expense_events": expense_events,
@@ -8845,3 +8926,4 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
         "events": events,
         "count": count,
     }, context_instance=RequestContext(request))
+

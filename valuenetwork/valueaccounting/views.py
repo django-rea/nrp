@@ -4461,6 +4461,35 @@ def add_shipment(request, exchange_id):
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
+        
+@login_required
+def log_shipment(request, commitment_id, resource_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    if request.method == "POST":
+        agent = get_agent(request)
+        #todo: rethink for citations
+        default_agent = ct.process.default_agent()
+        from_agent = resource.owner() or default_agent
+        event = EconomicEvent(
+            resource = resource,
+            commitment = ct,
+            event_date = datetime.date.today(),
+            event_type = ct.event_type,
+            from_agent = from_agent,
+            to_agent = default_agent,
+            resource_type = ct.resource_type,
+            process = ct.process,
+            #project = ct.project,
+            context_agent = ct.context_agent,
+            quantity = Decimal("1"),
+            unit_of_quantity = ct.unit_of_quantity,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', ct.process.id))
 
 @login_required
 def add_distribution(request, exchange_id):
@@ -8410,6 +8439,7 @@ def exchange_logging(request, exchange_id):
     receipt_total = 0
     total_in = 0
     total_out = 0
+    shipped_ids = []
 
     #receipt_commitments = exchange.receipt_commitments()
     #payment_commitments = exchange.payment_commitments()
@@ -8562,6 +8592,7 @@ def exchange_logging(request, exchange_id):
                 "from_agent": context_agent,
             }      
             add_shipment_form = ShipmentForm(prefix='ship', initial=ship_init, pattern=pattern, context_agent=context_agent)
+            shipped_ids = [c.resource.id for c in exchange.shipment_events()]
         if "distribute" in slots:
             #import pdb; pdb.set_trace()
             dist_init = {
@@ -8632,6 +8663,7 @@ def exchange_logging(request, exchange_id):
         "receipt_total": receipt_total,
         "total_in": total_in,
         "total_out": total_out,
+        "shipped_ids": shipped_ids,
         "help": get_help("exchange"),
     }, context_instance=RequestContext(request))
 

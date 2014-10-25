@@ -15,10 +15,8 @@
 <style>
 
 .name {
-    color: green;
     font-weight: bold;
     font-size: 1.1em;
-    margin-left: 1em;
 }
 .bucket {
     margin-top: 15px;
@@ -34,7 +32,17 @@
 }
 .hdg {
     font-weight: bold;
-    font-size: 1.1em;
+    font-size: 1.2em;
+    color: firebrick;
+}
+tr.even td 
+{
+    color:#000000;
+    background-color:#EAF2D3;
+}
+th
+{
+    background-color:#C8D6E8;
 }
 </style>
 {% endblock %}
@@ -44,16 +52,18 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-        <div>
-            <legend>
-                {% trans "Value Equation Sandbox" %}
-            </legend>
+       
+        <legend>
+            {% trans "Value Equation Sandbox" %}
+        </legend>
+        <div class="row-fluid">
 
             <div class="span6">
+                <span class="hdg">Distribution context:</span>
                 <form id="headerForm" action="." method="POST" >
                     {% csrf_token %}
                     {{ header_form|as_bootstrap }}
-                    <span class="hdg">Buckets:</span>
+                    <span class="hdg">Bucket filters:</span>
                     <div id="filters">
                         {% for bucket in buckets %}
                             <div class="bucket"><span class="name">{{ bucket.name }}</span><span class="pct"> {{ bucket.percentage }}</span>%</div>
@@ -67,24 +77,25 @@
 
             <div id="distributions" class="span6">
                 {% if agent_totals %}
-                <table style="width: 100%;" >
+                 <span class="hdg">Results:</span>
+                <table class="table table-bordered table-condensed" >
                     <thead>
                         <th>{% trans "Agent" %}</th>
-                        <th>{% trans "Distribution Amount" %}</th>
+                        <th style="text-align: right;">{% trans "Distribution Amount" %}</th>
                     </thead>
                     <tbody> 
                         {% for at in agent_totals %}
                             <tr class="{% cycle 'odd' 'even' %}">
-                                <td>{{ at.agent }}</td>
-                                <td style="text-align: right;" >{{ at.amount }}</td>
+                                <td>{{ at.to_agent }}</td>
+                                <td style="text-align: right;" >{{ at.quantity }}</td>
                             </tr>
                         {% endfor %}
                     <tbody> 
                 </table>
                 {% endif %}
             </div>
-
         </div>
+       
     </div>
 {% endblock %}
 {% block extra_script %}

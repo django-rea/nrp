@@ -8975,8 +8975,7 @@ def value_equation_sandbox(request):
             context_agent = data["context_agent"]
             value_equation = data["value_equation"]
             amount = data["amount_to_distribute"]
-
-
+            agent_totals = ve.run_value_equation(context_agent=context_agent, amount_to_distribute=Decimal(amount))
 
     return render_to_response("valueaccounting/value_equation_sandbox.html", {
         "header_form": header_form,
@@ -9002,17 +9001,3 @@ def json_value_equation_bucket(request, value_equation_id):
         buckets.append({"fields": fields})
         json = simplejson.dumps(buckets, ensure_ascii=False)
     return HttpResponse(json, mimetype='application/json')   
-    '''
-        resources = []
-    for r in rs:
-        loc = ""
-        if r.current_location:
-            loc = r.current_location.name
-        fields = {
-            "pk": r.pk,
-            "identifier": r.identifier,
-            "location": loc,
-        }
-        resources.append({"fields": fields})
-    data = simplejson.dumps(resources, ensure_ascii=False)
-    '''

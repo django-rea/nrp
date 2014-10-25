@@ -6121,7 +6121,7 @@ class ValueEquation(models.Model):
                 from_agent = context_agent, 
                 to_agent = EconomicAgent.objects.get(id=int(agent_id)),
                 context_agent = context_agent,
-                quantity = agent_amounts[agent_id],
+                quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_UP),
                 is_contribution = False,
             )
             agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]

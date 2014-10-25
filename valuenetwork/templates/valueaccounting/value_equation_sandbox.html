@@ -1,0 +1,141 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Value Equation Sandbox" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.name {
+    color: green;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-left: 1em;
+}
+.bucket {
+    margin-top: 15px;
+}
+#filters {
+    margin-bottom: 20px;
+}
+.to {
+    margin-left: 2em;
+}
+.pct {
+    margin-left: 1em;
+}
+.hdg {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+        <div>
+            <legend>
+                {% trans "Value Equation Sandbox" %}
+            </legend>
+
+            <div class="span6">
+                <form id="headerForm" action="." method="POST" >
+                    {% csrf_token %}
+                    {{ header_form|as_bootstrap }}
+                    <span class="hdg">Buckets:</span>
+                    <div id="filters">
+                        {% for bucket in buckets %}
+                            <div class="bucket"><span class="name">{{ bucket.name }}</span><span class="pct"> {{ bucket.percentage }}</span>%</div>
+                            <div class="to">{% if bucket.distribution_agent %} Distribute to <span class="dist-to">{{ bucket.distribution_agent.name }}</span> {% endif %}</div>
+                        {% endfor %}
+                    </div>
+                    <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Calculate' %}" />
+                </form>
+
+            </div>
+
+            <div id="distributions" class="span6">
+                {% if agent_totals %}
+                <table style="width: 100%;" >
+                    <thead>
+                        <th>{% trans "Agent" %}</th>
+                        <th>{% trans "Distribution Amount" %}</th>
+                    </thead>
+                    <tbody> 
+                        {% for at in agent_totals %}
+                            <tr class="{% cycle 'odd' 'even' %}">
+                                <td>{{ at.agent }}</td>
+                                <td style="text-align: right;" >{{ at.amount }}</td>
+                            </tr>
+                        {% endfor %}
+                    <tbody> 
+                </table>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $(".chzn-select").chosen();
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        $("#id_value_equation").change(getBuckets);        
+
+        function getBuckets()
+        {
+            var selectedVE = document.getElementById('id_value_equation').value;
+            var jsonUrl = encodeURI("/accounting/json-value-equation-buckets/" + selectedVE + "/");
+            $("#filters").empty();
+            $.get(jsonUrl,
+            function(data){
+                var filters = ""
+                for(var i=0 ; i<data.length ; i++)
+                {
+                    var sequence = data[i].fields['sequence'];
+                    var name = data[i].fields['name']; 
+                    var pct = data[i].fields['percentage']; 
+                    var agent = data[i].fields['agent_name']; 
+
+                    filters = filters + '<div class="bucket"><span class="name">' + name + '</span><span class="pct">' + pct + '</span>%</div>'
+                    if (agent != 'null') {
+                        filters = filters + '<div class="to">Distribute to <span class="dist-to">' + agent + '</span></div>'
+                    }
+                }
+                $("#filters").append(filters)
+            });
+        }
+
+    }); // end document.ready
+    </script>
+
+{% endblock %}

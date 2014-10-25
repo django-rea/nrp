@@ -8959,3 +8959,60 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
         "count": count,
     }, context_instance=RequestContext(request))
 
+@login_required
+def value_equation_sandbox(request):
+    #import pdb; pdb.set_trace()
+    header_form = ValueEquationSandboxForm(data=request.POST or None)
+    buckets = []
+    agent_totals = []
+    ves = ValueEquation.objects.all()
+    if ves:
+        ve = ves[0]
+        buckets = ve.buckets.all()
+    if request.method == "POST":
+        if header_form.is_valid():
+            data = header_form.cleaned_data
+            context_agent = data["context_agent"]
+            value_equation = data["value_equation"]
+            amount = data["amount_to_distribute"]
+
+
+
+    return render_to_response("valueaccounting/value_equation_sandbox.html", {
+        "header_form": header_form,
+        "buckets": buckets,
+        "agent_totals": agent_totals,
+    }, context_instance=RequestContext(request))
+
+def json_value_equation_bucket(request, value_equation_id):
+    #import pdb; pdb.set_trace()
+    ve = ValueEquation.objects.get(id=value_equation_id)
+    bkts = ve.buckets.all()
+    buckets = []
+    for b in bkts:
+        agent_name = "null"
+        if b.distribution_agent:
+            agent_name = b.distribution_agent.name
+        fields = {
+            "sequence": b.sequence,
+            "name": b.name,
+            "percentage": b.percentage,
+            "agent_name": agent_name,
+        }
+        buckets.append({"fields": fields})
+        json = simplejson.dumps(buckets, ensure_ascii=False)
+    return HttpResponse(json, mimetype='application/json')   
+    '''
+        resources = []
+    for r in rs:
+        loc = ""
+        if r.current_location:
+            loc = r.current_location.name
+        fields = {
+            "pk": r.pk,
+            "identifier": r.identifier,
+            "location": loc,
+        }
+        resources.append({"fields": fields})
+    data = simplejson.dumps(resources, ensure_ascii=False)
+    '''

@@ -2908,3 +2908,17 @@ class SortResourceReportForm(forms.Form):
         super(SortResourceReportForm, self).__init__(*args, **kwargs)
         self.fields["choice"].choices = [('1', 'Resource Type'), ('2', 'Resource (Lot)'), ('3', 'Order')]
 
+        
+class ValueEquationSandboxForm(forms.Form):
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        empty_label=None, 
+        widget=forms.Select(attrs={'class': 'chzn-select',}))
+    value_equation = forms.ModelChoiceField(
+        queryset=ValueEquation.objects.all(), 
+        label=_("Value Equation"),
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 've-selector'}))
+    money_to_distribute = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money'}))

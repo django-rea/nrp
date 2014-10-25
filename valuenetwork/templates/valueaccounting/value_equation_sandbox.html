@@ -59,7 +59,7 @@ th
         <div class="row-fluid">
 
             <div class="span6">
-                <span class="hdg">Distribution context:</span>
+                <span class="hdg">Distribution:</span>
                 <form id="headerForm" action="." method="POST" >
                     {% csrf_token %}
                     {{ header_form|as_bootstrap }}
@@ -120,7 +120,27 @@ th
             $( "#help" ).text("Show Help");
         })
 
+        jQuery.validator.addMethod("amount_to_distribute", //todo: don't know where to hook this up
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
+
+        $.validator.addClassRules("amount_to_distribute", { required: true, quantity: true, });
+
         $("#id_value_equation").change(getBuckets);        
+
+
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
+        });
 
         function getBuckets()
         {

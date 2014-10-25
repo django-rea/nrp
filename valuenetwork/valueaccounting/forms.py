@@ -2921,4 +2921,4 @@ class ValueEquationSandboxForm(forms.Form):
         widget=forms.Select(
             attrs={'class': 've-selector'}))
     amount_to_distribute = forms.DecimalField(required=False,
-        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money'}))
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money validateMe'}))

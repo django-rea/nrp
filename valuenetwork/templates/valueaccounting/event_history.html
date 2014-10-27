@@ -1,0 +1,168 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Event History for Resource" %} {{ resource }}{% endblock %}
+
+{% block extra_head %}
+<style>
+
+    tr.even td 
+    {
+        color:#000000;
+        background-color:#EAF2D3;
+    }
+
+    th
+    {
+        background-color:#C8D6E8;
+    }
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+        <legend>
+            {% trans "Event History for Resource" %} {{ resource }}&nbsp;&nbsp;
+            {% if agent %}
+                <a href="#adjustmentForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Adjust Quantity" %}</a>&nbsp;&nbsp;
+            {% endif %}
+        </legend>
+        
+        <p>
+            {% trans "Current Quantity" %}: {{ resource.quantity }} {{ resource.unit_of_quantity }}
+        </p>
+        
+        {% if agent %}
+            <div class="modal hide fade" id="adjustmentForm" tabindex="-1" role="dialog" aria-labelledby=adjustment-label" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="adjustment-label">{% trans "Adjust quantity of" %} {{ resource }}</h3>
+                </div>
+                <div class="modal-body">
+                    <form id="adjustment-form" enctype="multipart/form-data" action="{% url adjust_resource resource_id=resource.id %}" method="POST" >
+                        {% csrf_token %}
+                        <p>
+                            {{ adjustment_form.quantity.label }}</br>
+                            {{ adjustment_form.quantity }}</br>
+                            {% trans "of unit " %}{{ unit }}
+                        </p>
+                        <p>
+                            {{ adjustment_form.description.label }}</br>
+                            {{ adjustment_form.description }}
+                        </p>
+                        <div class="modal-footer">
+                          <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                          <button class="btn btn-primary">{% trans "Save" %}</button>
+                        </div>
+                    </form>
+              </div>
+            </div>
+        {% endif %}
+        
+        <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+            <thead>
+                <th>{% trans "Date" %}</th>
+                <th>{% trans "Type" %}</th>
+                <th>{% trans "From" %}</th>
+                <th>{% trans "Project" %}</th>
+                <th>{% trans "Qty" %}</th>
+                <th>{% trans "URL" %}</th>
+                <th>{% trans "Description" %}</th>
+                <th>{% trans "Process" %}</th>
+                
+            </thead>
+            <tbody> 
+                {% for event in events %}
+                    <tr class="{% cycle 'odd' 'even' %}">
+                        <td>{{ event.event_date }}</td>
+                        <td>{{ event.event_type }}</td>
+                        <td>{{ event.from_agent }}</td>
+                        <td>{{ event.context_agent }}</td>
+                        <td style="text-align: right;" >{{ event.quantity_formatted }}</td>
+                        <td>
+                            {% if event.url %}
+                                <a href="{{ event.url }}" target="_blank">Open</a>
+                            {% endif %}
+                        </td>
+                        <td>{% if event.description %}{{ event.description|urlize }}
+                            {% else %} {{ event.commitment.description|urlize }} {% endif %}
+                       </td>
+                        <td>
+                            {% if event.process %}
+                                <a href="{{ event.process.get_absolute_url }}" target="_blank">{{ event.process.name }}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>    
+        </table>
+<div class="pagination">
+    <span class="step-links">
+        {% if events.has_previous %}
+            <a href="?page={{ events.previous_page_number }}">{% trans "previous" %}</a>
+        {% endif %}
+
+        <span class="current">
+            {% trans "Page" %} {{ events.number }} {% trans "of" %} {{ events.paginator.num_pages }}.
+        </span>
+
+        {% if events.has_next %}
+            <a href="?page={{ events.next_page_number }}">{% trans "next" %}</a>
+        {% endif %}
+    </span>
+</div>
+
+    </div>
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $('#inventory').addClass('active');
+        
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
+        
+        $('#adjustment-form').validate(
+        {
+            rules: {
+                quantity: {
+                    required: true,
+                    quantity: true
+                },
+                description: {
+                    required: true
+                }
+            },
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            }
+
+        });
+
+    }); // end document.ready
+
+    </script>
+{% endblock %}

@@ -162,12 +162,11 @@ class SelectOrCreateResourceForm(forms.ModelForm):
 class EconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
-    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     created_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo',  'quality', 'independent_demand', 'order_item', 'stage', 'state')
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo', 'quantity', 'quality', 'independent_demand', 'order_item', 'stage', 'state')
 
         
 class CreateEconomicResourceForm(forms.ModelForm):

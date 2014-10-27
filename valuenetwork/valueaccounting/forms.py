@@ -213,6 +213,7 @@ class ResourceRoleAgentForm(forms.ModelForm):
         model = AgentResourceRole
         fields = ('id', 'role', 'agent', 'is_contact')
 
+        
 class FailedOutputForm(forms.ModelForm):
     quantity = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'failed-quantity input-small',}))
     description = forms.CharField(
@@ -224,6 +225,18 @@ class FailedOutputForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('quantity', 'description')
 
+        
+class ResourceAdjustmentForm(forms.ModelForm):
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    description = forms.CharField(
+        label="Reason",
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('quantity', 'description')
+
+        
 class DemandSelectionForm(forms.Form):
     demand = forms.ModelChoiceField(
         queryset=Order.objects.exclude(order_type="holder"), 

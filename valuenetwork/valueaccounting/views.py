@@ -938,6 +938,60 @@ def resource_flow_report(request):
         "pts": pts,
         #"sort_form": sort_form,
     }, context_instance=RequestContext(request))
+    
+def adjust_resource(request, resource_id):
+    resource = get_object_or_404(EconomicResource, id=resource_id)
+    form = ResourceAdjustmentForm(data=request.POST)
+    #import pdb; pdb.set_trace()
+    if form.is_valid():
+        agent = get_agent(request)
+        event = form.save(commit=False)
+        if event.quantity != resource.quantity:
+            new_quantity = event.quantity
+            event.resource = resource
+            et = EventType.objects.get(relationship="adjust")
+            event.event_type = et
+            event.quantity = event.quantity - resource.quantity
+            event.from_agent = agent
+            event.created_by = request.user
+            event.event_date = datetime.date.today()
+            event.unit_of_quantity = resource.unit_of_quantity
+            event.resource_type = resource.resource_type
+            event.save()
+            resource.quantity = new_quantity
+            resource.save()
+            
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/event-history', resource.id))
+    
+    
+def event_history(request, resource_id):
+    resource = get_object_or_404(EconomicResource, id=resource_id)
+    event_list = resource.events.all()
+    agent = get_agent(request)
+    init = {"quantity": resource.quantity,}
+    adjustment_form = ResourceAdjustmentForm(initial=init)
+    unit = resource.unit_of_quantity
+    
+    paginator = Paginator(event_list, 25)
+
+    page = request.GET.get('page')
+    try:
+        events = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        events = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        events = paginator.page(paginator.num_pages)
+    
+    return render_to_response("valueaccounting/event_history.html", {
+        "resource": resource,
+        "agent": agent,
+        "adjustment_form": adjustment_form,
+        "unit": unit,
+        "events": events,
+    }, context_instance=RequestContext(request))
 
 def all_contributions(request):
     event_list = EconomicEvent.objects.filter(is_contribution=True)

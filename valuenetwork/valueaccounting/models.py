@@ -945,6 +945,7 @@ DIRECTION_CHOICES = (
     ('receivecash', _('cash receipt')),
     ('shipment', _('shipment')),
     ('distribute', _('distribution')),
+    ('adjust', _('adjust')),
 )
 
 RELATED_CHOICES = (
@@ -956,6 +957,7 @@ RELATED_CHOICES = (
 RESOURCE_EFFECT_CHOICES = (
     ('+', _('increase')),
     ('-', _('decrease')),
+    ('+-', _('adjust')),
     ('x', _('transfer')), #means - for from_agent, + for to_agent
     ('=', _('no effect')),
     ('<', _('failure')),
@@ -2388,6 +2390,7 @@ def create_event_types(app, **kwargs):
     EventType.create('Create Changeable', _('creates changeable'), 'changeable created', 'out', 'process', '+~', 'quantity')  
     EventType.create('To Be Changed', _('to be changed'), '', 'in', 'process', '>~', 'quantity')  
     EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
+    EventType.create('Adjust Quantity', _('adjusts'), 'adjusted', 'adjust', 'agent', '+-', 'quantity')
     EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
     EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '-', 'value')  
 

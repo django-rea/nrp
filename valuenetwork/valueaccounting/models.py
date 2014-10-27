@@ -4380,6 +4380,17 @@ class Process(models.Model):
                 user=user,
                 stage=stage,
             )
+            
+    def change_context_agent(self, context_agent):
+        #import pdb; pdb.set_trace()
+        self.context_agent = context_agent
+        self.save()
+        for commit in self.commitments.all():
+            commit.context_agent = context_agent
+            commit.save()
+        for event in self.events.all():
+            event.context_agent = context_agent
+            event.save()
 
     def explode_demands(self, demand, user, visited, inheritance):
         """This method assumes the output commitment from this process 
@@ -5546,8 +5557,9 @@ class Commitment(models.Model):
         if self.is_workflow_order_item():
             processes = self.process_chain()
             for process in processes:
-                process.context_agent = project
-                process.save()
+                #process.context_agent = project
+                #process.save()
+                process.change_context_agent(context_agent=project)
         return self
         
     def adjust_workflow_commitments_process_added(self, process, user): #process added to the end of the order item

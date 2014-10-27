@@ -1494,10 +1494,7 @@ class EconomicResourceType(models.Model):
             order_item = octs[0]
             order.due_date = last_process.end_date
             order.save()
-        #flow todo: order_item fields set, but problem may arise
-        #if multiple order items exist.
-        #None exist now, but may in future.
-        #Thus the assert statement above.
+        #Todo: apply selected_context_agent here
         for process in processes:
             for ct in process.commitments.all():
                 ct.independent_demand = order
@@ -1528,6 +1525,7 @@ class EconomicResourceType(models.Model):
             if order.due_date < last_process.end_date:
                 order.due_date = last_process.end_date
                 order.save()
+        #Todo: apply selected_context_agent here
         for process in processes:
             for ct in process.commitments.all():
                 ct.independent_demand = order
@@ -1573,6 +1571,7 @@ class EconomicResourceType(models.Model):
                 resource.independent_demand = order
                 resource.order_item = order_item
                 resource.save()
+        #Todo: apply selected_context_agent here
         for process in processes:
             for commitment in process.commitments.all():
                 commitment.independent_demand = order
@@ -3155,8 +3154,8 @@ class EconomicResource(models.Model):
     author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
         verbose_name=_('author'), blank=True, null=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
-        default=Decimal("1.00"))
-    unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
+        default=Decimal("1.00"), editable=False)
+    unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True, editable=False,
         verbose_name=_('unit of quantity'), related_name="resource_qty_units")
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, 
         default=Decimal("0"), blank=True, null=True)
@@ -4301,6 +4300,8 @@ class Process(models.Model):
             order_item=order_item,
             process=self,
             description=description,
+            #Todo: apply selected_context_agent here? Dnly if inheritance?
+            #or has that already been set on the process in explode_demands?
             context_agent=self.context_agent,
             event_type=event_type,
             resource_type=resource_type,
@@ -4414,6 +4415,7 @@ class Process(models.Model):
             if inheritance:
                 if resource_type == inheritance.parent:
                     resource_type = inheritance.substitute(resource_type)
+            #Todo: apply selected_context_agent here? Dnly if inheritance?
             commitment = self.add_commitment(
                 resource_type=resource_type,
                 demand=demand,
@@ -4458,7 +4460,7 @@ class Process(models.Model):
                             notes=next_pt.description or "",
                             process_type=next_pt,
                             process_pattern=next_pt.process_pattern,
-                            #project=next_pt.project,
+                            #Todo: apply selected_context_agent here? Dnly if inheritance?
                             context_agent=next_pt.context_agent,
                             url=next_pt.url,
                             end_date=self.start_date,
@@ -4474,6 +4476,7 @@ class Process(models.Model):
                                 multiplier = pptr.quantity
                             qty = (qty_to_explode * multiplier).quantize(Decimal('.01'), rounding=ROUND_UP)
                         #todo: must consider ratio of PT output qty to PT input qty
+                        #Todo: apply selected_context_agent here? Dnly if inheritance?
                         next_commitment = next_process.add_commitment(
                             resource_type=resource_type,
                             stage=pptr.stage,
@@ -5361,7 +5364,8 @@ class Commitment(models.Model):
                     notes=pt.description or "",
                     process_type=pt,
                     process_pattern=pt.process_pattern,
-                    #project=pt.project,
+                    #Todo: apply selected_context_agent here?
+                    #only if inheritance?
                     context_agent=pt.context_agent,
                     url=pt.url,
                     end_date=self.due_date,

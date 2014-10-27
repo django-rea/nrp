@@ -7841,6 +7841,7 @@ def plan_from_recipe(request):
             
             for produced_rt in rts_to_produce:
                 if forward_schedule:
+                    #Todo: apply selected_context_agent to all of the above generators
                     if resource_driven:
                         demand = produced_rt.generate_staged_work_order_from_resource(resource, order_name, start_date, request.user)
                     else:
@@ -7858,6 +7859,7 @@ def plan_from_recipe(request):
                     if et:
                         commitment = demand.add_commitment(
                             resource_type=produced_rt,
+                            #Todo: apply selected_context_agent here? Only if inheritance?
                             context_agent=ptrt.process_type.context_agent,
                             quantity=ptrt.quantity,
                             event_type=et,
@@ -7870,6 +7872,7 @@ def plan_from_recipe(request):
                         commitment.save()
 
                         #import pdb; pdb.set_trace()
+                        #Todo: apply selected_context_agent here?
                         process = commitment.generate_producing_process(request.user, [], inheritance=inheritance, explode=True)
                     
             if notification:

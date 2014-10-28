@@ -6052,7 +6052,7 @@ class Compensation(models.Model):
         #    raise ValidationError('Initiating event and compensating event must have the same units of value.')
 
         
-BUCKET_BEHAVIOR_CHOICES = (
+PERCENTAGE_BEHAVIOR_CHOICES = (
     ('remaining', _('remaining percentage')),
     ('straight', _('straight percentage')),
 )
@@ -6061,8 +6061,8 @@ class ValueEquation(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=True)
     description = models.TextField(_('description'), null=True, blank=True)
     #uncomment the following when we make more model/migration changes
-    #bucket_behavior = models.CharField(_('bucket behavior'), 
-        #max_length=12, choices=BUCKET_BEHAVIOR_CHOICES)
+    #percentage_behavior = models.CharField(_('percentage behavior'), 
+        #max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='value_equations_created', blank=True, null=True)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
@@ -6075,11 +6075,13 @@ class ValueEquation(models.Model):
         context_agent = exchange.context_agent
         distribution_events = self.run_value_equation(
             context_agent=context_agent, 
-            amount_to_distribute=amount_to_distribute,
-            money_resource=money_resource)
+            amount_to_distribute=amount_to_distribute)
         #import pdb; pdb.set_trace()
         for event in distribution_events:
             event.exchange = exchange
+            event.resource_type = money_resource.resource_type
+            event.resource = money_resource
+            event.unit_of_quantity = money_resource.unit_of_quantity
             event.save()
             for claim_event in event.new_claim_events:
                 claim_event.claim.save()
@@ -6087,7 +6089,7 @@ class ValueEquation(models.Model):
                 claim_event.save()
         return exchange
         
-    def run_value_equation(self, context_agent, amount_to_distribute, money_resource):
+    def run_value_equation(self, context_agent, amount_to_distribute):
         #import pdb; pdb.set_trace()
         detail_sums = []
         claim_events = []
@@ -6123,18 +6125,13 @@ class ValueEquation(models.Model):
                 event_date = datetime.date.today(),
                 from_agent = context_agent, 
                 to_agent = EconomicAgent.objects.get(id=int(agent_id)),
-                resource_type = money_resource.resource_type,
-                resource = money_resource,
                 context_agent = context_agent,
-                quantity = agent_amounts[agent_id],
-                unit_of_quantity = money_resource.unit_of_quantity,
+                quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_UP),
                 is_contribution = False,
             )
-            #distribution.save()
             agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
             for ce in agent_claim_events:
                 ce.event = distribution
-                #ce.save()
             distribution.new_claim_events = agent_claim_events
             distribution_events.append(distribution)
         #import pdb; pdb.set_trace()
@@ -6168,6 +6165,7 @@ class ValueEquationBucket(models.Model):
     sequence = models.IntegerField(_('sequence'), default=0)  
     value_equation = models.ForeignKey(ValueEquation,
         verbose_name=_('value equation'), related_name='buckets')
+    #filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
     percentage = models.IntegerField(_('bucket percentage'), null=True)    
     distribution_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
@@ -6267,17 +6265,14 @@ class ValueEquationBucketRule(models.Model):
                 distr_amt = claim.value * portion_of_amount
                 if self.claim_rule_type == "debt-like":
                     claim.value = claim.value - distr_amt
-                    #claim.save()
                 elif self.claim_rule_type == "one-distribution":
                     claim.value = 0
-                    #claim.save()
                 claim_event = ClaimEvent(
                     claim = claim,
                     value = distr_amt,
                     unit_of_value = claim.unit_of_value,
                     event_effect = "-",
                 )
-                #claim_event.save()
                 claim_events.append(claim_event)
         #elif:
         return claim_events    

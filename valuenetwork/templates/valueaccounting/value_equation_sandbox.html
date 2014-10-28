@@ -1,0 +1,172 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Value Equation Sandbox" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.name {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.bucket {
+    margin-top: 15px;
+}
+#filters {
+    margin-bottom: 20px;
+}
+.to {
+    margin-left: 2em;
+}
+.pct {
+    margin-left: 1em;
+}
+.hdg {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: firebrick;
+}
+tr.even td 
+{
+    color:#000000;
+    background-color:#EAF2D3;
+}
+th
+{
+    background-color:#C8D6E8;
+}
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+       
+        <legend>
+            {% trans "Value Equation Sandbox" %}
+        </legend>
+        <div class="row-fluid">
+
+            <div class="span6">
+                <span class="hdg">Distribution:</span>
+                <form id="headerForm" action="." method="POST" >
+                    {% csrf_token %}
+                    {{ header_form|as_bootstrap }}
+                    <span class="hdg">Bucket filters:</span>
+                    <div id="filters">
+                        {% for bucket in buckets %}
+                            <div class="bucket"><span class="name">{{ bucket.name }}</span><span class="pct"> {{ bucket.percentage }}</span>%</div>
+                            <div class="to">{% if bucket.distribution_agent %} Distribute to <span class="dist-to">{{ bucket.distribution_agent.name }}</span> {% endif %}</div>
+                        {% endfor %}
+                    </div>
+                    <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Calculate' %}" />
+                </form>
+
+            </div>
+
+            <div id="distributions" class="span6">
+                {% if agent_totals %}
+                 <span class="hdg">Results:</span>
+                <table class="table table-bordered table-condensed" >
+                    <thead>
+                        <th>{% trans "Agent" %}</th>
+                        <th style="text-align: right;">{% trans "Distribution Amount" %}</th>
+                    </thead>
+                    <tbody> 
+                        {% for at in agent_totals %}
+                            <tr class="{% cycle 'odd' 'even' %}">
+                                <td>{{ at.to_agent }}</td>
+                                <td style="text-align: right;" >{{ at.quantity }}</td>
+                            </tr>
+                        {% endfor %}
+                    <tbody> 
+                </table>
+                {% endif %}
+            </div>
+        </div>
+       
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $(".chzn-select").chosen();
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        jQuery.validator.addMethod("amount_to_distribute", //todo: don't know where to hook this up
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
+
+        $.validator.addClassRules("amount_to_distribute", { required: true, quantity: true, });
+
+        $("#id_value_equation").change(getBuckets);        
+
+
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
+        });
+
+        function getBuckets()
+        {
+            var selectedVE = document.getElementById('id_value_equation').value;
+            var jsonUrl = encodeURI("/accounting/json-value-equation-buckets/" + selectedVE + "/");
+            $("#filters").empty();
+            $.get(jsonUrl,
+            function(data){
+                var filters = ""
+                for(var i=0 ; i<data.length ; i++)
+                {
+                    var sequence = data[i].fields['sequence'];
+                    var name = data[i].fields['name']; 
+                    var pct = data[i].fields['percentage']; 
+                    var agent = data[i].fields['agent_name']; 
+
+                    filters = filters + '<div class="bucket"><span class="name">' + name + '</span><span class="pct">' + pct + '</span>%</div>'
+                    if (agent != 'null') {
+                        filters = filters + '<div class="to">Distribute to <span class="dist-to">' + agent + '</span></div>'
+                    }
+                }
+                $("#filters").append(filters)
+            });
+        }
+
+    }); // end document.ready
+    </script>
+
+{% endblock %}

@@ -4461,6 +4461,35 @@ def add_shipment(request, exchange_id):
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
+        
+@login_required
+def log_shipment(request, commitment_id, resource_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    if request.method == "POST":
+        agent = get_agent(request)
+        #todo: rethink for citations
+        default_agent = ct.process.default_agent()
+        from_agent = resource.owner() or default_agent
+        event = EconomicEvent(
+            resource = resource,
+            commitment = ct,
+            event_date = datetime.date.today(),
+            event_type = ct.event_type,
+            from_agent = from_agent,
+            to_agent = default_agent,
+            resource_type = ct.resource_type,
+            process = ct.process,
+            #project = ct.project,
+            context_agent = ct.context_agent,
+            quantity = Decimal("1"),
+            unit_of_quantity = ct.unit_of_quantity,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', ct.process.id))
 
 @login_required
 def add_distribution(request, exchange_id):
@@ -8410,6 +8439,7 @@ def exchange_logging(request, exchange_id):
     receipt_total = 0
     total_in = 0
     total_out = 0
+    shipped_ids = []
 
     #receipt_commitments = exchange.receipt_commitments()
     #payment_commitments = exchange.payment_commitments()
@@ -8562,6 +8592,7 @@ def exchange_logging(request, exchange_id):
                 "from_agent": context_agent,
             }      
             add_shipment_form = ShipmentForm(prefix='ship', initial=ship_init, pattern=pattern, context_agent=context_agent)
+            shipped_ids = [c.resource.id for c in exchange.shipment_events()]
         if "distribute" in slots:
             #import pdb; pdb.set_trace()
             dist_init = {
@@ -8632,6 +8663,7 @@ def exchange_logging(request, exchange_id):
         "receipt_total": receipt_total,
         "total_in": total_in,
         "total_out": total_out,
+        "shipped_ids": shipped_ids,
         "help": get_help("exchange"),
     }, context_instance=RequestContext(request))
 
@@ -8927,3 +8959,45 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
         "count": count,
     }, context_instance=RequestContext(request))
 
+@login_required
+def value_equation_sandbox(request):
+    #import pdb; pdb.set_trace()
+    header_form = ValueEquationSandboxForm(data=request.POST or None)
+    buckets = []
+    agent_totals = []
+    ves = ValueEquation.objects.all()
+    if ves:
+        ve = ves[0]
+        buckets = ve.buckets.all()
+    if request.method == "POST":
+        if header_form.is_valid():
+            data = header_form.cleaned_data
+            context_agent = data["context_agent"]
+            value_equation = data["value_equation"]
+            amount = data["amount_to_distribute"]
+            agent_totals = ve.run_value_equation(context_agent=context_agent, amount_to_distribute=Decimal(amount))
+
+    return render_to_response("valueaccounting/value_equation_sandbox.html", {
+        "header_form": header_form,
+        "buckets": buckets,
+        "agent_totals": agent_totals,
+    }, context_instance=RequestContext(request))
+
+def json_value_equation_bucket(request, value_equation_id):
+    #import pdb; pdb.set_trace()
+    ve = ValueEquation.objects.get(id=value_equation_id)
+    bkts = ve.buckets.all()
+    buckets = []
+    for b in bkts:
+        agent_name = "null"
+        if b.distribution_agent:
+            agent_name = b.distribution_agent.name
+        fields = {
+            "sequence": b.sequence,
+            "name": b.name,
+            "percentage": b.percentage,
+            "agent_name": agent_name,
+        }
+        buckets.append({"fields": fields})
+        json = simplejson.dumps(buckets, ensure_ascii=False)
+    return HttpResponse(json, mimetype='application/json')   

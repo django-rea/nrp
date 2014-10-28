@@ -49,8 +49,9 @@ li {
 .hdg {
     font-weight: bold;
     font-size: 1.1em;
+    color: #7D1818;
 }
-.indent {
+.onhand, .indent {
     margin-left: 3em;
 }
 .unplanned {
@@ -86,6 +87,9 @@ li {
 .total-top {
     font-weight: bold;
     padding-right: 2em;
+}
+.bold {
+    font-weight: bold;
 }
 
 </style>
@@ -475,49 +479,76 @@ li {
             <div class="hdg">Ordered Items</div>
             {% for item in exchange.shipment_commitments %}
                 <div class="commitment" >
-                    <span class="detail-line" >{{ item.shorter_label }}</span>
+                    <span class="detail-line bold" >{{ item.shorter_label }}</span>
                     {% if item.description %}
                         <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
                     {% endif %}
 
                 </div>
- {% comment %}               
+              
                 {% if item.onhand %}
                     {% for resource in item.onhand %}
-                            <div class="onhand" >
-                                <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
-                                {% if resource.id in shipped_ids %}
-                                    <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
-                                    {% if logger %}
-                                        <form
-                                            style="display: inline;" 
-                                            class="delete-citation-form" 
-                                            id="deleteForm{{ event.id }}" 
-                                            action="{% url delete_citation_event commitment_id=item.id resource_id=resource.id %}" 
-                                            method="POST" >
-                                            {% csrf_token %}
-                                            <input type="hidden" id="next" name="next" value="process" />
-                                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
-                                        </form>
-                                    {% endif %}
-                                {% else %}
-                                    {% if logger %}
-                                        <form
-                                            style="display: inline;" 
-                                            class="citation-form" 
-                                            id="citationForm{{ item.id }}" 
-                                            action="{% url log_citation commitment_id=item.id resource_id=resource.id %}" 
-                                            method="POST" >
-                                            {% csrf_token %}
-                                            <input type="hidden" id="next" name="next" value="process" />
-                                            <button style="display: inline;"  class="btn btn-info btn-mini" title="Log citation" >{% trans "Log citation" %}</button>
-                                        </form>
-                                    {% endif %}
+                        <div class="onhand" >
+                            <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >
+                                {{ resource.identifier }} </a> {{ resource.quantity }} {{ resource.unit_of_quantity }}
+                            {% if resource.id in shipped_ids %}
+                                <span style="color: green; font-weight: bold;">{% trans "Shipped" %}</span> 
+                                {% if logger %}
+                                    <form
+                                        style="display: inline;" 
+                                        class="delete-shipment-form" 
+                                        id="deleteForm{{ event.id }}" 
+                                        action="{% url delete_shipment_event commitment_id=item.id resource_id=resource.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" id="next" name="next" value="process" />
+                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete shipment (order item will remain)" >X</button>
+                                    </form>
                                 {% endif %}
-                            </div>
+                            {% else %}
+                                {% if logger %}
+                                    <form
+                                        style="display: inline;" 
+                                        class="shipment-form" 
+                                        id="shipmentForm{{ resource.id }}" 
+                                        action="{% url log_shipment commitment_id=item.id resource_id=resource.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" id="next" name="next" value="process" />
+                                        <button style="display: inline;"  class="btn btn-info btn-mini" title="Log shipment of this item" >{% trans "Log shipment" %}</button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        </div>
                     {% endfor %}
                 {% endif %}
-{% endcomment %}
+
+                {% for event in item.fulfilling_events %}
+                    <div class="event" >
+                        <span class="event-label">{% trans "Shipped" %}:</span> <span class="event" >
+                            {{ event.event_type.label }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
+                        </span>
+                        {% if logger %}
+                            {% comment %}
+                            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+                            {% endcomment %}
+                            <form
+                                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete production event" >X</button>
+                            </form>
+                        {% endif %}
+                        </br>
+                        &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a>
+                    
+                    </div>
+                {% endfor %}
+
             {% endfor %}
 
             {% if shipment_events %}

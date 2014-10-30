@@ -955,7 +955,7 @@ def adjust_resource(request, resource_id):
             event.from_agent = agent
             event.created_by = request.user
             event.event_date = datetime.date.today()
-            event.unit_of_quantity = resource.unit_of_quantity
+            event.unit_of_quantity = resource.resource_type.unit_of_quantity
             event.resource_type = resource.resource_type
             event.save()
             resource.quantity = new_quantity
@@ -971,7 +971,7 @@ def event_history(request, resource_id):
     agent = get_agent(request)
     init = {"quantity": resource.quantity,}
     adjustment_form = ResourceAdjustmentForm(initial=init)
-    unit = resource.unit_of_quantity
+    unit = resource.resource_type.unit_of_quantity
     
     paginator = Paginator(event_list, 25)
 
@@ -1254,7 +1254,7 @@ def json_resource(request, resource_id):
         "identifier": r.identifier,
         "location": loc,
         "quantity": str(r.quantity),
-        "unit": r.unit_of_quantity.name,
+        "unit": r.resource_type.unit_of_quantity.name,
         "access_rules": r.access_rules,
     }
     assignments = {}
@@ -4025,7 +4025,7 @@ def add_unplanned_output(request, process_id):
                     url=url,
                     photo_url=photo_url,
                     quantity=event.quantity,
-                    unit_of_quantity=event.unit_of_quantity,
+                    #unit_of_quantity=event.unit_of_quantity,
                     created_by=request.user,
                 )
                 resource.save()
@@ -4066,7 +4066,7 @@ def add_unordered_receipt(request, exchange_id):
                     url = output_data["url"]
                     photo_url = output_data["photo_url"]
                     quantity = output_data["quantity"]
-                    unit_of_quantity = output_data["unit_of_quantity"]
+                    #unit_of_quantity = output_data["unit_of_quantity"]
                     access_rules = output_data["access_rules"]
                     location = output_data["current_location"]
                     resource = EconomicResource(
@@ -4076,7 +4076,7 @@ def add_unordered_receipt(request, exchange_id):
                         url=url,
                         photo_url=photo_url,
                         quantity=quantity,
-                        unit_of_quantity=unit_of_quantity,
+                        #unit_of_quantity=unit_of_quantity,
                         current_location=location,
                         access_rules=access_rules,
                         created_by=request.user,
@@ -4274,7 +4274,7 @@ def add_material_contribution(request, exchange_id):
                     url = material_data["url"]
                     photo_url = material_data["photo_url"]
                     quantity = material_data["quantity"]
-                    unit_of_quantity = material_data["unit_of_quantity"]
+                    #unit_of_quantity = material_data["unit_of_quantity"]
                     access_rules = material_data["access_rules"]
                     location = material_data["current_location"]
                     resource = EconomicResource(
@@ -4284,7 +4284,7 @@ def add_material_contribution(request, exchange_id):
                         url=url,
                         photo_url=photo_url,
                         quantity=quantity,
-                        unit_of_quantity=unit_of_quantity,
+                        #unit_of_quantity=unit_of_quantity,
                         current_location=location,
                         access_rules=access_rules,
                         created_by=request.user,
@@ -4376,7 +4376,7 @@ def add_cash_resource_contribution(request, exchange_id):
                     identifier=cash_data["identifier"],
                     resource_type=rt,
                     quantity=value,
-                    unit_of_quantity=event.unit_of_value,
+                    #unit_of_quantity=event.unit_of_value,
                     notes=cash_data["notes"],
                     current_location=cash_data["current_location"],
                     created_by=request.user
@@ -4471,7 +4471,7 @@ def add_cash_receipt_resource(request, exchange_id):
                     identifier=payment_data["identifier"],
                     resource_type=rt,
                     quantity=qty,
-                    unit_of_quantity=event.unit_of_quantity,
+                    #unit_of_quantity=event.unit_of_quantity,
                     notes=payment_data["notes"],
                     current_location=payment_data["current_location"],
                     created_by=request.user
@@ -5490,7 +5490,7 @@ def process_oriented_logging(request, process_id):
                 
                     work_init = {
                         "from_agent": agent,
-                        "unit_of_quantity": work_unit,
+                        #"unit_of_quantity": work_unit,
                     }             
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
                     unplanned_work_form.fields["resource_type"].queryset = work_resource_types 
@@ -6257,7 +6257,7 @@ def production_event_for_commitment(request):
             resource_type = ct.resource_type,
             created_date = event_date,
             quantity = quantity,
-            unit_of_quantity = ct.unit_of_quantity,
+            #unit_of_quantity = ct.unit_of_quantity,
             created_by=request.user,
             independent_demand=demand,
             order_item=order_item,
@@ -6547,7 +6547,7 @@ def failed_outputs(request, commitment_id):
                 created_date = event_date,
                 quantity = quantity,
                 quality = Decimal("-1"),
-                unit_of_quantity = ct.unit_of_quantity,
+                #unit_of_quantity = ct.unit_of_quantity,
                 notes = description,
                 created_by=request.user,
             )

@@ -6062,7 +6062,6 @@ def resource(request, resource_id):
                 process.created_by = request.user
                 process.save() 
                 event = EconomicEvent()
-                #event.project = process.project
                 event.context_agent = process.context_agent
                 event.event_date = process.end_date
                 event.event_type = process.process_pattern.event_type_for_resource_type("out", resource.resource_type)
@@ -6335,7 +6334,6 @@ def resource_event_for_commitment(request, commitment_id):
                 from_agent = agent,
                 resource_type = ct.resource_type,
                 process = ct.process,
-                #project = ct.project,
                 context_agent = ct.context_agent,
                 quantity = resource.quantity,
                 unit_of_quantity = ct.unit_of_quantity,

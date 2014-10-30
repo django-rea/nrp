@@ -128,11 +128,11 @@ class SelectOrCreateResourceForm(forms.ModelForm):
         required=False,
         widget=forms.Select(attrs={'class': 'input-xlarge chzn-select',}))
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
-    unit_of_quantity = forms.ModelChoiceField(
-        queryset=Unit.objects.exclude(unit_type='value'), 
-        label=_("Unit"),
-        empty_label=None,
-        widget=forms.Select(attrs={'class': 'input-medium',}))
+    #unit_of_quantity = forms.ModelChoiceField(
+    #    queryset=Unit.objects.exclude(unit_type='value'), 
+    #    label=_("Unit"),
+    #    empty_label=None,
+    #    widget=forms.Select(attrs={'class': 'input-medium',}))
     identifier = forms.CharField(
         required=False, 
         label="Identifier",
@@ -150,13 +150,15 @@ class SelectOrCreateResourceForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResource
-        fields = ('quantity', 'unit_of_quantity', 'identifier', 'current_location', 'url', 'photo_url', 'notes')
+        fields = ('quantity', 'identifier', 'current_location', 'url', 'photo_url', 'notes')
         
-    def __init__(self, resource_type=None, *args, **kwargs):
+    def __init__(self, resource_type=None, qty_help=None, *args, **kwargs):
         super(SelectOrCreateResourceForm, self).__init__(*args, **kwargs)
         #import pdb; pdb.set_trace()
         if resource_type:
             self.fields["resource"].queryset = EconomicResource.goods.filter(resource_type=resource_type)
+        if qty_help:
+            self.fields["quantity"].help_text = qty_help
 
 
 class EconomicResourceForm(forms.ModelForm):

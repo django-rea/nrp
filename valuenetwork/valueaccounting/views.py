@@ -8968,6 +8968,9 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
         filter_form = DeliveryFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
     if request.method == "POST":
         if filter_form.is_valid():
+            #import pdb; pdb.set_trace()
+            s = filter_form.serialize()
+            d = filter_form.deserialize(s)
             data = filter_form.cleaned_data
             process_types = data["process_types"]
             resource_types = data["resource_types"]

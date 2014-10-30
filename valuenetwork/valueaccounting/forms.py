@@ -2877,7 +2877,48 @@ class ProjectFilterSetForm(forms.Form):
             self.fields["resource_types"].queryset = pattern.get_resource_types(event_type=event_type)
         else:
             self.fields["resource_types"].queryset = EconomicResourceType.objects.all()
-    
+            
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {"method": "Context",}
+        start_date = data.get("start_date")
+        if start_date:
+            json["start_date"] = start_date.strftime('%Y-%m-%d')
+        end_date = data.get("end_date")
+        if end_date:
+            json["end_date"] = end_date.strftime('%Y-%m-%d')
+        process_types = data.get("process_types")
+        if process_types:
+            json["process_types"] = [pt.id for pt in process_types]
+        resource_types = data.get("resource_types")
+        if resource_types:
+            json["resource_types"] = [pt.id for pt in resource_types]
+        return json
+        
+    def deserialize(self, json):
+        dict = {}
+        dict["method"] = json["method"]
+        start_date = json.get("start_date")
+        if start_date:
+            dict["start_date"] = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = json.get("end_date")
+        if end_date:
+            dict["end_date"] = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+        process_types = json.get("process_types")
+        if process_types:
+            l = []
+            for pk in process_types:
+                l.append(ProcessType.objects.get(pk=pk))
+            dict["process_types"] = l
+        resource_types = json.get("resource_types")
+        if resource_types:
+            l = []
+            for pk in resource_types:
+                l.append(EconomicResourceType.objects.get(pk=pk))
+            dict["resource_types"] = l
+        return dict
+        
     
 class DeliveryFilterSetForm(forms.Form):
     shipment_events = forms.ModelMultipleChoiceField(

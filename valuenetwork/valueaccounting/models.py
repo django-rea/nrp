@@ -3322,6 +3322,7 @@ class EconomicResource(models.Model):
             visited.append(self)
             depth += 1
             resources = []
+            #this needs to include purchases and contributions
             for event in self.producing_events():
                 event.depth = depth
                 flows.append(event)
@@ -3332,6 +3333,7 @@ class EconomicResource(models.Model):
                         p.depth = depth
                         flows.append(p)
                         depth += 1
+                        #process.incoming_events shd include p&c
                         for evt in p.incoming_events():
                             evt.depth = depth
                             flows.append(evt)
@@ -3351,6 +3353,7 @@ class EconomicResource(models.Model):
          
     def value_flow_going_forward(self):
         #todo: needs rework, see next method
+        #import pdb; pdb.set_trace()
         flows = []
         visited = []
         depth = 0
@@ -3369,8 +3372,9 @@ class EconomicResource(models.Model):
             processes = []
             for event in events:
                 flows.insert(0, event)
-                if event.process not in processes:
-                    processes.append(event.process)
+                if event.process:
+                    if event.process not in processes:
+                        processes.append(event.process)
             for process in processes:
                 flows.insert(0, process)
         return flows
@@ -3430,6 +3434,7 @@ class EconomicResource(models.Model):
         save_process = None
         new_process = None
         for index, io in enumerate(in_out):
+            item_process = save_process
             if io.__class__.__name__ == "EconomicEvent":
                 item_process = io.process
             elif io.__class__.__name__ == "Process":

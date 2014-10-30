@@ -119,7 +119,7 @@ th
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
-
+/*
         jQuery.validator.addMethod("amount_to_distribute", //todo: don't know where to hook this up
             function(value, element) {
                 var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
@@ -127,8 +127,9 @@ th
             },
             "Please enter a number less than 1000000 with no more than 2 decimal places"
         );
-
-        $.validator.addClassRules("amount_to_distribute", { required: true, quantity: true, });
+*/
+//todo: the following works as a validator but breaks the getBuckets.... ??
+//        $.validator.addClassRules("amount_to_distribute", { required: true, quantity: true, });
 
         $("#id_value_equation").change(getBuckets);        
 

@@ -1122,6 +1122,10 @@ class EconomicResourceType(models.Model):
     unit_of_use = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of use'), related_name="units_of_use",
         help_text=_('if this resource has different units of use and inventory, this is the unit of use'))
+    value_per_unit = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.00"))
+    value_per_unit_of_use = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.00"))
     substitutable = models.BooleanField(_('substitutable'), default=True,
         help_text=_('Can any resource of this type be substituted for any other resource of this type?'))
     inventory_rule = models.CharField(_('inventory rule'), max_length=5,
@@ -1131,7 +1135,7 @@ class EconomicResourceType(models.Model):
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     description = models.TextField(_('description'), blank=True, null=True)
-    rate = models.DecimalField(_('rate'), max_digits=6, decimal_places=2, default=Decimal("0.00"), editable=False)
+    #rate = models.DecimalField(_('rate'), max_digits=6, decimal_places=2, default=Decimal("0.00"), editable=False)
     accounting_reference = models.ForeignKey(AccountingReference, blank=True, null=True,
         verbose_name=_('accounting reference'), related_name="resource_types",
         help_text=_('optional reference to an external account'))
@@ -3168,6 +3172,10 @@ class EconomicResource(models.Model):
     current_location = models.ForeignKey(Location, 
         verbose_name=_('current location'), related_name='resources_at_location', 
         blank=True, null=True)
+    value_per_unit = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.00"))
+    value_per_unit_of_use = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.00"))
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='resources_created', blank=True, null=True, editable=False)
@@ -3208,6 +3216,9 @@ class EconomicResource(models.Model):
 
     def flow_description(self):
         return self.__unicode__()
+        
+    def unit_of_quantity(self):
+        return self.resource_type.unit
 
     def change_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
@@ -3589,6 +3600,7 @@ class AgentResourceRole(models.Model):
     role = models.ForeignKey(AgentResourceRoleType, 
         verbose_name=_('role'), related_name='agent_resource_roles')
     is_contact = models.BooleanField(_('is contact'), default=False)
+    is_account = models.BooleanField(_('is account'), default=False)
     owner_percentage = models.IntegerField(_('owner percentage'), null=True)
 
     def __unicode__(self):
@@ -6055,9 +6067,8 @@ PERCENTAGE_BEHAVIOR_CHOICES = (
 class ValueEquation(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=True)
     description = models.TextField(_('description'), null=True, blank=True)
-    #uncomment the following when we make more model/migration changes
-    #percentage_behavior = models.CharField(_('percentage behavior'), 
-        #max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES)
+    percentage_behavior = models.CharField(_('percentage behavior'), 
+        max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight')
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='value_equations_created', blank=True, null=True)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
@@ -6133,14 +6144,21 @@ class ValueEquation(models.Model):
         return distribution_events
         
 class DistributionValueEquation(models.Model):
+    '''
+    Distribution itself is currently implemented using Exchange.  This is not totally correct from an REA point
+    of view.  It groups events that apply to many earlier exchanges. If we were using subclasses, it might be that
+    EconomicInteraction is the superclass of Process, Exchange, and Distribution.
+    
+    This class holds the remaining information for a Distribution.
+    '''
     distribution_date = models.DateField(_('distribution date'))
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
         verbose_name=_('distribution'), related_name='value equation')    
-    value_equation_original = models.ForeignKey(ValueEquation,
+    value_equation_link = models.ForeignKey(ValueEquation,
         blank=True, null=True,
-        verbose_name=_('value equation original'), related_name='distributions')
-    value_equation = models.TextField(_('value equation used'), null=True, blank=True)    
+        verbose_name=_('value equation link'), related_name='distributions')
+    value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)    
         
 class AgentValueEquation(models.Model):
     context_agent = models.ForeignKey(EconomicAgent,
@@ -6160,7 +6178,7 @@ class ValueEquationBucket(models.Model):
     sequence = models.IntegerField(_('sequence'), default=0)  
     value_equation = models.ForeignKey(ValueEquation,
         verbose_name=_('value equation'), related_name='buckets')
-    #filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
+    filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
     percentage = models.IntegerField(_('bucket percentage'), null=True)    
     distribution_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
@@ -6299,7 +6317,6 @@ class ValueEquationBucketRule(models.Model):
 
             
 class Claim(models.Model):
-    #VE todo: needs order field and anything else that might be part of the VEBR filter
     value_equation_bucket_rule = models.ForeignKey(ValueEquationBucketRule,
         blank=True, null=True, 
         related_name="claims", verbose_name=_('value equation bucket rule'))
@@ -6315,9 +6332,6 @@ class Claim(models.Model):
         limit_choices_to={"agent_type__is_context": True,},
         related_name="claims", verbose_name=_('context agent'),
         on_delete=models.SET_NULL)        
-    order = models.ForeignKey(Order,
-        blank=True, null=True,
-        related_name="claims", verbose_name=_('order'))
     value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
         default=Decimal("0.0"))
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
@@ -6485,7 +6499,7 @@ class CachedEventSummary(models.Model):
                 agent=summary.agent,
                 context_agent=summary.context_agent,
                 resource_type=summary.resource_type,
-                resource_type_rate=summary.resource_type.rate,
+                resource_type_rate=summary.resource_type.value_per_unit,
                 #importance=summary.project.importance, todo: need this in agent?
                 quantity=summary.quantity,
             )
@@ -6532,7 +6546,7 @@ class CachedEventSummary(models.Model):
                 context_agent=summary.context_agent,
                 resource_type=summary.resource_type,
                 event_type=summary.event_type,
-                resource_type_rate=summary.resource_type.rate,
+                resource_type_rate=summary.resource_type.value_per_unit,
                 #importance=summary.project.importance,
                 quantity=summary.quantity,
             )

@@ -8760,8 +8760,8 @@ def create_distribution_using_value_equation(request, agent_id):
             dist_ve = DistributionValueEquation(
                 distribution_date = exchange.start_date,
                 exchange = exchange,
-                value_equation_original = ve,
-                value_equation = "need to serialize here", #todo
+                value_equation_link = ve,
+                value_equation_content = "need to serialize here", #todo
             )
             dist_ve.save()
             resource = exchange_form.cleaned_data["resource"]

@@ -955,7 +955,7 @@ def adjust_resource(request, resource_id):
             event.from_agent = agent
             event.created_by = request.user
             event.event_date = datetime.date.today()
-            event.unit_of_quantity = resource.resource_type.unit_of_quantity
+            event.unit_of_quantity = resource.resource_type.unit
             event.resource_type = resource.resource_type
             event.save()
             resource.quantity = new_quantity
@@ -971,7 +971,7 @@ def event_history(request, resource_id):
     agent = get_agent(request)
     init = {"quantity": resource.quantity,}
     adjustment_form = ResourceAdjustmentForm(initial=init)
-    unit = resource.resource_type.unit_of_quantity
+    unit = resource.resource_type.unit
     
     paginator = Paginator(event_list, 25)
 
@@ -1254,7 +1254,7 @@ def json_resource(request, resource_id):
         "identifier": r.identifier,
         "location": loc,
         "quantity": str(r.quantity),
-        "unit": r.resource_type.unit_of_quantity.name,
+        "unit": r.resource_type.unit.name,
         "access_rules": r.access_rules,
     }
     assignments = {}
@@ -5490,7 +5490,7 @@ def process_oriented_logging(request, process_id):
                 
                     work_init = {
                         "from_agent": agent,
-                        #"unit_of_quantity": work_unit,
+                        "unit_of_quantity": work_unit,
                     }             
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
                     unplanned_work_form.fields["resource_type"].queryset = work_resource_types 

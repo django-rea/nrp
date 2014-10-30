@@ -1124,9 +1124,9 @@ class EconomicResourceType(models.Model):
     unit_of_use = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of use'), related_name="units_of_use",
         help_text=_('if this resource has different units of use and inventory, this is the unit of use'))
-    value_per_unit = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+    value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
-    value_per_unit_of_use = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+    value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     substitutable = models.BooleanField(_('substitutable'), default=True,
         help_text=_('Can any resource of this type be substituted for any other resource of this type?'))
@@ -3172,9 +3172,9 @@ class EconomicResource(models.Model):
     current_location = models.ForeignKey(Location, 
         verbose_name=_('current location'), related_name='resources_at_location', 
         blank=True, null=True)
-    value_per_unit = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+    value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
-    value_per_unit_of_use = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
+    value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),

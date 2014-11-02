@@ -6195,11 +6195,19 @@ class AgentValueEquation(models.Model):
     def __unicode__(self):
         return self.value_equation.name
 
+FILTER_METHOD_CHOICES = (
+    ('order', _('order')),
+    ('shipment', _('shipment')),
+    ('dates', _('date range')),
+)
+
 class ValueEquationBucket(models.Model): 
     name = models.CharField(_('name'), max_length=32)
     sequence = models.IntegerField(_('sequence'), default=0)  
     value_equation = models.ForeignKey(ValueEquation,
         verbose_name=_('value equation'), related_name='buckets')
+    filter_method =  models.CharField(_('filter method'), 
+        max_length=12, choices=FILTER_METHOD_CHOICES, default='dates')    
     filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
     percentage = models.IntegerField(_('bucket percentage'), null=True)    
     distribution_agent = models.ForeignKey(EconomicAgent,

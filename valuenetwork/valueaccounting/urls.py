@@ -402,5 +402,6 @@ urlpatterns = patterns("",
     url(r"^bucket-filter/(?P<agent_id>\d+)/(?P<event_type_id>\d+)/(?P<pattern_id>\d+)/(?P<filter_set>\w+)/$", 'valuenetwork.valueaccounting.views.bucket_filter', name="bucket_filter"),
     url(r"^resource-flow-report/$", 'valuenetwork.valueaccounting.views.resource_flow_report', name="resource_flow_report"),
     url(r"^value-equation-sandbox/$", 'valuenetwork.valueaccounting.views.value_equation_sandbox', name="value_equation_sandbox"),
+    url(r"^value-equations/$", 'valuenetwork.valueaccounting.views.value_equations', name="value_equations"),
 )
 

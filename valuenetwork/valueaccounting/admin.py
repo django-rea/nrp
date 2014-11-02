@@ -27,14 +27,9 @@ class ValueEquationBucketInline(admin.TabularInline):
     fk_name = 'value_equation'
     fields = ('sequence', 'name', 'percentage', 'distribution_agent')
 
-class AgentValueEquationInline(admin.TabularInline):
-    model = AgentValueEquation
-    fk_name = 'value_equation'
-    fields = ('context_agent',)
-
 class ValueEquationAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
-    inlines = [ ValueEquationBucketInline, AgentValueEquationInline, ]
+    inlines = [ ValueEquationBucketInline, ]
 
 admin.site.register(ValueEquation, ValueEquationAdmin)
 

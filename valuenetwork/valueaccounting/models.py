@@ -2366,6 +2366,7 @@ def create_use_cases(app, **kwargs):
     UseCase.create('exp_contr', _('Expense Contribution'), True)
     UseCase.create('sale', _('Sale'))
     UseCase.create('distribution', _('Distribution'), True)
+    UseCase.create('val_equation', _('Value Equation'), True)
     print "created use cases"
 
 post_migrate.connect(create_use_cases)
@@ -2396,7 +2397,7 @@ def create_event_types(app, **kwargs):
     EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
     EventType.create('Adjust Quantity', _('adjusts'), 'adjusted', 'adjust', 'agent', '+-', 'quantity')
     EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
-    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '-', 'value')  
+    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '-', 'value')    
 
     print "created event types"
 
@@ -3580,6 +3581,8 @@ class AgentResourceType(models.Model):
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         limit_choices_to={'unit_type': 'value'},
         verbose_name=_('unit of value'), related_name="agent_resource_value_units")
+    value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.0"))
     description = models.TextField(_('description'), null=True, blank=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='arts_created', blank=True, null=True, editable=False)
@@ -6165,6 +6168,9 @@ PERCENTAGE_BEHAVIOR_CHOICES = (
 
 class ValueEquation(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=True)
+    context_agent = models.ForeignKey(EconomicAgent, null=True, blank=True,
+        limit_choices_to={"agent_type__is_context": True,},
+        related_name="value_equations", verbose_name=_('context agent'))  
     description = models.TextField(_('description'), null=True, blank=True)
     percentage_behavior = models.CharField(_('percentage behavior'), 
         max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight')
@@ -6175,6 +6181,11 @@ class ValueEquation(models.Model):
     def __unicode__(self):
         return self.name
         
+    @models.permalink
+    def get_absolute_url(self):
+        return ('value_equation', (),
+            { 'value_equation_id': str(self.id),})
+            
     def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute):
         #import pdb; pdb.set_trace()
         context_agent = exchange.context_agent
@@ -6258,7 +6269,8 @@ class DistributionValueEquation(models.Model):
         blank=True, null=True,
         verbose_name=_('value equation link'), related_name='distributions')
     value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)    
-        
+
+'''
 class AgentValueEquation(models.Model):
     context_agent = models.ForeignKey(EconomicAgent,
         limit_choices_to={"agent_type__is_context": True,},
@@ -6271,6 +6283,7 @@ class AgentValueEquation(models.Model):
     
     def __unicode__(self):
         return self.value_equation.name
+'''
 
 FILTER_METHOD_CHOICES = (
     ('order', _('order')),

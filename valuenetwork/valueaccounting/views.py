@@ -9059,3 +9059,13 @@ def json_value_equation_bucket(request, value_equation_id):
         buckets.append({"fields": fields})
         json = simplejson.dumps(buckets, ensure_ascii=False)
     return HttpResponse(json, mimetype='application/json')   
+    
+def value_equations(request):
+    #import pdb; pdb.set_trace()
+    value_equations = ValueEquation.objects.all()
+    agent = get_agent(request)    
+    
+    return render_to_response("valueaccounting/value_equations.html", {
+        "value_equations": value_equations,
+        "agent": agent,
+    }, context_instance=RequestContext(request))

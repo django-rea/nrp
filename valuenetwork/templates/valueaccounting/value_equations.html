@@ -1,0 +1,106 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Value Equations" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.description {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-style: italic;
+    margin-left: 1em;
+}
+.using {
+    margin-left: 1em;
+}
+.heading {
+    margin: 1em .5em 0 .5em;
+    color: firebrick;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+.ve {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+.link {
+    margin-left: 2em;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+      <div>
+
+        <legend>
+            {% trans "Value Equations" %}  
+            {% if agent %}
+                <a href="url create_value_equation value_equation=None" class="link">Create New Value Equation</a>
+            {% endif %}
+        </legend>
+
+        <div class="ves" >
+            {% for ve in value_equations %}
+
+                <div class="ve"><a href="{{ ve.get_absolute_url }}">{{ ve.name }}</a></div> 
+                <div class="using"><b>Agents using this value equation:</b>&nbsp;
+{% comment %}
+                    {% if ve.agents %}
+                        {% for ag in ve.agents %}
+                            {{ ag.nick }},
+                        {% endfor %}
+                    {% else %}
+                        None
+                    {% endif %}
+{% endcomment %}
+                </div>
+                {% if ve.description %}
+                    <div class="description" >{{ ve.description|urlize|linebreaks }}</div>
+                {% endif %}
+
+            {% endfor %}
+        </div>
+     </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        //$('#projects').addClass('active');
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+        
+    }); // end document.ready
+    
+    </script>
+{% endblock %}
+

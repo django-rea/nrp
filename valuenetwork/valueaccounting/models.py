@@ -3227,6 +3227,60 @@ class EconomicResource(models.Model):
     #def change_role_formset(self):
     #    from valuenetwork.valueaccounting.forms import ResourceRoleAgentForm
     #    return EconomicResourceForm(instance=self)
+    
+    def test_rollup(self):
+        import pdb; pdb.set_trace()
+        self.roll_up_value()
+    
+    def roll_up_value(self):
+        #flow = self.inputs_to_output()
+        #or:
+        #flows = self.incoming_value_flows()
+        #or:
+        #import pdb; pdb.set_trace()
+        value_per_unit = Decimal("0.0")
+        contributions = self.resource_contribution_events()
+        values = []
+        for evt in contributions:
+            evt_vpu = evt.value / evt.quantity
+            values.append(evt_vpu, evt.quantity)
+        buys = self.receipt_events()
+        for evt in buys:
+            evt_vpu = evt.value / evt.quantity
+            values.append(evt_vpu, evt.quantity)
+        pes = self.producing_events()
+        citations = []
+        for pe in pes:
+            pe_value = Decimal("0.0")
+            inputs = pe.process.incoming_events()
+            for ip in inputs:
+                if ip.event_type.relationship == "work":
+                    pe_value += ip.quantity * ip.value_per_unit()
+                if ip.event_type.relationship == "use":
+                    if ip.resource:
+                        pe_value += ip.quantity * ip.resource.value_per_unit_of_use()
+                if ip.event_type.relationship == "consume":
+                    value_per_unit = ip.resource.roll_up_value()
+                    pe_value += ip.quantity * value_per_unit()
+                if ip.event_type.relationship == "cite":
+                    citations.append(ip)
+            for c in citations:
+                percentage = c.quantity
+                if pe_value:
+                    c_value = pe_value * percentage / 100
+                    pe_value += c_value
+            pe_value_per_unit = pe_value / pe_quantity
+            values.append(pe_value_per_unit, pe_quantity)
+        if values:
+            if len(values) == 1:
+                value_per_unit = values[0][0]
+            else:
+                #compute weighted average
+                weighted_values = sum(v[0] * v[1] for v in values)
+                weights = sum(v[1] for v in values)
+                if weighted_values and weights:
+                    value_per_unit = weighted_values / weights
+        return value_per_unit 
 
     def is_orphan(self):
         o = True
@@ -3254,6 +3308,14 @@ class EconomicResource(models.Model):
 
     def using_events(self):
         return self.events.filter(event_type__relationship="use")
+        
+    def resource_contribution_events(self):
+        ret_et = EventType.objects.get(relationship="resource")
+        return self.events.filter(event_type=ret_et)
+        
+    def purchase_events(self):
+        rct_et = EventType.objects.get(relationship="receive")
+        return self.events.filter(event_type=rct_et)
 
     def all_usage_events(self):
         return self.events.exclude(event_type__relationship="out").exclude(event_type__relationship="receive").exclude(event_type__relationship="resource").exclude(event_type__relationship="cash")
@@ -5811,6 +5873,21 @@ class EconomicEvent(models.Model):
         
     def seniority(self):
         return (datetime.date.today() - self.event_date).days
+        
+    def value_per_unit(self):
+        if self.resource:
+            return self.resource.value_per_unit
+        if self.from_agent:
+            try:
+                art = AgentResourceType.objects.get(
+                    agent=self.from_agent,
+                    resource_type=self.resource_type,
+                    event_type=self.event_type)
+                if art.value:
+                    return art.value
+            except AgentResourceType.DoesNotExist:
+                pass
+        return self.resource_type.value_per_unit
         
     def outstanding_claims(self):
         claim_events = self.claim_events.all()

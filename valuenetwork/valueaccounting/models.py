@@ -3231,7 +3231,7 @@ class EconomicResource(models.Model):
     
     def test_rollup(self):
         import pdb; pdb.set_trace()
-        self.roll_up_value()
+        value = self.roll_up_value()
     
     def roll_up_value(self):
         #flow = self.inputs_to_output()
@@ -3243,35 +3243,40 @@ class EconomicResource(models.Model):
         contributions = self.resource_contribution_events()
         values = []
         for evt in contributions:
+            import pdb; pdb.set_trace()
             evt_vpu = evt.value / evt.quantity
-            values.append(evt_vpu, evt.quantity)
-        buys = self.receipt_events()
+            if evt_vpu:
+                values.append([evt_vpu, evt.quantity])
+        buys = self.purchase_events()
         for evt in buys:
+            import pdb; pdb.set_trace()
             evt_vpu = evt.value / evt.quantity
-            values.append(evt_vpu, evt.quantity)
+            if evt_vpu:
+                values.append([evt_vpu, evt.quantity])
         pes = self.producing_events()
         citations = []
         for pe in pes:
             pe_value = Decimal("0.0")
-            inputs = pe.process.incoming_events()
-            for ip in inputs:
-                if ip.event_type.relationship == "work":
-                    pe_value += ip.quantity * ip.value_per_unit()
-                if ip.event_type.relationship == "use":
-                    if ip.resource:
-                        pe_value += ip.quantity * ip.resource.value_per_unit_of_use()
-                if ip.event_type.relationship == "consume":
-                    value_per_unit = ip.resource.roll_up_value()
-                    pe_value += ip.quantity * value_per_unit()
-                if ip.event_type.relationship == "cite":
-                    citations.append(ip)
-            for c in citations:
-                percentage = c.quantity
-                if pe_value:
-                    c_value = pe_value * percentage / 100
-                    pe_value += c_value
-            pe_value_per_unit = pe_value / pe_quantity
-            values.append(pe_value_per_unit, pe_quantity)
+            if pe.process:
+                inputs = pe.process.incoming_events()
+                for ip in inputs:
+                    if ip.event_type.relationship == "work":
+                        pe_value += ip.quantity * ip.value_per_unit()
+                    if ip.event_type.relationship == "use":
+                        if ip.resource:
+                            pe_value += ip.quantity * ip.resource.value_per_unit_of_use
+                    if ip.event_type.relationship == "consume":
+                        value_per_unit = ip.resource.roll_up_value()
+                        pe_value += ip.quantity * value_per_unit
+                    if ip.event_type.relationship == "cite":
+                        citations.append(ip)
+                for c in citations:
+                    percentage = c.quantity
+                    if pe_value:
+                        c_value = pe_value * percentage / 100
+                        pe_value += c_value
+                pe_value_per_unit = pe_value / pe.quantity
+                values.append([pe_value_per_unit, pe.quantity])
         if values:
             if len(values) == 1:
                 value_per_unit = values[0][0]
@@ -5886,8 +5891,8 @@ class EconomicEvent(models.Model):
                     agent=self.from_agent,
                     resource_type=self.resource_type,
                     event_type=self.event_type)
-                if art.value:
-                    return art.value
+                if art.value_per_unit:
+                    return art.value_per_unit
             except AgentResourceType.DoesNotExist:
                 pass
         return self.resource_type.value_per_unit

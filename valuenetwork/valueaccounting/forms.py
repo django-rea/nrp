@@ -2977,3 +2977,156 @@ class ValueEquationSandboxForm(forms.Form):
             attrs={'class': 've-selector'}))
     amount_to_distribute = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money validateMe'}))
+
+        
+class BucketRuleFilterSetForm(forms.Form):
+    process_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=ProcessType.objects.none(),
+        label=_("Select zero or more Process Types"),
+        widget=forms.SelectMultiple(attrs={'class': 'process-type chzn-select input-xxlarge'}))
+    resource_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicResourceType.objects.none(),
+        label=_("Select zero or more Resource Types"),
+        widget=forms.SelectMultiple(attrs={'class': 'resource-type chzn-select input-xxlarge'}))
+        
+    def __init__(self, context_agent, event_type, pattern, *args, **kwargs):
+        super(BucketRuleFilterSetForm, self).__init__(*args, **kwargs)
+        self.fields["process_types"].queryset = context_agent.process_types_queryset()
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_types"].queryset = pattern.get_resource_types(event_type=event_type)
+        else:
+            self.fields["resource_types"].queryset = EconomicResourceType.objects.all()
+            
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {}
+        process_types = data.get("process_types")
+        if process_types:
+            json["process_types"] = [pt.id for pt in process_types]
+        resource_types = data.get("resource_types")
+        if resource_types:
+            json["resource_types"] = [pt.id for pt in resource_types]
+        return json
+
+    def deserialize(self, json):
+        dict = {}
+        process_types = json.get("process_types")
+        if process_types:
+            l = []
+            for pk in process_types:
+                l.append(ProcessType.objects.get(pk=pk))
+            dict["process_types"] = l
+        resource_types = json.get("resource_types")
+        if resource_types:
+            l = []
+            for pk in resource_types:
+                l.append(EconomicResourceType.objects.get(pk=pk))
+            dict["resource_types"] = l
+        return dict
+
+
+class DateRangeForm(forms.Form):
+    start_date = forms.DateField(
+        required=False, 
+        label="Start date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+    end_date = forms.DateField(
+        required=False, 
+        label="End date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))        
+
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {"method": "DateRange",}
+        start_date = data.get("start_date")
+        if start_date:
+            json["start_date"] = start_date.strftime('%Y-%m-%d')
+        end_date = data.get("end_date")
+        if end_date:
+            json["end_date"] = end_date.strftime('%Y-%m-%d')
+        return json
+        
+    def deserialize(self, json):
+        dict = {}
+        dict["method"] = json["method"]
+        start_date = json.get("start_date")
+        if start_date:
+            dict["start_date"] = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = json.get("end_date")
+        if end_date:
+            dict["end_date"] = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+        return dict
+        
+        
+class OrderMultiSelectForm(forms.Form):
+    orders = forms.ModelChoiceField(
+        required=True,
+        queryset=Order.objects.all(),
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'resource chzn-select input-xxlarge',}))
+        
+    def __init__(self, context_agent, event_type, pattern, *args, **kwargs):
+        super(OrderMultiSelectForm, self).__init__(*args, **kwargs)
+        self.fields["order"].queryset = context_agent.orders_queryset()
+        
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {"method": "Order",}
+        orders = data.get("orders")
+        if orders:
+            json["orders"] = [order.id for order in orders]
+        
+    def deserialize(self, json):
+        dict = {}
+        dict["method"] = json["method"]
+        orders = json.get("orders")
+        if orders:
+            l = []
+            for pk in orders:
+                l.append(Order.objects.get(pk=pk))
+            dict["orders"] = l
+        return dict
+
+
+class ShipmentMultiSelectForm(forms.Form):
+    shipments = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicEvent.objects.filter(
+            event_type__relationship="shipment",
+            #exclude customer order shipments?,
+            ),
+        label=_("Select one or more Shipment Events"),
+        #empty_label=None,
+        widget=forms.SelectMultiple(attrs={'class': 'shipment-event chzn-select input-xxlarge'}))
+        
+    def __init__(self, context_agent, event_type, pattern, *args, **kwargs):
+        super(ShipmentMultiSelectForm, self).__init__(*args, **kwargs)
+        ship = EventType.objects.get(label="ships")
+        self.fields["shipments"].queryset = EconomicEvent.objects.filter(context_agent=context_agent, event_type=ship)
+        
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {"method": "Shipment",}
+        shipments = data.get("shipments")
+        if shipments:
+            json["shipments"] = [s.id for s in shipments]
+        
+    def deserialize(self, json):
+        dict = {}
+        dict["method"] = json["method"]
+        shipments = json.get("shipments")
+        if shipments:
+            l = []
+            for pk in shipments:
+                l.append(EconomicEvent.objects.get(pk=pk))
+            dict["shipments"] = l
+        return dict
+        

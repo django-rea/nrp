@@ -3281,13 +3281,14 @@ class EconomicResource(models.Model):
                             value_per_unit = ip.resource.roll_up_value()
                             pe_value += ip.quantity * value_per_unit
                         elif ip.event_type.relationship == "cite":
-                            citations.append(ip)
-                    for c in citations:
-                        percentage = c.quantity / 100
-                        if pe_value:
-                            c_value = pe_value * percentage
-                            pe_value += c_value
+                            citations.append(ip)             
             production_value += pe_value
+        if production_value:
+            for c in citations:
+                percentage = c.quantity / 100
+                c.share = production_value * percentage
+            for c in citations:
+                    production_value += c.share
         if production_value and production_qty:
             production_value_per_unit = production_value / production_qty
             values.append([production_value_per_unit, production_qty])

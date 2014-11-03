@@ -45,6 +45,10 @@
 		<legend>{% trans "Incoming Value Flows for " %} <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a></legend>
 
 		<div class="span9">
+		
+            <p class="total" >
+                {% trans "Total accumulated value per unit " %}:   {{ resource.resource_type.unit_of_value.abbrev }}{{ resource.roll_up_value }}
+            </p>
 
           {% for flow in flows %}
             <p style="margin-left: {{ flow.depth }}em;" class="line">

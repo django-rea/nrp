@@ -3234,49 +3234,53 @@ class EconomicResource(models.Model):
         value = self.roll_up_value()
     
     def roll_up_value(self):
-        #flow = self.inputs_to_output()
-        #or:
-        #flows = self.incoming_value_flows()
-        #or:
         #import pdb; pdb.set_trace()
         value_per_unit = Decimal("0.0")
         contributions = self.resource_contribution_events()
         values = []
         for evt in contributions:
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             evt_vpu = evt.value / evt.quantity
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
         buys = self.purchase_events()
         for evt in buys:
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             evt_vpu = evt.value / evt.quantity
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
         pes = self.producing_events()
         citations = []
+        visited = []
+        production_qty = Decimal("0.0")
+        production_value = Decimal("0.0")
         for pe in pes:
+            production_qty += pe.quantity 
             pe_value = Decimal("0.0")
             if pe.process:
-                inputs = pe.process.incoming_events()
-                for ip in inputs:
-                    if ip.event_type.relationship == "work":
-                        pe_value += ip.quantity * ip.value_per_unit()
-                    if ip.event_type.relationship == "use":
-                        if ip.resource:
-                            pe_value += ip.quantity * ip.resource.value_per_unit_of_use
-                    if ip.event_type.relationship == "consume":
-                        value_per_unit = ip.resource.roll_up_value()
-                        pe_value += ip.quantity * value_per_unit
-                    if ip.event_type.relationship == "cite":
-                        citations.append(ip)
-                for c in citations:
-                    percentage = c.quantity
-                    if pe_value:
-                        c_value = pe_value * percentage / 100
-                        pe_value += c_value
-                pe_value_per_unit = pe_value / pe.quantity
-                values.append([pe_value_per_unit, pe.quantity])
+                if pe.process not in visited:
+                    visited.append(pe.process)
+                    inputs = pe.process.incoming_events()
+                    for ip in inputs:
+                        if ip.event_type.relationship == "work":
+                            pe_value += ip.quantity * ip.value_per_unit()
+                        elif ip.event_type.relationship == "use":
+                            if ip.resource:
+                                pe_value += ip.quantity * ip.resource.value_per_unit_of_use
+                        elif ip.event_type.relationship == "consume":
+                            value_per_unit = ip.resource.roll_up_value()
+                            pe_value += ip.quantity * value_per_unit
+                        elif ip.event_type.relationship == "cite":
+                            citations.append(ip)
+                    for c in citations:
+                        percentage = c.quantity / 100
+                        if pe_value:
+                            c_value = pe_value * percentage
+                            pe_value += c_value
+            production_value += pe_value
+        if production_value and production_qty:
+            production_value_per_unit = production_value / production_qty
+            values.append([production_value_per_unit, production_qty])
         if values:
             if len(values) == 1:
                 value_per_unit = values[0][0]
@@ -3286,7 +3290,8 @@ class EconomicResource(models.Model):
                 weights = sum(v[1] for v in values)
                 if weighted_values and weights:
                     value_per_unit = weighted_values / weights
-        return value_per_unit 
+        print self.id, self, value_per_unit
+        return value_per_unit.quantize(Decimal('.01'), rounding=ROUND_UP)
 
     def is_orphan(self):
         o = True

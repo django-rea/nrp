@@ -7,7 +7,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <style>
-.type {
+.type, .total {
     font-weight: bold;
 }
 .work-item {
@@ -17,10 +17,10 @@
 .process {
     color: blue;
 }
-.work {
+.work, .pay, .total {
     color: green;
 }
-.resource, .out {
+.resource, .out, .receive{
     color: firebrick;
 }
 .cite, .consume, .use {
@@ -47,7 +47,7 @@
 		<div class="span9">
 		
             <p class="total" >
-                {% trans "Total accumulated value per unit " %}:   {{ resource.resource_type.unit_of_value.abbrev }}{{ resource.roll_up_value }}
+                {% trans "Total accumulated value per unit " %}:   {{ resource.resource_type.unit_of_value.symbol }}{{ resource.roll_up_value }}
             </p>
 
           {% for flow in flows %}

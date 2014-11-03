@@ -3293,7 +3293,7 @@ class EconomicResource(models.Model):
                 weights = sum(v[1] for v in values)
                 if weighted_values and weights:
                     value_per_unit = weighted_values / weights
-        print self.id, self, value_per_unit
+        #print self.id, self, value_per_unit
         return value_per_unit.quantize(Decimal('.01'), rounding=ROUND_UP)
 
     def is_orphan(self):
@@ -3414,6 +3414,16 @@ class EconomicResource(models.Model):
                             if evt.resource:
                                 if evt.resource not in resources:
                                     resources.append(evt.resource)
+            for event in self.resource_contribution_events():
+                event.depth = depth
+                flows.append(event)
+            for event in self.purchase_events():
+                event.depth = depth
+                flows.append(event)
+                if event.exchange:
+                    for pmt in event.exchange.payment_events():
+                        pmt.depth = depth + 1
+                        flows.append(pmt)
             for resource in resources:
                 resource.incoming_value_flows_dfs(flows, visited, depth)
                 

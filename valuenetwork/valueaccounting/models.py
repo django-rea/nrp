@@ -1124,6 +1124,9 @@ class EconomicResourceType(models.Model):
     unit_of_use = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of use'), related_name="units_of_use",
         help_text=_('if this resource has different units of use and inventory, this is the unit of use'))
+    unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
+        limit_choices_to={'unit_type': 'value'},
+        verbose_name=_('unit of value'), related_name="resource_type_value_units")
     value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2, 
@@ -3228,6 +3231,70 @@ class EconomicResource(models.Model):
     #def change_role_formset(self):
     #    from valuenetwork.valueaccounting.forms import ResourceRoleAgentForm
     #    return EconomicResourceForm(instance=self)
+    
+    def test_rollup(self):
+        import pdb; pdb.set_trace()
+        value = self.roll_up_value()
+    
+    def roll_up_value(self):
+        #import pdb; pdb.set_trace()
+        value_per_unit = Decimal("0.0")
+        contributions = self.resource_contribution_events()
+        values = []
+        for evt in contributions:
+            #import pdb; pdb.set_trace()
+            evt_vpu = evt.value / evt.quantity
+            if evt_vpu:
+                values.append([evt_vpu, evt.quantity])
+        buys = self.purchase_events()
+        for evt in buys:
+            #import pdb; pdb.set_trace()
+            evt_vpu = evt.value / evt.quantity
+            if evt_vpu:
+                values.append([evt_vpu, evt.quantity])
+        pes = self.producing_events()
+        citations = []
+        visited = []
+        production_qty = Decimal("0.0")
+        production_value = Decimal("0.0")
+        for pe in pes:
+            production_qty += pe.quantity 
+            pe_value = Decimal("0.0")
+            if pe.process:
+                if pe.process not in visited:
+                    visited.append(pe.process)
+                    inputs = pe.process.incoming_events()
+                    for ip in inputs:
+                        if ip.event_type.relationship == "work":
+                            pe_value += ip.quantity * ip.value_per_unit()
+                        elif ip.event_type.relationship == "use":
+                            if ip.resource:
+                                pe_value += ip.quantity * ip.resource.value_per_unit_of_use
+                        elif ip.event_type.relationship == "consume":
+                            value_per_unit = ip.resource.roll_up_value()
+                            pe_value += ip.quantity * value_per_unit
+                        elif ip.event_type.relationship == "cite":
+                            citations.append(ip)
+                    for c in citations:
+                        percentage = c.quantity / 100
+                        if pe_value:
+                            c_value = pe_value * percentage
+                            pe_value += c_value
+            production_value += pe_value
+        if production_value and production_qty:
+            production_value_per_unit = production_value / production_qty
+            values.append([production_value_per_unit, production_qty])
+        if values:
+            if len(values) == 1:
+                value_per_unit = values[0][0]
+            else:
+                #compute weighted average
+                weighted_values = sum(v[0] * v[1] for v in values)
+                weights = sum(v[1] for v in values)
+                if weighted_values and weights:
+                    value_per_unit = weighted_values / weights
+        #print self.id, self, value_per_unit
+        return value_per_unit.quantize(Decimal('.01'), rounding=ROUND_UP)
 
     def is_orphan(self):
         o = True
@@ -3255,6 +3322,14 @@ class EconomicResource(models.Model):
 
     def using_events(self):
         return self.events.filter(event_type__relationship="use")
+        
+    def resource_contribution_events(self):
+        ret_et = EventType.objects.get(relationship="resource")
+        return self.events.filter(event_type=ret_et)
+        
+    def purchase_events(self):
+        rct_et = EventType.objects.get(relationship="receive")
+        return self.events.filter(event_type=rct_et)
 
     def all_usage_events(self):
         return self.events.exclude(event_type__relationship="out").exclude(event_type__relationship="receive").exclude(event_type__relationship="resource").exclude(event_type__relationship="cash")
@@ -3339,6 +3414,16 @@ class EconomicResource(models.Model):
                             if evt.resource:
                                 if evt.resource not in resources:
                                     resources.append(evt.resource)
+            for event in self.resource_contribution_events():
+                event.depth = depth
+                flows.append(event)
+            for event in self.purchase_events():
+                event.depth = depth
+                flows.append(event)
+                if event.exchange:
+                    for pmt in event.exchange.payment_events():
+                        pmt.depth = depth + 1
+                        flows.append(pmt)
             for resource in resources:
                 resource.incoming_value_flows_dfs(flows, visited, depth)
                 
@@ -5814,6 +5899,21 @@ class EconomicEvent(models.Model):
         
     def seniority(self):
         return (datetime.date.today() - self.event_date).days
+        
+    def value_per_unit(self):
+        if self.resource:
+            return self.resource.value_per_unit
+        if self.from_agent:
+            try:
+                art = AgentResourceType.objects.get(
+                    agent=self.from_agent,
+                    resource_type=self.resource_type,
+                    event_type=self.event_type)
+                if art.value_per_unit:
+                    return art.value_per_unit
+            except AgentResourceType.DoesNotExist:
+                pass
+        return self.resource_type.value_per_unit
         
     def outstanding_claims(self):
         claim_events = self.claim_events.all()

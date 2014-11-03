@@ -30,8 +30,8 @@
     font-size: 1.2em;
     font-weight: bold;
 }
-.link {
-    margin-left: 2em;
+.btn {
+    margin-left: 1em;
 }
 
 </style>
@@ -48,24 +48,41 @@
         <legend>
             {% trans "Value Equations" %}  
             {% if agent %}
-                <a href="url create_value_equation value_equation=None" class="link">Create New Value Equation</a>
+                <a class="btn btn-primary" href="{% url create_value_equation %}">{% trans "Create Value Equation" %}</a>
             {% endif %}
         </legend>
 
         <div class="ves" >
             {% for ve in value_equations %}
 
-                <div class="ve"><a href="{{ ve.get_absolute_url }}">{{ ve.name }}</a></div> 
-                <div class="using"><b>Agents using this value equation:</b>&nbsp;
-{% comment %}
-                    {% if ve.agents %}
-                        {% for ag in ve.agents %}
-                            {{ ag.nick }},
-                        {% endfor %}
+                <div class="ve"><a href="{{ ve.get_absolute_url }}">{{ ve.name }}</a>
+                  {% if not ve.context_agent %}
+                    {% if user = ve.created_by or user.is_superuser %}
+                        <form
+                            style="display: inline;"  
+                            action="{% url change_value_equation value_equation_id=ve.id %}" 
+                            method="GET" >
+                            {% csrf_token %}
+                            <input type="hidden" id="from" name="from" value="report" />
+                            <button style="display: inline;"  class="btn btn-info" title="Change" >Change</button>
+                        </form>
+                        <form
+                            style="display: inline;"  
+                            action="{% url delete_value_equation value_equation_id=ve.id %}" 
+                            method="POST" >
+                            {% csrf_token %}
+                            <input type="hidden" id="next" name="next" value="demand" />
+                            <button style="display: inline;"  class="btn btn-warning" title="Delete" >Delete</button>
+                        </form>
+                    {% endif %}
+                  {% endif %}
+                </div> 
+                <div class="using">For: <b>
+                    {% if ve.context_agent %}
+                        {{ ve.context_agent.nick }}
                     {% else %}
                         None
-                    {% endif %}
-{% endcomment %}
+                    {% endif %}</b>
                 </div>
                 {% if ve.description %}
                     <div class="description" >{{ ve.description|urlize|linebreaks }}</div>

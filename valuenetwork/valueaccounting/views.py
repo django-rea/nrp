@@ -9069,3 +9069,27 @@ def value_equations(request):
         "value_equations": value_equations,
         "agent": agent,
     }, context_instance=RequestContext(request))
+
+@login_required
+def create_value_equation(request):
+   
+    return render_to_response("valueaccounting/create_value_equation.html", {
+        "value_equation": value_equation,
+        "agent": agent,
+    }, context_instance=RequestContext(request))
+    
+@login_required
+def change_value_equation(request, value_equation_id):
+   
+    return render_to_response("valueaccounting/change_value_equation.html", {
+        "value_equation": value_equation,
+        "agent": agent,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def delete_value_equation(request, value_equation_id):
+   
+    return render_to_response("valueaccounting/value_equations.html", {
+        "value_equation": value_equation,
+        "agent": agent,
+    }, context_instance=RequestContext(request))

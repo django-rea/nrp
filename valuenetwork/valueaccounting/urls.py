@@ -403,5 +403,8 @@ urlpatterns = patterns("",
     url(r"^resource-flow-report/$", 'valuenetwork.valueaccounting.views.resource_flow_report', name="resource_flow_report"),
     url(r"^value-equation-sandbox/$", 'valuenetwork.valueaccounting.views.value_equation_sandbox', name="value_equation_sandbox"),
     url(r"^value-equations/$", 'valuenetwork.valueaccounting.views.value_equations', name="value_equations"),
+    url(r"^create-value-equation/$", 'valuenetwork.valueaccounting.views.create_value_equation', name="create_value_equation"),
+    url(r"^change-value-equation/(?P<value_equation_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_value_equation', name="change_value_equation"),
+    url(r"^delete-value-equation/(?P<value_equation_id>\d+)/$", 'valuenetwork.valueaccounting.views.delete_value_equation', name="delete_value_equation"),
 )
 

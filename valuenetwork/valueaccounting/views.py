@@ -433,9 +433,10 @@ def agent(request, agent_id):
     user_agent = get_agent(request)
     change_form = AgentCreateForm(instance=agent)
     user_form = None
-    if not agent.username():
-        init = {"username": agent.nick,}
-        user_form = UserCreationForm(initial=init)
+    if agent.is_individual():
+        if not agent.username():
+            init = {"username": agent.nick,}
+            user_form = UserCreationForm(initial=init)
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()           
     

@@ -5656,7 +5656,45 @@ class SelectedOption(models.Model):
 
     def __unicode__(self):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
+        
+def check_summary(agent, context_agent, resource_type, event_type):
+    events = EconomicEvent.objects.filter(
+        from_agent=agent,
+        context_agent=context_agent,
+        resource_type=resource_type,
+        event_type=event_type,
+        is_contribution=True)
+    total = sum(event.quantity for event in events)
+    try:
+        summary = CachedEventSummary.objects.filter(
+            agent=agent,
+            context_agent=context_agent,
+            resource_type=resource_type,
+            event_type=event_type)
+        if summary.count() > 1:
+            sids = [str(s.id) for s in summary]
+            sidstring = ",".join(sids)    
+            return " ".join(["More than one Summary. Ids:", sidstring, "Event total:", str(total)])
+        summary = summary[0]
+        if summary.quantity != total:
+            return " ".join(["summary.quantity:", str(summary.quantity), "event total:", str(total)])
+    except CachedEventSummary.DoesNotExist:
+        return " ".join(["Summary does not exist. Event total:", str(total)])
+    return "ok"
 
+def check_events_for_summary(summary):
+    events = EconomicEvent.objects.filter(
+        from_agent=summary.agent,
+        context_agent=summary.context_agent,
+        resource_type=summary.resource_type,
+        event_type=summary.event_type,
+        is_contribution=True)
+    total = sum(event.quantity for event in events)
+    if summary.quantity != total:
+        return " ".join(["summary.quantity:", str(summary.quantity), "event total:", str(total)])
+    return "ok"
+    
+    
 def update_summary(agent, context_agent, resource_type, event_type):
     events = EconomicEvent.objects.filter(
         from_agent=agent,
@@ -6579,9 +6617,19 @@ class CachedEventSummary(models.Model):
                 event.context_agent=context_agent
                 event.save()
             try:
-                key = "-".join([str(event.from_agent.id), str(event.context_agent.id), str(event.resource_type.id), str(event.event_type.id)])
+                key = "-".join([
+                    str(event.from_agent.id), 
+                    str(event.context_agent.id), 
+                    str(event.resource_type.id), 
+                    str(event.event_type.id)
+                    ])
                 if not key in summaries:
-                    summaries[key] = EventSummary(event.from_agent, event.context_agent, event.resource_type, event.event_type, Decimal('0.0'))
+                    summaries[key] = EventSummary(
+                        event.from_agent, 
+                        event.context_agent, 
+                        event.resource_type, 
+                        event.event_type, 
+                        Decimal('0.0'))
                 #key = "-".join([
                 #    str(event.from_agent.id), 
                 #    str(event.project.id), 

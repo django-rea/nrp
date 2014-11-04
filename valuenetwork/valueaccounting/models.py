@@ -5657,6 +5657,25 @@ class SelectedOption(models.Model):
     def __unicode__(self):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
 
+def update_summary(agent, context_agent, resource_type, event_type):
+    events = EconomicEvent.objects.filter(
+        from_agent=agent,
+        context_agent=context_agent,
+        resource_type=resource_type,
+        event_type=event_type,
+        is_contribution=True)
+    total = sum(event.quantity for event in events)
+    summary, created = CachedEventSummary.objects.get_or_create(
+        agent=agent,
+        context_agent=context_agent,
+        resource_type=resource_type,
+        event_type=event_type)
+    summary.quantity = total
+    if summary.quantity:
+        summary.save() 
+    else:
+        summary.delete()
+
 
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
@@ -5743,6 +5762,13 @@ class EconomicEvent(models.Model):
         resource_type = self.resource_type
         event_type = self.event_type
         delta = self.quantity
+        
+        agent_change = False
+        project_change = False
+        resource_type_change = False
+        context_agent_change = False
+        event_type_change = False
+        
         if self.pk:
             prev_agent = self.from_agent
             prev_context_agent = self.context_agent
@@ -5790,8 +5816,30 @@ class EconomicEvent(models.Model):
         ])
         unique_slugify(self, slug)
         super(EconomicEvent, self).save(*args, **kwargs)
+        update_summary(agent, context_agent, resource_type, event_type)
+        if agent_change or resource_type_change or context_agent_change or event_type_change:
+            update_summary(prev_agent, prev_context_agent, prev_resource_type, prev_event_type)
 
     def delete(self, *args, **kwargs):
+        if self.is_contribution:
+            agent = self.from_agent
+            context_agent = self.context_agent
+            resource_type = self.resource_type
+            event_type = self.event_type
+            if agent and context_agent and resource_type:
+                try:
+                    summary = CachedEventSummary.objects.get(
+                        agent=agent,
+                        context_agent=context_agent,
+                        resource_type=resource_type,
+                        event_type=event_type)
+                    summary.quantity -= self.quantity
+                    if summary.quantity:
+                        summary.save() 
+                    else:
+                        summary.delete()
+                except CachedEventSummary.DoesNotExist:
+                    pass
         super(EconomicEvent, self).delete(*args, **kwargs)
         
     def seniority(self):
@@ -6534,21 +6582,22 @@ class CachedEventSummary(models.Model):
                 key = "-".join([str(event.from_agent.id), str(event.context_agent.id), str(event.resource_type.id), str(event.event_type.id)])
                 if not key in summaries:
                     summaries[key] = EventSummary(event.from_agent, event.context_agent, event.resource_type, event.event_type, Decimal('0.0'))
-                key = "-".join([
-                    str(event.from_agent.id), 
-                    str(event.project.id), 
-                    str(event.resource_type.id), 
-                    str(event.event_type.id)])
-                if not key in summaries:
-                    summaries[key] = EventSummary(
-                        agent=event.from_agent, 
-                        #project=event.project, 
-                        resource_type=event.resource_type, 
-                        event_type=event.event_type,
-                        quantity=Decimal('0.0'))
+                #key = "-".join([
+                #    str(event.from_agent.id), 
+                #    str(event.project.id), 
+                #    str(event.resource_type.id), 
+                #    str(event.event_type.id)])
+                #if not key in summaries:
+                #    summaries[key] = EventSummary(
+                #        agent=event.from_agent, 
+                #        #project=event.project, 
+                #        resource_type=event.resource_type, 
+                #        event_type=event.event_type,
+                #        quantity=Decimal('0.0'))
                 summaries[key].quantity += event.quantity
             except AttributeError:
-                assert False, "invalid summary key"
+                msg = " ".join(["invalid summary key:", key])
+                assert False, msg
         summaries = summaries.values()
         for summary in summaries:
             ces = cls(
@@ -6557,7 +6606,6 @@ class CachedEventSummary(models.Model):
                 resource_type=summary.resource_type,
                 event_type=summary.event_type,
                 resource_type_rate=summary.resource_type.rate,
-                #importance=summary.project.importance,
                 quantity=summary.quantity,
             )
             ces.save()

@@ -4488,6 +4488,9 @@ class Process(models.Model):
                         else:
                             #todo: this makes no sense, why did I do that?
                             #temporary insanity or some reason that escapes me now?
+                            #ps. prior to this commented-out code, it was
+                            #qty = qty_to_explode * pptr.quantity
+                            #I did this when making that salsa recipe work.
                             #2014-11-05
                             #if not multiplier:
                             #    multiplier = pptr.quantity

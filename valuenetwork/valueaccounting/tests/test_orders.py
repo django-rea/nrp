@@ -74,6 +74,19 @@ class OrderTest(WebTest):
         )
         puc.save()
 
+        sale_pattern = ProcessPattern(
+            name="Sale pattern",
+        )
+        order_pattern.save()
+
+        use_case = UseCase.objects.get(identifier="sale")
+
+        puc = PatternUseCase(
+            pattern=order_pattern,
+            use_case=use_case,
+        )
+        puc.save()
+        
         event_type_sale = EventType(
             name="Sale",
             label="sells",

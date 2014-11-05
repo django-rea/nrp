@@ -4486,9 +4486,13 @@ class Process(models.Model):
                         if output.stage:
                             qty = output.quantity
                         else:
-                            if not multiplier:
-                                multiplier = pptr.quantity
-                            qty = (qty_to_explode * multiplier).quantize(Decimal('.01'), rounding=ROUND_UP)
+                            #todo: this makes no sense, why did I do that?
+                            #temporary insanity or some reason that escapes me now?
+                            #2014-11-05
+                            #if not multiplier:
+                            #    multiplier = pptr.quantity
+                            #qty = (qty_to_explode * multiplier).quantize(Decimal('.01'), rounding=ROUND_UP)
+                            qty = qty_to_explode
                         #todo: must consider ratio of PT output qty to PT input qty
                         #Todo: apply selected_context_agent here? Dnly if inheritance?
                         next_commitment = next_process.add_commitment(

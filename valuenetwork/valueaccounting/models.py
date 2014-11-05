@@ -6185,8 +6185,8 @@ class Compensation(models.Model):
 
         
 PERCENTAGE_BEHAVIOR_CHOICES = (
-    ('remaining', _('remaining percentage')),
-    ('straight', _('straight percentage')),
+    ('remaining', _('Remaining percentage')),
+    ('straight', _('Straight percentage')),
 )
 
 class ValueEquation(models.Model):
@@ -6196,7 +6196,8 @@ class ValueEquation(models.Model):
         related_name="value_equations", verbose_name=_('context agent'))  
     description = models.TextField(_('description'), null=True, blank=True)
     percentage_behavior = models.CharField(_('percentage behavior'), 
-        max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight')
+        max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight',
+        help_text=_('Remaining percentage uses the % of the remaining amount to be distributed.  Straight percentage uses the % of the total distribution amount.'))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='value_equations_created', blank=True, null=True)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
@@ -6206,8 +6207,14 @@ class ValueEquation(models.Model):
         
     @models.permalink
     def get_absolute_url(self):
-        return ('value_equation', (),
+        return ('edit_value_equation', (),
             { 'value_equation_id': str(self.id),})
+            
+    def is_deletable(self):
+        if self.distributions.all():
+            return False
+        else:
+            return True
             
     def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute):
         #import pdb; pdb.set_trace()
@@ -6309,9 +6316,9 @@ class AgentValueEquation(models.Model):
 '''
 
 FILTER_METHOD_CHOICES = (
-    ('order', _('order')),
-    ('shipment', _('shipment')),
-    ('dates', _('date range')),
+    ('order', _('Order')),
+    ('shipment', _('Shipment or Delivery')),
+    ('dates', _('Date range')),
 )
 
 class ValueEquationBucket(models.Model): 
@@ -6319,7 +6326,7 @@ class ValueEquationBucket(models.Model):
     sequence = models.IntegerField(_('sequence'), default=0)  
     value_equation = models.ForeignKey(ValueEquation,
         verbose_name=_('value equation'), related_name='buckets')
-    filter_method =  models.CharField(_('filter method'), 
+    filter_method =  models.CharField(_('filter method'), null=True, blank=True, 
         max_length=12, choices=FILTER_METHOD_CHOICES, default='dates')    
     filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
     percentage = models.IntegerField(_('bucket percentage'), null=True)    
@@ -6369,14 +6376,14 @@ class ValueEquationBucket(models.Model):
         
 
 DIVISION_RULE_CHOICES = (
-    ('percentage', _('percentage')),
-    ('fifo', _('oldest first')),
+    ('percentage', _('Percentage')),
+    ('fifo', _('Oldest first')),
 )
 
 CLAIM_RULE_CHOICES = (
-    ('debt-like', _('until paid off')),
-    ('equity-like', _('forever')),
-    ('one-distribution', _('once')),
+    ('debt-like', _('Until paid off')),
+    ('equity-like', _('Forever')),
+    ('one-dist', _('One distribution')),
 )
 
 class ValueEquationBucketRule(models.Model): 

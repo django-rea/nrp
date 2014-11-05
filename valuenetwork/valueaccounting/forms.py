@@ -2963,6 +2963,36 @@ class SortResourceReportForm(forms.Form):
         super(SortResourceReportForm, self).__init__(*args, **kwargs)
         self.fields["choice"].choices = [('1', 'Resource Type'), ('2', 'Resource (Lot)'), ('3', 'Order')]
 
+  
+class ValueEquationForm(forms.ModelForm):
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(),
+        widget=forms.Select(attrs={'class': 'chzn-select',}))
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    description = forms.CharField(required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = ValueEquation
+        fields = ('name', 'description', 'percentage_behavior', 'context_agent') 
+ 
+   
+class ValueEquationBucketForm(forms.ModelForm):
+    #sequence =
+    distribution_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.all(),
+        help_text="Choose an agent to distribute this entire bucket to, OR choose a filter method below to gather contributions.",
+        widget=forms.Select(attrs={'class': 'chzn-select',}))
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+
+    class Meta:
+        model = ValueEquationBucket
+        fields = ('sequence', 'name', 'percentage', 'distribution_agent', 'filter_method') 
+        
+    #def __init__(self, *args, **kwargs):
+    #    super(ValueEquationBucketForm, self).__init__(*args, **kwargs)
+    #    self.fields["filter_method"].choices = [('1', 'Resource Type'), ('2', 'Resource (Lot)'), ('3', 'Order')]
+        
         
 class ValueEquationSandboxForm(forms.Form):
     context_agent = forms.ModelChoiceField(

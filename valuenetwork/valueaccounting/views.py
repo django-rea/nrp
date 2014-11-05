@@ -2452,7 +2452,17 @@ def cleanup_resourcetypes(request):
     return render_to_response("valueaccounting/cleanup_resourcetypes.html", {
         "orphans": orphans,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def cleanup_work_resourcetypes(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    suspects = [rt for rt in EconomicResourceType.objects.all() if rt.work_without_value()]           
 
+    return render_to_response("valueaccounting/cleanup_work_resourcetypes.html", {
+        "suspects": suspects,
+    }, context_instance=RequestContext(request))
+    
 @login_required
 def cleanup_resources(request):
     if not request.user.is_superuser:
@@ -2463,7 +2473,26 @@ def cleanup_resources(request):
         "orphans": orphans,
     }, context_instance=RequestContext(request))
 
+@login_required
+def cleanup_unsourced_resources(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    suspects = [er for er in EconomicResource.objects.all() if er.unsourced_consumption()]           
 
+    return render_to_response("valueaccounting/cleanup_unsourced_resources.html", {
+        "suspects": suspects,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def cleanup_unvalued_resources(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    suspects = [er for er in EconomicResource.objects.all() if er.used_without_value()]           
+
+    return render_to_response("valueaccounting/cleanup_unvalued_resources.html", {
+        "suspects": suspects,
+    }, context_instance=RequestContext(request))
+    
 @login_required
 def create_order(request):
     patterns = PatternUseCase.objects.filter(use_case__identifier='cust_orders')

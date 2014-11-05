@@ -1838,6 +1838,13 @@ class EconomicResourceType(models.Model):
             answer = False
         return answer
 
+    def work_without_value(self):
+        work = self.events.filter(event_type__relationship="work")
+        if work:
+            if not self.value_per_unit:
+                return True
+        return False
+    
     def facet_list(self):
         return ", ".join([facet.facet_value.__unicode__() for facet in self.facets.all()])
 
@@ -3274,13 +3281,14 @@ class EconomicResource(models.Model):
                             value_per_unit = ip.resource.roll_up_value()
                             pe_value += ip.quantity * value_per_unit
                         elif ip.event_type.relationship == "cite":
-                            citations.append(ip)
-                    for c in citations:
-                        percentage = c.quantity / 100
-                        if pe_value:
-                            c_value = pe_value * percentage
-                            pe_value += c_value
+                            citations.append(ip)             
             production_value += pe_value
+        if production_value:
+            for c in citations:
+                percentage = c.quantity / 100
+                c.share = production_value * percentage
+            for c in citations:
+                    production_value += c.share
         if production_value and production_qty:
             production_value_per_unit = production_value / production_qty
             values.append([production_value_per_unit, production_qty])
@@ -3353,6 +3361,18 @@ class EconomicResource(models.Model):
         else:
             cited = ''
         return (self.identifier or str(self.id)) + cited
+        
+    def unsourced_consumption(self):
+        if self.consuming_events():
+            if not self.where_from_events():
+                return True
+        return False
+        
+    def used_without_value(self):
+        if self.using_events():
+            if not self.value_per_unit_of_use:
+                return True
+        return False
 
     def is_deletable(self):
         if self.events.all():

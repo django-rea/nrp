@@ -54,7 +54,7 @@ class ExplosionTest(TestCase):
         self.resource = EconomicResource(
             resource_type=self.child,
             quantity=Decimal(5),
-            unit_of_quantity=self.unit,
+            #unit_of_quantity=self.unit,
         )
         self.resource.save()
 

@@ -433,9 +433,10 @@ def agent(request, agent_id):
     user_agent = get_agent(request)
     change_form = AgentCreateForm(instance=agent)
     user_form = None
-    if not agent.username():
-        init = {"username": agent.nick,}
-        user_form = UserCreationForm(initial=init)
+    if agent.is_individual():
+        if not agent.username():
+            init = {"username": agent.nick,}
+            user_form = UserCreationForm(initial=init)
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()           
     
@@ -5510,22 +5511,25 @@ def process_oriented_logging(request, process_id):
                     add_output_form = ProcessOutputForm(prefix='output')
                     add_output_form.fields["resource_type"].queryset = output_resource_types
         if "work" in slots:
-            work_resource_types = pattern.work_resource_types()
-            if logger:
+            if agent:
+                work_resource_types = pattern.work_resource_types()
+                work_unit = work_resource_types[0].unit
+                #work_init = {"unit_of_quantity": work_unit,}
+                work_init = {
+                    "from_agent": agent,
+                    "unit_of_quantity": work_unit,
+                } 
                 if work_resource_types:
-                    work_unit = work_resource_types[0].unit
-                    work_init = {"unit_of_quantity": work_unit,}
-                    add_work_form = WorkCommitmentForm(initial=work_init, prefix='work', pattern=pattern)
-                
-                    work_init = {
-                        "from_agent": agent,
-                        "unit_of_quantity": work_unit,
-                    }             
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
-                    unplanned_work_form.fields["resource_type"].queryset = work_resource_types 
+                    unplanned_work_form.fields["resource_type"].queryset = work_resource_types
+                    #if logger:
+                    #    add_work_form = WorkCommitmentForm(initial=work_init, prefix='work', pattern=pattern)
                 else:
-                    add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern, context_agent=context_agent, initial=work_init)
+                    #is this correct? see commented-out lines above
+                if logger:
+                    add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
+
         if "cite" in slots:
             unplanned_cite_form = UnplannedCiteEventForm(prefix='unplannedcite', pattern=pattern)
             if logger:

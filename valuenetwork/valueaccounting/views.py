@@ -9156,13 +9156,41 @@ def delete_value_equation(request, value_equation_id):
 @login_required
 def create_value_equation_bucket(request, value_equation_id):
     ve = get_object_or_404(ValueEquation, id=value_equation_id)
-    veb_form = ValueEquationBucketForm(data=request.POST)
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
+        veb_form = ValueEquationBucketForm(data=request.POST)
         if veb_form.is_valid():
-            veb = ve_form.save(commit=False)
+            veb = veb_form.save(commit=False)
             veb.value_equation = ve
             veb.created_by = request.user
             veb.save()
     return HttpResponseRedirect('/%s/%s/'
     % ('accounting/edit-value-equation', ve.id)) 
+    
+@login_required
+def change_value_equation_bucket(request, bucket_id):
+    ve = get_object_or_404(ValueEquation, id=value_equation_id)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        ve_form = ValueEquationForm(instance=ve, data=request.POST)
+        if ve_form.is_valid():
+            ve = ve_form.save(commit=False)
+            ve.changed_by = request.user
+            ve.save()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id)) 
+        
+@login_required
+def create_value_equation_bucket_rule(request, bucket_id):
+    ve = get_object_or_404(ValueEquation, id=value_equation_id)
+    if request.method == "POST":
+        import pdb; pdb.set_trace()
+        veb_form = ValueEquationBucketForm(data=request.POST)
+        if veb_form.is_valid():
+            veb = veb_form.save(commit=False)
+            veb.value_equation = ve
+            veb.created_by = request.user
+            veb.save()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id)) 
+  

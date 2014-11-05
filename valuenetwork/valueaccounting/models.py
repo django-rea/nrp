@@ -6365,10 +6365,11 @@ class ValueEquationBucket(models.Model):
         
     def __unicode__(self):
         return ' '.join([
-            self.name,
-            '- sequence:',
+            '(',
             str(self.sequence),
-            'percent:',
+            ')',
+            self.name,
+            '-',
             str(self.percentage) + '%',
         ])
         

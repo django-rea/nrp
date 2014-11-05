@@ -2978,7 +2978,6 @@ class ValueEquationForm(forms.ModelForm):
  
    
 class ValueEquationBucketForm(forms.ModelForm):
-    #sequence =
     distribution_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.all(),
         help_text="Choose an agent to distribute this entire bucket to, OR choose a filter method below to gather contributions.",
@@ -2988,10 +2987,6 @@ class ValueEquationBucketForm(forms.ModelForm):
     class Meta:
         model = ValueEquationBucket
         fields = ('sequence', 'name', 'percentage', 'distribution_agent', 'filter_method') 
-        
-    #def __init__(self, *args, **kwargs):
-    #    super(ValueEquationBucketForm, self).__init__(*args, **kwargs)
-    #    self.fields["filter_method"].choices = [('1', 'Resource Type'), ('2', 'Resource (Lot)'), ('3', 'Order')]
         
         
 class ValueEquationSandboxForm(forms.Form):

@@ -25,7 +25,7 @@ admin.site.register(Help, HelpAdmin)
 class ValueEquationBucketInline(admin.TabularInline):
     model = ValueEquationBucket
     fk_name = 'value_equation'
-    fields = ('sequence', 'name', 'percentage', 'distribution_agent')
+    fields = ('sequence', 'name', 'percentage', 'distribution_agent', 'filter_method')
 
 class ValueEquationAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')

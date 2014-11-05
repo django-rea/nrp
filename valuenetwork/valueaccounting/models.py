@@ -6488,7 +6488,16 @@ class ValueEquationBucket(models.Model):
                 claim_events.extend(ces)
         return claim_events
         
+        
+    def change_form(self):
+        from valuenetwork.valueaccounting.forms import ValueEquationBucketForm
+        return ValueEquationBucketForm(instance=self, prefix=str(self.id))
+        
+    def rule_form(self):
+        from valuenetwork.valueaccounting.forms import ValueEquationBucketRuleForm
+        return ValueEquationBucketRuleForm(prefix=str(self.id))        
 
+        
 DIVISION_RULE_CHOICES = (
     ('percentage', _('Percentage')),
     ('fifo', _('Oldest first')),
@@ -6506,13 +6515,14 @@ class ValueEquationBucketRule(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="bucket_rules", verbose_name=_('event type')) 
     filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
+    #todo: thinking we can get rid of division_rule, see if we have requirement
     division_rule =  models.CharField(_('division rule'), 
         max_length=12, choices=DIVISION_RULE_CHOICES)
     claim_rule_type = models.CharField(_('claim rule type'), 
         max_length=12, choices=CLAIM_RULE_CHOICES)
     claim_creation_equation = models.TextField(_('claim creation equation'), 
         null=True, blank=True,
-        help_text=_('You may use quantity, value, and/or rate in math expressions, leaving a space between each element'))
+        help_text=_('You may use quantity and/or value in math expressions, leaving a space between each element'))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='rules_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

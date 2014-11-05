@@ -2980,6 +2980,7 @@ class ValueEquationForm(forms.ModelForm):
 class ValueEquationBucketForm(forms.ModelForm):
     distribution_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.all(),
+        #empty_label='-----', 
         help_text="Choose an agent to distribute this entire bucket to, OR choose a filter method below to gather contributions.",
         widget=forms.Select(attrs={'class': 'chzn-select',}))
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
@@ -2987,6 +2988,16 @@ class ValueEquationBucketForm(forms.ModelForm):
     class Meta:
         model = ValueEquationBucket
         fields = ('sequence', 'name', 'percentage', 'distribution_agent', 'filter_method') 
+        
+   
+class ValueEquationBucketRuleForm(forms.ModelForm):
+    event_type = forms.ModelChoiceField(
+        queryset=EventType.objects.all(),
+        widget=forms.Select(attrs={'class': 'chzn-select input-medium'}))
+
+    class Meta:
+        model = ValueEquationBucketRule
+        fields = ('event_type', 'claim_rule_type', 'claim_creation_equation') 
         
         
 class ValueEquationSandboxForm(forms.Form):

@@ -244,6 +244,10 @@ ORDER_TYPE_CHOICES = (
 )
 
 *Order:
+"An Order is a contract or agreement between two EconomicAgents,
+or in the case of a Work Order, a plan decided within a context_agent,
+where the details are specified by Commitments.
+A context_agent is a group within which EconomicInteractions occur."
     order_type =reference to one of a list of ORDER_TYPE_CHOICES
     name = text
     receiver = reference to an EconomicAgent
@@ -308,6 +312,12 @@ to perform one or more EconomicEvents in the future."
     order_item = reference to another Commitment    #did we decide to keep?
                                                     #Could get independent_demand
                                                     #from order_item...
+                                                    #independent_demand is explained in detail in
+                                                    #http://hillside.net/plop/plop97/Proceedings/haugen.pdf
+                                                    #Short version: an independent_demand has no other cause
+                                                    #within a system other than some agent's decision.
+                                                    #Dependent demands are other demands that are required
+                                                    #to satisfy the independent_demand.
     event_type = reference to an EventType
     commitment_type = reference to a CommitmentType
     stage = reference to a ProcessType

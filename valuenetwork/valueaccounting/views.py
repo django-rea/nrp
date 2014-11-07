@@ -9199,12 +9199,15 @@ def create_value_equation_bucket_rule(request, bucket_id):
     ve = veb.value_equation
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        vebr_form = ValueEquationBucketRuleForm(data=request.POST)
-        if veb_form.is_valid():
+        vebr_form = ValueEquationBucketRuleForm(prefix=str(bucket_id), data=request.POST)
+        if vebr_form.is_valid():
             vebr = vebr_form.save(commit=False)
             vebr.value_equation_bucket = veb
             vebr.created_by = request.user
-            vebr.save()
+            filter_form = BucketRuleFilterSetForm(context_agent=None, event_type=None, pattern=None, prefix=str(bucket_id), data=request.POST)
+            if filter_form.is_valid():
+                vebr.filter_rule = filter_form.serialize()
+                vebr.save()
     return HttpResponseRedirect('/%s/%s/'
     % ('accounting/edit-value-equation', ve.id)) 
   

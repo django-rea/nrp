@@ -2967,6 +2967,7 @@ class SortResourceReportForm(forms.Form):
 class ValueEquationForm(forms.ModelForm):
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(),
+        required=True,
         widget=forms.Select(attrs={'class': 'chzn-select',}))
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     description = forms.CharField(required=False, 
@@ -2980,7 +2981,7 @@ class ValueEquationForm(forms.ModelForm):
 class ValueEquationBucketForm(forms.ModelForm):
     distribution_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.all(),
-        #empty_label='-----', 
+        required=False, 
         help_text="Choose an agent to distribute this entire bucket to, OR choose a filter method below to gather contributions.",
         widget=forms.Select(attrs={'class': 'chzn-select',}))
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
@@ -2993,6 +2994,7 @@ class ValueEquationBucketForm(forms.ModelForm):
 class ValueEquationBucketRuleForm(forms.ModelForm):
     event_type = forms.ModelChoiceField(
         queryset=EventType.objects.all(),
+        required=True,
         widget=forms.Select(attrs={'class': 'chzn-select input-medium'}))
 
     class Meta:
@@ -3029,11 +3031,17 @@ class BucketRuleFilterSetForm(forms.Form):
         
     def __init__(self, context_agent, event_type, pattern, *args, **kwargs):
         super(BucketRuleFilterSetForm, self).__init__(*args, **kwargs)
-        self.fields["process_types"].queryset = context_agent.process_types_queryset()
+        if context_agent:
+            self.fields["process_types"].queryset = context_agent.process_types_queryset()
+        else:
+            self.fields["process_types"].queryset = ProcessType.objects.all()
         #import pdb; pdb.set_trace()
         if pattern:
             self.pattern = pattern
-            self.fields["resource_types"].queryset = pattern.get_resource_types(event_type=event_type)
+            if event_type:
+                self.fields["resource_types"].queryset = pattern.get_resource_types(event_type=event_type)
+            else:
+                self.fields["resource_types"].queryset = pattern.all_resource_types()
         else:
             self.fields["resource_types"].queryset = EconomicResourceType.objects.all()
             
@@ -3047,9 +3055,15 @@ class BucketRuleFilterSetForm(forms.Form):
         resource_types = data.get("resource_types")
         if resource_types:
             json["resource_types"] = [pt.id for pt in resource_types]
-        return json
+        from django.utils import simplejson
+        import pdb; pdb.set_trace()
+        string = simplejson.dumps(json)            
+        return string
 
     def deserialize(self, json):
+        import pdb; pdb.set_trace()
+        from django.utils import simplejson
+        json = simplejson.loads(json)
         dict = {}
         process_types = json.get("process_types")
         if process_types:

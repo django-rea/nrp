@@ -39,7 +39,7 @@ class ValueEquationBucketRuleInline(admin.TabularInline):
     fields = ('event_type', 'filter_rule', 'division_rule', 'claim_rule_type', 'claim_creation_equation')
         
 class ValueEquationBucketAdmin(admin.ModelAdmin):
-    list_display = ('sequence', 'name', 'percentage', )
+    list_display = ('value_equation', 'sequence', 'name', 'percentage', )
     inlines = [ ValueEquationBucketRuleInline, ]
 
 admin.site.register(ValueEquationBucket, ValueEquationBucketAdmin)

@@ -419,5 +419,9 @@ urlpatterns += patterns("",
     url(r"^create-value-equation-bucket-rule/(?P<bucket_id>\d+)/$", 'valuenetwork.valueaccounting.views.create_value_equation_bucket_rule', 
         name="create_value_equation_bucket_rule"),
     url(r"^delete-value-equation-bucket/(?P<bucket_id>\d+)/$", 'valuenetwork.valueaccounting.views.delete_value_equation_bucket', name="delete_value_equation_bucket"),
+    url(r"^change-value-equation-bucket-rule/(?P<rule_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_value_equation_bucket_rule', 
+        name="change_value_equation_bucket_rule"),
+    url(r"^delete-value-equation-bucket-rule/(?P<rule_id>\d+)/$", 'valuenetwork.valueaccounting.views.delete_value_equation_bucket_rule', 
+        name="delete_value_equation_bucket_rule"),
 )
 

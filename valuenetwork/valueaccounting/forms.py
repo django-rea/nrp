@@ -3056,12 +3056,12 @@ class BucketRuleFilterSetForm(forms.Form):
         if resource_types:
             json["resource_types"] = [pt.id for pt in resource_types]
         from django.utils import simplejson
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         string = simplejson.dumps(json)            
         return string
 
     def deserialize(self, json):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         from django.utils import simplejson
         json = simplejson.loads(json)
         dict = {}

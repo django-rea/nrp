@@ -6705,6 +6705,24 @@ class ValueEquationBucketRule(models.Model):
         form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)
         return form.deserialize(json=self.filter_rule)
         
+        
+    def change_form(self):
+        from valuenetwork.valueaccounting.forms import ValueEquationBucketRuleForm
+        return ValueEquationBucketRuleForm(prefix="vebr" + str(self.id), instance=self)
+         
+    def change_filter_form(self):
+        from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
+        ca = None
+        pattern = None
+        #import pdb; pdb.set_trace()
+        if self.value_equation_bucket.value_equation.context_agent:
+            ca = self.value_equation_bucket.value_equation.context_agent
+        uc = UseCase.objects.get(identifier='val_equation')
+        patterns = ProcessPattern.objects.usecase_patterns(use_case=uc)
+        if patterns.count() > 0:
+            pattern = patterns[0]
+        return BucketRuleFilterSetForm(prefix="vebrf" + str(self.id), context_agent=ca, event_type=self.event_type, pattern=pattern, instance=self)
+        
             
 class Claim(models.Model):
     value_equation_bucket_rule = models.ForeignKey(ValueEquationBucketRule,

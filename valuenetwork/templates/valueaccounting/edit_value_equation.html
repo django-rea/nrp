@@ -1,0 +1,299 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Value Equation" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.name {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.ve {
+    background-color: #E1EBCD; /*#CCF5CC;*/
+    border: solid 1px gainsboro;
+    padding: 4px;
+    margin-bottom: 7px; 
+}
+.veb {
+    background-color: honeydew;
+    border: solid 1px gainsboro;
+    padding: 4px;
+    margin: 0 5px 7px 5px; 
+}
+.vebr {
+    background-color: #E6EFEF;
+    border: solid 1px gainsboro;
+    padding: 4px;
+    margin: 0 5px 7px 5px;
+}
+.notes {
+    margin-left: 1em;
+    font-style: italic;
+}
+.btn-primary, .indent {
+    margin-left: 1em;
+}
+.indent2 {
+    margin-left: 2em;
+}
+.create-vebr textarea {
+    height: 40px;
+}
+h3 {
+    color: firebrick;
+}
+textarea {
+    width: 500px;
+    height: 80px;
+}
+
+</style>
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+       
+        <legend>
+            {% if value_equation %}{% trans "Edit" %}{% else %}{% trans "Create" %}{% endif %}
+            {% trans "Value Equation" %}
+        </legend>
+
+        {% if not value_equation %}
+            {% if agent %}
+                <div>
+                    <a href="#create-ve" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create New Value Equation" %}</a>
+                </div>
+
+                <div class="modal hide fade" id="create-ve" tabindex="-1" role="dialog" aria-labelledby="create-ve-label" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 id="create-ve-label">{% trans "Create Value Equation" %}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{% url create_value_equation %}" method="POST" >
+                            {% csrf_token %}
+                            {{ value_equation_form }}
+                            <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <button class="btn btn-primary">{% trans "Save" %}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="ve">
+                <span class="name">{{ value_equation }}</span>
+                <span>for context <b>
+                    {% if value_equation.context_agent %}
+                        {{ value_equation.context_agent.nick }}
+                    {% else %}
+                        None
+                    {% endif %}</b>
+                </span>
+                {% if user = ve.created_by or user.is_superuser %}
+                    <div style="display: inline;" >
+                        <a href="#change-ve" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+                    </div>
+                    <div style="display: inline;" >
+                        <a href="#create-veb" role="button" class="btn btn-info" data-toggle="modal">{% trans "Add a Bucket" %}</a>
+                    </div>
+
+                    <div class="modal hide fade" id="change-ve" tabindex="-1" role="dialog" aria-labelledby="change-ve-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="change-ve-label">{% trans "Change Value Equation" %} </h3>
+                        </div>
+                        <div class="modal-body">
+                            <form action="{% url change_value_equation value_equation_id=value_equation.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ value_equation_form|as_bootstrap }}
+                                <div class="modal-footer">
+                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                    <button class="btn btn-primary">{% trans "Save" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+        
+                    <div class="modal hide fade" id="create-veb" tabindex="-1" role="dialog" aria-labelledby="create-veb-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="create-veb-label">{% trans "Create Value Equation Bucket" %} </h3>
+                        </div>
+                        <div class="modal-body">
+                            <form action="{% url create_value_equation_bucket value_equation_id=value_equation.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ value_equation_bucket_form|as_bootstrap }}
+                                <div class="modal-footer">
+                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                    <button class="btn btn-primary">{% trans "Save" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="indent">
+                    Bucket percentages are calculated using the method: <b>{{ value_equation.get_percentage_behavior_display }}</b>
+                </div>
+                {% if value_equation.description %}
+                    <div class="notes"> {{ value_equation.description|urlize|linebreaks }} </div>
+                {% endif %}    
+     
+                {% if value_equation.buckets.all %}
+                    {% for bucket in value_equation.buckets.all %}
+                        <div class="veb">
+                            <span class="name">{{ bucket }}</span>
+
+                            {% if user = value_equation.created_by or user.is_superuser %}
+                                <div style="display: inline;" >
+                                    <a href="#change-veb{{ bucket.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+                                </div>
+                                <form
+                                    style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteBucketForm{{ bucket.id }}" 
+                                    action="{% url delete_value_equation_bucket bucket_id=bucket.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <button style="display: inline;"  class="btn btn-warning" title="Delete this value equation bucket" >Delete</button>
+                                </form>
+
+                                <div class="modal hide fade" id="change-veb{{ bucket.id }}" tabindex="-1" role="dialog" aria-labelledby="change-veb-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="change-veb-label">{% trans "Change Value Equation Bucket" %} </h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="{% url change_value_equation_bucket bucket_id=bucket.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ bucket.change_form|as_bootstrap }}
+                                            <div class="modal-footer">
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                <button class="btn btn-primary">{% trans "Save" %}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                    
+                                {% if bucket.filter_method %}
+                                  <div style="display: inline;" >
+                                    <a href="#create-vebr{{ bucket.id }}" role="button" class="btn btn-info" data-toggle="modal">{% trans "Add a Bucket Rule" %}</a>
+                                  </div>
+                                  <div class="modal hide fade create-vebr" id="create-vebr{{ bucket.id }}" tabindex="-1" role="dialog" aria-labelledby="create-vebr-label{{ bucket.id }}" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="create-vebr-label{{ bucket.id }}">{% trans "Create Bucket Rule for " %}{{ bucket.name }} </h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="{% url create_value_equation_bucket_rule bucket_id=bucket.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ bucket.rule_form|as_bootstrap }}
+                                            {{ bucket.rule_filter_form|as_bootstrap }}
+                                            <div class="modal-footer">
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                <button class="btn btn-primary">{% trans "Save" %}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                  </div>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if bucket.filter_method %}<div class="indent2">Filter method: <b>{{ bucket.get_filter_method_display }}</b></div>{% endif %}
+                            {% if bucket.distribution_agent %}<div class="indent2">Distribute directly to: <b>{{ bucket.distribution_agent }}</b></div>{% endif %}
+                        
+                            {% if bucket.bucket_rules.all %}
+                                {% for rule in bucket.bucket_rules.all %}                            
+                                    <div class="vebr">
+                                        For: <b>{{ rule.event_type.name }}</b> 
+
+                                        {% if user = value_equation.created_by or user.is_superuser %}
+                                            <div style="display: inline;" >
+                                                <a href="#change-vebr{{ rule.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+                                            </div>
+                                            <form
+                                                style="display: inline;" 
+                                                class="delete-form" 
+                                                id="deleteBucketRuleForm{{ rule.id }}" 
+                                                action="{% url delete_value_equation_bucket_rule rule_id=rule.id %}" 
+                                                method="POST" >
+                                                {% csrf_token %}
+                                                <button style="display: inline;"  class="btn btn-warning" title="Delete this value equation bucket rule" >Delete</button>
+                                            </form>
+
+                                            <div class="modal hide fade" id="change-vebr{{ rule.id }}" tabindex="-1" role="dialog" aria-labelledby="change-vebr-label" aria-hidden="true">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                    <h3 id="change-vebr-label">{% trans "Change Rule for " %} {{ bucket.name }} - {{ rule.event_type.name }} </h3>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form action="{% url change_value_equation_bucket_rule rule_id=rule.id %}" method="POST" >
+                                                        {% csrf_token %}
+                                                        {{ rule.change_form|as_bootstrap }}
+                                                        {{ rule.change_filter_form|as_bootstrap }}
+                                                        <div class="modal-footer">
+                                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                            <button class="btn btn-primary">{% trans "Save" %}</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                     
+                                        <div class="indent">Claim calculation: <b>{{ rule.get_claim_rule_type_display }}, {{ rule.claim_creation_equation }}</b></div>
+                                        <div class="indent">Filter by: <b>{{ rule.filter_rule_display_list }}</b></div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+            </div>
+        {% endif %}
+
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $(".chzn-select").chosen();
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+
+    }); // end document.ready
+    </script>
+
+{% endblock %}

@@ -3322,13 +3322,15 @@ class EconomicResource(models.Model):
         for evt in contributions:
             #import pdb; pdb.set_trace()
             if evt.value:
-                evt.share = evt.value
+                vpu = evt.value / evt.quantity
+                evt.share = quantity * vpu
                 events.append(evt)
         buys = self.purchase_events()
         for evt in buys:
             #import pdb; pdb.set_trace()
             if evt.value:
-                evt.share = evt.value
+                vpu = evt.value / evt.quantity
+                evt.share = quantity * vpu
                 events.append(evt)
         pes = self.producing_events()
         visited = []
@@ -5828,6 +5830,11 @@ class Commitment(models.Model):
             for s in shares:
                 s.fraction = s.share / total
             #import pdb; pdb.set_trace()
+            #todo: the total here differs from the rolled-up vpu of the resource
+            #it should be the same.
+            #total here: 277.58
+            #total roll_up: 227.47
+            #diff: 50.11
             return shares
             
         

@@ -6706,8 +6706,12 @@ class ValueEquationBucketRule(models.Model):
         
     def filter_rule_display_list(self):
         json = self.filter_rule_deserialized()
-        pts = json['process_types']
-        rts = json['resource_types']
+        pts = []
+        rts = []
+        if 'process_types' in json.keys():
+            pts = json['process_types']
+        if 'resource_types' in json.keys():
+            rts = json['resource_types']
         filter = ""
         for pt in pts:
             filter += pt.name + ", "

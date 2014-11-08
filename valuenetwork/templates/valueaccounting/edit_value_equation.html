@@ -220,7 +220,7 @@ textarea {
                             {% if bucket.bucket_rules.all %}
                                 {% for rule in bucket.bucket_rules.all %}                            
                                     <div class="vebr">
-                                        For: <b>{{ rule.event_type.name }}</b> 
+                                        Rule for: <b>{{ rule.event_type.name }}</b> 
 
                                         {% if user = value_equation.created_by or user.is_superuser %}
                                             <div style="display: inline;" >

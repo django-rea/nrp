@@ -4016,10 +4016,12 @@ class Process(models.Model):
 
     def main_outgoing_commitment(self):
         cts = self.outgoing_commitments()
+        for ct in cts:
+            if ct.order_item:
+                return ct
         if cts:
             return cts[0]
-        else:
-            return None
+        return None
 
     def previous_processes(self):
         answer = []

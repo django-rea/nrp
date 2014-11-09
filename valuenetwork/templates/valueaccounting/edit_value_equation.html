@@ -220,11 +220,11 @@ textarea {
                             {% if bucket.bucket_rules.all %}
                                 {% for rule in bucket.bucket_rules.all %}                            
                                     <div class="vebr">
-                                        For: <b>{{ rule.event_type.name }}</b> 
+                                        Rule for: <b>{{ rule.event_type.name }}</b> 
 
                                         {% if user = value_equation.created_by or user.is_superuser %}
                                             <div style="display: inline;" >
-                                                <a href="#change-vebr{{ rule.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+                                                <a href="#change-vebr{{ rule.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Change" %}</a>
                                             </div>
                                             <form
                                                 style="display: inline;" 
@@ -233,7 +233,7 @@ textarea {
                                                 action="{% url delete_value_equation_bucket_rule rule_id=rule.id %}" 
                                                 method="POST" >
                                                 {% csrf_token %}
-                                                <button style="display: inline;"  class="btn btn-warning" title="Delete this value equation bucket rule" >Delete</button>
+                                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this value equation bucket rule" >Delete</button>
                                             </form>
 
                                             <div class="modal hide fade" id="change-vebr{{ rule.id }}" tabindex="-1" role="dialog" aria-labelledby="change-vebr-label" aria-hidden="true">

@@ -6605,12 +6605,12 @@ class ValueEquationBucket(models.Model):
         
     def __unicode__(self):
         return ' '.join([
-            '(',
+            'Bucket',
             str(self.sequence),
-            ')',
-            self.name,
             '-',
             str(self.percentage) + '%',
+            '-',
+            self.name,
         ])
         
     def run_bucket_value_equation(self, amount_to_distribute, context_agent):
@@ -6749,13 +6749,26 @@ class ValueEquationBucketRule(models.Model):
         value = eval(equation, {"__builtins__":None}, safe_dict)
         return value
 
-    def filter_rule_display_list(self):
-        #return self.filter_rule #temp until get deserialize to work
+    def filter_rule_deserialized(self):
         from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
         form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)
         import pdb; pdb.set_trace()
         return form.deserialize(json=self.filter_rule)
         
+    def filter_rule_display_list(self):
+        json = self.filter_rule_deserialized()
+        pts = []
+        rts = []
+        if 'process_types' in json.keys():
+            pts = json['process_types']
+        if 'resource_types' in json.keys():
+            rts = json['resource_types']
+        filter = ""
+        for pt in pts:
+            filter += pt.name + ", "
+        for rt in rts:
+            filter += rt.name + ","
+        return filter
         
     def change_form(self):
         from valuenetwork.valueaccounting.forms import ValueEquationBucketRuleForm
@@ -6772,7 +6785,8 @@ class ValueEquationBucketRule(models.Model):
         patterns = ProcessPattern.objects.usecase_patterns(use_case=uc)
         if patterns.count() > 0:
             pattern = patterns[0]
-        return BucketRuleFilterSetForm(prefix="vebrf" + str(self.id), context_agent=ca, event_type=self.event_type, pattern=pattern, instance=self)
+        json = self.filter_rule_deserialized()
+        return BucketRuleFilterSetForm(prefix="vebrf" + str(self.id), initial=json, context_agent=ca, event_type=self.event_type, pattern=pattern)
         
             
 class Claim(models.Model):

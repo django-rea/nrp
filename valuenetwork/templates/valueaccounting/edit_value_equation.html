@@ -56,6 +56,11 @@ textarea {
     width: 500px;
     height: 80px;
 }
+.hdg {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: firebrick;
+}
 
 </style>
 {% endblock %}
@@ -95,6 +100,8 @@ textarea {
                 </div>
             {% endif %}
         {% else %}
+          <div class="row-fluid">
+           <div class="span8">
             <div class="ve">
                 <span class="name">{{ value_equation }}</span>
                 <span>for context <b>
@@ -106,10 +113,10 @@ textarea {
                 </span>
                 {% if user = ve.created_by or user.is_superuser %}
                     <div style="display: inline;" >
-                        <a href="#change-ve" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+                        <a href="#change-ve" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Change" %}</a>
                     </div>
                     <div style="display: inline;" >
-                        <a href="#create-veb" role="button" class="btn btn-info" data-toggle="modal">{% trans "Add a Bucket" %}</a>
+                        <a href="#create-veb" role="button" class="btn btn-info btn-mini" data-toggle="modal">{% trans "Add a Bucket" %}</a>
                     </div>
 
                     <div class="modal hide fade" id="change-ve" tabindex="-1" role="dialog" aria-labelledby="change-ve-label" aria-hidden="true">
@@ -147,6 +154,18 @@ textarea {
                     </div>
                 {% endif %}
 
+                <div style="float:right">
+                    <form
+                        style="display: inline;" 
+                        class="test-form" 
+                        id="test-ve" 
+                        action="{% url value_equation_sandbox value_equation_id=value_equation.id %}" 
+                        method="GET" >
+                        {% csrf_token %}
+                        <button style="display: inline;"  class="btn btn-info btn-mini" title="Test this value equation" >Test Value Equation</button>
+                    </form>
+                </div>
+
                 <div class="indent">
                     Bucket percentages are calculated using the method: <b>{{ value_equation.get_percentage_behavior_display }}</b>
                 </div>
@@ -161,7 +180,7 @@ textarea {
 
                             {% if user = value_equation.created_by or user.is_superuser %}
                                 <div style="display: inline;" >
-                                    <a href="#change-veb{{ bucket.id }}" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+                                    <a href="#change-veb{{ bucket.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Change" %}</a>
                                 </div>
                                 <form
                                     style="display: inline;" 
@@ -170,7 +189,7 @@ textarea {
                                     action="{% url delete_value_equation_bucket bucket_id=bucket.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
-                                    <button style="display: inline;"  class="btn btn-warning" title="Delete this value equation bucket" >Delete</button>
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this value equation bucket" >Delete</button>
                                 </form>
 
                                 <div class="modal hide fade" id="change-veb{{ bucket.id }}" tabindex="-1" role="dialog" aria-labelledby="change-veb-label" aria-hidden="true">
@@ -192,7 +211,7 @@ textarea {
                     
                                 {% if bucket.filter_method %}
                                   <div style="display: inline;" >
-                                    <a href="#create-vebr{{ bucket.id }}" role="button" class="btn btn-info" data-toggle="modal">{% trans "Add a Bucket Rule" %}</a>
+                                    <a href="#create-vebr{{ bucket.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">{% trans "Add a Bucket Rule" %}</a>
                                   </div>
                                   <div class="modal hide fade create-vebr" id="create-vebr{{ bucket.id }}" tabindex="-1" role="dialog" aria-labelledby="create-vebr-label{{ bucket.id }}" aria-hidden="true">
                                     <div class="modal-header">
@@ -254,7 +273,18 @@ textarea {
                                                 </div>
                                             </div>
                                         {% endif %}
-                                     
+
+                                        <div style="float:right">
+                                            <form
+                                                style="display: inline;" 
+                                                class="test-form" 
+                                                id="test-vebr{{ rule.id }}" 
+                                                action="{% url test_value_equation_bucket_rule rule_id=rule.id %}" 
+                                                method="POST" >
+                                                {% csrf_token %}
+                                                <button style="display: inline;"  class="btn btn-info btn-mini" title="Test this value equation bucket rule" >Test Filter</button>
+                                            </form>
+                                        </div>
                                         <div class="indent">Claim calculation: <b>{{ rule.get_claim_rule_type_display }}, {{ rule.claim_creation_equation }}</b></div>
                                         <div class="indent">Filter by: <b>{{ rule.filter_rule_display_list }}</b></div>
                                     </div>
@@ -266,6 +296,30 @@ textarea {
                 {% endif %}
 
             </div>
+
+            <div class="span4" id="test-results">
+
+                {% if test_results %}
+                    <span class="hdg">Results:</span>
+                    <table class="table table-bordered table-condensed" >
+                        <thead>
+                            <th>{% trans "Agent" %}</th>
+                            <th style="text-align: right;">{% trans "Distribution Amount" %}</th>
+                        </thead>
+                        <tbody> 
+                            {% for tr in test_results %}
+                                <tr class="{% cycle 'odd' 'even' %}">
+                                    <td>{{ tr.to_agent }}</td>
+                                    <td style="text-align: right;" >{{ tr.quantity }}</td>
+                                </tr>
+                            {% endfor %}
+                        <tbody> 
+                    </table>
+                {% endif %}
+
+            </div>
+           </div>
+          </div>
         {% endif %}
 
     </div>

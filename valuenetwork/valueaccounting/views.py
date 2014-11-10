@@ -9051,27 +9051,33 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
     }, context_instance=RequestContext(request))
 
 @login_required
-def value_equation_sandbox(request):
+def value_equation_sandbox(request, value_equation_id=None):
     #import pdb; pdb.set_trace()
-    header_form = ValueEquationSandboxForm(data=request.POST or None)
+    ve = None
+    ves = ValueEquation.objects.all()
+    init = {}
+    if value_equation_id:
+        ve = ValueEquation.objects.get(id=value_equation_id)
+        init = {"value_equation": ve}
+    header_form = ValueEquationSandboxForm(initial=init, data=request.POST or None)
     buckets = []
     agent_totals = []
-    ves = ValueEquation.objects.all()
     if ves:
-        ve = ves[0]
+        if not ve:
+            ve = ves[0]
         buckets = ve.buckets.all()
     if request.method == "POST":
         if header_form.is_valid():
             data = header_form.cleaned_data
-            context_agent = data["context_agent"]
             value_equation = data["value_equation"]
             amount = data["amount_to_distribute"]
-            agent_totals = ve.run_value_equation(context_agent=context_agent, amount_to_distribute=Decimal(amount))
+            agent_totals = ve.run_value_equation(amount_to_distribute=Decimal(amount))
 
     return render_to_response("valueaccounting/value_equation_sandbox.html", {
         "header_form": header_form,
         "buckets": buckets,
         "agent_totals": agent_totals,
+        "ve": ve,
     }, context_instance=RequestContext(request))
 
 def json_value_equation_bucket(request, value_equation_id):
@@ -9081,13 +9087,17 @@ def json_value_equation_bucket(request, value_equation_id):
     buckets = []
     for b in bkts:
         agent_name = "null"
+        filter_method = "null"
         if b.distribution_agent:
             agent_name = b.distribution_agent.name
+        if b.filter_method:
+            filter_method = b.filter_method
         fields = {
             "sequence": b.sequence,
             "name": b.name,
             "percentage": b.percentage,
             "agent_name": agent_name,
+            "filter_method": filter_method,
         }
         buckets.append({"fields": fields})
         json = simplejson.dumps(buckets, ensure_ascii=False)
@@ -9115,12 +9125,14 @@ def edit_value_equation(request, value_equation_id=None):
     else:
         value_equation_form = ValueEquationForm()
     agent = get_agent(request)
+    test_results = []
    
     return render_to_response("valueaccounting/edit_value_equation.html", {
         "value_equation": value_equation,
         "agent": agent,
         "value_equation_form": value_equation_form,
         "value_equation_bucket_form": value_equation_bucket_form,
+        "test_results": test_results,
     }, context_instance=RequestContext(request))
     
 @login_required
@@ -9230,6 +9242,15 @@ def change_value_equation_bucket_rule(request, rule_id):
      
 @login_required
 def delete_value_equation_bucket_rule(request, rule_id):
+    vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
+    ve = vebr.value_equation_bucket.value_equation
+    vebr.delete()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id))   
+
+         
+@login_required
+def test_value_equation_bucket_rule(request, rule_id):
     vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
     ve = vebr.value_equation_bucket.value_equation
     vebr.delete()

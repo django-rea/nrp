@@ -3003,10 +3003,10 @@ class ValueEquationBucketRuleForm(forms.ModelForm):
         
         
 class ValueEquationSandboxForm(forms.Form):
-    context_agent = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.context_agents(), 
-        empty_label=None, 
-        widget=forms.Select(attrs={'class': 'chzn-select',}))
+    #context_agent = forms.ModelChoiceField(
+    #    queryset=EconomicAgent.objects.context_agents(), 
+    #    empty_label=None, 
+    #    widget=forms.Select(attrs={'class': 'chzn-select',}))
     value_equation = forms.ModelChoiceField(
         queryset=ValueEquation.objects.all(), 
         label=_("Value Equation"),
@@ -3014,7 +3014,7 @@ class ValueEquationSandboxForm(forms.Form):
         widget=forms.Select(
             attrs={'class': 've-selector'}))
     amount_to_distribute = forms.DecimalField(required=False,
-        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money validateMe'}))
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money validateMe input-small'}))
 
         
 class BucketRuleFilterSetForm(forms.Form):
@@ -3084,11 +3084,11 @@ class DateRangeForm(forms.Form):
     start_date = forms.DateField(
         required=False, 
         label="Start date",
-        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry validateMe', }))
     end_date = forms.DateField(
         required=False, 
         label="End date",
-        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))        
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry validateMe', }))        
 
     def serialize(self):
         data = self.cleaned_data
@@ -3115,15 +3115,15 @@ class DateRangeForm(forms.Form):
         
         
 class OrderMultiSelectForm(forms.Form):
-    orders = forms.ModelChoiceField(
+    orders = forms.ModelMultipleChoiceField(
         required=True,
         queryset=Order.objects.all(),
-        empty_label=None,
-        widget=forms.Select(attrs={'class': 'resource chzn-select input-xxlarge',}))
+        label=_("Select one or more Orders"),
+        widget=forms.SelectMultiple(attrs={'class': 'order chzn-select input-xxlarge'}))
         
-    def __init__(self, context_agent, event_type, pattern, *args, **kwargs):
+    def __init__(self, context_agent, *args, **kwargs):
         super(OrderMultiSelectForm, self).__init__(*args, **kwargs)
-        self.fields["order"].queryset = context_agent.orders_queryset()
+        self.fields["orders"].queryset = context_agent.orders_queryset()
         
     def serialize(self):
         data = self.cleaned_data
@@ -3147,10 +3147,9 @@ class OrderMultiSelectForm(forms.Form):
 
 class ShipmentMultiSelectForm(forms.Form):
     shipments = forms.ModelMultipleChoiceField(
-        required=False,
+        required=True,
         queryset=EconomicEvent.objects.filter(
             event_type__relationship="shipment",
-            #exclude customer order shipments?,
             ),
         label=_("Select one or more Shipment Events"),
         #empty_label=None,

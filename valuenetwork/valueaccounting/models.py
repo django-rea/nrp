@@ -3245,9 +3245,12 @@ class EconomicResource(models.Model):
     
     def roll_up_value(self, visited):
         #import pdb; pdb.set_trace()
+        #Value_per_unit will be the result of this method.
         value_per_unit = Decimal("0.0")
-        contributions = self.resource_contribution_events()
+        #Values of all of the inputs will be added to this list.
         values = []
+        #Resource contributions use event.value.
+        contributions = self.resource_contribution_events()
         for evt in contributions:
             #if evt.id == 3960:
             #    import pdb; pdb.set_trace()
@@ -3255,6 +3258,7 @@ class EconomicResource(models.Model):
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
             #print "rcont:", evt.id, "vpu:", evt_vpu
+        #Purchase contributions use event.value.
         buys = self.purchase_events()
         for evt in buys:
             #import pdb; pdb.set_trace()
@@ -3264,22 +3268,24 @@ class EconomicResource(models.Model):
             #print "buy:", evt.id, "vpu:", evt_vpu
         pes = self.producing_events()
         citations = []
-        production_qty = Decimal("0.0")
         production_value = Decimal("0.0")
-        for pe in pes:
-            production_qty += pe.quantity 
+        processes = self.producing_processes()
+        for process in processes:
             pe_value = Decimal("0.0")
-            if pe.process:
-                if pe.process not in visited:
-                    visited.append(pe.process)
-                    inputs = pe.process.incoming_events()
+            if process not in visited:
+                visited.append(process)
+                production_qty = sum(pe.quantity for pe in process.production_events())
+                if production_qty:
+                    inputs = process.incoming_events()
                     for ip in inputs:
+                        #Work contributions use resource_type.value_per_unit
                         if ip.event_type.relationship == "work":
                             ip.value = ip.quantity * ip.value_per_unit()
                             ip.save()
                             pe_value += ip.value
-                            if self.id == 352:
-                                print "work:", ip.id, "value:", ip.value
+                            #if self.id == 352:
+                                #print "work:", ip.id, "value:", ip.value
+                        #Use contributions use resource value_per_unit_of_use.
                         elif ip.event_type.relationship == "use":
                             #import pdb; pdb.set_trace()
                             if ip.resource:
@@ -3287,8 +3293,9 @@ class EconomicResource(models.Model):
                                 ip.save()
                                 pe_value += ip.value
                                 ip.resource.roll_up_value(visited)
-                                if self.id == 352:
-                                    print "use:", ip.id, "value:", ip.value
+                                #if self.id == 352:
+                                    #print "use:", ip.id, "value:", ip.value
+                        #Consume contributions use resource rolled up value_per_unit
                         elif ip.event_type.relationship == "consume":
                             #if ip.id == 3943:
                             #    import pdb; pdb.set_trace()
@@ -3296,26 +3303,31 @@ class EconomicResource(models.Model):
                             ip.value = ip.quantity * value_per_unit
                             ip.save()
                             pe_value += ip.value
-                            if self.id == 352:
-                                print "consume:", ip.id,"value:",  ip.value
+                            #if self.id == 352:
+                                #print "consume:", ip.id,"value:",  ip.value
+                        #Citations valued later, after all other inputs added up
                         elif ip.event_type.relationship == "cite":
                             citations.append(ip)
                             if ip.resource:
                                 ip.resource.roll_up_value(visited)
             production_value += pe_value
         if production_value:
+            #Citations use percentage of the sum of other input values.
             for c in citations:
                 percentage = c.quantity / 100
                 c.value = production_value * percentage
                 c.save()
             for c in citations:
                 production_value += c.value
-                if self.id == 352:
-                    print "cite:", c.id, "value:", c.value
+                #if self.id == 352:
+                    #print "cite:", c.id, "value:", c.value
         if production_value and production_qty:
             #print "production value:", production_value, "production qty", production_qty
             production_value_per_unit = production_value / production_qty
             values.append([production_value_per_unit, production_qty])
+        #If many sources of value, compute a weighted average.
+        #Multiple sources cd be:
+        #    resource contributions, purchases, and multiple production processes.
         if values:
             if len(values) == 1:
                 value_per_unit = values[0][0]
@@ -3331,6 +3343,8 @@ class EconomicResource(models.Model):
         return self.value_per_unit
         
     def compute_income_shares(self, quantity, value, events, visited):
+        #This method assumes that self.roll_up_value has been run,
+        #and all contribution events have been valued.
         contributions = self.resource_contribution_events()
         for evt in contributions:
             #import pdb; pdb.set_trace()
@@ -3341,6 +3355,7 @@ class EconomicResource(models.Model):
                 evt.share = quantity * vpu
                 events.append(evt)
                 #print evt.id, evt.share
+        #purchases of resources in value flow are contributions
         buys = self.purchase_events()
         for evt in buys:
             #import pdb; pdb.set_trace()
@@ -3349,55 +3364,44 @@ class EconomicResource(models.Model):
                 evt.share = quantity * vpu
                 events.append(evt)
                 #print evt.id, evt.share
-        pes = self.producing_events()
-        processes = [pe.process for pe in pes if pe.process]
-        processes = list(set(processes))
-        if len(pes) > 1 and len(processes) == 1:
-            produced_qty = sum(pe.quantity for pe in pes)
-            production_process = processes[0]
-            pes = pes[0:1]
-            pes[0].produced_qty = produced_qty
-            pes[0].production_process = production_process
-        else:
-            for pe in pes:
-                pe.produced_qty = pe.quantity
-                pe.production_process = pe.process
-        for pe in pes:
-            produced_qty = pe.produced_qty
-            distro_fraction = 1
-            distro_qty = quantity
-            if produced_qty > quantity:
-                distro_fraction = quantity / produced_qty
-            elif produced_qty < quantity:
-                distro_qty = produced_qty
-                quantity -= produced_qty
-            process = pe.production_process
-            if process:
-                if process not in visited:
-                    visited.append(process)
+        processes = self.producing_processes()
+        for process in processes:
+            if process not in visited:
+                visited.append(process)
+                if quantity:
+                    produced_qty = sum(pe.quantity for pe in process.production_events())
+                    distro_fraction = 1
+                    distro_qty = quantity
+                    if produced_qty > quantity:
+                        distro_fraction = quantity / produced_qty
+                        quantity = Decimal("0.0")
+                    elif produced_qty <= quantity:
+                        distro_qty = produced_qty
+                        quantity -= produced_qty
                     inputs = process.incoming_events()
                     for ip in inputs:
+                        #we assume here that work events are contributions
                         if ip.event_type.relationship == "work":
-                            #ip.value = ip.quantity * ip.value_per_unit() 
                             ip.share = ip.value * distro_fraction
                             events.append(ip)
                             #print ip.id, ip.share
                         elif ip.event_type.relationship == "use":
+                            #use events are not contributions, but their resources may have contributions
                             if ip.resource:
-                                #ip.value = ip.quantity * ip.resource.value_per_unit_of_use
                                 ip_value = ip.value * distro_fraction
                                 if ip_value:
                                     d_qty = ip_value / value
                                     ip.resource.compute_income_shares(d_qty, ip_value, events, visited) 
                         elif ip.event_type.relationship == "consume":
+                            #consume events are not contributions, but their resources may have contributions
                             ip_value = ip.value * distro_fraction
                             #if ip.resource.id == 353:
                             #    import pdb; pdb.set_trace()
                             if ip_value:
                                 ip.resource.compute_income_shares(ip.quantity, ip_value, events, visited)
                         elif ip.event_type.relationship == "cite":
-                            #import pdb; pdb.set_trace()
-                            #this might not have been computed in roll_up_value???
+                            #import pdb; pdb.set_trace()   
+                            #citation events are not contributions, but their resources may have contributions
                             ip_value = ip.value * distro_fraction
                             if ip_value:
                                 d_qty = ip_value / value
@@ -3419,6 +3423,12 @@ class EconomicResource(models.Model):
             if self.quality < 0:
                return self.events.filter(event_type__resource_effect='<') 
         return self.events.filter(event_type__relationship='out')
+        
+    def producing_processes(self):
+        pes = self.producing_events()
+        processes = [pe.process for pe in pes if pe.process]
+        processes = list(set(processes))
+        return processes
         
     def where_from_events(self):
         return self.events.filter(
@@ -3522,7 +3532,8 @@ class EconomicResource(models.Model):
                 flows.append(event)
                 p = event.process
                 if p:
-                    if not p in visited:
+                    if p not in visited:
+                        visited.append(p)
                         depth += 1
                         p.depth = depth
                         flows.append(p)
@@ -3552,7 +3563,8 @@ class EconomicResource(models.Model):
         events = []
         for flow in flows:
             if type(flow) is EconomicEvent:
-                events.append(flow)
+                if flow not in events:
+                    events.append(flow)
         return events
          
     def value_flow_going_forward(self):
@@ -4239,10 +4251,12 @@ class Process(models.Model):
 
     def main_outgoing_commitment(self):
         cts = self.outgoing_commitments()
+        for ct in cts:
+            if ct.order_item:
+                return ct
         if cts:
             return cts[0]
-        else:
-            return None
+        return None
 
     def previous_processes(self):
         answer = []

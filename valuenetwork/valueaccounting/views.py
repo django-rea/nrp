@@ -6153,6 +6153,7 @@ def plan_work_order_for_resource(request, resource_id):
 def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     flows = resource.incoming_value_flows()
+    value_per_unit = resource.roll_up_value([])
     totals = {}
     member_hours = []
     for flow in flows:
@@ -6166,6 +6167,7 @@ def incoming_value_flows(request, resource_id):
     return render_to_response("valueaccounting/incoming_value_flows.html", {
         "resource": resource,
         "flows": flows,
+        "value_per_unit": value_per_unit,
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 

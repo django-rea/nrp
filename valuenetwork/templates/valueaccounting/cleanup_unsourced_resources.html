@@ -1,0 +1,54 @@
+{% extends "site_base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Cleanup Unsourced Resources" %}{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+</style>
+{% endblock %}
+
+{% block body_class %}cleanup{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+
+    <h2>Consumed but unsourced Resources</h2>
+    <p>
+        These resources have consumption events but no production, receipt or contribution events.
+    </p>
+    <ul>
+        {% for suspect in suspects %}
+            <li>
+                <a href="{{ suspect.get_absolute_url }}">{{ suspect }}</a> created by: {{ suspect.created_by }} created date: {{ suspect.created_date }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+
+    }); // end document.ready
+
+     
+    </script>
+
+{% endblock %}

@@ -7,7 +7,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <style>
-.type {
+.type, .total {
     font-weight: bold;
 }
 .work-item {
@@ -17,10 +17,10 @@
 .process {
     color: blue;
 }
-.work {
+.work, .pay, .total {
     color: green;
 }
-.resource, .out {
+.resource, .out, .receive{
     color: firebrick;
 }
 .cite, .consume, .use {
@@ -45,6 +45,10 @@
 		<legend>{% trans "Incoming Value Flows for " %} <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a></legend>
 
 		<div class="span9">
+		
+            <p class="total" >
+                {% trans "Total accumulated value per unit " %}:   {{ resource.resource_type.unit_of_value.symbol }}{{ value_per_unit }}
+            </p>
 
           {% for flow in flows %}
             <p style="margin-left: {{ flow.depth }}em;" class="line">
@@ -55,6 +59,9 @@
                     <span class="work-item">{{ flow.flow_description }}</span>
                 {% else %}
                     {{ flow.flow_description }}
+                {% endif %}
+                {% if flow.value_per_unit %}
+                    {% trans "Value per unit" %}: {{ flow.value_per_unit }}
                 {% endif %}
              </p>
           {% endfor %}

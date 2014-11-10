@@ -25,16 +25,11 @@ admin.site.register(Help, HelpAdmin)
 class ValueEquationBucketInline(admin.TabularInline):
     model = ValueEquationBucket
     fk_name = 'value_equation'
-    fields = ('sequence', 'name', 'percentage', 'distribution_agent')
-
-class AgentValueEquationInline(admin.TabularInline):
-    model = AgentValueEquation
-    fk_name = 'value_equation'
-    fields = ('context_agent',)
+    fields = ('sequence', 'name', 'percentage', 'distribution_agent', 'filter_method')
 
 class ValueEquationAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
-    inlines = [ ValueEquationBucketInline, AgentValueEquationInline, ]
+    inlines = [ ValueEquationBucketInline, ]
 
 admin.site.register(ValueEquation, ValueEquationAdmin)
 
@@ -44,7 +39,7 @@ class ValueEquationBucketRuleInline(admin.TabularInline):
     fields = ('event_type', 'filter_rule', 'division_rule', 'claim_rule_type', 'claim_creation_equation')
         
 class ValueEquationBucketAdmin(admin.ModelAdmin):
-    list_display = ('sequence', 'name', 'percentage', )
+    list_display = ('value_equation', 'sequence', 'name', 'percentage', )
     inlines = [ ValueEquationBucketRuleInline, ]
 
 admin.site.register(ValueEquationBucket, ValueEquationBucketAdmin)
@@ -128,7 +123,7 @@ class ResourceTypeFacetInline(admin.TabularInline):
     model = ResourceTypeFacetValue
 
 class EconomicResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('label', 'name', 'rate', 'unit', 'unit_of_use', 'description', 'substitutable', 'facet_list')
+    list_display = ('label', 'name', 'unit', 'unit_of_use', 'description', 'substitutable', 'facet_list')
     list_filter = ['facets__facet_value']
     search_fields = ['name',]
     list_editable = ['unit', 'unit_of_use', 'substitutable']

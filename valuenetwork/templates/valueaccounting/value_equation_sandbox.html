@@ -1,0 +1,226 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Value Equation Sandbox" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.name {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.bucket {
+    margin-top: 15px;
+}
+#filters {
+    margin-bottom: 20px;
+}
+.to {
+    margin-left: 2em;
+    font-style: italic;
+}
+.filt {
+    margin-left: 2em;
+}
+.pct {
+    margin-left: 1em;
+}
+.hdg {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: firebrick;
+}
+tr.even td 
+{
+    color:#000000;
+    background-color:#EAF2D3;
+}
+th
+{
+    background-color:#C8D6E8;
+}
+.note {
+    font-size: .7em;
+    margin-left: 1em;
+    color: firebrick;
+}
+#ve-btn {
+    margin-left: 1em;
+    margin-bottom: 8px;
+}
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+       
+        <legend>
+            {% trans "Value Equation Sandbox" %}
+            <span class="note">(Your distribution will be displayed but not be saved.)</span>
+        </legend>
+        <div class="row-fluid">
+            <div class="span6">
+                <p class="hdg">Distribution:</p>
+                <form id="headerForm" action="." method="POST" >
+                    {% csrf_token %}
+                    <p>Value Equation</p>
+                    <p>{{ header_form.value_equation }}</p>
+                    <p>Amount to distribute</p>
+                    <p>{{ header_form.amount_to_distribute }}</p>
+                    <span class="hdg">Bucket filters:</span>
+                    <div id="filters">
+                        {% for bucket in buckets %}
+                            <div class="bucket"><span class="name">{{ bucket.name }}</span><span class="pct"> {{ bucket.percentage }}</span>%</div>
+                            {% if bucket.distribution_agent %}<div class="to"> Distribute to <span class="dist-to">{{ bucket.distribution_agent.name }}</span></div> {% endif %}
+                            {% if bucket.filter_method %}<div class="filt">
+                                {% if bucket.filter_method == 'dates' %}
+                                    <p>Enter start and end dates (both optional)</p>
+                                    {{ bucket.filter_entry_form.start_date }} through {{ bucket.filter_entry_form.end_date }}
+                                {% else %}
+                                    {{ bucket.filter_entry_form|as_bootstrap }} 
+                                {% endif %}
+                            </div>{% endif %}
+                        {% endfor %}
+                    </div>
+                    <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Calculate Distribution' %}" />
+                </form>
+
+            </div>
+
+            <div id="distributions" class="span6">
+                {% if agent_totals %}
+                    <form 
+                        id="change-ve" 
+                        action="{% url edit_value_equation value_equation_id=ve.id %}" 
+                        method="GET" >
+                        {% csrf_token %}
+                        <button style="display: inline;"  class="btn btn-info" title="Change this value equation" >Change Value Equation</button>
+                    </form>
+                    <span class="hdg">Results:</span>
+                    <table class="table table-bordered table-condensed" >
+                        <thead>
+                            <th>{% trans "Agent" %}</th>
+                            <th style="text-align: right;">{% trans "Distribution Amount" %}</th>
+                        </thead>
+                        <tbody> 
+                            {% for at in agent_totals %}
+                                <tr class="{% cycle 'odd' 'even' %}">
+                                    <td>{{ at.to_agent }}</td>
+                                    <td style="text-align: right;" >{{ at.quantity }}</td>
+                                </tr>
+                            {% endfor %}
+                        <tbody> 
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+       
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $(".chzn-select").chosen();
+
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
+
+        $.validator.addClassRules("amount_to_distribute", { required: true, quantity: true, });
+        $.validator.addClassRules("date-entry", { date: true });       
+
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
+        });
+
+        $("#id_value_equation").change(reloadPage);
+
+        function reloadPage()
+        {
+            var selectedVE = document.getElementById('id_value_equation').value;
+            var url = '/accounting/value-equation-sandbox/' + selectedVE + '/'
+            window.location.replace(url);
+        }
+
+/*
+        $("#id_value_equation").change(getBuckets); 
+
+        function getBuckets()
+        {
+            var selectedVE = document.getElementById('id_value_equation').value;
+            $('#change-ve').attr('action', '/accounting/edit-value-equation/' + selectedVE + '/' );
+            var jsonUrl = encodeURI("/accounting/json-value-equation-buckets/" + selectedVE + "/");
+            $("#filters").empty();
+            $.get(jsonUrl,
+            function(data){
+                var filters = ""
+                for(var i=0 ; i<data.length ; i++)
+                {
+                    var sequence = data[i].fields['sequence'];
+                    var name = data[i].fields['name']; 
+                    var pct = data[i].fields['percentage']; 
+                    var agent = data[i].fields['agent_name']; 
+                    var filterMethod = data[i].fields['filter_method'];
+
+                    filters = filters + '<div class="bucket"><span class="name">' + name + '</span><span class="pct">' + pct + '</span>%</div>'
+                    if (agent != 'null') {
+                        filters = filters + '<div class="to">Distribute to <span class="dist-to">' + agent + '</span></div>'
+                    } else {
+                        filters = filters + '<div class="filt">'
+                        if (filterMethod == 'dates') {
+                            filters = filters + '<p>Enter start and end dates (both optional)</p>'
+                          
+
+                        }
+                    }
+                }
+                $("#filters").append(filters)
+            });
+        }
+*/
+
+    }); // end document.ready
+    </script>
+
+{% endblock %}

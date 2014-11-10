@@ -128,11 +128,11 @@ class SelectOrCreateResourceForm(forms.ModelForm):
         required=False,
         widget=forms.Select(attrs={'class': 'input-xlarge chzn-select',}))
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
-    unit_of_quantity = forms.ModelChoiceField(
-        queryset=Unit.objects.exclude(unit_type='value'), 
-        label=_("Unit"),
-        empty_label=None,
-        widget=forms.Select(attrs={'class': 'input-medium',}))
+    #unit_of_quantity = forms.ModelChoiceField(
+    #    queryset=Unit.objects.exclude(unit_type='value'), 
+    #    label=_("Unit"),
+    #    empty_label=None,
+    #    widget=forms.Select(attrs={'class': 'input-medium',}))
     identifier = forms.CharField(
         required=False, 
         label="Identifier",
@@ -150,13 +150,15 @@ class SelectOrCreateResourceForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResource
-        fields = ('quantity', 'unit_of_quantity', 'identifier', 'current_location', 'url', 'photo_url', 'notes')
+        fields = ('quantity', 'identifier', 'current_location', 'url', 'photo_url', 'notes')
         
-    def __init__(self, resource_type=None, *args, **kwargs):
+    def __init__(self, resource_type=None, qty_help=None, *args, **kwargs):
         super(SelectOrCreateResourceForm, self).__init__(*args, **kwargs)
         #import pdb; pdb.set_trace()
         if resource_type:
             self.fields["resource"].queryset = EconomicResource.goods.filter(resource_type=resource_type)
+        if qty_help:
+            self.fields["quantity"].help_text = qty_help
 
 
 class EconomicResourceForm(forms.ModelForm):
@@ -166,7 +168,7 @@ class EconomicResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo', 'quantity', 'quality', 'independent_demand', 'order_item', 'stage', 'state')
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo', 'quantity', 'quality', 'independent_demand', 'order_item', 'stage', 'state', 'stage', 'state', 'value_per_unit_of_use', 'value_per_unit')
 
         
 class CreateEconomicResourceForm(forms.ModelForm):
@@ -176,7 +178,7 @@ class CreateEconomicResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand', 'order_item', 'stage', 'state')
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand', 'order_item', 'stage', 'state', 'value_per_unit_of_use', 'value_per_unit')
 
 
 class ResourceQuantityForm(forms.Form):
@@ -2877,7 +2879,48 @@ class ProjectFilterSetForm(forms.Form):
             self.fields["resource_types"].queryset = pattern.get_resource_types(event_type=event_type)
         else:
             self.fields["resource_types"].queryset = EconomicResourceType.objects.all()
-    
+            
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {"method": "Context",}
+        start_date = data.get("start_date")
+        if start_date:
+            json["start_date"] = start_date.strftime('%Y-%m-%d')
+        end_date = data.get("end_date")
+        if end_date:
+            json["end_date"] = end_date.strftime('%Y-%m-%d')
+        process_types = data.get("process_types")
+        if process_types:
+            json["process_types"] = [pt.id for pt in process_types]
+        resource_types = data.get("resource_types")
+        if resource_types:
+            json["resource_types"] = [pt.id for pt in resource_types]
+        return json
+        
+    def deserialize(self, json):
+        dict = {}
+        dict["method"] = json["method"]
+        start_date = json.get("start_date")
+        if start_date:
+            dict["start_date"] = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = json.get("end_date")
+        if end_date:
+            dict["end_date"] = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+        process_types = json.get("process_types")
+        if process_types:
+            l = []
+            for pk in process_types:
+                l.append(ProcessType.objects.get(pk=pk))
+            dict["process_types"] = l
+        resource_types = json.get("resource_types")
+        if resource_types:
+            l = []
+            for pk in resource_types:
+                l.append(EconomicResourceType.objects.get(pk=pk))
+            dict["resource_types"] = l
+        return dict
+        
     
 class DeliveryFilterSetForm(forms.Form):
     shipment_events = forms.ModelMultipleChoiceField(
@@ -2920,3 +2963,219 @@ class SortResourceReportForm(forms.Form):
         super(SortResourceReportForm, self).__init__(*args, **kwargs)
         self.fields["choice"].choices = [('1', 'Resource Type'), ('2', 'Resource (Lot)'), ('3', 'Order')]
 
+  
+class ValueEquationForm(forms.ModelForm):
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(),
+        required=True,
+        widget=forms.Select(attrs={'class': 'chzn-select',}))
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    description = forms.CharField(required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = ValueEquation
+        fields = ('name', 'description', 'percentage_behavior', 'context_agent') 
+ 
+   
+class ValueEquationBucketForm(forms.ModelForm):
+    distribution_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.all(),
+        required=False, 
+        help_text="Choose an agent to distribute this entire bucket to, OR choose a filter method below to gather contributions.",
+        widget=forms.Select(attrs={'class': 'chzn-select',}))
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+
+    class Meta:
+        model = ValueEquationBucket
+        fields = ('sequence', 'name', 'percentage', 'distribution_agent', 'filter_method') 
+        
+   
+class ValueEquationBucketRuleForm(forms.ModelForm):
+    event_type = forms.ModelChoiceField(
+        queryset=EventType.objects.all(),
+        required=True,
+        widget=forms.Select(attrs={'class': 'chzn-select input-medium'}))
+
+    class Meta:
+        model = ValueEquationBucketRule
+        fields = ('event_type', 'claim_rule_type', 'claim_creation_equation') 
+        
+        
+class ValueEquationSandboxForm(forms.Form):
+    #context_agent = forms.ModelChoiceField(
+    #    queryset=EconomicAgent.objects.context_agents(), 
+    #    empty_label=None, 
+    #    widget=forms.Select(attrs={'class': 'chzn-select',}))
+    value_equation = forms.ModelChoiceField(
+        queryset=ValueEquation.objects.all(), 
+        label=_("Value Equation"),
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 've-selector'}))
+    amount_to_distribute = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money validateMe input-small'}))
+
+        
+class BucketRuleFilterSetForm(forms.Form):
+    process_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=ProcessType.objects.none(),
+        label=_("Select zero or more Process Types"),
+        widget=forms.SelectMultiple(attrs={'class': 'process-type chzn-select input-xxlarge'}))
+    resource_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicResourceType.objects.none(),
+        label=_("Select zero or more Resource Types"),
+        widget=forms.SelectMultiple(attrs={'class': 'resource-type chzn-select input-xxlarge'}))
+        
+    def __init__(self, context_agent, event_type, pattern, *args, **kwargs):
+        super(BucketRuleFilterSetForm, self).__init__(*args, **kwargs)
+        if context_agent:
+            self.fields["process_types"].queryset = context_agent.process_types_queryset()
+        else:
+            self.fields["process_types"].queryset = ProcessType.objects.all()
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            if event_type:
+                self.fields["resource_types"].queryset = pattern.get_resource_types(event_type=event_type)
+            else:
+                self.fields["resource_types"].queryset = pattern.all_resource_types()
+        else:
+            self.fields["resource_types"].queryset = EconomicResourceType.objects.all()
+            
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {}
+        process_types = data.get("process_types")
+        if process_types:
+            json["process_types"] = [pt.id for pt in process_types]
+        resource_types = data.get("resource_types")
+        if resource_types:
+            json["resource_types"] = [pt.id for pt in resource_types]
+        from django.utils import simplejson
+        #import pdb; pdb.set_trace()
+        string = simplejson.dumps(json)            
+        return string
+
+    def deserialize(self, json):
+        #import pdb; pdb.set_trace()
+        from django.utils import simplejson
+        json = simplejson.loads(json)
+        dict = {}
+        process_types = json.get("process_types")
+        if process_types:
+            l = []
+            for pk in process_types:
+                l.append(ProcessType.objects.get(pk=pk))
+            dict["process_types"] = l
+        resource_types = json.get("resource_types")
+        if resource_types:
+            l = []
+            for pk in resource_types:
+                l.append(EconomicResourceType.objects.get(pk=pk))
+            dict["resource_types"] = l
+        return dict
+
+
+class DateRangeForm(forms.Form):
+    start_date = forms.DateField(
+        required=False, 
+        label="Start date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry validateMe', }))
+    end_date = forms.DateField(
+        required=False, 
+        label="End date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry validateMe', }))        
+
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {"method": "DateRange",}
+        start_date = data.get("start_date")
+        if start_date:
+            json["start_date"] = start_date.strftime('%Y-%m-%d')
+        end_date = data.get("end_date")
+        if end_date:
+            json["end_date"] = end_date.strftime('%Y-%m-%d')
+        return json
+        
+    def deserialize(self, json):
+        dict = {}
+        dict["method"] = json["method"]
+        start_date = json.get("start_date")
+        if start_date:
+            dict["start_date"] = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = json.get("end_date")
+        if end_date:
+            dict["end_date"] = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+        return dict
+        
+        
+class OrderMultiSelectForm(forms.Form):
+    orders = forms.ModelMultipleChoiceField(
+        required=True,
+        queryset=Order.objects.all(),
+        label=_("Select one or more Orders"),
+        widget=forms.SelectMultiple(attrs={'class': 'order chzn-select input-xxlarge'}))
+        
+    def __init__(self, context_agent, *args, **kwargs):
+        super(OrderMultiSelectForm, self).__init__(*args, **kwargs)
+        self.fields["orders"].queryset = context_agent.orders_queryset()
+        
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {"method": "Order",}
+        orders = data.get("orders")
+        if orders:
+            json["orders"] = [order.id for order in orders]
+        
+    def deserialize(self, json):
+        dict = {}
+        dict["method"] = json["method"]
+        orders = json.get("orders")
+        if orders:
+            l = []
+            for pk in orders:
+                l.append(Order.objects.get(pk=pk))
+            dict["orders"] = l
+        return dict
+
+
+class ShipmentMultiSelectForm(forms.Form):
+    shipments = forms.ModelMultipleChoiceField(
+        required=True,
+        queryset=EconomicEvent.objects.filter(
+            event_type__relationship="shipment",
+            ),
+        label=_("Select one or more Shipment Events"),
+        #empty_label=None,
+        widget=forms.SelectMultiple(attrs={'class': 'shipment-event chzn-select input-xxlarge'}))
+        
+    def __init__(self, context_agent, event_type, pattern, *args, **kwargs):
+        super(ShipmentMultiSelectForm, self).__init__(*args, **kwargs)
+        ship = EventType.objects.get(label="ships")
+        self.fields["shipments"].queryset = EconomicEvent.objects.filter(context_agent=context_agent, event_type=ship)
+        
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {"method": "Shipment",}
+        shipments = data.get("shipments")
+        if shipments:
+            json["shipments"] = [s.id for s in shipments]
+        
+    def deserialize(self, json):
+        dict = {}
+        dict["method"] = json["method"]
+        shipments = json.get("shipments")
+        if shipments:
+            l = []
+            for pk in shipments:
+                l.append(EconomicEvent.objects.get(pk=pk))
+            dict["shipments"] = l
+        return dict
+        

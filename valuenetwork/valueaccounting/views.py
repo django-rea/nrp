@@ -956,7 +956,7 @@ def adjust_resource(request, resource_id):
             event.from_agent = agent
             event.created_by = request.user
             event.event_date = datetime.date.today()
-            event.unit_of_quantity = resource.unit_of_quantity
+            event.unit_of_quantity = resource.resource_type.unit
             event.resource_type = resource.resource_type
             event.save()
             resource.quantity = new_quantity
@@ -972,7 +972,7 @@ def event_history(request, resource_id):
     agent = get_agent(request)
     init = {"quantity": resource.quantity,}
     adjustment_form = ResourceAdjustmentForm(initial=init)
-    unit = resource.unit_of_quantity
+    unit = resource.resource_type.unit
     
     paginator = Paginator(event_list, 25)
 
@@ -1255,7 +1255,7 @@ def json_resource(request, resource_id):
         "identifier": r.identifier,
         "location": loc,
         "quantity": str(r.quantity),
-        "unit": r.unit_of_quantity.name,
+        "unit": r.resource_type.unit.name,
         "access_rules": r.access_rules,
     }
     assignments = {}
@@ -2453,7 +2453,17 @@ def cleanup_resourcetypes(request):
     return render_to_response("valueaccounting/cleanup_resourcetypes.html", {
         "orphans": orphans,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def cleanup_work_resourcetypes(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    suspects = [rt for rt in EconomicResourceType.objects.all() if rt.work_without_value()]           
 
+    return render_to_response("valueaccounting/cleanup_work_resourcetypes.html", {
+        "suspects": suspects,
+    }, context_instance=RequestContext(request))
+    
 @login_required
 def cleanup_resources(request):
     if not request.user.is_superuser:
@@ -2464,7 +2474,26 @@ def cleanup_resources(request):
         "orphans": orphans,
     }, context_instance=RequestContext(request))
 
+@login_required
+def cleanup_unsourced_resources(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    suspects = [er for er in EconomicResource.objects.all() if er.unsourced_consumption()]           
 
+    return render_to_response("valueaccounting/cleanup_unsourced_resources.html", {
+        "suspects": suspects,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def cleanup_unvalued_resources(request):
+    if not request.user.is_superuser:
+        return render_to_response('valueaccounting/no_permission.html')
+    suspects = [er for er in EconomicResource.objects.all() if er.used_without_value()]           
+
+    return render_to_response("valueaccounting/cleanup_unvalued_resources.html", {
+        "suspects": suspects,
+    }, context_instance=RequestContext(request))
+    
 @login_required
 def create_order(request):
     patterns = PatternUseCase.objects.filter(use_case__identifier='cust_orders')
@@ -4026,7 +4055,7 @@ def add_unplanned_output(request, process_id):
                     url=url,
                     photo_url=photo_url,
                     quantity=event.quantity,
-                    unit_of_quantity=event.unit_of_quantity,
+                    #unit_of_quantity=event.unit_of_quantity,
                     created_by=request.user,
                 )
                 resource.save()
@@ -4067,7 +4096,7 @@ def add_unordered_receipt(request, exchange_id):
                     url = output_data["url"]
                     photo_url = output_data["photo_url"]
                     quantity = output_data["quantity"]
-                    unit_of_quantity = output_data["unit_of_quantity"]
+                    #unit_of_quantity = output_data["unit_of_quantity"]
                     access_rules = output_data["access_rules"]
                     location = output_data["current_location"]
                     resource = EconomicResource(
@@ -4077,7 +4106,7 @@ def add_unordered_receipt(request, exchange_id):
                         url=url,
                         photo_url=photo_url,
                         quantity=quantity,
-                        unit_of_quantity=unit_of_quantity,
+                        #unit_of_quantity=unit_of_quantity,
                         current_location=location,
                         access_rules=access_rules,
                         created_by=request.user,
@@ -4275,7 +4304,7 @@ def add_material_contribution(request, exchange_id):
                     url = material_data["url"]
                     photo_url = material_data["photo_url"]
                     quantity = material_data["quantity"]
-                    unit_of_quantity = material_data["unit_of_quantity"]
+                    #unit_of_quantity = material_data["unit_of_quantity"]
                     access_rules = material_data["access_rules"]
                     location = material_data["current_location"]
                     resource = EconomicResource(
@@ -4285,7 +4314,7 @@ def add_material_contribution(request, exchange_id):
                         url=url,
                         photo_url=photo_url,
                         quantity=quantity,
-                        unit_of_quantity=unit_of_quantity,
+                        #unit_of_quantity=unit_of_quantity,
                         current_location=location,
                         access_rules=access_rules,
                         created_by=request.user,
@@ -4377,7 +4406,7 @@ def add_cash_resource_contribution(request, exchange_id):
                     identifier=cash_data["identifier"],
                     resource_type=rt,
                     quantity=value,
-                    unit_of_quantity=event.unit_of_value,
+                    #unit_of_quantity=event.unit_of_value,
                     notes=cash_data["notes"],
                     current_location=cash_data["current_location"],
                     created_by=request.user
@@ -4472,7 +4501,7 @@ def add_cash_receipt_resource(request, exchange_id):
                     identifier=payment_data["identifier"],
                     resource_type=rt,
                     quantity=qty,
-                    unit_of_quantity=event.unit_of_quantity,
+                    #unit_of_quantity=event.unit_of_quantity,
                     notes=payment_data["notes"],
                     current_location=payment_data["current_location"],
                     created_by=request.user
@@ -6066,7 +6095,6 @@ def resource(request, resource_id):
                 process.created_by = request.user
                 process.save() 
                 event = EconomicEvent()
-                #event.project = process.project
                 event.context_agent = process.context_agent
                 event.event_date = process.end_date
                 event.event_type = process.process_pattern.event_type_for_resource_type("out", resource.resource_type)
@@ -6125,6 +6153,7 @@ def plan_work_order_for_resource(request, resource_id):
 def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     flows = resource.incoming_value_flows()
+    value_per_unit = resource.roll_up_value([])
     totals = {}
     member_hours = []
     for flow in flows:
@@ -6138,6 +6167,7 @@ def incoming_value_flows(request, resource_id):
     return render_to_response("valueaccounting/incoming_value_flows.html", {
         "resource": resource,
         "flows": flows,
+        "value_per_unit": value_per_unit,
         "member_hours": member_hours,
     }, context_instance=RequestContext(request))
 
@@ -6261,7 +6291,7 @@ def production_event_for_commitment(request):
             resource_type = ct.resource_type,
             created_date = event_date,
             quantity = quantity,
-            unit_of_quantity = ct.unit_of_quantity,
+            #unit_of_quantity = ct.unit_of_quantity,
             created_by=request.user,
             independent_demand=demand,
             order_item=order_item,
@@ -6339,7 +6369,6 @@ def resource_event_for_commitment(request, commitment_id):
                 from_agent = agent,
                 resource_type = ct.resource_type,
                 process = ct.process,
-                #project = ct.project,
                 context_agent = ct.context_agent,
                 quantity = resource.quantity,
                 unit_of_quantity = ct.unit_of_quantity,
@@ -6551,7 +6580,7 @@ def failed_outputs(request, commitment_id):
                 created_date = event_date,
                 quantity = quantity,
                 quality = Decimal("-1"),
-                unit_of_quantity = ct.unit_of_quantity,
+                #unit_of_quantity = ct.unit_of_quantity,
                 notes = description,
                 created_by=request.user,
             )
@@ -8821,8 +8850,8 @@ def create_distribution_using_value_equation(request, agent_id):
             dist_ve = DistributionValueEquation(
                 distribution_date = exchange.start_date,
                 exchange = exchange,
-                value_equation_original = ve,
-                value_equation = "need to serialize here", #todo
+                value_equation_link = ve,
+                value_equation_content = "need to serialize here", #todo
             )
             dist_ve.save()
             resource = exchange_form.cleaned_data["resource"]
@@ -8972,6 +9001,9 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
         filter_form = DeliveryFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
     if request.method == "POST":
         if filter_form.is_valid():
+            #import pdb; pdb.set_trace()
+            s = filter_form.serialize()
+            d = filter_form.deserialize(s)
             data = filter_form.cleaned_data
             process_types = data["process_types"]
             resource_types = data["resource_types"]
@@ -9020,3 +9052,209 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
         "count": count,
     }, context_instance=RequestContext(request))
 
+@login_required
+def value_equation_sandbox(request, value_equation_id=None):
+    #import pdb; pdb.set_trace()
+    ve = None
+    ves = ValueEquation.objects.all()
+    init = {}
+    if value_equation_id:
+        ve = ValueEquation.objects.get(id=value_equation_id)
+        init = {"value_equation": ve}
+    header_form = ValueEquationSandboxForm(initial=init, data=request.POST or None)
+    buckets = []
+    agent_totals = []
+    if ves:
+        if not ve:
+            ve = ves[0]
+        buckets = ve.buckets.all()
+    if request.method == "POST":
+        if header_form.is_valid():
+            data = header_form.cleaned_data
+            value_equation = data["value_equation"]
+            amount = data["amount_to_distribute"]
+            agent_totals = ve.run_value_equation(amount_to_distribute=Decimal(amount))
+
+    return render_to_response("valueaccounting/value_equation_sandbox.html", {
+        "header_form": header_form,
+        "buckets": buckets,
+        "agent_totals": agent_totals,
+        "ve": ve,
+    }, context_instance=RequestContext(request))
+
+def json_value_equation_bucket(request, value_equation_id):
+    #import pdb; pdb.set_trace()
+    ve = ValueEquation.objects.get(id=value_equation_id)
+    bkts = ve.buckets.all()
+    buckets = []
+    for b in bkts:
+        agent_name = "null"
+        filter_method = "null"
+        if b.distribution_agent:
+            agent_name = b.distribution_agent.name
+        if b.filter_method:
+            filter_method = b.filter_method
+        fields = {
+            "sequence": b.sequence,
+            "name": b.name,
+            "percentage": b.percentage,
+            "agent_name": agent_name,
+            "filter_method": filter_method,
+        }
+        buckets.append({"fields": fields})
+        json = simplejson.dumps(buckets, ensure_ascii=False)
+    return HttpResponse(json, mimetype='application/json')   
+    
+def value_equations(request):
+    #import pdb; pdb.set_trace()
+    value_equations = ValueEquation.objects.all()
+    agent = get_agent(request)    
+    
+    return render_to_response("valueaccounting/value_equations.html", {
+        "value_equations": value_equations,
+        "agent": agent,
+    }, context_instance=RequestContext(request))
+
+
+def edit_value_equation(request, value_equation_id=None):
+    #import pdb; pdb.set_trace()
+    value_equation = None
+    value_equation_bucket_form = None
+    if value_equation_id:
+        value_equation = ValueEquation.objects.get(id=value_equation_id)
+        value_equation_form = ValueEquationForm(instance=value_equation)
+        value_equation_bucket_form = ValueEquationBucketForm()
+    else:
+        value_equation_form = ValueEquationForm()
+    agent = get_agent(request)
+    test_results = []
+   
+    return render_to_response("valueaccounting/edit_value_equation.html", {
+        "value_equation": value_equation,
+        "agent": agent,
+        "value_equation_form": value_equation_form,
+        "value_equation_bucket_form": value_equation_bucket_form,
+        "test_results": test_results,
+    }, context_instance=RequestContext(request))
+    
+@login_required
+def create_value_equation(request):
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        ve_form = ValueEquationForm(data=request.POST)
+        if ve_form.is_valid():
+            ve = ve_form.save(commit=False)
+            ve.created_by = request.user
+            ve.save()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id)) 
+    
+@login_required
+def change_value_equation(request, value_equation_id):
+    ve = get_object_or_404(ValueEquation, id=value_equation_id)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        ve_form = ValueEquationForm(instance=ve, data=request.POST)
+        if ve_form.is_valid():
+            ve = ve_form.save(commit=False)
+            ve.changed_by = request.user
+            ve.save()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id)) 
+
+    
+@login_required
+def delete_value_equation(request, value_equation_id):
+    ve = get_object_or_404(ValueEquation, id=value_equation_id)
+    ve.delete()
+    return HttpResponseRedirect('/%s/'
+    % ('accounting/value-equations')) 
+    
+        
+@login_required
+def create_value_equation_bucket(request, value_equation_id):
+    ve = get_object_or_404(ValueEquation, id=value_equation_id)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        veb_form = ValueEquationBucketForm(data=request.POST)
+        if veb_form.is_valid():
+            veb = veb_form.save(commit=False)
+            veb.value_equation = ve
+            veb.created_by = request.user
+            veb.save()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id)) 
+    
+@login_required
+def change_value_equation_bucket(request, bucket_id):
+    veb = get_object_or_404(ValueEquationBucket, id=bucket_id)
+    ve = veb.value_equation
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        veb_form = ValueEquationBucketForm(prefix=str(veb.id), instance=veb, data=request.POST)
+        if veb_form.is_valid():
+            veb = veb_form.save(commit=False)
+            veb.changed_by = request.user
+            veb.save()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id)) 
+     
+@login_required
+def delete_value_equation_bucket(request, bucket_id):
+    veb = get_object_or_404(ValueEquationBucket, id=bucket_id)
+    ve = veb.value_equation
+    veb.delete()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id))  
+           
+@login_required
+def create_value_equation_bucket_rule(request, bucket_id):
+    veb = get_object_or_404(ValueEquationBucket, id=bucket_id)
+    ve = veb.value_equation
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        vebr_form = ValueEquationBucketRuleForm(prefix=str(bucket_id), data=request.POST)
+        if vebr_form.is_valid():
+            vebr = vebr_form.save(commit=False)
+            vebr.value_equation_bucket = veb
+            vebr.created_by = request.user
+            filter_form = BucketRuleFilterSetForm(context_agent=None, event_type=None, pattern=None, prefix=str(bucket_id), data=request.POST)
+            if filter_form.is_valid():
+                vebr.filter_rule = filter_form.serialize()
+                vebr.save()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id)) 
+    
+@login_required
+def change_value_equation_bucket_rule(request, rule_id):
+    vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
+    ve = vebr.value_equation_bucket.value_equation
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        vebr_form = ValueEquationBucketRuleForm(prefix="vebr" + str(vebr.id), instance=vebr, data=request.POST)
+        if vebr_form.is_valid():
+            vebr = vebr_form.save(commit=False)
+            vebr.changed_by = request.user
+            filter_form = BucketRuleFilterSetForm(context_agent=None, event_type=None, pattern=None, prefix="vebrf" + str(rule_id), data=request.POST)
+            if filter_form.is_valid():
+                vebr.filter_rule = filter_form.serialize()
+                vebr.save()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id)) 
+     
+@login_required
+def delete_value_equation_bucket_rule(request, rule_id):
+    vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
+    ve = vebr.value_equation_bucket.value_equation
+    vebr.delete()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id))   
+
+         
+@login_required
+def test_value_equation_bucket_rule(request, rule_id):
+    vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
+    ve = vebr.value_equation_bucket.value_equation
+    vebr.delete()
+    return HttpResponseRedirect('/%s/%s/'
+    % ('accounting/edit-value-equation', ve.id))   

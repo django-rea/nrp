@@ -6780,7 +6780,7 @@ class ValueEquationBucketRule(models.Model):
     def filter_rule_deserialized(self):
         from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
         form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         return form.deserialize(json=self.filter_rule)
         
     def filter_rule_display_list(self):

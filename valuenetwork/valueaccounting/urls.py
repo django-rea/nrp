@@ -424,7 +424,5 @@ urlpatterns += patterns("",
         name="change_value_equation_bucket_rule"),
     url(r"^delete-value-equation-bucket-rule/(?P<rule_id>\d+)/$", 'valuenetwork.valueaccounting.views.delete_value_equation_bucket_rule', 
         name="delete_value_equation_bucket_rule"),
-    url(r"^test-value-equation-bucket-rule/(?P<rule_id>\d+)/$", 'valuenetwork.valueaccounting.views.test_value_equation_bucket_rule', 
-        name="test_value_equation_bucket_rule"),
 )
 

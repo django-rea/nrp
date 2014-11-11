@@ -9128,6 +9128,21 @@ def edit_value_equation(request, value_equation_id=None):
         value_equation_form = ValueEquationForm()
     agent = get_agent(request)
     test_results = []
+    rpt_heading = ""
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        rule_id = int(request.POST['test'])
+        vebr = ValueEquationBucketRule.objects.get(id=rule_id)
+        tr = vebr.test_results()
+        nbr = len(tr)
+        if nbr > 50:
+            nbr = 50
+        count = 0
+        while count < nbr:
+            tr[count].claim_amount = vebr.compute_claim_value(tr[count])
+            test_results.append(tr[count])
+            count+=1
+        rpt_heading = "Bucket " + str(vebr.value_equation_bucket.sequence) + " " + vebr.event_type.name
    
     return render_to_response("valueaccounting/edit_value_equation.html", {
         "value_equation": value_equation,
@@ -9135,6 +9150,7 @@ def edit_value_equation(request, value_equation_id=None):
         "value_equation_form": value_equation_form,
         "value_equation_bucket_form": value_equation_bucket_form,
         "test_results": test_results,
+        "rpt_heading": rpt_heading,
     }, context_instance=RequestContext(request))
     
 @login_required
@@ -9250,11 +9266,4 @@ def delete_value_equation_bucket_rule(request, rule_id):
     return HttpResponseRedirect('/%s/%s/'
     % ('accounting/edit-value-equation', ve.id))   
 
-         
-@login_required
-def test_value_equation_bucket_rule(request, rule_id):
-    vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
-    ve = vebr.value_equation_bucket.value_equation
-    vebr.delete()
-    return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id))   
+  

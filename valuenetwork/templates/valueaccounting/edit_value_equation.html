@@ -61,6 +61,15 @@ textarea {
     font-size: 1.2em;
     color: firebrick;
 }
+tr.even td 
+{
+    color:#000000;
+    background-color:#EAF2D3;
+}
+th
+{
+    background-color:#C8D6E8;
+}
 
 </style>
 {% endblock %}
@@ -101,8 +110,8 @@ textarea {
             {% endif %}
         {% else %}
           <div class="row-fluid">
-           <div class="span8">
-            <div class="ve">
+           <div class="span7 ve">
+
                 <span class="name">{{ value_equation }}</span>
                 <span>for context <b>
                     {% if value_equation.context_agent %}
@@ -274,16 +283,18 @@ textarea {
                                             </div>
                                         {% endif %}
 
-                                        <div style="float:right">
+                                        <div style="float:right">                
                                             <form
                                                 style="display: inline;" 
                                                 class="test-form" 
                                                 id="test-vebr{{ rule.id }}" 
-                                                action="{% url test_value_equation_bucket_rule rule_id=rule.id %}" 
+                                                action="." 
                                                 method="POST" >
                                                 {% csrf_token %}
-                                                <button style="display: inline;"  class="btn btn-info btn-mini" title="Test this value equation bucket rule" >Test Filter</button>
+                                                <input type="hidden" id="test{{ rule.id }}" name="test" value= "{{ rule.id }}" />
+                                                <input type="submit" name="submit" style="display: inline;"  class="btn btn-info btn-mini" value="{% trans 'Test Filter' %}" title="Test this value equation bucket rule" />
                                             </form>
+
                                         </div>
                                         <div class="indent">Claim calculation: <b>{{ rule.get_claim_rule_type_display }}, {{ rule.claim_creation_equation }}</b></div>
                                         <div class="indent">Filter by: <b>{{ rule.filter_rule_display_list }}</b></div>
@@ -297,20 +308,26 @@ textarea {
 
             </div>
 
-            <div class="span4" id="test-results">
+            <div class="span5" id="test-results">
 
                 {% if test_results %}
-                    <span class="hdg">Results:</span>
+                    <span class="hdg">Recent events for {{ rpt_heading }}</span>
                     <table class="table table-bordered table-condensed" >
                         <thead>
-                            <th>{% trans "Agent" %}</th>
-                            <th style="text-align: right;">{% trans "Distribution Amount" %}</th>
+                            <th>{% trans "Event Date" %}</th>
+                            <th>{% trans "Contributor" %}</th>
+                            <th>{% trans "Quantity" %}</th>
+                            <th>{% trans "Value" %}</th>
+                            <th>{% trans "Claim Value" %}</th>
                         </thead>
                         <tbody> 
                             {% for tr in test_results %}
                                 <tr class="{% cycle 'odd' 'even' %}">
-                                    <td>{{ tr.to_agent }}</td>
-                                    <td style="text-align: right;" >{{ tr.quantity }}</td>
+                                    <td>{{ tr.event_date }}</td>
+                                    <td>{{ tr.from_agent }}</td>
+                                    <td>{% if tr.quantity > 0 %}{{ tr.quantity }} {{ tr.unit_of_quantity }}{% endif %}</td>
+                                    <td>{% if tr.value > 0 %}{{ tr.value }} {{ tr.unit_of_value }}{% endif %}</td>
+                                    <td>{{ tr.claim_amount }}</td>
                                 </tr>
                             {% endfor %}
                         <tbody> 
@@ -318,7 +335,7 @@ textarea {
                 {% endif %}
 
             </div>
-           </div>
+         
           </div>
         {% endif %}
 

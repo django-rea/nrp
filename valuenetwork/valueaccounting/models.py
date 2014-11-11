@@ -6769,7 +6769,8 @@ class ValueEquationBucketRule(models.Model):
         safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ])
         safe_dict['Decimal'] = Decimal
         safe_dict['quantity'] = event.quantity
-        safe_dict['rate'] = event.resource_type.rate
+        #safe_dict['rate'] = event.resource_type.rate
+        safe_dict['value-per-unit'] = event.resource_type.value_per_unit
         safe_dict['value'] = event.value
         #safe_dict['importance'] = event.importance()
         safe_dict['reputation'] = event.from_agent.reputation
@@ -6797,6 +6798,22 @@ class ValueEquationBucketRule(models.Model):
         for rt in rts:
             filter += rt.name + ","
         return filter
+        
+    def test_results(self):
+        #import pdb; pdb.set_trace()
+        fr = self.filter_rule_deserialized()
+        pts = []
+        rts = []
+        if 'process_types' in fr.keys():
+            pts = fr['process_types']
+        if 'resource_types' in fr.keys():
+            rts = fr['resource_types']
+        events = EconomicEvent.objects.filter(context_agent=self.value_equation_bucket.value_equation.context_agent, event_type=self.event_type)
+        if pts:
+            events = events.filter(process__process_type__in=pts)
+        if rts:
+            events = events.filter(resource_type__in=rts)
+        return events
         
     def change_form(self):
         from valuenetwork.valueaccounting.forms import ValueEquationBucketRuleForm

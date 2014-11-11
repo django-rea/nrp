@@ -6739,7 +6739,7 @@ class ValueEquation(models.Model):
                 claim_event.save()
         return exchange
         
-    def run_value_equation(self, context_agent, amount_to_distribute):
+    def run_value_equation(self, amount_to_distribute):
         #import pdb; pdb.set_trace()
         detail_sums = []
         claim_events = []
@@ -6754,7 +6754,7 @@ class ValueEquation(models.Model):
                     sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
                     detail_sums.append(sum_a)
                 else:
-                    ces = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=context_agent)
+                    ces = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent)
                     for ce in ces:
                         detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
                     claim_events.extend(ces)
@@ -6773,9 +6773,9 @@ class ValueEquation(models.Model):
             distribution = EconomicEvent(
                 event_type = et,
                 event_date = datetime.date.today(),
-                from_agent = context_agent, 
+                from_agent = self.context_agent, 
                 to_agent = EconomicAgent.objects.get(id=int(agent_id)),
-                context_agent = context_agent,
+                context_agent = self.context_agent,
                 quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_UP),
                 is_contribution = False,
             )
@@ -6901,6 +6901,20 @@ class ValueEquationBucket(models.Model):
         if patterns.count() > 0:
             pattern = patterns[0]
         return BucketRuleFilterSetForm(prefix=str(self.id), context_agent=ca, event_type=None, pattern=pattern)
+        
+    def filter_entry_form(self):
+        #import pdb; pdb.set_trace()
+        form = None
+        if self.filter_method == "order":
+            from valuenetwork.valueaccounting.forms import OrderMultiSelectForm
+            form = OrderMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent)           
+        elif self.filter_method == "shipment":
+            from valuenetwork.valueaccounting.forms import ShipmentMultiSelectForm
+            form = ShipmentMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent, event_type=None, pattern=None)
+        elif self.filter_method == "dates":
+            from valuenetwork.valueaccounting.forms import DateRangeForm
+            form = DateRangeForm(prefix=str(self.id)) 
+        return form
 
         
 DIVISION_RULE_CHOICES = (
@@ -6986,7 +7000,8 @@ class ValueEquationBucketRule(models.Model):
         safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ])
         safe_dict['Decimal'] = Decimal
         safe_dict['quantity'] = event.quantity
-        safe_dict['rate'] = event.resource_type.rate
+        #safe_dict['rate'] = event.resource_type.rate
+        safe_dict['value-per-unit'] = event.resource_type.value_per_unit
         safe_dict['value'] = event.value
         #safe_dict['importance'] = event.importance()
         safe_dict['reputation'] = event.from_agent.reputation
@@ -6997,7 +7012,7 @@ class ValueEquationBucketRule(models.Model):
     def filter_rule_deserialized(self):
         from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
         form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         return form.deserialize(json=self.filter_rule)
         
     def filter_rule_display_list(self):
@@ -7014,6 +7029,22 @@ class ValueEquationBucketRule(models.Model):
         for rt in rts:
             filter += rt.name + ","
         return filter
+        
+    def test_results(self):
+        #import pdb; pdb.set_trace()
+        fr = self.filter_rule_deserialized()
+        pts = []
+        rts = []
+        if 'process_types' in fr.keys():
+            pts = fr['process_types']
+        if 'resource_types' in fr.keys():
+            rts = fr['resource_types']
+        events = EconomicEvent.objects.filter(context_agent=self.value_equation_bucket.value_equation.context_agent, event_type=self.event_type)
+        if pts:
+            events = events.filter(process__process_type__in=pts)
+        if rts:
+            events = events.filter(resource_type__in=rts)
+        return events
         
     def change_form(self):
         from valuenetwork.valueaccounting.forms import ValueEquationBucketRuleForm

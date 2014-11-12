@@ -6029,6 +6029,10 @@ class Commitment(models.Model):
             for s in shares:
                 s.fraction = s.share / total
             #import pdb; pdb.set_trace()
+            #todo: still a discrepancy:
+            #vpu: 220.60, shares: 219.15, diff: 1.45
+            #but that's down from diff: 220
+            #tabling for now...
             print "total shares:", total
             return shares
             

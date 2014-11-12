@@ -3440,8 +3440,8 @@ class EconomicResource(models.Model):
     def compute_income_shares(self, quantity, value, events, visited):
         #This method assumes that self.roll_up_value has been run,
         #and all contribution events have been valued.
-        #print "Resource:", self.id, self
-        #print "running quantity:", quantity, "running value:", value
+        print "Resource:", self.id, self
+        print "running quantity:", quantity, "running value:", value
         contributions = self.resource_contribution_events()
         for evt in contributions:
             #if evt.id == 3960:
@@ -3450,8 +3450,8 @@ class EconomicResource(models.Model):
                 vpu = evt.value / evt.quantity
                 evt.share = quantity * vpu
                 events.append(evt)
-                #print evt.id, evt, evt.share
-                #print "----Event.share:", evt.share, "= evt.value:", evt.value
+                print evt.id, evt, evt.share
+                print "----Event.share:", evt.share, "= evt.value:", evt.value
         #purchases of resources in value flow are contributions
         buys = self.purchase_events()
         for evt in buys:
@@ -3460,8 +3460,8 @@ class EconomicResource(models.Model):
                 vpu = evt.value / evt.quantity
                 evt.share = quantity * vpu
                 events.append(evt)
-                #print evt.id, evt, evt.share
-                #print "----Event.share:", evt.share, "= evt.value:", evt.value
+                print evt.id, evt, evt.share
+                print "----Event.share:", evt.share, "= evt.value:", evt.value
         processes = self.producing_processes()
         for process in processes:
             if process not in visited:
@@ -3482,8 +3482,8 @@ class EconomicResource(models.Model):
                         if ip.event_type.relationship == "work":
                             ip.share = ip.value * distro_fraction
                             events.append(ip)
-                            #print ip.id, ip, ip.share
-                            #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                            print ip.id, ip, ip.share
+                            print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
                         elif ip.event_type.relationship == "use":
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
@@ -3498,6 +3498,8 @@ class EconomicResource(models.Model):
                             #    import pdb; pdb.set_trace()
                             if ip_value:
                                 d_qty = ip.quantity * distro_fraction
+                                print "consumption:", ip.id, ip, "ip.value:", ip.value
+                                print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
                                 ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
                         elif ip.event_type.relationship == "cite":
                             #import pdb; pdb.set_trace()   
@@ -3505,7 +3507,8 @@ class EconomicResource(models.Model):
                             ip_value = ip.value * distro_fraction
                             if ip_value:
                                 d_qty = ip_value / value
-                                #print "citation:", ip, "value:", ip_value, "d_qty:", d_qty
+                                print "citation:", ip.id, ip, "ip.value:", ip.value
+                                print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
                                 ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
 
     def direct_share_components(self, components, visited, depth):
@@ -6015,7 +6018,7 @@ class Commitment(models.Model):
             #print "*** rollup up value"
             visited = set()
             value_per_unit = resource.roll_up_value(visited)
-            #print "value_per_unit:", value_per_unit
+            print "value_per_unit:", value_per_unit
             value = self.quantity * value_per_unit
             visited = set()
             #print "*** computing income shares"
@@ -6026,12 +6029,7 @@ class Commitment(models.Model):
             for s in shares:
                 s.fraction = s.share / total
             #import pdb; pdb.set_trace()
-            #todo: the total here differs from the rolled-up vpu of the resource
-            #it should be the same.
-            #total here: 274.96
-            #total roll_up: 227.47
-            #diff: 47.49
-            #print "total shares:", total
+            print "total shares:", total
             return shares
             
         

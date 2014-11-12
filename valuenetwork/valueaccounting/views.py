@@ -9069,11 +9069,19 @@ def value_equation_sandbox(request, value_equation_id=None):
             ve = ves[0]
         buckets = ve.buckets.all()
     if request.method == "POST":
+        #import pdb; pdb.set_trace()
         if header_form.is_valid():
             data = header_form.cleaned_data
             value_equation = data["value_equation"]
             amount = data["amount_to_distribute"]
-            agent_totals = ve.run_value_equation(amount_to_distribute=Decimal(amount))
+            serialized_filters = {}
+            for bucket in buckets:
+                bucket_form = bucket.filter_entry_form(data=request.POST or None, prefix=str(bucket.id))
+                bucket_data = bucket_form.cleaned_data
+                
+                
+                
+            agent_totals = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
 
     return render_to_response("valueaccounting/value_equation_sandbox.html", {
         "header_form": header_form,

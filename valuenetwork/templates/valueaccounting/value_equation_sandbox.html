@@ -87,9 +87,9 @@ th
                             {% if bucket.filter_method %}<div class="filt">
                                 {% if bucket.filter_method == 'dates' %}
                                     <p>Enter start and end dates (both optional)</p>
-                                    {{ bucket.filter_entry_form.start_date }} through {{ bucket.filter_entry_form.end_date }}
+                                    {{ bucket.form.start_date }} through {{ bucket.form.end_date }}
                                 {% else %}
-                                    {{ bucket.filter_entry_form|as_bootstrap }} 
+                                    {{ bucket.form|as_bootstrap }} 
                                 {% endif %}
                             </div>{% endif %}
                         {% endfor %}

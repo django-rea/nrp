@@ -9076,11 +9076,12 @@ def value_equation_sandbox(request, value_equation_id=None):
             amount = data["amount_to_distribute"]
             serialized_filters = {}
             for bucket in buckets:
-                bucket_form = bucket.filter_entry_form(data=request.POST or None, prefix=str(bucket.id))
-                bucket_data = bucket_form.cleaned_data
-                
-                
-                
+                if bucket.filter_method:
+                    bucket_form = bucket.filter_entry_form(data=request.POST or None)
+                    if bucket_form.is_valid():
+                        ser_string = bucket_data = bucket_form.serialize()
+                        serialized_filters[bucket.id] = ser_string
+                        bucket.form = bucket_form
             agent_totals = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
 
     return render_to_response("valueaccounting/value_equation_sandbox.html", {

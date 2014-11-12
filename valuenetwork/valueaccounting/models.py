@@ -6178,12 +6178,12 @@ class EconomicEvent(models.Model):
             return self.resource.value_per_unit
         if self.from_agent:
             try:
-                art = AgentResourceType.objects.get(
+                arts = AgentResourceType.objects.filter(
                     agent=self.from_agent,
                     resource_type=self.resource_type,
                     event_type=self.event_type)
-                if art.value_per_unit:
-                    return art.value_per_unit
+                if arts:
+                    return arts[0].value_per_unit
             except AgentResourceType.DoesNotExist:
                 pass
         return self.resource_type.value_per_unit

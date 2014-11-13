@@ -6805,6 +6805,7 @@ class ValueEquation(models.Model):
             event.resource = money_resource
             event.unit_of_quantity = money_resource.unit_of_quantity
             event.save()
+            #todo: will need to save new claims too
             for claim_event in event.new_claim_events:
                 claim_event.claim.save()
                 claim_event.event = event
@@ -6826,10 +6827,6 @@ class ValueEquation(models.Model):
                     sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
                     detail_sums.append(sum_a)
                 else:
-                    #import pdb; pdb.set_trace()
-                    #serialized_filter = "{}"
-                    #if serialized_filters[bucket_id]:
-                    #    serialized_filter = serialized_filters[bucket.id]
                     serialized_filter = serialized_filters[bucket.id]
                     ces = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
                     for ce in ces:

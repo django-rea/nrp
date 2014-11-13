@@ -9064,6 +9064,7 @@ def value_equation_sandbox(request, value_equation_id=None):
     header_form = ValueEquationSandboxForm(initial=init, data=request.POST or None)
     buckets = []
     agent_totals = []
+    details = []
     if ves:
         if not ve:
             ve = ves[0]
@@ -9083,6 +9084,9 @@ def value_equation_sandbox(request, value_equation_id=None):
                         serialized_filters[bucket.id] = ser_string
                         bucket.form = bucket_form
             agent_totals = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
+            for dist_event in agent_totals:
+                for claim_event in dist_event.new_claim_events:
+                    details.append(claim_event)
     else:
         for bucket in buckets:
             if bucket.filter_method:
@@ -9092,6 +9096,7 @@ def value_equation_sandbox(request, value_equation_id=None):
         "header_form": header_form,
         "buckets": buckets,
         "agent_totals": agent_totals,
+        "details": details,
         "ve": ve,
     }, context_instance=RequestContext(request))
 

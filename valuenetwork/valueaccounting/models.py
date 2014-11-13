@@ -7038,8 +7038,14 @@ class ValueEquationBucketRule(models.Model):
             self.event_type.name,
         ])
 
+    def filter_rule_deserialized(self):
+        from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
+        form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)
+        #import pdb; pdb.set_trace()
+        return form.deserialize(json=self.filter_rule)
+        
     def gather_events(self, context_agent, serialized_filter):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         json = self.filter_rule_deserialized()
         process_types = []
         resource_types = []
@@ -7052,8 +7058,12 @@ class ValueEquationBucketRule(models.Model):
             from valuenetwork.valueaccounting.forms import DateRangeForm
             form = DateRangeForm()
             bucket_filter = form.deserialize(serialized_filter)
-            start_date = bucket_filter["start_date"]
-            end_date = bucket_filter["end_date"]
+            start_date = None
+            end_date = None
+            if "start_date" in bucket_filter:
+                start_date = bucket_filter["start_date"]
+            if "end_date" in bucket_filter:
+                end_date = bucket_filter["end_date"]
             events = EconomicEvent.objects.filter(context_agent=context_agent, event_type=self.event_type)
             if start_date and end_date:
                 events = events.filter(event_date__range=(start_date, end_date))
@@ -7072,7 +7082,7 @@ class ValueEquationBucketRule(models.Model):
             orders = bucket_filter["orders"]
             events = []
             for order in orders:
-                for order_item in orders.order_items:
+                for order_item in order.order_items():
                     events.extend([e for e in order_item.compute_income_fractions() if e.event_type==self.event_type]) 
             if process_types:
                 events = [e for e in events if e.process.process_type in process_types]
@@ -7156,12 +7166,6 @@ class ValueEquationBucketRule(models.Model):
         safe_dict['seniority'] = Decimal(event.seniority())
         value = eval(equation, {"__builtins__":None}, safe_dict)
         return value
-
-    def filter_rule_deserialized(self):
-        from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
-        form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)
-        #import pdb; pdb.set_trace()
-        return form.deserialize(json=self.filter_rule)
         
     def filter_rule_display_list(self):
         json = self.filter_rule_deserialized()

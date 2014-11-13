@@ -9083,6 +9083,10 @@ def value_equation_sandbox(request, value_equation_id=None):
                         serialized_filters[bucket.id] = ser_string
                         bucket.form = bucket_form
             agent_totals = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
+    else:
+        for bucket in buckets:
+            if bucket.filter_method:
+                bucket.form = bucket.filter_entry_form()
 
     return render_to_response("valueaccounting/value_equation_sandbox.html", {
         "header_form": header_form,

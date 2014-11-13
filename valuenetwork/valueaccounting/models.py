@@ -7165,7 +7165,8 @@ class ValueEquationBucketRule(models.Model):
         safe_dict['quantity'] = event.quantity
         #safe_dict['rate'] = event.resource_type.rate
         safe_dict['value-per-unit'] = event.value_per_unit()
-        safe_dict['value-per-unit-of-use'] = event.resource.value_per_unit_of_use
+        if event.resource:
+            safe_dict['value-per-unit-of-use'] = event.resource.value_per_unit_of_use
         safe_dict['value'] = event.value
         #safe_dict['importance'] = event.importance()
         #safe_dict['reputation'] = event.from_agent.reputation

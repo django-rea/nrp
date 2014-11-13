@@ -3435,7 +3435,22 @@ class EconomicResource(models.Model):
         #import pdb; pdb.set_trace()
         #print "total shares:", total
         return shares
-        
+         
+    def compute_shipment_income_shares(self, quantity):
+        visited = set()
+        value_per_unit = self.roll_up_value(visited)
+        #print "value_per_unit:", value_per_unit
+        value = quantity * value_per_unit
+        visited = set()
+        shares = []
+        #import pdb; pdb.set_trace()
+        self.compute_income_shares(quantity, value, shares, visited)
+        total = sum(s.share for s in shares)
+        for s in shares:
+            s.fraction = s.share / total
+        #import pdb; pdb.set_trace()
+        #print "total shares:", total
+        return shares
         
     def compute_income_shares(self, quantity, value, events, visited):
         #This method assumes that self.roll_up_value has been run,
@@ -6329,7 +6344,7 @@ class EconomicEvent(models.Model):
             except AgentResourceType.DoesNotExist:
                 pass
         return self.resource_type.value_per_unit
-        
+       
     def value_explanation(self):
         if self.process:
             p_qty = self.process.production_quantity()
@@ -6420,11 +6435,26 @@ class EconomicEvent(models.Model):
         elif self.event_type.relationship == "out":
             return "Value per unit is composed of the value of the following input events:"
         return ""
-        
+
+    def claims(self):
+        claim_events = self.claim_events.all()
+        claims = [ce.claim for ce in claim_events]
+        return list(set(claims))    
+         
     def outstanding_claims(self):
         claim_events = self.claim_events.all()
         claims = [ce.claim for ce in claim_events if ce.claim.value > Decimal("0.0")]
         return list(set(claims))
+        
+    def created_claim(self):
+        cc = None
+        claim_events = self.claim_events.all()
+        for ce in claim_events:
+            if ce.event_effect == "+":
+                cc = ce.claim
+                cc.claim_event = ce
+                break
+        return cc
         
     def outstanding_claims_for_bucket_rule(self, bucket_rule):
         claims = self.outstanding_claims()
@@ -6432,9 +6462,10 @@ class EconomicEvent(models.Model):
                
     def create_claim(self, bucket_rule):
         #import pdb; pdb.set_trace()
-        claims = self.outstanding_claims_for_bucket_rule(bucket_rule)
-        if claims:
-            return claims[0]
+        #claims = self.outstanding_claims_for_bucket_rule(bucket_rule)
+        #if claims:
+        if self.created_claim():
+            return self.created_claim()
         else:
             order = None
             if self.commitment:
@@ -6464,7 +6495,42 @@ class EconomicEvent(models.Model):
             claim_event.save()
             claim_event.update_claim()
             return claim
-                
+               
+    def get_unsaved_contribution_claim(self, bucket_rule):
+        #import pdb; pdb.set_trace()
+        claim = self.created_claim()
+        if claim:
+            return claim
+        else:
+            #order = None
+            #if self.commitment:
+            #    order = self.commitment.independent_demand
+            #else:
+            #    if self.process:
+            #        order = self.process.independent_demand()
+            value = bucket_rule.compute_claim_value(self)
+            claim = Claim(
+                #order=order,
+                value_equation_bucket_rule=bucket_rule,
+                claim_date=datetime.date.today(),
+                has_agent=self.from_agent,
+                against_agent=self.to_agent,
+                context_agent=self.context_agent,
+                value=value,
+                unit_of_value=self.unit_of_value,
+                claim_creation_equation=bucket_rule.claim_creation_equation,
+            )
+            claim_event = ClaimEvent(
+                event=self,
+                claim=claim,
+                claim_event_date=datetime.date.today(),
+                value=value,
+                unit_of_value=self.unit_of_value,
+                event_effect="+",
+            )
+            claim.claim_event = claim_event
+            return claim     
+            
     def shorter_label(self):
         if self.unit_of_quantity:
             quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
@@ -6722,12 +6788,13 @@ class ValueEquation(models.Model):
         else:
             return True
             
-    def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute):
+    def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute, serialized_filters):
         #import pdb; pdb.set_trace()
         context_agent = exchange.context_agent
         distribution_events = self.run_value_equation(
             context_agent=context_agent, 
-            amount_to_distribute=amount_to_distribute)
+            amount_to_distribute=amount_to_distribute,
+            serialized_filters=serialized_filters)
         #import pdb; pdb.set_trace()
         for event in distribution_events:
             event.exchange = exchange
@@ -6741,7 +6808,7 @@ class ValueEquation(models.Model):
                 claim_event.save()
         return exchange
         
-    def run_value_equation(self, amount_to_distribute):
+    def run_value_equation(self, amount_to_distribute, serialized_filters):
         #import pdb; pdb.set_trace()
         detail_sums = []
         claim_events = []
@@ -6756,7 +6823,12 @@ class ValueEquation(models.Model):
                     sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
                     detail_sums.append(sum_a)
                 else:
-                    ces = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent)
+                    #import pdb; pdb.set_trace()
+                    #serialized_filter = "{}"
+                    #if serialized_filters[bucket_id]:
+                    #    serialized_filter = serialized_filters[bucket.id]
+                    serialized_filter = serialized_filters[bucket.id]
+                    ces = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
                     for ce in ces:
                         detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
                     claim_events.extend(ces)
@@ -6860,13 +6932,13 @@ class ValueEquationBucket(models.Model):
             self.name,
         ])
         
-    def run_bucket_value_equation(self, amount_to_distribute, context_agent):
+    def run_bucket_value_equation(self, amount_to_distribute, context_agent, serialized_filter):
         #import pdb; pdb.set_trace()
         rules = self.bucket_rules.all()
         claims = []
-        claim_events = []    
+        claim_events = []
         for vebr in rules:
-            vebr_claims = list(vebr.gather_claims(context_agent=context_agent))
+            vebr_claims = list(vebr.gather_claims(context_agent=context_agent, serialized_filter=serialized_filter))
             claims.extend(vebr_claims)
             vebr.claims = vebr_claims
         if claims:
@@ -6904,18 +6976,27 @@ class ValueEquationBucket(models.Model):
             pattern = patterns[0]
         return BucketRuleFilterSetForm(prefix=str(self.id), context_agent=ca, event_type=None, pattern=pattern)
         
-    def filter_entry_form(self):
+    def filter_entry_form(self, data=None):
         #import pdb; pdb.set_trace()
         form = None
         if self.filter_method == "order":
             from valuenetwork.valueaccounting.forms import OrderMultiSelectForm
-            form = OrderMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent)           
+            if data == None:
+                form = OrderMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent)
+            else:
+                form = OrderMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent, data=data)
         elif self.filter_method == "shipment":
             from valuenetwork.valueaccounting.forms import ShipmentMultiSelectForm
-            form = ShipmentMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent, event_type=None, pattern=None)
+            if data == None:
+                form = ShipmentMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent)
+            else:
+                form = ShipmentMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent, data=data)
         elif self.filter_method == "dates":
             from valuenetwork.valueaccounting.forms import DateRangeForm
-            form = DateRangeForm(prefix=str(self.id)) 
+            if data == None:
+                form = DateRangeForm(prefix=str(self.id)) 
+            else:
+                form = DateRangeForm(prefix=str(self.id), data=data) 
         return form
 
         
@@ -6927,7 +7008,7 @@ DIVISION_RULE_CHOICES = (
 CLAIM_RULE_CHOICES = (
     ('debt-like', _('Until paid off')),
     ('equity-like', _('Forever')),
-    ('one-dist', _('One distribution')),
+    ('once', _('One distribution')),
 )
 
 class ValueEquationBucketRule(models.Model): 
@@ -6959,21 +7040,88 @@ class ValueEquationBucketRule(models.Model):
             self.event_type.name,
         ])
 
-    def gather_claims(self, context_agent):
-        #todo: need to sub in claims already decremented???
-        return Claim.objects.filter(value_equation_bucket_rule=self).filter(context_agent=context_agent) #todo: temp
+    def gather_events(self, context_agent, serialized_filter):
+        import pdb; pdb.set_trace()
+        json = self.filter_rule_deserialized()
+        process_types = []
+        resource_types = []
+        if 'process_types' in json.keys():
+            process_types = json['process_types']
+        if 'resource_types' in json.keys():
+            resource_types = json['resource_types']
+        events = []
+        if self.value_equation_bucket.filter_method == 'dates':
+            from valuenetwork.valueaccounting.forms import DateRangeForm
+            form = DateRangeForm()
+            bucket_filter = form.deserialize(serialized_filter)
+            start_date = bucket_filter["start_date"]
+            end_date = bucket_filter["end_date"]
+            events = EconomicEvent.objects.filter(context_agent=context_agent, event_type=self.event_type)
+            if start_date and end_date:
+                events = events.filter(event_date__range=(start_date, end_date))
+            elif start_date:
+                events = events.filter(event_date__gte=start_date)
+            elif end_date:
+                events = events.filter(event_date__gte=end_date)
+            if process_types:
+                events = events.filter(process__process_type__in=process_types)
+            if resource_types:
+                events = events.filter(resource_type__in=resource_types)
+        elif self.value_equation_bucket.filter_method == 'order':
+            from valuenetwork.valueaccounting.forms import OrderMultiSelectForm
+            form = OrderMultiSelectForm(context_agent=context_agent)
+            bucket_filter = form.deserialize(serialized_filter)
+            orders = bucket_filter["orders"]
+            events = []
+            for order in orders:
+                for order_item in orders.order_items:
+                    events.extend([e for e in order_item.compute_income_fractions() if e.event_type==self.event_type]) 
+            if process_types:
+                events = [e for e in events if e.process.process_type in process_types]
+            if resource_types:
+                events = [e for e in events if e.resource_type in resource_types]
+        elif self.value_equation_bucket.filter_method == 'shipment':
+            from valuenetwork.valueaccounting.forms import ShipmentMultiSelectForm
+            form = ShipmentMultiSelectForm(context_agent=context_agent)
+            bucket_filter = form.deserialize(serialized_filter)
+            shipment_events = bucket_filter["shipments"]
+            #lots = [e.resource for e in shipment_events]
+            events = []
+            for ship in shipment_events:
+                resource = ship.resource
+                qty = ship.quantity
+                events.extend([event for event in resource.compute_shipment_income_shares(qty) if event.event_type==self.event_type])
+            if process_types:
+                events = [e for e in events if e.process.process_type in process_types]
+            if resource_types:
+                events = [e for e in events if e.resource_type in resource_types]
+        return events
+        
+    def claims_from_events(self, events):
+        #import pdb; pdb.set_trace()
+        claims = []
+        for event in events:
+            claim = event.get_unsaved_contribution_claim(self)
+            claims.append(claim)
+        return claims
+        
+    def gather_claims(self, context_agent, serialized_filter):
+        #import pdb; pdb.set_trace()
+        events = self.gather_events(context_agent=context_agent, serialized_filter=serialized_filter)
+        return self.claims_from_events(events)
+        #return Claim.objects.filter(value_equation_bucket_rule=self).filter(context_agent=context_agent) #todo: temp
         
     def create_distribution_claim_events(self, portion_of_amount, claims=None):
         #import pdb; pdb.set_trace()
         claim_events = []
         if claims == None:
-            claims = list(self.gather_claims())
+            claims = self.gather_claims()
         if self.division_rule == 'percentage':
             for claim in claims:
                 distr_amt = claim.value * portion_of_amount
                 if self.claim_rule_type == "debt-like":
                     claim.value = claim.value - distr_amt
-                elif self.claim_rule_type == "one-distribution":
+                elif self.claim_rule_type == "once":
                     claim.value = 0
                 claim_event = ClaimEvent(
                     claim = claim,

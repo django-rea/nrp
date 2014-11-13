@@ -3100,9 +3100,13 @@ class DateRangeForm(forms.Form):
         end_date = data.get("end_date")
         if end_date:
             json["end_date"] = end_date.strftime('%Y-%m-%d')
-        return json
+        from django.utils import simplejson
+        string = simplejson.dumps(json)            
+        return string
         
     def deserialize(self, json):
+        from django.utils import simplejson
+        json = simplejson.loads(json)
         dict = {}
         dict["method"] = json["method"]
         start_date = json.get("start_date")
@@ -3132,8 +3136,13 @@ class OrderMultiSelectForm(forms.Form):
         orders = data.get("orders")
         if orders:
             json["orders"] = [order.id for order in orders]
+        from django.utils import simplejson
+        string = simplejson.dumps(json)            
+        return string
         
     def deserialize(self, json):
+        from django.utils import simplejson
+        json = simplejson.loads(json)
         dict = {}
         dict["method"] = json["method"]
         orders = json.get("orders")
@@ -3155,7 +3164,7 @@ class ShipmentMultiSelectForm(forms.Form):
         #empty_label=None,
         widget=forms.SelectMultiple(attrs={'class': 'shipment-event chzn-select input-xxlarge'}))
         
-    def __init__(self, context_agent, event_type, pattern, *args, **kwargs):
+    def __init__(self, context_agent, *args, **kwargs):
         super(ShipmentMultiSelectForm, self).__init__(*args, **kwargs)
         ship = EventType.objects.get(label="ships")
         self.fields["shipments"].queryset = EconomicEvent.objects.filter(context_agent=context_agent, event_type=ship)
@@ -3167,8 +3176,13 @@ class ShipmentMultiSelectForm(forms.Form):
         shipments = data.get("shipments")
         if shipments:
             json["shipments"] = [s.id for s in shipments]
+        from django.utils import simplejson
+        string = simplejson.dumps(json)            
+        return string
         
     def deserialize(self, json):
+        from django.utils import simplejson
+        json = simplejson.loads(json)
         dict = {}
         dict["method"] = json["method"]
         shipments = json.get("shipments")

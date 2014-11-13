@@ -87,9 +87,9 @@ th
                             {% if bucket.filter_method %}<div class="filt">
                                 {% if bucket.filter_method == 'dates' %}
                                     <p>Enter start and end dates (both optional)</p>
-                                    {{ bucket.filter_entry_form.start_date }} through {{ bucket.filter_entry_form.end_date }}
+                                    {{ bucket.form.start_date }} through {{ bucket.form.end_date }}
                                 {% else %}
-                                    {{ bucket.filter_entry_form|as_bootstrap }} 
+                                    {{ bucket.form|as_bootstrap }} 
                                 {% endif %}
                             </div>{% endif %}
                         {% endfor %}
@@ -162,6 +162,14 @@ th
             "Please enter a number less than 1000000 with no more than 2 decimal places"
         );
 
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
+        });
+
         $.validator.addClassRules("amount_to_distribute", { required: true, quantity: true, });
         $.validator.addClassRules("date-entry", { date: true });       
 
@@ -183,7 +191,7 @@ th
             window.location.replace(url);
         }
 
-/*
+/* reloading the page instead of ajax call for now - too difficult to build the input fields
         $("#id_value_equation").change(getBuckets); 
 
         function getBuckets()

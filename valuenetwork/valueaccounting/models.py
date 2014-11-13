@@ -7152,13 +7152,23 @@ class ValueEquationBucketRule(models.Model):
         safe_dict['quantity'] = event.quantity
         #safe_dict['rate'] = event.resource_type.rate
         safe_dict['value-per-unit'] = event.resource_type.value_per_unit
+        safe_dict['value-per-unit-of-use'] = event.resource.value_per_unit_of_use
         safe_dict['value'] = event.value
         #safe_dict['importance'] = event.importance()
-        safe_dict['reputation'] = event.from_agent.reputation
-        safe_dict['seniority'] = Decimal(event.seniority())
+        #safe_dict['reputation'] = event.from_agent.reputation
+        #safe_dict['seniority'] = Decimal(event.seniority())
         value = eval(equation, {"__builtins__":None}, safe_dict)
         return value
 
+    def equation_variables(self):
+        et = self.event_type
+        vars = ["value", "quantity"]
+        if et.relationship == "use" or et.relationship == "cite":
+            vars.append("value-per-unit-of-use")
+        else:
+            vars.append("value-per-unit")
+        return vars
+            
     def filter_rule_deserialized(self):
         from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
         form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)

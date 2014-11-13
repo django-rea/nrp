@@ -6951,7 +6951,7 @@ class ValueEquationBucket(models.Model):
             portion_of_amount = amount_to_distribute / total_amount
             if portion_of_amount > 1:
                 portion_of_amount = 1
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             for vebr in rules:
                 ces = vebr.create_distribution_claim_events(claims=vebr.claims.all(), portion_of_amount=portion_of_amount)
                 claim_events.extend(ces)
@@ -7125,24 +7125,24 @@ class ValueEquationBucketRule(models.Model):
         #return Claim.objects.filter(value_equation_bucket_rule=self).filter(context_agent=context_agent) #todo: temp
         
     def create_distribution_claim_events(self, portion_of_amount, claims=None):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         claim_events = []
         if claims == None:
             claims = self.gather_claims()
-        if self.division_rule == 'percentage':
-            for claim in claims:
-                distr_amt = claim.value * portion_of_amount
-                if self.claim_rule_type == "debt-like":
-                    claim.value = claim.value - distr_amt
-                elif self.claim_rule_type == "once":
-                    claim.value = 0
-                claim_event = ClaimEvent(
-                    claim = claim,
-                    value = distr_amt,
-                    unit_of_value = claim.unit_of_value,
-                    event_effect = "-",
-                )
-                claim_events.append(claim_event)
+        #if self.division_rule == 'percentage':
+        for claim in claims:
+            distr_amt = claim.value * portion_of_amount
+            if self.claim_rule_type == "debt-like":
+                claim.value = claim.value - distr_amt
+            elif self.claim_rule_type == "once":
+                claim.value = 0
+            claim_event = ClaimEvent(
+                claim = claim,
+                value = distr_amt,
+                unit_of_value = claim.unit_of_value,
+                event_effect = "-",
+            )
+            claim_events.append(claim_event)
         #elif:
         return claim_events    
         

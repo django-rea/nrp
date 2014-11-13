@@ -57,6 +57,10 @@ th
     margin-left: 1em;
     margin-bottom: 8px;
 }
+#loading {
+    margin-top: 1em;
+    margin-left: 2em;
+}
 </style>
 {% endblock %}
 
@@ -70,6 +74,7 @@ th
             {% trans "Value Equation Sandbox" %}
             <span class="note">(Your distribution will be displayed but not be saved.)</span>
         </legend>
+        <div id="loading">Loading...<img src="http://i.stack.imgur.com/FhHRx.gif"></img></div> 
         <div class="row-fluid">
             <div class="span6">
                 <p class="hdg">Distribution:</p>

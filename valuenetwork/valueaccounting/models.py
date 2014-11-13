@@ -3397,6 +3397,7 @@ class EconomicResource(models.Model):
             components.append(evt)
         processes = self.producing_processes()
         for process in processes:
+            #todo: make sure this works for >1 process producing the same resource
             if process not in visited:
                 visited.add(process)
                 production_qty = sum(pe.quantity for pe in process.production_events())
@@ -3455,8 +3456,8 @@ class EconomicResource(models.Model):
     def compute_income_shares(self, quantity, value, events, visited):
         #This method assumes that self.roll_up_value has been run,
         #and all contribution events have been valued.
-        print "Resource:", self.id, self
-        print "running quantity:", quantity, "running value:", value
+        #print "Resource:", self.id, self
+        #print "running quantity:", quantity, "running value:", value
         contributions = self.resource_contribution_events()
         for evt in contributions:
             #if evt.id == 3960:
@@ -3465,8 +3466,8 @@ class EconomicResource(models.Model):
                 vpu = evt.value / evt.quantity
                 evt.share = quantity * vpu
                 events.append(evt)
-                print evt.id, evt, evt.share
-                print "----Event.share:", evt.share, "= evt.value:", evt.value
+                #print evt.id, evt, evt.share
+                #print "----Event.share:", evt.share, "= evt.value:", evt.value
         #purchases of resources in value flow are contributions
         buys = self.purchase_events()
         for evt in buys:
@@ -3475,13 +3476,15 @@ class EconomicResource(models.Model):
                 vpu = evt.value / evt.quantity
                 evt.share = quantity * vpu
                 events.append(evt)
-                print evt.id, evt, evt.share
-                print "----Event.share:", evt.share, "= evt.value:", evt.value
+                #print evt.id, evt, evt.share
+                #print "----Event.share:", evt.share, "= evt.value:", evt.value
         processes = self.producing_processes()
         for process in processes:
             if process not in visited:
                 visited.add(process)
                 if quantity:
+                    #todo: how will this work for >1 processes producing the same resource?
+                    #what will happen to the shares of the inputs of the later processes?
                     produced_qty = sum(pe.quantity for pe in process.production_events())
                     distro_fraction = 1
                     distro_qty = quantity
@@ -3497,8 +3500,8 @@ class EconomicResource(models.Model):
                         if ip.event_type.relationship == "work":
                             ip.share = ip.value * distro_fraction
                             events.append(ip)
-                            print ip.id, ip, ip.share
-                            print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                            #print ip.id, ip, ip.share
+                            #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
                         elif ip.event_type.relationship == "use":
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
@@ -3513,8 +3516,8 @@ class EconomicResource(models.Model):
                             #    import pdb; pdb.set_trace()
                             if ip_value:
                                 d_qty = ip.quantity * distro_fraction
-                                print "consumption:", ip.id, ip, "ip.value:", ip.value
-                                print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                                #print "consumption:", ip.id, ip, "ip.value:", ip.value
+                                #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
                                 ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
                         elif ip.event_type.relationship == "cite":
                             #import pdb; pdb.set_trace()   
@@ -3522,8 +3525,8 @@ class EconomicResource(models.Model):
                             ip_value = ip.value * distro_fraction
                             if ip_value:
                                 d_qty = ip_value / value
-                                print "citation:", ip.id, ip, "ip.value:", ip.value
-                                print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                                #print "citation:", ip.id, ip, "ip.value:", ip.value
+                                #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
                                 ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
 
     def direct_share_components(self, components, visited, depth):
@@ -6033,7 +6036,7 @@ class Commitment(models.Model):
             #print "*** rollup up value"
             visited = set()
             value_per_unit = resource.roll_up_value(visited)
-            print "value_per_unit:", value_per_unit
+            #print "value_per_unit:", value_per_unit
             value = self.quantity * value_per_unit
             visited = set()
             #print "*** computing income shares"
@@ -6048,7 +6051,7 @@ class Commitment(models.Model):
             #vpu: 220.60, shares: 219.15, diff: 1.45
             #but that's down from diff: 220
             #tabling for now...
-            print "total shares:", total
+            #print "total shares:", total
             return shares
             
         
@@ -7161,7 +7164,7 @@ class ValueEquationBucketRule(models.Model):
         safe_dict['Decimal'] = Decimal
         safe_dict['quantity'] = event.quantity
         #safe_dict['rate'] = event.resource_type.rate
-        safe_dict['value-per-unit'] = event.resource_type.value_per_unit
+        safe_dict['value-per-unit'] = event.value_per_unit()
         safe_dict['value-per-unit-of-use'] = event.resource.value_per_unit_of_use
         safe_dict['value'] = event.value
         #safe_dict['importance'] = event.importance()

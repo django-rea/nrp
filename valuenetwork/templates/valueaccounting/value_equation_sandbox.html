@@ -74,7 +74,9 @@ th
             {% trans "Value Equation Sandbox" %}
             <span class="note">(Your distribution will be displayed but not be saved.)</span>
         </legend>
-        <div id="loading">Loading...<img src="http://i.stack.imgur.com/FhHRx.gif"></img></div> 
+        
+        <div id="loading" style="display: none;" >Loading...<img src="http://i.stack.imgur.com/FhHRx.gif"></img></div> 
+        
         <div class="row-fluid">
             <div class="span6">
                 <p class="hdg">Distribution:</p>
@@ -99,7 +101,7 @@ th
                             </div>{% endif %}
                         {% endfor %}
                     </div>
-                    <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Calculate Distribution' %}" />
+                    <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Calculate Distribution' %}" />
                 </form>
 
             </div>
@@ -146,6 +148,18 @@ th
     <script type="text/javascript">
 
     $(document).ready(function(){
+    
+        
+        $("#calculate").click(showLoading);
+        
+        function showLoading()
+        {
+            $("#loading").show();
+        }
+        
+        {% if agent_totals %}         
+            $("#loading").hide();
+        {% endif %}
 
         $(".chzn-select").chosen();
 
@@ -186,6 +200,7 @@ th
                 }
             });
         });
+
 
         $("#id_value_equation").change(reloadPage);
 

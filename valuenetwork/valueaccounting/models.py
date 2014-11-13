@@ -6262,7 +6262,7 @@ class EconomicEvent(models.Model):
         if agent:
             from_agt = agent.name
             if delta:
-                #todo: suppliers shd also get ART scores
+                #todo ART: bugs in this code cause dup records
                 if self.event_type.relationship == "work" or self.event_type.related_to == "agent":
                     try:
                         art, created = AgentResourceType.objects.get_or_create(

@@ -3455,8 +3455,8 @@ class EconomicResource(models.Model):
     def compute_income_shares(self, quantity, value, events, visited):
         #This method assumes that self.roll_up_value has been run,
         #and all contribution events have been valued.
-        #print "Resource:", self.id, self
-        #print "running quantity:", quantity, "running value:", value
+        print "Resource:", self.id, self
+        print "running quantity:", quantity, "running value:", value
         contributions = self.resource_contribution_events()
         for evt in contributions:
             #if evt.id == 3960:
@@ -3465,8 +3465,8 @@ class EconomicResource(models.Model):
                 vpu = evt.value / evt.quantity
                 evt.share = quantity * vpu
                 events.append(evt)
-                #print evt.id, evt, evt.share
-                #print "----Event.share:", evt.share, "= evt.value:", evt.value
+                print evt.id, evt, evt.share
+                print "----Event.share:", evt.share, "= evt.value:", evt.value
         #purchases of resources in value flow are contributions
         buys = self.purchase_events()
         for evt in buys:
@@ -3475,8 +3475,8 @@ class EconomicResource(models.Model):
                 vpu = evt.value / evt.quantity
                 evt.share = quantity * vpu
                 events.append(evt)
-                #print evt.id, evt, evt.share
-                #print "----Event.share:", evt.share, "= evt.value:", evt.value
+                print evt.id, evt, evt.share
+                print "----Event.share:", evt.share, "= evt.value:", evt.value
         processes = self.producing_processes()
         for process in processes:
             if process not in visited:
@@ -3497,8 +3497,8 @@ class EconomicResource(models.Model):
                         if ip.event_type.relationship == "work":
                             ip.share = ip.value * distro_fraction
                             events.append(ip)
-                            #print ip.id, ip, ip.share
-                            #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                            print ip.id, ip, ip.share
+                            print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
                         elif ip.event_type.relationship == "use":
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
@@ -3513,6 +3513,8 @@ class EconomicResource(models.Model):
                             #    import pdb; pdb.set_trace()
                             if ip_value:
                                 d_qty = ip.quantity * distro_fraction
+                                print "consumption:", ip.id, ip, "ip.value:", ip.value
+                                print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
                                 ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
                         elif ip.event_type.relationship == "cite":
                             #import pdb; pdb.set_trace()   
@@ -3520,7 +3522,8 @@ class EconomicResource(models.Model):
                             ip_value = ip.value * distro_fraction
                             if ip_value:
                                 d_qty = ip_value / value
-                                #print "citation:", ip, "value:", ip_value, "d_qty:", d_qty
+                                print "citation:", ip.id, ip, "ip.value:", ip.value
+                                print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
                                 ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
 
     def direct_share_components(self, components, visited, depth):
@@ -6030,7 +6033,7 @@ class Commitment(models.Model):
             #print "*** rollup up value"
             visited = set()
             value_per_unit = resource.roll_up_value(visited)
-            #print "value_per_unit:", value_per_unit
+            print "value_per_unit:", value_per_unit
             value = self.quantity * value_per_unit
             visited = set()
             #print "*** computing income shares"
@@ -6041,12 +6044,11 @@ class Commitment(models.Model):
             for s in shares:
                 s.fraction = s.share / total
             #import pdb; pdb.set_trace()
-            #todo: the total here differs from the rolled-up vpu of the resource
-            #it should be the same.
-            #total here: 274.96
-            #total roll_up: 227.47
-            #diff: 47.49
-            #print "total shares:", total
+            #todo: still a discrepancy:
+            #vpu: 220.60, shares: 219.15, diff: 1.45
+            #but that's down from diff: 220
+            #tabling for now...
+            print "total shares:", total
             return shares
             
         
@@ -6275,7 +6277,7 @@ class EconomicEvent(models.Model):
         if agent:
             from_agt = agent.name
             if delta:
-                #todo: suppliers shd also get ART scores
+                #todo ART: bugs in this code cause dup records
                 if self.event_type.relationship == "work" or self.event_type.related_to == "agent":
                     try:
                         art, created = AgentResourceType.objects.get_or_create(
@@ -7160,12 +7162,28 @@ class ValueEquationBucketRule(models.Model):
         safe_dict['quantity'] = event.quantity
         #safe_dict['rate'] = event.resource_type.rate
         safe_dict['value-per-unit'] = event.resource_type.value_per_unit
+        safe_dict['value-per-unit-of-use'] = event.resource.value_per_unit_of_use
         safe_dict['value'] = event.value
         #safe_dict['importance'] = event.importance()
-        safe_dict['reputation'] = event.from_agent.reputation
-        safe_dict['seniority'] = Decimal(event.seniority())
+        #safe_dict['reputation'] = event.from_agent.reputation
+        #safe_dict['seniority'] = Decimal(event.seniority())
         value = eval(equation, {"__builtins__":None}, safe_dict)
         return value
+
+    def equation_variables(self):
+        et = self.event_type
+        vars = ["value", "quantity"]
+        if et.relationship == "use" or et.relationship == "cite":
+            vars.append("value-per-unit-of-use")
+        else:
+            vars.append("value-per-unit")
+        return vars
+            
+    def filter_rule_deserialized(self):
+        from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
+        form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)
+        #import pdb; pdb.set_trace()
+        return form.deserialize(json=self.filter_rule)
         
     def filter_rule_display_list(self):
         json = self.filter_rule_deserialized()

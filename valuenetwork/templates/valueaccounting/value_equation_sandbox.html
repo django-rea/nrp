@@ -59,7 +59,20 @@ th
 }
 #loading {
     margin-top: 1em;
-    margin-left: 2em;
+    margin-left: 3em;
+}
+img {
+    margin-left: 1em;
+}
+#detail-section {
+    margin-top: 40px;
+}
+#form-section {
+    border: solid 1px gainsboro;
+    padding: 10px;
+}
+.order, .shipment-event {
+    width: 96%;
 }
 </style>
 {% endblock %}
@@ -72,13 +85,11 @@ th
        
         <legend>
             {% trans "Value Equation Sandbox" %}
-            <span class="note">(Your distribution will be displayed but not be saved.)</span>
+            <span class="note">(Your distribution will be displayed but will not be saved.)</span>
         </legend>
-        
-        <div id="loading" style="display: none;" >Loading...<img src="http://i.stack.imgur.com/FhHRx.gif"></img></div> 
-        
+              
         <div class="row-fluid">
-            <div class="span6">
+            <div class="span6" id="form-section">
                 <p class="hdg">Distribution:</p>
                 <form id="headerForm" action="." method="POST" >
                     {% csrf_token %}
@@ -106,8 +117,12 @@ th
 
             </div>
 
-            <div id="distributions" class="span6">
+            <div class="span6">
+
+                <div id="loading" style="display: none;" >Calculating, please be patient... very patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></div> 
+  
                 {% if agent_totals %}
+                  <div id="distributions">
                     <form 
                         id="change-ve" 
                         action="{% url edit_value_equation value_equation_id=ve.id %}" 
@@ -130,9 +145,41 @@ th
                             {% endfor %}
                         <tbody> 
                     </table>
+                  </div>
                 {% endif %}
             </div>
         </div>
+
+        {% if details %}
+            <div class="row-fluid" id="detail-section">
+                <span class="hdg">Details behind the results:*</span>
+                <table class="table table-bordered table-condensed" >
+                    <thead>
+                        <th>{% trans "Bucket" %}</th>
+                        <th>{% trans "Filter" %}</th>
+                        <th>{% trans "Contributor" %}</th>
+                        <th>{% trans "Contribution Date" %}</th>
+                        <th>{% trans "Contribution Type" %}</th>
+                        <th>{% trans "Contribution" %}</th>
+                        <th>{% trans "Distributed Amount" %}</th>
+                    </thead>
+                    <tbody> 
+                        {% for detail in details %}
+                            <tr class="{% cycle 'odd' 'even' %}">
+                                <td>{{ detail.vebr.value_equation_bucket.name }}</td>
+                                <td>{{ detail.vebr.filter_rule_display_list }}</td>
+                                <td>{{ detail.from_agent.nick }}</td>
+                                <td>{{ detail.event_date }}</td>
+                                <td>{{ detail.event_type }}</td>
+                                <td>{{ detail.quantity }} {{ detail.unit_of_quantity }}</td>
+                                <td>{{ detail.value }} {{ detail.unit_of_value }}</td>
+                            </tr>
+                        {% endfor %}
+                    <tbody> 
+                </table> 
+                * Does not include buckets with a distribution directly to one agent.
+            </div>
+        {% endif %}
        
     </div>
 {% endblock %}
@@ -149,12 +196,13 @@ th
 
     $(document).ready(function(){
     
-        
         $("#calculate").click(showLoading);
         
         function showLoading()
         {
             $("#loading").show();
+            $("#distributions").hide();
+            $("#detail-section").hide();
         }
         
         {% if agent_totals %}         

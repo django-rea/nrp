@@ -6816,6 +6816,7 @@ class ValueEquation(models.Model):
         #import pdb; pdb.set_trace()
         detail_sums = []
         claim_events = []
+        contribution_events = []
         for bucket in self.buckets.all():
             bucket_amount =  bucket.percentage * amount_to_distribute / 100
             amount_to_distribute = amount_to_distribute - bucket_amount
@@ -6828,10 +6829,11 @@ class ValueEquation(models.Model):
                     detail_sums.append(sum_a)
                 else:
                     serialized_filter = serialized_filters[bucket.id]
-                    ces = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
+                    ces, contributions = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
                     for ce in ces:
                         detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
                     claim_events.extend(ces)
+                    contribution_events.extend(contributions)
         agent_amounts = {}
         for dtl in detail_sums:
             detail = dtl.split("~")
@@ -6859,7 +6861,7 @@ class ValueEquation(models.Model):
             distribution.new_claim_events = agent_claim_events
             distribution_events.append(distribution)
         #import pdb; pdb.set_trace()
-        return distribution_events
+        return distribution_events, contribution_events
         
 class DistributionValueEquation(models.Model):
     '''
@@ -6937,10 +6939,12 @@ class ValueEquationBucket(models.Model):
         rules = self.bucket_rules.all()
         claims = []
         claim_events = []
+        contribution_events = []
         for vebr in rules:
-            vebr_claims = list(vebr.gather_claims(context_agent=context_agent, serialized_filter=serialized_filter))
+            vebr_claims, contributions = vebr.gather_claims(context_agent=context_agent, serialized_filter=serialized_filter)
             claims.extend(vebr_claims)
             vebr.claims = vebr_claims
+            contribution_events.extend(contributions)
         if claims:
             total_amount = 0
             for claim in claims:
@@ -6952,7 +6956,7 @@ class ValueEquationBucket(models.Model):
             for vebr in rules:
                 ces = vebr.create_distribution_claim_events(claims=vebr.claims.all(), portion_of_amount=portion_of_amount)
                 claim_events.extend(ces)
-        return claim_events
+        return claim_events, contribution_events
         
         
     def change_form(self):
@@ -7105,6 +7109,8 @@ class ValueEquationBucketRule(models.Model):
                 events = [e for e in events if e.process.process_type in process_types]
             if resource_types:
                 events = [e for e in events if e.resource_type in resource_types]
+        for e in events:
+            e.vebr = self
         return events
         
     def claims_from_events(self, events):
@@ -7112,14 +7118,14 @@ class ValueEquationBucketRule(models.Model):
         claims = []
         for event in events:
             claim = event.get_unsaved_contribution_claim(self)
+            #claim.creating_event = event
             claims.append(claim)
         return claims
         
     def gather_claims(self, context_agent, serialized_filter):
         #import pdb; pdb.set_trace()
         events = self.gather_events(context_agent=context_agent, serialized_filter=serialized_filter)
-        return self.claims_from_events(events)
-        #return Claim.objects.filter(value_equation_bucket_rule=self).filter(context_agent=context_agent) #todo: temp
+        return self.claims_from_events(events), events
         
     def create_distribution_claim_events(self, portion_of_amount, claims=None):
         #import pdb; pdb.set_trace()
@@ -7139,6 +7145,8 @@ class ValueEquationBucketRule(models.Model):
                 unit_of_value = claim.unit_of_value,
                 event_effect = "-",
             )
+            #claim_event.vebr = self
+            #claim_event.claiming_agent = claim.has_agent 
             claim_events.append(claim_event)
         #elif:
         return claim_events    
@@ -7287,6 +7295,16 @@ class Claim(models.Model):
             'from',
             self.claim_date.strftime('%Y-%m-%d'),
         ])
+        
+    def creating_event(self):
+        event = None
+        claim_events = self.claim_events.all()
+        for ce in claim_events:
+            if ce.event_effect == "+":
+                event = ce.event
+                break
+        return event
+        
 
 EVENT_EFFECT_CHOICES = (
     ('+', _('increase')),

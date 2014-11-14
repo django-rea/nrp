@@ -362,6 +362,25 @@ th
             $( "#help" ).text("Show Help");
         })
 
+        $(".event-type-selector").change(getDefaultEquation);
+        
+        function getDefaultEquation(event)
+        {
+            var eventTypeId = event.target.value;
+            if (eventTypeId)
+            {
+                var targetId = event.target.id;
+                var prefix = targetId.split('-')[0];
+                var equationFieldName = "#" + prefix + "-claim_creation_equation";
+                
+                var jsonUrl = encodeURI("/accounting/json-default-equation/" + eventTypeId + "/");
+                $.get(jsonUrl,
+                    function(data){
+                        var equation = data;
+                        $(equationFieldName).val(equation);
+                    });
+            }
+        }
 
     }); // end document.ready
     </script>

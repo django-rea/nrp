@@ -2995,7 +2995,12 @@ class ValueEquationBucketRuleForm(forms.ModelForm):
     event_type = forms.ModelChoiceField(
         queryset=EventType.objects.all(),
         required=True,
-        widget=forms.Select(attrs={'class': 'chzn-select input-medium'}))
+        help_text="A default equation will appear below when you select an event type.",
+        widget=forms.Select(attrs={'class': 'chzn-select input-medium event-type-selector'}))
+    claim_creation_equation = forms.CharField(
+        required=False,
+        help_text="You may use any or all of the variables shown above in a mathematical equation.<br /> Leave a space between each element, and do not change the names of the variables.", 
+        widget=forms.Textarea(attrs={'class': 'equation',}))
 
     class Meta:
         model = ValueEquationBucketRule

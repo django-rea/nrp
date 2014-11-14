@@ -6941,7 +6941,7 @@ class ValueEquationBucket(models.Model):
         ])
         
     def run_bucket_value_equation(self, amount_to_distribute, context_agent, serialized_filter):
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         rules = self.bucket_rules.all()
         claims = []
         claim_events = []
@@ -6949,7 +6949,7 @@ class ValueEquationBucket(models.Model):
         for vebr in rules:
             vebr_claims, contributions = vebr.gather_claims(context_agent=context_agent, serialized_filter=serialized_filter)
             claims.extend(vebr_claims)
-            vebr.claims = vebr_claims
+            vebr.calced_claims = vebr_claims
             contribution_events.extend(contributions)
         if claims:
             total_amount = 0
@@ -6960,7 +6960,7 @@ class ValueEquationBucket(models.Model):
                 portion_of_amount = 1
             #import pdb; pdb.set_trace()
             for vebr in rules:
-                ces = vebr.create_distribution_claim_events(claims=vebr.claims.all(), portion_of_amount=portion_of_amount)
+                ces = vebr.create_distribution_claim_events(claims=vebr.calced_claims, portion_of_amount=portion_of_amount)
                 claim_events.extend(ces)
         return claim_events, contribution_events
         

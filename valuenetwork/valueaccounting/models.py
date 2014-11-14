@@ -7124,7 +7124,10 @@ class ValueEquationBucketRule(models.Model):
         for event in events:
             claim = event.get_unsaved_contribution_claim(self)
             #claim.creating_event = event
-            fraction = event.share / event.value
+            try:
+                fraction = event.share / event.value
+            except AttributeError:
+                fraction = 1
             claim.share = claim.value * fraction
             claims.append(claim)
         return claims

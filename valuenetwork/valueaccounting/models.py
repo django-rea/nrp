@@ -7129,6 +7129,7 @@ class ValueEquationBucketRule(models.Model):
             except AttributeError:
                 fraction = 1
             claim.share = claim.value * fraction
+            claim.event = event
             claims.append(claim)
         return claims
         
@@ -7151,6 +7152,7 @@ class ValueEquationBucketRule(models.Model):
                 claim.value = claim.value - distr_amt
             elif self.claim_rule_type == "once":
                 claim.value = 0
+            claim.event.distr_amt = distr_amt.quantize(Decimal('.01'), rounding=ROUND_UP)
             claim_event = ClaimEvent(
                 claim = claim,
                 value = distr_amt,

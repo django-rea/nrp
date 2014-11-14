@@ -7139,7 +7139,7 @@ class ValueEquationBucketRule(models.Model):
             claims = self.gather_claims()
         #if self.division_rule == 'percentage':
         for claim in claims:
-            distr_amt = claim.value * portion_of_amount
+            distr_amt = claim.share * portion_of_amount
             if self.claim_rule_type == "debt-like":
                 claim.value = claim.value - distr_amt
             elif self.claim_rule_type == "once":
@@ -7150,8 +7150,6 @@ class ValueEquationBucketRule(models.Model):
                 unit_of_value = claim.unit_of_value,
                 event_effect = "-",
             )
-            #claim_event.vebr = self
-            #claim_event.claiming_agent = claim.has_agent 
             claim_events.append(claim_event)
         #elif:
         return claim_events    

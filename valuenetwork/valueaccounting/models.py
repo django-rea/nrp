@@ -7173,10 +7173,13 @@ class ValueEquationBucketRule(models.Model):
         safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ])
         safe_dict['Decimal'] = Decimal
         safe_dict['event.quantity'] = event.quantity
+        #VE todo: the new equation uses event.quantity but we got test data with plain quantity
+        safe_dict['quantity'] = event.quantity
         #safe_dict['rate'] = event.resource_type.rate
         safe_dict['event.value-per-unit'] = event.value_per_unit()
         if event.resource:
             safe_dict['resource.value-per-unit-of-use'] = event.resource.value_per_unit_of_use
+        #VE todo: the new equation will not use value, but we got test data with value
         safe_dict['value'] = event.value
         #safe_dict['importance'] = event.importance()
         #safe_dict['reputation'] = event.from_agent.reputation

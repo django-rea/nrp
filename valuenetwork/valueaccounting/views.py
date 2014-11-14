@@ -2314,6 +2314,12 @@ def json_directional_unit(request, resource_type_id, direction):
     }
     data = simplejson.dumps(defaults, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
+    
+def json_default_equation(request, event_type_id):
+    et = get_object_or_404(EventType, pk=event_type_id)
+    equation = et.default_event_value_equation()
+    data = simplejson.dumps(equation, ensure_ascii=False)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
 
 def json_directional_unit_and_rule(request, resource_type_id, direction):
     #import pdb; pdb.set_trace()

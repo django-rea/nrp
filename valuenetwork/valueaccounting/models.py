@@ -1043,6 +1043,12 @@ class EventType(models.Model):
             if verbosity > 1:
                 print "Created %s EventType" % name
 
+    def default_event_value_equation(self):
+        if self.relationship == "use" or self.relationship == "cite":
+            return "event.quantity * resource.value-per-unit-of-use"
+        else:
+            return "event.quantity * event.value-per-unit"
+            
     def creates_resources(self):
         return self.resource_effect == "+"
 
@@ -7027,8 +7033,7 @@ class ValueEquationBucketRule(models.Model):
     claim_rule_type = models.CharField(_('claim rule type'), 
         max_length=12, choices=CLAIM_RULE_CHOICES)
     claim_creation_equation = models.TextField(_('claim creation equation'), 
-        null=True, blank=True,
-        help_text=_('You may use quantity and/or value in math expressions, leaving a space between each element'))
+        null=True, blank=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='rules_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
@@ -7167,11 +7172,11 @@ class ValueEquationBucketRule(models.Model):
         safe_list = ['math',]
         safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ])
         safe_dict['Decimal'] = Decimal
-        safe_dict['quantity'] = event.quantity
+        safe_dict['event.quantity'] = event.quantity
         #safe_dict['rate'] = event.resource_type.rate
-        safe_dict['value-per-unit'] = event.value_per_unit()
+        safe_dict['event.value-per-unit'] = event.value_per_unit()
         if event.resource:
-            safe_dict['value-per-unit-of-use'] = event.resource.value_per_unit_of_use
+            safe_dict['resource.value-per-unit-of-use'] = event.resource.value_per_unit_of_use
         safe_dict['value'] = event.value
         #safe_dict['importance'] = event.importance()
         #safe_dict['reputation'] = event.from_agent.reputation
@@ -7181,12 +7186,16 @@ class ValueEquationBucketRule(models.Model):
 
     def equation_variables(self):
         et = self.event_type
-        vars = ["value", "quantity"]
+        vars = ["quantity", ]
         if et.relationship == "use" or et.relationship == "cite":
             vars.append("value-per-unit-of-use")
         else:
             vars.append("value-per-unit")
         return vars
+        
+    def default_equation(self):
+        et = self.event_type
+        return et.default_event_value_equation()
             
     def filter_rule_deserialized(self):
         from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm

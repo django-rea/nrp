@@ -6954,7 +6954,7 @@ class ValueEquationBucket(models.Model):
         if claims:
             total_amount = 0
             for claim in claims:
-                total_amount = total_amount + claim.value
+                total_amount = total_amount + claim.share
             portion_of_amount = amount_to_distribute / total_amount
             if portion_of_amount > 1:
                 portion_of_amount = 1
@@ -7140,6 +7140,8 @@ class ValueEquationBucketRule(models.Model):
         #if self.division_rule == 'percentage':
         for claim in claims:
             distr_amt = claim.share * portion_of_amount
+            if distr_amt > claim.value:
+                distr_amt = claim.value
             if self.claim_rule_type == "debt-like":
                 claim.value = claim.value - distr_amt
             elif self.claim_rule_type == "once":

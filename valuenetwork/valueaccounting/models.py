@@ -6941,7 +6941,7 @@ class ValueEquationBucket(models.Model):
         ])
         
     def run_bucket_value_equation(self, amount_to_distribute, context_agent, serialized_filter):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         rules = self.bucket_rules.all()
         claims = []
         claim_events = []

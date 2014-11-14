@@ -161,7 +161,7 @@ img {
                         <th>{% trans "Contribution Date" %}</th>
                         <th>{% trans "Contribution Type" %}</th>
                         <th>{% trans "Contribution" %}</th>
-                        <th>{% trans "Distributed Amount" %}</th>
+                        <th>{% trans "Distributed" %}</th>
                     </thead>
                     <tbody> 
                         {% for detail in details %}
@@ -172,7 +172,7 @@ img {
                                 <td>{{ detail.event_date }}</td>
                                 <td>{{ detail.event_type }}</td>
                                 <td>{{ detail.quantity }} {{ detail.unit_of_quantity }}</td>
-                                <td>{{ detail.value }} {{ detail.unit_of_value }}</td>
+                                <td>{{ detail.share }} {{ detail.unit_of_value }}</td>
                             </tr>
                         {% endfor %}
                     <tbody> 

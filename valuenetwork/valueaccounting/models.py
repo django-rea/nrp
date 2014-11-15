@@ -397,6 +397,8 @@ class EconomicAgent(models.Model):
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
+    unit_of_claim_value = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit used in claims'), related_name="agents")    
     slug = models.SlugField(_("Page name"), editable=False)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
@@ -6806,13 +6808,15 @@ PERCENTAGE_BEHAVIOR_CHOICES = (
 
 class ValueEquation(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=True)
-    context_agent = models.ForeignKey(EconomicAgent, null=True, blank=True,
+    context_agent = models.ForeignKey(EconomicAgent,
         limit_choices_to={"agent_type__is_context": True,},
         related_name="value_equations", verbose_name=_('context agent'))  
     description = models.TextField(_('description'), null=True, blank=True)
     percentage_behavior = models.CharField(_('percentage behavior'), 
         max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight',
         help_text=_('Remaining percentage uses the % of the remaining amount to be distributed.  Straight percentage uses the % of the total distribution amount.'))
+    live = models.BooleanField(_('live'), default=False,
+        help_text=_("Make this value equation available for use in real distributions."))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='value_equations_created', blank=True, null=True)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)

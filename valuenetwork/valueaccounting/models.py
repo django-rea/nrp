@@ -225,6 +225,7 @@ UNIT_TYPE_CHOICES = (
     ('volume', _('volume')),
     ('weight', _('weight')),
     ('ip', _('ip')),
+    ('percent', _('percent')),
 )
  
 class Unit(models.Model):
@@ -398,7 +399,8 @@ class EconomicAgent(models.Model):
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     unit_of_claim_value = models.ForeignKey(Unit, blank=True, null=True,
-        verbose_name=_('unit used in claims'), related_name="agents")    
+        verbose_name=_('unit used in claims'), related_name="agents",
+        help_text=_('For a context agent, the unit of all claims'))    
     slug = models.SlugField(_("Page name"), editable=False)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),

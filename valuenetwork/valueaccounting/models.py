@@ -1054,8 +1054,10 @@ class EventType(models.Model):
 
     def default_event_value_equation(self):
         if self.used_for_value_equations():
-            if self.relationship == "use" or self.relationship == "cite":
+            if self.relationship == "use":
                 return "event.quantity * resource.value-per-unit-of-use"
+            elif self.relationship == "cite":
+                return "event.quantity"
             elif self.relationship == "resource" or self.relationship == "receive":
                 return "event.value"
             elif self.relationship == "expense" or self.relationship == "cash":

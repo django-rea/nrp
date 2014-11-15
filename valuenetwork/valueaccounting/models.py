@@ -971,6 +971,11 @@ class EventTypeManager(models.Manager):
 
     def get_by_natural_key(self, name):
         return self.get(name=name)
+        
+    def used_for_value_equations(self):
+        ets = EventType.objects.all()
+        used_ids = [et.id for et in ets if et.used_for_value_equations()]
+        return EventType.objects.filter(id__in=used_ids)     
 
 
 class EventType(models.Model):
@@ -1044,10 +1049,39 @@ class EventType(models.Model):
                 print "Created %s EventType" % name
 
     def default_event_value_equation(self):
-        if self.relationship == "use" or self.relationship == "cite":
-            return "event.quantity * resource.value-per-unit-of-use"
-        else:
-            return "event.quantity * event.value-per-unit"
+        if self.used_for_value_equations():
+            if self.relationship == "use" or self.relationship == "cite":
+                return "event.quantity * resource.value-per-unit-of-use"
+            elif self.relationship == "resource" or self.relationship == "receive":
+                return "event.value"
+            elif self.relationship == "expense" or self.relationship == "cash":
+                return "event.value"
+            else:
+                return "event.quantity * event.value-per-unit"
+        return ""
+            
+    def used_for_value_equations(self):
+        bad_relationships = [
+            "consume",
+            "in",
+            "pay",
+            "receivecash",
+            "shipment",
+            "adjust",
+            "distribute",
+        ]
+        bad_names = [
+            "Work Provision",
+            "Failed quantity",
+            "Damage",
+            "Sale",
+            "Supply",
+        ]
+        if self.relationship in bad_relationships:
+            return False
+        elif self.name in bad_names:
+            return False 
+        return True
             
     def creates_resources(self):
         return self.resource_effect == "+"
@@ -7182,27 +7216,18 @@ class ValueEquationBucketRule(models.Model):
         safe_dict['event.quantity'] = event.quantity
         #VE todo: the new equation uses event.quantity but we got test data with plain quantity
         safe_dict['quantity'] = event.quantity
-        #safe_dict['rate'] = event.resource_type.rate
         safe_dict['event.value-per-unit'] = event.value_per_unit()
         if event.resource:
             safe_dict['resource.value-per-unit-of-use'] = event.resource.value_per_unit_of_use
-        #VE todo: the new equation will not use value, but we got test data with value
+        #VE todo: the new equation uses event.value, but we got test data with plain value
+        safe_dict['event.value'] = event.value
         safe_dict['value'] = event.value
         #safe_dict['importance'] = event.importance()
         #safe_dict['reputation'] = event.from_agent.reputation
         #safe_dict['seniority'] = Decimal(event.seniority())
         value = eval(equation, {"__builtins__":None}, safe_dict)
         return value
-
-    def equation_variables(self):
-        et = self.event_type
-        vars = ["quantity", ]
-        if et.relationship == "use" or et.relationship == "cite":
-            vars.append("value-per-unit-of-use")
-        else:
-            vars.append("value-per-unit")
-        return vars
-        
+       
     def default_equation(self):
         et = self.event_type
         return et.default_event_value_equation()

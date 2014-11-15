@@ -2993,7 +2993,7 @@ class ValueEquationBucketForm(forms.ModelForm):
    
 class ValueEquationBucketRuleForm(forms.ModelForm):
     event_type = forms.ModelChoiceField(
-        queryset=EventType.objects.all(),
+        queryset=EventType.objects.used_for_value_equations(),
         required=True,
         help_text="A default equation will appear below when you select an event type.",
         widget=forms.Select(attrs={'class': 'chzn-select input-medium event-type-selector'}))

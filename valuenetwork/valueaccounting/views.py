@@ -2528,10 +2528,13 @@ def create_order(request):
             order.order_type = "customer"
             order.save()
             sale = UseCase.objects.get(identifier="sale")
-            patterns = ProcessPattern.objects.usecase_patterns(sale)
+            sale_pattern = None
+            sale_patterns = ProcessPattern.objects.usecase_patterns(sale)
+            if sale_patterns:
+                sale_pattern = sale_patterns[0]
             exchange = Exchange(
                 name="Sale for customer order " + str(order.id),
-                process_pattern=patterns[0],
+                process_pattern=sale_pattern,
                 use_case=sale,
                 context_agent=order.provider, #todo: this won't work when seller is an exchange firm?
                 start_date=order.due_date,
@@ -9185,7 +9188,7 @@ def create_value_equation(request):
             ve.created_by = request.user
             ve.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
     
 @login_required
 def change_value_equation(request, value_equation_id):
@@ -9198,7 +9201,7 @@ def change_value_equation(request, value_equation_id):
             ve.changed_by = request.user
             ve.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
 
     
 @login_required
@@ -9206,7 +9209,7 @@ def delete_value_equation(request, value_equation_id):
     ve = get_object_or_404(ValueEquation, id=value_equation_id)
     ve.delete()
     return HttpResponseRedirect('/%s/'
-    % ('accounting/value-equations')) 
+        % ('accounting/value-equations')) 
     
         
 @login_required
@@ -9221,7 +9224,7 @@ def create_value_equation_bucket(request, value_equation_id):
             veb.created_by = request.user
             veb.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
     
 @login_required
 def change_value_equation_bucket(request, bucket_id):
@@ -9235,7 +9238,7 @@ def change_value_equation_bucket(request, bucket_id):
             veb.changed_by = request.user
             veb.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
      
 @login_required
 def delete_value_equation_bucket(request, bucket_id):
@@ -9243,7 +9246,7 @@ def delete_value_equation_bucket(request, bucket_id):
     ve = veb.value_equation
     veb.delete()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id))  
+        % ('accounting/edit-value-equation', ve.id))  
            
 @login_required
 def create_value_equation_bucket_rule(request, bucket_id):
@@ -9261,7 +9264,7 @@ def create_value_equation_bucket_rule(request, bucket_id):
                 vebr.filter_rule = filter_form.serialize()
                 vebr.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
     
 @login_required
 def change_value_equation_bucket_rule(request, rule_id):
@@ -9278,7 +9281,7 @@ def change_value_equation_bucket_rule(request, rule_id):
                 vebr.filter_rule = filter_form.serialize()
                 vebr.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
      
 @login_required
 def delete_value_equation_bucket_rule(request, rule_id):
@@ -9286,6 +9289,22 @@ def delete_value_equation_bucket_rule(request, rule_id):
     ve = vebr.value_equation_bucket.value_equation
     vebr.delete()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id))   
+        % ('accounting/edit-value-equation', ve.id))   
+
+@login_required
+def value_equation_live_test(request, value_equation_id):
+    #import pdb; pdb.set_trace()
+    value_equation = get_object_or_404(ValueEquation, pk=value_equation_id)
+    if not value_equation.live:
+        value_equation.live = True
+        value_equation.save()
+        return HttpResponseRedirect('/%s/'
+            % ('accounting/value-equations'))
+    else:
+        if value_equation.live:
+            value_equation.live = False
+            value_equation.save()
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/edit-value-equation', value_equation.id))
 
   

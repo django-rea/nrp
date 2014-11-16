@@ -925,6 +925,8 @@ class UnplannedCiteEventForm(forms.Form):
         queryset=EconomicResourceType.objects.all(),
         widget=forms.Select(attrs={'class': 'input-xxlarge res-ajax resourceType'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    #unit_of_quantity = forms.CharField(widget=forms.TextInput(attrs={'readonly': 'readonly' }))
 
     def __init__(self, pattern, load_resources=False, *args, **kwargs):
         #import pdb; pdb.set_trace()

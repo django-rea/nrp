@@ -32,7 +32,11 @@
 .span9 {
     margin-left: 0;
 }
-
+.explanation {
+    margin-left: 1em;
+    font-style: italic;
+    color: olive;
+}
 </style>
 {% endblock %}
 
@@ -62,6 +66,9 @@
                 {% endif %}
                 {% if flow.value_per_unit %}
                     {% trans "Value per unit" %}: {{ flow.value_per_unit }}
+                    </br><span class="explanation">
+                        {% trans "Explanation" %}: {{ flow.value_explanation }}
+                    </span>
                 {% endif %}
              </p>
           {% endfor %}

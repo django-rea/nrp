@@ -5541,6 +5541,8 @@ def process_oriented_logging(request, process_id):
 
         if "cite" in slots:
             unplanned_cite_form = UnplannedCiteEventForm(prefix='unplannedcite', pattern=pattern)
+            if context_agent.unit_of_claim_value:
+                cite_unit = context_agent.unit_of_claim_value
             if logger:
                 add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)   
         if "consume" in slots:

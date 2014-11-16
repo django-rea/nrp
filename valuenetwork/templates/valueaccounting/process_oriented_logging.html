@@ -627,6 +627,7 @@ hr {
                                 <form class="cite-form validateMe" enctype="multipart/form-data" id="addUnplannedCiteForm" action="{% url add_unplanned_cite_event process_id=process.id %}" method="POST" >
 	                              {% csrf_token %}
 	                              {{ unplanned_cite_form|as_bootstrap }}
+                                  <span id="cite-unit">{{ context_agent.cite_unit }}</span>
 	                              <div class="modal-footer">
 		                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 		                            <button id="select-resource" class="btn btn-primary">{% trans "Add citation" %}</button>

@@ -3292,6 +3292,7 @@ class EconomicResource(models.Model):
         import pdb; pdb.set_trace()
         visited = set()
         value = self.roll_up_value(visited)
+        return value
     
     def roll_up_value(self, visited):
         #import pdb; pdb.set_trace()
@@ -3344,7 +3345,11 @@ class EconomicResource(models.Model):
                             pe_value += ip.value
                         #Citations valued later, after all other inputs added up
                         elif ip.event_type.relationship == "cite":
-                            citations.append(ip)
+                            if ip.resource_type.unit_of_use:
+                                if ip.resource_type.unit_of_use.unit_type == "percent":
+                                    citations.append(ip)
+                            else:
+                                ip.value = ip.quantity
                             if ip.resource:
                                 ip.resource.roll_up_value(visited)
             production_value += pe_value
@@ -6082,7 +6087,7 @@ class Commitment(models.Model):
             #print "*** rollup up value"
             visited = set()
             value_per_unit = resource.roll_up_value(visited)
-            #print "value_per_unit:", value_per_unit
+            print "value_per_unit:", value_per_unit
             value = self.quantity * value_per_unit
             visited = set()
             #print "*** computing income shares"
@@ -6097,7 +6102,7 @@ class Commitment(models.Model):
             #vpu: 220.60, shares: 219.15, diff: 1.45
             #but that's down from diff: 220
             #tabling for now...
-            #print "total shares:", total
+            print "total shares:", total
             return shares
             
         

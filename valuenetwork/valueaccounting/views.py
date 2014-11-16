@@ -6162,7 +6162,7 @@ def plan_work_order_for_resource(request, resource_id):
 def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     flows = resource.incoming_value_flows()
-    value_per_unit = resource.roll_up_value([])
+    value_per_unit = resource.roll_up_value(set())
     totals = {}
     member_hours = []
     for flow in flows:

@@ -6161,8 +6161,11 @@ def plan_work_order_for_resource(request, resource_id):
     
 def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
-    flows = resource.incoming_value_flows()
-    value_per_unit = resource.roll_up_value(set())
+    #flows = resource.incoming_value_flows()
+    flows = []
+    depth = 0
+    visited = set()
+    value_per_unit = resource.roll_up_value(flows, depth, visited)
     totals = {}
     member_hours = []
     for flow in flows:

@@ -33,6 +33,10 @@
 .btn-primary, .btn-info {
     margin-left: 1em;
 }
+.live {
+    color: firebrick;
+    font-weight: normal;
+}
 
 </style>
 
@@ -56,6 +60,7 @@
             {% for ve in value_equations %}
 
                 <div class="ve"><a href="{{ ve.get_absolute_url }}">{{ ve.name }}</a>
+                    <span class="live">({% if ve.live %}{% trans "Live" %}{% else %}{% trans "Test" %}{% endif%})</span>
                     {% if user = ve.created_by or user.is_superuser %}
                         <form
                             style="display: inline;"  

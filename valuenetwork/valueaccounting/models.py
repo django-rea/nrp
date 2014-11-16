@@ -7107,6 +7107,7 @@ class ValueEquationBucketRule(models.Model):
         if 'resource_types' in json.keys():
             resource_types = json['resource_types']
         events = []
+        filter = self.filter_rule_display_list()
         if self.value_equation_bucket.filter_method == 'dates':
             from valuenetwork.valueaccounting.forms import DateRangeForm
             form = DateRangeForm()
@@ -7115,8 +7116,18 @@ class ValueEquationBucketRule(models.Model):
             end_date = None
             if "start_date" in bucket_filter:
                 start_date = bucket_filter["start_date"]
+                filter = "".join([
+                    filter,
+                    ", Start date: ",
+                    start_date.strftime('%Y-%m-%d')
+                    ])
             if "end_date" in bucket_filter:
                 end_date = bucket_filter["end_date"]
+                filter = "".join([
+                    filter,
+                    ", End date: ",
+                    end_date.strftime('%Y-%m-%d')
+                    ])
             events = EconomicEvent.objects.filter(context_agent=context_agent, event_type=self.event_type)
             if start_date and end_date:
                 events = events.filter(event_date__range=(start_date, end_date))
@@ -7133,6 +7144,19 @@ class ValueEquationBucketRule(models.Model):
             form = OrderMultiSelectForm(context_agent=context_agent)
             bucket_filter = form.deserialize(serialized_filter)
             orders = bucket_filter["orders"]
+            if orders:
+                order_string = ", ".join([str(o.id) for o in orders])
+                if filter:
+                    filter = "".join([
+                        filter,
+                        ", Orders: ",
+                        order_string,
+                        ])
+                else:        
+                    filter = "".join([
+                        "Orders: ",
+                        order_string,
+                        ])
             events = []
             for order in orders:
                 for order_item in order.order_items():
@@ -7146,6 +7170,19 @@ class ValueEquationBucketRule(models.Model):
             form = ShipmentMultiSelectForm(context_agent=context_agent)
             bucket_filter = form.deserialize(serialized_filter)
             shipment_events = bucket_filter["shipments"]
+            if shipment_events:
+                ship_string = ", ".join([str(s.id) for s in shipment_events])
+                if filter:
+                    filter = "".join([
+                        filter,
+                        ", Shipments: ",
+                        ship_string,
+                        ])
+                else:
+                    filter = "".join([
+                        "Shipments: ",
+                        ship_string,
+                        ])
             #lots = [e.resource for e in shipment_events]
             events = []
             for ship in shipment_events:
@@ -7158,6 +7195,7 @@ class ValueEquationBucketRule(models.Model):
                 events = [e for e in events if e.resource_type in resource_types]
         for e in events:
             e.vebr = self
+            e.vebr.filter = filter
         return events
         
     def claims_from_events(self, events):
@@ -7195,6 +7233,42 @@ class ValueEquationBucketRule(models.Model):
             elif self.claim_rule_type == "once":
                 claim.value = 0
             claim.event.distr_amt = distr_amt.quantize(Decimal('.01'), rounding=ROUND_UP)
+            unit_of_value = ""
+            if claim.event.unit_of_value:
+                unit_of_value = claim.event.unit_of_value.abbrev
+            excuse = ""
+            if portion_of_amount < 1:
+                percent = (portion_of_amount * 100).quantize(Decimal('.01'), rounding=ROUND_UP)
+                excuse = "".join([
+                    ", but the distribution amount covered only ",
+                    str(percent),
+                    "% of the claims for this bucket",
+                    ])
+            share = claim.share.quantize(Decimal('.01'), rounding=ROUND_UP)
+            sel = ""
+            reason = ""
+            obj = ""
+            if "Orders" in claim.event.vebr.filter:
+                obj = "order"
+                sel = " to the selected orders"
+            if "Shipments" in claim.event.vebr.filter:
+                obj = "shipment"
+                sel = " to the selected shipments"
+            if share < claim.value:
+                reason = "".join([
+                    " The reason the value added is less than the contribution value is that the contribution added value to more than one ",
+                    obj,
+                    ".",
+                    ])
+            claim.event.explanation = "".join([
+                "This contribution added ", str(share), unit_of_value, 
+                " of value",
+                sel,
+                excuse,
+                ".",
+                reason,
+                ])
+                
             claim_event = ClaimEvent(
                 claim = claim,
                 value = distr_amt,
@@ -7255,10 +7329,16 @@ class ValueEquationBucketRule(models.Model):
         if 'resource_types' in json.keys():
             rts = json['resource_types']
         filter = ""
-        for pt in pts:
-            filter += pt.name + ", "
-        for rt in rts:
-            filter += rt.name + ","
+        #for pt in pts:
+        #    filter += pt.name + ", "
+        #for rt in rts:
+        #    filter += rt.name + ","
+        if pts:
+            filter = ", ".join([pt.name for pt in pts])
+        if pts and rts:
+            filter = ", ".join(filter, [pt.name for pt in pts])
+        elif rts:
+            filter = ", ".join([rt.name for rt in rts])
         return filter
         
     def test_results(self):

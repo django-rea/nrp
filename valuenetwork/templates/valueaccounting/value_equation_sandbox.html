@@ -161,18 +161,22 @@ img {
                         <th>{% trans "Contribution Date" %}</th>
                         <th>{% trans "Contribution Type" %}</th>
                         <th>{% trans "Contribution" %}</th>
+                        <th>{% trans "Claim equation" %}</th>
                         <th>{% trans "Distributed" %}</th>
+                        <th>{% trans "Explanation" %}</th>
                     </thead>
                     <tbody> 
                         {% for detail in details %}
                             <tr class="{% cycle 'odd' 'even' %}">
                                 <td>{{ detail.vebr.value_equation_bucket.name }}</td>
-                                <td>{{ detail.vebr.filter_rule_display_list }}</td>
+                                <td>{{ detail.vebr.filter }}</td>
                                 <td>{{ detail.from_agent.nick }}</td>
                                 <td>{{ detail.event_date }}</td>
                                 <td>{{ detail.event_type }}</td>
                                 <td>{{ detail.quantity }} {{ detail.unit_of_quantity }}</td>
+                                 <td>{{ detail.vebr.claim_creation_equation }}</td>
                                 <td>{{ detail.distr_amt }}</td>
+                                <td>{{ detail.explanation }}</td>
                             </tr>
                         {% endfor %}
                     <tbody> 

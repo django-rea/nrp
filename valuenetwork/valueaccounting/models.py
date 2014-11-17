@@ -1856,7 +1856,7 @@ class EconomicResourceType(models.Model):
     def directional_unit(self, direction):
         answer = self.unit
         if self.unit_of_use:
-            if direction == "use":
+            if direction == "use" or direction == "cite":
                 answer = self.unit_of_use
         return answer
 
@@ -3925,6 +3925,13 @@ class EconomicResource(models.Model):
         unit = self.resource_type.directional_unit("use")
         qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
+        
+    def cite_event_form(self, data=None):        
+        from valuenetwork.valueaccounting.forms import InputEventForm
+        prefix=self.form_prefix()
+        unit = self.resource_type.directional_unit("cite")
+        qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+        return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
             
     def input_event_form(self, data=None):
         from valuenetwork.valueaccounting.forms import InputEventForm
@@ -5438,12 +5445,15 @@ class Commitment(models.Model):
         ordering = ('due_date',)
 
     def __unicode__(self):
-        quantity_string = str(self.quantity)
-        resource_name = ""
         abbrev = ""
+        if self.event_type.relationship == "cite":
+            quantity_string = ""
+        else:
+            quantity_string = str(self.quantity)
+            if self.unit_of_quantity:
+                abbrev = self.unit_of_quantity.abbrev
+        resource_name = ""
         process_name = ""
-        if self.unit_of_quantity:
-           abbrev = self.unit_of_quantity.abbrev
         if self.resource_type:
             resource_name = self.resource_type.name
         if self.process:

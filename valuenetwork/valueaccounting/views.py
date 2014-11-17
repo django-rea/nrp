@@ -1242,7 +1242,7 @@ def json_resource_type_resources_with_locations(request, resource_type_id):
         resources.append({"fields": fields})
     data = simplejson.dumps(resources, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
-
+    
 def json_resource(request, resource_id):
     #import pdb; pdb.set_trace()
     r = get_object_or_404(EconomicResource, pk=resource_id)
@@ -2304,6 +2304,16 @@ def json_resource_type_unit(request, resource_type_id):
 
 def json_agent(request, agent_id):
     data = serializers.serialize("json", EconomicAgent.objects.filter(id=agent_id))
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+
+def json_resource_type_citation_unit(request, resource_type_id):
+    #import pdb; pdb.set_trace()
+    ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    direction = "use"
+    defaults = {
+        "unit": ert.directional_unit(direction).name,
+    }
+    data = simplejson.dumps(defaults, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
 
 def json_directional_unit(request, resource_type_id, direction):
@@ -5601,32 +5611,35 @@ def add_unplanned_cite_event(request, process_id):
             pattern=pattern,
             load_resources=True)
         if form.is_valid():
-            agent = get_agent(request)
             data = form.cleaned_data
-            agent = get_agent(request)
-            rt = data["resource_type"]
-            r_id = data["resource"]
-            resource = EconomicResource.objects.get(id=r_id)
-            #todo: rethink for citations
-            default_agent = process.default_agent()
-            from_agent = resource.owner() or default_agent
-            event_type = pattern.event_type_for_resource_type("cite", rt)
-            event = EconomicEvent(
-                event_type=event_type,
-                resource_type = rt,
-                resource = resource,
-                from_agent = from_agent,
-                to_agent = default_agent,
-                process = process,
-                #project = process.project,
-                context_agent = process.context_agent,
-                event_date = datetime.date.today(),
-                quantity=Decimal("1"),
-                unit_of_quantity = rt.unit,
-                created_by = request.user,
-                changed_by = request.user,
-            )
-            event.save()
+            qty = data["quantity"]
+            if qty:
+                agent = get_agent(request)
+                #import pdb; pdb.set_trace()
+                agent = get_agent(request)
+                rt = data["resource_type"]
+                r_id = data["resource"]
+                resource = EconomicResource.objects.get(id=r_id)
+                #todo: rethink for citations
+                default_agent = process.default_agent()
+                from_agent = resource.owner() or default_agent
+                event_type = pattern.event_type_for_resource_type("cite", rt)
+                event = EconomicEvent(
+                    event_type=event_type,
+                    resource_type = rt,
+                    resource = resource,
+                    from_agent = from_agent,
+                    to_agent = default_agent,
+                    process = process,
+                    #project = process.project,
+                    context_agent = process.context_agent,
+                    event_date = datetime.date.today(),
+                    quantity=qty,
+                    unit_of_quantity = rt.directional_unit("cite"),
+                    created_by = request.user,
+                    changed_by = request.user,
+                )
+                event.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
         
@@ -5909,6 +5922,36 @@ def add_work_for_exchange(request, exchange_id):
 
 @login_required
 def add_use_event(request, commitment_id, resource_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    prefix = resource.form_prefix()
+    unit = ct.resource_type.directional_unit("use")
+    qty_help = " ".join(["unit:", unit.abbrev])
+    form = InputEventForm(qty_help=qty_help, prefix=prefix, data=request.POST)
+    if form.is_valid():
+        agent = get_agent(request)
+        event = form.save(commit=False)
+        event.commitment = ct
+        event.event_type = ct.event_type
+        event.from_agent = agent
+        event.resource_type = ct.resource_type
+        event.resource = resource
+        event.process = ct.process
+        #event.project = ct.project
+        default_agent = ct.process.default_agent()
+        event.from_agent = default_agent
+        event.to_agent = default_agent
+        event.context_agent = ct.context_agent
+        event.unit_of_quantity = unit
+        event.created_by = request.user
+        event.changed_by = request.user
+        event.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', ct.process.id))
+        
+@login_required
+def add_citation_event(request, commitment_id, resource_id):
+    #import pdb; pdb.set_trace()
     ct = get_object_or_404(Commitment, pk=commitment_id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     prefix = resource.form_prefix()

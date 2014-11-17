@@ -6420,15 +6420,14 @@ class EconomicEvent(models.Model):
         if self.resource:
             return self.resource.value_per_unit
         if self.from_agent:
-            try:
-                arts = AgentResourceType.objects.filter(
-                    agent=self.from_agent,
-                    resource_type=self.resource_type,
-                    event_type=self.event_type)
-                if arts:
-                    return arts[0].value_per_unit
-            except AgentResourceType.DoesNotExist:
-                pass
+            arts = AgentResourceType.objects.filter(
+                agent=self.from_agent,
+                resource_type=self.resource_type,
+                event_type=self.event_type)
+            if arts:
+                art = arts[0]
+                if art.value_per_unit:
+                    return art.value_per_unit
         return self.resource_type.value_per_unit
        
     def value_explanation(self):
@@ -7036,9 +7035,9 @@ class ValueEquationBucket(models.Model):
             if total_amount > 0:
                 portion_of_amount = amount_to_distribute / total_amount
             else:
-                portion_of_amount = 0
+                portion_of_amount = Decimal("0.0")
             if portion_of_amount > 1:
-                portion_of_amount = 1
+                portion_of_amount = Decimal("1.0")
             #import pdb; pdb.set_trace()
             for vebr in rules:
                 ces = vebr.create_distribution_claim_events(claims=vebr.calced_claims, portion_of_amount=portion_of_amount)

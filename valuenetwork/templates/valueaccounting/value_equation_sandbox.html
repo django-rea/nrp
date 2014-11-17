@@ -57,6 +57,24 @@ th
     margin-left: 1em;
     margin-bottom: 8px;
 }
+#loading {
+    margin-top: 1em;
+    margin-left: 3em;
+}
+img {
+    margin-left: 1em;
+}
+#detail-section {
+    margin-top: 40px;
+}
+#form-section {
+    border: solid 1px gainsboro;
+    padding: 10px;
+    background-color: #F5FFE0; /*#F2F7E5;*/
+}
+.order, .shipment-event {
+    width: 96%;
+}
 </style>
 {% endblock %}
 
@@ -68,10 +86,11 @@ th
        
         <legend>
             {% trans "Value Equation Sandbox" %}
-            <span class="note">(Your distribution will be displayed but not be saved.)</span>
+            <span class="note">(Your distribution will be displayed but will not be saved.)</span>
         </legend>
+              
         <div class="row-fluid">
-            <div class="span6">
+            <div class="span6" id="form-section">
                 <p class="hdg">Distribution:</p>
                 <form id="headerForm" action="." method="POST" >
                     {% csrf_token %}
@@ -87,20 +106,24 @@ th
                             {% if bucket.filter_method %}<div class="filt">
                                 {% if bucket.filter_method == 'dates' %}
                                     <p>Enter start and end dates (both optional)</p>
-                                    {{ bucket.filter_entry_form.start_date }} through {{ bucket.filter_entry_form.end_date }}
+                                    {{ bucket.form.start_date }} through {{ bucket.form.end_date }}
                                 {% else %}
-                                    {{ bucket.filter_entry_form|as_bootstrap }} 
+                                    {{ bucket.form|as_bootstrap }} 
                                 {% endif %}
                             </div>{% endif %}
                         {% endfor %}
                     </div>
-                    <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Calculate Distribution' %}" />
+                    <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Calculate Distribution' %}" />
                 </form>
 
             </div>
 
-            <div id="distributions" class="span6">
+            <div class="span6">
+
+                <div id="loading" style="display: none;" >Calculating, please be patient... very patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></div> 
+  
                 {% if agent_totals %}
+                  <div id="distributions">
                     <form 
                         id="change-ve" 
                         action="{% url edit_value_equation value_equation_id=ve.id %}" 
@@ -123,9 +146,45 @@ th
                             {% endfor %}
                         <tbody> 
                     </table>
+                  </div>
                 {% endif %}
             </div>
         </div>
+
+        {% if details %}
+            <div class="row-fluid" id="detail-section">
+                <span class="hdg">Details behind the results:*</span>
+                <table class="table table-bordered table-condensed" >
+                    <thead>
+                        <th>{% trans "Bucket" %}</th>
+                        <th>{% trans "Filter" %}</th>
+                        <th>{% trans "Contributor" %}</th>
+                        <th>{% trans "Contribution Date" %}</th>
+                        <th>{% trans "Contribution Type" %}</th>
+                        <th>{% trans "Contribution" %}</th>
+                        <th>{% trans "Claim equation" %}</th>
+                        <th>{% trans "Distributed" %}</th>
+                        <th>{% trans "Explanation" %}</th>
+                    </thead>
+                    <tbody> 
+                        {% for detail in details %}
+                            <tr class="{% cycle 'odd' 'even' %}">
+                                <td>{{ detail.vebr.value_equation_bucket.name }}</td>
+                                <td>{{ detail.vebr.filter }}</td>
+                                <td>{{ detail.from_agent.nick }}</td>
+                                <td>{{ detail.event_date }}</td>
+                                <td>{{ detail.event_type }}</td>
+                                <td>{{ detail.quantity }} {{ detail.unit_of_quantity }}</td>
+                                 <td>{{ detail.vebr.claim_creation_equation }}</td>
+                                <td>{{ detail.distr_amt }}</td>
+                                <td>{{ detail.explanation }}</td>
+                            </tr>
+                        {% endfor %}
+                    <tbody> 
+                </table> 
+                * Does not include buckets with a distribution directly to one agent.
+            </div>
+        {% endif %}
        
     </div>
 {% endblock %}
@@ -141,6 +200,19 @@ th
     <script type="text/javascript">
 
     $(document).ready(function(){
+    
+        $("#calculate").click(showLoading);
+        
+        function showLoading()
+        {
+            $("#loading").show();
+            $("#distributions").hide();
+            $("#detail-section").hide();
+        }
+        
+        {% if agent_totals %}         
+            $("#loading").hide();
+        {% endif %}
 
         $(".chzn-select").chosen();
 
@@ -162,6 +234,14 @@ th
             "Please enter a number less than 1000000 with no more than 2 decimal places"
         );
 
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
+        });
+
         $.validator.addClassRules("amount_to_distribute", { required: true, quantity: true, });
         $.validator.addClassRules("date-entry", { date: true });       
 
@@ -174,6 +254,7 @@ th
             });
         });
 
+
         $("#id_value_equation").change(reloadPage);
 
         function reloadPage()
@@ -183,7 +264,7 @@ th
             window.location.replace(url);
         }
 
-/*
+/* reloading the page instead of ajax call for now - too difficult to build the input fields
         $("#id_value_equation").change(getBuckets); 
 
         function getBuckets()

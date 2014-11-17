@@ -2314,6 +2314,12 @@ def json_directional_unit(request, resource_type_id, direction):
     }
     data = simplejson.dumps(defaults, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
+    
+def json_default_equation(request, event_type_id):
+    et = get_object_or_404(EventType, pk=event_type_id)
+    equation = et.default_event_value_equation()
+    data = simplejson.dumps(equation, ensure_ascii=False)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
 
 def json_directional_unit_and_rule(request, resource_type_id, direction):
     #import pdb; pdb.set_trace()
@@ -2522,10 +2528,13 @@ def create_order(request):
             order.order_type = "customer"
             order.save()
             sale = UseCase.objects.get(identifier="sale")
-            patterns = ProcessPattern.objects.usecase_patterns(sale)
+            sale_pattern = None
+            sale_patterns = ProcessPattern.objects.usecase_patterns(sale)
+            if sale_patterns:
+                sale_pattern = sale_patterns[0]
             exchange = Exchange(
                 name="Sale for customer order " + str(order.id),
-                process_pattern=patterns[0],
+                process_pattern=sale_pattern,
                 use_case=sale,
                 context_agent=order.provider, #todo: this won't work when seller is an exchange firm?
                 start_date=order.due_date,
@@ -5532,6 +5541,8 @@ def process_oriented_logging(request, process_id):
 
         if "cite" in slots:
             unplanned_cite_form = UnplannedCiteEventForm(prefix='unplannedcite', pattern=pattern)
+            if context_agent.unit_of_claim_value:
+                cite_unit = context_agent.unit_of_claim_value
             if logger:
                 add_citation_form = ProcessCitationForm(prefix='citation', pattern=pattern)   
         if "consume" in slots:
@@ -6152,8 +6163,11 @@ def plan_work_order_for_resource(request, resource_id):
     
 def incoming_value_flows(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
-    flows = resource.incoming_value_flows()
-    value_per_unit = resource.roll_up_value([])
+    #flows = resource.incoming_value_flows()
+    flows = []
+    depth = 0
+    visited = set()
+    value_per_unit = resource.roll_up_value(flows, depth, visited)
     totals = {}
     member_hours = []
     for flow in flows:
@@ -9064,21 +9078,37 @@ def value_equation_sandbox(request, value_equation_id=None):
     header_form = ValueEquationSandboxForm(initial=init, data=request.POST or None)
     buckets = []
     agent_totals = []
+    details = []
     if ves:
         if not ve:
             ve = ves[0]
         buckets = ve.buckets.all()
     if request.method == "POST":
+        #import pdb; pdb.set_trace()
         if header_form.is_valid():
             data = header_form.cleaned_data
             value_equation = data["value_equation"]
             amount = data["amount_to_distribute"]
-            agent_totals = ve.run_value_equation(amount_to_distribute=Decimal(amount))
+            serialized_filters = {}
+            for bucket in buckets:
+                if bucket.filter_method:
+                    bucket_form = bucket.filter_entry_form(data=request.POST or None)
+                    if bucket_form.is_valid():
+                        ser_string = bucket_data = bucket_form.serialize()
+                        serialized_filters[bucket.id] = ser_string
+                        bucket.form = bucket_form
+            agent_totals, details = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
+
+    else:
+        for bucket in buckets:
+            if bucket.filter_method:
+                bucket.form = bucket.filter_entry_form()
 
     return render_to_response("valueaccounting/value_equation_sandbox.html", {
         "header_form": header_form,
         "buckets": buckets,
         "agent_totals": agent_totals,
+        "details": details,
         "ve": ve,
     }, context_instance=RequestContext(request))
 
@@ -9128,6 +9158,21 @@ def edit_value_equation(request, value_equation_id=None):
         value_equation_form = ValueEquationForm()
     agent = get_agent(request)
     test_results = []
+    rpt_heading = ""
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        rule_id = int(request.POST['test'])
+        vebr = ValueEquationBucketRule.objects.get(id=rule_id)
+        tr = vebr.test_results()
+        nbr = len(tr)
+        if nbr > 50:
+            nbr = 50
+        count = 0
+        while count < nbr:
+            tr[count].claim_amount = vebr.compute_claim_value(tr[count])
+            test_results.append(tr[count])
+            count+=1
+        rpt_heading = "Bucket " + str(vebr.value_equation_bucket.sequence) + " " + vebr.event_type.name
    
     return render_to_response("valueaccounting/edit_value_equation.html", {
         "value_equation": value_equation,
@@ -9135,6 +9180,7 @@ def edit_value_equation(request, value_equation_id=None):
         "value_equation_form": value_equation_form,
         "value_equation_bucket_form": value_equation_bucket_form,
         "test_results": test_results,
+        "rpt_heading": rpt_heading,
     }, context_instance=RequestContext(request))
     
 @login_required
@@ -9147,7 +9193,7 @@ def create_value_equation(request):
             ve.created_by = request.user
             ve.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
     
 @login_required
 def change_value_equation(request, value_equation_id):
@@ -9160,7 +9206,7 @@ def change_value_equation(request, value_equation_id):
             ve.changed_by = request.user
             ve.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
 
     
 @login_required
@@ -9168,7 +9214,7 @@ def delete_value_equation(request, value_equation_id):
     ve = get_object_or_404(ValueEquation, id=value_equation_id)
     ve.delete()
     return HttpResponseRedirect('/%s/'
-    % ('accounting/value-equations')) 
+        % ('accounting/value-equations')) 
     
         
 @login_required
@@ -9183,7 +9229,7 @@ def create_value_equation_bucket(request, value_equation_id):
             veb.created_by = request.user
             veb.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
     
 @login_required
 def change_value_equation_bucket(request, bucket_id):
@@ -9197,7 +9243,7 @@ def change_value_equation_bucket(request, bucket_id):
             veb.changed_by = request.user
             veb.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
      
 @login_required
 def delete_value_equation_bucket(request, bucket_id):
@@ -9205,7 +9251,7 @@ def delete_value_equation_bucket(request, bucket_id):
     ve = veb.value_equation
     veb.delete()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id))  
+        % ('accounting/edit-value-equation', ve.id))  
            
 @login_required
 def create_value_equation_bucket_rule(request, bucket_id):
@@ -9223,7 +9269,7 @@ def create_value_equation_bucket_rule(request, bucket_id):
                 vebr.filter_rule = filter_form.serialize()
                 vebr.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
     
 @login_required
 def change_value_equation_bucket_rule(request, rule_id):
@@ -9240,7 +9286,7 @@ def change_value_equation_bucket_rule(request, rule_id):
                 vebr.filter_rule = filter_form.serialize()
                 vebr.save()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id)) 
+        % ('accounting/edit-value-equation', ve.id)) 
      
 @login_required
 def delete_value_equation_bucket_rule(request, rule_id):
@@ -9248,13 +9294,22 @@ def delete_value_equation_bucket_rule(request, rule_id):
     ve = vebr.value_equation_bucket.value_equation
     vebr.delete()
     return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id))   
+        % ('accounting/edit-value-equation', ve.id))   
 
-         
 @login_required
-def test_value_equation_bucket_rule(request, rule_id):
-    vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
-    ve = vebr.value_equation_bucket.value_equation
-    vebr.delete()
-    return HttpResponseRedirect('/%s/%s/'
-    % ('accounting/edit-value-equation', ve.id))   
+def value_equation_live_test(request, value_equation_id):
+    #import pdb; pdb.set_trace()
+    value_equation = get_object_or_404(ValueEquation, pk=value_equation_id)
+    if not value_equation.live:
+        value_equation.live = True
+        value_equation.save()
+        return HttpResponseRedirect('/%s/'
+            % ('accounting/value-equations'))
+    else:
+        if value_equation.live:
+            value_equation.live = False
+            value_equation.save()
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/edit-value-equation', value_equation.id))
+
+  

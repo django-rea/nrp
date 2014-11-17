@@ -925,6 +925,8 @@ class UnplannedCiteEventForm(forms.Form):
         queryset=EconomicResourceType.objects.all(),
         widget=forms.Select(attrs={'class': 'input-xxlarge res-ajax resourceType'}))
     resource = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xlarge'})) 
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    #unit_of_quantity = forms.CharField(widget=forms.TextInput(attrs={'readonly': 'readonly' }))
 
     def __init__(self, pattern, load_resources=False, *args, **kwargs):
         #import pdb; pdb.set_trace()
@@ -2993,9 +2995,14 @@ class ValueEquationBucketForm(forms.ModelForm):
    
 class ValueEquationBucketRuleForm(forms.ModelForm):
     event_type = forms.ModelChoiceField(
-        queryset=EventType.objects.all(),
+        queryset=EventType.objects.used_for_value_equations(),
         required=True,
-        widget=forms.Select(attrs={'class': 'chzn-select input-medium'}))
+        help_text="A default equation will appear below when you select an event type.",
+        widget=forms.Select(attrs={'class': 'chzn-select input-medium event-type-selector'}))
+    claim_creation_equation = forms.CharField(
+        required=False,
+        help_text="You may use any or all of the variables shown above in a mathematical equation.<br /> Leave a space between each element, and do not change the names of the variables.", 
+        widget=forms.Textarea(attrs={'class': 'equation',}))
 
     class Meta:
         model = ValueEquationBucketRule
@@ -3100,9 +3107,13 @@ class DateRangeForm(forms.Form):
         end_date = data.get("end_date")
         if end_date:
             json["end_date"] = end_date.strftime('%Y-%m-%d')
-        return json
+        from django.utils import simplejson
+        string = simplejson.dumps(json)            
+        return string
         
     def deserialize(self, json):
+        from django.utils import simplejson
+        json = simplejson.loads(json)
         dict = {}
         dict["method"] = json["method"]
         start_date = json.get("start_date")
@@ -3132,8 +3143,13 @@ class OrderMultiSelectForm(forms.Form):
         orders = data.get("orders")
         if orders:
             json["orders"] = [order.id for order in orders]
+        from django.utils import simplejson
+        string = simplejson.dumps(json)            
+        return string
         
     def deserialize(self, json):
+        from django.utils import simplejson
+        json = simplejson.loads(json)
         dict = {}
         dict["method"] = json["method"]
         orders = json.get("orders")
@@ -3155,7 +3171,7 @@ class ShipmentMultiSelectForm(forms.Form):
         #empty_label=None,
         widget=forms.SelectMultiple(attrs={'class': 'shipment-event chzn-select input-xxlarge'}))
         
-    def __init__(self, context_agent, event_type, pattern, *args, **kwargs):
+    def __init__(self, context_agent, *args, **kwargs):
         super(ShipmentMultiSelectForm, self).__init__(*args, **kwargs)
         ship = EventType.objects.get(label="ships")
         self.fields["shipments"].queryset = EconomicEvent.objects.filter(context_agent=context_agent, event_type=ship)
@@ -3167,8 +3183,13 @@ class ShipmentMultiSelectForm(forms.Form):
         shipments = data.get("shipments")
         if shipments:
             json["shipments"] = [s.id for s in shipments]
+        from django.utils import simplejson
+        string = simplejson.dumps(json)            
+        return string
         
     def deserialize(self, json):
+        from django.utils import simplejson
+        json = simplejson.loads(json)
         dict = {}
         dict["method"] = json["method"]
         shipments = json.get("shipments")

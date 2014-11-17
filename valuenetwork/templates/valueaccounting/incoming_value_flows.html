@@ -32,7 +32,11 @@
 .span9 {
     margin-left: 0;
 }
-
+.explanation {
+    margin-left: 1em;
+    font-style: italic;
+    color: olive;
+}
 </style>
 {% endblock %}
 
@@ -52,9 +56,10 @@
 
           {% for flow in flows %}
             <p style="margin-left: {{ flow.depth }}em;" class="line">
+                {{ flow.depth }} 
                 <span class="type {{ flow.flow_class }}" >{{ flow.flow_type }}:</span>
                 {% if flow.flow_type == "Process" %}
-                    <a href="{{ flow.get_absolute_url }}">{{ flow.flow_description }}</a>
+                    <a href="{{ flow.get_absolute_url }}">{{ flow.flow_description }}</a> {% trans "Production qty" %}: {{ flow.production_quantity }}
                 {% elif flow.flow_type == "Time Contribution" %}
                     <span class="work-item">{{ flow.flow_description }}</span>
                 {% else %}
@@ -62,6 +67,11 @@
                 {% endif %}
                 {% if flow.value_per_unit %}
                     {% trans "Value per unit" %}: {{ flow.value_per_unit }}
+                    {% if flow.value_explanation %}
+                        </br><span class="explanation">
+                            {% trans "Explanation" %}: {{ flow.value_explanation }}
+                        </span>
+                    {% endif %}
                 {% endif %}
              </p>
           {% endfor %}

@@ -3275,7 +3275,7 @@ class EconomicResource(models.Model):
         return self.__unicode__()
         
     def value_explanation(self):
-        return "Value per unit is composed of the value of the following input events:"
+        return "Value per unit is composed of the value of the inputs on the next level:"
         
     def unit_of_quantity(self):
         return self.resource_type.unit
@@ -3301,7 +3301,7 @@ class EconomicResource(models.Model):
         #Value_per_unit will be the result of this method.
         depth += 1
         self.depth = depth
-        self.explanation = "Value per unit consists of all the input values on the next level"
+        #self.explanation = "Value per unit consists of all the input values on the next level"
         path.append(self)
         value_per_unit = Decimal("0.0")
         #Values of all of the inputs will be added to this list.
@@ -3314,18 +3314,20 @@ class EconomicResource(models.Model):
             evt_vpu = evt.value / evt.quantity
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
+            depth += 1
             evt.depth = depth
-            evt.explanation = evt.value_flow_explanation()
             path.append(evt)
+            depth -= 1
         #Purchase contributions use event.value.
         buys = self.purchase_events()
         for evt in buys:
             evt_vpu = evt.value / evt.quantity
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
+            depth += 1
             evt.depth = depth
-            evt.explanation = evt.value_flow_explanation()
             path.append(evt)
+            depth -= 1
         citations = []
         production_value = Decimal("0.0")
         processes = self.producing_processes()
@@ -3347,7 +3349,6 @@ class EconomicResource(models.Model):
                             ip.save()
                             pe_value += ip.value
                             ip.depth = depth
-                            ip.explanation = ip.value_flow_explanation()
                             path.append(ip)
                         #Use contributions use resource value_per_unit_of_use.
                         elif ip.event_type.relationship == "use":
@@ -3357,27 +3358,24 @@ class EconomicResource(models.Model):
                                 pe_value += ip.value
                                 ip.resource.roll_up_value(path, depth, visited)
                                 ip.depth = depth
-                                ip.explanation = ip.value_flow_explanation()
                                 path.append(ip)
                         #Consume contributions use resource rolled up value_per_unit
                         elif ip.event_type.relationship == "consume":
+                            ip.depth = depth
+                            path.append(ip)
                             value_per_unit = ip.resource.roll_up_value(path, depth, visited)
                             ip.value = ip.quantity * value_per_unit
                             ip.save()
                             pe_value += ip.value
-                            ip.depth = depth
-                            ip.explanation = ip.value_flow_explanation()
-                            path.append(ip)
                         #Citations valued later, after all other inputs added up
                         elif ip.event_type.relationship == "cite":
+                            ip.depth = depth
+                            path.append(ip)
                             if ip.resource_type.unit_of_use:
                                 if ip.resource_type.unit_of_use.unit_type == "percent":
                                     citations.append(ip)
                             else:
                                 ip.value = ip.quantity
-                                ip.depth = depth
-                                ip.explanation = ip.value_flow_explanation()
-                                path.append(ip)
                             if ip.resource:
                                 ip.resource.roll_up_value(path, depth, visited)
             production_value += pe_value
@@ -3387,9 +3385,6 @@ class EconomicResource(models.Model):
                 percentage = c.quantity / 100
                 c.value = production_value * percentage
                 c.save()
-                c.depth = depth
-                c.explanation = c.value_flow_explanation(percent=True)
-                path.append(c)
             for c in citations:
                 production_value += c.value
         if production_value and production_qty:
@@ -6491,123 +6486,21 @@ class EconomicEvent(models.Model):
                     "* Event quantity:", str(self.quantity)
                     ])
         elif self.event_type.relationship == "cite":
-            vpu = self.resource.value_per_unit_of_use
-            value = vpu * self.quantity
-            if p_qty:
-                value = value / p_qty
-                return " ".join([
-                    "Value per parent unit:", str(value),
-                    "= Resource value per unit of use:", str(vpu),
-                    "* Event quantity:", str(self.quantity),
-                    "/ Process production qty:", str(p_qty),
-                    ])
-            else:
-                return " ".join([
-                    "Value:", str(value),
-                    "= Resource value per unit of use:", str(vpu),
-                    "* Event quantity:", str(self.quantity)
-                    ])
-        elif self.event_type.relationship == "resource":
-            vpu = self.resource.value_per_unit
-            value = vpu * self.quantity
-            return " ".join([
-                "Value:", str(value),
-                "= Resource value per unit:", str(vpu),
-                "* Event quantity:", str(self.quantity)
-                ])
-        elif self.event_type.relationship == "receive":
-            vpu = self.resource.value_per_unit
-            value = vpu * self.quantity
-            return " ".join([
-                "Value:", str(value),
-                "= Resource value per unit:", str(vpu),
-                "* Event quantity:", str(self.quantity)
-                ])
-        elif self.event_type.relationship == "out":
-            return "Value per unit is composed of the value of the following input events:"
-        return ""
-        
-    def value_flow_explanation(self, percent=False):
-        if self.process:
-            p_qty = self.process.production_quantity()
-        if self.event_type.relationship == "work":
-            vpu = self.resource_type.value_per_unit
-            value = vpu * self.quantity
-            if p_qty:
-                value = value / p_qty
-                return " ".join([
-                    "Value per parent unit:", str(value),
-                    "= Resource Type value per unit:", str(vpu),
-                    "* Event quantity:", str(self.quantity),
-                    "/ Process production qty:", str(p_qty),
-                    ])
-            else:
-                return " ".join([
-                    "Value:", str(value),
-                    "= Resource Type value per unit:", str(vpu),
-                    "* Event quantity:", str(self.quantity)
-                    ])
-        elif self.event_type.relationship == "use":
-            vpu = self.resource.value_per_unit_of_use
-            value = vpu * self.quantity
-            if p_qty:
-                value = value / p_qty
-                return " ".join([
-                    "Value per parent unit:", str(value),
-                    "= Resource value per unit of use:", str(vpu),
-                    "* Event quantity:", str(self.quantity),
-                    "/ Process production qty:", str(p_qty),
-                    ])
-            else:
-                return " ".join([
-                    "Value:", str(value),
-                    "= Resource value per unit of use:", str(vpu),
-                    "* Event quantity:", str(self.quantity)
-                    ])
-        elif self.event_type.relationship == "consume":
-            vpu = self.resource.value_per_unit
-            value = vpu * self.quantity
-            if p_qty:
-                value = value / p_qty
-                return " ".join([
-                    "Value per parent unit:", str(value),
-                    "= Resource value per unit:", str(vpu),
-                    "* Event quantity:", str(self.quantity),
-                    "/ Process production qty:", str(p_qty),
-                    ])
-            else:
-                return " ".join([
-                    "Value:", str(value),
-                    "= Resource value per unit:", str(vpu),
-                    "* Event quantity:", str(self.quantity)
-                    ])
-        elif self.event_type.relationship == "cite":
-            value = self.value
+            percent = False
+            if self.resource_type.unit_of_use:
+                if self.resource_type.unit_of_use.unit_type == "percent":
+                    percent = True
             if percent:
                 return "".join([
-                    "Value: ", str(value),
+                    "Value: ", str(self.value),
                     " = ", str(self.quantity),
                     "% of sum of the values of the other inputs to the process",
                     ])
             else:
                 return " ".join([
-                    "Value:", str(value),
+                    "Value:", str(self.value),
                     "= Event quantity:", str(self.quantity),
                     ])
-            #if p_qty:
-            #    value = value / p_qty
-            #    return " ".join([
-            #        "Value per parent unit:", str(value),
-            #        "= Resource value per unit of use:", str(vpu),
-            #        "* Event quantity:", str(self.quantity),
-            #        "/ Process production qty:", str(p_qty),
-            #        ])
-            #else:
-            #    return " ".join([
-            #        "Value:", str(value),
-            #        "= Resource value per unit of use:", str(vpu),
-            #        "* Event quantity:", str(self.quantity)
-            #        ])
         elif self.event_type.relationship == "resource":
             vpu = self.resource.value_per_unit
             value = vpu * self.quantity
@@ -6625,9 +6518,9 @@ class EconomicEvent(models.Model):
                 "* Event quantity:", str(self.quantity)
                 ])
         elif self.event_type.relationship == "out":
-            return "Value per unit is composed of the value of the following input events:"
+            return "Value per unit is composed of the value of the inputs on the next level:"
         return ""
-
+        
     def claims(self):
         claim_events = self.claim_events.all()
         claims = [ce.claim for ce in claim_events]

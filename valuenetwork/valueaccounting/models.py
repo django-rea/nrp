@@ -2527,6 +2527,8 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('sale', 'Time Contribution')
     UseCaseEventType.create('distribution', 'Distribution')
     UseCaseEventType.create('distribution', 'Time Contribution')
+    UseCaseEventType.create('val_equation', 'Time Contribution')
+    UseCaseEventType.create('val_equation', 'Resource Production')
 
     print "created use case event type associations"
 

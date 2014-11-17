@@ -6103,6 +6103,7 @@ class Commitment(models.Model):
         events = self.fulfilling_events()
         resources = []
         resource = None
+        shares = []
         for event in events:
             if event.resource:
                 if event.resource not in resources:

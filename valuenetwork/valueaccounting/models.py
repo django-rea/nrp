@@ -7033,7 +7033,10 @@ class ValueEquationBucket(models.Model):
             total_amount = 0
             for claim in claims:
                 total_amount = total_amount + claim.share
-            portion_of_amount = amount_to_distribute / total_amount
+            if total_amount > 0:
+                portion_of_amount = amount_to_distribute / total_amount
+            else:
+                portion_of_amount = 0
             if portion_of_amount > 1:
                 portion_of_amount = 1
             #import pdb; pdb.set_trace()

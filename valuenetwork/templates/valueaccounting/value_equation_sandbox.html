@@ -103,7 +103,8 @@ img {
                         {% for bucket in buckets %}
                             <div class="bucket"><span class="name">{{ bucket.name }}</span><span class="pct"> {{ bucket.percentage }}</span>%</div>
                             {% if bucket.distribution_agent %}<div class="to"> Distribute to <span class="dist-to">{{ bucket.distribution_agent.name }}</span></div> {% endif %}
-                            {% if bucket.filter_method %}<div class="filt">
+                            {% if bucket.filter_method %}
+                              <div class="filt">
                                 {% if bucket.filter_method == 'dates' %}
                                     <p>Enter start and end dates (both optional)</p>
                                     <div id="div_id_4-start_date" class="control-group  " style="display:inline;" >
@@ -119,11 +120,12 @@ img {
                                             {{ bucket.form.end_date }}
                                         </div>
                                     </div>
-                                    {% else %}
-                                        {{ bucket.form|as_bootstrap }} 
-                                    {% endif %}
+                                {% else %}
+                                    {{ bucket.form|as_bootstrap }} 
+                                {% endif %}
+                              </div>
                             {% endif %}
-                            </div>
+                           
                         {% endfor %}
                     </div>
                     <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Calculate Distribution' %}" />

@@ -7295,11 +7295,7 @@ class ValueEquationBucketRule(models.Model):
                 obj = "shipment"
                 sel = " to the selected shipments"
             if share < claim.value:
-                reason = "".join([
-                    " The reason the value added is less than the contribution value is that the contribution added value to more than one ",
-                    obj,
-                    ".",
-                    ])
+                reason = " The reason the value added is less than the contribution value is that the contribution added value to more than one deliverable."
             claim.event.explanation = "".join([
                 "This contribution added ", str(share), unit_of_value, 
                 " of value",

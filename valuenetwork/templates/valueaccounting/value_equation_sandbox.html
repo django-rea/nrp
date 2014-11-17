@@ -107,14 +107,14 @@ img {
                               <div class="filt">
                                 {% if bucket.filter_method == 'dates' %}
                                     <p>Enter start and end dates (both optional)</p>
-                                    <div id="div_id_4-start_date" class="control-group  " style="display:inline;" >
+                                    <div id="div-start_date" class="control-group  " style="display:inline;" >
 
                                         <div class="controls" style="display:inline;">
                                             {{ bucket.form.start_date }} 
                                         </div>
                                     </div>                                    
                                     through
-                                    <div id="div_id_4-end_date" class="control-group  " style="display:inline;">
+                                    <div id="div-end_date" class="control-group  " style="display:inline;">
 
                                         <div class="controls" style="display:inline;">
                                             {{ bucket.form.end_date }}
@@ -125,7 +125,6 @@ img {
                                 {% endif %}
                               </div>
                             {% endif %}
-                           
                         {% endfor %}
                     </div>
                     <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Calculate Distribution' %}" />
@@ -258,7 +257,7 @@ img {
         });
 
         $.validator.addClassRules("amount_to_distribute", { required: true, quantity: true, });
-        $.validator.addClassRules("date-entry", { date: true, required: false });       
+        //$.validator.addClassRules("date-entry", { date: true, required: false });       
 
         $('.validateMe').each( function(){
             var form = $(this);

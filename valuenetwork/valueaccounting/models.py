@@ -6136,7 +6136,7 @@ class Commitment(models.Model):
             #but that's down from diff: 220
             #tabling for now...
             #print "total shares:", total
-            return shares
+        return shares
             
         
 

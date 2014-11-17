@@ -7331,6 +7331,7 @@ class ValueEquationBucketRule(models.Model):
         return s.join(eq)
          
     def compute_claim_value(self, event):
+        #import pdb; pdb.set_trace()
         equation = self.normalize_equation()
         safe_list = ['math',]
         safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ])

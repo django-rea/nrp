@@ -53,8 +53,8 @@ h3 {
     color: firebrick;
 }
 textarea {
-    width: 500px;
-    height: 80px;
+    width: 550px;
+    height: 60px;
 }
 .hdg {
     font-weight: bold;
@@ -69,6 +69,16 @@ tr.even td
 th
 {
     background-color:#C8D6E8;
+}
+#create-ve, #change-ve {
+    width: 600px;
+}
+.cvebr {
+    width: 610px;
+    /*height: 550px;*/
+}
+.modal-body {
+    max-height: 460px;
 }
 
 </style>
@@ -235,12 +245,12 @@ th
                                   <div style="display: inline;" >
                                     <a href="#create-vebr{{ bucket.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">{% trans "Add a Bucket Rule" %}</a>
                                   </div>
-                                  <div class="modal hide fade create-vebr" id="create-vebr{{ bucket.id }}" tabindex="-1" role="dialog" aria-labelledby="create-vebr-label{{ bucket.id }}" aria-hidden="true">
+                                  <div class="modal hide fade cvebr" id="create-vebr{{ bucket.id }}" tabindex="-1" role="dialog" aria-labelledby="create-vebr-label{{ bucket.id }}" aria-hidden="true">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                         <h3 id="create-vebr-label{{ bucket.id }}">{% trans "Create Bucket Rule for " %}{{ bucket.name }} </h3>
                                     </div>
-                                    <div class="modal-body">
+                                    <div class="modal-body cvebr-body">
                                         <form action="{% url create_value_equation_bucket_rule bucket_id=bucket.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ bucket.rule_form|as_bootstrap }}
@@ -277,7 +287,7 @@ th
                                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this value equation bucket rule" >Delete</button>
                                             </form>
 
-                                            <div class="modal hide fade" id="change-vebr{{ rule.id }}" tabindex="-1" role="dialog" aria-labelledby="change-vebr-label" aria-hidden="true">
+                                            <div class="modal hide fade cvebr" id="change-vebr{{ rule.id }}" tabindex="-1" role="dialog" aria-labelledby="change-vebr-label" aria-hidden="true">
                                                 <div class="modal-header">
                                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                                     <h3 id="change-vebr-label">{% trans "Change Rule for " %} {{ bucket.name }} - {{ rule.event_type.name }} </h3>

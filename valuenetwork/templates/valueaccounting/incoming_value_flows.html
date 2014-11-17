@@ -67,11 +67,11 @@
                 {% endif %}
                 {% if flow.value_per_unit %}
                     {% trans "Value per unit" %}: {{ flow.value_per_unit }}
-                    {% if flow.value_explanation %}
-                        </br><span class="explanation">
-                            {% trans "Explanation" %}: {{ flow.value_explanation }}
-                        </span>
-                    {% endif %}
+                {% endif %}
+                {% if flow.value_explanation %}
+                    </br><span class="explanation">
+                        {% trans "Explanation" %}: {{ flow.value_explanation }}
+                    </span>
                 {% endif %}
              </p>
           {% endfor %}

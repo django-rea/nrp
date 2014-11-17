@@ -2570,6 +2570,8 @@ class OrderManager(models.Manager):
         for order in orders:
             if order.has_open_processes():
                 open_orders.append(order)
+            if not order.unordered_processes():
+                open_orders.append(order)
         return open_orders
         
     def closed_work_orders(self):
@@ -6505,7 +6507,7 @@ class EconomicEvent(models.Model):
                     percent = True
             if percent:
                 return "".join([
-                    "Value: ", str(self.value),
+                    "Value per parent unit: ", str(self.value),
                     " = ", str(self.quantity),
                     "% of sum of the values of the other inputs to the process",
                     ])

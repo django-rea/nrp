@@ -5563,13 +5563,23 @@ def process_oriented_logging(request, process_id):
             unplanned_use_form = UnplannedInputEventForm(prefix='unplannedusable', pattern=pattern)
             if logger:
                 add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
-       
+    
     cited_ids = [c.resource.id for c in process.citations()]
-    output_resource_ids = [e.resource.id for e in process.production_events()]
     #import pdb; pdb.set_trace()
+    citation_requirements = process.citation_requirements()
+    for cr in citation_requirements:
+        cr.resources = []
+        for evt in cr.fulfilling_events():
+            resource = evt.resource
+            resource.event = evt
+            cr.resources.append(resource)
+    
+    output_resource_ids = [e.resource.id for e in process.production_events()]
+    
     return render_to_response("valueaccounting/process_oriented_logging.html", {
         "process": process,
         "cited_ids": cited_ids,
+        "citation_requirements": citation_requirements,
         "output_resource_ids": output_resource_ids,
         "agent": agent,
         "user": user,

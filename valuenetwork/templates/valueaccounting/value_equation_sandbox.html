@@ -92,7 +92,7 @@ img {
         <div class="row-fluid">
             <div class="span6" id="form-section">
                 <p class="hdg">Distribution:</p>
-                <form id="headerForm" action="." method="POST" >
+                <form id="headerForm" class="validateMe" action="." method="POST" >
                     {% csrf_token %}
                     <p>Value Equation</p>
                     <p>{{ header_form.value_equation }}</p>
@@ -106,11 +106,24 @@ img {
                             {% if bucket.filter_method %}<div class="filt">
                                 {% if bucket.filter_method == 'dates' %}
                                     <p>Enter start and end dates (both optional)</p>
-                                    {{ bucket.form.start_date }} through {{ bucket.form.end_date }}
-                                {% else %}
-                                    {{ bucket.form|as_bootstrap }} 
-                                {% endif %}
-                            </div>{% endif %}
+                                    <div id="div_id_4-start_date" class="control-group  " style="display:inline;" >
+
+                                        <div class="controls" style="display:inline;">
+                                            {{ bucket.form.start_date }} 
+                                        </div>
+                                    </div>                                    
+                                    through
+                                    <div id="div_id_4-end_date" class="control-group  " style="display:inline;">
+
+                                        <div class="controls" style="display:inline;">
+                                            {{ bucket.form.end_date }}
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                        {{ bucket.form|as_bootstrap }} 
+                                    {% endif %}
+                            {% endif %}
+                            </div>
                         {% endfor %}
                     </div>
                     <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Calculate Distribution' %}" />
@@ -215,9 +228,9 @@ img {
         {% endif %}
 
         $(".chzn-select").chosen();
-
+        
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
-
+        
         $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
             $( "#help" ).text("Hide Help");
@@ -243,7 +256,7 @@ img {
         });
 
         $.validator.addClassRules("amount_to_distribute", { required: true, quantity: true, });
-        $.validator.addClassRules("date-entry", { date: true });       
+        $.validator.addClassRules("date-entry", { date: true, required: false });       
 
         $('.validateMe').each( function(){
             var form = $(this);

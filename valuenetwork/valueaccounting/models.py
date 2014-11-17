@@ -6119,7 +6119,7 @@ class Commitment(models.Model):
             path = []
             depth = 0
             value_per_unit = resource.roll_up_value(path, depth, visited)
-            print "value_per_unit:", value_per_unit
+            #print "value_per_unit:", value_per_unit
             value = self.quantity * value_per_unit
             visited = set()
             #print "*** computing income shares"
@@ -6134,7 +6134,7 @@ class Commitment(models.Model):
             #vpu: 220.60, shares: 219.15, diff: 1.45
             #but that's down from diff: 220
             #tabling for now...
-            print "total shares:", total
+            #print "total shares:", total
             return shares
             
         

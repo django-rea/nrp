@@ -6143,8 +6143,9 @@ class Commitment(models.Model):
             #import pdb; pdb.set_trace()
             resource.compute_income_shares(self.quantity, value, shares, visited)
             total = sum(s.share for s in shares)
-            for s in shares:
-                s.fraction = s.share / total
+            if total:
+                for s in shares:
+                    s.fraction = s.share / total
             #import pdb; pdb.set_trace()
             #todo: still a discrepancy:
             #vpu: 220.60, shares: 219.15, diff: 1.45

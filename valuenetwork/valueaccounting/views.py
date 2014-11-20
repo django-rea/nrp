@@ -6165,7 +6165,7 @@ def resource(request, resource_id):
                 event.process = process
                 event.resource_type = resource.resource_type 
                 event.quantity = resource.quantity 
-                event.unit_of_quantity = resource.unit_of_quantity 
+                event.unit_of_quantity = resource.unit_of_quantity()
                 event.resource = resource
                 event.to_agent = event.context_agent
                 event.from_agent = event.context_agent

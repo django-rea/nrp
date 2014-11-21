@@ -1006,7 +1006,7 @@ class EventType(models.Model):
         return (self.name,)
 
     def __unicode__(self):
-        return self.label
+        return self.name
 
     def save(self, *args, **kwargs):
         unique_slugify(self, self.name)
@@ -2833,6 +2833,13 @@ class Order(models.Model):
         events = []
         for process in processes:
             events.extend(process.events.all())
+        return events
+        
+    def all_input_events(self):
+        processes = self.unordered_processes()
+        events = []
+        for process in processes:
+            events.extend(process.events.exclude(event_type__relationship="out"))
         return events
         
     def context_agents(self):
@@ -5610,6 +5617,9 @@ class Commitment(models.Model):
         return ChangeWorkCommitmentForm(instance=self, prefix=prefix)
     
     def can_add_to_resource(self):
+        #todo: figure out how to allow for workflow stream resources
+        #easy way: edit previous change event
+        #hard way: a new change event (or is that really a change event?)
         if self.resource_type.substitutable:
             if not self.stage:
                 return True
@@ -6122,6 +6132,7 @@ class Commitment(models.Model):
             if event.resource:
                 if event.resource not in resources:
                     resources.append(event.resource)
+        #todo: handle order items with no materialized resource
         if resources:
             if len(resources) == 1:
                 resource = resources[0]

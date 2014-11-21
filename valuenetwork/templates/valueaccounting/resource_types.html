@@ -19,8 +19,8 @@
     font-style: italic;
 }
 
-container li {
-	padding: 3px;
+.container li {
+    margin-top: 10px;
 }
 /*ul {
     list-style-type: none;
@@ -125,8 +125,9 @@ container li {
                             </div>
                         {% endif %}
 		                <div class="facets" >{{ resource_type.facet_list }}</div>
-
-		                <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
+                        {% if resource_type.description %}
+                            <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>
+                        {% endif %}
 
 			        </li>
 

@@ -4576,29 +4576,41 @@ def log_shipment(request, commitment_id, resource_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     if request.method == "POST":
-        agent = get_agent(request)
-        #todo: rethink for citations
-        default_agent = ct.process.default_agent()
-        from_agent = resource.owner() or default_agent
+        et_ship = EventType.objects.get(name="Shipment")
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
             event_date = datetime.date.today(),
-            event_type = ct.event_type,
-            from_agent = from_agent,
-            to_agent = default_agent,
+            event_type = et_ship,
+            from_agent = ct.context_agent,
+            to_agent = ct.exchange.customer,
             resource_type = ct.resource_type,
-            process = ct.process,
-            #project = ct.project,
+            exchange = ct.exchange,
             context_agent = ct.context_agent,
-            quantity = Decimal("1"),
+            quantity = ct.quantity,
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,
             changed_by = request.user,
         )
         event.save()
+        resource.quantity = resource.quantity - event.quantity
+        if resource.quantity < 0:
+            resource.quantity = 0
+        resource.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', ct.process.id))
+        % ('accounting/exchange', ct.exchange.id))
+        
+def delete_shipment_event(request, event_id):
+    if request.method == "POST":
+        event = get_object_or_404(EconomicEvent, pk=event_id)
+        exchange = event.exchange
+        if event.resource:
+            resource = event.resource
+            resource.quantity = resource.quantity + event.quantity
+            resource.save()
+        event.delete()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
 
 @login_required
 def add_distribution(request, exchange_id):

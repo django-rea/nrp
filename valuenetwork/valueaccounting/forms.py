@@ -2647,14 +2647,18 @@ class SaleForm(forms.ModelForm):
     customer = forms.ModelChoiceField(required=False,
         queryset=EconomicAgent.objects.none(),
         label="Customer",
-        widget=forms.Select(attrs={'class': 'chzn-select'})) 
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    order = forms.ModelChoiceField(
+        required=False,
+        queryset=Order.objects.customer_orders(),
+        widget=forms.Select(attrs={'class': 'resource chzn-select input-xxlarge',}))
     notes = forms.CharField(required=False, 
         label=_("Comments"),
         widget=forms.Textarea(attrs={'class': 'item-description',}))
     
     class Meta:
         model = Exchange
-        fields = ('process_pattern', 'context_agent', 'customer', 'start_date', 'notes')
+        fields = ('process_pattern', 'context_agent', 'customer', 'order', 'start_date', 'notes')
         
     def __init__(self, context_agent=None, *args, **kwargs):
         #import pdb; pdb.set_trace()

@@ -5731,7 +5731,16 @@ class Commitment(models.Model):
         
     def fulfilling_events(self):
         return self.fulfillment_events.all()
-
+        
+    def fulfilling_shipment_events(self):
+        events = self.fulfillment_events.all()
+        answer = []
+        ship = EventType.objects.get(name="Shipment")
+        for event in events:
+            if event.event_type == ship:
+                answer.append(event)
+        return answer
+        
     def todo_event(self):
         events = self.fulfilling_events()
         if events:

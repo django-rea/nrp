@@ -271,9 +271,9 @@ container li {
 	{{ block.super }}
     <script type="text/javascript">
 
-	$(document).ready(function(){
+    $(document).ready(function(){
 
-	    function html_unescape(text) {
+        function html_unescape(text) {
             // Unescape a string that was escaped using django.utils.html.escape.
             text = text.replace(/&lt;/g, '<');
             text = text.replace(/&gt;/g, '>');
@@ -286,11 +286,11 @@ container li {
         var nameArray = html_unescape("{{ resource_names }}").split("~");
 
 
-		$('#resource-types').addClass('active');
+        $('#resource-types').addClass('active');
 
-		$("select").chosen();
+        $("select").chosen();
 
-		$( "#help" ).toggle( function(){
+        $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
             $( "#help" ).text("Hide Help");
         }, function() {
@@ -298,23 +298,23 @@ container li {
             $( "#help" ).text("Show Help");
         })
 
-		var selectedVals = "{{ selected_values }}";
+        var selectedVals = "{{ selected_values }}";
 
-		$('.category').each(function()
-		{
-			var val = $(this)[0];
+        $('.category').each(function()
+        {
+            var val = $(this)[0];
             if (selectedVals.indexOf(val.name) > -1)
-			{
-				$(this).prop('checked', true);
-			}
-		});
+            {
+                $(this).prop('checked', true);
+            }
+        });
 
         jQuery.validator.setDefaults({ 
             success: function(label) {
-		        label
-			        .text('').addClass('valid')
-			        .closest('.control-group').addClass('success');
-	        }
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
         });
 
         $(".existing-name").change(setupUniqueTest);
@@ -330,6 +330,14 @@ container li {
                 $(fieldId).addClass("unique-name");
             }
         }
+        
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
 
         jQuery.validator.addMethod("unique", function(value, element, param) {
             return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
@@ -338,64 +346,54 @@ container li {
         $.validator.addClassRules("url", { url: true });
         $.validator.addClassRules("unique-name", { required: true, unique: nameArray });
 
-		$('.category').click(function() 
-		{
-			var checkedVals = [];
-			var checkedBox = $(this)[0];
-			var allBox = $('#all')[0];
-			if (checkedBox == allBox)
-			{
-				$('.category').each(function()
-				{
-		            $(this).prop('checked', false);
-				});
-				$('#all').prop('checked', true);
-				checkedVals.push('all');
-			}
-			else
-			{
-				$('#all').prop('checked', false);
-				$('.category').each(function()
-				{
-					var val = $(this)[0];
-		            if (val.checked)
-					{
-						checkedVals.push(val.value);
-					}
-				});
-			}
-			$('#categories').prop('value', checkedVals);
-		});
+        $('.category').click(function() 
+        {
+            var checkedVals = [];
+            var checkedBox = $(this)[0];
+            var allBox = $('#all')[0];
+            if (checkedBox == allBox)
+            {
+                $('.category').each(function()
+                {
+                    $(this).prop('checked', false);
+                });
+                $('#all').prop('checked', true);
+                checkedVals.push('all');
+            }
+            else
+            {
+                $('#all').prop('checked', false);
+                $('.category').each(function()
+                {
+                    var val = $(this)[0];
+                    if (val.checked)
+                    {
+                        checkedVals.push(val.value);
+                    }
+                });
+            }
+            $('#categories').prop('value', checkedVals);
+        });
 
-		$('#resourceForm').validate(
-		{
-			rules: {
-				url: {
-					url: true
-				},
-				quantity: {
-				    required: true,
-					number: true
-				}
-			},
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			}
+        $('#resourceForm').validate(
+        {
+            rules: {
+                url: {
+                    url: true
+                },
+                "value_per_unit": {
+                    required: true,
+                    number: true,
+                    quantity: true
+                }
+            },
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            }
 
-		});
+        });
 
-		$('.resource-change-form').each( function(){
-			var form = $(this);
-			form.validate({
-				highlight: function(label) {
-					$(label).closest('.control-group').addClass('error');
-				}
-
-			});
-		});
-
-
-	}); // end document.ready
+    }); // end document.ready
 
     </script>
 {% endblock %}

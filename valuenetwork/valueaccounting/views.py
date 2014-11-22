@@ -806,7 +806,7 @@ def resource_type(request, resource_type_id):
     create_role_formset = None
     agent = get_agent(request)
     if agent:
-        names = EconomicResourceType.objects.values_list('name', flat=True)
+        names = EconomicResourceType.objects.values_list('name', flat=True).exclude(id=resource_type_id)
         resource_names = '~'.join(names)
         init = {"unit_of_quantity": resource_type.unit,}
         create_form = CreateEconomicResourceForm(

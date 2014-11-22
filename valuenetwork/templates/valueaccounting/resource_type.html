@@ -345,6 +345,10 @@ container li {
 
         $.validator.addClassRules("url", { url: true });
         $.validator.addClassRules("unique-name", { required: true, unique: nameArray });
+        $.validator.addClassRules("quantity", { 
+            required: true, 
+            quantity: true,
+        });
 
         $('.category').click(function() 
         {
@@ -381,9 +385,8 @@ container li {
                 url: {
                     url: true
                 },
-                "value_per_unit": {
+                quantity: {
                     required: true,
-                    number: true,
                     quantity: true
                 }
             },
@@ -391,6 +394,16 @@ container li {
                 $(label).closest('.control-group').addClass('error');
             }
 
+        });
+        
+        $('.resource-change-form').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+
+            });
         });
 
     }); // end document.ready

@@ -2124,6 +2124,12 @@ class EconomicResourceTypeForm(forms.ModelForm):
 class EconomicResourceTypeChangeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'existing-name input-xlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    value_per_unit = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    value_per_unit_of_use = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     unit = forms.ModelChoiceField(
         queryset=Unit.objects.all())
     

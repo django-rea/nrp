@@ -91,7 +91,9 @@ li {
 .bold {
     font-weight: bold;
 }
-
+.commitment {
+    margin-left: 1em;
+}
 </style>
 
 {% endblock %}
@@ -479,7 +481,7 @@ li {
             <div class="hdg">Ordered Items</div>
             {% for item in exchange.shipment_commitments %}
                 <div class="commitment" >
-                    <span class="detail-line bold" >{{ item.shorter_label }}</span>
+                    <span class="bold" >{{ item.shorter_label }}</span>
                     {% if item.description %}
                         <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
                     {% endif %}
@@ -488,24 +490,11 @@ li {
               
                 {% if item.onhand %}
                     {% for resource in item.onhand %}
+                      {% if resource.quantity > 0 %}
                         <div class="onhand" >
                             <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >
                                 {{ resource.identifier }} </a> {{ resource.quantity }} {{ resource.unit_of_quantity }}
-                            {% if resource.id in shipped_ids %}
-                                <span style="color: green; font-weight: bold;">{% trans "Shipped" %}</span> 
-                                {% if logger %}
-                                    <form
-                                        style="display: inline;" 
-                                        class="delete-shipment-form" 
-                                        id="deleteForm{{ event.id }}" 
-                                        action="{% url delete_shipment_event commitment_id=item.id resource_id=resource.id %}" 
-                                        method="POST" >
-                                        {% csrf_token %}
-                                        <input type="hidden" id="next" name="next" value="process" />
-                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete shipment (order item will remain)" >X</button>
-                                    </form>
-                                {% endif %}
-                            {% else %}
+                            {% if resource.id not in shipped_ids %}
                                 {% if logger %}
                                     <form
                                         style="display: inline;" 
@@ -520,27 +509,24 @@ li {
                                 {% endif %}
                             {% endif %}
                         </div>
+                      {% endif %}
                     {% endfor %}
                 {% endif %}
 
-                {% for event in item.fulfilling_events %}
+                {% for event in item.fulfilling_shipment_events %}
                     <div class="event" >
-                        <span class="event-label">{% trans "Shipped" %}:</span> <span class="event" >
+                        <span class="event-label">{% trans "Shipped" %}:</span> <span>
                             {{ event.event_type.label }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
                         </span>
                         {% if logger %}
-                            {% comment %}
-                            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
-                            {% endcomment %}
                             <form
                                 style="display: inline;" 
                                 class="delete-form" 
                                 id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
+                                action="{% url delete_shipment_event event_id=event.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
-                                <input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete production event" >X</button>
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete shipment (order item will remain)" >X</button>
                             </form>
                         {% endif %}
                         </br>

@@ -228,6 +228,14 @@
         jQuery.validator.addMethod("unique", function(value, element, param) {
             return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
         }, "Name is not unique.");
+        
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
 
 
 		$('#resourceCreateForm').validate(
@@ -240,9 +248,12 @@
 				url: {
 					url: true
 				},
-				rate: {
-					number: true
-				}
+				"value_per_unit": {
+					quantity: true
+				},
+				"value_per_unit_of_use": {
+                    quantity: true
+                }
 			},
 			highlight: function(label) {
 				$(label).closest('.control-group').addClass('error');

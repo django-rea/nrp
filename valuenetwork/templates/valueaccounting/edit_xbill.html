@@ -445,7 +445,9 @@ ul {
                                                     <p>{{ iform.resource_type }} 
 							                        <a href="#createResourceForm{{ xbill_consumable_prefix }}" role="button" class="add-another" data-toggle="modal">
 								                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>
-							                        </a> </p>                   
+							                        </a> </p> 
+							                        <p class="modal-line">{% trans "at stage" %} </p>
+                                                    <p>{{ iform.stage }} </p>
 					                                <p class="modal-line">{% trans "Quantity" %} </p>
                                                     <p>{{ iform.quantity }} </p>
                                                     <p class="modal-line">{% trans "Unit of Quantity" %} </p>
@@ -499,7 +501,7 @@ ul {
                                     </div>
                                 {% endwith %}
 
-                                						        {% with xbill_usable_prefix=ptype.xbill_usable_prefix %}
+                                {% with xbill_usable_prefix=ptype.xbill_usable_prefix %}
 						            <div style="display: inline;" >
 							            <a href="#usableForm{{ xbill_usable_prefix }}" role="button" class="btn btn-info" data-toggle="modal">
 								            {% trans "Add usable" %}
@@ -554,7 +556,7 @@ ul {
                                                             <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
                                                         {% endfor %}
                                                     </table>
-                                                {% endwith %}
+                                    {% endwith %}
     {% comment %}							                <input type="hidden" name="next" value="{% url edit_extended_bill %}" /> {% endcomment %}
 
 						                      <div class="modal-footer">
@@ -836,7 +838,7 @@ ul {
 
         var nameArray = html_unescape("{{ resource_names }}").split("~");
 
-	    $("select").chosen();
+	    $("select").chosen({placeholder_text_single: ""});
 
 	   $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
@@ -887,6 +889,8 @@ ul {
 		});
 
 		$(".resource-type-selector").change(getUnit);
+		
+		$(".staged-selector").change(getStages);
 
 		function getUnit(event)
 		{
@@ -909,6 +913,34 @@ ul {
                     $(unitName).trigger("liszt:updated");
 				});
 		}
+		
+
+        function getStages(event)
+        {
+            var prefix = event.target.id.split('-')[0];
+            var resourceId = event.target.value;
+            var stageFieldName = "#" + prefix + "-stage";
+            var jsonUrl = encodeURI("/accounting/json-resourcetype-stages/" + resourceId + "/");
+            $(stageFieldName).empty();
+            var sf = $(stageFieldName);
+            $.get(jsonUrl,
+                function(data){
+                    if (data.length)
+                    {
+                        for(var i=0 ; i<data.length ; i++)
+                        {
+                            var id = data[i]['pk'];
+                            var name = data[i].fields['name']; 
+                            $(stageFieldName).append('<option value="' + id + '">' + name + '</option>') 
+                        }
+                    }
+                    else
+                    {
+                        $(stageFieldName).append('<option value="' + '' + '">' + '--------' + '</option>')
+                    }
+                    $(stageFieldName).trigger("liszt:updated");
+                });
+        }
 
         jQuery.validator.setDefaults({ 
             success: function(label) {

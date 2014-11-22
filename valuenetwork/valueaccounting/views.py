@@ -1226,6 +1226,12 @@ def json_resource_type_resources(request, resource_type_id):
     json = serializers.serialize("json", EconomicResource.objects.filter(resource_type=resource_type_id), fields=('identifier'))
     return HttpResponse(json, mimetype='application/json')
     
+def json_resource_type_stages(request, resource_type_id):
+    #import pdb; pdb.set_trace()
+    rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
+    json = serializers.serialize("json", rt.all_stages(), fields=('name'))
+    return HttpResponse(json, mimetype='application/json')
+    
 def json_resource_type_resources_with_locations(request, resource_type_id):
     #import pdb; pdb.set_trace()
     rs = EconomicResource.objects.filter(resource_type=resource_type_id)
@@ -1849,7 +1855,7 @@ def create_resource_type_simple_patterned_ajax(request):
 
 @login_required
 def create_process_type_input(request, process_type_id, slot):
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         if slot == "c":

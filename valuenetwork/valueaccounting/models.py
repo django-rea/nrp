@@ -1311,6 +1311,11 @@ class EconomicResourceType(models.Model):
         #todo pr: this shd be replaced by own_recipes
         return self.process_types.filter(event_type__relationship='out')
         
+    def manufacturing_producing_process_type_relationships(self):
+        return self.process_types.filter(
+            stage__isnull=True,
+            event_type__relationship='out')
+        
     def own_recipes(self):
         #todo pr: or shd that be own_producing_commitment_types?
         return self.process_types.filter(event_type__relationship='out')
@@ -1384,6 +1389,10 @@ class EconomicResourceType(models.Model):
         cts = self.all_staged_commitment_types()
         pts = [ct.process_type for ct in cts]
         return list(set(pts))
+        
+    def all_stages(self):
+        ids = [pt.id for pt in self.all_staged_process_types()]
+        return ProcessType.objects.filter(id__in=ids)
         
     def staged_commitment_type_sequence(self):
         #import pdb; pdb.set_trace()
@@ -1479,6 +1488,11 @@ class EconomicResourceType(models.Model):
             if stage.process_type not in pts:
                 pts.append(stage.process_type)
         return pts, inheritance
+        
+    def all_stages(self):
+        pts, inheritance = self.staged_process_type_sequence()
+        ids = [pt.id for pt in pts]
+        return ProcessType.objects.filter(id__in=ids)
         
     def staged_process_type_sequence_beyond_workflow(self):
         #pr changed
@@ -1785,7 +1799,7 @@ class EconomicResourceType(models.Model):
     def xbill_children(self):
         answer = []
         #todo pr: this shd be own_recipes
-        answer.extend(self.producing_process_type_relationships())
+        answer.extend(self.manufacturing_producing_process_type_relationships())
         answer.extend(self.producer_relationships())
         return answer
 
@@ -5632,12 +5646,12 @@ class Commitment(models.Model):
         return False
         
     def resource_create_form(self, data=None):
-        from valuenetwork.valueaccounting.forms import EconomicResourceForm
+        from valuenetwork.valueaccounting.forms import CreateEconomicResourceForm
         init = {
             "quantity": self.quantity,
             "unit_of_quantity": self.resource_type.unit,
         }
-        return EconomicResourceForm(prefix=self.form_prefix(), initial=init, data=data)
+        return CreateEconomicResourceForm(prefix=self.form_prefix(), initial=init, data=data)
         
     def select_resource_form(self, data=None):
         from valuenetwork.valueaccounting.forms import SelectResourceForm

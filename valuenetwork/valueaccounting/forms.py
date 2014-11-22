@@ -2323,7 +2323,7 @@ class ProcessTypeInputForm(forms.ModelForm):
 
     class Meta:
         model = ProcessTypeResourceType
-        exclude = ('process_type', 'relationship', 'event_type', 'state', 'stage')
+        exclude = ('process_type', 'relationship', 'event_type', 'state',)
 
     def __init__(self, process_type=None, *args, **kwargs):
         super(ProcessTypeInputForm, self).__init__(*args, **kwargs)
@@ -2338,6 +2338,7 @@ class ProcessTypeInputForm(forms.ModelForm):
                 inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
                 rt = inst.resource_type
                 self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
+                #self.fields["stage"].queryset = rt.all_stages()
         if pattern:
             if use_pattern:
                 self.pattern = pattern
@@ -2350,7 +2351,7 @@ class ProcessTypeConsumableForm(forms.ModelForm):
         queryset=EconomicResourceType.objects.all(), 
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'resource-type-selector input-xlarge' }))
+            attrs={'class': 'staged-selector resource-type-selector input-xlarge' }))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     unit_of_quantity = forms.ModelChoiceField(
@@ -2361,7 +2362,7 @@ class ProcessTypeConsumableForm(forms.ModelForm):
 
     class Meta:
         model = ProcessTypeResourceType
-        exclude = ('process_type', 'relationship', 'event_type', 'state', 'stage')
+        exclude = ('process_type', 'relationship', 'event_type', 'state',)
 
     def __init__(self, process_type=None, *args, **kwargs):
         super(ProcessTypeConsumableForm, self).__init__(*args, **kwargs)
@@ -2376,11 +2377,16 @@ class ProcessTypeConsumableForm(forms.ModelForm):
                 inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
                 rt = inst.resource_type
                 self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
+                self.fields["stage"].queryset = rt.all_stages()
         if pattern:
             if use_pattern:
                 self.pattern = pattern
                 output_ids = [pt.id for pt in process_type.produced_resource_types()]
-                self.fields["resource_type"].queryset = pattern.consumable_resource_types().exclude(id__in=output_ids)
+                rts = pattern.consumable_resource_types().exclude(id__in=output_ids)
+                self.fields["resource_type"].queryset = rts 
+                if rts.count():
+                    rt = rts[0]
+                    self.fields["stage"].queryset = rt.all_stages()
         if self.instance.id:
             pass
         else:

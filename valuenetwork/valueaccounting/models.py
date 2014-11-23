@@ -3313,7 +3313,12 @@ class EconomicResource(models.Model):
 
     def change_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
-        return EconomicResourceForm(instance=self)
+        #import pdb; pdb.set_trace()
+        unit = self.resource_type.unit_of_use
+        vpu_help = None
+        if unit:
+            vpu_help = "Value added when this resource is used for one " + unit.abbrev
+        return EconomicResourceForm(instance=self, vpu_help=vpu_help)
 
     #def change_role_formset(self):
     #    from valuenetwork.valueaccounting.forms import ResourceRoleAgentForm

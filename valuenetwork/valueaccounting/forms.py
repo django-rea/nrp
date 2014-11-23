@@ -2338,7 +2338,7 @@ class ProcessTypeInputForm(forms.ModelForm):
                 inst = ProcessTypeResourceType.objects.get(id=self.instance.id)
                 rt = inst.resource_type
                 self.fields["resource_type"].queryset = EconomicResourceType.objects.filter(id=rt.id)
-                #self.fields["stage"].queryset = rt.all_stages()
+                self.fields["stage"].queryset = rt.all_stages()
         if pattern:
             if use_pattern:
                 self.pattern = pattern

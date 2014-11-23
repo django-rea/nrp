@@ -1775,9 +1775,15 @@ class EconomicResourceType(models.Model):
             event_type__relationship='out')
 
     def active_producing_commitments(self):
-        return self.commitments.filter(
-            event_type__relationship='out',
-            process__finished=False)
+        if self.stage:
+            return self.commitments.filter(
+                event_type__relationship='out',
+                stage=self.stage,
+                process__finished=False)
+        else:
+            return self.commitments.filter(
+                event_type__relationship='out',
+                process__finished=False)
 
     def consuming_commitments(self):
         return self.commitments.filter(
@@ -4247,10 +4253,10 @@ class ProcessTypeResourceType(models.Model):
             #return self.inverse_label()
             return ""
         else:
-           abbrev = ""
-           if self.unit_of_quantity:
-               abbrev = self.unit_of_quantity.abbrev
-           return " ".join([self.event_type.label, str(self.quantity), abbrev])
+            abbrev = ""
+            if self.unit_of_quantity:
+                abbrev = self.unit_of_quantity.abbrev
+            return " ".join([self.event_type.label, str(self.quantity), abbrev])
 
     def xbill_explanation(self):
         if self.event_type.relationship == 'out':
@@ -5730,17 +5736,18 @@ class Commitment(models.Model):
         return resources
         
     def fulfilling_events(self):
-        return self.fulfillment_events.all()
+        return self.fulfillment_events.all()    
         
     def fulfilling_shipment_events(self):
-        events = self.fulfillment_events.all()
-        answer = []
-        ship = EventType.objects.get(name="Shipment")
-        for event in events:
-            if event.event_type == ship:
-                answer.append(event)
-        return answer
-        
+        #events = self.fulfillment_events.all()
+        #answer = []
+        #ship = EventType.objects.get(name="Shipment")
+        #for event in events:
+        #    if event.event_type == ship:
+        #        answer.append(event)
+        #return answer
+        return self.fulfillment_events.filter(event_type__name="Shipment")
+     
     def todo_event(self):
         events = self.fulfilling_events()
         if events:
@@ -5893,10 +5900,16 @@ class Commitment(models.Model):
             explode is also optional. If used by a caller, and inheritance is not used,
             explode must be a keyword arg.
         """
-        
+        #import pdb; pdb.set_trace()
         qty_required = self.quantity
         rt = self.resource_type
-        if not self.order:
+        should_net = False
+        if self.order:
+            if self.order.order_type == "customer":
+                should_net = True
+        else:
+            should_net = True
+        if should_net:
             qty_required = self.net()
         process=None
         if qty_required:
@@ -5967,14 +5980,29 @@ class Commitment(models.Model):
         return [ct for ct in wanters if ct.order_item == self.order_item]
 
     def associated_producing_commitments(self):
-        producers = self.resource_type.producing_commitments().exclude(id=self.id)
+        if self.stage:
+            producers = self.resource_type.producing_commitments(stage=self.stage).exclude(id=self.id)
+        else:
+            producers = self.resource_type.producing_commitments().exclude(id=self.id)
+        #todo: this shd just be a filter, but need to test the change, so do later
         return [ct for ct in producers if ct.order_item == self.order_item]
+        
+    def active_producing_commitments(self):
+        if self.stage:
+            return self.resource_type.commitments.filter(
+                event_type__relationship='out',
+                stage=self.stage,
+                process__finished=False)
+        else:
+            return self.resource_type.commitments.filter(
+                event_type__relationship='out',
+                process__finished=False)
 
     def scheduled_receipts(self):
         #import pdb; pdb.set_trace()
         rt = self.resource_type
         if rt.substitutable:
-            return rt.active_producing_commitments()
+            return self.active_producing_commitments()
         else:
             return self.associated_producing_commitments()
             

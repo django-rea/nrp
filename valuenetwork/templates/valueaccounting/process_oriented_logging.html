@@ -795,7 +795,12 @@ hr {
 	            
 		        {% for item in consume_reqs %}
 			        <div class="commitment" >
-				        <span class="consumable-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
+				        <span class="consumable-requirement" >
+                            <b>
+                                {{ item.resource_type.name }}{% if item.stage %}@{{ item.stage }}{% endif %}:
+                            </b> 
+                            {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+                        </span>
 				        {% if logger %}
                             <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change consumption requirement">
 			                   <i class="icon-edit"></i>
@@ -894,7 +899,10 @@ hr {
                     	{% for ct in item.scheduled_receipts %}
 					        <p class="detail-line">
 						        <b>{% trans "Scheduled" %}:</b> 
-						        <a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a>
+						        <a href="{{ ct.process.get_absolute_url }}" target="_blank" >
+                                    {% if ct.stage %}@{{ ct.stage }}{% endif %}
+                                    {{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}
+                                </a>
 					        </p>
 				        {% endfor %}
 			        {% else %}

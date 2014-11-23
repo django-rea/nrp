@@ -1855,7 +1855,7 @@ def create_resource_type_simple_patterned_ajax(request):
 
 @login_required
 def create_process_type_input(request, process_type_id, slot):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     if request.method == "POST":
         pt = get_object_or_404(ProcessType, pk=process_type_id)
         if slot == "c":

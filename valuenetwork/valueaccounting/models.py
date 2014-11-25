@@ -391,6 +391,8 @@ class EconomicAgent(models.Model):
     description = models.TextField(_('description'), blank=True, null=True)
     address = models.CharField(_('address'), max_length=255, blank=True)
     email = models.EmailField(_('email address'), max_length=96, blank=True, null=True)
+    phone_primary = models.CharField(_('primary phone'), max_length=32, blank=True, null=True)
+    phone_secondary = models.CharField(_('secondary phone'), max_length=32, blank=True, null=True)
     latitude = models.FloatField(_('latitude'), default=0.0, blank=True, null=True)
     longitude = models.FloatField(_('longitude'), default=0.0, blank=True, null=True)
     reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2, 
@@ -1151,7 +1153,12 @@ class RecipeInheritance(object):
             return self.heir
         else:
             return candidate
+
             
+class ResourceClass(models.Model):
+    name = models.CharField(_('name'), max_length=128, unique=True)
+    description = models.TextField(_('description'), blank=True, null=True)
+
 
 INVENTORY_RULE_CHOICES = (
     ('yes', _('Keep inventory')),
@@ -1163,7 +1170,9 @@ class EconomicResourceType(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
     #version = models.CharField(_('version'), max_length=32, blank=True)    
     parent = models.ForeignKey('self', blank=True, null=True, 
-        verbose_name=_('parent'), related_name='children')
+        verbose_name=_('parent'), related_name='children')    
+    resource_class = models.ForeignKey(ResourceClass, blank=True, null=True, 
+        verbose_name=_('resource class'), related_name='resource_types')
     unit = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="resource_units",
         help_text=_('if this resource has different units of use and inventory, this is the unit of inventory'))

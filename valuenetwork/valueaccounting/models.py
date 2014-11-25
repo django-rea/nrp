@@ -1158,7 +1158,9 @@ class RecipeInheritance(object):
 class ResourceClass(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
     description = models.TextField(_('description'), blank=True, null=True)
-
+    
+    def __unicode__(self):
+        return self.name
 
 INVENTORY_RULE_CHOICES = (
     ('yes', _('Keep inventory')),

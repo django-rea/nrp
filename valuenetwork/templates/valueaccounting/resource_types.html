@@ -122,7 +122,10 @@
                             <div class="parent" >
                                 {% if resource_type.parent %}
                                     {% trans "Parent" %}: 
-                                    {{ resource_type.parent }}                                
+                                    {{ resource_type.parent }}                             
+                                {% endif %}
+                                {% if resource_type.parent and resource_type.resource_class %}
+                                &mdash;
                                 {% endif %}
                                 {% if resource_type.resource_class %}
                                     {% trans "Resource class" %}: 

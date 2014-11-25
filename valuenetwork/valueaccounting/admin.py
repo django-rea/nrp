@@ -22,6 +22,11 @@ class HelpAdmin(admin.ModelAdmin):
 
 admin.site.register(Help, HelpAdmin)
 
+class ResourceClassAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description',)
+    
+admin.site.register(ResourceClass, ResourceClassAdmin)
+
 class ValueEquationBucketInline(admin.TabularInline):
     model = ValueEquationBucket
     fk_name = 'value_equation'
@@ -123,10 +128,10 @@ class ResourceTypeFacetInline(admin.TabularInline):
     model = ResourceTypeFacetValue
 
 class EconomicResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('label', 'name', 'unit', 'unit_of_use', 'description', 'substitutable', 'facet_list')
+    list_display = ('label', 'name', 'resource_class', 'unit', 'unit_of_use', 'description', 'substitutable', 'facet_list')
     list_filter = ['facets__facet_value']
     search_fields = ['name',]
-    list_editable = ['unit', 'unit_of_use', 'substitutable']
+    list_editable = ['unit', 'unit_of_use', 'substitutable', 'resource_class',]
     inlines = [ ResourceTypeFacetInline, ]
     
 admin.site.register(EconomicResourceType, EconomicResourceTypeAdmin)

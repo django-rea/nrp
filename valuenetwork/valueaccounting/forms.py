@@ -162,14 +162,26 @@ class SelectOrCreateResourceForm(forms.ModelForm):
 
 
 class EconomicResourceForm(forms.ModelForm):
+    value_per_unit_of_use = forms.DecimalField(
+        #help_text="Does not apply to this resource.",
+        max_digits=8, decimal_places=2,
+        required=False,
+        widget=forms.HiddenInput)
+        #widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     created_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo', 'quantity', 'quality', 'independent_demand', 'order_item', 'stage', 'state', 'stage', 'state', 'value_per_unit_of_use', 'value_per_unit')
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'photo', 'quantity', 'quality', 'independent_demand', 'order_item', 'stage', 'state', 'stage', 'state', 'value_per_unit')
 
+    def __init__(self, vpu_help=None, *args, **kwargs):
+        super(EconomicResourceForm, self).__init__(*args, **kwargs)
+        if vpu_help:
+            self.fields["value_per_unit_of_use"].widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'})
+            self.fields["value_per_unit_of_use"].help_text = vpu_help
+            
         
 class CreateEconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))

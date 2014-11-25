@@ -64,7 +64,7 @@
 				    <h3 id="resource-change-label">{% trans "Change" %} {{ resource }}</h3>
 			    </div>
 			    <div class="modal-body">
-				    <form enctype="multipart/form-data" action="{% url change_resource resource_id=resource.id %}" method="POST" >
+				    <form id="resource-change-form" action="{% url change_resource resource_id=resource.id %}" method="POST" >
 					    {% csrf_token %}
 					    {{ resource.change_form|as_bootstrap }}
                         {{ role_formset.management_form }}
@@ -125,14 +125,14 @@
                         <th style="text-align: right;">{% trans "Quality" %}</th>
                         <td>{{ resource.quality }}</td>
                     </tr>
-{% comment %}
-                    {% if resource.author %}
+
+                    {% if resource.value_per_unit_of_use and resource.resource_type.unit_of_use %}
                         <tr>
-	                        <th style="text-align: right; vertical-align: top; ">{% trans "Author" %}</th>
-	                        <td>{{ resource.author.name }}</td>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Value per" %} {{ resource.resource_type.unit_of_use.abbrev }} {% trans "of use" %}</th>
+	                        <td>{{ resource.value_per_unit_of_use }}</td>
                         </tr>
                     {% endif %}
-{% endcomment %}
+
 	                {% if resource.url %}
 	                    <tr>
 	                        <th style="text-align: right;">{% trans "URL" %}</th>
@@ -340,34 +340,35 @@
         $('td.td-agent > select').addClass('select-agent');  
 
         $.validator.addMethod("agentRequired", function (value, element) {
-            alert("value " + value + " element " + element);
+            //alert("value " + value + " element " + element);
             //agent = element.closest(".select-agent");
             //alert("agent " + agent);
 
             return true;
         }, "Both role and agent must be entered.");
+        
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
 
         $.validator.addClassRules("select-role", { agentRequired: true });
+        $.validator.addClassRules("quantity", { quantity: true });
 
+            
+        $('#resource-change-form').validate(
+        {
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            }
+
+        });
+    
     }); // end document.ready
 
-	$('.resource-change-form').each( function(){
-		var form = $(this);
-		form.validate({
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			}
-
-		});
-	});
-/*    
-    $("tr.role-row").each(function(i, tr) {
-        var role = $(tr).children().get(0);
-        alert("role " + role );
-
-
-    });
-*/
     </script>
     
 {% endblock %}

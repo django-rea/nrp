@@ -6261,7 +6261,10 @@ def change_resource(request, resource_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         resource = get_object_or_404(EconomicResource, pk=resource_id)
-        form = EconomicResourceForm(request.POST, request.FILES, instance=resource)
+        v_help = None
+        if resource.resource_type.unit_of_use:
+            v_help = "give me a usable widget"
+        form = EconomicResourceForm(data=request.POST, instance=resource, vpu_help=v_help)
         if form.is_valid():
             data = form.cleaned_data
             resource = form.save(commit=False)

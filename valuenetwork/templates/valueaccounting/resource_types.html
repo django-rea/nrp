@@ -118,12 +118,19 @@
 		                  {% endif %}
                         {% endif %}
 
-                        {% if resource_type.parent %}
+                        {% if resource_type.parent or resource_type.resource_class %}
                             <div class="parent" >
-                                {% trans "Parent" %}: 
-                                {{ resource_type.parent }}
+                                {% if resource_type.parent %}
+                                    {% trans "Parent" %}: 
+                                    {{ resource_type.parent }}                                
+                                {% endif %}
+                                {% if resource_type.resource_class %}
+                                    {% trans "Resource class" %}: 
+                                    {{ resource_type.resource_class }}                                
+                                {% endif %}
                             </div>
                         {% endif %}
+                        
 		                <div class="facets" >{{ resource_type.facet_list }}</div>
                         {% if resource_type.description %}
                             <div class="description" >{{ resource_type.description|urlize|linebreaks }}</div>

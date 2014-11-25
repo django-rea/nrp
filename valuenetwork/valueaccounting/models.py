@@ -1243,6 +1243,13 @@ class EconomicResourceType(models.Model):
         for kid in kids:
             answer.extend(kid.all_children())
         return answer
+        
+    def child_of_class(self, resource_class):
+        kids = self.all_children()
+        for kid in kids:
+            if kid.resource_class == resource_class:
+                return kid
+        return None
 
     def node_id(self):
         return "-".join(["ResourceType", str(self.id)])
@@ -4960,6 +4967,11 @@ class Process(models.Model):
             if inheritance:
                 if resource_type == inheritance.parent:
                     resource_type = inheritance.substitute(resource_type)
+                else:
+                    resource_class = output.resource_type.resource_class
+                    candidate = resource_type.child_of_class(resource_class)
+                    if candidate:
+                        resource_type = candidate
             #Todo: apply selected_context_agent here? Dnly if inheritance?
             commitment = self.add_commitment(
                 resource_type=resource_type,
@@ -4994,7 +5006,7 @@ class Process(models.Model):
                     pptr, inheritance = resource_type.main_producing_process_type_relationship(stage=stage, state=state)
                     if pptr:
                         resource_type = pptr.resource_type
-                        #todo dhen: this is where species would be used
+                        #todo dhen: this is where species would be used? Or not?
                         if inheritance:
                             if resource_type == inheritance.parent:
                                 resource_type = inheritance.substitute(resource_type)

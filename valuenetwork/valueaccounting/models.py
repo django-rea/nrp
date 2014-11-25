@@ -5829,7 +5829,12 @@ class Commitment(models.Model):
     def onhand(self):
         answer = []
         rt = self.resource_type
-        resources = EconomicResource.goods.filter(resource_type=self.resource_type)
+        if self.stage:
+            resources = EconomicResource.goods.filter(
+                stage=self.stage,
+                resource_type=rt)
+        else:
+            resources = EconomicResource.goods.filter(resource_type=rt)
         if not rt.substitutable:
             resources = resources.filter(order_item=self.order_item)
         for resource in resources:
@@ -6009,7 +6014,7 @@ class Commitment(models.Model):
 
     def associated_producing_commitments(self):
         if self.stage:
-            producers = self.resource_type.producing_commitments(stage=self.stage).exclude(id=self.id)
+            producers = self.resource_type.producing_commitments().filter(stage=self.stage).exclude(id=self.id)
         else:
             producers = self.resource_type.producing_commitments().exclude(id=self.id)
         #todo: this shd just be a filter, but need to test the change, so do later

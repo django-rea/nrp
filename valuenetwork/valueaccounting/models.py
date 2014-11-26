@@ -5252,7 +5252,7 @@ class Exchange(models.Model):
 
     def shipment_commitments(self):
         return self.commitments.filter(
-            event_type__relationship='out')
+            event_type__relationship='shipment')
             
     def cash_receipt_commitments(self):
         return self.commitments.filter(
@@ -5800,15 +5800,8 @@ class Commitment(models.Model):
     def fulfilling_events(self):
         return self.fulfillment_events.all()    
         
-    def fulfilling_shipment_events(self):
-        #events = self.fulfillment_events.all()
-        #answer = []
-        #ship = EventType.objects.get(name="Shipment")
-        #for event in events:
-        #    if event.event_type == ship:
-        #        answer.append(event)
-        #return answer
-        return self.fulfillment_events.filter(event_type__name="Shipment")
+    #def fulfilling_shipment_events(self):
+    #    return self.fulfillment_events.filter(event_type__name="Shipment")
      
     def todo_event(self):
         events = self.fulfilling_events()

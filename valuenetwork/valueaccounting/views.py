@@ -5724,12 +5724,15 @@ def add_unplanned_input_event(request, process_id, slot):
 def log_resource_for_commitment(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     prefix = ct.form_prefix()
-    form = EconomicResourceForm(prefix=prefix, data=request.POST)
+    form = CreateEconomicResourceForm(prefix=prefix, data=request.POST)
     if form.is_valid():
-        
+        #import pdb; pdb.set_trace()
         resource_data = form.cleaned_data
         agent = get_agent(request)
         resource = form.save(commit=False)
+        #todo: investigate more: this shd not be necessary
+        qty = resource_data["quantity"]
+        resource.quantity = qty
         resource.resource_type = ct.resource_type
         resource.created_by=request.user
         event_type = ct.event_type

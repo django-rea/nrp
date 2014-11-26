@@ -309,7 +309,8 @@ hr {
                             </form>
 					    {% endif %}
 					    </br>
-					    &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a>
+					    &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">
+                            {{ event.resource }} {{ event.resource.quantity }} {{ event.resource.resource_type.unit }} </a>
 					
 				    </div>
 			    {% endfor %}

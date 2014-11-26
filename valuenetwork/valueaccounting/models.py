@@ -2808,6 +2808,39 @@ class Order(models.Model):
             commitment.generate_producing_process(user, [], inheritance, explode=True)
         return commitment
         
+    def add_customer_order_item(self,
+            resource_type,
+            quantity,
+            description,
+            user,
+            stage=None,
+            state=None,
+            due=None):
+        #import pdb; pdb.set_trace()
+        if not due:
+            due=self.due_date
+        event_type = EventType.objects.get(relationship="shipment")
+        ct = Commitment(
+            order=self,
+            independent_demand=self,
+            event_type=event_type,
+            resource_type=resource_type,
+            from_agent=self.provider,
+            to_agent=self.receiver,
+            context_agent=self.provider,
+            description=description,
+            stage=stage,
+            state=state,
+            quantity=quantity,
+            unit_of_quantity=resource_type.unit,
+            due_date=due,
+            created_by=user)
+        ct.save()
+        ct.order_item = ct
+        ct.save()
+        ct.generate_producing_process(user, [], inheritance=None, explode=True)
+        return ct
+    
     def all_processes(self):
         # this method includes only processes for this order
         #import pdb; pdb.set_trace()
@@ -2818,7 +2851,8 @@ class Order(models.Model):
             processes = []
             commitments = Commitment.objects.filter(independent_demand=self)
             for c in commitments:
-                processes.append(c.process)
+                if c.process:
+                    processes.append(c.process)
             processes = list(set(processes))
         roots = []
         for p in processes:
@@ -5950,6 +5984,23 @@ class Commitment(models.Model):
             #import pdb; pdb.set_trace()
             ptrt, inheritance = rt.main_producing_process_type_relationship(stage=self.stage, state=self.state)
             if ptrt:
+                resource_type = self.resource_type
+                if self.event_type.relationship == "shipment":
+                    producing_commitment = Commitment(
+                        resource_type=resource_type,
+                        independent_demand=self.independent_demand,
+                        order_item=self,
+                        event_type=ptrt.event_type,
+                        context_agent=self.context_agent,
+                        stage=ptrt.stage,
+                        state=ptrt.state,
+                        quantity=self.quantity,
+                        unit_of_quantity=resource_type.unit,
+                        due_date=self.due_date,
+                        created_by=user)
+                    producing_commitment.save()
+                else:
+                    producing_commitment = self
                 pt = ptrt.process_type
                 start_date = self.due_date - datetime.timedelta(minutes=pt.estimated_duration)
                 process = Process(
@@ -5966,8 +6017,8 @@ class Commitment(models.Model):
                     created_by=user,
                 )
                 process.save()
-                self.process=process
-                self.save()
+                producing_commitment.process=process
+                producing_commitment.save()
                 if explode:
                     demand = self.independent_demand
                     process.explode_demands(demand, user, visited, inheritance)

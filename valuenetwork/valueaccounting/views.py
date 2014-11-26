@@ -2565,66 +2565,19 @@ def create_order(request):
                     data = form.cleaned_data
                     qty = data["quantity"]
                     if qty:
+                        #import pdb; pdb.set_trace()
                         rt_id = data["resource_type_id"]
+                        description = data["description"]
                         rt = EconomicResourceType.objects.get(id=rt_id)
-                        #todo: add stage and state as args?
-                        #also, this assumes a manufactured item
-                        #what about reselling purchased items?
-                        pt = rt.main_producing_process_type()
-                        if pt:
-                            #todo: add stage and state as args?
-                            #todo pr: this shd probably use own_or_parent_recipes
-                            ptrt, inheritance = rt.main_producing_process_type_relationship()
-                            #todo:
-                            #this is the order item, so can't sent as arg
-                            #maybe better to ask the order to create it.
-                            #but hacked in below for now...
-                            commitment = Commitment(
-                                order=order,
-                                independent_demand=order,
-                                event_type=ptrt.event_type,
-                                due_date=order.due_date,
-                                from_agent=order.provider,
-                                to_agent=order.receiver,
-                                resource_type=rt,
-                                context_agent=pt.context_agent,
-                                description=data["description"],
-                                quantity=qty,
-                                unit_of_quantity=rt.unit,
-                                stage=ptrt.stage,
-                                state=ptrt.state,
-                                created_by=request.user,
-                            )
-                            commitment.save()
-                            commitment.order_item = commitment
-                            commitment.save()
-                            commitment.generate_producing_process(request.user, [], explode=True)                           
-                        else:
-                            #todo: this could be wrong (but won't crash)
-                            #tis wrong for reselling purchased items
-                            ets = EventType.objects.filter(
-                                related_to="process",
-                                relationship="out")
-                            event_type = ets[0]
-                            #todo
-                            #see comment above about hack
-                            commitment = Commitment(
-                                order=order,
-                                independent_demand=order,
-                                event_type=event_type,
-                                due_date=order.due_date,
-                                from_agent=order.provider,
-                                to_agent=order.receiver,
-                                resource_type=rt,
-                                description=data["description"],
-                                quantity=qty,
-                                unit_of_quantity=rt.unit,
-                                created_by=request.user,
-                            )
-                            commitment.save()
-                            commitment.order_item = commitment
-                            commitment.save()
+                        #refactored for new customer_order_item logic
+                        commitment = order.add_customer_order_item(
+                            resource_type=rt,
+                            quantity=qty,
+                            description=description,
+                            user=request.user)
+
                         for ftr in form.features:
+                            #todo: shd be refactored as above
                             if ftr.is_valid():
                                 option_id = ftr.cleaned_data["options"]
                                 option = Option.objects.get(id=option_id)

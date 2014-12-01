@@ -513,7 +513,7 @@ li {
                     {% endfor %}
                 {% endif %}
 
-                {% for event in item.fulfilling_shipment_events %}
+                {% for event in item.fulfilling_events %}
                     <div class="event" >
                         <span class="event-label">{% trans "Shipped" %}:</span> <span>
                             {{ event.event_type.label }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 

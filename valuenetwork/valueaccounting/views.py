@@ -8577,6 +8577,7 @@ def exchange_logging(request, exchange_id):
 
     #receipt_commitments = exchange.receipt_commitments()
     #payment_commitments = exchange.payment_commitments()
+    #import pdb; pdb.set_trace()
     shipment_commitments = exchange.shipment_commitments()
     cash_receipt_commitments = exchange.cash_receipt_commitments()
     receipt_events = exchange.receipt_events()

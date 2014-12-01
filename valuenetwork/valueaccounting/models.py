@@ -5152,8 +5152,124 @@ class Process(models.Model):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import WorkflowProcessForm
         init = {"start_date": self.start_date, "end_date": self.start_date}
-        return WorkflowProcessForm(prefix=str(self.id),initial=init, order_item=self.order_item())      
+        return WorkflowProcessForm(prefix=str(self.id),initial=init, order_item=self.order_item())
         
+    def roll_up_value(self, path, depth, visited):
+        #import pdb; pdb.set_trace()
+        #Value_per_unit will be the result of this method.
+        depth += 1
+        self.depth = depth
+        #self.explanation = "Value per unit consists of all the input values on the next level"
+        path.append(self)
+        process_value = Decimal("0.0")
+        #Values of all of the inputs will be added to this list.
+        values = []
+        citations = []
+        production_value = Decimal("0.0")
+
+        production_qty = self.production_quantity()
+        if production_qty:
+            inputs = self.incoming_events()
+            for ip in inputs:
+                #Work contributions use resource_type.value_per_unit
+                if ip.event_type.relationship == "work":
+                    ip.value = ip.quantity * ip.value_per_unit()
+                    ip.save()
+                    process_value += ip.value
+                    ip.depth = depth
+                    path.append(ip)
+                #Use contributions use resource value_per_unit_of_use.
+                elif ip.event_type.relationship == "use":
+                    if ip.resource:
+                        ip.value = ip.quantity * ip.resource.value_per_unit_of_use
+                        ip.save()
+                        process_value += ip.value
+                        ip.resource.roll_up_value(path, depth, visited)
+                        ip.depth = depth
+                        path.append(ip)
+                #Consume contributions use resource rolled up value_per_unit
+                elif ip.event_type.relationship == "consume":
+                    ip.depth = depth
+                    path.append(ip)
+                    value_per_unit = ip.resource.roll_up_value(path, depth, visited)
+                    ip.value = ip.quantity * value_per_unit
+                    ip.save()
+                    process_value += ip.value
+                #Citations valued later, after all other inputs added up
+                elif ip.event_type.relationship == "cite":
+                    ip.depth = depth
+                    path.append(ip)
+                    if ip.resource_type.unit_of_use:
+                        if ip.resource_type.unit_of_use.unit_type == "percent":
+                            citations.append(ip)
+                    else:
+                        ip.value = ip.quantity
+                    if ip.resource:
+                        ip.resource.roll_up_value(path, depth, visited)
+        if process_value:
+            #These citations use percentage of the sum of other input values.
+            for c in citations:
+                percentage = c.quantity / 100
+                c.value = process_value * percentage
+                c.save()
+            for c in citations:
+                process_value += c.value
+        return process_value
+
+
+    def compute_income_shares(self, order_item, quantity, value, events, visited):
+        #This method assumes that self.roll_up_value has been run,
+        #and all contribution events have been valued.
+        #print "running quantity:", quantity, "running value:", value
+        if self not in visited:
+            visited.add(self)
+            if quantity:
+                #todo: how will this work for >1 processes producing the same resource?
+                #what will happen to the shares of the inputs of the later processes?
+                produced_qty = sum(pe.quantity for pe in self.production_events())
+                distro_fraction = 1
+                distro_qty = quantity
+                if produced_qty > quantity:
+                    distro_fraction = quantity / produced_qty
+                    quantity = Decimal("0.0")
+                elif produced_qty <= quantity:
+                    distro_qty = produced_qty
+                    quantity -= produced_qty
+                inputs = self.incoming_events()
+                for ip in inputs:
+                    #we assume here that work events are contributions
+                    if ip.event_type.relationship == "work":
+                        ip.share = ip.value * distro_fraction
+                        events.append(ip)
+                        #print ip.id, ip, ip.share
+                        #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                    elif ip.event_type.relationship == "use":
+                        #use events are not contributions, but their resources may have contributions
+                        if ip.resource:
+                            ip_value = ip.value * distro_fraction
+                            if ip_value:
+                                d_qty = ip_value / value
+                                ip.resource.compute_income_shares(d_qty, ip_value, events, visited) 
+                    elif ip.event_type.relationship == "consume":
+                        #consume events are not contributions, but their resources may have contributions
+                        ip_value = ip.value * distro_fraction
+                        #if ip.resource.id == 98:
+                        #    import pdb; pdb.set_trace()
+                        if ip_value:
+                            d_qty = ip.quantity * distro_fraction
+                            #print "consumption:", ip.id, ip, "ip.value:", ip.value
+                            #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                            ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
+                    elif ip.event_type.relationship == "cite":
+                        #import pdb; pdb.set_trace()   
+                        #citation events are not contributions, but their resources may have contributions
+                        ip_value = ip.value * distro_fraction
+                        if ip_value:
+                            d_qty = ip_value / value
+                            #print "citation:", ip.id, ip, "ip.value:", ip.value
+                            #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                            ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
+    
 
 class ExchangeManager(models.Manager):
 
@@ -6256,11 +6372,11 @@ class Commitment(models.Model):
         resources = []
         resource = None
         shares = []
+        total = 0
         for event in events:
             if event.resource:
                 if event.resource not in resources:
                     resources.append(event.resource)
-        #todo: handle order items with no materialized resource
         if resources:
             if len(resources) == 1:
                 resource = resources[0]
@@ -6269,31 +6385,49 @@ class Commitment(models.Model):
                 msg = " ".join([self.__unicode__(), "has different resources"])
                 assert False, msg
         if resource:
-            #print "*** rollup up value"
-            visited = set()
-            path = []
-            depth = 0
-            value_per_unit = resource.roll_up_value(path, depth, visited)
-            #print "value_per_unit:", value_per_unit
-            value = self.quantity * value_per_unit
+            shares = self.compute_income_fractions_for_resource(resource)
+        else:
+            shares = self.compute_income_fractions_for_process()
+        if shares:
+            total = sum(s.share for s in shares)
+        if total:
+            for s in shares:
+                s.fraction = s.share / total
+        #import pdb; pdb.set_trace()
+        #print "total shares:", total
+        return shares
+        
+    def compute_income_fractions_for_resource(self, resource):
+        #print "*** rollup up resource value"
+        visited = set()
+        path = []
+        depth = 0
+        value_per_unit = resource.roll_up_value(path, depth, visited)
+        #print "resource value_per_unit:", value_per_unit
+        value = self.quantity * value_per_unit
+        visited = set()
+        #print "*** computing income shares"
+        shares = []
+        #import pdb; pdb.set_trace()
+        resource.compute_income_shares(self.quantity, value, shares, visited)
+        return shares
+        
+    def compute_income_fractions_for_process(self):
+        shares = []
+        visited = set()
+        path = []
+        depth = 0
+        p = self.process
+        if p:
+            #print "*** rollup up process value"
+            value = p.roll_up_value(path, depth, visited)
+            #print "processvalue:", value
             visited = set()
             #print "*** computing income shares"
-            shares = []
             #import pdb; pdb.set_trace()
-            resource.compute_income_shares(self.quantity, value, shares, visited)
-            total = sum(s.share for s in shares)
-            if total:
-                for s in shares:
-                    s.fraction = s.share / total
-            #import pdb; pdb.set_trace()
-            #todo: still a discrepancy:
-            #vpu: 220.60, shares: 219.15, diff: 1.45
-            #but that's down from diff: 220
-            #tabling for now...
-            #print "total shares:", total
+            p.compute_income_shares(self, self.quantity, value, shares, visited)
         return shares
-            
-        
+
 
 #todo: not used.
 class Reciprocity(models.Model):

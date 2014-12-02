@@ -84,7 +84,15 @@ textarea {
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Schedule for " %}{{ order }}</legend>
+		<legend>{% trans "Schedule for " %}{{ order }}
+            <form 
+                style="display: inline;" 
+                id="sale" 
+                action="{% url exchange_logging exchange_id=order.sale.id %}" 
+                method="GET" >
+                <button style="display: inline;"  class="btn btn-info indent" title="Sale for this order" >Go to Sale</button>
+            </form>            
+        </legend>
 		
             {% if order.description %}
                 <div class="req-description">{{ order.description|urlize|linebreaks }}</div>

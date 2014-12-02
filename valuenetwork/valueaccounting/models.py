@@ -6382,7 +6382,7 @@ class Commitment(models.Model):
                 resource = resources[0]
             else:
                 #does not handle different resources per order_item yet.
-                msg = " ".join([self.__unicode__(), "has different resources"])
+                msg = " ".join([self.__unicode__(), "has different resources, not handled yet."])
                 assert False, msg
         if resource:
             shares = self.compute_income_fractions_for_resource(resource)
@@ -6931,11 +6931,12 @@ class EconomicEvent(models.Model):
         
     def cycle_id(self):
         stage_id = ""
-        if self.resource.stage:
-            stage_id = str(self.resource.stage.id)
         state_id = ""
-        if self.resource.state:
-            state_id = str(self.resource.state.id)
+        if self.resource:
+            if self.resource.stage:
+                stage_id = str(self.resource.stage.id)
+            if self.resource.state:
+                state_id = str(self.resource.state.id)
         return "-".join([str(self.resource_type.id), stage_id, state_id])
         
     def class_label(self):

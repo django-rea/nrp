@@ -7191,22 +7191,26 @@ class ValueEquation(models.Model):
         claim_events = []
         contribution_events = []
         for bucket in self.buckets.all():
+            #import pdb; pdb.set_trace()
             bucket_amount =  bucket.percentage * amount_to_distribute / 100
-            amount_to_distribute = amount_to_distribute - bucket_amount
-            if amount_to_distribute < 0:
-                bucket_amount = bucket_amount - amount_to_distribute
-                amount_to_distribute = 0
+            amount = amount_to_distribute - bucket_amount
+            if amount < 0:
+                bucket_amount = bucket_amount - amount
+            amount_distributed = 0
             if bucket_amount > 0:
                 if bucket.distribution_agent:
                     sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
                     detail_sums.append(sum_a)
+                    amount_distributed = bucket_amount
                 else:
                     serialized_filter = serialized_filters[bucket.id]
                     ces, contributions = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
                     for ce in ces:
                         detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
+                        amount_distributed += ce.value
                     claim_events.extend(ces)
                     contribution_events.extend(contributions)
+            amount_to_distribute = amount_to_distribute - amount_distributed
         agent_amounts = {}
         for dtl in detail_sums:
             detail = dtl.split("~")

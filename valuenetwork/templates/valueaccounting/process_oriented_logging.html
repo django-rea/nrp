@@ -308,9 +308,11 @@ hr {
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete production event" >X</button>
                             </form>
 					    {% endif %}
-					    </br>
-					    &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">
+					    {% if event.resource %}
+                            </br>
+                            &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">
                             {{ event.resource }} {{ event.resource.quantity }} {{ event.resource.resource_type.unit }} </a>
+                        {% endif %}
 					
 				    </div>
 			    {% endfor %}

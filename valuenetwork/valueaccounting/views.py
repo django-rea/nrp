@@ -5545,7 +5545,7 @@ def process_oriented_logging(request, process_id):
             resource.event = evt
             cr.resources.append(resource)
     
-    output_resource_ids = [e.resource.id for e in process.production_events()]
+    output_resource_ids = [e.resource.id for e in process.production_events() if e.resource]
     
     return render_to_response("valueaccounting/process_oriented_logging.html", {
         "process": process,
@@ -5729,32 +5729,34 @@ def log_resource_for_commitment(request, commitment_id):
         #import pdb; pdb.set_trace()
         resource_data = form.cleaned_data
         agent = get_agent(request)
-        resource = form.save(commit=False)
-        #todo: investigate more: this shd not be necessary
+        resource_type = ct.resource_type
         qty = resource_data["quantity"]
-        resource.quantity = qty
-        resource.resource_type = ct.resource_type
-        resource.created_by=request.user
         event_type = ct.event_type
-        if not ct.resource_type.substitutable:
-            resource.independent_demand = ct.independent_demand
-            resource.order_item = ct.order_item
-        if event_type.applies_stage():
-            resource.stage = ct.stage
-        resource.save()
-        
+        resource = None
+        if resource_type.inventory_rule == "yes":
+            resource = form.save(commit=False)
+            resource.quantity = qty
+            resource.resource_type = resource_type
+            resource.created_by=request.user
+            if not ct.resource_type.substitutable:
+                resource.independent_demand = ct.independent_demand
+                resource.order_item = ct.order_item
+            if event_type.applies_stage():
+                resource.stage = ct.stage
+            resource.save()
+        event_date = resource_data["created_date"]
         default_agent = ct.process.default_agent()
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
-            event_date = resource.created_date,
+            event_date = event_date,
             event_type = event_type,
             from_agent = default_agent,
             to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,
             context_agent = ct.context_agent,
-            quantity = resource.quantity,
+            quantity = qty,
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,
             changed_by = request.user,

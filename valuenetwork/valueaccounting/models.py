@@ -5830,12 +5830,25 @@ class Commitment(models.Model):
         return False
         
     def resource_create_form(self, data=None):
-        from valuenetwork.valueaccounting.forms import CreateEconomicResourceForm
-        init = {
-            "quantity": self.quantity,
-            "unit_of_quantity": self.resource_type.unit,
-        }
-        return CreateEconomicResourceForm(prefix=self.form_prefix(), initial=init, data=data)
+        if self.resource_type.inventory_rule == "yes":
+            from valuenetwork.valueaccounting.forms import CreateEconomicResourceForm
+            init = {
+                "quantity": self.quantity,
+                "unit_of_quantity": self.resource_type.unit,
+            }
+            return CreateEconomicResourceForm(prefix=self.form_prefix(), initial=init, data=data)
+        else:
+            from valuenetwork.valueaccounting.forms import UninventoriedProductionEventForm
+            init = {
+                #"from_agent": self.from_agent,
+                "quantity": self.quantity,
+            }
+            unit = self.resource_type.unit
+            qty_help = ""
+            if unit:
+                unit_string = unit.abbrev
+                qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+            return UninventoriedProductionEventForm(qty_help=qty_help, prefix=self.form_prefix(), initial=init, data=data)
         
     def select_resource_form(self, data=None):
         from valuenetwork.valueaccounting.forms import SelectResourceForm

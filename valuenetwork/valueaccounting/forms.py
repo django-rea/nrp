@@ -514,6 +514,35 @@ class UnplannedWorkEventForm(forms.ModelForm):
         if context_agent:
             self.context_agent = context_agent
             self.fields["from_agent"].queryset = context_agent.all_members()
+            
+
+class UninventoriedProductionEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    #from_agent = forms.ModelChoiceField(
+    #    required=True,
+    #    queryset=EconomicAgent.objects.all(),
+    #    empty_label=None,
+    #    widget=forms.Select(
+    #        attrs={'class': 'chzn-select'}))   
+    quantity = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    url = forms.URLField(
+        required=False, 
+        label="URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+   
+    class Meta:
+        model = EconomicEvent
+        #fields = ('event_date', 'from_agent', 'quantity', 'description', 'url')
+        fields = ('event_date', 'quantity', 'description', 'url')
+        
+    def __init__(self, qty_help=None, *args, **kwargs):
+        super(UninventoriedProductionEventForm, self).__init__(*args, **kwargs)
+        if qty_help:
+            self.fields["quantity"].help_text = qty_help
 
 
 class ProcessConsumableForm(forms.ModelForm):

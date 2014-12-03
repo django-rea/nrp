@@ -237,8 +237,8 @@ hr {
                                     </form>
                                 {% endif %}
                             
-                                <a href="#resourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Create a new Resource" >
-                                    {% trans "Log new Resource" %}
+                                <a href="#resourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log process output" >
+                                    {% trans "Log process output" %}
                                 </a>
                                 {% if item.addable_resources %}
                                     <a href="#addToResourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Add to an existing Resource" >
@@ -249,7 +249,7 @@ hr {
                                 <div class="modal hide fade resourceModal" id="resourceModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                        <h3 id="resource-label">{% trans "Log new" %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
+                                        <h3 id="resource-label">{% trans "Log new" %} {{ item.resource_type.name }}</h3>
                                     </div>
                                     <div class="modal-body">
                                         <form class="resource-form validateMe" id="resourceForm{{ item.id }}" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >

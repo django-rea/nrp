@@ -4263,6 +4263,33 @@ def add_expense(request, exchange_id):
         % ('accounting/exchange', exchange.id))
 
 @login_required
+def add_process_expense(request, process_id):
+    process = get_object_or_404(Process, pk=process_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = process.process_pattern
+        context_agent = process.context_agent
+        form = ProcessExpenseEventForm(data=request.POST, pattern=pattern, prefix='unplannedexpense')
+        if form.is_valid():
+            expense_data = form.cleaned_data
+            value = expense_data["value"] 
+            if value:
+                event = form.save(commit=False)
+                rt = expense_data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("expense", rt)
+                event.event_type = event_type
+                event.process = process
+                event.context_agent = process.context_agent
+                event.to_agent = event.default_agent()
+                event.quantity = 1
+                event.unit_of_quantity = rt.unit
+                event.created_by = request.user
+                event.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', process.id))
+
+@login_required
 def add_material_contribution(request, exchange_id):
     exchange = get_object_or_404(Exchange, pk=exchange_id)   
     if request.method == "POST":
@@ -5450,6 +5477,7 @@ def process_oriented_logging(request, process_id):
     unplanned_consumption_form = None
     unplanned_use_form = None
     unplanned_output_form = None
+    unplanned_expense_form = None
     slots = []
     event_types = []
     work_now = settings.USE_WORK_NOW
@@ -5534,6 +5562,8 @@ def process_oriented_logging(request, process_id):
             unplanned_use_form = UnplannedInputEventForm(prefix='unplannedusable', pattern=pattern)
             if logger:
                 add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
+        if "expense" in slots:
+            unplanned_expense_form = ProcessExpenseEventForm(prefix='unplannedexpense', pattern=pattern)
     
     cited_ids = [c.resource.id for c in process.citations()]
     #import pdb; pdb.set_trace()
@@ -5567,6 +5597,7 @@ def process_oriented_logging(request, process_id):
         "unplanned_consumption_form": unplanned_consumption_form,
         "unplanned_use_form": unplanned_use_form,
         "unplanned_output_form": unplanned_output_form,
+        "unplanned_expense_form": unplanned_expense_form,
         "slots": slots,
         "to_be_changed_requirement": to_be_changed_requirement,
         "changeable_requirement": changeable_requirement,
@@ -5575,6 +5606,7 @@ def process_oriented_logging(request, process_id):
         "uncommitted_consumption": process.uncommitted_consumption_events(),
         "use_reqs": use_reqs,
         "uncommitted_use": process.uncommitted_use_events(),
+        "uncommitted_expense": process.uncommitted_expense_events(),
         "unplanned_work": unplanned_work,
         "work_now": work_now,
         "help": get_help("process"),

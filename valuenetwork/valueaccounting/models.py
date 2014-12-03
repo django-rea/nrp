@@ -2535,6 +2535,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('rand', 'To Be Changed')
     UseCaseEventType.create('rand', 'Change')
     UseCaseEventType.create('rand', 'Create Changeable')
+    UseCaseEventType.create('rand', 'Expense')
     UseCaseEventType.create('recipe','Citation')
     UseCaseEventType.create('recipe', 'Resource Consumption')
     UseCaseEventType.create('recipe', 'Resource Production')
@@ -4565,6 +4566,11 @@ class Process(models.Model):
     def uncommitted_use_events(self):
         return self.events.filter(
             event_type__relationship='use',
+            commitment=None)
+            
+    def uncommitted_expense_events(self):
+        return self.events.filter(
+            event_type__relationship='expense',
             commitment=None)
 
     def uncommitted_citation_events(self):

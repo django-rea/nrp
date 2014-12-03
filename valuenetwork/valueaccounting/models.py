@@ -2918,6 +2918,11 @@ class Order(models.Model):
         items = self.order_items()
         return [item.context_agent for item in items]
         
+    def sale(self):
+        if self.order_type == "customer":
+            return Exchange.objects.get(order=self)
+        else:
+            return None
 
 class ProcessTypeManager(models.Manager):
     

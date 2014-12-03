@@ -48,8 +48,12 @@
 			        <ul>
 				        {% for event in item.fulfilling_events %}
 					        <li class="subline" >
-						        <span class="prefix created-prefix">{{ event.event_type.inverse_label }}:</span> 
-						        <a href="{% url resource resource_id=event.resource.id %}">{{ event.resource_type.name }} {{ event.resource.label }}</a>
+						        <span class="prefix created-prefix">{{ event.event_type.name }}:</span> 
+						        {% if event.resource %}
+                                    <a href="{% url resource resource_id=event.resource.id %}">{{ event.resource_type.name }} {{ event.resource.label }}</a>
+                                {% else %}
+                                    <a href="{{ event.resource_type.get_absolute_url }}">{{ event.resource_type.name }}</a>
+                                {% endif %}
 						        {{ event.quantity }} {{ event.unit_of_quantity }}
 					        </li>
 				        {% endfor %}

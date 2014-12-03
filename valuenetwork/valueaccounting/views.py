@@ -5723,10 +5723,11 @@ def add_unplanned_input_event(request, process_id, slot):
 @login_required    
 def log_resource_for_commitment(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
-    prefix = ct.form_prefix()
-    form = CreateEconomicResourceForm(prefix=prefix, data=request.POST)
+    #prefix = ct.form_prefix()
+    #form = CreateEconomicResourceForm(prefix=prefix, data=request.POST)
+    form = ct.resource_create_form(data=request.POST)
+    #import pdb; pdb.set_trace()
     if form.is_valid():
-        #import pdb; pdb.set_trace()
         resource_data = form.cleaned_data
         agent = get_agent(request)
         resource_type = ct.resource_type
@@ -5744,7 +5745,9 @@ def log_resource_for_commitment(request, commitment_id):
             if event_type.applies_stage():
                 resource.stage = ct.stage
             resource.save()
-        event_date = resource_data["created_date"]
+            event_date = resource_data["created_date"]
+        else:
+            event_date = resource_data["event_date"]
         default_agent = ct.process.default_agent()
         event = EconomicEvent(
             resource = resource,

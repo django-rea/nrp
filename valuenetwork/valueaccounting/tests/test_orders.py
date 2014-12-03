@@ -168,8 +168,8 @@ class OrderTest(WebTest):
         self.assertEqual(first_pc.quantity, Decimal("2000"))
         last_pc = pcs[count - 1]
         #import pdb; pdb.set_trace()
-        self.assertEqual(first_pc.order_item, last_pc)
-        order = last_pc.order
+        self.assertTrue(last_pc.order_item.exchange)
+        order = last_pc.order_item.order
         processes = order.all_processes()
         self.assertEqual(len(processes), 2)
         first_process = processes[0]
@@ -204,8 +204,7 @@ class OrderTest(WebTest):
         self.assertEqual(first_pc.quantity, Decimal("2000"))
         last_pc = pcs[count - 1]
         #import pdb; pdb.set_trace()
-        self.assertEqual(first_pc.order_item, last_pc)
-        
+        self.assertTrue(last_pc.order_item.exchange)
         first_process = first_pc.process
         last_process = last_pc.process
         nexts = first_process.next_processes()
@@ -220,7 +219,7 @@ class OrderTest(WebTest):
         self.assertEqual(first_pc.quantity, Decimal("4000"))
         last_pc = pcs[count - 1]
         #import pdb; pdb.set_trace()
-        self.assertEqual(first_pc.order_item, last_pc)
+        self.assertEqual(first_pc.order_item, last_pc.order_item)
         first_process = first_pc.process
         last_process = last_pc.process
         nexts = first_process.next_processes()
@@ -228,7 +227,7 @@ class OrderTest(WebTest):
         self.assertTrue(first_process in prevs)
         self.assertTrue(last_process in nexts)
         
-        order = last_pc.order
+        order = last_pc.order_item.order
         processes = order.all_processes()
         self.assertEqual(len(processes), 4)
         

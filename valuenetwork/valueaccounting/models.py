@@ -1058,7 +1058,7 @@ class EventType(models.Model):
         if self.used_for_value_equations():
             if self.relationship == "use":
                 return "quantity * value_per_unit_of_use"
-            elif self.relationship == "cite":
+            elif self.relationship == "cite" or self.relationship == "pay":
                 return "quantity"
             elif self.relationship == "resource" or self.relationship == "receive":
                 return "value"
@@ -1072,7 +1072,7 @@ class EventType(models.Model):
         bad_relationships = [
             "consume",
             "in",
-            "pay",
+            #"pay",
             "receivecash",
             "shipment",
             "adjust",
@@ -1082,6 +1082,7 @@ class EventType(models.Model):
             "Work Provision",
             "Failed quantity",
             "Damage",
+            "Receipt",
             "Sale",
             "Supply",
         ]
@@ -3647,12 +3648,12 @@ class EconomicResource(models.Model):
         buys = self.purchase_events()
         for evt in buys:
             #import pdb; pdb.set_trace()
-            if evt.value:
-                vpu = evt.value / evt.quantity
-                evt.share = quantity * vpu
-                events.append(evt)
-                #print evt.id, evt, evt.share
-                #print "----Event.share:", evt.share, "= evt.value:", evt.value
+            #if evt.value:
+            #    vpu = evt.value / evt.quantity
+            #    evt.share = quantity * vpu
+            #    events.append(evt)
+            if evt.exchange:
+                evt.exchange.compute_income_shares(evt, quantity, value, events, visited)
         processes = self.producing_processes()
         for process in processes:
             if process not in visited:
@@ -5460,6 +5461,23 @@ class Exchange(models.Model):
     def sorted_events(self):
         events = self.events.all().order_by("event_type__name")
         return events
+        
+    def compute_income_shares(self, trigger_event, quantity, value, events, visited):
+        #import pdb; pdb.set_trace()
+        if self not in visited:
+            visited.add(self)
+            payments = self.payment_events()
+            share =  quantity / trigger_event.quantity
+            if payments.count() == 1:
+                evt = payments[0]
+                evt.share = evt.quantity * share
+                events.append(evt)
+            elif payments.count() >= 1:
+                total = sum(p.quantity for p in payments)
+                for evt in payments:
+                    fraction = evt.quantity / total
+                    evt.share = evt.quantity * share * fraction
+                    events.append(evt)
 
 
 class Feature(models.Model):
@@ -7251,13 +7269,14 @@ class ValueEquation(models.Model):
                     detail_sums.append(sum_a)
                     amount_distributed = bucket_amount
                 else:
-                    serialized_filter = serialized_filters[bucket.id]
-                    ces, contributions = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
-                    for ce in ces:
-                        detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
-                        amount_distributed += ce.value
-                    claim_events.extend(ces)
-                    contribution_events.extend(contributions)
+                    serialized_filter = serialized_filters.get(bucket.id)
+                    if serialized_filter:
+                        ces, contributions = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
+                        for ce in ces:
+                            detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
+                            amount_distributed += ce.value
+                        claim_events.extend(ces)
+                        contribution_events.extend(contributions)
             amount_to_distribute = amount_to_distribute - amount_distributed
         agent_amounts = {}
         for dtl in detail_sums:

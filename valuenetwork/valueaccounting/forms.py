@@ -1726,7 +1726,47 @@ class ExpenseEventForm(forms.ModelForm):
         if context_agent:
             self.context_agent = context_agent
             self.fields["from_agent"].queryset = context_agent.all_suppliers()
+            
+class ProcessExpenseEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        label="Type of expense",
+        empty_label=None,
+        help_text="If you don't see the resource type you want, please contact an admin.",
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.all(),
+        label="Contributor",
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    value = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    resource = ResourceModelChoiceField(
+        required=False,
+        queryset=EconomicResource.objects.all(), 
+        label="Resource to reference",
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
 
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'from_agent', 'resource', 'description')
+
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(ProcessExpenseEventForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            #import pdb; pdb.set_trace()
+            self.fields["resource_type"].queryset = pattern.expense_resource_types()
+            
 class CashContributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     value = forms.DecimalField(

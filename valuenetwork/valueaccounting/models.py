@@ -4379,6 +4379,14 @@ class ProcessManager(models.Manager):
     def finished(self):
         return Process.objects.filter(finished=True)
 
+    def processes_with_expenses(self, start=None, end=None):
+        #import pdb; pdb.set_trace()
+        et_exp = EventType.objects.get(name="Expense")
+        if start and end:
+            procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False).filter(event_date__range=[start, end])]
+        else:
+            procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False)]
+        return list(set(procs))
 
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -5284,11 +5292,23 @@ class Process(models.Model):
 
 class ExchangeManager(models.Manager):
 
-    def financial_contributions(self):
-        return Exchange.objects.filter(
-            Q(use_case__identifier="cash_contr")|
-            Q(use_case__identifier="purch_contr")|
-            Q(use_case__identifier="exp_contr"))
+    def financial_contributions(self, start=None, end=None):
+        #import pdb; pdb.set_trace()
+        if start and end:
+             exchanges = Exchange.objects.filter(
+                Q(use_case__identifier="cash_contr")|
+                Q(use_case__identifier="purch_contr")|
+                Q(use_case__identifier="exp_contr")).filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.filter(
+                Q(use_case__identifier="cash_contr")|
+                Q(use_case__identifier="purch_contr")|
+                Q(use_case__identifier="exp_contr"))
+        processes_with_expenses = Process.objects.processes_with_expenses(start, end)
+        both = list(exchanges)
+        both.extend(processes_with_expenses)
+        both.sort(lambda x, y: cmp(y.start_date, x.start_date))
+        return both
         
     def sales_and_distributions(self):
         return Exchange.objects.filter(
@@ -5358,6 +5378,9 @@ class Exchange(models.Model):
         ])
         unique_slugify(self, slug)
         super(Exchange, self).save(*args, **kwargs)
+            
+    def class_label(self):
+        return "Exchange"
 
     def is_deletable(self):
         answer = True

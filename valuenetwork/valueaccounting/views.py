@@ -8337,7 +8337,7 @@ def exchanges(request):
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
-            exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
+            exchanges = Exchange.objects.financial_contributions(start, end)
         else:
             exchanges = Exchange.objects.financial_contributions()            
         selected_values = request.POST["categories"]
@@ -8356,14 +8356,18 @@ def exchanges(request):
                     for event in ex.events.all():
                         if event.resource_type.accounting_reference:
                             if event.resource_type.accounting_reference.code in vals:
-                                events_included.append(event)
+                                if ex.class_label() == "Exchange":
+                                    events_included.append(event)
+                                else: #process
+                                    if event.event_type == et_expense:
+                                        events_included.append(event)
                     if events_included != []:   
                         ex.event_list = events_included
                         exchanges_included.append(ex)
                         events_included = []
                 exchanges = exchanges_included
     else:
-        exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
+        exchanges = Exchange.objects.financial_contributions(start, end)
 
     total_cash = 0
     total_receipts = 0
@@ -8375,7 +8379,16 @@ def exchanges(request):
         try:
             xx = x.event_list
         except AttributeError:
-            x.event_list = x.events.all()
+            if x.class_label() == "Exchange":
+                x.event_list = x.events.all()
+            else: #process
+                #import pdb; pdb.set_trace()
+                evs = x.events.all()
+                event_list = []
+                for event in evs:
+                    if event.event_type == et_expense:
+                        event_list.append(event)
+                x.event_list = event_list
         for event in x.event_list:
             if event.event_type == et_pay:
                 total_payments = total_payments + event.quantity
@@ -8390,7 +8403,7 @@ def exchanges(request):
     #import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/exchanges.html", {
-        "exchanges": exchanges,
+        "exchanges": exchanges, 
         "dt_selection_form": dt_selection_form,
         "total_cash": total_cash,
         "total_receipts": total_receipts,

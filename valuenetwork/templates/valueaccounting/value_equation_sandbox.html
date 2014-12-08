@@ -186,8 +186,13 @@ img {
                                 <td>{{ detail.vebr.filter }}</td>
                                 <td>{{ detail.from_agent.nick }}</td>
                                 <td>{{ detail.event_date }}</td>
-                                <td>{{ detail.event_type }}</td>
-                                <td>{{ detail.quantity }} {{ detail.unit_of_quantity }}</td>
+                                <td>{{ detail.event_type }} - {{ detail.resource_type }}</td>
+                                <td>
+                                    {{ detail.quantity }} 
+                                    {% if detail.unit_of_quantity %}
+                                        {{ detail.unit_of_quantity.abbrev }}
+                                    {% endif %}
+                                </td>
                                  <td>{{ detail.vebr.claim_creation_equation }}</td>
                                 <td>{{ detail.distr_amt }}</td>
                                 <td>{{ detail.explanation }}</td>

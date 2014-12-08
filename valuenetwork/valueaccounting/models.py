@@ -1314,7 +1314,11 @@ class EconomicResourceType(models.Model):
         sked_rcts = self.producing_commitments().filter(due_date__lte=due_date).exclude(id=commitment.id)
         if stage:
             sked_rcts = sked_rcts.filter(stage=stage)
-        sked_qty = sum(pc.quantity for pc in sked_rcts)
+        unfilled_rcts = []
+        for sr in sked_rcts:
+            if not sr.is_fulfilled():
+                unfilled_rcts.append(sr)
+        sked_qty = sum(pc.quantity for pc in unfilled_rcts)
         if not sked_qty:
             return Decimal("0")
         if stage:
@@ -3424,6 +3428,7 @@ class EconomicResource(models.Model):
         #Purchase contributions use event.value.
         buys = self.purchase_events()
         for evt in buys:
+            #import pdb; pdb.set_trace()
             evt_vpu = evt.value / evt.quantity
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
@@ -3642,6 +3647,7 @@ class EconomicResource(models.Model):
         #and all contribution events have been valued.
         #print "Resource:", self.id, self
         #print "running quantity:", quantity, "running value:", value
+        #import pdb; pdb.set_trace()
         contributions = self.resource_contribution_events()
         for evt in contributions:
             #if evt.id == 3960:
@@ -3669,7 +3675,8 @@ class EconomicResource(models.Model):
                 if quantity:
                     #todo: how will this work for >1 processes producing the same resource?
                     #what will happen to the shares of the inputs of the later processes?
-                    produced_qty = sum(pe.quantity for pe in process.production_events())
+                    production_events = process.production_events()
+                    produced_qty = sum(pe.quantity for pe in production_events)
                     distro_fraction = 1
                     distro_qty = quantity
                     if produced_qty > quantity:
@@ -3678,6 +3685,9 @@ class EconomicResource(models.Model):
                     elif produced_qty <= quantity:
                         distro_qty = produced_qty
                         quantity -= produced_qty
+                    for pe in production_events:
+                        pe.share = pe.quantity * distro_fraction
+                        events.append(pe)
                     inputs = process.incoming_events()
                     for ip in inputs:
                         #we assume here that work events are contributions
@@ -3690,28 +3700,30 @@ class EconomicResource(models.Model):
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
                                 ip_value = ip.value * distro_fraction
+                                d_qty = distro_qty
                                 if ip_value:
                                     d_qty = ip_value / value
-                                    ip.resource.compute_income_shares(d_qty, ip_value, events, visited) 
+                                ip.resource.compute_income_shares(d_qty, ip_value, events, visited) 
                         elif ip.event_type.relationship == "consume":
                             #consume events are not contributions, but their resources may have contributions
                             ip_value = ip.value * distro_fraction
                             #if ip.resource.id == 98:
                             #    import pdb; pdb.set_trace()
-                            if ip_value:
-                                d_qty = ip.quantity * distro_fraction
+                            d_qty = ip.quantity * distro_fraction
+                            #if ip_value:
                                 #print "consumption:", ip.id, ip, "ip.value:", ip.value
                                 #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
+                            ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
                         elif ip.event_type.relationship == "cite":
                             #import pdb; pdb.set_trace()   
                             #citation events are not contributions, but their resources may have contributions
                             ip_value = ip.value * distro_fraction
+                            d_qty = distro_qty
                             if ip_value:
                                 d_qty = ip_value / value
                                 #print "citation:", ip.id, ip, "ip.value:", ip.value
                                 #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
+                            ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
 
     def direct_share_components(self, components, visited, depth):
         depth += 1
@@ -5249,12 +5261,14 @@ class Process(models.Model):
         #This method assumes that self.roll_up_value has been run,
         #and all contribution events have been valued.
         #print "running quantity:", quantity, "running value:", value
+        #import pdb; pdb.set_trace()
         if self not in visited:
             visited.add(self)
             if quantity:
                 #todo: how will this work for >1 processes producing the same resource?
                 #what will happen to the shares of the inputs of the later processes?
-                produced_qty = sum(pe.quantity for pe in self.production_events())
+                production_events = process.production_events()
+                produced_qty = sum(pe.quantity for pe in production_events)
                 distro_fraction = 1
                 distro_qty = quantity
                 if produced_qty > quantity:
@@ -5263,6 +5277,9 @@ class Process(models.Model):
                 elif produced_qty <= quantity:
                     distro_qty = produced_qty
                     quantity -= produced_qty
+                for pe in production_events:
+                    pe.share = pe.quantity * distro_fraction
+                    events.append(pe)
                 inputs = self.incoming_events()
                 for ip in inputs:
                     #we assume here that work events are contributions
@@ -5474,18 +5491,26 @@ class Exchange(models.Model):
         #import pdb; pdb.set_trace()
         if self not in visited:
             visited.add(self)
+            receipts = self.receipt_events()
+            trigger_fraction = 1
+            if receipts.count() > 1:
+                rsum = sum(r.value for r in receipts)
+                trigger_fraction = trigger_event.value / rsum
             payments = self.payment_events()
             share =  quantity / trigger_event.quantity
             if payments.count() == 1:
                 evt = payments[0]
                 evt.share = evt.quantity * share
                 events.append(evt)
-            elif payments.count() >= 1:
+            elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
                     fraction = evt.quantity / total
-                    evt.share = evt.quantity * share * fraction
+                    evt.share = evt.quantity * share * fraction * trigger_fraction
                     events.append(evt)
+            for evt in self.work_events():
+                evt.share = evt.quantity * share * trigger_fraction
+                events.append(evt)
 
 
 class Feature(models.Model):
@@ -6041,6 +6066,11 @@ class Commitment(models.Model):
 
     def unfilled_quantity(self):
         return self.quantity - self.fulfilled_quantity()
+        
+    def is_fulfilled(self):
+        if self.unfilled_quantity():
+            return False
+        return True
 
     def onhand(self):
         answer = []

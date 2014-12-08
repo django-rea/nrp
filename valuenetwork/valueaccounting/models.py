@@ -1313,7 +1313,11 @@ class EconomicResourceType(models.Model):
         sked_rcts = self.producing_commitments().filter(due_date__lte=due_date).exclude(id=commitment.id)
         if stage:
             sked_rcts = sked_rcts.filter(stage=stage)
-        sked_qty = sum(pc.quantity for pc in sked_rcts)
+        unfilled_rcts = []
+        for sr in sked_rcts:
+            if not sr.is_fulfilled():
+                unfilled_rcts.append(sr)
+        sked_qty = sum(pc.quantity for pc in unfilled_rcts)
         if not sked_qty:
             return Decimal("0")
         if stage:
@@ -3416,6 +3420,7 @@ class EconomicResource(models.Model):
         #Purchase contributions use event.value.
         buys = self.purchase_events()
         for evt in buys:
+            #import pdb; pdb.set_trace()
             evt_vpu = evt.value / evt.quantity
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
@@ -5443,18 +5448,26 @@ class Exchange(models.Model):
         #import pdb; pdb.set_trace()
         if self not in visited:
             visited.add(self)
+            receipts = self.receipt_events()
+            trigger_fraction = 1
+            if receipts.count() > 1:
+                rsum = sum(r.value for r in receipts)
+                trigger_fraction = trigger_event.value / rsum
             payments = self.payment_events()
             share =  quantity / trigger_event.quantity
             if payments.count() == 1:
                 evt = payments[0]
                 evt.share = evt.quantity * share
                 events.append(evt)
-            elif payments.count() >= 1:
+            elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
                     fraction = evt.quantity / total
-                    evt.share = evt.quantity * share * fraction
+                    evt.share = evt.quantity * share * fraction * trigger_fraction
                     events.append(evt)
+            for evt in self.work_events():
+                evt.share = evt.quantity * share * trigger_fraction
+                events.append(evt)
 
 
 class Feature(models.Model):
@@ -6010,6 +6023,11 @@ class Commitment(models.Model):
 
     def unfilled_quantity(self):
         return self.quantity - self.fulfilled_quantity()
+        
+    def is_fulfilled(self):
+        if self.unfilled_quantity():
+            return False
+        return True
 
     def onhand(self):
         answer = []

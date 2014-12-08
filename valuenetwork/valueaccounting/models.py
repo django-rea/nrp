@@ -952,6 +952,7 @@ DIRECTION_CHOICES = (
     ('shipment', _('shipment')),
     ('distribute', _('distribution')),
     ('adjust', _('adjust')),
+    ('payexpense', _('expense payment')),
 )
 
 RELATED_CHOICES = (
@@ -2230,6 +2231,9 @@ class ProcessPattern(models.Model):
         #import pdb; pdb.set_trace()
         return self.resource_types_for_relationship("expense")
 
+    def process_expense_resource_types(self):
+        return self.resource_types_for_relationship("payexpense")
+        
     def cash_contr_resource_types(self):
         return self.resource_types_for_relationship("cash")
     
@@ -2492,7 +2496,8 @@ def create_event_types(app, **kwargs):
     EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
     EventType.create('Adjust Quantity', _('adjusts'), 'adjusted', 'adjust', 'agent', '+-', 'quantity')
     EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
-    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '-', 'value')    
+    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '-', 'value')
+    EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
 
@@ -2536,7 +2541,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('rand', 'To Be Changed')
     UseCaseEventType.create('rand', 'Change')
     UseCaseEventType.create('rand', 'Create Changeable')
-    UseCaseEventType.create('rand', 'Expense')
+    UseCaseEventType.create('rand', 'Process Expense')
     UseCaseEventType.create('recipe','Citation')
     UseCaseEventType.create('recipe', 'Resource Consumption')
     UseCaseEventType.create('recipe', 'Resource Production')
@@ -4382,7 +4387,7 @@ class ProcessManager(models.Manager):
 
     def processes_with_expenses(self, start=None, end=None):
         #import pdb; pdb.set_trace()
-        et_exp = EventType.objects.get(name="Expense")
+        et_exp = EventType.objects.get(name="Process Expense")
         if start and end:
             procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False).filter(event_date__range=[start, end])]
         else:
@@ -4577,9 +4582,9 @@ class Process(models.Model):
             event_type__relationship='use',
             commitment=None)
             
-    def uncommitted_expense_events(self):
+    def uncommitted_process_expense_events(self):
         return self.events.filter(
-            event_type__relationship='expense',
+            event_type__relationship='payexpense',
             commitment=None)
 
     def uncommitted_citation_events(self):

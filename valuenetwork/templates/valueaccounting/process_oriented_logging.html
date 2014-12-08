@@ -1157,13 +1157,13 @@ hr {
 	        </div>
 	    {% endif %}
      
-        {% if uncommitted_expense  or "expense" in slots %}
+        {% if uncommitted_process_expenses  or "payexpense" in slots %}
             <div class="log-section">
                 <h3 style="margin-bottom: 4px;" >
-                    {% trans "Expenses" %}:
+                    {% trans "Expense Payments" %}:
                     {% if agent %}
                         <a href="#unplannedExpenseModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned expense" >
-                            {% trans "Log unplanned expense" %}
+                            {% trans "Log process expense" %}
                         </a>
                     {% endif %}
                 </h3>
@@ -1178,7 +1178,7 @@ hr {
                             <form class="expense-form validateMe" enctype="multipart/form-data" id="addUnplannedExpenseForm" 
                                 action="{% url add_process_expense process_id=process.id %}" method="POST" >
                               {% csrf_token %}
-                              {{ unplanned_expense_form|as_bootstrap }}
+                              {{ process_expense_form|as_bootstrap }}
                               <div class="modal-footer">
                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                 <button id="select-resource" class="btn btn-primary">{% trans "Add Expense" %}</button>
@@ -1189,13 +1189,13 @@ hr {
 
                 {% endif %}
 
-                {% if uncommitted_expense %}
-                    <h4 class="unplanned">{% trans "Unplanned Expense" %}:</h4>
-                    {% for event in uncommitted_expense %}
+                {% if uncommitted_process_expenses %}
+                    {% comment %} <h4 class="unplanned">{% trans "Unplanned Expense Payments" %}:</h4>{% endcomment %}
+                    {% for event in uncommitted_process_expenses %}
                         <div class="event" >
-                            <span class="event-label">{% trans "Expensed" %}:</span>
-                            <span class="event" > 
-                                <b>{{ event.value }} {{ event.unit_of_value }}</b> {{ event.event_date }} 
+                            <span class="event-label">{% trans "Paid" %}:</span>
+                            <span > 
+                                <b>{{ event.value }} {{ event.unit_of_value }}</b> {{ event.event_date }} for {{ event.resource_type }}
                                  <span class="taken">{% trans "Contributed by" %} {{ event.from_agent.nick }}</span>
                             </span>
                             {% if logger %}

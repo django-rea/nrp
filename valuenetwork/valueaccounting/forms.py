@@ -1750,22 +1750,22 @@ class ProcessExpenseEventForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
     value = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
-    resource = ResourceModelChoiceField(
-        required=False,
-        queryset=EconomicResource.objects.all(), 
-        label="Resource to reference",
-        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
+    #resource = ResourceModelChoiceField(
+    #    required=False,
+    #    queryset=EconomicResource.objects.all(), 
+    #    label="Resource to reference",
+    #    widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'from_agent', 'resource', 'description')
+        fields = ('event_date', 'resource_type', 'value', 'unit_of_value', 'from_agent', 'description')
 
     def __init__(self, pattern=None, *args, **kwargs):
         super(ProcessExpenseEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             #import pdb; pdb.set_trace()
-            self.fields["resource_type"].queryset = pattern.expense_resource_types()
+            self.fields["resource_type"].queryset = pattern.process_expense_resource_types()
             
 class CashContributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

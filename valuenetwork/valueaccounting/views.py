@@ -4269,14 +4269,14 @@ def add_process_expense(request, process_id):
         #import pdb; pdb.set_trace()
         pattern = process.process_pattern
         context_agent = process.context_agent
-        form = ProcessExpenseEventForm(data=request.POST, pattern=pattern, prefix='unplannedexpense')
+        form = ProcessExpenseEventForm(data=request.POST, pattern=pattern, prefix='processexpense')
         if form.is_valid():
             expense_data = form.cleaned_data
             value = expense_data["value"] 
             if value:
                 event = form.save(commit=False)
                 rt = expense_data["resource_type"]
-                event_type = pattern.event_type_for_resource_type("expense", rt)
+                event_type = pattern.event_type_for_resource_type("payexpense", rt)
                 event.event_type = event_type
                 event.process = process
                 event.context_agent = process.context_agent
@@ -5477,7 +5477,7 @@ def process_oriented_logging(request, process_id):
     unplanned_consumption_form = None
     unplanned_use_form = None
     unplanned_output_form = None
-    unplanned_expense_form = None
+    process_expense_form = None
     slots = []
     event_types = []
     work_now = settings.USE_WORK_NOW
@@ -5562,8 +5562,8 @@ def process_oriented_logging(request, process_id):
             unplanned_use_form = UnplannedInputEventForm(prefix='unplannedusable', pattern=pattern)
             if logger:
                 add_usable_form = ProcessUsableForm(prefix='usable', pattern=pattern)
-        if "expense" in slots:
-            unplanned_expense_form = ProcessExpenseEventForm(prefix='unplannedexpense', pattern=pattern)
+        if "payexpense" in slots:
+            process_expense_form = ProcessExpenseEventForm(prefix='processexpense', pattern=pattern)
     
     cited_ids = [c.resource.id for c in process.citations()]
     #import pdb; pdb.set_trace()
@@ -5597,7 +5597,7 @@ def process_oriented_logging(request, process_id):
         "unplanned_consumption_form": unplanned_consumption_form,
         "unplanned_use_form": unplanned_use_form,
         "unplanned_output_form": unplanned_output_form,
-        "unplanned_expense_form": unplanned_expense_form,
+        "process_expense_form": process_expense_form,
         "slots": slots,
         "to_be_changed_requirement": to_be_changed_requirement,
         "changeable_requirement": changeable_requirement,
@@ -5606,7 +5606,7 @@ def process_oriented_logging(request, process_id):
         "uncommitted_consumption": process.uncommitted_consumption_events(),
         "use_reqs": use_reqs,
         "uncommitted_use": process.uncommitted_use_events(),
-        "uncommitted_expense": process.uncommitted_expense_events(),
+        "uncommitted_process_expenses": process.uncommitted_process_expense_events(),
         "unplanned_work": unplanned_work,
         "work_now": work_now,
         "help": get_help("process"),
@@ -8327,6 +8327,7 @@ def exchanges(request):
     et_pay = EventType.objects.get(name="Payment")   
     et_receive = EventType.objects.get(name="Receipt")
     et_expense = EventType.objects.get(name="Expense")
+    et_process_expense = EventType.objects.get(name="Process Expense")
     references = AccountingReference.objects.all()
     event_ids = ""
     select_all = True
@@ -8337,7 +8338,7 @@ def exchanges(request):
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
-            exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
+            exchanges = Exchange.objects.financial_contributions(start, end)
         else:
             exchanges = Exchange.objects.financial_contributions()            
         selected_values = request.POST["categories"]
@@ -8356,14 +8357,18 @@ def exchanges(request):
                     for event in ex.events.all():
                         if event.resource_type.accounting_reference:
                             if event.resource_type.accounting_reference.code in vals:
-                                events_included.append(event)
+                                if ex.class_label() == "Exchange":
+                                    events_included.append(event)
+                                else: #process
+                                    if event.event_type == et_process_expense:
+                                        events_included.append(event)
                     if events_included != []:   
                         ex.event_list = events_included
                         exchanges_included.append(ex)
                         events_included = []
                 exchanges = exchanges_included
     else:
-        exchanges = Exchange.objects.financial_contributions().filter(start_date__range=[start, end])
+        exchanges = Exchange.objects.financial_contributions(start, end)
 
     total_cash = 0
     total_receipts = 0
@@ -8375,7 +8380,16 @@ def exchanges(request):
         try:
             xx = x.event_list
         except AttributeError:
-            x.event_list = x.events.all()
+            if x.class_label() == "Exchange":
+                x.event_list = x.events.all()
+            else: #process
+                #import pdb; pdb.set_trace()
+                evs = x.events.all()
+                event_list = []
+                for event in evs:
+                    if event.event_type == et_process_expense:
+                        event_list.append(event)
+                x.event_list = event_list
         for event in x.event_list:
             if event.event_type == et_pay:
                 total_payments = total_payments + event.quantity
@@ -8383,6 +8397,9 @@ def exchanges(request):
                 total_cash = total_cash + event.quantity
             elif event.event_type == et_expense:
                 total_expenses = total_expenses + event.value
+            elif event.event_type == et_process_expense:
+                total_expenses = total_expenses + event.value
+                total_payments = total_payments + event.value
             elif event.event_type == et_receive:
                 total_receipts = total_receipts + event.value
             event_ids = event_ids + comma + str(event.id)
@@ -8390,7 +8407,7 @@ def exchanges(request):
     #import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/exchanges.html", {
-        "exchanges": exchanges,
+        "exchanges": exchanges, 
         "dt_selection_form": dt_selection_form,
         "total_cash": total_cash,
         "total_receipts": total_receipts,

@@ -952,6 +952,7 @@ DIRECTION_CHOICES = (
     ('shipment', _('shipment')),
     ('distribute', _('distribution')),
     ('adjust', _('adjust')),
+    ('payexpense', _('expense payment')),
 )
 
 RELATED_CHOICES = (
@@ -2234,6 +2235,9 @@ class ProcessPattern(models.Model):
         #import pdb; pdb.set_trace()
         return self.resource_types_for_relationship("expense")
 
+    def process_expense_resource_types(self):
+        return self.resource_types_for_relationship("payexpense")
+        
     def cash_contr_resource_types(self):
         return self.resource_types_for_relationship("cash")
     
@@ -2496,7 +2500,8 @@ def create_event_types(app, **kwargs):
     EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
     EventType.create('Adjust Quantity', _('adjusts'), 'adjusted', 'adjust', 'agent', '+-', 'quantity')
     EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
-    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '-', 'value')    
+    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '-', 'value')
+    EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
 
@@ -2540,7 +2545,8 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('rand', 'To Be Changed')
     UseCaseEventType.create('rand', 'Change')
     UseCaseEventType.create('rand', 'Create Changeable')
-    UseCaseEventType.create('rand', 'Expense')
+    UseCaseEventType.create('rand', 'Process Expense')
+    #todo: 'rand' now = mfg/assembly, 'recipe' now = workflow.  Need to rename these use cases.
     UseCaseEventType.create('recipe','Citation')
     UseCaseEventType.create('recipe', 'Resource Consumption')
     UseCaseEventType.create('recipe', 'Resource Production')
@@ -2549,6 +2555,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('recipe', 'To Be Changed')
     UseCaseEventType.create('recipe', 'Change')
     UseCaseEventType.create('recipe', 'Create Changeable')
+    UseCaseEventType.create('recipe', 'Process Expense')
     UseCaseEventType.create('todo', 'Todo')
     #UseCaseEventType.create('cust_orders', 'Damage')
     #UseCaseEventType.create('cust_orders', 'Payment')
@@ -2573,6 +2580,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('distribution', 'Time Contribution')
     UseCaseEventType.create('val_equation', 'Time Contribution')
     UseCaseEventType.create('val_equation', 'Resource Production')
+    UseCaseEventType.create('val_equation', 'Process Expense')
 
     print "created use case event type associations"
 
@@ -4385,6 +4393,14 @@ class ProcessManager(models.Manager):
     def finished(self):
         return Process.objects.filter(finished=True)
 
+    def processes_with_expenses(self, start=None, end=None):
+        #import pdb; pdb.set_trace()
+        et_exp = EventType.objects.get(name="Process Expense")
+        if start and end:
+            procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False).filter(event_date__range=[start, end])]
+        else:
+            procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False)]
+        return list(set(procs))
 
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -4574,9 +4590,9 @@ class Process(models.Model):
             event_type__relationship='use',
             commitment=None)
             
-    def uncommitted_expense_events(self):
+    def uncommitted_process_expense_events(self):
         return self.events.filter(
-            event_type__relationship='expense',
+            event_type__relationship='payexpense',
             commitment=None)
 
     def uncommitted_citation_events(self):
@@ -5290,11 +5306,23 @@ class Process(models.Model):
 
 class ExchangeManager(models.Manager):
 
-    def financial_contributions(self):
-        return Exchange.objects.filter(
-            Q(use_case__identifier="cash_contr")|
-            Q(use_case__identifier="purch_contr")|
-            Q(use_case__identifier="exp_contr"))
+    def financial_contributions(self, start=None, end=None):
+        #import pdb; pdb.set_trace()
+        if start and end:
+             exchanges = Exchange.objects.filter(
+                Q(use_case__identifier="cash_contr")|
+                Q(use_case__identifier="purch_contr")|
+                Q(use_case__identifier="exp_contr")).filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.filter(
+                Q(use_case__identifier="cash_contr")|
+                Q(use_case__identifier="purch_contr")|
+                Q(use_case__identifier="exp_contr"))
+        processes_with_expenses = Process.objects.processes_with_expenses(start, end)
+        both = list(exchanges)
+        both.extend(processes_with_expenses)
+        both.sort(lambda x, y: cmp(y.start_date, x.start_date))
+        return both
         
     def sales_and_distributions(self):
         return Exchange.objects.filter(
@@ -5364,6 +5392,9 @@ class Exchange(models.Model):
         ])
         unique_slugify(self, slug)
         super(Exchange, self).save(*args, **kwargs)
+            
+    def class_label(self):
+        return "Exchange"
 
     def is_deletable(self):
         answer = True

@@ -1190,6 +1190,11 @@ class EconomicResourceType(models.Model):
         default=Decimal("0.00"))
     value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
+    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.00"))
+    unit_of_price = models.ForeignKey(Unit, blank=True, null=True,
+        limit_choices_to={'unit_type': 'value'},
+        verbose_name=_('unit of price'), related_name="resource_type_price_units")
     substitutable = models.BooleanField(_('substitutable'), default=True,
         help_text=_('Can any resource of this type be substituted for any other resource of this type?'))
     inventory_rule = models.CharField(_('inventory rule'), max_length=5,
@@ -1551,8 +1556,8 @@ class EconomicResourceType(models.Model):
         
     def can_be_parent(self):
         if self.own_recipes():
-            if self.recipe_is_staged():
-                return True
+            #if self.recipe_is_staged():
+            return True
         return False
 
     def generate_staged_work_order(self, order_name, start_date, user):

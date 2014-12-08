@@ -2542,6 +2542,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('rand', 'Change')
     UseCaseEventType.create('rand', 'Create Changeable')
     UseCaseEventType.create('rand', 'Process Expense')
+    #todo: 'rand' now = mfg/assembly, 'recipe' now = workflow.  Need to rename these use cases.
     UseCaseEventType.create('recipe','Citation')
     UseCaseEventType.create('recipe', 'Resource Consumption')
     UseCaseEventType.create('recipe', 'Resource Production')
@@ -2550,6 +2551,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('recipe', 'To Be Changed')
     UseCaseEventType.create('recipe', 'Change')
     UseCaseEventType.create('recipe', 'Create Changeable')
+    UseCaseEventType.create('recipe', 'Process Expense')
     UseCaseEventType.create('todo', 'Todo')
     #UseCaseEventType.create('cust_orders', 'Damage')
     #UseCaseEventType.create('cust_orders', 'Payment')
@@ -2574,6 +2576,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('distribution', 'Time Contribution')
     UseCaseEventType.create('val_equation', 'Time Contribution')
     UseCaseEventType.create('val_equation', 'Resource Production')
+    UseCaseEventType.create('val_equation', 'Process Expense')
 
     print "created use case event type associations"
 

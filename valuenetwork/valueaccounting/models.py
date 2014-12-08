@@ -3647,6 +3647,7 @@ class EconomicResource(models.Model):
         #and all contribution events have been valued.
         #print "Resource:", self.id, self
         #print "running quantity:", quantity, "running value:", value
+        #import pdb; pdb.set_trace()
         contributions = self.resource_contribution_events()
         for evt in contributions:
             #if evt.id == 3960:
@@ -3674,7 +3675,8 @@ class EconomicResource(models.Model):
                 if quantity:
                     #todo: how will this work for >1 processes producing the same resource?
                     #what will happen to the shares of the inputs of the later processes?
-                    produced_qty = sum(pe.quantity for pe in process.production_events())
+                    production_events = process.production_events()
+                    produced_qty = sum(pe.quantity for pe in production_events)
                     distro_fraction = 1
                     distro_qty = quantity
                     if produced_qty > quantity:
@@ -3683,6 +3685,9 @@ class EconomicResource(models.Model):
                     elif produced_qty <= quantity:
                         distro_qty = produced_qty
                         quantity -= produced_qty
+                    for pe in production_events:
+                        pe.share = pe.quantity * distro_fraction
+                        events.append(pe)
                     inputs = process.incoming_events()
                     for ip in inputs:
                         #we assume here that work events are contributions
@@ -3695,28 +3700,30 @@ class EconomicResource(models.Model):
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
                                 ip_value = ip.value * distro_fraction
+                                d_qty = distro_qty
                                 if ip_value:
                                     d_qty = ip_value / value
-                                    ip.resource.compute_income_shares(d_qty, ip_value, events, visited) 
+                                ip.resource.compute_income_shares(d_qty, ip_value, events, visited) 
                         elif ip.event_type.relationship == "consume":
                             #consume events are not contributions, but their resources may have contributions
                             ip_value = ip.value * distro_fraction
                             #if ip.resource.id == 98:
                             #    import pdb; pdb.set_trace()
-                            if ip_value:
-                                d_qty = ip.quantity * distro_fraction
+                            d_qty = ip.quantity * distro_fraction
+                            #if ip_value:
                                 #print "consumption:", ip.id, ip, "ip.value:", ip.value
                                 #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
+                            ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
                         elif ip.event_type.relationship == "cite":
                             #import pdb; pdb.set_trace()   
                             #citation events are not contributions, but their resources may have contributions
                             ip_value = ip.value * distro_fraction
+                            d_qty = distro_qty
                             if ip_value:
                                 d_qty = ip_value / value
                                 #print "citation:", ip.id, ip, "ip.value:", ip.value
                                 #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
+                            ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
 
     def direct_share_components(self, components, visited, depth):
         depth += 1
@@ -5254,12 +5261,14 @@ class Process(models.Model):
         #This method assumes that self.roll_up_value has been run,
         #and all contribution events have been valued.
         #print "running quantity:", quantity, "running value:", value
+        #import pdb; pdb.set_trace()
         if self not in visited:
             visited.add(self)
             if quantity:
                 #todo: how will this work for >1 processes producing the same resource?
                 #what will happen to the shares of the inputs of the later processes?
-                produced_qty = sum(pe.quantity for pe in self.production_events())
+                production_events = process.production_events()
+                produced_qty = sum(pe.quantity for pe in production_events)
                 distro_fraction = 1
                 distro_qty = quantity
                 if produced_qty > quantity:
@@ -5268,6 +5277,9 @@ class Process(models.Model):
                 elif produced_qty <= quantity:
                     distro_qty = produced_qty
                     quantity -= produced_qty
+                for pe in production_events:
+                    pe.share = pe.quantity * distro_fraction
+                    events.append(pe)
                 inputs = self.incoming_events()
                 for ip in inputs:
                     #we assume here that work events are contributions

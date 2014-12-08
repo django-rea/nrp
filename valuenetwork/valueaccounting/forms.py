@@ -2225,6 +2225,9 @@ class EconomicResourceTypeChangeForm(forms.ModelForm):
     value_per_unit_of_use = forms.DecimalField(
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    price_per_unit = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'price'}))
     unit = forms.ModelChoiceField(
         queryset=Unit.objects.all())
     

@@ -349,6 +349,9 @@ container li {
             required: true, 
             quantity: true,
         });
+        $.validator.addClassRules("price", {
+            quantity: true,
+        });
 
         $('.category').click(function() 
         {

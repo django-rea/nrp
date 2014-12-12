@@ -7320,7 +7320,8 @@ class ValueEquation(models.Model):
                             amount_distributed += ce.value
                         claim_events.extend(ces)
                         contribution_events.extend(contributions)
-            amount_to_distribute = amount_to_distribute - amount_distributed
+            if self.percentage_behavior == "remaining":
+                amount_to_distribute = amount_to_distribute - amount_distributed
         agent_amounts = {}
         for dtl in detail_sums:
             detail = dtl.split("~")

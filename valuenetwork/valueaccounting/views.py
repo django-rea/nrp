@@ -893,9 +893,9 @@ def inventory(request):
         "help": get_help("inventory"),
     }, context_instance=RequestContext(request))
 
-def resource_flow_report(request):
+def resource_flow_report(request, resource_type_id):
     #import pdb; pdb.set_trace()
-    rt = EconomicResourceType.objects.get(name="Herb - Dry") #todo: TEMP!!!!!
+    rt = EconomicResourceType.objects.get(id=resource_type_id) 
     pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
     lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
     for lot in lot_list:

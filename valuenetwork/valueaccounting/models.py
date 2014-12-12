@@ -7440,8 +7440,10 @@ class ValueEquationBucket(models.Model):
                 portion_of_amount = amount_to_distribute / total_amount
             else:
                 portion_of_amount = Decimal("0.0")
-            if portion_of_amount > 1:
-                portion_of_amount = Decimal("1.0")
+            #import pdb; pdb.set_trace()
+            if self.value_equation.percentage_behavior == "remaining":
+                if portion_of_amount > 1:
+                    portion_of_amount = Decimal("1.0")
             #import pdb; pdb.set_trace()
             for vebr in rules:
                 ces = vebr.create_distribution_claim_events(claims=vebr.calced_claims, portion_of_amount=portion_of_amount)
@@ -7667,11 +7669,10 @@ class ValueEquationBucketRule(models.Model):
         claim_events = []
         if claims == None:
             claims = self.gather_claims()
-        #if self.division_rule == 'percentage':
         for claim in claims:
             distr_amt = claim.share * portion_of_amount
-            if distr_amt > claim.value:
-                distr_amt = claim.value
+            #if distr_amt > claim.value:
+            #    distr_amt = claim.value
             if self.claim_rule_type == "debt-like":
                 claim.value = claim.value - distr_amt
             elif self.claim_rule_type == "once":
@@ -7716,7 +7717,6 @@ class ValueEquationBucketRule(models.Model):
                 event_effect = "-",
             )
             claim_events.append(claim_event)
-        #elif:
         return claim_events    
         
     def normalize_equation(self):

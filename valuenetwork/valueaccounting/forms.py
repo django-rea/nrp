@@ -2237,8 +2237,11 @@ class EconomicResourceTypeChangeForm(forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super(EconomicResourceTypeChangeForm, self).__init__(*args, **kwargs)
-        #todo pr: self.instance shd be excluded from parents
-        self.fields["parent"].queryset = possible_parent_resource_types()
+        #import pdb; pdb.set_trace()
+        parent_qs = possible_parent_resource_types()
+        if self.instance:
+            parent_qs = parent_qs.exclude(id=self.instance.id)
+        self.fields["parent"].queryset = parent_qs
 
 
 class EconomicResourceTypeAjaxForm(forms.ModelForm):

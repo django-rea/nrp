@@ -3516,7 +3516,7 @@ class EconomicResource(models.Model):
                 weights = sum(v[1] for v in values)
                 if weighted_values and weights:
                     value_per_unit = weighted_values / weights
-        self.value_per_unit = value_per_unit.quantize(Decimal('.01'), rounding=ROUND_UP)
+        self.value_per_unit = value_per_unit.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
         self.save()
         return self.value_per_unit
         
@@ -4166,11 +4166,11 @@ class AgentResourceType(models.Model):
 
     def comparative_scores(self):
         scores = AgentResourceType.objects.filter(resource_type=self.resource_type).values_list('score', flat=True)
-        average = str((sum(scores) / len(scores)).quantize(Decimal('.01'), rounding=ROUND_UP))
+        average = str((sum(scores) / len(scores)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
         return "".join([
-            "Min: ", str(min(scores).quantize(Decimal('.01'), rounding=ROUND_UP)), 
+            "Min: ", str(min(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)), 
             ", Average: ", average, 
-            ", Max: ", str(max(scores).quantize(Decimal('.01'), rounding=ROUND_UP)),
+            ", Max: ", str(max(scores).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
             ]) 
    
 
@@ -5040,7 +5040,7 @@ class Process(models.Model):
                         if main_ptr:
                             if main_ptr.quantity:
                                 multiplier = output.quantity / main_ptr.quantity
-                qty = (multiplier * ptrt.quantity).quantize(Decimal('.01'), rounding=ROUND_UP)
+                qty = (multiplier * ptrt.quantity).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
                 #todo: must consider ratio of PT output qty to PT input qty
             #pr changed
             resource_type = ptrt.resource_type
@@ -5118,7 +5118,7 @@ class Process(models.Model):
                             #2014-11-05
                             #if not multiplier:
                             #    multiplier = pptr.quantity
-                            #qty = (qty_to_explode * multiplier).quantize(Decimal('.01'), rounding=ROUND_UP)
+                            #qty = (qty_to_explode * multiplier).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
                             qty = qty_to_explode
                         #todo: must consider ratio of PT output qty to PT input qty
                         #Todo: apply selected_context_agent here? Dnly if inheritance?
@@ -7105,7 +7105,7 @@ class EconomicEvent(models.Model):
 
     def quantity_formatted(self):
         return " ".join([
-            str(self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)),
+            str(self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
             self.unit(),
             ])
             
@@ -7340,7 +7340,7 @@ class ValueEquation(models.Model):
                 from_agent = self.context_agent, 
                 to_agent = EconomicAgent.objects.get(id=int(agent_id)),
                 context_agent = self.context_agent,
-                quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_UP),
+                quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
                 is_contribution = False,
             )
             agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
@@ -7678,19 +7678,19 @@ class ValueEquationBucketRule(models.Model):
                 claim.value = claim.value - distr_amt
             elif self.claim_rule_type == "once":
                 claim.value = 0
-            claim.event.distr_amt = distr_amt.quantize(Decimal('.01'), rounding=ROUND_UP)
+            claim.event.distr_amt = distr_amt.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
             unit_of_value = ""
             if claim.event.unit_of_value:
                 unit_of_value = claim.event.unit_of_value.abbrev
             excuse = ""
             if portion_of_amount < 1:
-                percent = (portion_of_amount * 100).quantize(Decimal('.01'), rounding=ROUND_UP)
+                percent = (portion_of_amount * 100).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
                 excuse = "".join([
                     ", but the distribution amount covered only ",
                     str(percent),
                     "% of the claims for this bucket",
                     ])
-            share = claim.share.quantize(Decimal('.01'), rounding=ROUND_UP)
+            share = claim.share.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
             sel = ""
             reason = ""
             obj = ""
@@ -7942,7 +7942,7 @@ class EventSummary(object):
             ])
 
     def quantity_formatted(self):
-        return self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)
+        return self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
 
 
 #todo: this model is obsolete and can be deleted
@@ -8075,10 +8075,10 @@ class CachedEventSummary(models.Model):
 
 
     def quantity_formatted(self):
-        return self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)
+        return self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
 
     def value_formatted(self):
-        return self.value.quantize(Decimal('.01'), rounding=ROUND_UP)
+        return self.value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
         
     def quantity_label(self):
         #return " ".join([self.resource_type.name, self.resource_type.unit.abbrev])

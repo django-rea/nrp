@@ -1058,7 +1058,7 @@ class EventType(models.Model):
     def default_event_value_equation(self):
         if self.used_for_value_equations():
             if self.relationship == "use":
-                return "quantity * value_per_unit_of_use"
+                return "quantity * valuePerUnitOfUse"
             elif self.relationship == "cite" or self.relationship == "pay":
                 return "quantity"
             elif self.relationship == "resource" or self.relationship == "receive":
@@ -1066,7 +1066,7 @@ class EventType(models.Model):
             elif self.relationship == "expense" or self.relationship == "cash":
                 return "value"
             else:
-                return "quantity * value_per_unit"
+                return "quantity * valuePerUnit"
         return ""
             
     def used_for_value_equations(self):
@@ -7739,9 +7739,9 @@ class ValueEquationBucketRule(models.Model):
         safe_dict = dict([ (k, locals().get(k, None)) for k in safe_list ])
         safe_dict['Decimal'] = Decimal
         safe_dict['quantity'] = event.quantity
-        safe_dict['valueperunit'] = event.value_per_unit()
+        safe_dict['valuePerUnit'] = event.value_per_unit()
         if event.resource:
-            safe_dict['valueperunitofuse'] = event.resource.value_per_unit_of_use
+            safe_dict['valuePerUnitOfUse'] = event.resource.value_per_unit_of_use
         safe_dict['value'] = event.value
         #safe_dict['importance'] = event.importance()
         #safe_dict['reputation'] = event.from_agent.reputation

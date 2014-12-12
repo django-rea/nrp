@@ -4003,7 +4003,7 @@ class EconomicResource(models.Model):
             creation_event.follow_process_chain_beyond_workflow(processes, all_events)
 
     def value_flow_going_forward_reorganized(self):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         in_out = self.value_flow_going_forward()
         processes = []
         save_process = None
@@ -4014,13 +4014,14 @@ class EconomicResource(models.Model):
                 item_process = io.process
             elif io.__class__.__name__ == "Process":
                 item_process = io
-            if item_process != save_process:
-                if new_process:
-                    processes.append(new_process)
-                new_process = item_process
-                new_process.input_events = []
-                new_process.output_events = []
-                save_process = new_process
+            if item_process:
+                if item_process != save_process:
+                    if new_process:
+                        processes.append(new_process)
+                    new_process = item_process
+                    new_process.input_events = []
+                    new_process.output_events = []
+                    save_process = new_process
             if io.__class__.__name__ == "EconomicEvent":
                 if io.event_type.relationship == "out":
                     new_process.output_events.append(io)

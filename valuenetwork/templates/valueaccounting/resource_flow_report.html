@@ -47,7 +47,7 @@ ul {
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<legend>{% trans "Lot Tracking" %}</legend>
+		<legend>{% trans "Resource Flow for " %}{{ rt.name }}</legend>
 {% comment %}
         <form id="sort" enctype="multipart/form-data" method="POST" >
             {{ sort_form|as_bootstrap }}
@@ -55,8 +55,8 @@ ul {
 {% endcomment %}
 		<table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
 			<thead>
-				<th>{% trans "Lot" %}</th>
-				<th>{% trans "Herb" %}</th>
+				<th>{% trans "Resource" %}</th>
+				<th>{% trans "Type" %}</th>
 				<th>{% trans "Owners" %}</th>
                 {% for pt in pts %}
                     <th>{{ pt.name }}</th>

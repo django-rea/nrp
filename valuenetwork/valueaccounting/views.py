@@ -894,10 +894,13 @@ def inventory(request):
     }, context_instance=RequestContext(request))
 
 def resource_flow_report(request, resource_type_id):
-    #import pdb; pdb.set_trace()
-    rt = EconomicResourceType.objects.get(id=resource_type_id) 
+    #import pdb; pdb.set_trace() 
+    rt = get_object_or_404(EconomicResourceType, id=resource_type_id)
     pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
-    lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
+    if rt.direct_children():
+        lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
+    else:
+        lot_list = rt.resources.all()
     for lot in lot_list:
         lot_processes = lot.value_flow_going_forward_reorganized()
         pts_with_processes, inheritance = rt.staged_process_type_sequence_beyond_workflow()
@@ -937,6 +940,7 @@ def resource_flow_report(request, resource_type_id):
     return render_to_response("valueaccounting/resource_flow_report.html", {
         "lots": lots,
         "pts": pts,
+        "rt": rt,
         #"sort_form": sort_form,
     }, context_instance=RequestContext(request))
     

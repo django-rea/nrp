@@ -4003,7 +4003,7 @@ class EconomicResource(models.Model):
             creation_event.follow_process_chain_beyond_workflow(processes, all_events)
 
     def value_flow_going_forward_reorganized(self):
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         in_out = self.value_flow_going_forward()
         processes = []
         save_process = None

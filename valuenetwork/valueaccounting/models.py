@@ -3564,7 +3564,7 @@ class EconomicResource(models.Model):
                         elif ip.event_type.relationship == "use":
                             ip.depth = depth
                             path.append(ip)
-                        elif ip.event_type.relationship == "consume":
+                        elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             ip.depth = depth
                             path.append(ip)
                             ip.resource.rollup_explanation_traversal(path, visited, depth)
@@ -3600,7 +3600,7 @@ class EconomicResource(models.Model):
                         elif ip.event_type.relationship == "use":
                             ip.depth = depth
                             components.append(ip)
-                        elif ip.event_type.relationship == "consume":
+                        elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             ip.depth = depth
                             components.append(ip)
                             #depth += 1
@@ -3757,7 +3757,7 @@ class EconomicResource(models.Model):
                         elif ip.event_type.relationship == "use":
                             ip.depth = depth
                             components.append(ip)
-                        elif ip.event_type.relationship == "consume":
+                        elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             ip.depth = depth
                             components.append(ip)
                             #depth += 1
@@ -5234,7 +5234,7 @@ class Process(models.Model):
                         ip.depth = depth
                         path.append(ip)
                 #Consume contributions use resource rolled up value_per_unit
-                elif ip.event_type.relationship == "consume":
+                elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                     ip.depth = depth
                     path.append(ip)
                     value_per_unit = ip.resource.roll_up_value(path, depth, visited)
@@ -5301,7 +5301,7 @@ class Process(models.Model):
                             if ip_value:
                                 d_qty = ip_value / value
                                 ip.resource.compute_income_shares(d_qty, ip_value, events, visited) 
-                    elif ip.event_type.relationship == "consume":
+                    elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                         #consume events are not contributions, but their resources may have contributions
                         ip_value = ip.value * distro_fraction
                         #if ip.resource.id == 98:

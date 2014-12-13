@@ -5273,7 +5273,7 @@ class Process(models.Model):
             if quantity:
                 #todo: how will this work for >1 processes producing the same resource?
                 #what will happen to the shares of the inputs of the later processes?
-                production_events = process.production_events()
+                production_events = self.production_events()
                 produced_qty = sum(pe.quantity for pe in production_events)
                 distro_fraction = 1
                 distro_qty = quantity
@@ -7630,13 +7630,15 @@ class ValueEquationBucketRule(models.Model):
                         ship_string,
                         ])
             #lots = [e.resource for e in shipment_events]
+            #import pdb; pdb.set_trace()
             events = []
             for ship in shipment_events:
                 resource = ship.resource
                 qty = ship.quantity
                 events.extend([event for event in resource.compute_shipment_income_shares(qty) if event.event_type==self.event_type])
             if process_types:
-                events = [e for e in events if e.process.process_type in process_types]
+                events_with_processes = [e for e in events if e.process]
+                events = [e for e in events_with_processes if e.process.process_type in process_types]
             if resource_types:
                 events = [e for e in events if e.resource_type in resource_types]
         for e in events:

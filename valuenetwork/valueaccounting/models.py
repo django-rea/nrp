@@ -3379,7 +3379,13 @@ class EconomicResource(models.Model):
         return "resource"
 
     def flow_description(self):
-        return self.__unicode__()
+        #rollup stage change
+        id_str = self.identifier or str(self.id)
+        rt_name = self.resource_type.name
+        return ": ".join([
+                rt_name,
+                id_str,
+            ])
         
     def value_explanation(self):
         return "Value per unit is composed of the value of the inputs on the next level:"
@@ -3406,7 +3412,7 @@ class EconomicResource(models.Model):
         path = []
         depth = 0
         value_per_unit = self.roll_up_value(path, depth, visited)
-        return value_per_unit
+        return path
     
     def roll_up_value(self, path, depth, visited):
         #import pdb; pdb.set_trace()
@@ -3443,7 +3449,8 @@ class EconomicResource(models.Model):
             depth -= 1
         citations = []
         production_value = Decimal("0.0")
-        processes = self.producing_processes()
+        #rollup stage change
+        processes = self.producing_processes_for_historical_stage()
         for process in processes:
             pe_value = Decimal("0.0")
             if process not in visited:
@@ -3476,7 +3483,8 @@ class EconomicResource(models.Model):
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             ip.depth = depth
                             path.append(ip)
-                            value_per_unit = ip.resource.roll_up_value(path, depth, visited)
+                            #rollup stage change
+                            value_per_unit = ip.roll_up_value(path, depth, visited)
                             ip.value = ip.quantity * value_per_unit
                             ip.save()
                             pe_value += ip.value
@@ -3786,6 +3794,17 @@ class EconomicResource(models.Model):
     def producing_processes(self):
         pes = self.producing_events()
         processes = [pe.process for pe in pes if pe.process]
+        processes = list(set(processes))
+        return processes
+        
+    def producing_processes_for_historical_stage(self):
+        #rollup stage change
+        pes = self.producing_events()
+        processes = [pe.process for pe in pes if pe.process]
+        try:
+            processes = [p for p in processes if p.process_type==self.historical_stage]
+        except AttributeError:
+            pass
         processes = list(set(processes))
         return processes
         
@@ -6919,6 +6938,14 @@ class EconomicEvent(models.Model):
             return "Value per unit is composed of the value of the inputs on the next level:"
         return ""
         
+    def roll_up_value(self, path, depth, visited):
+        #rollup stage change
+        if self.commitment:
+            stage = self.commitment.stage
+            if stage:
+                self.resource.historical_stage = stage
+        return self.resource.roll_up_value(path, depth, visited)
+        
     def claims(self):
         claim_events = self.claim_events.all()
         claims = [ce.claim for ce in claim_events]
@@ -7075,7 +7102,17 @@ class EconomicEvent(models.Model):
             to_agt = ' '.join(["to", self.to_agent.name])
         resource_string = self.resource_type.name
         if self.resource:
-            resource_string = str(self.resource)
+            #rollup stage change
+            #import pdb; pdb.set_trace()
+            id_str = self.resource.identifier or str(self.resource.id)
+            if self.commitment:
+                stage = self.commitment.stage
+                if stage:
+                    resource_string = "@".join([resource_string, stage.name])
+            resource_string = ": ".join([
+                    resource_string,
+                    id_str,
+                ])
         return ' '.join([
             self.event_date.strftime('%Y-%m-%d'),
             from_agt,

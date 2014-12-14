@@ -3381,9 +3381,15 @@ class EconomicResource(models.Model):
     def flow_description(self):
         #rollup stage change
         id_str = self.identifier or str(self.id)
-        rt_name = self.resource_type.name
+        resource_string = self.resource_type.name
+        try:
+            stage = self.historical_stage
+        except AttributeError:
+            stage = self.stage
+        if stage:
+            resource_string = "@".join([resource_string, stage.name])
         return ": ".join([
-                rt_name,
+                resource_string,
                 id_str,
             ])
         
@@ -3450,6 +3456,7 @@ class EconomicResource(models.Model):
         citations = []
         production_value = Decimal("0.0")
         #rollup stage change
+        #import pdb; pdb.set_trace()
         processes = self.producing_processes_for_historical_stage()
         for process in processes:
             pe_value = Decimal("0.0")
@@ -4685,12 +4692,13 @@ class Process(models.Model):
                                     if pc.due_date <= self.start_date:
                                         answer.append(pc.process)
         for ie in self.incoming_events():
-            if ie.resource:
-                for evt in ie.resource.producing_events():
-                    if evt.process:
-                        if evt.process != self:
-                            if evt.process not in answer:
-                                answer.append(evt.process)
+            if not ie.commitment:
+                if ie.resource:
+                    for evt in ie.resource.producing_events():
+                        if evt.process:
+                            if evt.process != self:
+                                if evt.process not in answer:
+                                    answer.append(evt.process)
         return answer
         
     def previous_processes_for_order(self, order):
@@ -4766,14 +4774,15 @@ class Process(models.Model):
                                         if cc.process not in answer:
                                             answer.append(cc.process)
         for oe in self.production_events():
-            rt = oe.resource_type
-            if oe.cycle_id() not in input_ids:
-                if oe.resource:
-                    for evt in oe.resource.all_usage_events():
-                        if evt.process:
-                            if evt.process != self:
-                                if evt.process not in answer:
-                                    answer.append(evt.process)
+            if not oe.commitment:
+                rt = oe.resource_type
+                if oe.cycle_id() not in input_ids:
+                    if oe.resource:
+                        for evt in oe.resource.all_usage_events():
+                            if evt.process:
+                                if evt.process != self:
+                                    if evt.process not in answer:
+                                        answer.append(evt.process)
         return answer
         
     def next_processes_for_order(self, order):
@@ -6940,10 +6949,11 @@ class EconomicEvent(models.Model):
         
     def roll_up_value(self, path, depth, visited):
         #rollup stage change
+        stage = None
         if self.commitment:
             stage = self.commitment.stage
-            if stage:
-                self.resource.historical_stage = stage
+        if stage:
+            self.resource.historical_stage = stage
         return self.resource.roll_up_value(path, depth, visited)
         
     def claims(self):

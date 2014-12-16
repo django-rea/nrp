@@ -3442,6 +3442,8 @@ class EconomicResource(models.Model):
             evt.depth = depth
             path.append(evt)
             depth -= 1
+            #todo br: use
+            #br = evt.bucket_rule(value_equation)
         #Purchase contributions use event.value.
         buys = self.purchase_events()
         for evt in buys:
@@ -3453,6 +3455,7 @@ class EconomicResource(models.Model):
             evt.depth = depth
             path.append(evt)
             depth -= 1
+            #br = evt.bucket_rule(value_equation)
         citations = []
         production_value = Decimal("0.0")
         #rollup stage change
@@ -3477,6 +3480,7 @@ class EconomicResource(models.Model):
                             pe_value += ip.value
                             ip.depth = depth
                             path.append(ip)
+                            #br = ip.bucket_rule(value_equation)
                         #Use contributions use resource value_per_unit_of_use.
                         elif ip.event_type.relationship == "use":
                             if ip.resource:
@@ -3486,6 +3490,7 @@ class EconomicResource(models.Model):
                                 ip.resource.roll_up_value(path, depth, visited)
                                 ip.depth = depth
                                 path.append(ip)
+                                #br = ip.bucket_rule(value_equation)
                         #Consume contributions use resource rolled up value_per_unit
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             ip.depth = depth
@@ -3495,6 +3500,7 @@ class EconomicResource(models.Model):
                             ip.value = ip.quantity * value_per_unit
                             ip.save()
                             pe_value += ip.value
+                            #br = ip.bucket_rule(value_equation)
                         #Citations valued later, after all other inputs added up
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
@@ -3506,6 +3512,7 @@ class EconomicResource(models.Model):
                                 ip.value = ip.quantity
                             if ip.resource:
                                 ip.resource.roll_up_value(path, depth, visited)
+                            #br = ip.bucket_rule(value_equation)
             production_value += pe_value
         if production_value:
             #Citations use percentage of the sum of other input values.
@@ -3625,7 +3632,7 @@ class EconomicResource(models.Model):
                             ip.depth = depth
                             components.append(ip)       
         
-    def test_compute_income_shares(self):
+    def test_compute_income_shares(self, value_equation):
         visited = set()
         path = []
         depth = 0
@@ -3636,7 +3643,7 @@ class EconomicResource(models.Model):
         shares = []
         #import pdb; pdb.set_trace()
         quantity = self.quantity or Decimal("1.0")
-        self.compute_income_shares(quantity, value, shares, visited)
+        self.compute_income_shares(value_equation, quantity, value, shares, visited)
         total = sum(s.share for s in shares)
         for s in shares:
             s.fraction = s.share / total
@@ -3644,7 +3651,7 @@ class EconomicResource(models.Model):
         #print "total shares:", total
         return shares
          
-    def compute_shipment_income_shares(self, quantity):
+    def compute_shipment_income_shares(self, value_equation, quantity):
         visited = set()
         path = []
         depth = 0
@@ -3654,7 +3661,7 @@ class EconomicResource(models.Model):
         visited = set()
         shares = []
         #import pdb; pdb.set_trace()
-        self.compute_income_shares(quantity, value, shares, visited)
+        self.compute_income_shares(value_equation, quantity, value, shares, visited)
         total = sum(s.share for s in shares)
         for s in shares:
             s.fraction = s.share / total
@@ -3662,8 +3669,8 @@ class EconomicResource(models.Model):
         #print "total shares:", total
         return shares
         
-    def compute_income_shares(self, quantity, value, events, visited):
-        #This method assumes that self.roll_up_value has been run,
+    def compute_income_shares(self, value_equation, quantity, value, events, visited):
+        #This resource method assumes that self.roll_up_value has been run,
         #and all contribution events have been valued.
         #print "Resource:", self.id, self
         #print "running quantity:", quantity, "running value:", value
@@ -3672,8 +3679,15 @@ class EconomicResource(models.Model):
         for evt in contributions:
             #if evt.id == 3960:
             #    import pdb; pdb.set_trace()
-            if evt.value:
-                vpu = evt.value / evt.quantity
+            #todo br
+            #import pdb; pdb.set_trace()
+            br = evt.bucket_rule(value_equation)
+            value = evt.value
+            if br:
+                #import pdb; pdb.set_trace()
+                value = br.compute_claim_value(evt)
+            if value:
+                vpu = value / evt.quantity
                 evt.share = quantity * vpu
                 events.append(evt)
                 #print evt.id, evt, evt.share
@@ -3687,7 +3701,7 @@ class EconomicResource(models.Model):
             #    evt.share = quantity * vpu
             #    events.append(evt)
             if evt.exchange:
-                evt.exchange.compute_income_shares(evt, quantity, value, events, visited)
+                evt.exchange.compute_income_shares(value_equation, evt, quantity, value, events, visited)
         processes = self.producing_processes()
         for process in processes:
             if process not in visited:
@@ -3706,13 +3720,27 @@ class EconomicResource(models.Model):
                         distro_qty = produced_qty
                         quantity -= produced_qty
                     for pe in production_events:
-                        pe.share = pe.quantity * distro_fraction
+                        #todo br
+                        #import pdb; pdb.set_trace()
+                        value = pe.quantity
+                        br = pe.bucket_rule(value_equation)
+                        if br:
+                            #import pdb; pdb.set_trace()
+                            value = br.compute_claim_value(pe)
+                        pe.share = value * distro_fraction
                         events.append(pe)
                     inputs = process.incoming_events()
                     for ip in inputs:
                         #we assume here that work events are contributions
                         if ip.event_type.relationship == "work":
-                            ip.share = ip.value * distro_fraction
+                            #todo br
+                            #import pdb; pdb.set_trace()
+                            value = ip.value
+                            br = ip.bucket_rule(value_equation)
+                            if br:
+                                #import pdb; pdb.set_trace()
+                                value = br.compute_claim_value(ip)
+                            ip.share = value * distro_fraction
                             events.append(ip)
                             #print ip.id, ip, ip.share
                             #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
@@ -3723,9 +3751,9 @@ class EconomicResource(models.Model):
                                 d_qty = distro_qty
                                 if ip_value:
                                     d_qty = ip_value / value
-                                ip.resource.compute_income_shares(d_qty, ip_value, events, visited) 
+                                ip.resource.compute_income_shares(value_equation, d_qty, ip_value, events, visited) 
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
-                            #consume events are not contributions, but their resources may have contributions
+                            #consume events are not contributions, but their resources may have contributions                       
                             ip_value = ip.value * distro_fraction
                             #if ip.resource.id == 98:
                             #    import pdb; pdb.set_trace()
@@ -3733,7 +3761,7 @@ class EconomicResource(models.Model):
                             #if ip_value:
                                 #print "consumption:", ip.id, ip, "ip.value:", ip.value
                                 #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                            ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
+                            ip.resource.compute_income_shares(value_equation, d_qty, ip_value, events, visited)
                         elif ip.event_type.relationship == "cite":
                             #import pdb; pdb.set_trace()   
                             #citation events are not contributions, but their resources may have contributions
@@ -3743,7 +3771,7 @@ class EconomicResource(models.Model):
                                 d_qty = ip_value / value
                                 #print "citation:", ip.id, ip, "ip.value:", ip.value
                                 #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                            ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
+                            ip.resource.compute_income_shares(value_equation, d_qty, ip_value, events, visited)
 
     def direct_share_components(self, components, visited, depth):
         depth += 1
@@ -5291,8 +5319,8 @@ class Process(models.Model):
         return process_value
 
 
-    def compute_income_shares(self, order_item, quantity, value, events, visited):
-        #This method assumes that self.roll_up_value has been run,
+    def compute_income_shares(self, value_equation, order_item, quantity, value, events, visited):
+        #This process method assumes that self.roll_up_value has been run,
         #and all contribution events have been valued.
         #print "running quantity:", quantity, "running value:", value
         #import pdb; pdb.set_trace()
@@ -5312,13 +5340,27 @@ class Process(models.Model):
                     distro_qty = produced_qty
                     quantity -= produced_qty
                 for pe in production_events:
-                    pe.share = pe.quantity * distro_fraction
+                    #todo br
+                    #import pdb; pdb.set_trace()
+                    value = pe.quantity
+                    br = pe.bucket_rule(value_equation)
+                    if br:
+                        #import pdb; pdb.set_trace()
+                        value = br.compute_claim_value(pe)
+                    pe.share = value * distro_fraction
                     events.append(pe)
                 inputs = self.incoming_events()
                 for ip in inputs:
                     #we assume here that work events are contributions
                     if ip.event_type.relationship == "work":
-                        ip.share = ip.value * distro_fraction
+                        #todo br
+                        #import pdb; pdb.set_trace()
+                        value = ip.value
+                        br = ip.bucket_rule(value_equation)
+                        if br:
+                            #import pdb; pdb.set_trace()
+                            value = br.compute_claim_value(ip)
+                        ip.share = value * distro_fraction
                         events.append(ip)
                         #print ip.id, ip, ip.share
                         #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
@@ -5328,7 +5370,7 @@ class Process(models.Model):
                             ip_value = ip.value * distro_fraction
                             if ip_value:
                                 d_qty = ip_value / value
-                                ip.resource.compute_income_shares(d_qty, ip_value, events, visited) 
+                                ip.resource.compute_income_shares(value_equation, d_qty, ip_value, events, visited) 
                     elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                         #consume events are not contributions, but their resources may have contributions
                         ip_value = ip.value * distro_fraction
@@ -5338,7 +5380,7 @@ class Process(models.Model):
                             d_qty = ip.quantity * distro_fraction
                             #print "consumption:", ip.id, ip, "ip.value:", ip.value
                             #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                            ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
+                            ip.resource.compute_income_shares(value_equation, d_qty, ip_value, events, visited)
                     elif ip.event_type.relationship == "cite":
                         #import pdb; pdb.set_trace()   
                         #citation events are not contributions, but their resources may have contributions
@@ -5347,7 +5389,7 @@ class Process(models.Model):
                             d_qty = ip_value / value
                             #print "citation:", ip.id, ip, "ip.value:", ip.value
                             #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                            ip.resource.compute_income_shares(d_qty, ip_value, events, visited)
+                            ip.resource.compute_income_shares(value_equation, d_qty, ip_value, events, visited)
     
 
 class ExchangeManager(models.Manager):
@@ -5521,7 +5563,8 @@ class Exchange(models.Model):
         events = self.events.all().order_by("event_type__name")
         return events
         
-    def compute_income_shares(self, trigger_event, quantity, value, events, visited):
+    def compute_income_shares(self, value_equation, trigger_event, quantity, value, events, visited):
+        #exchange method
         #import pdb; pdb.set_trace()
         if self not in visited:
             visited.add(self)
@@ -5534,7 +5577,13 @@ class Exchange(models.Model):
             share =  quantity / trigger_event.quantity
             if payments.count() == 1:
                 evt = payments[0]
-                evt.share = evt.quantity * share
+                #import pdb; pdb.set_trace()
+                value = evt.quantity
+                br = evt.bucket_rule(value_equation)
+                if br:
+                    #import pdb; pdb.set_trace()
+                    value = br.compute_claim_value(evt)
+                evt.share = value * share
                 events.append(evt)
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
@@ -5543,7 +5592,13 @@ class Exchange(models.Model):
                     evt.share = evt.quantity * share * fraction * trigger_fraction
                     events.append(evt)
             for evt in self.work_events():
-                evt.share = evt.quantity * share * trigger_fraction
+                #import pdb; pdb.set_trace()
+                value = evt.quantity
+                br = evt.bucket_rule(value_equation)
+                if br:
+                    #import pdb; pdb.set_trace()
+                    value = br.compute_claim_value(evt)
+                evt.share = value * share * trigger_fraction
                 events.append(evt)
 
 
@@ -6496,7 +6551,7 @@ class Commitment(models.Model):
             next_commitment.update_stage(last_process.process_type)
         return None
         
-    def compute_income_fractions(self):
+    def compute_income_fractions(self, value_equation):
         """Returns a list of contribution events for an order_item, 
         
         where each event has event.share and event.fraction.
@@ -6522,9 +6577,9 @@ class Commitment(models.Model):
                 msg = " ".join([self.__unicode__(), "has different resources, not handled yet."])
                 assert False, msg
         if resource:
-            shares = self.compute_income_fractions_for_resource(resource)
+            shares = self.compute_income_fractions_for_resource(value_equation, resource)
         else:
-            shares = self.compute_income_fractions_for_process()
+            shares = self.compute_income_fractions_for_process(value_equation)
         if shares:
             total = sum(s.share for s in shares)
         if total:
@@ -6534,7 +6589,7 @@ class Commitment(models.Model):
         #print "total shares:", total
         return shares
         
-    def compute_income_fractions_for_resource(self, resource):
+    def compute_income_fractions_for_resource(self, value_equation, resource):
         #print "*** rollup up resource value"
         visited = set()
         path = []
@@ -6546,10 +6601,10 @@ class Commitment(models.Model):
         #print "*** computing income shares"
         shares = []
         #import pdb; pdb.set_trace()
-        resource.compute_income_shares(self.quantity, value, shares, visited)
+        resource.compute_income_shares(value_equation, self.quantity, value, shares, visited)
         return shares
         
-    def compute_income_fractions_for_process(self):
+    def compute_income_fractions_for_process(self, value_equation):
         shares = []
         visited = set()
         path = []
@@ -6562,7 +6617,7 @@ class Commitment(models.Model):
             visited = set()
             #print "*** computing income shares"
             #import pdb; pdb.set_trace()
-            p.compute_income_shares(self, self.quantity, value, shares, visited)
+            p.compute_income_shares(value_equation, self, self.quantity, value, shares, visited)
         return shares
 
 
@@ -6956,6 +7011,69 @@ class EconomicEvent(models.Model):
             self.resource.historical_stage = stage
         return self.resource.roll_up_value(path, depth, visited)
         
+    def bucket_rule(self, value_equation):
+        brs = ValueEquationBucketRule.objects.filter(
+            value_equation_bucket__value_equation=value_equation,
+            event_type=self.event_type)
+        #import pdb; pdb.set_trace()
+        candidates = []
+        for br in brs:
+            filter = br.filter_rule_deserialized()
+            if filter:
+                rts = filter.get('resource_types')
+                if rts:
+                    if self.resource_type in rts:
+                        br.filter = filter
+                        candidates.append(br)
+                pts = filter.get('process_types')
+                if pts:
+                    if self.process:
+                        if self.process.process_type:
+                            if self.process.process_type in pts:
+                                br.filter = filter
+                                candidates.append(br)
+            else:
+                br.filter = filter
+                candidates.append(br)
+        if not candidates:
+            return None
+        candidates = list(set(candidates))
+        #import pdb; pdb.set_trace()
+        if len(candidates) == 1:
+            return candidates[0]
+        filtered = [c for c in candidates if c.filter]
+        if not filtered:
+            return candidates[0]
+        best_fit = []
+        if filtered:
+            if len(filtered) == 1:
+                return filtered[0]
+            for f in filtered:
+                pts = f.filter.get("process_types")
+                rts = filter.get('resource_types')
+                if pts and rts:
+                    f.score = 2
+                    best_fit.append(f)
+                elif pts:
+                    f.score = 1.5
+                    better = [b for b in best_fit if b.score > 1.5]
+                    if not better:
+                        best_fit.append(f)
+                elif rts:
+                    if not best_fit:
+                        f.score = 1
+                        best_fit.append(f)
+        if best_fit:
+            #todo: necessary? I doubt it...
+            #best_fit = list(set(best_fit))
+            #todo: this (below) must be mediated by which VE
+            #if len(best_fit) > 1:
+            #    import pdb; pdb.set_trace()
+            if len(best_fit) == 1:
+                return best_fit[0]
+            return best_fit[0]
+        return None
+                
     def claims(self):
         claim_events = self.claim_events.all()
         claims = [ce.claim for ce in claim_events]
@@ -7592,6 +7710,7 @@ class ValueEquationBucketRule(models.Model):
         
     def gather_events(self, context_agent, serialized_filter):
         #import pdb; pdb.set_trace()
+        ve = self.value_equation_bucket.value_equation
         json = self.filter_rule_deserialized()
         process_types = []
         resource_types = []
@@ -7653,7 +7772,7 @@ class ValueEquationBucketRule(models.Model):
             events = []
             for order in orders:
                 for order_item in order.order_items():
-                    events.extend([e for e in order_item.compute_income_fractions() if e.event_type==self.event_type]) 
+                    events.extend([e for e in order_item.compute_income_fractions(ve) if e.event_type==self.event_type]) 
             if process_types:
                 events = [e for e in events if e.process.process_type in process_types]
             if resource_types:
@@ -7682,7 +7801,7 @@ class ValueEquationBucketRule(models.Model):
             for ship in shipment_events:
                 resource = ship.resource
                 qty = ship.quantity
-                events.extend([event for event in resource.compute_shipment_income_shares(qty) if event.event_type==self.event_type])
+                events.extend([event for event in resource.compute_shipment_income_shares(ve, qty) if event.event_type==self.event_type])
             if process_types:
                 events_with_processes = [e for e in events if e.process]
                 events = [e for e in events_with_processes if e.process.process_type in process_types]

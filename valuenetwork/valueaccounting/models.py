@@ -7772,6 +7772,7 @@ class ValueEquationBucketRule(models.Model):
             events = []
             for order in orders:
                 for order_item in order.order_items():
+                    #todo performance: can't we just do this once, instead of for every bucket rule?
                     events.extend([e for e in order_item.compute_income_fractions(ve) if e.event_type==self.event_type]) 
             if process_types:
                 events = [e for e in events if e.process.process_type in process_types]

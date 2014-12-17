@@ -8331,7 +8331,7 @@ def exchanges(request):
     et_pay = EventType.objects.get(name="Payment")   
     et_receive = EventType.objects.get(name="Receipt")
     et_expense = EventType.objects.get(name="Expense")
-    et_process_expense = EventType.objects.get(name="Process Expense")
+    #et_process_expense = EventType.objects.get(name="Process Expense")
     references = AccountingReference.objects.all()
     event_ids = ""
     select_all = True
@@ -8361,11 +8361,11 @@ def exchanges(request):
                     for event in ex.events.all():
                         if event.resource_type.accounting_reference:
                             if event.resource_type.accounting_reference.code in vals:
-                                if ex.class_label() == "Exchange":
-                                    events_included.append(event)
-                                else: #process
-                                    if event.event_type == et_process_expense:
-                                        events_included.append(event)
+                                #if ex.class_label() == "Exchange":
+                                events_included.append(event)
+                                #else: #process
+                                #    if event.event_type == et_process_expense:
+                                #        events_included.append(event)
                     if events_included != []:   
                         ex.event_list = events_included
                         exchanges_included.append(ex)
@@ -8384,16 +8384,16 @@ def exchanges(request):
         try:
             xx = x.event_list
         except AttributeError:
-            if x.class_label() == "Exchange":
-                x.event_list = x.events.all()
-            else: #process
-                #import pdb; pdb.set_trace()
-                evs = x.events.all()
-                event_list = []
-                for event in evs:
-                    if event.event_type == et_process_expense:
-                        event_list.append(event)
-                x.event_list = event_list
+            #if x.class_label() == "Exchange":
+            x.event_list = x.events.all()
+            #else: #process
+            #    #import pdb; pdb.set_trace()
+            #    evs = x.events.all()
+            #    event_list = []
+            #   for event in evs:
+            #        if event.event_type == et_process_expense:
+            #            event_list.append(event)
+            #    x.event_list = event_list
         for event in x.event_list:
             if event.event_type == et_pay:
                 total_payments = total_payments + event.quantity
@@ -8401,9 +8401,9 @@ def exchanges(request):
                 total_cash = total_cash + event.quantity
             elif event.event_type == et_expense:
                 total_expenses = total_expenses + event.value
-            elif event.event_type == et_process_expense:
-                total_expenses = total_expenses + event.value
-                total_payments = total_payments + event.value
+            #elif event.event_type == et_process_expense:
+            #    total_expenses = total_expenses + event.value
+            #    total_payments = total_payments + event.value
             elif event.event_type == et_receive:
                 total_receipts = total_receipts + event.value
             event_ids = event_ids + comma + str(event.id)

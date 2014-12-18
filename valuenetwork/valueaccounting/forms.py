@@ -32,7 +32,16 @@ class ResourceModelChoiceField(forms.ModelChoiceField):
             label = " ".join([obj.identifier, "at", loc])
         return label
 
+        
+class ValueEquationModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        if obj.live:
+            label = ": ".join([obj.name , "Live"])
+        else:
+            label = ": ".join([obj.name , "Test Only"])
+        return label
 
+        
 class AgentForm(forms.Form):
     nick = forms.CharField(label="ID", widget=forms.TextInput(attrs={'class': 'required-field',}))
     first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
@@ -3129,7 +3138,23 @@ class ValueEquationBucketRuleForm(forms.ModelForm):
     class Meta:
         model = ValueEquationBucketRule
         fields = ('event_type', 'claim_rule_type', 'claim_creation_equation') 
+
         
+class ValueEquationSelectionForm(forms.Form):
+    value_equation = ValueEquationModelChoiceField(
+        queryset=ValueEquation.objects.none(), 
+        label=_("Select a Value Equation"),
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 've-selector'}))
+            
+    def __init__(self, value_equations, *args, **kwargs):
+        super(ValueEquationSelectionForm, self).__init__(*args, **kwargs)
+        if value_equations:
+            ve_ids = [ve.id for ve in value_equations]
+            ve_qs = ValueEquation.objects.filter(id__in=ve_ids)
+            self.fields["value_equation"].queryset = ve_qs
+            
         
 class ValueEquationSandboxForm(forms.Form):
     #context_agent = forms.ModelChoiceField(

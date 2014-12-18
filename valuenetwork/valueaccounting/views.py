@@ -6235,7 +6235,25 @@ def incoming_value_flows(request, resource_id):
     flows = []
     depth = 0
     visited = set()
-    value_per_unit = resource.roll_up_value(flows, depth, visited)
+    ve = None
+    all_ves = None
+    ve_selection_form = None
+    ves = resource.value_equations()
+    if len(ves) > 1:
+        all_ves = ves
+        ve_selection_form = ValueEquationSelectionForm(
+            value_equations=all_ves,
+            data=request.POST or None)
+    if ves:
+        live_ves = [ve for ve in ves if ve.live]
+        if live_ves:
+            ve = live_ves[0]
+        else:
+            ve = ves[0]
+    if request.method == "POST":
+        if ve_selection_form.is_valid():
+            ve = ve_selection_form.cleaned_data["value_equation"]
+    value_per_unit = resource.roll_up_value(flows, depth, visited, ve)
     totals = {}
     member_hours = []
     for flow in flows:
@@ -6248,6 +6266,8 @@ def incoming_value_flows(request, resource_id):
         member_hours.append((key, value))
     return render_to_response("valueaccounting/incoming_value_flows.html", {
         "resource": resource,
+        "value_equation": ve,
+        "ve_selection_form": ve_selection_form,
         "flows": flows,
         "value_per_unit": value_per_unit,
         "member_hours": member_hours,

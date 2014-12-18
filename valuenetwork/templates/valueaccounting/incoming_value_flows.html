@@ -1,12 +1,23 @@
 {% extends "site_base.html" %}
 
+{% load staticfiles %}
 {% load i18n %}
+{% load bootstrap_tags %}
 
 {% block head_title %}{% trans "Incoming value flows for " %} {{ resource }}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <style>
+
+.ve {
+    font-size: 120%;
+    font-weight: bold;
+    color: firebrick;
+}
+.ves {
+    margin-bottom: 1em;
+}
 .type, .total {
     font-weight: bold;
 }
@@ -47,7 +58,17 @@
         {% include "_messages.html" %}
 	  <div>
 		<legend>{% trans "Incoming Value Flows for " %} <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a></legend>
-
+		<div class="ves" >
+            <span class="ve">{% trans "Using Value Equation" %}: {{ value_equation }} </span>
+            {% if ve_selection_form %}
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <form class="form-horizontal" style="display: inline;"  method="POST" action=".">
+                    {% csrf_token %}
+                    {{ ve_selection_form.value_equation.label }} {{ ve_selection_form.value_equation }}
+                    <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Recalc' %}" />
+                </form>
+            {% endif %}
+        </div>
 		<div class="span9">
 		
             <p class="total" >
@@ -67,6 +88,8 @@
                 {% else %}
                     {{ flow.flow_description }}
                 {% endif %}
+                
+                {% comment %}
                 {% if flow.value_per_unit %}
                     {% trans "Value per unit" %}: {{ flow.value_per_unit }}
                 {% endif %}
@@ -75,12 +98,17 @@
                         {% trans "Explanation" %}: {{ flow.value_explanation }}
                     </span>
                 {% endif %}
+                {% endcomment %}
+                
              </p>
           {% endfor %}
 
 		</div>
 
         <div class="span3">
+            <h4>
+                Time contributions:
+            </h4>
             <div id="chart_div" ></div>           
             </div>
         </div>

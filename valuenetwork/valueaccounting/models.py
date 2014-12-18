@@ -758,6 +758,18 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         return None
         
+    def own_or_parent_value_equations(self):
+        ves = self.value_equations.all()
+        if ves:
+            return ves
+        parent = self.parent()
+        while parent:
+            ves = parent.value_equations.all()
+            if ves:
+                return ves
+            parent = parent.parent()
+        return None
+        
     def default_agent(self):
         return self
         
@@ -3392,7 +3404,23 @@ class EconomicResource(models.Model):
                 resource_string,
                 id_str,
             ])
+            
+    def context_agents(self):
+        pes = self.producing_events()
+        cas = [pe.context_agent for pe in pes if pe.context_agent]
+        cas = list(set(cas))
+        if not cas:
+            pts = self.process_type.producing_process_types
+            cas = [pt.context_agent for pt in pts if pt.context_agent]
+        return cas
         
+    def value_equations(self):
+        ves = []
+        cas = self.context_agents()
+        for ca in cas:
+            ves.extend(ca.own_or_parent_value_equations())
+        return ves
+                  
     def value_explanation(self):
         return "Value per unit is composed of the value of the inputs on the next level:"
         
@@ -3412,15 +3440,16 @@ class EconomicResource(models.Model):
     #    from valuenetwork.valueaccounting.forms import ResourceRoleAgentForm
     #    return EconomicResourceForm(instance=self)
     
-    def test_rollup(self):
+    def test_rollup(self, value_equation=None):
         import pdb; pdb.set_trace()
         visited = set()
         path = []
         depth = 0
-        value_per_unit = self.roll_up_value(path, depth, visited)
+        value_per_unit = self.roll_up_value(path, depth, visited, value_equation)
+        print "value_per_unit:", value_per_unit
         return path
     
-    def roll_up_value(self, path, depth, visited):
+    def roll_up_value(self, path, depth, visited, value_equation=None):
         #import pdb; pdb.set_trace()
         #Value_per_unit will be the result of this method.
         depth += 1
@@ -3435,9 +3464,21 @@ class EconomicResource(models.Model):
         for evt in contributions:
             #if evt.id == 3960:
             #    import pdb; pdb.set_trace()
-            evt_vpu = evt.value / evt.quantity
+            value = evt.value
+            if value_equation:
+                br = evt.bucket_rule(value_equation)
+                if br:
+                    #import pdb; pdb.set_trace()
+                    value = br.compute_claim_value(evt)
+            evt_vpu = value / evt.quantity
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
+                #padding = ""
+                #for x in range(0,depth):
+                #    padding += "."
+                #print padding, depth, evt.id, evt
+                #print padding, "--- evt_vpu: ", evt_vpu
+                #print padding, "--- values:", values
             depth += 1
             evt.depth = depth
             path.append(evt)
@@ -3448,14 +3489,24 @@ class EconomicResource(models.Model):
         buys = self.purchase_events()
         for evt in buys:
             #import pdb; pdb.set_trace()
-            evt_vpu = evt.value / evt.quantity
-            if evt_vpu:
-                values.append([evt_vpu, evt.quantity])
             depth += 1
             evt.depth = depth
             path.append(evt)
+            value = evt.value
+            if evt.exchange:
+                #print "value b4:", value
+                value = evt.exchange.roll_up_value(evt, path, depth, visited, value_equation)
+                #print "value after:", value
+            evt_vpu = value / evt.quantity
+            if evt_vpu:
+                values.append([evt_vpu, evt.quantity])
+                #padding = ""
+                #for x in range(0,depth):
+                #    padding += "."
+                #print padding, depth, evt.id, evt
+                #print padding, "--- evt_vpu: ", evt_vpu
+                #print padding, "--- values:", values
             depth -= 1
-            #br = evt.bucket_rule(value_equation)
         citations = []
         production_value = Decimal("0.0")
         #rollup stage change
@@ -3467,6 +3518,7 @@ class EconomicResource(models.Model):
                 visited.add(process)
                 depth += 1
                 process.depth = depth
+                #todo share: credit for production events?
                 production_qty = process.production_quantity()
                 path.append(process)
                 #depth += 1
@@ -3475,19 +3527,39 @@ class EconomicResource(models.Model):
                     for ip in inputs:
                         #Work contributions use resource_type.value_per_unit
                         if ip.event_type.relationship == "work":
-                            ip.value = ip.quantity * ip.value_per_unit()
+                            value = ip.quantity * ip.value_per_unit()
+                            if value_equation:
+                                br = ip.bucket_rule(value_equation)
+                                if br:
+                                    #value_b4 = value
+                                    value = br.compute_claim_value(ip)
+                                    #print br.id, br
+                                    #print ip
+                                    #print "--- value b4:", value_b4, "value after:", value
+                            ip.value = value
                             ip.save()
-                            pe_value += ip.value
+                            pe_value += value
+                            #padding = ""
+                            #for x in range(0,depth):
+                            #    padding += "."
+                            #print padding, depth, ip.id, ip
+                            #print padding, "--- ip.value: ", ip.value
+                            #print padding, "--- pe_value:", pe_value    
                             ip.depth = depth
                             path.append(ip)
-                            #br = ip.bucket_rule(value_equation)
                         #Use contributions use resource value_per_unit_of_use.
                         elif ip.event_type.relationship == "use":
                             if ip.resource:
                                 ip.value = ip.quantity * ip.resource.value_per_unit_of_use
                                 ip.save()
                                 pe_value += ip.value
-                                ip.resource.roll_up_value(path, depth, visited)
+                                #padding = ""
+                                #for x in range(0,depth):
+                                #    padding += "."
+                                #print padding, depth, ip.id, ip
+                                #print padding, "--- ip.value: ", ip.value
+                                #print padding, "--- pe_value:", pe_value 
+                                ip.resource.roll_up_value(path, depth, visited, value_equation)
                                 ip.depth = depth
                                 path.append(ip)
                                 #br = ip.bucket_rule(value_equation)
@@ -3496,11 +3568,16 @@ class EconomicResource(models.Model):
                             ip.depth = depth
                             path.append(ip)
                             #rollup stage change
-                            value_per_unit = ip.roll_up_value(path, depth, visited)
+                            value_per_unit = ip.roll_up_value(path, depth, visited, value_equation)
                             ip.value = ip.quantity * value_per_unit
                             ip.save()
                             pe_value += ip.value
-                            #br = ip.bucket_rule(value_equation)
+                            #padding = ""
+                            #for x in range(0,depth):
+                            #    padding += "."
+                            #print padding, depth, ip.id, ip
+                            #print padding, "--- ip.value: ", ip.value
+                            #print padding, "--- pe_value:", pe_value 
                         #Citations valued later, after all other inputs added up
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
@@ -3510,9 +3587,16 @@ class EconomicResource(models.Model):
                                     citations.append(ip)
                             else:
                                 ip.value = ip.quantity
+                                pe_value += ip.value
+                                
+                                #padding = ""
+                                #for x in range(0,depth):
+                                #    padding += "."
+                                #print padding, depth, ip.id, ip
+                                #print padding, "--- ip.value: ", ip.value
+                                #print padding, "--- pe_value:", pe_value 
                             if ip.resource:
-                                ip.resource.roll_up_value(path, depth, visited)
-                            #br = ip.bucket_rule(value_equation)
+                                ip.resource.roll_up_value(path, depth, visited, value_equation)
             production_value += pe_value
         if production_value:
             #Citations use percentage of the sum of other input values.
@@ -3522,6 +3606,12 @@ class EconomicResource(models.Model):
                 c.save()
             for c in citations:
                 production_value += c.value
+                #padding = ""
+                #for x in range(0,depth):
+                #    padding += "."
+                #print padding, depth, c.id, c
+                #print padding, "--- c.value: ", c.value
+                #print padding, "--- production_value:", production_value 
         if production_value and production_qty:
             #print "production value:", production_value, "production qty", production_qty
             production_value_per_unit = production_value / production_qty
@@ -3540,6 +3630,10 @@ class EconomicResource(models.Model):
                     value_per_unit = weighted_values / weights
         self.value_per_unit = value_per_unit.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
         self.save()
+        #padding = ""
+        #for x in range(0,depth):
+        #    padding += "."
+        #print padding, depth, self.id, self, "value_per_unit:", self.value_per_unit
         return self.value_per_unit
         
     def rollup_explanation(self):
@@ -3636,7 +3730,7 @@ class EconomicResource(models.Model):
         visited = set()
         path = []
         depth = 0
-        value_per_unit = self.roll_up_value(path, depth, visited)
+        value_per_unit = self.roll_up_value(path, depth, visited, value_equation)
         #print "value_per_unit:", value_per_unit
         value = self.quantity * value_per_unit
         visited = set()
@@ -3655,7 +3749,7 @@ class EconomicResource(models.Model):
         visited = set()
         path = []
         depth = 0
-        value_per_unit = self.roll_up_value(path, depth, visited)
+        value_per_unit = self.roll_up_value(path, depth, visited, value_equation)
         #print "value_per_unit:", value_per_unit
         value = quantity * value_per_unit
         visited = set()
@@ -5257,6 +5351,8 @@ class Process(models.Model):
         return WorkflowProcessForm(prefix=str(self.id),initial=init, order_item=self.order_item())
         
     def roll_up_value(self, path, depth, visited):
+        #process method
+        #todo rollup
         #import pdb; pdb.set_trace()
         #Value_per_unit will be the result of this method.
         depth += 1
@@ -5562,6 +5658,67 @@ class Exchange(models.Model):
     def sorted_events(self):
         events = self.events.all().order_by("event_type__name")
         return events
+        
+    def flow_type(self):
+        return "Exchange"
+
+    def flow_class(self):
+        return "exchange"
+        
+    def flow_description(self):
+        return self.__unicode__()
+        
+    def roll_up_value(self, trigger_event, path, depth, visited, value_equation=None):
+        #exchange method
+        #import pdb; pdb.set_trace()
+        if self not in visited:
+            visited.add(self)
+            depth += 1
+            self.depth = depth
+            depth += 1
+            path.append(self)
+            values = Decimal("0.0")
+            receipts = self.receipt_events()
+            trigger_fraction = 1
+            if receipts.count() > 1:
+                rsum = sum(r.value for r in receipts)
+                trigger_fraction = trigger_event.value / rsum
+            payments = self.payment_events()
+            #share =  quantity / trigger_event.quantity
+            if payments.count() == 1:
+                evt = payments[0]
+                #import pdb; pdb.set_trace()
+                value = evt.quantity
+                br = evt.bucket_rule(value_equation)
+                if br:
+                    #import pdb; pdb.set_trace()
+                    value = br.compute_claim_value(evt)
+                values += value
+                evt.depth = depth
+                path.append(evt)
+            elif payments.count() > 1:
+                total = sum(p.quantity for p in payments)
+                for evt in payments:
+                    fraction = evt.quantity / total
+                    #evt.share = evt.quantity * share * fraction * trigger_fraction
+                    evt.share = evt.quantity * fraction * trigger_fraction
+                    evt.depth = depth
+                    path.append(evt)
+                    values += evt.share
+            for evt in self.work_events():
+                #import pdb; pdb.set_trace()
+                value = evt.quantity
+                br = evt.bucket_rule(value_equation)
+                if br:
+                    #import pdb; pdb.set_trace()
+                    value = br.compute_claim_value(evt)
+                #evt.share = value * share * trigger_fraction
+                evt.share = value * trigger_fraction
+                values += evt.share
+                evt.depth = depth
+                path.append(evt)
+        event_value = values
+        return event_value
         
     def compute_income_shares(self, value_equation, trigger_event, quantity, value, events, visited):
         #exchange method
@@ -6594,7 +6751,7 @@ class Commitment(models.Model):
         visited = set()
         path = []
         depth = 0
-        value_per_unit = resource.roll_up_value(path, depth, visited)
+        value_per_unit = resource.roll_up_value(path, depth, visited, value_equation)
         #print "resource value_per_unit:", value_per_unit
         value = self.quantity * value_per_unit
         visited = set()
@@ -6612,7 +6769,7 @@ class Commitment(models.Model):
         p = self.process
         if p:
             #print "*** rollup up process value"
-            value = p.roll_up_value(path, depth, visited)
+            value = p.roll_up_value(path, depth, visited, value_equation)
             #print "processvalue:", value
             visited = set()
             #print "*** computing income shares"
@@ -6912,6 +7069,7 @@ class EconomicEvent(models.Model):
                     return art.value_per_unit
         return self.resource_type.value_per_unit
        
+    #obsolete
     def value_explanation(self):
         if self.process:
             p_qty = self.process.production_quantity()
@@ -7002,14 +7160,14 @@ class EconomicEvent(models.Model):
             return "Value per unit is composed of the value of the inputs on the next level:"
         return ""
         
-    def roll_up_value(self, path, depth, visited):
+    def roll_up_value(self, path, depth, visited, value_equation):
         #rollup stage change
         stage = None
         if self.commitment:
             stage = self.commitment.stage
         if stage:
             self.resource.historical_stage = stage
-        return self.resource.roll_up_value(path, depth, visited)
+        return self.resource.roll_up_value(path, depth, visited, value_equation)
         
     def bucket_rule(self, value_equation):
         brs = ValueEquationBucketRule.objects.filter(
@@ -7018,23 +7176,24 @@ class EconomicEvent(models.Model):
         #import pdb; pdb.set_trace()
         candidates = []
         for br in brs:
-            filter = br.filter_rule_deserialized()
-            if filter:
-                rts = filter.get('resource_types')
-                if rts:
-                    if self.resource_type in rts:
-                        br.filter = filter
-                        candidates.append(br)
-                pts = filter.get('process_types')
-                if pts:
-                    if self.process:
-                        if self.process.process_type:
-                            if self.process.process_type in pts:
-                                br.filter = filter
-                                candidates.append(br)
-            else:
-                br.filter = filter
-                candidates.append(br)
+            if br.claim_creation_equation:
+                filter = br.filter_rule_deserialized()
+                if filter:
+                    rts = filter.get('resource_types')
+                    if rts:
+                        if self.resource_type in rts:
+                            br.filter = filter
+                            candidates.append(br)
+                    pts = filter.get('process_types')
+                    if pts:
+                        if self.process:
+                            if self.process.process_type:
+                                if self.process.process_type in pts:
+                                    br.filter = filter
+                                    candidates.append(br)
+                else:
+                    br.filter = filter
+                    candidates.append(br)
         if not candidates:
             return None
         candidates = list(set(candidates))

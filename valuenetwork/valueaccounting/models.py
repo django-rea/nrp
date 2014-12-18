@@ -2518,7 +2518,7 @@ def create_event_types(app, **kwargs):
     EventType.create('Adjust Quantity', _('adjusts'), 'adjusted', 'adjust', 'agent', '+-', 'quantity')
     EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
     EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '-', 'value')
-    EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
+    #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
 
@@ -2562,7 +2562,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('rand', 'To Be Changed')
     UseCaseEventType.create('rand', 'Change')
     UseCaseEventType.create('rand', 'Create Changeable')
-    UseCaseEventType.create('rand', 'Process Expense')
+    #UseCaseEventType.create('rand', 'Process Expense')
     #todo: 'rand' now = mfg/assembly, 'recipe' now = workflow.  Need to rename these use cases.
     UseCaseEventType.create('recipe','Citation')
     UseCaseEventType.create('recipe', 'Resource Consumption')
@@ -2572,7 +2572,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('recipe', 'To Be Changed')
     UseCaseEventType.create('recipe', 'Change')
     UseCaseEventType.create('recipe', 'Create Changeable')
-    UseCaseEventType.create('recipe', 'Process Expense')
+    #UseCaseEventType.create('recipe', 'Process Expense')
     UseCaseEventType.create('todo', 'Todo')
     #UseCaseEventType.create('cust_orders', 'Damage')
     #UseCaseEventType.create('cust_orders', 'Payment')
@@ -2597,7 +2597,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('distribution', 'Time Contribution')
     UseCaseEventType.create('val_equation', 'Time Contribution')
     UseCaseEventType.create('val_equation', 'Resource Production')
-    UseCaseEventType.create('val_equation', 'Process Expense')
+    #UseCaseEventType.create('val_equation', 'Process Expense')
 
     print "created use case event type associations"
 
@@ -4554,14 +4554,14 @@ class ProcessManager(models.Manager):
     def finished(self):
         return Process.objects.filter(finished=True)
 
-    def processes_with_expenses(self, start=None, end=None):
-        #import pdb; pdb.set_trace()
-        et_exp = EventType.objects.get(name="Process Expense")
-        if start and end:
-            procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False).filter(event_date__range=[start, end])]
-        else:
-            procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False)]
-        return list(set(procs))
+    #def processes_with_expenses(self, start=None, end=None):
+    #    #import pdb; pdb.set_trace()
+    #    et_exp = EventType.objects.get(name="Process Expense")
+    #    if start and end:
+    #        procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False).filter(event_date__range=[start, end])]
+    #    else:
+    #        procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False)]
+    #    return list(set(procs))
 
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -5502,9 +5502,9 @@ class ExchangeManager(models.Manager):
                 Q(use_case__identifier="cash_contr")|
                 Q(use_case__identifier="purch_contr")|
                 Q(use_case__identifier="exp_contr"))
-        processes_with_expenses = Process.objects.processes_with_expenses(start, end)
+        #processes_with_expenses = Process.objects.processes_with_expenses(start, end)
         both = list(exchanges)
-        both.extend(processes_with_expenses)
+        #both.extend(processes_with_expenses)
         both.sort(lambda x, y: cmp(y.start_date, x.start_date))
         return both
         

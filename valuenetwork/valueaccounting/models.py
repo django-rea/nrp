@@ -7721,12 +7721,13 @@ class ValueEquationBucket(models.Model):
         verbose_name=_('value equation'), related_name='buckets')
     filter_method =  models.CharField(_('filter method'), null=True, blank=True, 
         max_length=12, choices=FILTER_METHOD_CHOICES, default='dates')
-    #filter_rule not used right now, leaving in just in case
-    filter_rule = models.TextField(_('filter rule'), null=True, blank=True)
     percentage = models.IntegerField(_('bucket percentage'), null=True)    
     distribution_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        related_name="value_equation_buckets", verbose_name=_('distribution agent'))     
+        related_name="value_equation_buckets", verbose_name=_('distribution agent')) 
+    filter_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="value_equation_filter_buckets", verbose_name=_('filter agent'))     
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='buckets_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

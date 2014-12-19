@@ -207,6 +207,12 @@ class EconomicResourceForm(forms.ModelForm):
             
         
 class CreateEconomicResourceForm(forms.ModelForm):
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.all(),
+        label="Work done by",  
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))  
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
@@ -216,6 +222,26 @@ class CreateEconomicResourceForm(forms.ModelForm):
         exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand', 'order_item', 'stage', 'state', 'value_per_unit_of_use', 'value_per_unit')
 
 
+class TransformEconomicResourceForm(forms.ModelForm):
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.all(),
+        label="Work done by",  
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ("from_agent", "event_date", "quantity",)
+        
+    def __init__(self, qty_help=None, *args, **kwargs):
+        super(TransformEconomicResourceForm, self).__init__(*args, **kwargs)
+        if qty_help:
+            self.fields["quantity"].help_text = qty_help
+        
+        
 class ResourceQuantityForm(forms.Form):
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
 
@@ -527,12 +553,12 @@ class UnplannedWorkEventForm(forms.ModelForm):
 
 class UninventoriedProductionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
-    #from_agent = forms.ModelChoiceField(
-    #    required=True,
-    #    queryset=EconomicAgent.objects.all(),
-    #    empty_label=None,
-    #    widget=forms.Select(
-    #        attrs={'class': 'chzn-select'}))   
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.all(),
+        label="Work done by",  
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))  
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
     description = forms.CharField(
@@ -545,8 +571,7 @@ class UninventoriedProductionEventForm(forms.ModelForm):
    
     class Meta:
         model = EconomicEvent
-        #fields = ('event_date', 'from_agent', 'quantity', 'description', 'url')
-        fields = ('event_date', 'quantity', 'description', 'url')
+        fields = ('event_date', 'from_agent', 'quantity', 'description', 'url')
         
     def __init__(self, qty_help=None, *args, **kwargs):
         super(UninventoriedProductionEventForm, self).__init__(*args, **kwargs)

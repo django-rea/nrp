@@ -5784,13 +5784,16 @@ def log_resource_for_commitment(request, commitment_id):
             event_date = resource_data["created_date"]
         else:
             event_date = resource_data["event_date"]
+        from_agent = resource_data["from_agent"]
         default_agent = ct.process.default_agent()
+        if not from_agent:
+            from_agent = default_agent
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
             event_date = event_date,
             event_type = event_type,
-            from_agent = default_agent,
+            from_agent = from_agent,
             to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,

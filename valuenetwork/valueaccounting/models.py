@@ -1106,7 +1106,7 @@ class EventType(models.Model):
         return True
             
     def creates_resources(self):
-        return self.resource_effect == "+"
+        return "+" in self.resource_effect
 
     def consumes_resources(self):
         return self.resource_effect == "-"
@@ -3435,6 +3435,21 @@ class EconomicResource(models.Model):
         if unit:
             vpu_help = "Value added when this resource is used for one " + unit.abbrev
         return EconomicResourceForm(instance=self, vpu_help=vpu_help)
+        
+    def transform_form(self, data=None):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import TransformEconomicResourceForm
+        quantity = self.quantity
+        init = {
+            "event_date": datetime.date.today(),
+            "quantity": self.quantity,
+        }
+        unit = self.resource_type.unit
+        qty_help = ""
+        if unit:
+            unit_string = unit.abbrev
+            qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+        return TransformEconomicResourceForm(qty_help=qty_help, prefix=self.form_prefix(), initial=init, data=data)
 
     #def change_role_formset(self):
     #    from valuenetwork.valueaccounting.forms import ResourceRoleAgentForm
@@ -6161,9 +6176,11 @@ class Commitment(models.Model):
         return False
         
     def resource_create_form(self, data=None):
+        #import pdb; pdb.set_trace()
         if self.resource_type.inventory_rule == "yes":
             from valuenetwork.valueaccounting.forms import CreateEconomicResourceForm
             init = {
+                "from_agent": self.from_agent,
                 "quantity": self.quantity,
                 "unit_of_quantity": self.resource_type.unit,
             }
@@ -6171,7 +6188,7 @@ class Commitment(models.Model):
         else:
             from valuenetwork.valueaccounting.forms import UninventoriedProductionEventForm
             init = {
-                #"from_agent": self.from_agent,
+                "from_agent": self.from_agent,
                 "quantity": self.quantity,
             }
             unit = self.resource_type.unit
@@ -6180,6 +6197,25 @@ class Commitment(models.Model):
                 unit_string = unit.abbrev
                 qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
             return UninventoriedProductionEventForm(qty_help=qty_help, prefix=self.form_prefix(), initial=init, data=data)
+            
+    def resource_transform_form(self, data=None):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import TransformEconomicResourceForm
+        quantity = self.quantity
+        resources = self.resources_ready_to_be_changed()
+        if resources:
+            quantity = resources[0].quantity
+        init = {
+            "from_agent": self.from_agent,
+            "event_date": datetime.date.today(),
+            "quantity": quantity,
+        }
+        unit = self.resource_type.unit
+        qty_help = ""
+        if unit:
+            unit_string = unit.abbrev
+            qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+        return TransformEconomicResourceForm(qty_help=qty_help, prefix=self.form_prefix(), initial=init, data=data)
         
     def select_resource_form(self, data=None):
         from valuenetwork.valueaccounting.forms import SelectResourceForm

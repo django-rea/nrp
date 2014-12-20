@@ -120,6 +120,11 @@ img {
                                             {{ bucket.form.end_date }}
                                         </div>
                                     </div>
+                                    <div id="div-context_agent" class="control-group">
+                                        <div class="controls">
+                                            {{ bucket.form.context_agent }}
+                                        </div>
+                                    </div>
                                 {% else %}
                                     {{ bucket.form|as_bootstrap }} 
                                 {% endif %}
@@ -134,7 +139,7 @@ img {
 
             <div class="span6">
 
-                <div id="loading" style="display: none;" >Calculating, please be patient... very patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></div> 
+                <div id="loading" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></div> 
   
                 {% if agent_totals %}
                   <div id="distributions">

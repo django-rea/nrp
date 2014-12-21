@@ -7826,21 +7826,32 @@ class ValueEquationBucket(models.Model):
             bucket_filter = form.deserialize(serialized_filter)
             start_date = None
             end_date = None
+            bucket_context_agent = None
             if "start_date" in bucket_filter:
                 start_date = bucket_filter["start_date"]
                 filter = "".join([
-                    #filter,
+                    filter,
                     "Start date: ",
                     start_date.strftime('%Y-%m-%d')
                     ])
             if "end_date" in bucket_filter:
                 end_date = bucket_filter["end_date"]
                 filter = "".join([
-                    #filter,
+                    filter,
                     "End date: ",
                     end_date.strftime('%Y-%m-%d')
                     ])
-            events = EconomicEvent.objects.filter(context_agent=context_agent) #, event_type=self.event_type)
+            if "context_agent" in bucket_filter:
+                bucket_context_agent = bucket_filter["context_agent"]
+                filter = "".join([
+                    filter,
+                    "Context agent: ",
+                    bucket_context_agent.nick
+                    ])
+            if bucket_context_agent:
+                events = EconomicEvent.objects.filter(context_agent=bucket_context_agent)
+            else:
+                events = EconomicEvent.objects.filter(context_agent=context_agent)
             if start_date and end_date:
                 events = events.filter(event_date__range=(start_date, end_date))
             elif start_date:

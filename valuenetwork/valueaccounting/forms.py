@@ -3267,7 +3267,12 @@ class DateRangeForm(forms.Form):
     end_date = forms.DateField(
         required=False, 
         label="End date",
-        widget=forms.TextInput(attrs={'class': 'input-small date-entry validateMe', }))        
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry validateMe', }))
+    context_agent = forms.ModelChoiceField(
+        required=False, 
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Network/Project (optional)"),
+        widget=forms.Select(attrs={'class': 'chzn-select'}))    
 
     def serialize(self):
         data = self.cleaned_data
@@ -3279,6 +3284,9 @@ class DateRangeForm(forms.Form):
         end_date = data.get("end_date")
         if end_date:
             json["end_date"] = end_date.strftime('%Y-%m-%d')
+        context_agent = data.get("context_agent")
+        if context_agent:
+            json["context_agent"] = context_agent.id
         from django.utils import simplejson
         string = simplejson.dumps(json)            
         return string
@@ -3294,6 +3302,9 @@ class DateRangeForm(forms.Form):
         end_date = json.get("end_date")
         if end_date:
             dict["end_date"] = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+        context_agent_id = json.get("context_agent")
+        if context_agent_id:
+            dict["context_agent"] = EconomicAgent.objects.get(id=context_agent_id)
         return dict
         
         

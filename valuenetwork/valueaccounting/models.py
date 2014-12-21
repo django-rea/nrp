@@ -1106,7 +1106,11 @@ class EventType(models.Model):
         return True
             
     def creates_resources(self):
-        return "+" in self.resource_effect
+        if "+" in self.resource_effect:
+            #this is to rule out adjustments
+            if not "-" in self.resource_effect:
+                return True
+        return False
 
     def consumes_resources(self):
         return self.resource_effect == "-"
@@ -6779,7 +6783,7 @@ class Commitment(models.Model):
             for s in shares:
                 s.fraction = s.share / total
         #import pdb; pdb.set_trace()
-        print "total shares:", total
+        #print "total shares:", total
         return shares
         
     def compute_income_fractions_for_resource(self, value_equation, resource):

@@ -203,7 +203,8 @@ hr {
                                                 <h3 id="resource-label">{% trans "Change " %} {{ resource }} to @{{ changeable_requirement.stage }}</h3>
                                             </div>
                                             <div class="modal-body">
-                                                <form class="resource-form validateMe" id="resourceForm{{ item.id }}" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >
+                                                <form class="resource-form validateMe" id="resourceForm{{ item.id }}" enctype="multipart/form-data" 
+                                                    action="{% url log_stage_change_event commitment_id=to_be_changed_requirement.id resource_id=resource.id %}" method="POST" >
                                                     {% csrf_token %}
                                                     {{ resource.transform_form|as_bootstrap }}
                                                 <div class="modal-footer">

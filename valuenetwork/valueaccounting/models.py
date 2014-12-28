@@ -2954,10 +2954,11 @@ class Order(models.Model):
         return [item.context_agent for item in items]
         
     def sale(self):
+        sale = None
         if self.order_type == "customer":
-            return Exchange.objects.get(order=self)
-        else:
-            return None
+            exchange = Exchange.objects.filter(order=self).filter(use_case__identifier="sale")
+            sale = exchange[0]
+        return sale
 
 class ProcessTypeManager(models.Manager):
     
@@ -7870,6 +7871,13 @@ class ValueEquationBucket(models.Model):
             for order in orders:
                 for order_item in order.order_items():
                     events.extend([e for e in order_item.compute_income_fractions(ve)]) # if e.event_type==self.event_type])
+                exchanges = Exchange.objects.filter(order=order)
+                #import pdb; pdb.set_trace()
+                for exchange in exchanges:
+                    for payment in exchange.payment_events():
+                        events.append(payment)
+                    for work in exchange.work_events():
+                        events.append(work)
         elif self.filter_method == 'shipment':
             from valuenetwork.valueaccounting.forms import ShipmentMultiSelectForm
             form = ShipmentMultiSelectForm(context_agent=context_agent)

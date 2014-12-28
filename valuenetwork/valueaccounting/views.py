@@ -8656,9 +8656,12 @@ def exchange_logging(request, exchange_id):
     use_case = exchange.use_case
     context_agent = exchange.context_agent
     pattern = exchange.process_pattern
-    exchange_form = ExchangeForm(use_case, context_agent, instance=exchange, data=request.POST or None)
-    sale_form = SaleForm(context_agent, instance=exchange, data=request.POST or None)
-    distribution_form = DistributionForm(instance=exchange, data=request.POST or None)
+    if use_case.identifier == "sale":
+        exchange_form = SaleForm(context_agent, instance=exchange, data=request.POST or None)
+    elif use_case.identifier == "distribution":
+        exchange_form = DistributionForm(instance=exchange, data=request.POST or None)
+    else:
+        exchange_form = ExchangeForm(use_case, context_agent, instance=exchange, data=request.POST or None)
     add_receipt_form = None
     add_to_resource_form = None
     add_to_contr_resource_form = None
@@ -8846,28 +8849,15 @@ def exchange_logging(request, exchange_id):
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        if sale_form:
-            if sale_form.is_valid():
-                exchange = sale_form.save()
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/exchange', exchange.id))
-        elif distribution_form:
-            if distribution_form.is_valid():
-                exchange = distribution_form.save()
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/exchange', exchange.id))
-        else:
-            if exchange_form.is_valid():
-                exchange = exchange_form.save()
-                return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/exchange', exchange.id))
+        if exchange_form.is_valid():
+            exchange = exchange_form.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/exchange', exchange.id))
 
     return render_to_response("valueaccounting/exchange_logging.html", {
         "use_case": use_case,
         "exchange": exchange,
         "exchange_form": exchange_form,
-        "sale_form": sale_form,
-        "distribution_form": distribution_form,
         "agent": agent,
         "user": request.user,
         "logger": logger,

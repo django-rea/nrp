@@ -3413,9 +3413,6 @@ class EconomicResource(models.Model):
         pes = self.producing_events()
         cas = [pe.context_agent for pe in pes if pe.context_agent]
         cas = list(set(cas))
-        if not cas:
-            pts = self.process_type.producing_process_types
-            cas = [pt.context_agent for pt in pts if pt.context_agent]
         return cas
         
     def value_equations(self):

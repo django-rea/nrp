@@ -719,13 +719,7 @@ li {
 	    <div class="span5">
 		  <form id="exchangeForm" method="POST" action="">
             {% csrf_token %}
-            {% if use_case.identifier == 'sale' %}
-                {{ sale_form|as_bootstrap }}
-            {% elif use_case.identifier == 'distribution' %}
-                {{ distribution_form|as_bootstrap }}
-            {% else %}
-                {{ exchange_form|as_bootstrap }}
-            {% endif %}
+            {{ exchange_form|as_bootstrap }}
 
             <div class="form-actions">
 				<input type="submit" name="save" value="{% trans 'Save changes' %}" class="btn btn-primary" /> 

@@ -2722,6 +2722,10 @@ class ExchangeForm(forms.ModelForm):
         help_text="This is a supplier external to the network.  It is used as a default for individual events in this contribution.",
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
+    order = forms.ModelChoiceField(
+        required=False,
+        queryset=Order.objects.all(),
+        widget=forms.Select(attrs={'class': 'resource chzn-select input-xxlarge',}))
     notes = forms.CharField(required=False, 
         label=_("Comments"),
         widget=forms.Textarea(attrs={'class': 'item-description',}))
@@ -2731,7 +2735,7 @@ class ExchangeForm(forms.ModelForm):
 
     class Meta:
         model = Exchange
-        fields = ('process_pattern', 'context_agent', 'supplier', 'start_date', 'url', 'notes')
+        fields = ('process_pattern', 'context_agent', 'supplier', 'order', 'start_date', 'url', 'notes')
 
     def __init__(self, use_case, context_agent, *args, **kwargs):
         super(ExchangeForm, self).__init__(*args, **kwargs)

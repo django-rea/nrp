@@ -4857,14 +4857,25 @@ def delete_event(request, event_id):
             if event.creates_resources():
                 resource.quantity -= event.quantity
             if event.changes_stage():
-                resource.revert_to_previous_stage()
+                tbcs = process.to_be_changed_requirements()
+                if tbcs:
+                    tbc = tbcs[0]
+                    tbc_evts = tbc.fulfilling_events()
+                    if tbc_evts:
+                        tbc_evt = tbc_evts[0]
+                        resource.quantity = tbc_evt.quantity
+                        tbc_evt.delete()
+                    resource.stage = tbc.stage
+                else:
+                    resource.revert_to_previous_stage()
             event.delete()
             if resource.is_deletable():
                 resource.delete()
             else:
                 resource.save()
         else:
-            event.delete()        
+            event.delete()
+            
     next = request.POST.get("next")
     if next == "process":
         return HttpResponseRedirect('/%s/%s/'
@@ -5662,46 +5673,62 @@ def add_unplanned_cite_event(request, process_id):
         
 @login_required
 def log_stage_change_event(request, commitment_id, resource_id):
-    to_be_changed_commitment = get_object_or_404(Commitment, pk=commitment_id)
-    resource = get_object_or_404(EconomicResource, pk=resource_id)
-    process = to_be_changed_commitment.process
-    change_commitment = process.changeable_requirements()[0]
-    default_agent = process.default_agent()
-    rt = to_be_changed_commitment.resource_type
-    event = EconomicEvent(
-        commitment=to_be_changed_commitment,
-        event_type=to_be_changed_commitment.event_type,
-        resource_type = rt,
-        resource = resource,
-        from_agent = default_agent,
-        to_agent = default_agent,
-        process = process,
-        context_agent = process.context_agent,
-        event_date = datetime.date.today(),
-        quantity=resource.quantity,
-        unit_of_quantity = rt.unit,
-        created_by = request.user,
-        changed_by = request.user,
-    )
-    event.save()
-    event = EconomicEvent(
-        commitment=change_commitment,
-        event_type=change_commitment.event_type,
-        resource_type = rt,
-        resource = resource,
-        from_agent = default_agent,
-        to_agent = default_agent,
-        process = process,
-        context_agent = process.context_agent,
-        event_date = datetime.date.today(),
-        quantity=resource.quantity,
-        unit_of_quantity = rt.unit,
-        created_by = request.user,
-        changed_by = request.user,
-    )
-    event.save()
-    resource.stage = change_commitment.stage
-    resource.save()   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        to_be_changed_commitment = get_object_or_404(Commitment, pk=commitment_id)
+        resource = get_object_or_404(EconomicResource, pk=resource_id)
+        quantity = resource.quantity
+        process = to_be_changed_commitment.process
+        default_agent = process.default_agent()
+        from_agent = default_agent
+        event_date = datetime.date.today()
+        prefix = resource.form_prefix()
+        #shameless hack
+        qty_field = prefix + "-quantity"
+        if request.POST.get(qty_field):
+            form = resource.transform_form(data=request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                quantity = data["quantity"]
+                event_date = data["event_date"]
+                from_agent = data["from_agent"]
+        change_commitment = process.changeable_requirements()[0]
+        rt = to_be_changed_commitment.resource_type
+        event = EconomicEvent(
+            commitment=to_be_changed_commitment,
+            event_type=to_be_changed_commitment.event_type,
+            resource_type = rt,
+            resource = resource,
+            from_agent = from_agent,
+            to_agent = default_agent,
+            process = process,
+            context_agent = process.context_agent,
+            event_date = event_date,
+            quantity=resource.quantity,
+            unit_of_quantity = rt.unit,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+        event = EconomicEvent(
+            commitment=change_commitment,
+            event_type=change_commitment.event_type,
+            resource_type = rt,
+            resource = resource,
+            from_agent = from_agent,
+            to_agent = default_agent,
+            process = process,
+            context_agent = process.context_agent,
+            event_date = event_date,
+            quantity=quantity,
+            unit_of_quantity = rt.unit,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+        resource.stage = change_commitment.stage
+        resource.quantity = quantity
+        resource.save()   
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
@@ -5784,13 +5811,16 @@ def log_resource_for_commitment(request, commitment_id):
             event_date = resource_data["created_date"]
         else:
             event_date = resource_data["event_date"]
+        from_agent = resource_data["from_agent"]
         default_agent = ct.process.default_agent()
+        if not from_agent:
+            from_agent = default_agent
         event = EconomicEvent(
             resource = resource,
             commitment = ct,
             event_date = event_date,
             event_type = event_type,
-            from_agent = default_agent,
+            from_agent = from_agent,
             to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,

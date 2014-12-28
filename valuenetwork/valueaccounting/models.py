@@ -3413,8 +3413,10 @@ class EconomicResource(models.Model):
     def context_agents(self):
         pes = self.producing_events()
         cas = [pe.context_agent for pe in pes if pe.context_agent]
-        cas = list(set(cas))
-        return cas
+        if cas:
+            return list(set(cas))
+        else:
+            return []
         
     def value_equations(self):
         ves = []

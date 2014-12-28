@@ -768,7 +768,7 @@ class EconomicAgent(models.Model):
             if ves:
                 return ves
             parent = parent.parent()
-        return None
+        return []
         
     def default_agent(self):
         return self
@@ -3420,9 +3420,12 @@ class EconomicResource(models.Model):
         
     def value_equations(self):
         ves = []
+        #import pdb; pdb.set_trace()
         cas = self.context_agents()
         for ca in cas:
-            ves.extend(ca.own_or_parent_value_equations())
+            ca_ves = ca.own_or_parent_value_equations()
+            if ca_ves:
+                ves.extend(ca_ves)
         return ves
                   
     def value_explanation(self):

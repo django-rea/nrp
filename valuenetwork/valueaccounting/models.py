@@ -3344,7 +3344,7 @@ class EconomicResource(models.Model):
     author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
         verbose_name=_('author'), blank=True, null=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
-        default=Decimal("1.00"), editable=False)
+        default=Decimal("0.00"), editable=False)
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, 
         default=Decimal("0"), blank=True, null=True)
     notes = models.TextField(_('notes'), blank=True, null=True)
@@ -3415,10 +3415,10 @@ class EconomicResource(models.Model):
     def context_agents(self):
         pes = self.producing_events()
         cas = [pe.context_agent for pe in pes if pe.context_agent]
-        if cas:
-            return list(set(cas))
-        else:
-            return []
+        if not cas:
+            pts = self.resource_type.producing_process_types()
+            cas = [pt.context_agent for pt in pts if pt.context_agent]
+        return cas
         
     def value_equations(self):
         ves = []

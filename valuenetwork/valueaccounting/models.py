@@ -380,7 +380,9 @@ class AgentManager(models.Manager):
         return EconomicAgent.objects.filter(agent_type__is_context=False)
         
     def resource_role_agents(self):
-        return EconomicAgent.objects.filter(Q(agent_type__is_context=True)|Q(agent_type__party_type="individual"))
+        #return EconomicAgent.objects.filter(Q(agent_type__is_context=True)|Q(agent_type__party_type="individual"))
+        #todo: should there be some limits?  Ran into condition where we needed an organization, therefore change to below.
+        return EconomicAgent.objects.all()
     
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)

@@ -4210,7 +4210,8 @@ class EconomicResource(models.Model):
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
         qty_help = " ".join(["unit:", self.unit_of_quantity().abbrev, ", up to 2 decimal places"])
-        return InputEventForm(qty_help=qty_help, prefix=prefix)
+        init = { "quantity": self.quantity, }
+        return InputEventForm(qty_help=qty_help, prefix=prefix, initial=init)
 
     def use_event_form(self, data=None):        
         from valuenetwork.valueaccounting.forms import InputEventForm

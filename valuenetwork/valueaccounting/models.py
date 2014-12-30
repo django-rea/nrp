@@ -3342,7 +3342,7 @@ class EconomicResource(models.Model):
     author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
         verbose_name=_('author'), blank=True, null=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
-        default=Decimal("1.00"), editable=False)
+        default=Decimal("0.00"), editable=False)
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, 
         default=Decimal("0"), blank=True, null=True)
     notes = models.TextField(_('notes'), blank=True, null=True)

@@ -1186,6 +1186,12 @@ INVENTORY_RULE_CHOICES = (
     ('never', _('Does not apply')),
 )
 
+SUBCLASS_CHOICES = (
+    ('work', _('Type of Work')),
+    ('account', _('Virtual Account')),
+    ('other', _('Other')),
+)
+
 class EconomicResourceType(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
     #version = models.CharField(_('version'), max_length=32, blank=True)    
@@ -1215,6 +1221,8 @@ class EconomicResourceType(models.Model):
         help_text=_('Can any resource of this type be substituted for any other resource of this type?'))
     inventory_rule = models.CharField(_('inventory rule'), max_length=5,
         choices=INVENTORY_RULE_CHOICES, default='yes')
+    subclass = models.CharField(_('subclass'), max_length=12,
+        choices=SUBCLASS_CHOICES, default='other')
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
@@ -7643,9 +7651,7 @@ class ValueEquation(models.Model):
             
     def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute, serialized_filters):
         #import pdb; pdb.set_trace()
-        context_agent = exchange.context_agent
-        distribution_events = self.run_value_equation(
-            context_agent=context_agent, 
+        distribution_events, contribution_events = self.run_value_equation(
             amount_to_distribute=amount_to_distribute,
             serialized_filters=serialized_filters)
         #import pdb; pdb.set_trace()

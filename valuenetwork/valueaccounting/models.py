@@ -758,6 +758,12 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         return None
         
+    def virtual_accounts(self):
+        vars = self.agent_resource_roles.filter(
+            role__is_owner=True, 
+            resource__resource_type__subclass="account")
+        return [var.resource for var in vars]
+        
     def own_or_parent_value_equations(self):
         ves = self.value_equations.all()
         if ves:

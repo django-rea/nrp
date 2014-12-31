@@ -4197,7 +4197,9 @@ class EconomicResource(models.Model):
             if io.__class__.__name__ == "EconomicEvent":
                 if io.event_type.relationship == "out":
                     new_process.output_events.append(io)
-                else:
+                elif io.event_type.relationship == "out":
+                    #import pdb; pdb.set_trace()
+                    #print self.identifier, " ", io, " ", io.event_type.relationship
                     new_process.input_events.append(io)
         if new_process:
             processes.append(new_process)

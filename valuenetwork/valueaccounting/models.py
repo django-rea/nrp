@@ -7670,7 +7670,7 @@ class ValueEquation(models.Model):
             dist_event.save()
             for claim_event in dist_event.new_claim_events:
                 claim_event.claim.save()
-                claim_event.claim.event.save()
+                claim_event.claim.event.save() #this is the contribution event
                 claim_event.event = dist_event
                 claim_event.save()
         return exchange

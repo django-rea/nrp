@@ -770,6 +770,9 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         return []
         
+    def live_value_equations(self):
+        return self.value_equations.filter(live=True)
+        
     def default_agent(self):
         return self
         

@@ -7321,6 +7321,7 @@ class EconomicEvent(models.Model):
             else:
                 if self.process:
                     order = self.process.independent_demand()
+            claim_value = bucket_rule.compute_claim_value(self)
             claim = Claim(
                 order=order,
                 value_equation_bucket_rule=bucket_rule,
@@ -7329,6 +7330,8 @@ class EconomicEvent(models.Model):
                 against_agent=self.to_agent,
                 context_agent=self.context_agent,
                 unit_of_value=self.unit_of_value,
+                value=claim_value,
+                original_value=claim_value,
                 claim_creation_equation=bucket_rule.claim_creation_equation,
             )
             claim.save()
@@ -7336,12 +7339,12 @@ class EconomicEvent(models.Model):
                 event=self,
                 claim=claim,
                 claim_event_date=datetime.date.today(),
-                value=bucket_rule.compute_claim_value(self),
+                value=claim_value,
                 unit_of_value=self.unit_of_value,
                 event_effect="+",
             )
             claim_event.save()
-            claim_event.update_claim()
+            #claim_event.update_claim()
             return claim
                
     def get_unsaved_contribution_claim(self, bucket_rule):
@@ -7366,6 +7369,7 @@ class EconomicEvent(models.Model):
                 context_agent=self.context_agent,
                 value=value,
                 unit_of_value=self.unit_of_value,
+                original_value=value,
                 claim_creation_equation=bucket_rule.claim_creation_equation,
             )
             claim_event = ClaimEvent(
@@ -7654,17 +7658,17 @@ class ValueEquation(models.Model):
         distribution_events, contribution_events = self.run_value_equation(
             amount_to_distribute=amount_to_distribute,
             serialized_filters=serialized_filters)
-        #import pdb; pdb.set_trace()
-        for event in distribution_events:
-            event.exchange = exchange
-            event.resource_type = money_resource.resource_type
-            event.resource = money_resource
-            event.unit_of_quantity = money_resource.unit_of_quantity
-            event.save()
-            #todo: will need to save new claims too
-            for claim_event in event.new_claim_events:
+        import pdb; pdb.set_trace()
+        for dist_event in distribution_events:
+            dist_event.exchange = exchange
+            dist_event.resource_type = money_resource.resource_type
+            dist_event.resource = money_resource
+            dist_event.unit_of_quantity = money_resource.unit_of_quantity
+            dist_event.save()
+            for claim_event in dist_event.new_claim_events:
                 claim_event.claim.save()
-                claim_event.event = event
+                claim_event.claim.event.save()
+                claim_event.event = dist_event
                 claim_event.save()
         return exchange
         
@@ -7742,20 +7746,6 @@ class DistributionValueEquation(models.Model):
         verbose_name=_('value equation link'), related_name='distributions')
     value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)    
 
-'''
-class AgentValueEquation(models.Model):
-    context_agent = models.ForeignKey(EconomicAgent,
-        limit_choices_to={"agent_type__is_context": True,},
-        related_name="value_equations", verbose_name=_('context agent'))  
-    value_equation = models.ForeignKey(ValueEquation,
-        verbose_name=_('value equation'), related_name='agents')
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='value_equations_assigned', blank=True, null=True)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)     
-    
-    def __unicode__(self):
-        return self.value_equation.name
-'''
 
 FILTER_METHOD_CHOICES = (
     ('order', _('Order')),
@@ -7922,7 +7912,7 @@ class ValueEquationBucket(models.Model):
                     fraction = event.share / event.value
                 except AttributeError:
                     pass
-            claim.share = claim.value * fraction #todo: don't we need the original claim value here?
+            claim.share = claim.original_value * fraction 
             claim.event = event
             claims.append(claim)
         return claims
@@ -8207,7 +8197,9 @@ class Claim(models.Model):
     value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 
         default=Decimal("0.0"))
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
-        verbose_name=_('unit of value'), related_name="claim_value_units")
+        verbose_name=_('unit of value'), related_name="claim_value_units")        
+    original_value = models.DecimalField(_('original value'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.0"))
     claim_creation_equation = models.TextField(_('creation equation'), null=True, blank=True)
     
     slug = models.SlugField(_("Page name"), editable=False)

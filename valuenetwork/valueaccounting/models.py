@@ -2532,7 +2532,8 @@ def create_event_types(app, **kwargs):
     EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
     EventType.create('Adjust Quantity', _('adjusts'), 'adjusted', 'adjust', 'agent', '+-', 'quantity')
     EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
-    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '-', 'value')
+    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '+', 'value')
+    EventType.create('Cash Disbursement', _('disburses cash'), _('disbursed by'), 'disburse', 'exchange', '-', 'value')
     #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
@@ -2610,6 +2611,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('sale', 'Time Contribution')
     UseCaseEventType.create('distribution', 'Distribution')
     UseCaseEventType.create('distribution', 'Time Contribution')
+    UseCaseEventType.create('distribution', 'Cash Disbursement')
     UseCaseEventType.create('val_equation', 'Time Contribution')
     UseCaseEventType.create('val_equation', 'Resource Production')
     #UseCaseEventType.create('val_equation', 'Process Expense')
@@ -7661,12 +7663,26 @@ class ValueEquation(models.Model):
         distribution_events, contribution_events = self.run_value_equation(
             amount_to_distribute=amount_to_distribute,
             serialized_filters=serialized_filters)
-        import pdb; pdb.set_trace()
+        et = EventType.objects.get(name='Cash Disbursement')
+        disbursement_event = EconomicEvent(
+            event_type = et,
+            event_date = datetime.date.today(),
+            from_agent = money_resource.owner(), 
+            to_agent = self.context_agent,
+            context_agent = self.context_agent,
+            quantity = amount_to_distribute,
+            is_contribution = False,
+            resource_type = money_resource.resource_type,
+            resource = money_resource,
+        )
+        disbursement_event.save()
+        #import pdb; pdb.set_trace()
         for dist_event in distribution_events:
             dist_event.exchange = exchange
-            dist_event.resource_type = money_resource.resource_type
-            dist_event.resource = money_resource
-            dist_event.unit_of_quantity = money_resource.unit_of_quantity
+            #todo: get to_agent virtual account for this info
+            #dist_event.resource_type = 
+            #dist_event.resource = 
+            #dist_event.unit_of_quantity = 
             dist_event.save()
             for claim_event in dist_event.new_claim_events:
                 claim_event.claim.save()

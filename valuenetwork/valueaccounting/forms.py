@@ -2870,7 +2870,7 @@ class DistributionValueEquationForm(forms.ModelForm):
             use_case = UseCase.objects.get(identifier="distribution")
             self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case)
             if context_agent:
-                self.fields["value_equation"].queryset = context_agent.value_equations
+                self.fields["value_equation"].queryset = context_agent.live_value_equations
             if self.fields["process_pattern"].queryset.count > 0:
                 resources = []
                 pattern = self.fields["process_pattern"].queryset[0]

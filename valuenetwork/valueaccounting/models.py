@@ -380,7 +380,9 @@ class AgentManager(models.Manager):
         return EconomicAgent.objects.filter(agent_type__is_context=False)
         
     def resource_role_agents(self):
-        return EconomicAgent.objects.filter(Q(agent_type__is_context=True)|Q(agent_type__party_type="individual"))
+        #return EconomicAgent.objects.filter(Q(agent_type__is_context=True)|Q(agent_type__party_type="individual"))
+        #todo: should there be some limits?  Ran into condition where we needed an organization, therefore change to below.
+        return EconomicAgent.objects.all()
     
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
@@ -3355,7 +3357,7 @@ class EconomicResource(models.Model):
     author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
         verbose_name=_('author'), blank=True, null=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
-        default=Decimal("1.00"), editable=False)
+        default=Decimal("0.00"), editable=False)
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, 
         default=Decimal("0"), blank=True, null=True)
     notes = models.TextField(_('notes'), blank=True, null=True)
@@ -3426,10 +3428,10 @@ class EconomicResource(models.Model):
     def context_agents(self):
         pes = self.producing_events()
         cas = [pe.context_agent for pe in pes if pe.context_agent]
-        if cas:
-            return list(set(cas))
-        else:
-            return []
+        if not cas:
+            pts = self.resource_type.producing_process_types()
+            cas = [pt.context_agent for pt in pts if pt.context_agent]
+        return cas
         
     def value_equations(self):
         ves = []
@@ -4208,7 +4210,9 @@ class EconomicResource(models.Model):
             if io.__class__.__name__ == "EconomicEvent":
                 if io.event_type.relationship == "out":
                     new_process.output_events.append(io)
-                else:
+                elif io.event_type.relationship == "out":
+                    #import pdb; pdb.set_trace()
+                    #print self.identifier, " ", io, " ", io.event_type.relationship
                     new_process.input_events.append(io)
         if new_process:
             processes.append(new_process)
@@ -4221,7 +4225,8 @@ class EconomicResource(models.Model):
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()
         qty_help = " ".join(["unit:", self.unit_of_quantity().abbrev, ", up to 2 decimal places"])
-        return InputEventForm(qty_help=qty_help, prefix=prefix)
+        init = { "quantity": self.quantity, }
+        return InputEventForm(qty_help=qty_help, prefix=prefix, initial=init)
 
     def use_event_form(self, data=None):        
         from valuenetwork.valueaccounting.forms import InputEventForm

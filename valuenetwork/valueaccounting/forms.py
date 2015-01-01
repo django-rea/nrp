@@ -145,6 +145,7 @@ class SelectOrCreateResourceForm(forms.ModelForm):
     identifier = forms.CharField(
         required=False, 
         label="Identifier",
+        help_text="For example, lot number or serial number.",
         widget=forms.TextInput(attrs={'class': 'item-name',}))
     current_location = forms.ModelChoiceField(
         queryset=Location.objects.all(), 
@@ -177,6 +178,11 @@ class EconomicResourceForm(forms.ModelForm):
         required=False,
         widget=forms.HiddenInput)
         #widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    identifier = forms.CharField(
+        required=False, 
+        label="Identifier",
+        help_text="For example, lot number or serial number.",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     created_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -212,7 +218,12 @@ class CreateEconomicResourceForm(forms.ModelForm):
         queryset=EconomicAgent.objects.all(),
         label="Work done by",  
         widget=forms.Select(
-            attrs={'class': 'chzn-select'}))  
+            attrs={'class': 'chzn-select'}))
+    identifier = forms.CharField(
+        required=False, 
+        label="Identifier",
+        help_text="For example, lot number or serial number.",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
@@ -695,6 +706,7 @@ class UnplannedOutputForm(forms.ModelForm):
     identifier = forms.CharField(
         required=False, 
         label="Identifier",
+        help_text="For example, lot number or serial number.",
         widget=forms.TextInput(attrs={'class': 'item-name',}))
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity  input-small'}))
@@ -767,6 +779,7 @@ class UnorderedReceiptForm(forms.ModelForm):
     identifier = forms.CharField(
         required=False, 
         label="<b>Create the resource:</b><br><br>Identifier",
+        help_text="For example, lot number or serial number.",
         widget=forms.TextInput(attrs={'class': 'item-name',}))
     url = forms.URLField(
         required=False, 
@@ -1931,6 +1944,7 @@ class MaterialContributionEventForm(forms.ModelForm):
     identifier = forms.CharField(
         required=False, 
         label="<b>Create the resource:</b><br><br>Identifier",
+        help_text="For example, lot number or serial number.",
         widget=forms.TextInput(attrs={'class': 'item-name',}))
     url = forms.URLField(
         required=False, 
@@ -2929,6 +2943,7 @@ class ResourceFlowForm(forms.ModelForm):
     identifier = forms.CharField(
         required=False, 
         label="<b>Create the resource:</b><br><br>Identifier",
+        help_text="For example, lot number or serial number.",
         widget=forms.TextInput(attrs={'class': 'item-name',}))
     url = forms.URLField(
         required=False, 

@@ -61,7 +61,7 @@ td {
         {% include "_messages.html" %}
 	<div>
 	{% if context_agent %}
-        <legend>{% trans "Distribute Income for " %} {{ context_agent }} </legend>
+        <legend>{% trans "Create Distribute for " %} {{ context_agent }} </legend>
 				
         <p class="hdg">Distribution:</p>
         <form id="headerForm" class="validateMe" action="." method="POST" >
@@ -72,13 +72,11 @@ td {
               <tr><td>Select one or more Cash Receipts</td><td><b>OR</b></td><td>Amount to distribute</td></tr>
               <tr>
                 <td class="top">{{ header_form.cash_receipts }}</td><td>&nbsp;</td>
-                <td><span class="spc"> {{ header_form.money_to_distribute }}</span><br />Cash resource account<br /><span class="spc">{{ header_form.resource }}</span></td>
+                <td><span class="spc"> {{ header_form.money_to_distribute }}</span><br />From cash resource account<br /><span class="spc">{{ header_form.resource }}</span></td>
               </tr>
             </table>
-{% comment %}
             <p>Distribution date</p>
             <p>{{ header_form.start_date }}</p>
-{% endcomment %}
             <p>Comments</p>
             <p>{{ header_form.notes }}</p>
             <div id="filters">
@@ -115,7 +113,7 @@ td {
                     {% endif %}
                 {% endfor %}
             </div>
-            <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Create Distribution' %}" />
+            <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
         </form>
 
     {% else %}

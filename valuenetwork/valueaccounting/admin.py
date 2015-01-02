@@ -49,13 +49,18 @@ class ValueEquationBucketAdmin(admin.ModelAdmin):
 
 admin.site.register(ValueEquationBucket, ValueEquationBucketAdmin)
 
+class DistributionValueEquationAdmin(admin.ModelAdmin):
+    list_display = ('distribution_date', 'exchange', 'value_equation_link')
+
+admin.site.register(DistributionValueEquation, DistributionValueEquationAdmin)
+    
 class ClaimEventInline(admin.TabularInline):
     model = ClaimEvent
     fk_name = 'claim'
     fields = ('event', 'claim_event_date', 'value', 'unit_of_value', 'event_effect')
   
 class ClaimAdmin(admin.ModelAdmin):
-    list_display = ('claim_date', 'has_agent', 'against_agent', 'value_equation_bucket_rule', 'context_agent', 'value', 'unit_of_value', 'claim_creation_equation')
+    list_display = ('claim_date', 'has_agent', 'against_agent', 'value_equation_bucket_rule', 'context_agent', 'original_value', 'value', 'unit_of_value', 'claim_creation_equation')
     inlines = [ ClaimEventInline, ]
 
 admin.site.register(Claim, ClaimAdmin)
@@ -65,7 +70,6 @@ class EconomicEventInline(admin.TabularInline):
     fk_name = 'exchange'
     fields = ('event_type', 'event_date', 'resource_type', 'quantity', 'unit_of_quantity', 'value', 'unit_of_value')
     
-
 class ExchangeAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
     list_display = ('id', 'use_case', 'context_agent', 'supplier')
@@ -73,6 +77,12 @@ class ExchangeAdmin(admin.ModelAdmin):
 
 admin.site.register(Exchange, ExchangeAdmin)
 
+class CashReceiptDistributionAdmin(admin.ModelAdmin):
+    date_hierarchy = 'distribution_date'
+    list_display = ('distribution_date', 'distribution', 'cash_receipt', 'quantity', 'unit_of_quantity')
+    
+admin.site.register(CashReceiptDistribution, CashReceiptDistributionAdmin)
+    
 class AgentAssociationTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'label', 'inverse_label', 'description')
 

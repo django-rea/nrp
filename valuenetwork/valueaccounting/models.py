@@ -766,6 +766,27 @@ class EconomicAgent(models.Model):
             resource__resource_type__subclass="account")
         return [var.resource for var in vars]
         
+    def create_virtual_account(self, resource_type):
+        role_types = AgentResourceRoleType.objects.filter(is_owner=True)
+        if role_types:
+            owner_role_type = role_types[0]
+        if owner_role_type:
+            va = EconomicResource(
+                resource_type=resource_type,
+                identifier="Virtual account for " + self.nick,
+            )
+            va.save()
+            arr = AgentResourceRole(
+                agent=self,
+                role=owner_role_type,
+                resource=va,
+                is_account=True,
+            )
+            arr.save()
+            return va
+        else:
+            return None
+        
     def own_or_parent_value_equations(self):
         ves = self.value_equations.all()
         if ves:
@@ -846,13 +867,13 @@ class EconomicAgent(models.Model):
         
     def undistributed_cash_receipts(self):
         #import pdb; pdb.set_trace()
-        cash_receipts = []
+        cr_ids = []
         et = EventType.objects.get(name="Cash Receipt")
         crs = EconomicEvent.objects.filter(context_agent=self).filter(event_type=et)
         for cr in crs:
             if cr.is_undistributed():
-                cash_receipts.append(cr)
-        return cash_receipts
+                cr_ids.append(cr.id)
+        return EconomicEvent.objects.filter(id__in=cr_ids)
         
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,
@@ -3372,6 +3393,7 @@ class EconomicResource(models.Model):
     state = models.ForeignKey(ResourceState, related_name="resources_at_state",
         verbose_name=_('state'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
+    #todo: remove author, in the meantime, don't use it
     author = models.ForeignKey(EconomicAgent, related_name="authored_resources",
         verbose_name=_('author'), blank=True, null=True)
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
@@ -7396,7 +7418,7 @@ class EconomicEvent(models.Model):
                 against_agent=self.to_agent,
                 context_agent=self.context_agent,
                 value=value,
-                unit_of_value=self.unit_of_value,
+                unit_of_value=self.unit_of_quantity,
                 original_value=value,
                 claim_creation_equation=bucket_rule.claim_creation_equation,
             )
@@ -7405,7 +7427,7 @@ class EconomicEvent(models.Model):
                 claim=claim,
                 claim_event_date=datetime.date.today(),
                 value=value,
-                unit_of_value=self.unit_of_value,
+                unit_of_value=self.unit_of_quantity,
                 event_effect="+",
             )
             claim.claim_event = claim_event
@@ -7694,19 +7716,50 @@ class ValueEquation(models.Model):
             return True
             
     def run_value_equation_and_save(self, exchange, cash_receipts, money_resource, amount_to_distribute, serialized_filters):
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         distribution_events, contribution_events = self.run_value_equation(
             amount_to_distribute=amount_to_distribute,
             serialized_filters=serialized_filters)
+        for dist_event in distribution_events:
+            va = None
+            vas = dist_event.to_agent.virtual_accounts()
+            if vas:
+                for vacct in vas:
+                    if vacct.resource_type.unit == money_resource.unit:
+                        va = vacct
+                        break
+            if not va:
+                va = dist_event.to_agent.create_virtual_account(resource_type=money_resource.resource_type)
+            if va:
+                dist_event.resource = va
+                dist_event.resource_type = va.resource_type 
+                dist_event.unit_of_quantity = va.resource_type.unit
+            else:
+                raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
         et = EventType.objects.get(name='Cash Disbursement')
+        exchange.save()
+        dist_ve = DistributionValueEquation(
+            distribution_date = exchange.start_date,
+            exchange = exchange,
+            value_equation_link = self,
+            value_equation_content = "need to serialize here", #todo
+        )
+        dist_ve.save()        
+        if money_resource.owner():
+            fa = money_resource.owner()
+        else:
+            fa = self.context_agent
         disbursement_event = EconomicEvent(
             event_type=et,
             event_date=datetime.date.today(),
-            from_agent=money_resource.owner(), 
+            from_agent=fa, 
             to_agent=self.context_agent,
             context_agent=self.context_agent,
             exchange=exchange,
             quantity=amount_to_distribute,
+            unit_of_quantity=money_resource.resource_type.unit,
+            value=amount_to_distribute,
+            unit_of_value=money_resource.resource_type.unit,
             is_contribution=False,
             resource_type=money_resource.resource_type,
             resource=money_resource,
@@ -7724,24 +7777,22 @@ class ValueEquation(models.Model):
         #import pdb; pdb.set_trace()
         for dist_event in distribution_events:
             dist_event.exchange = exchange
-            #todo: get to_agent virtual account for this info
-            #dist_event.resource_type = 
-            #dist_event.resource = 
-            #dist_event.unit_of_quantity = 
             dist_event.save()
-            for claim_event in dist_event.new_claim_events:
-                claim_event.claim.save()
-                claim_event.claim.event.save() #this is the contribution event
-                claim_event.event = dist_event
-                claim_event.save()
-                
-        dist_ve = DistributionValueEquation(
-            distribution_date = exchange.start_date,
-            exchange = exchange,
-            value_equation_link = self,
-            value_equation_content = "need to serialize here", #todo
-        )
-        dist_ve.save()
+            to_resource = dist_event.resource
+            to_resource.quantity += dist_event.quantity
+            to_resource.save()
+            for dist_claim_event in dist_event.new_claim_events:
+                claim_from_contribution = dist_claim_event.claim
+                claim_from_contribution.save()
+                ce_for_contribution = dist_claim_event.claim.claim_event 
+                ce_for_contribution.claim = claim_from_contribution
+                ce_for_contribution.save()
+                #claim_event.claim.save()
+                #claim_event.claim.claim_event.save() 
+                dist_claim_event.claim = claim_from_contribution
+                dist_claim_event.event = dist_event
+                dist_claim_event.save()
+
         return exchange
         
     def run_value_equation(self, amount_to_distribute, serialized_filters):

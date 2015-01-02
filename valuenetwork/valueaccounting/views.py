@@ -8982,42 +8982,47 @@ def create_distribution_using_value_equation(request, agent_id):
     #import pdb; pdb.set_trace()
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
     buckets = []
-    #cash_receipts = context_agent.undistributed_cash_receipts()
     use_case = UseCase.objects.get(identifier="distribution")
     pattern = ProcessPattern.objects.usecase_patterns(use_case)[0]
+    ve = None
     if request.method == "POST":
-        header_form = DistributionValueEquationForm(context_agent=context_agent, post=True, data=request.POST)
+        header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True, data=request.POST)
         if header_form.is_valid():
-            exchange = exchange_form.save(commit=False)
-            exchange.use_case = use_case
-            exchange.context_agent = context_agent
-            exchange.created_by = request.user
-            exchange.save()
-            ve = exchange_form.cleaned_data["value_equation"]
-            resource = exchange_form.cleaned_data["resource"]
-            money = exchange_form.cleaned_data["money_to_distribute"]
-            
-            if header_form.is_valid():
-                data = header_form.cleaned_data
-                value_equation = data["value_equation"]
-                amount = data["amount_to_distribute"]
-                serialized_filters = {}
-                for bucket in buckets:
-                    if bucket.filter_method:
-                        bucket_form = bucket.filter_entry_form(data=request.POST or None)
-                        if bucket_form.is_valid():
-                            ser_string = bucket_data = bucket_form.serialize()
-                            serialized_filters[bucket.id] = ser_string
-                            bucket.form = bucket_form            
-            
-            
-            ve.run_value_equation_and_save(exchange=exchange, money_resource=resource, amount_to_distribute=money, serialized_filters=serialized_filters)
+            data = header_form.cleaned_data
+            ve = data["value_equation"]
+            amount = data["money_to_distribute"]
+            resource = data["resource"]
+            crs = data["cash_receipts"]
+            dist_date = data["start_date"]
+            notes = data["notes"]
+            serialized_filters = {}
+            buckets = ve.buckets.all()
+            for bucket in buckets:
+                if bucket.filter_method:
+                    bucket_form = bucket.filter_entry_form(data=request.POST or None)
+                    if bucket_form.is_valid():
+                        ser_string = bucket_data = bucket_form.serialize()
+                        serialized_filters[bucket.id] = ser_string
+                        bucket.form = bucket_form
+                            
+            exchange = Exchange(                
+                name="Distribution for " + context_agent.nick,
+                process_pattern=pattern,
+                use_case=use_case,
+                start_date=dist_date,
+                notes=notes,
+                context_agent=context_agent,
+                created_by=request.user,
+            )
+            #exchange.save()
+
+            exchange = ve.run_value_equation_and_save(cash_receipts=crs, exchange=exchange, money_resource=resource, amount_to_distribute=amount, serialized_filters=serialized_filters)
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/exchange', exchange.id))
     else:
         ves = context_agent.live_value_equations()
         init = { "start_date": datetime.date.today() }
-        header_form = DistributionValueEquationForm(context_agent=context_agent, post=False, initial=init)
+        header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=False, initial=init)
         if ves:
             ve = ves[0]
             buckets = ve.buckets.all()

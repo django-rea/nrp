@@ -763,7 +763,7 @@ class EconomicAgent(models.Model):
     def virtual_accounts(self):
         vars = self.agent_resource_roles.filter(
             role__is_owner=True, 
-            resource__resource_type__subclass="account")
+            resource__resource_type__behavior="account")
         return [var.resource for var in vars]
         
     def create_virtual_account(self, resource_type):
@@ -780,7 +780,6 @@ class EconomicAgent(models.Model):
                 agent=self,
                 role=owner_role_type,
                 resource=va,
-                is_account=True,
             )
             arr.save()
             return va
@@ -1227,7 +1226,7 @@ INVENTORY_RULE_CHOICES = (
     ('never', _('Does not apply')),
 )
 
-SUBCLASS_CHOICES = (
+BEHAVIOR_CHOICES = (
     ('work', _('Type of Work')),
     ('account', _('Virtual Account')),
     ('other', _('Other')),
@@ -1262,8 +1261,8 @@ class EconomicResourceType(models.Model):
         help_text=_('Can any resource of this type be substituted for any other resource of this type?'))
     inventory_rule = models.CharField(_('inventory rule'), max_length=5,
         choices=INVENTORY_RULE_CHOICES, default='yes')
-    subclass = models.CharField(_('subclass'), max_length=12,
-        choices=SUBCLASS_CHOICES, default='other')
+    behavior = models.CharField(_('behavior'), max_length=12,
+        choices=BEHAVIOR_CHOICES, default='other')
     photo = ThumbnailerImageField(_("photo"),
         upload_to='photos', blank=True, null=True)
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
@@ -4420,7 +4419,6 @@ class AgentResourceRole(models.Model):
     role = models.ForeignKey(AgentResourceRoleType, 
         verbose_name=_('role'), related_name='agent_resource_roles')
     is_contact = models.BooleanField(_('is contact'), default=False)
-    is_account = models.BooleanField(_('is account'), default=False)
     owner_percentage = models.IntegerField(_('owner percentage'), null=True)
 
     def __unicode__(self):

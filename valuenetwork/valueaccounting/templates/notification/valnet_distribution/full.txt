@@ -1,0 +1,6 @@
+{% load i18n %}{% blocktrans %}You got a {{ distribution.distribution_quantity_formatted }} distribution from {{ distribution.from_agent }}
+
+You can see it here:{% endblocktrans %}
+http://{{ current_site }}{{ distribution.to_agent.get_absolute_url }}
+or here:
+http://{{ current_site }}{{ distribution.resource.get_absolute_url }}

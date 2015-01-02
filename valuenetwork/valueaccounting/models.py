@@ -7544,12 +7544,32 @@ class EconomicEvent(models.Model):
             return self.unit_of_quantity.abbrev
         else:
             return self.resource_type.unit.abbrev
+            
+    def own_or_resource_type_unit(self):
+        if self.unit_of_quantity:
+            return self.unit_of_quantity
+        else:
+            return self.resource_type.unit
 
     def quantity_formatted(self):
         return " ".join([
             str(self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)),
             self.unit(),
             ])
+            
+    def distribution_quantity_formatted(self):
+        unit = self.own_or_resource_type_unit()
+        qty_string = str(self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+        if unit.symbol:
+            return "".join([
+                unit_symbol,
+                qty_string,
+                ])
+        else:
+            return " ".join([
+                qty_string,
+                unit,
+                ])
             
     def form_prefix(self):
         return "-".join(["EVT", str(self.id)])

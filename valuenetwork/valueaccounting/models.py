@@ -843,7 +843,16 @@ class EconomicAgent(models.Model):
                 orders.append(order)
         order_ids = [order.id for order in orders]
         return Order.objects.filter(id__in=order_ids)
-            
+        
+    def undistributed_cash_receipts(self):
+        #import pdb; pdb.set_trace()
+        cash_receipts = []
+        et = EventType.objects.get(name="Cash Receipt")
+        crs = EconomicEvent.objects.filter(context_agent=self).filter(event_type=et)
+        for cr in crs:
+            if cr.is_undistributed():
+                cash_receipts.append(cr)
+        return cash_receipts
         
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,
@@ -2510,6 +2519,7 @@ def create_use_cases(app, **kwargs):
     UseCase.create('sale', _('Sale'))
     UseCase.create('distribution', _('Distribution'), True)
     UseCase.create('val_equation', _('Value Equation'), True)
+    UseCase.create('payout', _('Payout'), True)
     print "created use cases"
 
 post_migrate.connect(create_use_cases)
@@ -2542,6 +2552,7 @@ def create_event_types(app, **kwargs):
     EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
     EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '+', 'value')
     EventType.create('Cash Disbursement', _('disburses cash'), _('disbursed by'), 'disburse', 'exchange', '-', 'value')
+    EventType.create('Payout', _('pays out'), _('paid by'), 'payout', 'agent', '-', 'value')
     #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
@@ -2622,6 +2633,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('distribution', 'Cash Disbursement')
     UseCaseEventType.create('val_equation', 'Time Contribution')
     UseCaseEventType.create('val_equation', 'Resource Production')
+    UseCaseEventType.create('payout', 'Payout')
     #UseCaseEventType.create('val_equation', 'Process Expense')
 
     print "created use case event type associations"
@@ -7398,6 +7410,18 @@ class EconomicEvent(models.Model):
             )
             claim.claim_event = claim_event
             return claim     
+    
+    def is_undistributed(self):
+        #import pdb; pdb.set_trace()
+        et = EventType.objects.get(name="Cash Receipt")
+        if self.event_type == et:
+            crds = self.distributions.all()
+            if crds:
+                return False
+            else:
+                return True
+        else:
+            return False
             
     def shorter_label(self):
         if self.unit_of_quantity:
@@ -7669,24 +7693,34 @@ class ValueEquation(models.Model):
         else:
             return True
             
-    def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute, serialized_filters):
+    def run_value_equation_and_save(self, exchange, cash_receipts, money_resource, amount_to_distribute, serialized_filters):
         #import pdb; pdb.set_trace()
         distribution_events, contribution_events = self.run_value_equation(
             amount_to_distribute=amount_to_distribute,
             serialized_filters=serialized_filters)
         et = EventType.objects.get(name='Cash Disbursement')
         disbursement_event = EconomicEvent(
-            event_type = et,
-            event_date = datetime.date.today(),
-            from_agent = money_resource.owner(), 
-            to_agent = self.context_agent,
-            context_agent = self.context_agent,
-            quantity = amount_to_distribute,
-            is_contribution = False,
-            resource_type = money_resource.resource_type,
-            resource = money_resource,
+            event_type=et,
+            event_date=datetime.date.today(),
+            from_agent=money_resource.owner(), 
+            to_agent=self.context_agent,
+            context_agent=self.context_agent,
+            exchange=exchange,
+            quantity=amount_to_distribute,
+            is_contribution=False,
+            resource_type=money_resource.resource_type,
+            resource=money_resource,
         )
         disbursement_event.save()
+        for cr in cash_receipts:
+            crd = CashReceiptDistribution(
+                distribution_date=datetime.date.today(),
+                cash_receipt=cr,
+                distribution=exchange,
+                quantity=cr.quantity,
+                unit_of_quantity=cr.unit_of_quantity,
+            )
+            crd.save()
         #import pdb; pdb.set_trace()
         for dist_event in distribution_events:
             dist_event.exchange = exchange
@@ -7700,6 +7734,14 @@ class ValueEquation(models.Model):
                 claim_event.claim.event.save() #this is the contribution event
                 claim_event.event = dist_event
                 claim_event.save()
+                
+        dist_ve = DistributionValueEquation(
+            distribution_date = exchange.start_date,
+            exchange = exchange,
+            value_equation_link = self,
+            value_equation_content = "need to serialize here", #todo
+        )
+        dist_ve.save()
         return exchange
         
     def run_value_equation(self, amount_to_distribute, serialized_filters):
@@ -7774,7 +7816,7 @@ class DistributionValueEquation(models.Model):
     value_equation_link = models.ForeignKey(ValueEquation,
         blank=True, null=True,
         verbose_name=_('value equation link'), related_name='distributions')
-    value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)    
+    value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)
 
 
 FILTER_METHOD_CHOICES = (
@@ -8206,6 +8248,18 @@ class ValueEquationBucketRule(models.Model):
             pattern = patterns[0]
         json = self.filter_rule_deserialized()
         return BucketRuleFilterSetForm(prefix="vebrf" + str(self.id), initial=json, context_agent=ca, event_type=self.event_type, pattern=pattern)
+
+        
+class CashReceiptDistribution(models.Model):
+    distribution_date = models.DateField(_('distribution date'))
+    distribution = models.ForeignKey(Exchange,
+        verbose_name=_('distribution'), related_name='cash_receipts')
+    cash_receipt = models.ForeignKey(EconomicEvent,
+        related_name="distributions", verbose_name=_('cash receipt'))
+    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.0"))
+    unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit'), related_name="units")  
         
             
 class Claim(models.Model):

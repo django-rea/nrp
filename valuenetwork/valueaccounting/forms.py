@@ -2845,49 +2845,41 @@ class DistributionForm(forms.ModelForm):
         use_case = UseCase.objects.get(identifier="distribution")
         self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case)
   
-class DistributionValueEquationForm(forms.ModelForm):
-    process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.all(), 
-        label=_("Pattern"),
-        empty_label=None, 
-        widget=forms.Select(
-            attrs={'class': 'pattern-selector'}))
-    start_date = forms.DateField(required=True, 
-        label=_("Date"),
-        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+class DistributionValueEquationForm(forms.Form):
     value_equation = forms.ModelChoiceField(
-        queryset=ValueEquation.objects.all(), 
+        queryset=ValueEquation.objects.none(), 
         label=_("Value Equation"),
         empty_label=None, 
         widget=forms.Select(
             attrs={'class': 've-selector'}))
-    notes = forms.CharField(required=False, 
-        label=_("Comments"),
-        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    cash_receipts = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicEvent.objects.all(),
+        label=_("Select one or more Cash Receipts OR enter amount to distribute and account."),
+        widget=forms.SelectMultiple(attrs={'class': 'order chzn-select input-xxlarge'}))
     money_to_distribute = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money'}))
     resource = forms.ModelChoiceField(
         queryset=EconomicResource.objects.all(), 
         label="Cash resource account",
         required=False,
-        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',})) 
-    #todo: choose cash receipts
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
+    start_date = forms.DateField(required=True, 
+        label=_("Date"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    notes = forms.CharField(required=False, 
+        label=_("Comments"),
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
     
-    class Meta:
-        model = Exchange
-        fields = ('process_pattern', 'start_date', 'notes')
-        
-    def __init__(self, context_agent=None, post=False, *args, **kwargs):
+    def __init__(self, context_agent=None, pattern=None, post=False, *args, **kwargs):
         #import pdb; pdb.set_trace()
         super(DistributionValueEquationForm, self).__init__(*args, **kwargs)
         if post == False:
-            use_case = UseCase.objects.get(identifier="distribution")
-            self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case)
             if context_agent:
-                self.fields["value_equation"].queryset = context_agent.live_value_equations
-            if self.fields["process_pattern"].queryset.count > 0:
+                self.fields["value_equation"].queryset = context_agent.live_value_equations()
+                self.fields["cash_receipts"].choices = context_agent.undistributed_cash_receipts()
+            if pattern:
                 resources = []
-                pattern = self.fields["process_pattern"].queryset[0]
                 rts = pattern.distribution_resource_types()
                 if rts:
                     for rt in rts:

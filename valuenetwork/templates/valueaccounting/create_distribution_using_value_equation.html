@@ -13,13 +13,46 @@
 
 <style>
 
-
+.name {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.bucket {
+    margin-top: 15px;
+}
+#filters {
+    margin-bottom: 20px;
+}
+.to {
+    margin-left: 2em;
+    font-style: italic;
+}
+.filt {
+    margin-left: 2em;
+}
+.pct {
+    margin-left: 1em;
+}
+.hdg {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: firebrick;
+}
 .item-description
 {
-	width: 32em;
+	width: 70em;
     height: 40px;
 }
-
+td {
+    padding-right: 3em;
+}
+.spc {
+    padding-top: 8px;
+}
+.top {
+    vertical-align: top;
+    padding-top: 8px;
+}
 </style>
 {% endblock %}
 
@@ -28,18 +61,63 @@
         {% include "_messages.html" %}
 	<div>
 	{% if context_agent %}
-        <legend>{% trans "Distribution in" %} {{ context_agent }} </legend>
-		<form id="exchangeForm" method="POST" action="">
-			{% csrf_token %}
-			<div class="span12">
-				{{ exchange_form|as_bootstrap }}
-				<div class="form-actions">
-					<input type="submit" name="save" value="{% trans 'Create Distribution Using Value Equation' %}" class="btn btn-primary" /> 
-			   	</div>
-			</div>
-            <input type="hidden" id="use-case" name="next" value= "{{ use_case.identifier }}" />
-		</div>
-		</form>
+        <legend>{% trans "Distribute Income for " %} {{ context_agent }} </legend>
+				
+        <p class="hdg">Distribution:</p>
+        <form id="headerForm" class="validateMe" action="." method="POST" >
+            {% csrf_token %}
+            <p>Value Equation</p>
+            <p>{{ header_form.value_equation }}</p>
+            <table>
+              <tr><td>Select one or more Cash Receipts</td><td><b>OR</b></td><td>Amount to distribute</td></tr>
+              <tr>
+                <td class="top">{{ header_form.cash_receipts }}</td><td>&nbsp;</td>
+                <td><span class="spc"> {{ header_form.money_to_distribute }}</span><br />Cash resource account<br /><span class="spc">{{ header_form.resource }}</span></td>
+              </tr>
+            </table>
+{% comment %}
+            <p>Distribution date</p>
+            <p>{{ header_form.start_date }}</p>
+{% endcomment %}
+            <p>Comments</p>
+            <p>{{ header_form.notes }}</p>
+            <div id="filters">
+                <span class="hdg">Bucket filters:</span>
+                {% for bucket in buckets %}
+                    <div class="bucket"><span class="name">{{ bucket.name }}</span><span class="pct"> {{ bucket.percentage }}</span>%</div>
+                    {% if bucket.distribution_agent %}<div class="to"> Distribute to <span class="dist-to">{{ bucket.distribution_agent.name }}</span></div> {% endif %}
+                    {% if bucket.filter_method %}
+                        <div class="filt">
+                        {% if bucket.filter_method == 'dates' %}
+                            <p>Enter start and end dates (both optional)</p>
+                            <div id="div-start_date" class="control-group  " style="display:inline;" >
+
+                                <div class="controls" style="display:inline;">
+                                    {{ bucket.form.start_date }} 
+                                </div>
+                            </div>                                    
+                            through
+                            <div id="div-end_date" class="control-group  " style="display:inline;">
+
+                                <div class="controls" style="display:inline;">
+                                    {{ bucket.form.end_date }}
+                                </div>
+                            </div>
+                            <div id="div-context_agent" class="control-group">
+                                <div class="controls">
+                                    {{ bucket.form.context_agent }}
+                                </div>
+                            </div>
+                        {% else %}
+                            {{ bucket.form|as_bootstrap }} 
+                        {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Create Distribution' %}" />
+        </form>
+
     {% else %}
         <h2>You need a {{ context_types }}.</h2>
         <p>
@@ -55,7 +133,6 @@
 {% block extra_script %}
 	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
@@ -88,13 +165,6 @@
 
     	$( "#exchangeForm" ).validate({
 			rules: {
-				process_pattern: {
-					required: true
-				},
-				start_date: {
-					required: true,
-					date: true
-				},
                 value_equation: {
                     required: true
                 },
@@ -103,84 +173,18 @@
 				$(label).closest('.control-group').addClass('error');
 			},
 		});
-
-		$("#id_context_agent").change(getCustomers);
-		//$("#id_customer").change(getOrders);
-		//$("#id_order").change(getCustomer);
+		
+		$("#id_value_equation").change(reloadPage);
+		
+		function reloadPage()
+		{
+            var selectedVE = document.getElementById('id_value_equation').value;
+            var url = '/accounting/value-equation-sandbox/' + selectedVE + '/'
+            window.location.replace(url);
+            }
  
 	}); // end document.ready
 	
-    function getCustomers()
-    {
-        var selectedAgent = document.getElementById('id_context_agent').value;
-        var jsonUrl = encodeURI("/accounting/json-context-agent-customers/" + selectedAgent + "/");
-        var selectedCustomer = document.getElementById('id_customer').value;
-        $("#id_customer").empty();
-        $.get(jsonUrl,
-        function(data){
-            $("#id_customer").append('<option value="">' + '--------' + '</option>'); 
-            for(var i=0 ; i<data.length ; i++)
-            {
-                var id = data[i]['pk'];
-                var name = data[i].fields['nick']; 
-                if (selectedCustomer == id) {
-                    $("#id_customer").append('<option value="' + id + '" selected>' + name + '</option>');
-                } else {
-                    $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
-                }
-            }
-            $(".chzn-select").trigger("liszt:updated");
-        });
-    }
-/*    
-    function getOrders()
-    {
-        var selectedCustomer = document.getElementById('id_customer').value;
-        if (selectedCustomer == '')
-        {
-            selectedCustomer = '0'
-        }
-        var jsonUrl = encodeURI("/accounting/json-customer-orders/" + selectedCustomer + "/");
-        $("#id_order").empty();
-        $.get(jsonUrl,
-        function(data){
-            $("#id_order").append('<option value="">' + '--------' + '</option>'); 
-            for(var i=0 ; i<data.length ; i++)
-            {
-                var id = data[i]['pk'];
-                var name = data[i].fields['name']; 
-                $("#id_order").append('<option value="' + id + '">' + name + '</option>'); 
-            }
-        });
-    }
-                
-    function getCustomer()
-    {
-        var selectedOrder = document.getElementById('id_order').value;
-        //alert(selectedOrder); --the above is not working under some conditions.....?????
-        if (selectedOrder == '')
-        {
-            selectedOrder = '0'
-        }
-        var selectedAgent = document.getElementById('id_context_agent').value;
-        var jsonUrl = encodeURI("/accounting/json-order-customer/" + selectedOrder + "/" + selectedAgent + "/");
-        $("#id_customer").empty();
-        $.get(jsonUrl,
-        function(data){
-            $("#id_customer").append('<option value="">' + '--------' + '</option>'); 
-            for(var i=0 ; i<data.length ; i++)
-            {
-                var id = data[i]['pk'];
-                var name = data[i].fields['nick']; 
-                if (selectedOrder == '0') {
-                    $("#id_customer").append('<option value="' + id + '">' + name + '</option>');
-                } else {
-                    $("#id_customer").append('<option value="' + id + '" selected>' + name + '</option>');
-                }
-            } 
-        });
-    }
- */   
     </script>
 
 {% endblock %}

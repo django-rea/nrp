@@ -14,7 +14,6 @@ admin.site.register(AgentResourceRole)
 admin.site.register(Location)
 admin.site.register(UseCaseEventType)
 admin.site.register(HomePageLayout)
-admin.site.register(ClaimEvent)
 
 
 class HelpAdmin(admin.ModelAdmin):
@@ -64,7 +63,12 @@ class ClaimAdmin(admin.ModelAdmin):
     inlines = [ ClaimEventInline, ]
 
 admin.site.register(Claim, ClaimAdmin)
-    
+  
+class ClaimEventAdmin(admin.ModelAdmin):
+    list_display = ('claim_event_date', 'event', 'claim', 'value', 'unit_of_value', 'event_effect')
+
+admin.site.register(ClaimEvent, ClaimEventAdmin)
+
 class EconomicEventInline(admin.TabularInline):
     model = EconomicEvent
     fk_name = 'exchange'

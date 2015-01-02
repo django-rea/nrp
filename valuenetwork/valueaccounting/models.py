@@ -7736,7 +7736,7 @@ class ValueEquation(models.Model):
             return True
             
     def run_value_equation_and_save(self, exchange, cash_receipts, money_resource, amount_to_distribute, serialized_filters):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         distribution_events, contribution_events = self.run_value_equation(
             amount_to_distribute=amount_to_distribute,
             serialized_filters=serialized_filters)
@@ -7745,7 +7745,7 @@ class ValueEquation(models.Model):
             vas = dist_event.to_agent.virtual_accounts()
             if vas:
                 for vacct in vas:
-                    if vacct.resource_type.unit == money_resource.unit:
+                    if vacct.resource_type.unit == money_resource.resource_type.unit:
                         va = vacct
                         break
             if not va:

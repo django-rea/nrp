@@ -9033,7 +9033,19 @@ def create_distribution_using_value_equation(request, agent_id):
         "context_agent": context_agent,
         "help": get_help("create_distribution"),
     }, context_instance=RequestContext(request))
-                                        
+         
+
+def send_distribution_notification(distribution):
+    if notification:
+        #import pdb; pdb.set_trace()
+        notification.send(
+            users, 
+            "valnet_distribution", 
+            {"distribution": distribution,
+            "account": distribution.resource,
+            }
+        )
+
 '''
 #todo: this is not tested, is for exchange 
 @login_required

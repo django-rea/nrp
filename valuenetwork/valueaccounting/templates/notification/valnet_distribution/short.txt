@@ -1,0 +1,1 @@
+{% load i18n %}{% trans  "You got an income distribution from" %} {{ distribution.from_agent }}

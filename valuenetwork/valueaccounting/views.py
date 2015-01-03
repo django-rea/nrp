@@ -9016,7 +9016,15 @@ def create_distribution_using_value_equation(request, agent_id):
             )
             #exchange.save()
 
-            exchange = ve.run_value_equation_and_save(cash_receipts=crs, exchange=exchange, money_resource=resource, amount_to_distribute=amount, serialized_filters=serialized_filters)
+            exchange = ve.run_value_equation_and_save(
+                cash_receipts=crs, 
+                exchange=exchange, 
+                money_resource=resource, 
+                amount_to_distribute=amount, 
+                serialized_filters=serialized_filters)
+            for event in exchange.distribution_events():
+                send_distribution_notification(event)
+                
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/exchange', exchange.id))
     else:
@@ -9040,16 +9048,19 @@ def create_distribution_using_value_equation(request, agent_id):
     }, context_instance=RequestContext(request))
          
 
-def send_distribution_notification(distribution):
+def send_distribution_notification(distribution_event):
     if notification:
         #import pdb; pdb.set_trace()
-        notification.send(
-            users, 
-            "valnet_distribution", 
-            {"distribution": distribution,
-            "account": distribution.resource,
-            }
-        )
+        to_agent = distribution_event.to_agent
+        users =  users = [au.user for au in to_agent.users.all()]
+        if users:
+            notification.send(
+                users, 
+                "valnet_distribution", 
+                {"distribution": distribution_event,
+                "account": distribution_event.resource,
+                }
+            )
 
 '''
 #todo: this is not tested, is for exchange 

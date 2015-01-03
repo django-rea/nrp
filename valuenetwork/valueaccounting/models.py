@@ -7416,7 +7416,7 @@ class EconomicEvent(models.Model):
                 against_agent=self.to_agent,
                 context_agent=self.context_agent,
                 value=value,
-                unit_of_value=self.unit_of_quantity,
+                unit_of_value=self.unit_of_value,
                 original_value=value,
                 claim_creation_equation=bucket_rule.claim_creation_equation,
             )
@@ -7425,7 +7425,7 @@ class EconomicEvent(models.Model):
                 claim=claim,
                 claim_event_date=datetime.date.today(),
                 value=value,
-                unit_of_value=self.unit_of_quantity,
+                unit_of_value=self.unit_of_value,
                 event_effect="+",
             )
             claim.claim_event = claim_event
@@ -7769,7 +7769,7 @@ class ValueEquation(models.Model):
             fa = self.context_agent
         disbursement_event = EconomicEvent(
             event_type=et,
-            event_date=datetime.date.today(),
+            event_date=exchange.start_date,
             from_agent=fa, 
             to_agent=self.context_agent,
             context_agent=self.context_agent,
@@ -7801,14 +7801,19 @@ class ValueEquation(models.Model):
             to_resource.save()
             for dist_claim_event in dist_event.new_claim_events:
                 claim_from_contribution = dist_claim_event.claim
+                claim_from_contribution.unit_of_value = dist_event.unit_of_quantity
                 claim_from_contribution.save()
                 ce_for_contribution = dist_claim_event.claim.claim_event 
                 ce_for_contribution.claim = claim_from_contribution
+                ce_for_contribution.unit_of_value = dist_event.unit_of_quantity
+                ce_for_contribution.date = dist_claim_event.claim.event.event_date
                 ce_for_contribution.save()
                 #claim_event.claim.save()
                 #claim_event.claim.claim_event.save() 
                 dist_claim_event.claim = claim_from_contribution
                 dist_claim_event.event = dist_event
+                dist_claim_event.unit_of_value = dist_event.unit_of_quantity
+                dist_claim_event.event_date = exchange.start_date
                 dist_claim_event.save()
 
         return exchange

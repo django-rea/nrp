@@ -72,7 +72,7 @@ img {
                             ~ {{ item.role.name }}: {{ item.agent.nick }} 
                         {% endfor %}
                     {% endif %}
-                    {% url 'path.to.view' as resource.url %}
+
                     {% if resource.url %}
                         ~ <a href="{{ resource.url }}">Documentation</a>
                     {% endif %}

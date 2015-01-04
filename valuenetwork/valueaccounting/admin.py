@@ -59,12 +59,14 @@ class ClaimEventInline(admin.TabularInline):
     fields = ('event', 'claim_event_date', 'value', 'unit_of_value', 'event_effect')
   
 class ClaimAdmin(admin.ModelAdmin):
+    date_hierarchy = 'claim_date'
     list_display = ('claim_date', 'has_agent', 'against_agent', 'value_equation_bucket_rule', 'context_agent', 'original_value', 'value', 'unit_of_value', 'claim_creation_equation')
     inlines = [ ClaimEventInline, ]
 
 admin.site.register(Claim, ClaimAdmin)
   
 class ClaimEventAdmin(admin.ModelAdmin):
+    date_hierarchy = 'claim_event_date'
     list_display = ('claim_event_date', 'event', 'claim', 'value', 'unit_of_value', 'event_effect')
 
 admin.site.register(ClaimEvent, ClaimEventAdmin)

@@ -7399,6 +7399,7 @@ class EconomicEvent(models.Model):
         #import pdb; pdb.set_trace()
         claim = self.created_claim()
         if claim:
+            claim.new = False
             return claim
         else:
             #order = None
@@ -7429,6 +7430,7 @@ class EconomicEvent(models.Model):
                 event_effect="+",
             )
             claim.claim_event = claim_event
+            claim.new = True
             return claim     
     
     def is_undistributed(self):
@@ -7785,7 +7787,7 @@ class ValueEquation(models.Model):
         disbursement_event.save()
         for cr in cash_receipts:
             crd = CashReceiptDistribution(
-                distribution_date=datetime.date.today(),
+                distribution_date=exchange.start_date,
                 cash_receipt=cr,
                 distribution=exchange,
                 quantity=cr.quantity,
@@ -7795,25 +7797,26 @@ class ValueEquation(models.Model):
         #import pdb; pdb.set_trace()
         for dist_event in distribution_events:
             dist_event.exchange = exchange
+            dist_event.event_date = exchange.start_date
             dist_event.save()
             to_resource = dist_event.resource
             to_resource.quantity += dist_event.quantity
             to_resource.save()
-            for dist_claim_event in dist_event.new_claim_events:
+            for dist_claim_event in dist_event.dist_claim_events:
                 claim_from_contribution = dist_claim_event.claim
-                claim_from_contribution.unit_of_value = dist_event.unit_of_quantity
-                claim_from_contribution.save()
-                ce_for_contribution = dist_claim_event.claim.claim_event 
-                ce_for_contribution.claim = claim_from_contribution
-                ce_for_contribution.unit_of_value = dist_event.unit_of_quantity
-                ce_for_contribution.date = dist_claim_event.claim.event.event_date
-                ce_for_contribution.save()
-                #claim_event.claim.save()
-                #claim_event.claim.claim_event.save() 
+                if claim_from_contribution.new == True:
+                    claim_from_contribution.unit_of_value = dist_event.unit_of_quantity
+                    claim_from_contribution.date = exchange.start_date
+                    claim_from_contribution.save()
+                    ce_for_contribution = dist_claim_event.claim.claim_event 
+                    ce_for_contribution.claim = claim_from_contribution
+                    ce_for_contribution.unit_of_value = dist_event.unit_of_quantity
+                    ce_for_contribution.claim_event_date = exchange.start_date
+                    ce_for_contribution.save() 
                 dist_claim_event.claim = claim_from_contribution
                 dist_claim_event.event = dist_event
                 dist_claim_event.unit_of_value = dist_event.unit_of_quantity
-                dist_claim_event.event_date = exchange.start_date
+                dist_claim_event.claim_event_date = exchange.start_date
                 dist_claim_event.save()
 
         return exchange
@@ -7870,7 +7873,7 @@ class ValueEquation(models.Model):
             agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
             for ce in agent_claim_events:
                 ce.event = distribution
-            distribution.new_claim_events = agent_claim_events
+            distribution.dist_claim_events = agent_claim_events
             distribution_events.append(distribution)
         #import pdb; pdb.set_trace()
         return distribution_events, contribution_events

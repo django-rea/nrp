@@ -4622,12 +4622,47 @@ def add_distribution(request, exchange_id):
                 event.save()
                 resource = event.resource
                 if resource:
-                    resource.quantity = resource.quantity - qty
+                    resource.quantity = resource.quantity + qty
                     resource.save()
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
+@login_required
+def add_disbursement(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        context_agent = exchange.context_agent
+        form = DisbursementEventForm(data=request.POST, pattern=pattern, posting=True, prefix='dist')
+        if form.is_valid():
+            data = form.cleaned_data
+            qty = data["quantity"] 
+            if qty:
+                event = form.save(commit=False)
+                rt = data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("disburse", rt)
+                if event.resource.owner():
+                    fa = event.resource.owner()
+                else:
+                    fa = exchange.context_agent
+                event.event_type = event_type
+                event.exchange = exchange
+                event.context_agent = exchange.context_agent
+                event.resource_type = rt
+                event.unit_of_quantity = rt.unit
+                event.from_agent = fa
+                event.is_contribution = False
+                event.created_by = request.user
+                event.save()
+                resource = event.resource
+                if resource:
+                    resource.quantity = resource.quantity - qty
+                    resource.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
 
 @login_required
 def add_process_input(request, process_id, slot):
@@ -7070,7 +7105,49 @@ def change_distribution_event(request, event_id):
             if form.is_valid():
                 form.save(commit=False)
                 event.unit_of_quantity = event.resource_type.unit
-                form.save()
+                event.save()
+                #import pdb; pdb.set_trace()
+                if event.resource:
+                    resource = event.resource
+                    if old_resource:
+                        if resource != old_resource:
+                            old_resource.quantity = old_resource.quantity - old_qty
+                            old_resource.save()
+                            resource.quantity = resource.quantity + event.quantity
+                        else:
+                            changed_qty = event.quantity + old_qty
+                            if changed_qty != 0:
+                                resource.quantity = resource.quantity + changed_qty
+                    else:
+                        resource.quantity = resource.quantity + event.quantity
+                    resource.save()
+                else:
+                    if old_resource:
+                        old_resource.quantity = old_resource.quantity - old_qty
+                        old_resource.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+
+@login_required
+def change_disbursement_event(request, event_id):
+    #import pdb; pdb.set_trace()
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    old_resource = event.resource
+    old_qty = event.quantity
+    exchange = event.exchange
+    pattern = exchange.process_pattern
+    if pattern:
+        if request.method == "POST":
+            form = DisbursementEventForm(
+                pattern=pattern,
+                instance=event, 
+                posting=True,
+                prefix=str(event.id), 
+                data=request.POST)
+            if form.is_valid():
+                form.save(commit=False)
+                event.unit_of_quantity = event.resource_type.unit
+                event.save()
                 #import pdb; pdb.set_trace()
                 if event.resource:
                     resource = event.resource
@@ -8675,6 +8752,7 @@ def exchange_logging(request, exchange_id):
     add_cash_receipt_resource_form = None
     add_shipment_form = None
     add_distribution_form = None
+    add_disbursement_form = None
     create_material_role_formset = None
     create_receipt_role_formset = None
     #add_commit_receipt_form = None
@@ -8700,6 +8778,7 @@ def exchange_logging(request, exchange_id):
     cash_receipt_events = exchange.cash_receipt_events()
     shipment_events = exchange.shipment_events_no_commitment()
     distribution_events = exchange.distribution_events()
+    disbursement_events = exchange.disbursement_events()
 
     if agent and pattern:
         #import pdb; pdb.set_trace()
@@ -8757,6 +8836,12 @@ def exchange_logging(request, exchange_id):
         for event in distribution_events:
             total_out = total_out + event.quantity
             event.changeform = DistributionEventForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id))
+        for event in disbursement_events:
+            total_in = total_in + event.quantity
+            event.changeform = DisbursementEventForm(
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id))
@@ -8845,7 +8930,12 @@ def exchange_logging(request, exchange_id):
                 "event_date": exchange.start_date,
             }      
             add_distribution_form = DistributionEventForm(prefix='dist', initial=dist_init, pattern=pattern)
-         
+        if "disburse" in slots:
+            #import pdb; pdb.set_trace()
+            disb_init = {
+                "event_date": exchange.start_date,
+            }      
+            add_disbursement_form = DisbursementEventForm(prefix='disb', initial=disb_init, pattern=pattern)         
 
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -8873,6 +8963,7 @@ def exchange_logging(request, exchange_id):
         "cash_events": cash_events,
         "cash_receipt_events": cash_receipt_events,
         "distribution_events": distribution_events,
+        "disbursement_events": disbursement_events,
         "shipment_events": shipment_events,
         "material_events": material_events,
         "add_receipt_form": add_receipt_form,
@@ -8887,6 +8978,7 @@ def exchange_logging(request, exchange_id):
         "add_cash_receipt_resource_form": add_cash_receipt_resource_form,
         "add_shipment_form": add_shipment_form,
         "add_distribution_form": add_distribution_form,
+        "add_disbursement_form": add_disbursement_form,
         "add_work_form": add_work_form,
         "create_material_role_formset": create_material_role_formset,
         "create_receipt_role_formset": create_receipt_role_formset,

@@ -1005,6 +1005,7 @@ DIRECTION_CHOICES = (
     ('distribute', _('distribution')),
     ('adjust', _('adjust')),
     ('payexpense', _('expense payment')),
+    ('disburse', _('disburses cash')),
 )
 
 RELATED_CHOICES = (
@@ -4016,7 +4017,14 @@ class EconomicResource(models.Model):
     def where_from_events(self):
         return self.events.filter(
             Q(event_type__relationship='out')|Q(event_type__relationship='receive')|Q(event_type__relationship='receivecash')
-            |Q(event_type__relationship='cash')|Q(event_type__relationship='resource'))
+            |Q(event_type__relationship='cash')|Q(event_type__relationship='resource')|Q(event_type__relationship='change')
+            |Q(event_type__relationship='distribute'))
+            
+    def where_to_events(self):
+        return self.events.filter(
+            Q(event_type__relationship='in')|Q(event_type__relationship='consume')|Q(event_type__relationship='use')
+            |Q(event_type__relationship='cite')|Q(event_type__relationship='pay')|Q(event_type__relationship='shipment')
+            |Q(event_type__relationship='shipment')|Q(event_type__relationship='disburse'))
 
     def consuming_events(self):
         return self.events.filter(event_type__relationship='consume')

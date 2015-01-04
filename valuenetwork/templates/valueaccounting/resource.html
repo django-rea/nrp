@@ -268,9 +268,9 @@
             <div class="span6">
               <h3 class="hdg">{% trans "Where to" %}:</h3>
 
-              {% if resource.all_usage_events %}
+              {% if resource.where_to_events %}
                 <ul>
-                    {% for event in resource.all_usage_events %}
+                    {% for event in resource.where_to_events %}
                         <li><b>{% trans "Event" %}:</b> {{ event.resource.label }} {{ event.event_type }}
                              {% if event.event_type.relationship != "cite" %}
                                 {{ event.quantity }} {{ event.unit_of_quantity.abbrev }}

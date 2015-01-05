@@ -2334,6 +2334,9 @@ class ProcessPattern(models.Model):
             
     def distribution_resource_types(self):
         return self.resource_types_for_relationship("distribute")
+            
+    def disbursement_resource_types(self):
+        return self.resource_types_for_relationship("disburse")
         
     def facets_for_event_type(self, event_type):
         return self.facets.filter(event_type=event_type)
@@ -5746,6 +5749,10 @@ class Exchange(models.Model):
         return self.events.filter(
             event_type__relationship='distribute')
             
+    def disbursement_events(self):
+        return self.events.filter(
+            event_type__relationship='disburse')
+            
     def sorted_events(self):
         events = self.events.all().order_by("event_type__name")
         return events
@@ -7790,7 +7797,8 @@ class ValueEquation(models.Model):
             value_equation_link = self,
             value_equation_content = json, #todo
         )
-        dist_ve.save()        
+        dist_ve.save() 
+        #import pdb; pdb.set_trace()
         if money_resource.owner():
             fa = money_resource.owner()
         else:

@@ -269,6 +269,66 @@ li {
           </div>
         {%endif%}
 
+        {% if disbursement_events or "disburse" in slots %}
+          <div class="log-section">
+            <h3 style="margin-bottom: 4px;" >
+                {% trans "Cash Disbursement" %}:  
+                {% if agent %}
+                    <a href="#disburseModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a disbursement from a cash account" >
+                        {% trans "Log a disbursement" %}
+                    </a>
+                {% endif %}
+            </h3>
+
+            {% if disbursement_events %}
+                {% for event in disbursement_events %}
+                    <div class="event">
+                        <span ><span class="event-label">{% trans "Disbursement" %}: </span> 
+                            <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> from <b>{{ event.resource.identifier }}</b> {{ event.event_date }}</span>
+                        {% if agent == event.from_agent or logger  %}
+
+                            <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                               <i class="icon-edit"></i>
+                            </a>
+    
+                            <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h3 id="event-label">{% trans "Change Disbursement Event" %}</h3>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_disbursement_event event_id=event.id %}" method="POST" >
+                                        {% csrf_token %}
+                                        {{ event.changeform|as_bootstrap }}
+                                        <input type="hidden" id="next" name="next" value="exchange" />
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <form
+                                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" id="next" name="next" value="exchange" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete expense" >X</button>
+                            </form>
+                        {% endif %}
+                        {% if event.description %}
+                           <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+                        {% endif %}                       
+                    </div>
+                {% endfor %}
+            {% endif %}
+          </div>
+        {%endif%}
+
+
         {% if distribution_events or "distribute" in slots %}
           <div class="log-section">
             <h3 style="margin-bottom: 4px;" >
@@ -284,7 +344,7 @@ li {
                 {% for event in distribution_events %}
                     <div class="event">
                         <span ><span class="event-label">{% trans "Distributed" %}: </span> 
-                            <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> to <b>{{ event.to_agent }}</b> from {{ event.from_agent.nick }} {{ event.event_date }}</span>
+                            <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> into <b>{{ event.resource.identifier }}</b> {{ event.event_date }}</span>
                         {% if agent == event.to_agent or logger  %}
 
                             <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
@@ -730,6 +790,23 @@ li {
 
 
     {% if logger %} <!-- add modals -->
+
+        <div class="modal hide fade" id="disburseModal" tabindex="-1" role="dialog" aria-labelledby="disbursement" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="disbursement">{% trans "Log a Cash Disbursement" %}</h3>
+            </div>
+            <div class="modal-body">
+                <form class="validateMe" id="disbursementForm" enctype="multipart/form-data" action="{% url add_disbursement exchange_id=exchange.id %}" method="POST" >
+                    {% csrf_token %}
+                    {{ add_disbursement_form|as_bootstrap }}
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                  </div>
+                </form>
+            </div>
+        </div>
 
         <div class="modal hide fade" id="distributionModal" tabindex="-1" role="dialog" aria-labelledby="distribution" aria-hidden="true">
             <div class="modal-header">

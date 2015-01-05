@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.template.defaultfilters import slugify
+from django.utils import simplejson
 
 from easy_thumbnails.fields import ThumbnailerImageField
 
@@ -5730,6 +5731,10 @@ class Exchange(models.Model):
         return self.events.filter(
             event_type__relationship='receivecash')
             
+    def cash_disbursement_events(self):
+        return self.events.filter(
+            event_type__name='Cash Disbursement')
+            
     def shipment_events(self):
         return self.events.filter(
             event_type__relationship='shipment')
@@ -7766,11 +7771,24 @@ class ValueEquation(models.Model):
                 raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
         et = EventType.objects.get(name='Cash Disbursement')
         exchange.save()
+        
+        buckets = {}
+        #import pdb; pdb.set_trace()
+        for bucket in self.buckets.all():
+            filter = serialized_filters.get(bucket.id) or "{}"
+            filter = simplejson.loads(filter)
+            bucket_dict = {
+                "name": bucket.name,
+                "filter": filter,
+            }
+            buckets[bucket.id] = bucket_dict
+        content = {"buckets": buckets}
+        json = simplejson.dumps(content, ensure_ascii=False)    
         dist_ve = DistributionValueEquation(
             distribution_date = exchange.start_date,
             exchange = exchange,
             value_equation_link = self,
-            value_equation_content = "need to serialize here", #todo
+            value_equation_content = json, #todo
         )
         dist_ve.save()        
         if money_resource.owner():
@@ -7943,7 +7961,7 @@ class ValueEquationBucket(models.Model):
             '-',
             self.name,
         ])
-     
+            
     def run_bucket_value_equation(self, amount_to_distribute, context_agent, serialized_filter):
         #import pdb; pdb.set_trace()
         rules = self.bucket_rules.all()

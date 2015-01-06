@@ -7784,13 +7784,24 @@ class ValueEquation(models.Model):
         for bucket in self.buckets.all():
             filter = serialized_filters.get(bucket.id) or "{}"
             filter = simplejson.loads(filter)
+            bucket_rules = {}
+            for br in bucket.bucket_rules.all():
+                filter_rule = simplejson.loads(br.filter_rule)
+                br_dict = {
+                    "event_type": br.event_type.name,
+                    "filter_rule": filter_rule,
+                    "claim creation equation": br.claim_creation_equation,
+                }
+                bucket_rules[br.id] = br_dict
             bucket_dict = {
                 "name": bucket.name,
                 "filter": filter,
+                "bucket_rules": bucket_rules,
             }
             buckets[bucket.id] = bucket_dict
+        #import pdb; pdb.set_trace()
         content = {"buckets": buckets}
-        json = simplejson.dumps(content, ensure_ascii=False)    
+        json = simplejson.dumps(content, ensure_ascii=False, indent=4)    
         dist_ve = DistributionValueEquation(
             distribution_date = exchange.start_date,
             exchange = exchange,

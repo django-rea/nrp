@@ -4635,7 +4635,7 @@ def add_disbursement(request, exchange_id):
         #import pdb; pdb.set_trace()
         pattern = exchange.process_pattern
         context_agent = exchange.context_agent
-        form = DisbursementEventForm(data=request.POST, pattern=pattern, posting=True, prefix='dist')
+        form = DisbursementEventForm(data=request.POST, pattern=pattern, posting=True, prefix='disb')
         if form.is_valid():
             data = form.cleaned_data
             qty = data["quantity"] 
@@ -4643,16 +4643,16 @@ def add_disbursement(request, exchange_id):
                 event = form.save(commit=False)
                 rt = data["resource_type"]
                 event_type = pattern.event_type_for_resource_type("disburse", rt)
-                if event.resource.owner():
-                    fa = event.resource.owner()
-                else:
-                    fa = exchange.context_agent
+                fa = exchange.context_agent
+                if event.resource:
+                    if event.resource.owner():
+                        fa = event.resource.owner()
                 event.event_type = event_type
                 event.exchange = exchange
                 event.context_agent = exchange.context_agent
-                event.resource_type = rt
                 event.unit_of_quantity = rt.unit
                 event.from_agent = fa
+                event.to_agent = exchange.context_agent
                 event.is_contribution = False
                 event.created_by = request.user
                 event.save()
@@ -7115,7 +7115,7 @@ def change_distribution_event(request, event_id):
                             old_resource.save()
                             resource.quantity = resource.quantity + event.quantity
                         else:
-                            changed_qty = event.quantity + old_qty
+                            changed_qty = event.quantity - old_qty
                             if changed_qty != 0:
                                 resource.quantity = resource.quantity + changed_qty
                     else:

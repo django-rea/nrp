@@ -2905,7 +2905,7 @@ class DistributionValueEquationForm(forms.Form):
         queryset=EconomicResource.objects.all(), 
         label="Cash resource account",
         required=False,
-        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
+        widget=forms.Select(attrs={'class': 'resource input-xlarge',}))
     start_date = forms.DateField(required=True, 
         label=_("Date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry date-required',}))

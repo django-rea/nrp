@@ -9070,13 +9070,16 @@ def create_distribution(request, agent_id):
     }, context_instance=RequestContext(request))
 
 @login_required
-def create_distribution_using_value_equation(request, agent_id):
+def create_distribution_using_value_equation(request, agent_id, value_equation_id=None):
     #import pdb; pdb.set_trace()
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
+    if value_equation_id:
+        ve = ValueEquation.objects.get(id=value_equation_id)
+    else:
+        ve = None
     buckets = []
     use_case = UseCase.objects.get(identifier="distribution")
     pattern = ProcessPattern.objects.usecase_patterns(use_case)[0]
-    ve = None
     if request.method == "POST":
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True, data=request.POST)
         if header_form.is_valid():
@@ -9121,14 +9124,15 @@ def create_distribution_using_value_equation(request, agent_id):
                 % ('accounting/exchange', exchange.id))
     else:
         ves = context_agent.live_value_equations()
-        init = { "start_date": datetime.date.today() }
+        init = { "start_date": datetime.date.today(), "value_equation": ve }
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=False, initial=init)
         if ves:
-            ve = ves[0]
+            if not ve:
+                ve = ves[0]
             buckets = ve.buckets.all()
-        for bucket in buckets:
-            if bucket.filter_method:
-                bucket.form = bucket.filter_entry_form()
+            for bucket in buckets:
+                if bucket.filter_method:
+                    bucket.form = bucket.filter_entry_form()
       
     return render_to_response("valueaccounting/create_distribution_using_value_equation.html", {
         #"cash_receipts": cash_receipts,

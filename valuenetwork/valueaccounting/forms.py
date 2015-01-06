@@ -2898,7 +2898,7 @@ class DistributionValueEquationForm(forms.Form):
         required=False,
         queryset=EconomicEvent.objects.all(),
         label=_("Select one or more Cash Receipts OR enter amount to distribute and account."),
-        widget=forms.SelectMultiple(attrs={'class': 'order chzn-select input-xxlarge'}))
+        widget=forms.SelectMultiple(attrs={'class': 'cash chzn-select input-xxlarge'}))
     money_to_distribute = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money'}))
     resource = forms.ModelChoiceField(

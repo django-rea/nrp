@@ -53,6 +53,12 @@ td {
     vertical-align: top;
     padding-top: 8px;
 }
+.warning {
+    border: red solid 1px;
+    color: red;
+    padding: 3px;
+    margin-left: 5px;
+}
 </style>
 {% endblock %}
 
@@ -61,7 +67,7 @@ td {
         {% include "_messages.html" %}
 	<div>
 	{% if context_agent %}
-        <legend>{% trans "Create Distribute for " %} {{ context_agent }} </legend>
+        <legend>{% trans "Create Distribution for " %} {{ context_agent }} </legend>
 				
         <p class="hdg">Distribution:</p>
         <form id="headerForm" class="validateMe" action="." method="POST" >
@@ -114,7 +120,8 @@ td {
                 {% endfor %}
             </div>
             <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
-        </form>
+            <span class="warning">Note: This operation cannot be undone.  Go to Value Equation Sandbox to check results if you are not sure.</span>
+            </form>
 
     {% else %}
         <h2>You need a {{ context_types }}.</h2>
@@ -173,16 +180,33 @@ td {
 		});
 		
 		$("#id_value_equation").change(reloadPage);
-		
-		function reloadPage()
-		{
-            var selectedVE = document.getElementById('id_value_equation').value;
-            var url = '/accounting/value-equation-sandbox/' + selectedVE + '/'
-            window.location.replace(url);
-            }
+		$("#id_cash_receipts").change(adjustDist);
+
  
 	}); // end document.ready
 	
+    function reloadPage()
+    {
+        var selectedVE = document.getElementById('id_value_equation').value;
+        var agentId = {{ context_agent.id }};
+        var url = '/accounting/create-distribution-using-value-equation/' + agentId + '/' + selectedVE + '/'
+        window.location.replace(url);
+    }
+    
+    function adjustDist()
+    {
+        var count=$("#id_cash_receipts :selected").length
+        if (count != 0) {
+            $("#id_money_to_distribute").val('0.0')
+            $("#id_resource").attr('selectedIndex', '-1'); //.val([]);
+            $("#id_money_to_distribute").prop("disabled", true);
+            $("#id_resource").prop("disabled", true);
+        } else {
+            $("#id_resource").prop("disabled", false);
+            $("#id_money_to_distribute").prop("disabled", false);
+        }
+    }
+
     </script>
 
 {% endblock %}

@@ -78,7 +78,8 @@ td {
               <tr><td>Select one or more Cash Receipts</td><td><b>OR</b></td><td>Amount to distribute</td></tr>
               <tr>
                 <td class="top">{{ header_form.cash_receipts }}</td><td>&nbsp;</td>
-                <td><span class="spc"> {{ header_form.money_to_distribute }}</span><br />From cash resource account<br /><span class="spc">{{ header_form.resource }}</span></td>
+                <td><span class="spc"> {{ header_form.money_to_distribute }}</span><br />From cash resource account<br />
+                <span class="spc">{{ header_form.resource }}</span></td>
               </tr>
             </table>
             <p>Distribution date</p>
@@ -195,10 +196,10 @@ td {
     
     function adjustDist()
     {
-        var count=$("#id_cash_receipts :selected").length
+        var count=$("#id_cash_receipts :selected").length    
         if (count != 0) {
             $("#id_money_to_distribute").val('0.0')
-            $("#id_resource").attr('selectedIndex', '-1'); //.val([]);
+            $("#id_resource").attr('selectedIndex', '-1').find("option:selected").removeAttr("selected");
             $("#id_money_to_distribute").prop("disabled", true);
             $("#id_resource").prop("disabled", true);
         } else {

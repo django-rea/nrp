@@ -54,10 +54,16 @@ td {
     padding-top: 8px;
 }
 .warning {
-    border: red solid 1px;
-    color: red;
-    padding: 3px;
-    margin-left: 5px;
+    border: firebrick solid 1px;
+    color: firebrick;
+    padding: 10px;
+    margin-left: 15px;
+    font-size: 1.1em;
+    vertical-align: bottom;
+}
+#loading {
+    margin-top: 1em;
+    margin-left: 3em;
 }
 </style>
 {% endblock %}
@@ -70,7 +76,7 @@ td {
         <legend>{% trans "Create Distribution for " %} {{ context_agent }} </legend>
 				
         <p class="hdg">Distribution:</p>
-        <form id="headerForm" class="validateMe" action="." method="POST" >
+        <form id="distForm" class="validateMe" action="." method="POST" >
             {% csrf_token %}
             <p>Value Equation</p>
             <p>{{ header_form.value_equation }}</p>
@@ -107,6 +113,7 @@ td {
                                     {{ bucket.form.end_date }}
                                 </div>
                             </div>
+                            <p>Network/Project (optional)</p>
                             <div id="div-context_agent" class="control-group">
                                 <div class="controls">
                                     {{ bucket.form.context_agent }}
@@ -120,7 +127,9 @@ td {
                 {% endfor %}
             </div>
             <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
-            <span class="warning">Note: This operation cannot be undone.  Go to Value Equation Sandbox to check results if you are not sure.</span>
+            <span class="warning"><b>WARNING</b>: This operation cannot be undone.  Go to the 
+            <a href="{% url value_equation_sandbox value_equation_id=ve.id %}"><b>Value Equation Sandbox</b></a> to check results if you are not sure.</span>
+            <span id="loading" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
             </form>
 
     {% else %}
@@ -158,33 +167,65 @@ td {
         
         $(".chzn-select").chosen();
         
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+        
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
+
         jQuery.validator.setDefaults({ 
             success: function(label) {
-				label
-					.text('').addClass('valid')
-					.closest('.control-group').addClass('success');
-			}
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
         });
 
-        $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+        $.validator.addClassRules("quantity", { quantity: true, });
+        $.validator.addClassRules("date-entry", { date: true });
+        $.validator.addClassRules("date-required", { required: true });
+        $.validator.addClassRules("order", { required: true });
+        $.validator.addClassRules("shipment-event", { required: true });
+       
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
+        });
+        
+        $("#calculate").click(showLoading);
 
-    	$( "#exchangeForm" ).validate({
-			rules: {
-                value_equation: {
-                    required: true
-                },
-			},
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			},
-		});
+        //$( "#distForm" ).validate({
+		//	rules: {
+        //        value_equation: {
+        //            required: true
+        //        },
+		//	},
+		//	highlight: function(label) {
+		//		$(label).closest('.control-group').addClass('error');
+		//	},
+		//});
 		
 		$("#id_value_equation").change(reloadPage);
 		$("#id_cash_receipts").change(adjustDist);
 
  
 	}); // end document.ready
+
 	
+	function showLoading()
+	{
+        $("#loading").show();
+        $(".warning").hide();
+    } 
+        
     function reloadPage()
     {
         var selectedVE = document.getElementById('id_value_equation').value;

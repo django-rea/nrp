@@ -2908,7 +2908,7 @@ class DistributionValueEquationForm(forms.Form):
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
     start_date = forms.DateField(required=True, 
         label=_("Date"),
-        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry date-required',}))
     notes = forms.CharField(required=False, 
         label=_("Comments"),
         widget=forms.Textarea(attrs={'class': 'item-description',}))

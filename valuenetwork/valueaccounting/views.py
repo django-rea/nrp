@@ -9088,6 +9088,11 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             amount = data["money_to_distribute"]
             resource = data["resource"]
             crs = data["cash_receipts"]
+            if crs:
+                resource = crs[0].resource
+                amount = 0
+                for cr in crs:
+                    amount += cr.quantity
             dist_date = data["start_date"]
             notes = data["notes"]
             serialized_filters = {}

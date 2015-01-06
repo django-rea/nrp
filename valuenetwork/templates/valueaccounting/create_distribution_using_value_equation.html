@@ -65,6 +65,9 @@ td {
     margin-top: 1em;
     margin-left: 3em;
 }
+.indent {
+    margin-left: 1em;
+}
 </style>
 {% endblock %}
 
@@ -73,8 +76,11 @@ td {
         {% include "_messages.html" %}
 	<div>
 	{% if context_agent %}
-        <legend>{% trans "Create Distribution for " %} {{ context_agent }} </legend>
-				
+        <legend>{% trans "Create Distribution for " %} {{ context_agent }}
+            <a class="indent" href="{% url value_equation_sandbox value_equation_id=ve.id %}">Value Equation Sandbox</a>
+            <a class="indent" href="{% url edit_value_equation value_equation_id=ve.id %}">Edit Value Equation</a>           
+        </legend>
+
         <p class="hdg">Distribution:</p>
         <form id="distForm" class="validateMe" action="." method="POST" >
             {% csrf_token %}
@@ -129,7 +135,7 @@ td {
             </div>
             <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
             <span class="warning"><b>WARNING</b>: This operation cannot be undone.  Go to the 
-            <a href="{% url value_equation_sandbox value_equation_id=ve.id %}"><b>Value Equation Sandbox</b></a> to check results if you are not sure.</span>
+            <a href="{% url value_equation_sandbox value_equation_id=ve.id %}"><b>Value Equation Sandbox</b></a> to test results if you are not sure.</span>
             <span id="loading" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
             </form>
 
@@ -170,7 +176,7 @@ td {
         
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
         
-        jQuery.validator.addMethod("quantity",
+        jQuery.validator.addMethod("money",
             function(value, element) {
                 var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
                 return this.optional(element) || isValidQuantity;
@@ -186,7 +192,7 @@ td {
             }
         });
 
-        $.validator.addClassRules("quantity", { quantity: true, });
+        $.validator.addClassRules("money", { money: true, });
         $.validator.addClassRules("date-entry", { date: true });
         $.validator.addClassRules("date-required", { required: true });
         $.validator.addClassRules("order", { required: true });
@@ -200,20 +206,22 @@ td {
                 }
             });
         });
-        
-        $("#calculate").click(showLoading);
 
-        //$( "#distForm" ).validate({
-		//	rules: {
-        //        value_equation: {
-        //            required: true
-        //        },
-		//	},
-		//	highlight: function(label) {
-		//		$(label).closest('.control-group').addClass('error');
-		//	},
-		//});
+        $( "#distForm" ).validate({
+            rules: {
+                'order': {
+                    required: true
+                },
+                'shipment-event': {
+                    required: true,
+                }
+            },
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
 		
+        $("#calculate").click(showLoading);
 		$("#id_value_equation").change(reloadPage);
 		$("#id_cash_receipts").change(adjustDist);
 

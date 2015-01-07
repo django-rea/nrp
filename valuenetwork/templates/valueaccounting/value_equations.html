@@ -37,6 +37,11 @@
     color: firebrick;
     font-weight: normal;
 }
+.link {
+    margin-left: 1em;
+    font-weight: normal;
+    font-size: 1em;
+}
 
 </style>
 
@@ -77,12 +82,20 @@
                                 <button style="display: inline;"  class="btn btn-warning" title="Delete" >Delete</button>
                             </form>
                         {% endif %}
+{% comment %}
                         <form
                             style="display: inline;"  
                             action="{% url value_equation_sandbox value_equation_id=ve.id %}" 
                             method="GET" >
                             <button style="display: inline;"  class="btn btn-info" title="Change" >Experiment in the Sandbox</button>
                         </form>
+{% endcomment %}
+                    {% endif %}
+                    <a class="link" href="{% url value_equation_sandbox value_equation_id=ve.id %}">Value Equation Sandbox</a> 
+                    {% if agent %}
+                      {% if ve.live %}
+                        <a class="link" href="{% url create_distribution_using_value_equation agent_id=ve.context_agent.id value_equation_id=ve.id %}">Distribute Income</a>
+                      {% endif %}
                     {% endif %}
                 </div> 
                 <div class="using">For: <b>

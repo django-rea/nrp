@@ -135,7 +135,7 @@ td {
             </div>
             <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
             <span class="warning"><b>WARNING</b>: This operation cannot be undone.  Go to the 
-            <a href="{% url value_equation_sandbox value_equation_id=ve.id %}"><b>Value Equation Sandbox</b></a> to test results if you are not sure.</span>
+            <a href="{% url value_equation_sandbox value_equation_id=ve.id %}"><b>Value Equation Sandbox</b></a> to test results first if you are not sure.</span>
             <span id="loading" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
             </form>
 
@@ -207,20 +207,6 @@ td {
             });
         });
 
-        $( "#distForm" ).validate({
-            rules: {
-                'order': {
-                    required: true
-                },
-                'shipment-event': {
-                    required: true,
-                }
-            },
-			highlight: function(label) {
-				$(label).closest('.control-group').addClass('error');
-			},
-		});
-		
         $("#calculate").click(showLoading);
 		$("#id_value_equation").change(reloadPage);
 		$("#id_cash_receipts").change(adjustDist);

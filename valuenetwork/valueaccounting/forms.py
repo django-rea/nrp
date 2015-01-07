@@ -3366,7 +3366,7 @@ class OrderMultiSelectForm(forms.Form):
         required=True,
         queryset=Order.objects.all(),
         label=_("Select one or more Orders"),
-        widget=forms.SelectMultiple(attrs={'class': 'order chzn-select input-xxlarge'}))
+        widget=forms.SelectMultiple(attrs={'class': 'order chzn-select input-xxlarge validateMe'}))
         
     def __init__(self, context_agent, *args, **kwargs):
         super(OrderMultiSelectForm, self).__init__(*args, **kwargs)
@@ -3405,7 +3405,7 @@ class ShipmentMultiSelectForm(forms.Form):
             ),
         label=_("Select one or more Shipment Events"),
         #empty_label=None,
-        widget=forms.SelectMultiple(attrs={'class': 'shipment-event chzn-select input-xxlarge'}))
+        widget=forms.SelectMultiple(attrs={'class': 'shipment-event chzn-select input-xxlarge validateMe'}))
         
     def __init__(self, context_agent, *args, **kwargs):
         super(ShipmentMultiSelectForm, self).__init__(*args, **kwargs)

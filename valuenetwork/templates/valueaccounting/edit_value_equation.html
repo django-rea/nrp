@@ -93,17 +93,8 @@ th
         <legend>
             {% if value_equation %}
                 {% trans "Edit Value Equation" %} {{ value_equation }}
-                <form
-                    style="display: inline;" 
-                    class="indent" 
-                    id="make-live" 
-                    action="{% url value_equation_live_test value_equation_id=value_equation.id %}" 
-                    method="POST" >
-                    {% csrf_token %}
-                    <button style="display: inline;"  class="btn btn-primary btn-mini" title="Make value equation live or test" >
-                        {% if value_equation.live %} Make This Test {% else %} Make This Live {% endif %}
-                    </button>
-                </form>
+                <a class="indent" href="{% url value_equation_sandbox value_equation_id=value_equation.id %}">Value Equation Sandbox</a> 
+                <a class="indent" href="{% url create_distribution_using_value_equation agent_id=value_equation.context_agent.id value_equation_id=value_equation.id %}">Distribute Income</a>
             {% else %}
                 {% trans "Create Value Equation" %}
             {% endif %}
@@ -188,6 +179,7 @@ th
                 {% endif %}
 
                 <div style="float:right">
+{% comment %}
                     <form
                         style="display: inline;" 
                         class="test-form" 
@@ -195,6 +187,18 @@ th
                         action="{% url value_equation_sandbox value_equation_id=value_equation.id %}" 
                         method="GET" >
                         <button style="display: inline;"  class="btn btn-info btn-mini" title="Test this value equation" >Value Equation Sandbox</button>
+                    </form>
+{% endcomment %}
+                    <form
+                        style="display: inline;" 
+                        class="indent" 
+                        id="make-live" 
+                        action="{% url value_equation_live_test value_equation_id=value_equation.id %}" 
+                        method="POST" >
+                        {% csrf_token %}
+                        <button style="display: inline;"  class="btn btn-primary btn-mini" title="Make value equation live or test" >
+                            {% if value_equation.live %} Make This Test {% else %} Make This Live {% endif %}
+                        </button>
                     </form>
                 </div>
 

@@ -189,6 +189,7 @@ th
                         <button style="display: inline;"  class="btn btn-info btn-mini" title="Test this value equation" >Value Equation Sandbox</button>
                     </form>
 {% endcomment %}
+                    {% if user = value_equation.created_by or user.is_superuser %}
                     <form
                         style="display: inline;" 
                         class="indent" 
@@ -200,6 +201,7 @@ th
                             {% if value_equation.live %} Make This Test {% else %} Make This Live {% endif %}
                         </button>
                     </form>
+                    {% endif %}
                 </div>
 
                 <div class="indent">
@@ -310,6 +312,7 @@ th
                                             </div>
                                         {% endif %}
 
+                                        {% if agent %}
                                         <div style="float:right">                
                                             <form
                                                 style="display: inline;" 
@@ -321,8 +324,8 @@ th
                                                 <input type="hidden" id="test{{ rule.id }}" name="test" value= "{{ rule.id }}" />
                                                 <input type="submit" name="submit" style="display: inline;"  class="btn btn-info btn-mini" value="{% trans 'Test Rule' %}" title="Test this value equation bucket rule" />
                                             </form>
-
                                         </div>
+                                        {% endif %}
                                         <div class="indent">Claim calculation: <b>{{ rule.get_claim_rule_type_display }}, {{ rule.claim_creation_equation }}</b></div>
                                         <div class="indent">Filter by: <b>{{ rule.filter_rule_display_list }}</b></div>
                                     </div>

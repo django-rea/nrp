@@ -78,7 +78,8 @@ td {
 	{% if context_agent %}
         <legend>{% trans "Create Distribution for " %} {{ context_agent }}
             <a class="indent" href="{% url value_equation_sandbox value_equation_id=ve.id %}">Value Equation Sandbox</a>
-            <a class="indent" href="{% url edit_value_equation value_equation_id=ve.id %}">Edit Value Equation</a>           
+            <a class="indent" href="{% url edit_value_equation value_equation_id=ve.id %}">Edit Value Equation</a> 
+            <a class="indent" href="{% url value_equations %}">Value Equations List</a>
         </legend>
 
         <p class="hdg">Distribution:</p>

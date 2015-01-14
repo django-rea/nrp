@@ -344,7 +344,9 @@ li {
                 {% for event in distribution_events %}
                     <div class="event">
                         <span ><span class="event-label">{% trans "Distributed" %}: </span> 
-                            <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> into <b>{{ event.resource.identifier }}</b> {{ event.event_date }}</span>
+                            <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> into 
+                            <b><a href="{{ event.resource.get_absolute_url }}">{{ event.resource.identifier }}</a></b> 
+                            {{ event.event_date }}</span>
                         {% if agent == event.to_agent or logger  %}
 
                             <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">

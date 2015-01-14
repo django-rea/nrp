@@ -769,6 +769,7 @@ class EconomicAgent(models.Model):
         
     def create_virtual_account(self, resource_type):
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
+        owner_role_type = None
         if role_types:
             owner_role_type = role_types[0]
         if owner_role_type:
@@ -5855,6 +5856,12 @@ class Exchange(models.Model):
                     value = br.compute_claim_value(evt)
                 evt.share = value * share * trigger_fraction
                 events.append(evt)
+                
+    def distribution_value_equation(self):
+        ves = self.value_equation.all()
+        if ves:
+            return ves[0]
+        return None
 
 
 class Feature(models.Model):
@@ -7351,7 +7358,16 @@ class EconomicEvent(models.Model):
                 return best_fit[0]
             return best_fit[0]
         return None
-                
+        
+    def bucket_rule_for_context_agent(self):
+        ves = self.context_agent.live_value_equations()
+        bucket_rule = None
+        for ve in ves:
+            bucket_rule = self.bucket_rule(ve)
+            if bucket_rule:
+                break
+        return bucket_rule
+           
     def claims(self):
         claim_events = self.claim_events.all()
         claims = [ce.claim for ce in claim_events]
@@ -7934,7 +7950,7 @@ class DistributionValueEquation(models.Model):
     distribution_date = models.DateField(_('distribution date'))
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
-        verbose_name=_('distribution'), related_name='value equation')    
+        verbose_name=_('distribution'), related_name='value_equation')    
     value_equation_link = models.ForeignKey(ValueEquation,
         blank=True, null=True,
         verbose_name=_('value equation link'), related_name='distributions')

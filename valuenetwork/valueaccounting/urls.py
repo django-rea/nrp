@@ -441,5 +441,6 @@ urlpatterns += patterns("",
         name="delete_value_equation_bucket_rule"),
     url(r"^value-equation-test-live/(?P<value_equation_id>\d+)/$", 'valuenetwork.valueaccounting.views.value_equation_live_test',
         name="value_equation_live_test"),
+    url(r"^agent-value-accounting/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent_value_accounting', name="agent_value_accounting"),
 )
 

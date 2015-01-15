@@ -8463,6 +8463,27 @@ class Claim(models.Model):
                 break
         return event
         
+    def format_value(self, value):
+        if self.unit_of_value:
+            if self.unit_of_value.symbol:
+                value_string = "".join([self.unit_of_value.symbol, str(value)])
+            else:
+                value_string = " ".join([str(value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(value)
+        return value_string
+        
+    def original_value_formatted(self):
+        value = self.original_value
+        return self.format_value(value)
+        
+    def value_formatted(self):
+        value = self.value
+        return self.format_value(value)
+        
+    def distribution_events(self):
+        return self.claim_events.filter(event__event_type__name="Distribution")
+        
 
 EVENT_EFFECT_CHOICES = (
     ('+', _('increase')),
@@ -8509,6 +8530,18 @@ class ClaimEvent(models.Model):
         else:
             self.claim.value -= self.value
         self.claim.save()
+        
+    def value_formatted(self):
+        #import pdb; pdb.set_trace()
+        value = self.value
+        if self.unit_of_value:
+            if self.unit_of_value.symbol:
+                value_string = "".join([self.unit_of_value.symbol, str(value)])
+            else:
+                value_string = " ".join([str(value), self.unit_of_value.abbrev])
+        else:
+            value_string = str(value)
+        return value_string
             
 
 class EventSummary(object):

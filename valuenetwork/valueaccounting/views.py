@@ -1105,6 +1105,53 @@ def contribution_history(request, agent_id):
         "user_is_agent": user_is_agent,
         "events": events,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def agent_value_accounting(request, agent_id):
+    #import pdb; pdb.set_trace()
+    agent = get_object_or_404(EconomicAgent, pk=agent_id)
+    user_agent = get_agent(request)
+    user_is_agent = False
+    if agent == user_agent:
+        user_is_agent = True
+    event_list = agent.contributions()
+    no_bucket = 0
+    with_bucket = 0
+    event_value = Decimal("0.0")
+    claim_value = Decimal("0.0")
+    outstanding_claims = Decimal("0.0")
+    distributions = Decimal("0.0")
+    for event in event_list:
+        if event.bucket_rule_for_context_agent():
+            with_bucket += 1
+        else:
+            no_bucket += 1
+        for claim in event.claims():
+            claim_value += claim.original_value
+            outstanding_claims += claim.value
+            for de in claim.distribution_events():
+                distributions += de.value
+    paginator = Paginator(event_list, 25)
+
+    page = request.GET.get('page')
+    try:
+        events = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        events = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        events = paginator.page(paginator.num_pages)
+    
+    return render_to_response("valueaccounting/agent_value_accounting.html", {
+        "agent": agent,
+        "events": events,
+        "no_bucket": no_bucket,
+        "with_bucket": with_bucket,
+        "claim_value": claim_value.quantize(Decimal('0'), rounding=ROUND_HALF_UP),
+        "outstanding_claims": outstanding_claims.quantize(Decimal('0'), rounding=ROUND_HALF_UP),
+        "distributions": distributions.quantize(Decimal('0'), rounding=ROUND_HALF_UP),
+    }, context_instance=RequestContext(request))
 
 @login_required
 def unscheduled_time_contributions(request):

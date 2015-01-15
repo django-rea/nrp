@@ -1,0 +1,155 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load humanize %} 
+
+{% block head_title %}{% trans "Value Accounting for " %} {{ agent }}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+    td 
+    {
+        text-align: right;
+        padding-left: 1em;
+    }
+
+    th
+    {
+        text-align: right;
+    }
+
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+        <h1>{% trans "Value Accounting for " %} {{ agent }}</h1>
+        
+    <div class="row-fluid">
+
+        <div class="span7">
+            {% for event in events %}
+                <ul>
+                    <li>
+                        {{ event.event_type.name }} 
+                        {{ event.event_date }} 
+                        {% trans "to" %} {{ event.to_agent.name }} 
+                        {{ event.quantity_formatted }} 
+                    </li>
+                    <ul>
+                        <li>{% trans "Value Equation" %}
+                            {% with event.bucket_rule_for_context_agent as rule %}
+                                {% if rule %}
+                                    {% trans "Bucket" %}: {{ rule.value_equation_bucket.name }}, 
+                                    {% trans "Claim duration" %}: {{ rule.get_claim_rule_type_display }}, 
+                                    {% trans "Equation" %}: {{ rule.claim_creation_equation }}
+                                {% else %}
+                                    not found
+                                {% endif %}
+                            {% endwith %}
+                        </li>
+                        {% if event.claims %}
+                            <ul>
+                                {% for claim in event.claims %}
+                                    <li>
+                                        {% trans "Claim against" %} {{ claim.against_agent.name }} 
+                                        {% trans "for" %} {{ claim.original_value_formatted }} 
+                                        {% trans "from" %} {{ claim.claim_date }} 
+                                        {% trans "- outstanding" %}: {{ claim.value_formatted }} 
+                                    </li>
+                                    {% if claim.distribution_events %}
+                                        <ul>
+                                            {% for de in claim.distribution_events %}
+                                                <li>
+                                                    {% trans "Income distribution" %}: {{ de.value_formatted }}
+                                                    {{ de.claim_event_date }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        
+                    </ul>
+                </ul>
+        
+            {% endfor %}
+        </div>
+        <div class="span5">
+            <table>
+                <tr>
+                    <th>{% trans "Contributions with no Value Equation" %}:</th>
+                    <td>{{ no_bucket }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Contributions with Value Equations" %}:</th>
+                    <td>{{ with_bucket }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Total Value of Claims" %}:</th>
+                    <td>${{ claim_value|intcomma }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Outstanding Claims" %}:</th>
+                    <td>${{ outstanding_claims|intcomma }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Income Distributions" %}:</th>
+                    <td>${{ distributions|intcomma }}</td>
+                </tr>
+
+            </table>
+        </div>
+    
+    </div>
+
+    <div class="pagination">
+        <span class="step-links">
+            {% if events.has_previous %}
+                <a href="?page={{ events.previous_page_number }}">{% trans "previous" %}</a>
+            {% endif %}
+
+            <span class="current">
+                {% trans "Page" %} {{ events.number }} {% trans "of" %} {{ events.paginator.num_pages }}.
+            </span>
+
+            {% if events.has_next %}
+                <a href="?page={{ events.next_page_number }}">{% trans "next" %}</a>
+            {% endif %}
+        </span>
+    </div>
+
+    </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+
+<script type="text/javascript">
+
+    $(document).ready(function(){
+
+    }); // end document.ready
+
+    </script>
+
+{% endblock %}

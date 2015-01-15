@@ -37,7 +37,10 @@
     <div class="container">
         {% include "_messages.html" %}
 	<div>
-		<h1>{% trans "Contributions from " %} {{ agent }}</h1>
+		<legend>
+            {% trans "Contributions from " %} {{ agent }} &nbsp;&nbsp;&nbsp;
+            <a href="{% url agent_value_accounting agent_id=agent.id %}">{% trans "Value Accounting" %}</a>
+		</legend>
 		{% if user_is_agent %}
             <p>
                 {% trans "You can change date or qty inline and it will be automatically saved." %} <span id="saving"></span>

@@ -9674,13 +9674,19 @@ def cash_report(request): #todo: date selections; bank accounts???
         for event in va.where_from_events():
             in_total += event.quantity
             event.in_out = "in"
-            event.account = event.event_type
+            if event.accounting_reference:
+                event.account = event.accounting_reference
+            else:
+                event.account = event.event_type
             event.virtual_account = va.identifier
             events.append(event)
         for event in va.where_to_events():
             out_total += event.quantity 
             event.in_out = "out"
-            event.account = event.event_type 
+            if event.accounting_reference:
+                event.account = event.accounting_reference
+            else:
+                event.account = event.event_type
             event.virtual_account = va.identifier
             events.append(event)
     balance = in_total - out_total #todo: need to deal with beginning balances

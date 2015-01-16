@@ -8156,13 +8156,14 @@ class ValueEquationBucket(models.Model):
         #    claims = self.gather_claims()
         for claim in claims:
             distr_amt = claim.share * portion_of_amount
+            distr_amt = distr_amt.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
             #if distr_amt > claim.value:
             #    distr_amt = claim.value
             if claim.value_equation_bucket_rule.claim_rule_type == "debt-like":
                 claim.value = claim.value - distr_amt
             elif claim.value_equation_bucket_rule.claim_rule_type == "once":
                 claim.value = 0
-            claim.event.distr_amt = distr_amt.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+            claim.event.distr_amt = distr_amt
             unit_of_value = ""
             if claim.event.unit_of_value:
                 unit_of_value = claim.event.unit_of_value.abbrev

@@ -23,7 +23,14 @@
     {
         text-align: right;
     }
-
+h4 {
+    color: firebrick;
+}
+.summary {
+    border: solid 1px firebrick;
+    background-color: #EAF2D3;
+    padding: 1em;
+}
 
 </style>
 
@@ -40,6 +47,7 @@
     <div class="row-fluid">
 
         <div class="span7">
+            <h4>Detail Contributions and Distributions</h4>
             {% for event in events %}
                 <ul>
                     <li>
@@ -67,7 +75,7 @@
                                         {% trans "Claim against" %} {{ claim.against_agent.name }} 
                                         {% trans "for" %} {{ claim.original_value_formatted }} 
                                         {% trans "from" %} {{ claim.claim_date }} 
-                                        {% trans "- outstanding" %}: {{ claim.value_formatted }} 
+                                        <b>{% trans "- outstanding" %}: {{ claim.value_formatted }}</b>
                                     </li>
                                     {% if claim.distribution_events %}
                                         <ul>
@@ -88,7 +96,7 @@
         
             {% endfor %}
         </div>
-        <div class="span5">
+        <div class="span5 summary">
             <table>
                 <tr>
                     <th>{% trans "Contributions with no Value Equation" %}:</th>

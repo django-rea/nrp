@@ -9640,21 +9640,57 @@ def value_equation_live_test(request, value_equation_id):
             value_equation.save()
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/edit-value-equation', value_equation.id))
-    
+'''
+Note: leaving this code here in case we want to do a report by virtual account
 def cash_report(request):
     #import pdb; pdb.set_trace()
-    virtual_accounts = EconomicResource.objects.context_agent_virtual_accounts()
+    virtual_accounts = EconomicResource.objects.virtual_accounts()
+    in_total = 0
+    out_total = 0
     for va in virtual_accounts:
         va.in_events = va.where_from_events()
         va.out_events = va.where_to_events()
-        va.in_total = 0
         for event in va.in_events:
-            va.in_total += event.quantity
-        va.out_total = 0
+            in_total += event.quantity
+            event.account = event.event_type
         for event in va.out_events:
-            va.out_total += event.quantity            
-    
+            out_total += event.quantity 
+            event.account = event.event_type     
+               
     return render_to_response("valueaccounting/cash_report.html", {
         "virtual_accounts": virtual_accounts,
+        "in_total": in_total,
+        "out_total": out_total,
+    }, context_instance=RequestContext(request))
+'''
+
+def cash_report(request): #todo: date selections; bank accounts???
+    #import pdb; pdb.set_trace()
+    virtual_accounts = EconomicResource.objects.virtual_accounts()
+    events = []
+    in_total = 0
+    out_total = 0
+    for va in virtual_accounts:
+        for event in va.where_from_events():
+            in_total += event.quantity
+            event.in_out = "in"
+            event.account = event.event_type
+            event.virtual_account = va.identifier
+            events.append(event)
+        for event in va.where_to_events():
+            out_total += event.quantity 
+            event.in_out = "out"
+            event.account = event.event_type 
+            event.virtual_account = va.identifier
+            events.append(event)
+    balance = in_total - out_total #todo: need to deal with beginning balances
+    #todo: pagination
+               
+    return render_to_response("valueaccounting/cash_report.html", {
+        #"virtual_accounts": virtual_accounts,
+        "events": events,
+        "in_total": in_total,
+        "out_total": out_total,
+        "balance": balance,
     }, context_instance=RequestContext(request))
   

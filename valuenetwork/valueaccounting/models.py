@@ -7055,6 +7055,9 @@ class EconomicEvent(models.Model):
         verbose_name=_('fulfills commitment'), related_name="fulfillment_events",
         on_delete=models.SET_NULL)
     is_contribution = models.BooleanField(_('is contribution'), default=False)
+    accounting_reference = models.ForeignKey(AccountingReference, blank=True, null=True,
+        verbose_name=_('accounting reference'), related_name="events",
+        help_text=_('optional reference to an accounting grouping'))
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='events_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

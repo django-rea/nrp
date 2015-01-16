@@ -4339,6 +4339,28 @@ class EconomicResource(models.Model):
         for own in owner_assns:
             owners.append(own.agent.nick)
         return owners
+        
+    def all_contacts(self):
+        return self.agent_resource_roles.filter(is_contact=True)
+        
+    def payout_contacts(self):
+        """ this method only applies to virtual account resources """
+        distributions = self.distribution_events()
+        contacts = []
+        for d in distributions:
+            dex = d.exchange
+            disbursements = dex.disbursement_events()
+            for dis in disbursements:
+                contacts.extend(dis.resource.all_contacts())
+        return contacts
+        
+    def distribution_events(self):
+        return self.events.filter(
+            event_type__relationship='distribute')
+            
+    def disbursement_events(self):
+        return self.events.filter(
+            event_type__relationship='disburse')
            
     def revert_to_previous_stage(self):
         #import pdb; pdb.set_trace()

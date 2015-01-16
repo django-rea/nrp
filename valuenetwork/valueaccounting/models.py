@@ -1303,6 +1303,12 @@ class EconomicResourceType(models.Model):
         #unique_slugify(self, self.name)
         super(EconomicResourceType, self).save(*args, **kwargs)
 
+    def is_virtual_account(self):
+        if self.behavior == "account":
+            return True
+        else:
+            return False
+            
     def direct_children(self):
         return self.children.all()
         
@@ -3382,6 +3388,27 @@ class GoodResourceManager(models.Manager):
 class FailedResourceManager(models.Manager):
     def get_query_set(self):
         return super(FailedResourceManager, self).get_query_set().filter(quality__lt=0)
+        
+class EconomicResourceManager(models.Manager):
+    
+    def virtual_accounts(self):
+        #import pdb; pdb.set_trace()
+        resources = EconomicResource.objects.all()
+        vas = []
+        for resource in resources:
+            if resource.resource_type.is_virtual_account():
+                vas.append(resource)
+        return vas
+        
+    def context_agent_virtual_accounts(self):
+        vas = self.virtual_accounts()
+        #import pdb; pdb.set_trace()
+        cavas = []
+        for va in vas:
+            if va.owner():
+                if va.owner().is_context_agent():
+                    cavas.append(va)
+        return cavas
 
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
@@ -3424,7 +3451,7 @@ class EconomicResource(models.Model):
         related_name='resources_changed', blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
-    objects = models.Manager()
+    objects = EconomicResourceManager()
     goods = GoodResourceManager()
     failures = FailedResourceManager()
 

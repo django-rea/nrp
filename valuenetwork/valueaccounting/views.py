@@ -9640,5 +9640,21 @@ def value_equation_live_test(request, value_equation_id):
             value_equation.save()
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/edit-value-equation', value_equation.id))
-
+    
+def cash_report(request):
+    #import pdb; pdb.set_trace()
+    virtual_accounts = EconomicResource.objects.context_agent_virtual_accounts()
+    for va in virtual_accounts:
+        va.in_events = va.where_from_events()
+        va.out_events = va.where_to_events()
+        va.in_total = 0
+        for event in va.in_events:
+            va.in_total += event.quantity
+        va.out_total = 0
+        for event in va.out_events:
+            va.out_total += event.quantity            
+    
+    return render_to_response("valueaccounting/cash_report.html", {
+        "virtual_accounts": virtual_accounts,
+    }, context_instance=RequestContext(request))
   

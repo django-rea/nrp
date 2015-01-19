@@ -11,6 +11,7 @@ if "notification" in settings.INSTALLED_APPS:
         notification.create_notice_type("valnet_new_todo", _("New Todo"), _("a new todo was posted that is assigned to you"), default=2)
         notification.create_notice_type("valnet_deleted_todo", _("Deleted Todo"), _("a todo that was assigned to you has been deleted"), default=2)
         notification.create_notice_type("valnet_distribution", _("New Distribution"), _("you have received a new income distribution"), default=2)
+        notification.create_notice_type("valnet_payout_request", _("Payout Request"), _("you have received a new payout request"), default=2)
         print "created notice types"
     signals.post_syncdb.connect(create_notice_types, sender=notification)
 else:

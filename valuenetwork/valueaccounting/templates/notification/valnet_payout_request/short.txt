@@ -1,0 +1,1 @@
+{% load i18n %}{% trans  "You got a payout request from" %} {{ payout.from_agent }}

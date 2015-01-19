@@ -1,0 +1,5 @@
+{% load i18n %}{% blocktrans %}You got a payout request from {{ payout.from_agent }}
+
+{{ payout.from_agent }} requests a payout of {{ payout.quantity_formatted }}.
+You can see and respond to the request here:{% endblocktrans %}
+http://{{ current_site }}{{ payout.get_absolute_url }}

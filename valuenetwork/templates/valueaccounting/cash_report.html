@@ -1,0 +1,149 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Cash Report" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+
+	tr.even td 
+	{
+		color:#000000;
+		background-color:#EAF2D3;
+	}
+
+	th
+	{
+		background-color:#C8D6E8;
+	}
+
+.hdg, .bal, .total {
+    color:  #7D1818;
+    font-weight: bold;
+}
+.event {
+    margin-left: 1em;
+}
+.desc {
+    font-style: italic;
+    font-size: .9em;
+}
+li {
+    list-style-type: none;
+    margin: o;
+    padding:0;
+}
+ul {
+    margin: 0;
+    padding: 0;
+}
+</style>
+
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>{% trans "Cash Flow Report" %}</legend>
+            
+            <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+                <thead>
+                    <th>{% trans "Virtual Account" %}</th>
+                    <th>{% trans "Date" %}</th>
+                    <th>{% trans "Category" %}</th>
+                    <th>{% trans "Cash In" %}</th>
+                    <th>{% trans "Cash Out" %}</th>
+                    <th>{% trans "Project" %}</th>
+                    <th>{% trans "To or From" %}</th>
+                </thead>
+                <tbody>	
+                    {% for event in events %}
+                        <tr class="{% cycle 'odd' 'even' %}">
+                            <td>{{ event.virtual_account }}</td>
+                            <td>{{ event.event_date }}</td>
+                            <td>{{ event.account }}</td>
+                            {% if event.in_out == "in" %}
+                                <td>{{ event.quantity }}</td>
+                            {% else %}
+                                <td>&nbsp;</td>
+                            {% endif %}
+                            {% if event.in_out == "out" %}
+                                <td>{{ event.quantity }}</td>
+                            {% else %}
+                                <td>&nbsp;</td>
+                            {% endif %}
+                            <td>{{ event.context_agent }}</td>
+                            {% if event.in_out == "in" %}
+                                <td>{{ event.from_agent }}</td>
+                            {% else %}
+                                <td>{{ event.to_agent }}</td>
+                            {% endif %}
+                        </tr>
+
+                    {% endfor %}
+
+                    <tr class="total">
+                        <td>Totals</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>{{ in_total }}</td>
+                        <td>{{ out_total }}</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr class="bal">
+                        <td>Balance</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        {% if balance > 0 %}
+                            <td>{{ balance }}</td>
+                        {% else %}
+                            <td>&nbsp;</td>
+                        {% endif %}
+                        {% if balance > 0 %}
+                            <td>&nbsp;</td>
+                        {% else %}
+                            <td>({{ balance }})</td>
+                        {% endif %}
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                </tbody>	
+            </table>
+
+{% comment %}
+<div class="pagination">
+    <span class="step-links">
+        {% if virtual_accounts.has_previous %}
+            <a href="?page={{ virtual_accounts.previous_page_number }}">{% trans "previous" %}</a>
+        {% endif %}
+
+        <span class="current">
+            {% trans "Page" %} {{ virtual_accounts.number }} {% trans "of" %} {{ virtual_accounts.paginator.num_pages }}.
+        </span>
+
+        {% if virtual_accounts.has_next %}
+            <a href="?page={{ virtual_accounts.next_page_number }}">{% trans "next" %}</a>
+        {% endif %}
+    </span>
+</div>
+{% endcomment %}
+
+	</div>
+    </div>
+{% endblock %}
+{% block extra_body %}
+	{{ block.super }}
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		//$('#inventory').addClass('active');
+
+	}); // end document.ready
+
+    </script>
+{% endblock %}

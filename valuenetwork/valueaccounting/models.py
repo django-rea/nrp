@@ -693,9 +693,9 @@ class EconomicAgent(models.Model):
         agent_ids = self.has_associates.filter(association_type__association_behavior="supplier").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
-    def exchange_firms(self): #todo: 'legal' is not a behavior, will there ever be a need for this?
+    def exchange_firms(self): 
         #import pdb; pdb.set_trace()
-        agent_ids = self.has_associates.filter(association_type__association_behavior="legal").filter(state="active").values_list('is_associate')
+        agent_ids = self.has_associates.filter(association_type__association_behavior="exchange").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def members(self): 
@@ -859,12 +859,31 @@ class EconomicAgent(models.Model):
         return self.agent_type.is_context
         
     def orders_queryset(self):
+        #todo: this method shd determine if orders for the exchange firm really apply to self
         orders = []
+        exf = self.exchange_firm()
         for order in Order.objects.all():
-            if self in order.context_agents():
+            cas = order.context_agents()
+            if self in cas:
                 orders.append(order)
+            if exf:
+                if exf in cas:
+                    orders.append(order)
         order_ids = [order.id for order in orders]
         return Order.objects.filter(id__in=order_ids)
+        
+    def shipments_queryset(self):
+        #todo: this method shd determine if shipments for the exchange firm really apply to self
+        shipments = []
+        exf = self.exchange_firm()
+        ship = EventType.objects.get(label="ships")
+        qs = EconomicEvent.objects.filter(event_type=ship)
+        if exf:
+            cas = [self, exf]
+            qs = qs.filter(context_agent__in=cas)
+        else:
+            qs = qs.filter(context_agent=self)
+        return qs
         
     def undistributed_cash_receipts(self):
         #import pdb; pdb.set_trace()
@@ -874,7 +893,15 @@ class EconomicAgent(models.Model):
         for cr in crs:
             if cr.is_undistributed():
                 cr_ids.append(cr.id)
+        exf = self.exchange_firm()
+        if exf:
+            crs = exf.undistributed_cash_receipts()
+            for cr in crs:
+                if cr.is_undistributed():
+                    if cr.resource.is_virtual_account_of(self):
+                        cr_ids.append(cr.id)
         return EconomicEvent.objects.filter(id__in=cr_ids)
+        
         
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,
@@ -888,6 +915,8 @@ ASSOCIATION_BEHAVIOR_CHOICES = (
     ('customer', _('customer')),
     ('member', _('member')),
     ('child', _('child')),
+    ('custodian', _('custodian')),
+    ('exchange', _('exchange firm')),
 )
 
 class AgentAssociationType(models.Model):
@@ -4332,6 +4361,13 @@ class EconomicResource(models.Model):
         if owner_roles:
             return owner_roles[0].agent
         return None
+        
+    def is_virtual_account_of(self, agent):
+        if self.resource_type.is_virtual_account():
+            owners = [arr.agent for arr in self.agent_resource_roles.filter(role__is_owner=True)]
+            if agent in owners:
+                return True
+        return False
              
     def all_owners(self):
         owner_assns = self.agent_resource_roles.filter(role__is_owner=True)

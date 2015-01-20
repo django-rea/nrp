@@ -90,7 +90,7 @@ class CashReceiptDistributionAdmin(admin.ModelAdmin):
 admin.site.register(CashReceiptDistribution, CashReceiptDistributionAdmin)
     
 class AgentAssociationTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'label', 'inverse_label', 'description')
+    list_display = ('name', 'label', 'inverse_label', 'description', 'association_behavior')
 
 admin.site.register(AgentAssociationType, AgentAssociationTypeAdmin)
 

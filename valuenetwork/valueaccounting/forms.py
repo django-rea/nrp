@@ -3409,8 +3409,7 @@ class ShipmentMultiSelectForm(forms.Form):
         
     def __init__(self, context_agent, *args, **kwargs):
         super(ShipmentMultiSelectForm, self).__init__(*args, **kwargs)
-        ship = EventType.objects.get(label="ships")
-        self.fields["shipments"].queryset = EconomicEvent.objects.filter(context_agent=context_agent, event_type=ship)
+        self.fields["shipments"].queryset = context_agent.shipments_queryset()
         
     def serialize(self):
         data = self.cleaned_data

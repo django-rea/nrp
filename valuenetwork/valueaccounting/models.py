@@ -859,16 +859,21 @@ class EconomicAgent(models.Model):
         return self.agent_type.is_context
         
     def orders_queryset(self):
-        #todo: this method shd determine if orders for the exchange firm really apply to self
         orders = []
         exf = self.exchange_firm()
+        cr_orders = []
+        if exf:
+            crs = self.undistributed_cash_receipts()
+            cr_orders = [cr.exchange.order for cr in crs]
         for order in Order.objects.all():
             cas = order.context_agents()
             if self in cas:
                 orders.append(order)
             if exf:
                 if exf in cas:
-                    orders.append(order)
+                    if order in cr_orders:
+                        orders.append(order)
+        orders = list(set(orders))
         order_ids = [order.id for order in orders]
         return Order.objects.filter(id__in=order_ids)
         

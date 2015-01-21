@@ -7939,6 +7939,8 @@ class ValueEquation(models.Model):
             resource=money_resource,
         )
         disbursement_event.save()
+        money_resource.quantity -= amount_to_distribute
+        money_resource.save()
         for cr in cash_receipts:
             crd = CashReceiptDistribution(
                 distribution_date=exchange.start_date,

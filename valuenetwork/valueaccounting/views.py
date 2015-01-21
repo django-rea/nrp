@@ -5906,7 +5906,7 @@ def log_resource_for_commitment(request, commitment_id):
             to_agent = default_agent,
             resource_type = ct.resource_type,
             process = ct.process,
-            context_agent = ct.context_agent,
+            context_agent = ct.process.context_agent,
             quantity = qty,
             unit_of_quantity = ct.unit_of_quantity,
             created_by = request.user,

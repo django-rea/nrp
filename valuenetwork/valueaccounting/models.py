@@ -2211,7 +2211,8 @@ class ProcessPattern(models.Model):
         slots = list(set(slots))
         #slots.sort(lambda x, y: cmp(x.label, y.label))
         #slots = sorted(slots, key=attrgetter('label'))
-        slots = sorted(slots, key=attrgetter('relationship'), reverse=True)
+        #slots = sorted(slots, key=attrgetter('relationship'), reverse=True)
+        slots = sorted(slots, key=attrgetter('name'))
         return slots
 
     def slots(self):

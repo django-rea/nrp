@@ -7896,8 +7896,8 @@ def process_selections(request, rand=0):
                 action = ""
                 try:
                     #import pdb; pdb.set_trace()
-                    label = key.split("~")[0]
-                    et = EventType.objects.get(label=label)
+                    et_name = key.split("~")[0]
+                    et = EventType.objects.get(name=et_name)
                     action = et.relationship
                 except EventType.DoesNotExist:
                     pass
@@ -7955,23 +7955,25 @@ def process_selections(request, rand=0):
         
             #import pdb; pdb.set_trace()      
             for rt in produced_rts:
+                #import pdb; pdb.set_trace()
                 resource_types.append(rt)
                 et = selected_pattern.event_type_for_resource_type("out", rt)
+                connect_to_order = True
+                if demand.all_processes():
+                    connect_to_order = False
                 if et:
                     commitment = process.add_commitment(
                         resource_type= rt,
                         demand=demand,
-                        order_item = process.order_item(),
                         quantity=Decimal("1"),
                         event_type=et,
                         unit=rt.unit,
                         description="",
                         user=request.user)
-                    if rand:
-                        if not added_to_order:
-                            commitment.order = demand
-                            commitment.order_item = commitment
-                            commitment.save()
+                    if connect_to_order:
+                        commitment.order = demand
+                        commitment.order_item = commitment
+                        commitment.save()
                         '''
                         #use recipe
                         #todo: add stage and state as args

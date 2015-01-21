@@ -216,7 +216,8 @@ class CreateEconomicResourceForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=False,
         queryset=EconomicAgent.objects.all(),
-        label="Work done by",  
+        label="Work done by", 
+        help_text="Required only if not logging work inputs",
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     identifier = forms.CharField(
@@ -238,6 +239,7 @@ class TransformEconomicResourceForm(forms.ModelForm):
         required=False,
         queryset=EconomicAgent.objects.all(),
         label="Work done by",  
+        help_text="Required only if not logging work inputs",
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -568,6 +570,7 @@ class UninventoriedProductionEventForm(forms.ModelForm):
         required=False,
         queryset=EconomicAgent.objects.all(),
         label="Work done by",  
+        help_text="Required only if not logging work inputs",
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))  
     quantity = forms.DecimalField(required=False,

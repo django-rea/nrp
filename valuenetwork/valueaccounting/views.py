@@ -7971,8 +7971,18 @@ def process_selections(request, rand=0):
                         description="",
                         user=request.user)
                     if connect_to_order:
-                        commitment.order = demand
-                        commitment.order_item = commitment
+                        if demand.order_type == "customer":
+                            ship_et = EventType.objects.get(name="Shipment")
+                            ship_ct = demand.add_commitment(
+                                resource_type=rt,
+                                context_agent=selected_context_agent,
+                                quantity=Decimal("1"),
+                                event_type=ship_et,
+                                unit=rt.unit,
+                                description="")
+                        else:
+                            commitment.order = demand
+                            commitment.order_item = commitment
                         commitment.save()
                         '''
                         #use recipe

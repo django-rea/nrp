@@ -878,7 +878,6 @@ class EconomicAgent(models.Model):
         return Order.objects.filter(id__in=order_ids)
         
     def shipments_queryset(self):
-        #todo: this method shd determine if shipments for the exchange firm really apply to self
         shipments = []
         exf = self.exchange_firm()
         ship = EventType.objects.get(label="ships")
@@ -886,6 +885,16 @@ class EconomicAgent(models.Model):
         if exf:
             cas = [self, exf]
             qs = qs.filter(context_agent__in=cas)
+            ids_to_delete = []
+            for s in qs:
+                if s.context_agent != self:
+                    if s.commitment:
+                        if s.commitment.context_agent != self:
+                            ids_to_delete.append(s.id)
+                    else:
+                        ids_to_delete.append(s.id)
+                if ids_to_delete:
+                    qs.excude(id__in=ids_to_delete)
         else:
             qs = qs.filter(context_agent=self)
         return qs
@@ -899,6 +908,8 @@ class EconomicAgent(models.Model):
             if cr.is_undistributed():
                 cr_ids.append(cr.id)
         exf = self.exchange_firm()
+        #todo: maybe use shipments in addition or instead of virtual accounts?
+        #exchange firm might put cash receipt into a more general virtual account
         if exf:
             crs = exf.undistributed_cash_receipts()
             for cr in crs:

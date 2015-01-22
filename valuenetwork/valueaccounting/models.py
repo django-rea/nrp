@@ -6633,11 +6633,20 @@ class Commitment(models.Model):
                 return self.quantity
                 
     def do_netting(self):
+        #import pdb; pdb.set_trace()
         rt = self.resource_type
-        oh_qty = rt.onhand_qty_for_commitment(self)
+        if not rt.substitutable:
+            onhand = rt.onhand()
+            oh_qty = sum(oh.quantity for oh in onhand if oh.order_item==self.order_item)
+        else:
+            oh_qty = rt.onhand_qty_for_commitment(self)
         if oh_qty >= self.quantity:
             return 0
-        sked_qty = rt.scheduled_qty_for_commitment(self)      
+        if not rt.substitutable:
+            sked_rcts = rt.producing_commitments().filter(due_date__lte=self.due_date)
+            sked_qty = sum(sr.quantity for sr in sked_rcts if sr.order_item==self.order_item)
+        else:
+            sked_qty = rt.scheduled_qty_for_commitment(self)      
         if self.event_type.resource_effect == "-":
             remainder = self.quantity - oh_qty
             if sked_qty >= remainder:

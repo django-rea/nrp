@@ -4603,6 +4603,37 @@ def add_shipment(request, exchange_id):
         % ('accounting/exchange', exchange.id))
         
 @login_required
+def create_production_process(request, commitment_id):
+    """ this creates a production process for a shipment commitment
+        on the order_schedule page
+    """
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    if request.method == "POST":
+        prefix = commitment.form_prefix()
+        form = ProcessForm(data=request.POST, prefix=prefix)
+        if form.is_valid():
+            process = form.save()
+            qty = commitment.do_netting()
+            et = EventType.objects.get(name="Resource Production")
+            rt = commitment.resource_type
+            production_ct = process.add_commitment(
+                resource_type=rt,
+                demand=commitment.independent_demand,
+                quantity=qty,
+                event_type=et,
+                unit=rt.unit,
+                user=request.user,
+                description="",
+                order_item=commitment.order_item,
+                stage=None,
+                state=None,
+                from_agent=process.context_agent,
+                to_agent=commitment.context_agent)
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/order-schedule', commitment.order.id))
+        
+@login_required
 def log_shipment(request, commitment_id, resource_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
     resource = get_object_or_404(EconomicResource, pk=resource_id)
@@ -7958,9 +7989,6 @@ def process_selections(request, rand=0):
                 #import pdb; pdb.set_trace()
                 resource_types.append(rt)
                 et = selected_pattern.event_type_for_resource_type("out", rt)
-                connect_to_order = True
-                if demand.all_processes():
-                    connect_to_order = False
                 if et:
                     commitment = process.add_commitment(
                         resource_type= rt,
@@ -7970,20 +7998,11 @@ def process_selections(request, rand=0):
                         unit=rt.unit,
                         description="",
                         user=request.user)
-                    if connect_to_order:
-                        if demand.order_type == "customer":
-                            ship_et = EventType.objects.get(name="Shipment")
-                            ship_ct = demand.add_commitment(
-                                resource_type=rt,
-                                context_agent=selected_context_agent,
-                                quantity=Decimal("1"),
-                                event_type=ship_et,
-                                unit=rt.unit,
-                                description="")
-                        else:
+                    if rand:
+                        if not added_to_order:
                             commitment.order = demand
                             commitment.order_item = commitment
-                        commitment.save()
+                            commitment.save()
                         '''
                         #use recipe
                         #todo: add stage and state as args

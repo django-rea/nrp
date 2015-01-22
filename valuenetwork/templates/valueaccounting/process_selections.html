@@ -89,7 +89,7 @@
                         {% for item in slot.resource_types %}
                             <div>
 		                        <p>
-		                            <input type="checkbox" class="{{ slot }}" id="{{ slot }}-{{ item.id }}" name="{{ slot }}~{{ item.name }}" value="{{ item.id }}" />
+		                            <input type="checkbox" class="{{ slot.name }}" id="{{ slot.name }}-{{ item.id }}" name="{{ slot.name }}~{{ item.name }}" value="{{ item.id }}" />
 		                            {{ item }} ( {{ item.facet_values_list }} )
 	                            </p>
                             </div>

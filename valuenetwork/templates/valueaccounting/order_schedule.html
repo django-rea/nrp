@@ -42,10 +42,15 @@ textarea {
 .resource-type {
     font-weight: bold;
     font-size: 1.1em;
+    vertical-align: text-bottom;
 }
 .oi {
     color: firebrick;
     font-size: 1.2em;
+    vertical-align: text-bottom;
+}
+.production-process-btn {
+    vertical-align: text-bottom;
 }
 .space-down {
     margin-top: 12px;
@@ -209,7 +214,31 @@ textarea {
                             {% if item.stage %}
                                 @{{ item.stage.name }}
                             {% endif %}
+                            {% if item.needs_production_process %}
+                                <a href="#productionProcessModal{{ item.id }}" role="button" class="btn btn-info btn-mini production-process-btn" data-toggle="modal">
+                                    {% blocktrans %}Add Process to produce {% endblocktrans %} {{ item.resource_type }}
+                                </a>
+                            {% endif %}
                       </div>
+                      
+                      <div class="modal hide fade productionProcessModal" id="productionProcessModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="productionProcess-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="productionProcess-label">{% trans "Add Production Process" %}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form class="productionProcess{{ item.id }} validateMe" action="{% url create_production_process commitment_id=item.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ item.process_form|as_bootstrap }}
+                                <input type="hidden" id="next" name="next" value="process" />
+                                <div class="modal-footer">
+                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                      
                       {% for oh in item.onhand %}
                             <div class "onhand">
                                 {% trans 'Onhand' %}: <a href="{{ oh.get_absolute_url }}"> {{ oh }}</a>

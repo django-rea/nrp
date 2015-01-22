@@ -5260,6 +5260,10 @@ class Process(models.Model):
             to_agent=None,
             order=None,
             ):
+        if event_type.relationship == "out":
+            due_date = self.end_date
+        else:
+            due_date = self.start_date
         ct = Commitment(
             independent_demand=demand,
             order=order,
@@ -5275,7 +5279,7 @@ class Process(models.Model):
             state=state,
             quantity=quantity,
             unit_of_quantity=unit,
-            due_date=self.start_date, #ask bob: why is this? in vs out commitments?
+            due_date=due_date,
             from_agent=from_agent,
             to_agent=to_agent,
             created_by=user)
@@ -6346,6 +6350,21 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import ChangeCommitmentForm
         prefix=self.form_prefix()
         return ChangeCommitmentForm(instance=self, prefix=prefix)
+        
+    def process_form(self):
+        from valuenetwork.valueaccounting.forms import ProcessForm
+        start_date = self.start_date
+        if not start_date:
+            start_date = self.due_date
+        name = " ".join(["Produce", self.resource_type.name])
+        init = {
+            "name": name,
+            "context_agent": self.context_agent,
+            "start_date": start_date,
+            "end_date": self.due_date,
+            }
+        prefix=self.form_prefix()
+        return ProcessForm(initial=init, prefix=prefix)
 
     def change_work_form(self):
         from valuenetwork.valueaccounting.forms import ChangeWorkCommitmentForm
@@ -6612,6 +6631,31 @@ class Commitment(models.Model):
                 return Decimal("1")
             else: 
                 return self.quantity
+                
+    def do_netting(self):
+        rt = self.resource_type
+        oh_qty = rt.onhand_qty_for_commitment(self)
+        if oh_qty >= self.quantity:
+            return 0
+        sked_qty = rt.scheduled_qty_for_commitment(self)      
+        if self.event_type.resource_effect == "-":
+            remainder = self.quantity - oh_qty
+            if sked_qty >= remainder:
+                return Decimal("0")
+            return remainder - sked_qty
+        else:
+            if oh_qty + sked_qty:
+                return Decimal("0")
+            elif self.event_type.resource_effect == "=":   
+                return Decimal("1")
+            else: 
+                return self.quantity
+                
+    def needs_production_process(self):
+        #I know > 0 is unnecessary, just being explicit
+        if self.do_netting() > 0:
+            return True
+        return False
   
     def creates_resources(self):
         return self.event_type.creates_resources()

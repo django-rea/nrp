@@ -6748,6 +6748,7 @@ class Commitment(models.Model):
                 )
                 process.save()
                 producing_commitment.process=process
+                producing_commitment.context_agent = process.context_agent
                 producing_commitment.save()
                 if explode:
                     demand = self.independent_demand

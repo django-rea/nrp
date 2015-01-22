@@ -2603,7 +2603,7 @@ def create_order(request):
                 name="Sale for customer order " + str(order.id),
                 process_pattern=sale_pattern,
                 use_case=sale,
-                context_agent=order.provider, #todo: this won't work when seller is an exchange firm?
+                context_agent=order.provider, 
                 start_date=order.due_date,
                 customer=order.receiver,
                 order=order,

@@ -4601,6 +4601,33 @@ def add_shipment(request, exchange_id):
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
+
+@login_required
+def add_uninventoried_shipment(request, exchange_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        context_agent = exchange.context_agent
+        form = UninventoriedShipmentForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='shipun')
+        if form.is_valid():
+            data = form.cleaned_data
+            qty = data["quantity"] 
+            if qty:
+                event = form.save(commit=False)
+                rt = data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("shipment", rt)
+                event.event_type = event_type
+                event.exchange = exchange
+                event.context_agent = exchange.context_agent
+                event.resource_type = rt
+                event.unit_of_quantity = rt.unit
+                event.to_agent = exchange.customer
+                event.is_contribution = False
+                event.created_by = request.user
+                event.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))   
         
 @login_required
 def create_production_process(request, commitment_id):
@@ -4662,6 +4689,29 @@ def log_shipment(request, commitment_id, resource_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', ct.exchange.id))
         
+@login_required
+def log_uninventoried_shipment(request, commitment_id):
+    ct = get_object_or_404(Commitment, pk=commitment_id)
+    if request.method == "POST":
+        et_ship = EventType.objects.get(name="Shipment")
+        event = EconomicEvent(
+            commitment = ct,
+            event_date = datetime.date.today(),
+            event_type = et_ship,
+            from_agent = ct.context_agent,
+            to_agent = ct.exchange.customer,
+            resource_type = ct.resource_type,
+            exchange = ct.exchange,
+            context_agent = ct.context_agent,
+            quantity = ct.quantity,
+            unit_of_quantity = ct.unit_of_quantity,
+            created_by = request.user,
+            changed_by = request.user,
+        )
+        event.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', ct.exchange.id))
+                
 def delete_shipment_event(request, event_id):
     if request.method == "POST":
         event = get_object_or_404(EconomicEvent, pk=event_id)
@@ -7165,6 +7215,25 @@ def change_shipment_event(request, event_id):
         % ('accounting/exchange', exchange.id))
 
 @login_required
+def change_uninventoried_shipment_event(request, event_id):
+    #import pdb; pdb.set_trace()
+    event = get_object_or_404(EconomicEvent, id=event_id)
+    exchange = event.exchange
+    pattern = exchange.process_pattern
+    if pattern:
+        if request.method == "POST":
+            form = UninventoriedShipmentForm(
+                pattern=pattern,
+                instance=event, 
+                prefix=str(event.id), 
+                data=request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                form.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
+        
+@login_required
 def change_distribution_event(request, event_id):
     #import pdb; pdb.set_trace()
     event = get_object_or_404(EconomicEvent, id=event_id)
@@ -8906,11 +8975,19 @@ def exchange_logging(request, exchange_id):
                 prefix=str(event.id))
         for event in shipment_events:
             total_out = total_out + event.value
-            event.changeform = ShipmentForm(
-                pattern=pattern,
-                context_agent=context_agent,
-                instance=event, 
-                prefix=str(event.id))
+            #import pdb; pdb.set_trace()
+            if event.resource:
+                event.changeform = ShipmentForm(
+                    pattern=pattern,
+                    context_agent=context_agent,
+                    instance=event, 
+                    prefix=str(event.id))
+            else:
+                event.changeform = UninventoriedShipmentForm(
+                    pattern=pattern,
+                    context_agent=context_agent,
+                    instance=event, 
+                    prefix=str(event.id))                
         for event in distribution_events:
             total_out = total_out + event.quantity
             event.changeform = DistributionEventForm(
@@ -9001,7 +9078,8 @@ def exchange_logging(request, exchange_id):
                 "from_agent": context_agent,
             }      
             add_shipment_form = ShipmentForm(prefix='ship', initial=ship_init, pattern=pattern, context_agent=context_agent)
-            shipped_ids = [c.resource.id for c in exchange.shipment_events()]
+            add_uninventoried_shipment_form = UninventoriedShipmentForm(prefix='shipun', initial=ship_init, pattern=pattern, context_agent=context_agent)
+            shipped_ids = [c.resource.id for c in exchange.shipment_events() if c.resource]
         if "distribute" in slots:
             #import pdb; pdb.set_trace()
             dist_init = {
@@ -9055,6 +9133,7 @@ def exchange_logging(request, exchange_id):
         "add_cash_receipt_form": add_cash_receipt_form,
         "add_cash_receipt_resource_form": add_cash_receipt_resource_form,
         "add_shipment_form": add_shipment_form,
+        "add_uninventoried_shipment_form": add_uninventoried_shipment_form,
         "add_distribution_form": add_distribution_form,
         "add_disbursement_form": add_disbursement_form,
         "add_work_form": add_work_form,

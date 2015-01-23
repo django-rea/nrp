@@ -544,8 +544,11 @@ li {
             <h3 style="margin-bottom: 4px;" >
                 {% trans "Shipments" %}:  
                 {% if agent %}
-                    <a href="#shipmentModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unordered shipment or delivery" >
-                        {% trans "Log an unordered shipped item" %}
+                    <a href="#shipmentModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unordered shipment or delivery from inventory" >
+                        {% trans "Log unordered shipment from inventory" %}
+                    </a>
+                    <a href="#shipmentRTModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unordered shipment or delivery for an uninventoried item" >
+                        {% trans "Log unordered uninventoried shipment" %}
                     </a>
                 {% endif %}
             </h3>
@@ -557,8 +560,23 @@ li {
                         <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
                     {% endif %}
 
-                </div>
-              
+                    {% if item.resource_type.uninventoried %}
+                      {% if not item.fulfilling_events %}
+                        {% if logger %}
+                            <form
+                                style="display: inline;" 
+                                class="shipment-form" 
+                                id="shipForm{{ resource_type.id }}" 
+                                action="{% url log_uninventoried_shipment commitment_id=item.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <button style="display: inline;"  class="btn btn-info btn-mini" title="Log shipment of this item" >{% trans "Log shipment" %}</button>
+                            </form>
+                        {% endif %}
+                      {% endif %}
+                    {% endif %}
+
+                </div>              
                 {% if item.onhand %}
                     {% for resource in item.onhand %}
                       {% if resource.quantity > 0 %}
@@ -574,7 +592,6 @@ li {
                                         action="{% url log_shipment commitment_id=item.id resource_id=resource.id %}" 
                                         method="POST" >
                                         {% csrf_token %}
-                                        <input type="hidden" id="next" name="next" value="process" />
                                         <button style="display: inline;"  class="btn btn-info btn-mini" title="Log shipment of this item" >{% trans "Log shipment" %}</button>
                                     </form>
                                 {% endif %}
@@ -600,9 +617,12 @@ li {
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete shipment (order item will remain)" >X</button>
                             </form>
                         {% endif %}
-                        </br>
-                        &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a>
-                    
+                        </br>&nbsp;&nbsp;
+                        {% if event.resource %}
+                            {% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a>
+                        {% else %}
+                            {% trans "Resource Type" %}: <a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a>
+                        {% endif %}
                     </div>
                 {% endfor %}
 
@@ -613,21 +633,25 @@ li {
                 {% for event in shipment_events %}
                     <div class="event">
                         <span ><span class="event-label">{% trans "Shipped" %}: </span> 
-                        <b>{{ event.quantity }} {{ event.unit_of_quantity }}  {{ event.resource }}</b> from {{ event.from_agent.nick }} 
-                        to {{ event.to_agent.nick }} price <b> {{ event.value }} {{ event.unit_of_value }}</b> {{ event.event_date }} </span>
+                        <b>{{ event.quantity }} {{ event.unit_of_quantity }} 
+                        {% if event.resource %}{{ event.resource }}{% else %}{{ event.resource_type }}{% endif %}</b> 
+                        <b> {{ event.value }} {{ event.unit_of_value }}</b> {{ event.event_date }} </span>
                         {% if agent == event.from_agent or logger  %}
                             
                             <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                <i class="icon-edit"></i>
                             </a>
-    
                             <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                     <h3 id="event-label">{% trans "Change Shipment Event" %}</h3>
                                 </div>
                                 <div class="modal-body">
+                                {% if event.resource %}
                                     <form class="validateMe" enctype="multipart/form-data" action="{% url change_shipment_event event_id=event.id %}" method="POST" >
+                                {% else %}
+                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_uninventoried_shipment_event event_id=event.id %}" method="POST" >
+                                {% endif %}
                                         {% csrf_token %}  
                                         {{ event.changeform|as_bootstrap }}
                                         <div class="modal-footer">
@@ -637,6 +661,7 @@ li {
                                     </form>
                                 </div>
                             </div>
+
                             <form
                                 style="display: inline;" 
                                 class="delete-form" 
@@ -836,6 +861,23 @@ li {
                 <form class="validateMe" id="shipmentForm" enctype="multipart/form-data" action="{% url add_shipment exchange_id=exchange.id %}" method="POST" >
                     {% csrf_token %}
                     {{ add_shipment_form|as_bootstrap }}
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                  </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="modal hide fade" id="shipmentRTModal" tabindex="-1" role="dialog" aria-labelledby="shipmentun" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="shipmentun">{% trans "Log a Shipped Uninventoried Resource" %}</h3>
+            </div>
+            <div class="modal-body">
+                <form class="validateMe" id="shipmentRTForm" enctype="multipart/form-data" action="{% url add_uninventoried_shipment exchange_id=exchange.id %}" method="POST" >
+                    {% csrf_token %}
+                    {{ add_uninventoried_shipment_form|as_bootstrap }}
                   <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                     <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />

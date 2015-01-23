@@ -1710,7 +1710,7 @@ class ShipmentForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=True,
         queryset=EconomicAgent.objects.all(),
-        label="Project",  
+        label="From",  
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
@@ -1744,12 +1744,49 @@ class ShipmentForm(forms.ModelForm):
             self.context_agent = context_agent
             self.fields["from_agent"].queryset = context_agent.all_ancestors()
 
+class UninventoriedShipmentForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="From",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(
+        label="Quantity shipped",
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    resource_type = FacetedModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        widget=forms.Select(attrs={'class': 'input-xxlarge resourceType resource-type-selector'}))
+    value = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'quantity', 'resource_type', 'value', 'unit_of_value', 'description')
+
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
+        super(UninventoriedShipmentForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            self.fields["resource_type"].queryset = pattern.shipment_uninventoried_resource_types()
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["from_agent"].queryset = context_agent.all_ancestors()
+
 class ShipmentFromCommitmentForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     from_agent = forms.ModelChoiceField(
         required=True,
         queryset=EconomicAgent.objects.all(),
-        label="Project",  
+        label="From",  
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 

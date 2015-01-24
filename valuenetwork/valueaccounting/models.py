@@ -2097,6 +2097,12 @@ class EconomicResourceType(models.Model):
         if False in filter_matches:
             answer = False
         return answer
+        
+    def uninventoried(self):
+        if self.inventory_rule == "yes":
+            return False
+        else:
+            return True
 
 
 class ResourceTypeList(models.Model):
@@ -2367,6 +2373,12 @@ class ProcessPattern(models.Model):
     
     def shipment_resource_types(self):
         return self.resource_types_for_relationship("shipment")
+        
+    def shipment_uninventoried_resource_types(self):
+        rts = [rt for rt in self.resource_types_for_relationship("shipment") if rt.uninventoried()]
+        rt_ids = [rt.id for rt in rts]
+        return EconomicResourceType.objects.filter(id__in=rt_ids)
+            
         
     def shipment_resources(self):
         #import pdb; pdb.set_trace()

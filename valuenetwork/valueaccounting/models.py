@@ -6644,10 +6644,12 @@ class Commitment(models.Model):
             else: 
                 return self.quantity
                 
-    def do_netting(self):
+    def net_for_order(self):
+        #this method does netting after an order has been scheduled
         #import pdb; pdb.set_trace()
         rt = self.resource_type
         stage = self.stage
+        due_date = self.due_date
         if not rt.substitutable:
             if stage:
                 onhand = rt.onhand_for_stage(stage)
@@ -6658,29 +6660,34 @@ class Commitment(models.Model):
             oh_qty = rt.onhand_qty_for_commitment(self)
         if oh_qty >= self.quantity:
             return 0
+        sked_rcts = rt.producing_commitments().filter(due_date__lte=self.due_date)
+        if stage:
+            sked_rcts = sked_rcts.filter(stage=stage)
+            priors = rt.consuming_commitments_for_stage(stage).filter(due_date__lt=due_date)
+        else:
+            priors = rt.consuming_commitments().filter(due_date__lt=due_date)
         if not rt.substitutable:
-            sked_rcts = rt.producing_commitments().filter(due_date__lte=self.due_date)
-            if stage:
-                sked_rcts = sked_rcts.filter(stage=stage)
             sked_qty = sum(sr.quantity for sr in sked_rcts if sr.order_item==self.order_item)
         else:
-            sked_qty = rt.scheduled_qty_for_commitment(self)      
+            sked_qty = sum(sr.quantity for sr in sked_rcts) 
+        sked_qty = sked_qty - sum(p.quantity for p in priors)
+        avail = oh_qty + sked_qty
+        remainder = self.quantity - avail
+        if remainder < 0:
+            remainder = Decimal("0")
         if self.event_type.resource_effect == "-":
-            remainder = self.quantity - oh_qty
-            if sked_qty >= remainder:
-                return Decimal("0")
-            return remainder - sked_qty
+            return remainder
         else:
-            if oh_qty + sked_qty:
+            if not remainder:
                 return Decimal("0")
             elif self.event_type.resource_effect == "=":   
                 return Decimal("1")
             else: 
-                return self.quantity
+                return remainder
                 
     def needs_production_process(self):
         #I know > 0 is unnecessary, just being explicit
-        if self.do_netting() > 0:
+        if self.net_for_order() > 0:
             return True
         return False
   

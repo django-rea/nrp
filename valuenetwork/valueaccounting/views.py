@@ -4640,7 +4640,7 @@ def create_production_process(request, commitment_id):
         form = ProcessForm(data=request.POST, prefix=prefix)
         if form.is_valid():
             process = form.save()
-            qty = commitment.do_netting()
+            qty = commitment.net_for_order()
             et = EventType.objects.get(name="Resource Production")
             rt = commitment.resource_type
             production_ct = process.add_commitment(

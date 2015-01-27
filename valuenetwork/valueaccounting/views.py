@@ -4945,7 +4945,7 @@ def delete_commitment(request, commitment_id, labnotes_id):
 def delete_process_commitment(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     process = commitment.process
-    commitment.delete_dependants()
+    #commitment.delete_dependants()
     commitment.delete()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -9625,7 +9625,7 @@ def edit_value_equation(request, value_equation_id=None):
 @login_required
 def create_value_equation(request):
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         ve_form = ValueEquationForm(data=request.POST)
         if ve_form.is_valid():
             ve = ve_form.save(commit=False)

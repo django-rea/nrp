@@ -3082,6 +3082,18 @@ class Order(models.Model):
             exchange = Exchange.objects.filter(order=self).filter(use_case__identifier="sale")
             sale = exchange[0]
         return sale
+        
+    def reschedule_forward(self, delta_days, user):
+        #import pdb; pdb.set_trace()
+        self.due_date = self.due_date + datetime.timedelta(days=delta_days)
+        self.changed_by = user
+        self.save()
+        ois = self.order_items()
+        for oi in ois:
+            if oi.due_date != self.due_date:
+                oi.due_date = self.due_date
+                oi.save()
+            
 
 class ProcessTypeManager(models.Manager):
     
@@ -3931,8 +3943,7 @@ class EconomicResource(models.Model):
         return shares
         
     def compute_income_shares(self, value_equation, quantity, events, visited):
-        #This resource method assumes that self.roll_up_value has been run,
-        #and all contribution events have been valued.
+        #Resource method
         #print "Resource:", self.id, self
         #print "running quantity:", quantity, "running value:", value
         #import pdb; pdb.set_trace()
@@ -5089,8 +5100,9 @@ class Process(models.Model):
                     if cc.stage == stage and cc.state == state:
                         if dmnd:
                             if cc.order_item == dmnd:
-                                if cc.process not in answer:
-                                    answer.append(cc.process)
+                                if cc.process:
+                                    if cc.process not in answer:
+                                        answer.append(cc.process)
                         else:
                             if not cc.order_item:
                                 if cc.quantity >= oc.quantity:
@@ -5098,8 +5110,9 @@ class Process(models.Model):
                                     if not compare_date:
                                         compare_date = self.start_date
                                     if cc.due_date >= compare_date:
-                                        if cc.process not in answer:
-                                            answer.append(cc.process)
+                                        if cc.process:
+                                            if cc.process not in answer:
+                                                answer.append(cc.process)
         for oe in self.production_events():
             if not oe.commitment:
                 rt = oe.resource_type
@@ -5521,6 +5534,7 @@ class Process(models.Model):
             self.reschedule_connections(delta_days, user)
 
     def reschedule_connections(self, delta_days, user):
+        #import pdb; pdb.set_trace()
         for ct in self.incoming_commitments():
             ct.reschedule_forward(delta_days, user)
         for ct in self.outgoing_commitments():
@@ -5625,8 +5639,7 @@ class Process(models.Model):
 
 
     def compute_income_shares(self, value_equation, order_item, quantity, events, visited):
-        #This process method assumes that self.roll_up_value has been run,
-        #and all contribution events have been valued.
+        #Process method
         #print "running quantity:", quantity, "running value:", value
         #import pdb; pdb.set_trace()
         if self not in visited:
@@ -6811,10 +6824,15 @@ class Commitment(models.Model):
         self.save()
         order = self.order
         if order:
-            #import pdb; pdb.set_trace()
-            order.due_date  += datetime.timedelta(days=delta_days)
-            order.save()
-
+            order.reschedule_forward(delta_days, user)
+        #find related shipment commitments
+        demand = self.independent_demand
+        oi = self.order_item
+        if oi != self:
+            if oi.resource_type == self.resource_type:
+                if oi.stage == self.stage:
+                    oi.order.reschedule_forward(delta_days, user)        
+            
     def reschedule_forward_from_source(self, lead_time, user):
         lag = datetime.date.today() - self.due_date
         delta_days = lead_time + lag.days + 1

@@ -6826,12 +6826,13 @@ class Commitment(models.Model):
         if order:
             order.reschedule_forward(delta_days, user)
         #find related shipment commitments
-        demand = self.independent_demand
-        oi = self.order_item
-        if oi != self:
-            if oi.resource_type == self.resource_type:
-                if oi.stage == self.stage:
-                    oi.order.reschedule_forward(delta_days, user)        
+        else:
+            demand = self.independent_demand
+            oi = self.order_item
+            if oi != self:
+                if oi.resource_type == self.resource_type:
+                    if oi.stage == self.stage:
+                        oi.order.reschedule_forward(delta_days, user)        
             
     def reschedule_forward_from_source(self, lead_time, user):
         lag = datetime.date.today() - self.due_date
@@ -7092,6 +7093,7 @@ class Commitment(models.Model):
         visited = set()
         path = []
         depth = 0
+        #todo: handle shipment commitments with no process
         p = self.process
         if p:
             #print "*** rollup up process value"
@@ -7101,6 +7103,21 @@ class Commitment(models.Model):
             #print "*** computing income shares"
             #import pdb; pdb.set_trace()
             p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
+        else:
+            #find related production commitment and its process
+            ship_et = EventType.objects.get(name="Shipment")
+            if self.event_type == ship_et:
+                production_commitments = Commitment.objects.filter(
+                    order_item=self,
+                    event_type__relationship="out",
+                    resource_type=self.resource_type)
+                if production_commitments:
+                    pc = production_commitments[0]
+                    p = pc.process
+                    if p:
+                        visited = set()
+                        p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
+                    
         return shares
 
 
@@ -8286,7 +8303,8 @@ class ValueEquationBucket(models.Model):
             events = []
             for order in orders:
                 for order_item in order.order_items():
-                    events.extend([e for e in order_item.compute_income_fractions(ve)]) # if e.event_type==self.event_type])
+                    #events.extend([e for e in order_item.compute_income_fractions(ve)])
+                    events.extend(order_item.compute_income_fractions(ve))
                 exchanges = Exchange.objects.filter(order=order)
                 #import pdb; pdb.set_trace()
                 for exchange in exchanges:
@@ -8308,10 +8326,16 @@ class ValueEquationBucket(models.Model):
             #lots = [e.resource for e in shipment_events]
             #import pdb; pdb.set_trace()
             events = []
+            #todo: handle shipments without resources
             for ship in shipment_events:
                 resource = ship.resource
-                qty = ship.quantity
-                events.extend([event for event in resource.compute_shipment_income_shares(ve, qty)]) # if event.event_type==self.event_type])
+                if resource:
+                    qty = ship.quantity
+                    #events.extend([event for event in resource.compute_shipment_income_shares(ve, qty)])
+                    events.extend(resource.compute_shipment_income_shares(ve, qty))
+                else:
+                    events.extend(ship.compute_income_fractions_for_process(ve))
+                    
         for event in events:
             event.filter = filter
         return events

@@ -7908,6 +7908,28 @@ class EconomicEvent(models.Model):
                             event_type__relationship="out")
                     if next_in_chain:
                         next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
+                        
+    def compute_income_fractions_for_process(self, value_equation):
+        #import pdb; pdb.set_trace()
+        shares = []
+        if self.event_type.name == "Shipment":
+            commitment = self.commitment
+            if commitment:
+                visited = set()
+                path = []
+                depth = 0
+                production_commitments = Commitment.objects.filter(
+                    order_item=commitment,
+                    event_type__relationship="out",
+                    resource_type=self.resource_type)
+                if production_commitments:
+                    pc = production_commitments[0]
+                    p = pc.process
+                    if p:
+                        visited = set()
+                        p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
+                        
+        return shares
 
 
 #todo: not used
@@ -8329,8 +8351,8 @@ class ValueEquationBucket(models.Model):
             #todo: handle shipments without resources
             for ship in shipment_events:
                 resource = ship.resource
+                qty = ship.quantity
                 if resource:
-                    qty = ship.quantity
                     #events.extend([event for event in resource.compute_shipment_income_shares(ve, qty)])
                     events.extend(resource.compute_shipment_income_shares(ve, qty))
                 else:
@@ -8543,6 +8565,7 @@ class ValueEquationBucketRule(models.Model):
         safe_dict['Decimal'] = Decimal
         safe_dict['quantity'] = event.quantity
         safe_dict['valuePerUnit'] = event.value_per_unit()
+        safe_dict['pricePerUnit'] = event.resource_type.price_per_unit
         if event.resource:
             safe_dict['valuePerUnitOfUse'] = event.resource.value_per_unit_of_use
         safe_dict['value'] = event.value

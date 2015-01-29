@@ -9625,7 +9625,7 @@ def edit_value_equation(request, value_equation_id=None):
 @login_required
 def create_value_equation(request):
     if request.method == "POST":
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         ve_form = ValueEquationForm(data=request.POST)
         if ve_form.is_valid():
             ve = ve_form.save(commit=False)

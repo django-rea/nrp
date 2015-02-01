@@ -8325,7 +8325,6 @@ class ValueEquationBucket(models.Model):
             events = []
             for order in orders:
                 for order_item in order.order_items():
-                    #events.extend([e for e in order_item.compute_income_fractions(ve)])
                     events.extend(order_item.compute_income_fractions(ve))
                 exchanges = Exchange.objects.filter(order=order)
                 #import pdb; pdb.set_trace()
@@ -8353,7 +8352,6 @@ class ValueEquationBucket(models.Model):
                 resource = ship.resource
                 qty = ship.quantity
                 if resource:
-                    #events.extend([event for event in resource.compute_shipment_income_shares(ve, qty)])
                     events.extend(resource.compute_shipment_income_shares(ve, qty))
                 else:
                     events.extend(ship.compute_income_fractions_for_process(ve))

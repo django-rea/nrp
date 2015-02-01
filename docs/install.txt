@@ -54,7 +54,7 @@ git clone https://github.com/valnet/valuenetwork.git
 
 9. pip install -r requirements.txt
 
-10. pip install –no-deps easy_thumbnails
+10. pip install --no-deps easy_thumbnails
 
 11. create the sqlite database
 ./manage.py syncdb

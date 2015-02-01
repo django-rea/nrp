@@ -8900,6 +8900,7 @@ def exchange_logging(request, exchange_id):
     add_shipment_form = None
     add_distribution_form = None
     add_disbursement_form = None
+    add_uninventoried_shipment_form = None
     create_material_role_formset = None
     create_receipt_role_formset = None
     #add_commit_receipt_form = None

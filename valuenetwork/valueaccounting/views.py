@@ -8872,6 +8872,7 @@ def exchange_events_csv(request):
         )
     return response
 
+@login_required 
 def exchange_logging(request, exchange_id):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)

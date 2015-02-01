@@ -7089,6 +7089,7 @@ class Commitment(models.Model):
         return shares
         
     def compute_income_fractions_for_process(self, value_equation):
+        #Commitment (order_item) method
         shares = []
         visited = set()
         path = []
@@ -7104,22 +7105,24 @@ class Commitment(models.Model):
             #import pdb; pdb.set_trace()
             p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
         else:
-            #find related production commitment and its process
-            ship_et = EventType.objects.get(name="Shipment")
-            if self.event_type == ship_et:
-                production_commitments = Commitment.objects.filter(
-                    order_item=self,
-                    event_type__relationship="out",
-                    resource_type=self.resource_type)
-                if production_commitments:
-                    pc = production_commitments[0]
-                    p = pc.process
-                    if p:
-                        visited = set()
-                        p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
+            production_commitments = self.get_production_commitments_for_shipment()
+            if production_commitments:
+                pc = production_commitments[0]
+                p = pc.process
+                if p:
+                    visited = set()
+                    p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
                     
         return shares
 
+    def get_production_commitments_for_shipment(self):
+        production_commitments = []
+        if self.event_type.name == "Shipment":
+            production_commitments = Commitment.objects.filter(
+                order_item=self,
+                event_type__relationship="out",
+                resource_type=self.resource_type)
+        return production_commitments
 
 #todo: not used.
 class Reciprocity(models.Model):
@@ -7687,7 +7690,41 @@ class EconomicEvent(models.Model):
             )
             claim.claim_event = claim_event
             claim.new = True
-            return claim     
+            return claim
+            
+    def get_unsaved_context_agent_claim(self, against_agent, bucket_rule):
+        #import pdb; pdb.set_trace()
+        #changed for contextAgentDistributions
+        #todo: how to find created_context_agent_claims?
+        #claim = self.created_claim()
+        #if claim:
+        #    claim.new = False
+        #    return claim
+
+        value = bucket_rule.compute_claim_value(self)
+        claim = Claim(
+            #order=order,
+            value_equation_bucket_rule=bucket_rule,
+            claim_date=datetime.date.today(),
+            has_agent=self.context_agent,
+            against_agent=against_agent,
+            context_agent=self.context_agent,
+            value=value,
+            unit_of_value=self.unit_of_value,
+            original_value=value,
+            claim_creation_equation=bucket_rule.claim_creation_equation,
+        )
+        claim_event = ClaimEvent(
+            event=self,
+            claim=claim,
+            claim_event_date=datetime.date.today(),
+            value=value,
+            unit_of_value=self.unit_of_value,
+            event_effect="+",
+        )
+        claim.claim_event = claim_event
+        claim.new = True
+        return claim  
     
     def is_undistributed(self):
         #import pdb; pdb.set_trace()
@@ -7910,19 +7947,18 @@ class EconomicEvent(models.Model):
                         next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
                         
     def compute_income_fractions_for_process(self, value_equation):
+        #EconomicEvent (shipment) method
         #import pdb; pdb.set_trace()
         shares = []
         if self.event_type.name == "Shipment":
             commitment = self.commitment
             if commitment:
-                visited = set()
-                path = []
-                depth = 0
-                production_commitments = Commitment.objects.filter(
-                    order_item=commitment,
-                    event_type__relationship="out",
-                    resource_type=self.resource_type)
+                production_commitments = commitment.get_production_commitments_for_shipment()
                 if production_commitments:
+                    visited = set()
+                    path = []
+                    depth = 0
+                    #todo: later, work out how to handle multiple production commitments
                     pc = production_commitments[0]
                     p = pc.process
                     if p:
@@ -8347,7 +8383,6 @@ class ValueEquationBucket(models.Model):
             #lots = [e.resource for e in shipment_events]
             #import pdb; pdb.set_trace()
             events = []
-            #todo: handle shipments without resources
             for ship in shipment_events:
                 resource = ship.resource
                 qty = ship.quantity
@@ -8363,8 +8398,13 @@ class ValueEquationBucket(models.Model):
     def claims_from_events(self, events):
         #import pdb; pdb.set_trace()
         claims = []
+        context_agent = self.value_equation.context_agent
         for event in events:
-            claim = event.get_unsaved_contribution_claim(event.vebr)
+            #changed for contextAgentDistributions
+            if event.context_agent != context_agent:
+                claim = event.get_unsaved_context_agent_claim(context_agent, event.vebr)
+            else:
+                claim = event.get_unsaved_contribution_claim(event.vebr)
             fraction = 1
             if event.value:
                 try:

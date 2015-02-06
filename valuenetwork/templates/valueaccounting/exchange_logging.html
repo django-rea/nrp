@@ -468,7 +468,7 @@ li {
 				        <span ><span class="event-label">{% trans "Contributed" %}: </span> 
 				           <b>{{ event.resource_type }}</b> from {{ event.from_agent.nick }} {{ event.event_date }} valued at <b>{{ event.value }} {{ event.unit_of_value}}</b>
                         </span>
-     	                {% if logger or event.from_agent = agent  %}
+     	                {% if logger or event.from_agent == agent  %}
 		                    <form
 				                style="display: inline;" 
                                 class="delete-form" 
@@ -518,7 +518,7 @@ li {
 			        <div class="event">
 				        <span ><span class="event-label">{% trans "Contributed" %}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> from <b>{{ event.from_agent.nick }}</b> {{ event.event_date }}</span>
-     	                {% if logger or event.from_agent = agent  %}
+     	                {% if logger or event.from_agent == agent  %}
 		                    <form
 				                style="display: inline;" 
                                 class="delete-form" 
@@ -804,14 +804,16 @@ li {
 	    </div>
 
 	    <div class="span5">
-		  <form id="exchangeForm" method="POST" action="">
-            {% csrf_token %}
-            {{ exchange_form|as_bootstrap }}
+            <form id="exchangeForm" method="POST" action="">
+                {% csrf_token %}
+                {{ exchange_form|as_bootstrap }}
 
-            <div class="form-actions">
-				<input type="submit" name="save" value="{% trans 'Save changes' %}" class="btn btn-primary" /> 
-			</div>
-          </form>
+                {% if agent %}
+                <div class="form-actions">
+                    <input type="submit" name="save" value="{% trans 'Save changes' %}" class="btn btn-primary" /> 
+                </div>
+                {% endif %}
+            </form>
 	    </div>
     </div>
 

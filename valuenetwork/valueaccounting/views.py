@@ -3053,7 +3053,7 @@ def delete_resource_type_list(request, list_id):
     return HttpResponseRedirect('/%s/'
         % ('accounting/resource-type-lists'))
         
-def supply_old(request):
+def supply_older(request):
     mreqs = []
     #todo: needs a lot of work
     mrqs = Commitment.objects.unfinished().filter(
@@ -3094,9 +3094,8 @@ def supply_old(request):
         "suppliers": suppliers,
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
-
-
-def supply(request):
+    
+def supply_old(request):
     agent = get_agent(request)
     mreqs = []
     mrqs = Commitment.objects.to_buy()
@@ -3120,6 +3119,34 @@ def supply(request):
         "suppliers": suppliers,
         "agent": agent,
         #"supplier_form": supplier_form,
+        "help": get_help("supply"),
+    }, context_instance=RequestContext(request))
+
+def supply(request):
+    agent = get_agent(request)
+    mrqs = Commitment.objects.filter(
+        Q(event_type__relationship='consume')|Q(event_type__relationship='use')).order_by("resource_type__name")
+    suppliers = SortedDict()
+    supply = EventType.objects.get(name="Supply")
+    mreqs = [ct for ct in mrqs if ct.quantity_to_buy()]
+    for commitment in mreqs:
+        sources = AgentResourceType.objects.filter(
+            event_type=supply,
+            resource_type=commitment.resource_type)
+        for source in sources:
+            agent = source.agent
+            if agent not in suppliers:
+                suppliers[agent] = SortedDict()
+            if source not in suppliers[agent]:
+                suppliers[agent][source] = []
+            suppliers[agent][source].append(commitment)
+    #todo: separate tool reqs from material reqs
+    treqs = []
+    return render_to_response("valueaccounting/supply.html", {
+        "mreqs": mreqs,
+        "treqs": treqs,
+        "suppliers": suppliers,
+        "agent": agent,
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
 
@@ -5158,6 +5185,9 @@ def process_finished(request, process_id):
         if process.finished:
             process.finished = False
             process.save()
+    #todo: finish commitments? (see process_done above)
+    #or refactor into process method and use for both?
+    #or refactor-combine
     next = request.POST.get("next")
     if next:
         if next == "cleanup-processes":
@@ -9553,6 +9583,7 @@ def value_equation_sandbox(request, value_equation_id=None):
                         serialized_filters[bucket.id] = ser_string
                         bucket.form = bucket_form
             agent_totals, details = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
+            #import pdb; pdb.set_trace()
 
     else:
         for bucket in buckets:

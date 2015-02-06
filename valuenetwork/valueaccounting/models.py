@@ -768,6 +768,7 @@ class EconomicAgent(models.Model):
         return [var.resource for var in vars]
         
     def create_virtual_account(self, resource_type):
+        #import pdb; pdb.set_trace()
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
         owner_role_type = None
         if role_types:
@@ -786,6 +787,7 @@ class EconomicAgent(models.Model):
             arr.save()
             return va
         else:
+            raise ValidationError("Cannot create virtual account for " + self.nick + " because no owner AgentResourceRoleTypes.")
             return None
         
     def own_or_parent_value_equations(self):
@@ -801,7 +803,19 @@ class EconomicAgent(models.Model):
         return []
         
     def live_value_equations(self):
+        #shd this use own_or_parent_value_equations?
         return self.value_equations.filter(live=True)
+        
+    def compatible_value_equation(self, value_equation):
+        if value_equation.context_agent == self:
+            return True
+        if value_equation.live:
+            if value_equation in self.live_value_equations():
+                return True
+        else:
+            if value_equation in self.own_or_parent_value_equations():
+                return True
+        return False
         
     def default_agent(self):
         return self
@@ -1434,7 +1448,7 @@ class EconomicResourceType(models.Model):
         #import pdb; pdb.set_trace()
         due_date = commitment.due_date
         stage = commitment.stage
-        sked_rcts = self.producing_commitments().filter(due_date__lte=due_date).exclude(id=commitment.id)
+        sked_rcts = self.active_producing_commitments().filter(due_date__lte=due_date).exclude(id=commitment.id)
         if stage:
             sked_rcts = sked_rcts.filter(stage=stage)
         unfilled_rcts = []
@@ -1817,21 +1831,10 @@ class EconomicResourceType(models.Model):
                     if self in pattern.output_resource_types():
                         return True
         return False
-
+       
     def is_purchased(self):
-        #import pdb; pdb.set_trace()
-        #todo: does this still return false positives?
-        fvs = self.facets.all()
-        for fv in fvs:
-            pfvs = fv.facet_value.patterns.filter(
-                event_type__related_to="agent",
-                event_type__relationship="in")
-            if pfvs:
-                for pf in pfvs:
-                    pattern = pf.pattern
-                    if self in pattern.input_resource_types():
-                        return True
-        return False
+        rts = all_purchased_resource_types()
+        return self in rts
         
     def is_work(self):
         #import pdb; pdb.set_trace()
@@ -1919,18 +1922,12 @@ class EconomicResourceType(models.Model):
     #flow todo: workflow items will have more than one of these
     def producing_commitments(self):
         return self.commitments.filter(
-            event_type__relationship='out')
+            Q(event_type__relationship='out')|
+            Q(event_type__name='Receipt'))
 
     def active_producing_commitments(self):
-        if self.stage:
-            return self.commitments.filter(
-                event_type__relationship='out',
-                stage=self.stage,
-                process__finished=False)
-        else:
-            return self.commitments.filter(
-                event_type__relationship='out',
-                process__finished=False)
+        producing_commitments = self.producing_commitments()
+        return producing_commitments.filter(process__finished=False)
 
     def consuming_commitments(self):
         return self.commitments.filter(
@@ -2168,6 +2165,16 @@ class ResourceTypeFacetValue(models.Model):
 
     def __unicode__(self):
         return ": ".join([self.resource_type.name, self.facet_value.facet.name, self.facet_value.value])
+        
+        
+def all_purchased_resource_types():
+    uc = UseCase.objects.get(name="Purchasing")
+    pats = ProcessPattern.objects.usecase_patterns(uc)
+    et = EventType.objects.get(name="Receipt")
+    rts = []
+    for pat in pats:
+        rts.extend(pat.get_resource_types(et))
+    return rts
 
 
 class ProcessPatternManager(models.Manager):
@@ -2323,7 +2330,13 @@ class ProcessPattern(models.Model):
         return EconomicResource.objects.filter(resource_type__in=rts)
     
     def input_resource_types(self):
-        return self.resource_types_for_relationship("in")
+        #must be changed, in no longer covers
+        # or event types must be changed so all ins are ins
+        #return self.resource_types_for_relationship("in")
+        answer = list(self.resource_types_for_relationship("in"))
+        answer.extend(list(self.resource_types_for_relationship("consume")))
+        answer.extend(list(self.resource_types_for_relationship("use")))
+        return answer
 
     def consumable_resource_types(self):
         return self.resource_types_for_relationship("consume")
@@ -4001,49 +4014,50 @@ class EconomicResource(models.Model):
                             value = br.compute_claim_value(pe)
                         pe.share = value * distro_fraction
                         events.append(pe)
-                    inputs = process.incoming_events()
-                    for ip in inputs:
-                        #we assume here that work events are contributions
-                        if ip.event_type.relationship == "work":
-                            #todo br
-                            #import pdb; pdb.set_trace()
-                            value = ip.value
-                            br = ip.bucket_rule(value_equation)
-                            if br:
+                    if process.context_agent.compatible_value_equation(value_equation):
+                        inputs = process.incoming_events()
+                        for ip in inputs:
+                            #we assume here that work events are contributions
+                            if ip.event_type.relationship == "work":
+                                #todo br
                                 #import pdb; pdb.set_trace()
-                                value = br.compute_claim_value(ip)
-                            ip.share = value * distro_fraction
-                            events.append(ip)
-                            #print ip.id, ip, ip.share
-                            #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
-                        elif ip.event_type.relationship == "use":
-                            #use events are not contributions, but their resources may have contributions
-                            if ip.resource:
+                                value = ip.value
+                                br = ip.bucket_rule(value_equation)
+                                if br:
+                                    #import pdb; pdb.set_trace()
+                                    value = br.compute_claim_value(ip)
+                                ip.share = value * distro_fraction
+                                events.append(ip)
+                                #print ip.id, ip, ip.share
+                                #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                            elif ip.event_type.relationship == "use":
+                                #use events are not contributions, but their resources may have contributions
+                                if ip.resource:
+                                    ip_value = ip.value * distro_fraction
+                                    d_qty = distro_qty
+                                    if ip_value:
+                                        d_qty = ip_value / value
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited) 
+                            elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
+                                #consume events are not contributions, but their resources may have contributions                       
+                                ip_value = ip.value * distro_fraction
+                                #if ip.resource.id == 98:
+                                #    import pdb; pdb.set_trace()
+                                d_qty = ip.quantity * distro_fraction
+                                #if ip_value:
+                                    #print "consumption:", ip.id, ip, "ip.value:", ip.value
+                                    #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                            elif ip.event_type.relationship == "cite":
+                                #import pdb; pdb.set_trace()   
+                                #citation events are not contributions, but their resources may have contributions
                                 ip_value = ip.value * distro_fraction
                                 d_qty = distro_qty
                                 if ip_value:
                                     d_qty = ip_value / value
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited) 
-                        elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
-                            #consume events are not contributions, but their resources may have contributions                       
-                            ip_value = ip.value * distro_fraction
-                            #if ip.resource.id == 98:
-                            #    import pdb; pdb.set_trace()
-                            d_qty = ip.quantity * distro_fraction
-                            #if ip_value:
-                                #print "consumption:", ip.id, ip, "ip.value:", ip.value
-                                #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                            ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
-                        elif ip.event_type.relationship == "cite":
-                            #import pdb; pdb.set_trace()   
-                            #citation events are not contributions, but their resources may have contributions
-                            ip_value = ip.value * distro_fraction
-                            d_qty = distro_qty
-                            if ip_value:
-                                d_qty = ip_value / value
-                                #print "citation:", ip.id, ip, "ip.value:", ip.value
-                                #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                            ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                    #print "citation:", ip.id, ip, "ip.value:", ip.value
+                                    #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
 
     def direct_share_components(self, components, visited, depth):
         depth += 1
@@ -4528,7 +4542,7 @@ class AgentResourceType(models.Model):
 
     def total_required(self):
         commitments = Commitment.objects.unfinished().filter(resource_type=self.resource_type)
-        return sum(req.unfilled_quantity() for req in commitments)
+        return sum(req.quantity_to_buy() for req in commitments)
 
     def comparative_scores(self):
         scores = AgentResourceType.objects.filter(resource_type=self.resource_type).values_list('score', flat=True)
@@ -5676,47 +5690,48 @@ class Process(models.Model):
                         value = br.compute_claim_value(pe)
                     pe.share = value * distro_fraction
                     events.append(pe)
-                inputs = self.incoming_events()
-                for ip in inputs:
-                    #we assume here that work events are contributions
-                    if ip.event_type.relationship == "work":
-                        #todo br
-                        #import pdb; pdb.set_trace()
-                        value = ip.value
-                        br = ip.bucket_rule(value_equation)
-                        if br:
+                if self.context_agent.compatible_value_equation(value_equation):
+                    inputs = self.incoming_events()
+                    for ip in inputs:
+                        #we assume here that work events are contributions
+                        if ip.event_type.relationship == "work":
+                            #todo br
                             #import pdb; pdb.set_trace()
-                            value = br.compute_claim_value(ip)
-                        ip.share = value * distro_fraction
-                        events.append(ip)
-                        #print ip.id, ip, ip.share
-                        #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
-                    elif ip.event_type.relationship == "use":
-                        #use events are not contributions, but their resources may have contributions
-                        if ip.resource:
+                            value = ip.value
+                            br = ip.bucket_rule(value_equation)
+                            if br:
+                                #import pdb; pdb.set_trace()
+                                value = br.compute_claim_value(ip)
+                            ip.share = value * distro_fraction
+                            events.append(ip)
+                            #print ip.id, ip, ip.share
+                            #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                        elif ip.event_type.relationship == "use":
+                            #use events are not contributions, but their resources may have contributions
+                            if ip.resource:
+                                ip_value = ip.value * distro_fraction
+                                if ip_value:
+                                    d_qty = ip_value / value
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited) 
+                        elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
+                            #consume events are not contributions, but their resources may have contributions
+                            ip_value = ip.value * distro_fraction
+                            #if ip.resource.id == 98:
+                            #    import pdb; pdb.set_trace()
+                            if ip_value:
+                                d_qty = ip.quantity * distro_fraction
+                                #print "consumption:", ip.id, ip, "ip.value:", ip.value
+                                #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                        elif ip.event_type.relationship == "cite":
+                            #import pdb; pdb.set_trace()   
+                            #citation events are not contributions, but their resources may have contributions
                             ip_value = ip.value * distro_fraction
                             if ip_value:
                                 d_qty = ip_value / value
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited) 
-                    elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
-                        #consume events are not contributions, but their resources may have contributions
-                        ip_value = ip.value * distro_fraction
-                        #if ip.resource.id == 98:
-                        #    import pdb; pdb.set_trace()
-                        if ip_value:
-                            d_qty = ip.quantity * distro_fraction
-                            #print "consumption:", ip.id, ip, "ip.value:", ip.value
-                            #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                            ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
-                    elif ip.event_type.relationship == "cite":
-                        #import pdb; pdb.set_trace()   
-                        #citation events are not contributions, but their resources may have contributions
-                        ip_value = ip.value * distro_fraction
-                        if ip_value:
-                            d_qty = ip_value / value
-                            #print "citation:", ip.id, ip, "ip.value:", ip.value
-                            #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                            ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                #print "citation:", ip.id, ip, "ip.value:", ip.value
+                                #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
     
 
 class ExchangeManager(models.Manager):
@@ -6149,13 +6164,16 @@ class CommitmentManager(models.Manager):
             finished=True)
 
     def to_buy(self):
-        reqs = Commitment.objects.filter(
+        #exclude finished
+        cts = self.unfinished()
+        reqs = cts.filter(
             Q(event_type__relationship='consume')|Q(event_type__relationship='use')).order_by("resource_type__name")
+        rts = all_purchased_resource_types()
         answer = []
         for req in reqs:
             qtb = req.quantity_to_buy()
-            if req.quantity_to_buy():
-                if req.resource_type.is_purchased():
+            if qtb > 0:
+                if req.resource_type in rts:
                     req.purchase_quantity = qtb
                     answer.append(req)
         return answer
@@ -6865,16 +6883,12 @@ class Commitment(models.Model):
         #todo: this shd just be a filter, but need to test the change, so do later
         return [ct for ct in producers if ct.order_item == self.order_item]
         
-    def active_producing_commitments(self):
+    def active_producing_commitments(self):   
         if self.stage:
-            return self.resource_type.commitments.filter(
-                event_type__relationship='out',
-                stage=self.stage,
-                process__finished=False)
+            return self.resource_type.active_producing_commitments().filter(
+                stage=self.stage)
         else:
-            return self.resource_type.commitments.filter(
-                event_type__relationship='out',
-                process__finished=False)
+            return self.resource_type.active_producing_commitments()
 
     def scheduled_receipts(self):
         #import pdb; pdb.set_trace()
@@ -7098,6 +7112,7 @@ class Commitment(models.Model):
         return shares
         
     def compute_income_fractions_for_process(self, value_equation):
+        #Commitment (order_item) method
         shares = []
         visited = set()
         path = []
@@ -7113,22 +7128,26 @@ class Commitment(models.Model):
             #import pdb; pdb.set_trace()
             p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
         else:
-            #find related production commitment and its process
-            ship_et = EventType.objects.get(name="Shipment")
-            if self.event_type == ship_et:
-                production_commitments = Commitment.objects.filter(
-                    order_item=self,
-                    event_type__relationship="out",
-                    resource_type=self.resource_type)
-                if production_commitments:
-                    pc = production_commitments[0]
-                    p = pc.process
-                    if p:
-                        visited = set()
-                        p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
+            production_commitments = self.get_production_commitments_for_shipment()
+            if production_commitments:
+                #todo: later, work out how to handle multiple production commitments
+                pc = production_commitments[0]
+                p = pc.process
+                if p:
+                    visited = set()
+                    p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
                     
         return shares
 
+    def get_production_commitments_for_shipment(self):
+        production_commitments = []
+        if self.event_type.name == "Shipment":
+            production_commitments = Commitment.objects.filter(
+                order_item=self,
+                event_type__relationship="out",
+                resource_type=self.resource_type)
+        return production_commitments
+        
 
 #todo: not used.
 class Reciprocity(models.Model):
@@ -7696,7 +7715,41 @@ class EconomicEvent(models.Model):
             )
             claim.claim_event = claim_event
             claim.new = True
-            return claim     
+            return claim
+            
+    def get_unsaved_context_agent_claim(self, against_agent, bucket_rule):
+        #import pdb; pdb.set_trace()
+        #changed for contextAgentDistributions
+        #todo: how to find created_context_agent_claims?
+        #claim = self.created_claim()
+        #if claim:
+        #    claim.new = False
+        #    return claim
+
+        value = bucket_rule.compute_claim_value(self)
+        claim = Claim(
+            #order=order,
+            value_equation_bucket_rule=bucket_rule,
+            claim_date=datetime.date.today(),
+            has_agent=self.context_agent,
+            against_agent=against_agent,
+            context_agent=self.context_agent,
+            value=value,
+            unit_of_value=self.unit_of_value,
+            original_value=value,
+            claim_creation_equation=bucket_rule.claim_creation_equation,
+        )
+        claim_event = ClaimEvent(
+            event=self,
+            claim=claim,
+            claim_event_date=datetime.date.today(),
+            value=value,
+            unit_of_value=self.unit_of_value,
+            event_effect="+",
+        )
+        claim.claim_event = claim_event
+        claim.new = True
+        return claim  
     
     def is_undistributed(self):
         #import pdb; pdb.set_trace()
@@ -7919,19 +7972,18 @@ class EconomicEvent(models.Model):
                         next_in_chain[0].follow_stage_chain_beyond_workflow(chain)
                         
     def compute_income_fractions_for_process(self, value_equation):
+        #EconomicEvent (shipment) method
         #import pdb; pdb.set_trace()
         shares = []
         if self.event_type.name == "Shipment":
             commitment = self.commitment
             if commitment:
-                visited = set()
-                path = []
-                depth = 0
-                production_commitments = Commitment.objects.filter(
-                    order_item=commitment,
-                    event_type__relationship="out",
-                    resource_type=self.resource_type)
+                production_commitments = commitment.get_production_commitments_for_shipment()
                 if production_commitments:
+                    visited = set()
+                    path = []
+                    depth = 0
+                    #todo: later, work out how to handle multiple production commitments
                     pc = production_commitments[0]
                     p = pc.process
                     if p:
@@ -7939,7 +7991,48 @@ class EconomicEvent(models.Model):
                         p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
                         
         return shares
-
+        
+    def get_shipment_commitment_for_production_event(self):
+        if self.event_type.relationship == "out":
+            if self.commitment:
+                return self.commitment.order_item
+        return None
+        
+    def get_shipment_commitment_for_distribution_event(self):
+        if self.event_type.name == "Distribution":
+            claims = self.claims()
+            if claims:
+                claim = claims[0]
+                event = claim.creating_event()
+                return event.get_shipment_commitment_for_production_event()
+        return None
+        
+    def get_shipment_for_distribution(self):
+        the_shipment = None
+        if self.event_type.name == "Distribution":
+            ship_ct = self.get_shipment_commitment_for_distribution_event()
+            if ship_ct:
+                ex = self.exchange
+                dve = ex.distribution_value_equation()
+                ship_evts = dve.shipments()
+                for se in ship_evts:
+                    if se.commitment:
+                        if ship_ct == se.commitment:
+                            the_shipment = se
+        return the_shipment
+        
+    def independent_demand(self):
+        if self.commitment:
+            return self.commitment.independent_demand
+        else:
+            return self.process.independent_demand()
+            
+    def order_item(self):
+        if self.commitment:
+            return self.commitment.order_item
+        else:
+            return self.process.order_item()
+        
 
 #todo: not used
 class Compensation(models.Model):
@@ -8208,7 +8301,60 @@ class DistributionValueEquation(models.Model):
         blank=True, null=True,
         verbose_name=_('value equation link'), related_name='distributions')
     value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)
+    
+    def deserialize_value_equation_content(self):
+        return simplejson.loads(self.value_equation_content)
+        
+    def buckets(self):
+        dict = self.deserialize_value_equation_content()
+        bucket_dict = dict["buckets"]
+        buckets = []
+        for key, value in bucket_dict.iteritems():
+            bucket = ValueEquationBucket.objects.get(id=key)
+            bucket.value = value
+            buckets.append(bucket)
+        return buckets
+        
+    def bucket_rules(self):
+        buckets = self.buckets()
+        answer = []
+        for bucket in buckets:
+            rules = bucket.value.get("bucket_rules")
+            if rules:
+                for key, value in rules.iteritems():
+                    rule = ValueEquationBucketRule.objects.get(id=key)
+                    rule.value = value
+                    answer.append(rule)
+        return answer
 
+    def orders(self):
+        buckets = self.buckets()
+        orders = []
+        for b in buckets:
+            filter = b.value.get("filter")
+            if filter:
+                method = filter.get("method")
+                if method:
+                    if method == "Order":
+                        oids = filter["orders"]
+                        for oid in oids:
+                            orders.append(Order.objects.get(id=oid))
+        return orders
+        
+    def shipments(self):
+        buckets = self.buckets()
+        shipments = []
+        for b in buckets:
+            filter = b.value.get("filter")
+            if filter:
+                method = filter.get("method")
+                if method:
+                    if method == "Shipment":
+                        ship_ids = filter["shipments"]
+                        for sid in ship_ids:
+                            shipments.append(EconomicEvent.objects.get(id=sid))
+        return shipments
+        
 
 FILTER_METHOD_CHOICES = (
     ('order', _('Order')),
@@ -8356,7 +8502,6 @@ class ValueEquationBucket(models.Model):
             #lots = [e.resource for e in shipment_events]
             #import pdb; pdb.set_trace()
             events = []
-            #todo: handle shipments without resources
             for ship in shipment_events:
                 resource = ship.resource
                 qty = ship.quantity
@@ -8373,7 +8518,12 @@ class ValueEquationBucket(models.Model):
         #import pdb; pdb.set_trace()
         claims = []
         for event in events:
-            claim = event.get_unsaved_contribution_claim(event.vebr)
+            #changed for contextAgentDistributions
+            if not event.context_agent.compatible_value_equation(self.value_equation):
+                context_agent = self.value_equation.context_agent
+                claim = event.get_unsaved_context_agent_claim(context_agent, event.vebr)
+            else:
+                claim = event.get_unsaved_contribution_claim(event.vebr)
             fraction = 1
             if event.value:
                 try:

@@ -1389,7 +1389,7 @@ class InputEventForm(forms.ModelForm):
         if qty_help:
             self.fields["quantity"].help_text = qty_help
 
-
+#may be obsolete
 class WorkContributionChangeForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

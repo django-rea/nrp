@@ -124,7 +124,26 @@ hr {
 	<legend>
 		{% trans "Process" %}: <span class="process" >{{ process }} {% if process.started %} - {% trans "Started" %} {{ process.started }}{% endif %} </span>
 		{% if agent %}
-            <a class="btn btn-info" href="{% url change_process process_id=process.id %}">{% trans "Change" %}</a>
+            <a href="#changeProcess" role="button" class="btn btn-info" data-toggle="modal" title="Change this process">
+                {% trans "Change" %}
+            </a>
+            <div class="modal hide fade" id="changeProcess" tabindex="-1" role="dialog" aria-labelledby="change-process" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="change-process">{% trans "Change " %} {{ process }} </h3>
+                </div>
+                <div class="modal-body">
+                    <form class="validateMe" id="process-form" enctype="multipart/form-data" 
+                        action="{% url change_process process_id=process.id %}" method="POST" >
+                        {% csrf_token %}
+                        {{ change_process_form|as_bootstrap }}
+                    <div class="modal-footer">
+                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                        <button class="btn btn-primary">{% trans "Save" %}</button>
+                    </div>
+                    </form>
+                </div>
+            </div>
             {% if logger %}
                 <a class="btn btn-primary" href="{% url process_finished process_id=process.id %}">
                     {% if process.finished %}

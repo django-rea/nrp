@@ -4866,6 +4866,15 @@ class Process(models.Model):
         ])
         unique_slugify(self, slug)
         super(Process, self).save(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        for commit in self.commitments.all():
+            if commit.context_agent != self.context_agent:
+                commit.context_agent = self.context_agent
+                commit.save()
+        for event in self.events.all():
+            if event.context_agent != self.context_agent:
+                event.context_agent = self.context_agent
+                event.save()
 
     def is_deletable(self):
         if self.events.all():

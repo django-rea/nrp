@@ -71,7 +71,7 @@
                 {% for rand in rands %}
                     <li>
                         <a href="{% url order_schedule order_id=rand.id %}">{{ rand }}</a>  {% trans "created by" %} {{ rand.created_by }}
-                        {% if user = rand.created_by %}
+                        {% if user = rand.created_by or user.is_superuser %}
                             <form
                                 style="display: inline;"  
                                 action="{% url change_order order_id=rand.id %}" 

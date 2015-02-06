@@ -5645,6 +5645,7 @@ def process_oriented_logging(request, process_id):
     logger = False
     worker = False
     super_logger = False
+    change_process_form = ProcessForm(instance=process)
     add_output_form = None
     add_citation_form = None
     add_consumable_form = None
@@ -5757,6 +5758,7 @@ def process_oriented_logging(request, process_id):
     
     return render_to_response("valueaccounting/process_oriented_logging.html", {
         "process": process,
+        "change_process_form": change_process_form,
         "cited_ids": cited_ids,
         "citation_requirements": citation_requirements,
         "output_resource_ids": output_resource_ids,
@@ -7434,6 +7436,18 @@ class ProcessWorkFormSet(BaseModelFormSet):
 @login_required
 def change_process(request, process_id):
     process = get_object_or_404(Process, id=process_id)
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        form = ProcessForm(
+            instance=process, 
+            data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            form.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/process', process.id))
+    '''
+    process = get_object_or_404(Process, id=process_id)
     original_start = process.start_date
     original_end = process.end_date
     demand = process.independent_demand()
@@ -7735,7 +7749,7 @@ def change_process(request, process_id):
                             #todo pr: this shd probably use own_or_parent_recipes
                             ptrt, inheritance = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
-                                ct.context_agent = ptrt.process_type.context_agent
+                                ct.context_agent = process.context_agent
                         ct.save()
                         if explode:
                             #todo: use new commitment.generate_producing_process(request.user, explode=True)
@@ -7781,7 +7795,7 @@ def change_process(request, process_id):
                             #todo pr: this shd probably use own_or_parent_recipes
                             ptrt, inheritance = ct.resource_type.main_producing_process_type_relationship()
                             if ptrt:
-                                ct.context_agent = ptrt.process_type.context_agent
+                                ct.context_agent = process.context_agent
                         ct.save()
                         #probly not needed for usables
                         #if explode:
@@ -7805,6 +7819,7 @@ def change_process(request, process_id):
         "usable_formset": usable_formset,
         "work_formset": work_formset,
     }, context_instance=RequestContext(request))
+    '''
 
 #todo: soon to be obsolete (is it obsolete now?)
 def explode_dependent_demands(commitment, user):

@@ -321,11 +321,18 @@ class DemandSelectionForm(forms.Form):
 
 class OrderForm(forms.ModelForm):
     due_date = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-small',}))
+    receiver = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.none())
 
     class Meta:
         model = Order
         exclude = ('order_date', 'order_type')
 
+    def __init__(self, *args, **kwargs):
+        super(OrderForm, self).__init__(*args, **kwargs)
+        context_agents = EconomicAgent.objects.context_agents()
+        self.fields["provider"].queryset = context_agents
+        
         
 class ResourceTypeListForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xxlarge', }))

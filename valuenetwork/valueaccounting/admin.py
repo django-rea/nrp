@@ -83,11 +83,11 @@ class ExchangeAdmin(admin.ModelAdmin):
 
 admin.site.register(Exchange, ExchangeAdmin)
 
-class CashReceiptDistributionAdmin(admin.ModelAdmin):
+class IncomeEventDistributionAdmin(admin.ModelAdmin):
     date_hierarchy = 'distribution_date'
-    list_display = ('distribution_date', 'distribution', 'cash_receipt', 'quantity', 'unit_of_quantity')
+    list_display = ('distribution_date', 'distribution', 'income_event', 'quantity', 'unit_of_quantity')
     
-admin.site.register(CashReceiptDistribution, CashReceiptDistributionAdmin)
+admin.site.register(IncomeEventDistribution, IncomeEventDistributionAdmin)
     
 class AgentAssociationTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'label', 'inverse_label', 'description', 'association_behavior')

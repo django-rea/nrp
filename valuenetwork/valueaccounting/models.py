@@ -8115,7 +8115,7 @@ class ValueEquation(models.Model):
         else:
             return True
             
-    def run_value_equation_and_save(self, exchange, cash_receipts, money_resource, amount_to_distribute, serialized_filters):
+    def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute, serialized_filters, cash_receipts=None, input_distributions=None):
         #import pdb; pdb.set_trace()
         distribution_events, contribution_events = self.run_value_equation(
             amount_to_distribute=amount_to_distribute,
@@ -8193,9 +8193,9 @@ class ValueEquation(models.Model):
         money_resource.quantity -= amount_to_distribute
         money_resource.save()
         for cr in cash_receipts:
-            crd = CashReceiptDistribution(
+            crd = IncomeEventDistribution(
                 distribution_date=exchange.start_date,
-                cash_receipt=cr,
+                income_event=cr,
                 distribution=exchange,
                 quantity=cr.quantity,
                 unit_of_quantity=cr.unit_of_quantity,
@@ -8798,17 +8798,17 @@ class ValueEquationBucketRule(models.Model):
         return BucketRuleFilterSetForm(prefix="vebrf" + str(self.id), initial=json, context_agent=ca, event_type=self.event_type, pattern=pattern)
 
         
-class CashReceiptDistribution(models.Model):
+class IncomeEventDistribution(models.Model):
     distribution_date = models.DateField(_('distribution date'))
     distribution = models.ForeignKey(Exchange,
         verbose_name=_('distribution'), related_name='cash_receipts')
-    cash_receipt = models.ForeignKey(EconomicEvent,
-        related_name="distributions", verbose_name=_('cash receipt'))
+    income_event = models.ForeignKey(EconomicEvent,
+        related_name="distributions", verbose_name=_('income event'))
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 
         default=Decimal("0.0"))
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="units")  
-        
+              
             
 class Claim(models.Model):
     value_equation_bucket_rule = models.ForeignKey(ValueEquationBucketRule,

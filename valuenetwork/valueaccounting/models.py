@@ -892,23 +892,29 @@ class EconomicAgent(models.Model):
         return Order.objects.filter(id__in=order_ids)
         
     def shipments_queryset(self):
+        #import pdb; pdb.set_trace()
         shipments = []
         exf = self.exchange_firm()
         ship = EventType.objects.get(label="ships")
         qs = EconomicEvent.objects.filter(event_type=ship)
+        #todo: retest, may need production events for shipments to tell
+        #if a shipment shd be excluded or not
         if exf:
             cas = [self, exf]
             qs = qs.filter(context_agent__in=cas)
             ids_to_delete = []
-            for s in qs:
-                if s.context_agent != self:
-                    if s.commitment:
-                        if s.commitment.context_agent != self:
-                            ids_to_delete.append(s.id)
+            for ship in qs:
+                if ship.context_agent != self:
+                    if ship.commitment:
+                        if ship.commitment.context_agent != self:
+                            pc_cas = [pc.context_agent for pc in ship.commitment.get_production_commitments_for_shipment()]
+                            pc_cas = list(set(pc_cas))
+                            if self not in pc_cas:
+                                ids_to_delete.append(ship.id)
                     else:
-                        ids_to_delete.append(s.id)
+                        ids_to_delete.append(ship.id)
                 if ids_to_delete:
-                    qs.excude(id__in=ids_to_delete)
+                    qs = qs.exclude(id__in=ids_to_delete)
         else:
             qs = qs.filter(context_agent=self)
         return qs

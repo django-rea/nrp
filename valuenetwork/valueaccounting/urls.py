@@ -451,5 +451,7 @@ urlpatterns += patterns("",
         name="value_equation_live_test"),
         url(r"^agent-value-accounting/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent_value_accounting', name="agent_value_accounting"),
     url(r"^cash-report/$", 'valuenetwork.valueaccounting.views.cash_report', name="cash_report"),
+    url(r"^json-distribution-related-shipment/(?P<distribution_id>\d+)/$", 'valuenetwork.valueaccounting.views.json_distribution_related_shipment', 
+        name="json_distribution_related_shipment"),
 )
 

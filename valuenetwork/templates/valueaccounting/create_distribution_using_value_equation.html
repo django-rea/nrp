@@ -101,9 +101,12 @@ td {
             <p>Value Equation</p>
             <p>{{ header_form.value_equation }}</p>
             <table id="selection">
-              <tr><td>Select one or more source Cash Receipts</td><td class="or">OR</td><td>Amount to distribute</td></tr>
+              <tr><td>Select one or more source Cash Receipts</td><td class="or">OR</td><td>Enter amount to distribute</td></tr>
               <tr>
-                <td class="top">{{ header_form.cash_receipts }}<br /><span class="or">OR</span> select one or more source Distributions<br />{{ header_form.input_distributions }}</td>
+                <td class="top">
+                    {{ header_form.cash_receipts }}<br /><span class="or">OR</span>
+                    select one or more source Distributions<br />{{ header_form.input_distributions }}
+                </td>
                 <td>&nbsp;</td>
                 <td><span class="spc"> {{ header_form.money_to_distribute }}</span><br />and source Cash Resource Account<br />
                 <span class="spc">{{ header_form.resource }}</span></td>
@@ -225,7 +228,8 @@ td {
         $("#calculate").click(showLoading);
 		$("#id_value_equation").change(reloadPage);
 		$("#id_cash_receipts").change(adjustDist);
-
+		$("#id_input_distributions").change(inputDistributionChanged);
+		$("#id_20-shipments").change(shipmentsChanged);
  
 	}); // end document.ready
 
@@ -244,11 +248,45 @@ td {
         window.location.replace(url);
     }
     
+    function inputDistributionChanged(event)
+    {
+        var selectedDists = $("#id_input_distributions").val();
+        adjustDist();
+        getShipments(selectedDists);
+        
+    }
+    
+    function getShipments(selectedDists)
+    {
+        
+        var shipmentSelectors = $(".shipment-event");
+        if (shipmentSelectors)
+        {
+            if (selectedDists)
+            {
+                distId = selectedDists[0];
+                var jsonUrl = encodeURI("/accounting/json-distribution-related-shipment/" + distId + "/");
+                $.get(jsonUrl, function(data){
+                    var shipId = data["ship_id"];
+                });
+                $(".chzn-select").trigger("liszt:updated");
+            }
+            else
+            {
+            }
+        }
+    }
+    
+    
     function adjustDist()
     {
-        var count=$("#id_cash_receipts :selected").length    
+        var count=$("#id_cash_receipts :selected").length;
+        if (count == 0)
+        {
+            count=$("#id_input_distributions :selected").length;
+        }
         if (count != 0) {
-            $("#id_money_to_distribute").val('0.0')
+            $("#id_money_to_distribute").val('0.0');
             $("#id_resource").attr('selectedIndex', '-1').find("option:selected").removeAttr("selected");
             $("#id_money_to_distribute").prop("disabled", true);
             $("#id_resource").prop("disabled", true);

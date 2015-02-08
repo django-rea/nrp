@@ -1322,6 +1322,13 @@ def json_resource(request, resource_id):
     data = simplejson.dumps(rdict)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
     
+def json_distribution_related_shipment(request, distribution_id):
+    d = get_object_or_404(EconomicEvent, distribution_id)
+    ship = d.get_shipment_for_distribution()
+    sd = {"ship_id": ship.id,}
+    data = simplejson.dumps(sd)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    
 class EventSummary(object):
     def __init__(self, agent, role, quantity, value=Decimal('0.0')):
         self.agent = agent

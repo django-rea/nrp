@@ -229,7 +229,7 @@ td {
 		$("#id_value_equation").change(reloadPage);
 		$("#id_cash_receipts").change(adjustDist);
 		$("#id_input_distributions").change(inputDistributionChanged);
-		$("#id_20-shipments").change(shipmentsChanged);
+		//$("#id_20-shipments").change(shipmentsChanged);
  
 	}); // end document.ready
 
@@ -268,11 +268,23 @@ td {
                 var jsonUrl = encodeURI("/accounting/json-distribution-related-shipment/" + distId + "/");
                 $.get(jsonUrl, function(data){
                     var shipId = data["ship_id"];
+                    var shipArray = [shipId,];
+                    for(var i=0 ; i<shipmentSelectors.length ; i++)
+                    {
+                        var sel = shipmentSelectors[i];
+                        var selId = "#" + sel.id;
+                        $(selId).val(shipArray).trigger("liszt:updated");
+                    }
                 });
-                $(".chzn-select").trigger("liszt:updated");
             }
             else
             {
+                for(var i=0 ; i<shipmentSelectors.length ; i++)
+                {
+                    var sel = shipmentSelectors[i];
+                    var selId = "#" + sel.id;
+                    $(selId).val([]).trigger("liszt:updated");
+                }
             }
         }
     }

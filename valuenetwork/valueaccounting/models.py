@@ -4898,11 +4898,21 @@ class Process(models.Model):
         #import pdb; pdb.set_trace()
         for commit in self.commitments.all():
             if commit.context_agent != self.context_agent:
+                old_agent = commit.context_agent
                 commit.context_agent = self.context_agent
+                if commit.from_agent == old_agent:
+                    commit.from_agent = self.context_agent
+                if commit.to_agent == old_agent:
+                    commit.to_agent = self.context_agent
                 commit.save()
         for event in self.events.all():
             if event.context_agent != self.context_agent:
+                old_agent = event.context_agent
                 event.context_agent = self.context_agent
+                if event.from_agent == old_agent:
+                    event.from_agent = self.context_agent
+                if event.to_agent == old_agent:
+                    event.to_agent = self.context_agent
                 event.save()
 
     def is_deletable(self):

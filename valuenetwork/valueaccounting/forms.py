@@ -322,7 +322,7 @@ class DemandSelectionForm(forms.Form):
 class OrderForm(forms.ModelForm):
     due_date = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-small',}))
     receiver = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.none())
+        queryset=EconomicAgent.objects.all())
 
     class Meta:
         model = Order
@@ -2943,7 +2943,12 @@ class DistributionValueEquationForm(forms.Form):
     cash_receipts = forms.ModelMultipleChoiceField(
         required=False,
         queryset=EconomicEvent.objects.all(),
-        label=_("Select one or more Cash Receipts OR enter amount to distribute and account."),
+        label=_("Select one or more Cash Receipts OR enter amount to distribute and account"),
+        widget=forms.SelectMultiple(attrs={'class': 'cash chzn-select input-xxlarge'}))
+    input_distributions = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicEvent.objects.all(),
+        label=_("OR select one or more Distributions"),
         widget=forms.SelectMultiple(attrs={'class': 'cash chzn-select input-xxlarge'}))
     money_to_distribute = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money'}))
@@ -2966,6 +2971,7 @@ class DistributionValueEquationForm(forms.Form):
             if context_agent:
                 self.fields["value_equation"].queryset = context_agent.live_value_equations()
                 self.fields["cash_receipts"].queryset = context_agent.undistributed_cash_receipts()
+                self.fields["input_distributions"].queryset = context_agent.undistributed_distributions()
             if pattern:
                 resources = []
                 rts = pattern.distribution_resource_types()

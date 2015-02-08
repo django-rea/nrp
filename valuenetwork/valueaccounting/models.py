@@ -932,6 +932,16 @@ class EconomicAgent(models.Model):
                         cr_ids.append(cr.id)
         return EconomicEvent.objects.filter(id__in=cr_ids)
         
+    def undistributed_distributions(self):
+        #import pdb; pdb.set_trace()
+        id_ids = []
+        et = EventType.objects.get(name="Distribution")
+        ids = EconomicEvent.objects.filter(to_agent=self).filter(event_type=et)
+        for id in ids:
+            if id.is_undistributed():
+                id_ids.append(id.id)
+        return EconomicEvent.objects.filter(id__in=id_ids)
+                
         
 class AgentUser(models.Model):
     agent = models.ForeignKey(EconomicAgent,
@@ -3949,8 +3959,13 @@ class EconomicResource(models.Model):
         #import pdb; pdb.set_trace()
         self.compute_income_shares(value_equation, quantity, shares, visited)
         total = sum(s.share for s in shares)
-        for s in shares:
-            s.fraction = s.share / total
+        #todo: bob: total was zero, unclear if bad data; unclear what fraction should be in that case
+        if total:
+            for s in shares:
+                s.fraction = s.share / total
+        else:
+            for s in shares:
+                s.fraction = 1            
         #import pdb; pdb.set_trace()
         #print "total shares:", total
         return shares
@@ -7753,8 +7768,9 @@ class EconomicEvent(models.Model):
     
     def is_undistributed(self):
         #import pdb; pdb.set_trace()
-        et = EventType.objects.get(name="Cash Receipt")
-        if self.event_type == et:
+        et_cr = EventType.objects.get(name="Cash Receipt")
+        et_id = EventType.objects.get(name="Distribution")
+        if self.event_type == et_cr or self.event_type == et_id:
             crds = self.distributions.all()
             if crds:
                 return False
@@ -8192,15 +8208,26 @@ class ValueEquation(models.Model):
         disbursement_event.save()
         money_resource.quantity -= amount_to_distribute
         money_resource.save()
-        for cr in cash_receipts:
-            crd = IncomeEventDistribution(
-                distribution_date=exchange.start_date,
-                income_event=cr,
-                distribution=exchange,
-                quantity=cr.quantity,
-                unit_of_quantity=cr.unit_of_quantity,
-            )
-            crd.save()
+        if cash_receipts:
+            for cr in cash_receipts:
+                crd = IncomeEventDistribution(
+                    distribution_date=exchange.start_date,
+                    income_event=cr,
+                    distribution=exchange,
+                    quantity=cr.quantity,
+                    unit_of_quantity=cr.unit_of_quantity,
+                )
+                crd.save()
+        if input_distributions:
+            for ind in input_distributions:
+                ied = IncomeEventDistribution(
+                    distribution_date=exchange.start_date,
+                    income_event=ind,
+                    distribution=exchange,
+                    quantity=ind.quantity,
+                    unit_of_quantity=ind.unit_of_quantity,
+                )
+                ied.save()
         #import pdb; pdb.set_trace()
         for dist_event in distribution_events:
             dist_event.exchange = exchange

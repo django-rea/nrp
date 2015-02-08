@@ -9291,11 +9291,17 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             amount = data["money_to_distribute"]
             resource = data["resource"]
             crs = data["cash_receipts"]
+            inds = data["input_distributions"]
             if crs:
                 resource = crs[0].resource
                 amount = 0
                 for cr in crs:
                     amount += cr.quantity
+            if inds:
+                resource = inds[0].resource
+                amount = 0
+                for ind in inds:
+                    amount += ind.quantity
             dist_date = data["start_date"]
             notes = data["notes"]
             serialized_filters = {}
@@ -9320,7 +9326,8 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             #exchange.save()
 
             exchange = ve.run_value_equation_and_save(
-                cash_receipts=crs, 
+                cash_receipts=crs,
+                input_distributions=inds,
                 exchange=exchange, 
                 money_resource=resource, 
                 amount_to_distribute=amount, 

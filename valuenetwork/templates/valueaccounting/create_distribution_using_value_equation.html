@@ -68,6 +68,19 @@ td {
 .indent {
     margin-left: 1em;
 }
+#selection {
+    border: 1px gainsboro solid;
+    margin-bottom: 15px;
+}
+#selection td {
+    padding: 5px 10px 5px 10px;
+}
+.or {
+    font-weight: bold;
+    color: darkturquoise;
+    padding-right: 6px;
+}
+
 </style>
 {% endblock %}
 
@@ -87,11 +100,12 @@ td {
             {% csrf_token %}
             <p>Value Equation</p>
             <p>{{ header_form.value_equation }}</p>
-            <table>
-              <tr><td>Select one or more Cash Receipts</td><td><b>OR</b></td><td>Amount to distribute</td></tr>
+            <table id="selection">
+              <tr><td>Select one or more source Cash Receipts</td><td class="or">OR</td><td>Amount to distribute</td></tr>
               <tr>
-                <td class="top">{{ header_form.cash_receipts }}</td><td>&nbsp;</td>
-                <td><span class="spc"> {{ header_form.money_to_distribute }}</span><br />From cash resource account<br />
+                <td class="top">{{ header_form.cash_receipts }}<br /><span class="or">OR</span> select one or more source Distributions<br />{{ header_form.input_distributions }}</td>
+                <td>&nbsp;</td>
+                <td><span class="spc"> {{ header_form.money_to_distribute }}</span><br />and source Cash Resource Account<br />
                 <span class="spc">{{ header_form.resource }}</span></td>
               </tr>
             </table>

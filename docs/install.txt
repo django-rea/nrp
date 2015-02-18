@@ -69,12 +69,15 @@ SOUTH_MIGRATION_MODULES = {
     'easy_thumbnails': 'easy_thumbnails.south_migrations',
 }
 
-12. run the tests
+12. do this to install some starter facets and patterns:
+./manage.py loaddata ./fixtures/starters.json
+
+13. run the tests
 ./manage.py test valueaccounting
 
-13. crank up the django server
+14. crank up the django server
 ./manage.py runserver
 
-14. point browser at http://127.0.0.1:8000/
+15. point browser at http://127.0.0.1:8000/
 
 

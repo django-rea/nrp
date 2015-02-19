@@ -3345,7 +3345,10 @@ def todo_time(request):
             todo = None
         if todo:
             hours = request.POST.get("hours")
-            qty = Decimal(hours)
+            if hours:
+                qty = Decimal(hours)
+            else:
+                qty = Decimal("0.0")
             event = todo.todo_event()
             if event:
                 event.quantity = qty

@@ -6960,7 +6960,7 @@ class Commitment(models.Model):
                 else:
                     return ois
 
-    def all_processes_in_my_order_item(self):
+    def all_processes_in_my_order_item_old(self):
         ordered_processes = []
         if self.order_item:
             commitments = Commitment.objects.filter(order_item=self.order_item)
@@ -6974,6 +6974,21 @@ class Commitment(models.Model):
                 ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
         return ordered_processes
         
+    def all_processes_in_my_order_item(self):
+        #todo: review bug fixes
+        # see old code above, which returned processes in wrong sequence
+        # because they were all the same date.
+        ordered_processes = []
+        order_item = self.order_item
+        if order_item:
+            order = self.independent_demand
+            if order:
+                processes = order.all_processes()
+                for p in processes:
+                    if p.order_item() == order_item:
+                        ordered_processes.append(p)
+        return ordered_processes
+            
     def last_process_in_my_order_item(self):
         processes = self.all_processes_in_my_order_item()
         if processes:
@@ -7071,6 +7086,11 @@ class Commitment(models.Model):
         return self
         
     def adjust_workflow_commitments_process_deleted(self, process, user):
+        #import pdb; pdb.set_trace()
+        #todo: review bug fixes.
+        # all_processes_in_my_order_item() returned processes in the wrong sequence,
+        # because they were sorted by date and all had the same date.
+        # See new and old code.
         all_procs = self.all_processes_in_my_order_item()
         process_index = all_procs.index(process)
         last_process = None
@@ -7081,7 +7101,17 @@ class Commitment(models.Model):
             if last_process:
                 last_commitment = last_process.main_outgoing_commitment()
                 last_commitment.order = self.order
+                last_commitment.order_item = last_commitment
                 last_commitment.save()
+                #todo: review bug fixes.
+                # the commitments related to the old order item had not 
+                # had their order item changed, and so were all deleted 
+                # along with the old order item.
+                if self.order_item == self:
+                    dependent_commitments = Commitment.objects.filter(order_item=self)
+                    for dc in dependent_commitments:
+                        dc.order_item = last_commitment
+                        dc.save()
         else:
             next_process = all_procs[process_index + 1]
             next_commitment = next_process.to_be_changed_requirements()[0]

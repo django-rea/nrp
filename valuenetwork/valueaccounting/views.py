@@ -919,14 +919,8 @@ def resource_flow_report(request, resource_type_id):
             if order:
                 orders.append(order)
         lot.orders = orders
-    #import pdb; pdb.set_trace()    
-    #sort_form = SortResourceReportForm(
-    #    data=request.POST or None)
-    #if request.method == "POST":
-    #    sort = request.POST["choice"]
-    #    lot_list = sorted(lot_list, key=lambda lot: lot.sort) #todo: will this work using variable "sort"??
         
-    paginator = Paginator(lot_list, 25)
+    paginator = Paginator(lot_list, 100)
     page = request.GET.get('page')
     try:
         lots = paginator.page(page)

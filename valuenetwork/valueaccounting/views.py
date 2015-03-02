@@ -904,6 +904,11 @@ def resource_flow_report(request, resource_type_id):
     for lot in lot_list:
         lot_processes = lot.value_flow_going_forward_reorganized()
         pts_with_processes, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+        for process in lot_processes:
+            if process.process_type not in pts:
+                pts.append(process.process_type)
+            if process.process_type not in pts_with_processes:
+                pts_with_processes.append(process.process_type)
         for pt in pts_with_processes:
             pt_processes = []
             for process in lot_processes:
@@ -911,7 +916,6 @@ def resource_flow_report(request, resource_type_id):
                     pt_processes.append(process)
             pt.pt_processes = pt_processes
         lot.pts_with_processes = pts_with_processes
-        
         orders = []
         last_pt = pts_with_processes[-1]
         for proc in last_pt.pt_processes:

@@ -322,6 +322,7 @@ class DemandSelectionForm(forms.Form):
 class OrderForm(forms.ModelForm):
     due_date = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-small',}))
     receiver = forms.ModelChoiceField(
+        required=False,
         queryset=EconomicAgent.objects.all())
 
     class Meta:

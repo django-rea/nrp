@@ -3049,6 +3049,8 @@ class Order(models.Model):
         for root in roots:
             visited = []
             root.all_previous_processes_for_order(self, ordered_processes, visited, 0)
+        #todo: review bug fixes
+        #order by date is not reliable here
         ordered_processes = list(set(ordered_processes))
         ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
         ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
@@ -3658,6 +3660,7 @@ class EconomicResource(models.Model):
         return path
     
     def roll_up_value(self, path, depth, visited, value_equation=None):
+        # EconomicResource method
         #import pdb; pdb.set_trace()
         #Value_per_unit will be the result of this method.
         depth += 1
@@ -5084,6 +5087,7 @@ class Process(models.Model):
                                     if pc.due_date <= self.start_date:
                                         answer.append(pc.process)
         for ie in self.incoming_events():
+            #todo: check stage of ie.resource != self.process_type
             if not ie.commitment:
                 if ie.resource:
                     for evt in ie.resource.producing_events():
@@ -7596,6 +7600,7 @@ class EconomicEvent(models.Model):
         return ""
         
     def roll_up_value(self, path, depth, visited, value_equation):
+        # EconomicEvent method
         #rollup stage change
         stage = None
         if self.commitment:

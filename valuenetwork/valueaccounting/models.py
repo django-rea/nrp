@@ -3605,7 +3605,16 @@ class EconomicResource(models.Model):
             pts = self.resource_type.producing_process_types()
             cas = [pt.context_agent for pt in pts if pt.context_agent]
         return cas
-        
+
+    def shipped_on_orders(self):
+        orders = []
+        et = EventType.objects.get(relationship="shipment")
+        shipments = EconomicEvent.objects.filter(resource=self).filter(event_type=et)
+        for ship in shipments:
+            if ship.exchange.order:
+                orders.append(ship.exchange.order)
+        return orders
+            
     def value_equations(self):
         ves = []
         #import pdb; pdb.set_trace()
@@ -4373,36 +4382,25 @@ class EconomicResource(models.Model):
             #processes.append(creation_event.process)
             creation_event.follow_process_chain_beyond_workflow(processes, all_events)
 
-    def value_flow_going_forward_reorganized(self):
+    def value_flow_going_forward_processes(self):
         #import pdb; pdb.set_trace()
         in_out = self.value_flow_going_forward()
         processes = []
-        save_process = None
-        new_process = None
         for index, io in enumerate(in_out):
-            item_process = save_process
-            if io.__class__.__name__ == "EconomicEvent":
-                item_process = io.process
-            elif io.__class__.__name__ == "Process":
-                item_process = io
-            if item_process:
-                if item_process != save_process:
-                    if new_process:
-                        processes.append(new_process)
-                    new_process = item_process
-                    new_process.input_events = []
-                    new_process.output_events = []
-                    save_process = new_process
-            if io.__class__.__name__ == "EconomicEvent":
-                if io.event_type.relationship == "out":
-                    new_process.output_events.append(io)
-                elif io.event_type.relationship == "out":
-                    #import pdb; pdb.set_trace()
-                    #print self.identifier, " ", io, " ", io.event_type.relationship
-                    new_process.input_events.append(io)
-        if new_process:
-            processes.append(new_process)
+            if type(io) is Process:
+                if io.input_includes_resource(self):
+                    processes.append(io)
         return processes
+        
+    def receipt(self):
+        in_out = self.value_flow_going_forward()
+        receipt = None
+        et = EventType.objects.get(name='Receipt')
+        for index, io in enumerate(in_out):
+            if type(io) is EconomicEvent:
+                if io.event_type == et:
+                    receipt = io
+        return receipt
 
     def form_prefix(self):
         return "-".join(["RES", str(self.id)])
@@ -5061,6 +5059,15 @@ class Process(models.Model):
         if cts:
             return cts[0]
         return None
+        
+    def input_includes_resource(self, resource):
+        inputs = self.incoming_events()
+        answer = False
+        for event in inputs:
+            if event.resource == resource:
+                answer = True
+                break
+        return answer
 
     def previous_processes(self):
         answer = []

@@ -894,6 +894,7 @@ def inventory(request):
     }, context_instance=RequestContext(request))
 
 def resource_flow_report(request, resource_type_id):
+    #todo: this report is dependent on DHEN's specific work flow, will need to be generalized
     #import pdb; pdb.set_trace() 
     rt = get_object_or_404(EconomicResourceType, id=resource_type_id)
     pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
@@ -902,29 +903,46 @@ def resource_flow_report(request, resource_type_id):
     else:
         lot_list = rt.resources.all()
     for lot in lot_list:
-        lot_processes = lot.value_flow_going_forward_reorganized()
-        pts_with_processes, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+        if lot.identifier == "53014": #70314
+            import pdb; pdb.set_trace() 
+        lot_processes = lot.value_flow_going_forward_processes()
+        lot_receipt = lot.receipt()
+        lot.lot_receipt = lot_receipt
+        lot_pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
         for process in lot_processes:
             if process.process_type not in pts:
                 pts.append(process.process_type)
-            if process.process_type not in pts_with_processes:
-                pts_with_processes.append(process.process_type)
-        for pt in pts_with_processes:
-            pt_processes = []
+            if process.process_type not in lot_pts:
+                lot_pts.append(process.process_type)
+        for lpt in lot_pts:
+            lpt_processes = []
             for process in lot_processes:
-                if process.process_type == pt:
-                    pt_processes.append(process)
-            pt.pt_processes = pt_processes
-        lot.pts_with_processes = pts_with_processes
+                if process.process_type == lpt:
+                    lpt_processes.append(process)
+            lpt.lpt_processes = lpt_processes
+        lot.lot_pts = lot_pts
+        lot.lot_processes = lot_processes
         orders = []
-        last_pt = pts_with_processes[-1]
-        for proc in last_pt.pt_processes:
+        last_pt = lot_pts[-1]
+        for proc in last_pt.lpt_processes:
             order = proc.independent_demand()
             if order:
                 orders.append(order)
+        if not order:
+            shipped_orders = lot.shipped_on_orders()
+            if shipped_orders:
+                orders.extend(shipped_orders)
         lot.orders = orders
+    #import pdb; pdb.set_trace() 
+    for lot in lot_list:
+        if lot.identifier == "53014": #70314
+            import pdb; pdb.set_trace() 
+        for ptype in pts:
+            if ptype not in lot.lot_pts:
+                ptype.lpt_processes = [] #not sure why I need to do this
+                lot.lot_pts.append(ptype)
         
-    paginator = Paginator(lot_list, 100)
+    paginator = Paginator(lot_list, 500)
     page = request.GET.get('page')
     try:
         lots = paginator.page(page)

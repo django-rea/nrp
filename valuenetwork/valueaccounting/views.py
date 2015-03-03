@@ -903,17 +903,19 @@ def resource_flow_report(request, resource_type_id):
     else:
         lot_list = rt.resources.all()
     for lot in lot_list:
-        if lot.identifier == "53014": #70314
-            import pdb; pdb.set_trace() 
+        #if lot.identifier == "53014": #70314
+        #    import pdb; pdb.set_trace() 
         lot_processes = lot.value_flow_going_forward_processes()
         lot_receipt = lot.receipt()
         lot.lot_receipt = lot_receipt
         lot_pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
         for process in lot_processes:
             if process.process_type not in pts:
-                pts.append(process.process_type)
+                new_instance_pt_1 = ProcessType.objects.get(id=process.process_type.id)
+                pts.append(new_instance_pt_1)
             if process.process_type not in lot_pts:
-                lot_pts.append(process.process_type)
+                new_instance_pt_2 = ProcessType.objects.get(id=process.process_type.id)
+                lot_pts.append(new_instance_pt_2)
         for lpt in lot_pts:
             lpt_processes = []
             for process in lot_processes:
@@ -935,11 +937,11 @@ def resource_flow_report(request, resource_type_id):
         lot.orders = orders
     #import pdb; pdb.set_trace() 
     for lot in lot_list:
-        if lot.identifier == "53014": #70314
-            import pdb; pdb.set_trace() 
+        #if lot.identifier == "53014": #70314
+        #    import pdb; pdb.set_trace() 
         for ptype in pts:
             if ptype not in lot.lot_pts:
-                ptype.lpt_processes = [] #not sure why I need to do this
+                #ptype.lpt_processes = [] #not sure why I need to do this
                 lot.lot_pts.append(ptype)
         
     paginator = Paginator(lot_list, 500)

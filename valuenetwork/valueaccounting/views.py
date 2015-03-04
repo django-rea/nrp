@@ -8673,6 +8673,7 @@ def exchanges(request):
     start = datetime.date(end.year, 1, 1)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
+    et_donation = EventType.objects.get(name="Donation")
     et_cash = EventType.objects.get(name="Cash Contribution")
     et_pay = EventType.objects.get(name="Payment")   
     et_receive = EventType.objects.get(name="Receipt")
@@ -8744,6 +8745,8 @@ def exchanges(request):
             if event.event_type == et_pay:
                 total_payments = total_payments + event.quantity
             elif event.event_type == et_cash:
+                total_cash = total_cash + event.quantity
+            elif event.event_type == et_donation:
                 total_cash = total_cash + event.quantity
             elif event.event_type == et_expense:
                 total_expenses = total_expenses + event.value
@@ -9831,63 +9834,139 @@ def value_equation_live_test(request, value_equation_id):
             value_equation.save()
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/edit-value-equation', value_equation.id))
-'''
-Note: leaving this code here in case we want to do a report by virtual account
+
+
 def cash_report(request):
     #import pdb; pdb.set_trace()
+    end = datetime.date.today()
+    start = datetime.date(end.year, end.month, 1)
+    init = {"start_date": start, "end_date": end}
+    dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
+    starting_balance = 0
+    balance_form = BalanceForm(data=request.POST or None)
+    event_ids = ""
+    select_all = True
+    selected_values = "all"
+    bank_accounts = None
     virtual_accounts = EconomicResource.objects.virtual_accounts()
-    in_total = 0
-    out_total = 0
-    for va in virtual_accounts:
-        va.in_events = va.where_from_events()
-        va.out_events = va.where_to_events()
-        for event in va.in_events:
-            in_total += event.quantity
-            event.account = event.event_type
-        for event in va.out_events:
-            out_total += event.quantity 
-            event.account = event.event_type     
-               
-    return render_to_response("valueaccounting/cash_report.html", {
-        "virtual_accounts": virtual_accounts,
-        "in_total": in_total,
-        "out_total": out_total,
-    }, context_instance=RequestContext(request))
-'''
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if dt_selection_form.is_valid():
+            start = dt_selection_form.cleaned_data["start_date"]
+            end = dt_selection_form.cleaned_data["end_date"]
+            events = EconomicEvent.objects.virtual_account_events(start_date=start, end_date=end)
+        else:
+            events = EconomicEvent.objects.virtual_account_events()
+        if balance_form.is_valid():
+            starting_balance = balance_form.cleaned_data["starting_balance"]
+            if starting_balance == '' or starting_balance == None:
+                starting_balance = 0
 
-def cash_report(request): #todo: date selections; bank accounts???
-    #import pdb; pdb.set_trace()
-    virtual_accounts = EconomicResource.objects.virtual_accounts()
-    events = []
+        '''
+        selected_values = request.POST["categories"]
+        if selected_values:
+            sv = selected_values.split(",")
+            vals = []
+            for v in sv:
+                vals.append(v.strip())
+            if vals[0] == "all":
+                select_all = True
+            else:
+                select_all = False
+                events_included = []
+                exchanges_included = []
+                for ex in exchanges:
+                    for event in ex.events.all():
+                        if event.resource_type.accounting_reference:
+                            if event.resource_type.accounting_reference.code in vals:
+                                #if ex.class_label() == "Exchange":
+                                events_included.append(event)
+                                #else: #process
+                                #    if event.event_type == et_process_expense:
+                                #        events_included.append(event)
+                    if events_included != []:   
+                        ex.event_list = events_included
+                        exchanges_included.append(ex)
+                        events_included = []
+                exchanges = exchanges_included
+        '''
+    else:
+        events = EconomicEvent.objects.virtual_account_events(start_date=start, end_date=end)
+ 
+
+
     in_total = 0
     out_total = 0
-    for va in virtual_accounts:
-        for event in va.where_from_events():
-            in_total += event.quantity
+    for event in events:
+        if event.creates_resources():
             event.in_out = "in"
-            if event.accounting_reference:
-                event.account = event.accounting_reference
-            else:
-                event.account = event.event_type
-            event.virtual_account = va.identifier
-            events.append(event)
-        for event in va.where_to_events():
-            out_total += event.quantity 
+            in_total += event.quantity
+        else:
             event.in_out = "out"
-            if event.accounting_reference:
-                event.account = event.accounting_reference
-            else:
-                event.account = event.event_type
-            event.virtual_account = va.identifier
-            events.append(event)
-    balance = in_total - out_total #todo: need to deal with beginning balances
-    #todo: pagination
+            out_total += event.quantity
+        if event.accounting_reference:
+            event.account = event.accounting_reference
+        else:
+            event.account = event.event_type
+        event.virtual_account = event.resource.identifier
+
+    balance = starting_balance + in_total - out_total
                
     return render_to_response("valueaccounting/cash_report.html", {
-        #"virtual_accounts": virtual_accounts,
         "events": events,
+        "dt_selection_form": dt_selection_form,
+        "balance_form": balance_form,
         "in_total": in_total,
         "out_total": out_total,
         "balance": balance,
+        "virtual_accounts": virtual_accounts,
+        "bank_accounts": bank_accounts,
+        "starting_balance": starting_balance,
+        "select_all": select_all,
     }, context_instance=RequestContext(request))
   
+@login_required    
+def cash_events_csv(request):
+    #import pdb; pdb.set_trace()
+    event_ids = request.GET.get("event-ids")
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=contributions.csv'
+    writer = csv.writer(response)
+    writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
+    event_ids_split = event_ids.split(",")
+    for event_id in event_ids_split:
+        event = EconomicEvent.objects.get(pk=event_id)
+        if event.from_agent == None:
+            from_agent = ""
+        else:
+            from_agent = event.from_agent.nick
+        if event.to_agent == None:
+            to_agent = ""
+        else:
+            to_agent = event.to_agent.nick  
+        if event.url == "":
+            if event.exchange.url == "":
+                url = "" 
+            else:
+                url = event.exchange.url
+        else:
+            url = ""     
+        writer.writerow(
+            [event.event_date,
+             event.event_type.name,
+             event.resource_type.name,
+             event.quantity,
+             event.unit_of_quantity,
+             event.value,
+             event.unit_of_value,
+             from_agent,
+             to_agent,
+             event.context_agent.name,
+             event.description,
+             url,
+             event.exchange.use_case,
+             event.id,
+             event.exchange.id   
+            ]
+        )
+    return response

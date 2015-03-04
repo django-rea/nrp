@@ -2264,6 +2264,10 @@ class IsAssociateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(IsAssociateForm, self).__init__(*args, **kwargs)
 
+        
+class BalanceForm(forms.Form):
+    starting_balance = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class': 'input-small',}))
+    
 
 class DateSelectionForm(forms.Form):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

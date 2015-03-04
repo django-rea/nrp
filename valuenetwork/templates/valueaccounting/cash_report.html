@@ -5,18 +5,20 @@
 {% block head_title %}{% trans "Cash Report" %}{% endblock %}
 
 {% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <style>
 
-	tr.even td 
-	{
-		color:#000000;
-		background-color:#EAF2D3;
-	}
+tr.even td 
+{
+    color:#000000;
+    background-color:#EAF2D3;
+}
 
-	th
-	{
-		background-color:#C8D6E8;
-	}
+th
+{
+    background-color:#C8D6E8;
+}
 
 .hdg, .bal, .total {
     color:  #7D1818;
@@ -38,6 +40,20 @@ ul {
     margin: 0;
     padding: 0;
 }
+.table {
+    margin-left: 0;
+}
+.btn-primary {
+    margin-bottom: 5px;
+}
+#btn-filter1 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.title {
+    font-size: 1.1em;
+    font-weight: bold;
+}
 </style>
 
 {% endblock %}
@@ -49,7 +65,8 @@ ul {
         {% include "_messages.html" %}
 	<div>
 		<legend>{% trans "Cash Flow Report" %}</legend>
-            
+        <div class="row-fluid">
+        <div class="span9">            
             <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
                 <thead>
                     <th>{% trans "Virtual Account" %}</th>
@@ -95,7 +112,7 @@ ul {
                         <td>&nbsp;</td>
                     </tr>
                     <tr class="bal">
-                        <td>Balance</td>
+                        <td>Balance (starting = {{ starting_balance }})</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         {% if balance > 0 %}
@@ -106,35 +123,70 @@ ul {
                         {% if balance > 0 %}
                             <td>&nbsp;</td>
                         {% else %}
-                            <td>({{ balance }})</td>
+                            <td>{{ balance }}</td>
                         {% endif %}
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
                 </tbody>	
             </table>
+        </div>
 
-{% comment %}
-<div class="pagination">
-    <span class="step-links">
-        {% if virtual_accounts.has_previous %}
-            <a href="?page={{ virtual_accounts.previous_page_number }}">{% trans "previous" %}</a>
-        {% endif %}
+        <div class="span3 filter">
+            {% if events %}
+                <div>
+                    <a href=" {% url cash_events_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
+                </div>
+            {% endif %}
+            <form id="filter-form" action="." method="POST">
+                {% csrf_token %}
+                <label for="id_starting_bal" class="control-label" style="display: inline; vertical-align: text-bottom;" >
+                    {% trans "Starting balance " %}
+                </label>    
+                <div class="controls" style="display: inline;" >
+                    {{ balance_form.starting_balance }}
+                </div>               
+                <h3>{% trans "Filter the List" %}</h3>
+                <div id="div_id_start_date" class="control-group" style="display: inline;" > 
+                    <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
+                        {% trans "Start date " %}
+                    </label>    
+                    <div class="controls" style="display: inline;" >
+                        {{ dt_selection_form.start_date }}
+                    </div>
+                </div>
+                <div id="div_id_end_date" class="control-group" > 
+                    <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
+                        {% trans "End date  " %}
+                    </label>    
+                    <div class="controls" style="display: inline;" >
+                        {{ dt_selection_form.end_date }}
+                    </div>
+                </div>
+                <input type="submit" id="btn-filter1" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
+                <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %} checked="yes" {% endif %} /> {% trans "All in the date range" %}</p>
+                <p class="title"> {% trans "External Accounts" %} </p>
+                {% for ba in bank_accounts %}
+                    <p><input type="checkbox" class="category" id="{{ ba.id }}" name="{{ ba.id }}" value="{{ ba.id }}" /> {{ ba.identifier }}</p>
+                {% endfor %}
+                <p class="title"> {% trans "Virtual Accounts" %} </p>
+                {% for va in virtual_accounts %}
+                    <p><input type="checkbox" class="category" id="{{ va.id }}" name="{{ va.id }}" value="{{ va.id }}" /> {{ va.identifier }}</p>
+                {% endfor %}
+                <input type='hidden' id='categories' name='categories' value=' {{ selected_values }} ' />
+                <input type="submit" id="btn-filter2" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
+            </form>
+        </div>
 
-        <span class="current">
-            {% trans "Page" %} {{ virtual_accounts.number }} {% trans "of" %} {{ virtual_accounts.paginator.num_pages }}.
-        </span>
-
-        {% if virtual_accounts.has_next %}
-            <a href="?page={{ virtual_accounts.next_page_number }}">{% trans "next" %}</a>
-        {% endif %}
-    </span>
-</div>
-{% endcomment %}
-
-	</div>
+    </div>
+    </div>
     </div>
 {% endblock %}
+
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
 {% block extra_body %}
 	{{ block.super }}
     <script type="text/javascript">
@@ -143,6 +195,56 @@ ul {
 
 		//$('#inventory').addClass('active');
 
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+/*
+        var selectedCats = "{{ selected_values }}";
+
+
+        $('.category').each(function()
+        {
+            var cat = $(this)[0];
+            if (selectedCats.indexOf(cat.name) > -1)
+            {
+                $(this).prop('checked', true);
+            }
+        });
+
+        $('.category').click(function() 
+        {
+            var checkedCats = [];
+            var checkedBox = $(this)[0];
+            var allBox = $('#all')[0];
+            if (checkedBox == allBox)
+            {
+                $('.category').each(function()
+                {
+                    $(this).prop('checked', false);
+                });
+                $('#all').prop('checked', true);
+                checkedCats.push('all');
+            }
+            else
+            {
+                $('#all').prop('checked', false);
+                $('.category').each(function()
+                {
+                    var cat = $(this)[0];
+                    if (cat.checked)
+                    {
+                        checkedCats.push(cat.value);
+                    }
+                });
+            }
+            $('#categories').prop('value', checkedCats);
+*/
 	}); // end document.ready
 
     </script>

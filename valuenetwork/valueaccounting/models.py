@@ -7335,6 +7335,19 @@ def update_summary(agent, context_agent, resource_type, event_type):
         summary.delete()
 
 
+class EconomicEventManager(models.Manager):
+
+    def virtual_account_events(self, start_date=None, end_date=None):
+        if start_date and end_date:
+            events = EconomicEvent.objects.filter(resource__resource_type__behavior="account", event_date__gte=start_date, event_date__lte=end_date)
+        elif start_date:
+            events = EconomicEvent.objects.filter(resource__resource_type__behavior="account", event_date__gte=start_date)
+        elif end_date:
+            events = EconomicEvent.objects.filter(resource__resource_type__behavior="account", event_date__lte=end_date)
+        else:
+            events = EconomicEvent.objects.filter(resource__resource_type__behavior="account")
+        return events
+        
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="events", verbose_name=_('event type'))
@@ -7386,6 +7399,8 @@ class EconomicEvent(models.Model):
         related_name='events_changed', blank=True, null=True, editable=False)
     
     slug = models.SlugField(_("Page name"), editable=False)
+    
+    objects = EconomicEventManager()
 
     class Meta:
         ordering = ('-event_date',)

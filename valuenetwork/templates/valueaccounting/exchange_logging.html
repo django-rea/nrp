@@ -516,7 +516,9 @@ li {
             {% if cash_events %}
 		        {% for event in cash_events %}
 			        <div class="event">
-				        <span ><span class="event-label">{% trans "Contributed" %}: </span> 
+				        <span ><span class="event-label">
+                            {% if event.event_type.name == "Cash Contribution" %}{% trans "Contributed" %}
+                            {% else %} {% trans "Donated" %}{% endif%}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> from <b>{{ event.from_agent.nick }}</b> {{ event.event_date }}</span>
      	                {% if logger or event.from_agent == agent  %}
 		                    <form

@@ -4472,8 +4472,8 @@ def add_cash_contribution(request, exchange_id):
             if value:
                 event = form.save(commit=False)
                 rt = cash_data["resource_type"]
-                event_type = pattern.event_type_for_resource_type("cash", rt)
-                event.event_type = event_type
+                #event_type = pattern.event_type_for_resource_type("cash", rt)
+                #event.event_type = event_type
                 event.exchange = exchange
                 event.context_agent = context_agent
                 event.to_agent = event.default_agent()
@@ -4503,8 +4503,8 @@ def add_cash_resource_contribution(request, exchange_id):
             if value:
                 event = form.save(commit=False)
                 rt = cash_data["resource_type"]
-                event_type = pattern.event_type_for_resource_type("cash", rt)
-                event.event_type = event_type
+                #event_type = pattern.event_type_for_resource_type("cash", rt)
+                #event.event_type = event_type
                 event.exchange = exchange
                 event.context_agent = context_agent
                 event.to_agent = event.default_agent()

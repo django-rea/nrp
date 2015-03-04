@@ -941,7 +941,6 @@ def resource_flow_report(request, resource_type_id):
         #    import pdb; pdb.set_trace() 
         for ptype in pts:
             if ptype not in lot.lot_pts:
-                #ptype.lpt_processes = [] #not sure why I need to do this
                 lot.lot_pts.append(ptype)
         
     paginator = Paginator(lot_list, 500)

@@ -9897,6 +9897,7 @@ def cash_report(request):
 
     in_total = 0
     out_total = 0
+    comma = ""
     for event in events:
         if event.creates_resources():
             event.in_out = "in"
@@ -9909,6 +9910,8 @@ def cash_report(request):
         else:
             event.account = event.event_type
         event.virtual_account = event.resource.identifier
+        event_ids = event_ids + comma + str(event.id)
+        comma = ","
 
     balance = starting_balance + in_total - out_total
                
@@ -9923,6 +9926,7 @@ def cash_report(request):
         "bank_accounts": bank_accounts,
         "starting_balance": starting_balance,
         "select_all": select_all,
+        "event_ids": event_ids,
     }, context_instance=RequestContext(request))
   
 @login_required    

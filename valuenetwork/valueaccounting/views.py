@@ -9846,9 +9846,10 @@ def cash_report(request):
     balance_form = BalanceForm(data=request.POST or None)
     event_ids = ""
     select_all = True
-    selected_values = "all"
+    selected_vas = "all"
     external_accounts = None
     virtual_accounts = EconomicResource.objects.virtual_accounts()
+    
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if dt_selection_form.is_valid():
@@ -9861,11 +9862,12 @@ def cash_report(request):
             starting_balance = balance_form.cleaned_data["starting_balance"]
             if starting_balance == '' or starting_balance == None:
                 starting_balance = 0
-
-        '''
-        selected_values = request.POST["categories"]
-        if selected_values:
-            sv = selected_values.split(",")
+        else:
+            starting_balance = 0
+        #import pdb; pdb.set_trace()
+        selected_vas = request.POST["selected-vas"]
+        if selected_vas:
+            sv = selected_vas.split(",")
             vals = []
             for v in sv:
                 vals.append(v.strip())
@@ -9874,27 +9876,13 @@ def cash_report(request):
             else:
                 select_all = False
                 events_included = []
-                exchanges_included = []
-                for ex in exchanges:
-                    for event in ex.events.all():
-                        if event.resource_type.accounting_reference:
-                            if event.resource_type.accounting_reference.code in vals:
-                                #if ex.class_label() == "Exchange":
-                                events_included.append(event)
-                                #else: #process
-                                #    if event.event_type == et_process_expense:
-                                #        events_included.append(event)
-                    if events_included != []:   
-                        ex.event_list = events_included
-                        exchanges_included.append(ex)
-                        events_included = []
-                exchanges = exchanges_included
-        '''
+                for event in events:
+                    if str(event.resource.id) in vals:
+                        events_included.append(event)
+                events = events_included
     else:
         events = EconomicEvent.objects.virtual_account_events(start_date=start, end_date=end)
  
-
-
     in_total = 0
     out_total = 0
     comma = ""
@@ -9926,6 +9914,7 @@ def cash_report(request):
         "external_accounts": external_accounts,
         "starting_balance": starting_balance,
         "select_all": select_all,
+        "selected_vas": selected_vas,
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
   

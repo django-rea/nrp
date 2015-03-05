@@ -170,15 +170,17 @@ ul {
                 </div>
                 <input type="submit" id="btn-filter1" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
                 <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %} checked="yes" {% endif %} /> {% trans "All in the date range" %}</p>
+{% comment %}
                 <p class="title"> {% trans "External Accounts" %} </p>
                 {% for ba in external_accounts %}
                     <p><input type="checkbox" class="category" id="{{ ba.id }}" name="{{ ba.id }}" value="{{ ba.id }}" /> {{ ba.identifier }}</p>
                 {% endfor %}
+{% endcomment %}                
                 <p class="title"> {% trans "Virtual Accounts" %} </p>
                 {% for va in virtual_accounts %}
                     <p><input type="checkbox" class="category" id="{{ va.id }}" name="{{ va.id }}" value="{{ va.id }}" /> {{ va.identifier }}</p>
                 {% endfor %}
-                <input type='hidden' id='categories' name='categories' value=' {{ selected_values }} ' />
+                <input type='hidden' id='selected-vas' name='selected-vas' value=' {{ selected_vas }} ' />
                 <input type="submit" id="btn-filter2" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
             </form>
         </div>
@@ -209,14 +211,13 @@ ul {
         })
 
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
-/*
-        var selectedCats = "{{ selected_values }}";
 
+        var selectedVas = "{{ selected_vas }}";
 
         $('.category').each(function()
         {
             var cat = $(this)[0];
-            if (selectedCats.indexOf(cat.name) > -1)
+            if (selectedVas.indexOf(cat.name) > -1)
             {
                 $(this).prop('checked', true);
             }
@@ -248,8 +249,9 @@ ul {
                     }
                 });
             }
-            $('#categories').prop('value', checkedCats);
-*/
+            $('#selected-vas').prop('value', checkedCats);
+        })
+
 	}); // end document.ready
 
     </script>

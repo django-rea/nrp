@@ -1112,7 +1112,10 @@ class EventTypeManager(models.Manager):
     def used_for_value_equations(self):
         ets = EventType.objects.all()
         used_ids = [et.id for et in ets if et.used_for_value_equations()]
-        return EventType.objects.filter(id__in=used_ids)     
+        return EventType.objects.filter(id__in=used_ids)
+        
+    def cash_event_types(self):
+        return EventType.objects.filter(relationship="cash")
 
 
 class EventType(models.Model):
@@ -2397,7 +2400,7 @@ class ProcessPattern(models.Model):
     def process_expense_resource_types(self):
         return self.resource_types_for_relationship("payexpense")
         
-    def cash_contr_resource_types(self):
+    def cash_contr_resource_types(self): #now includes cash contributions and donations
         return self.resource_types_for_relationship("cash")
     
     def shipment_resource_types(self):
@@ -2649,7 +2652,8 @@ def create_event_types(app, **kwargs):
     #Keep the first column (name) as unique
     EventType.create('Citation', _('cites'), _('cited by'), 'cite', 'process', '=', '')
     EventType.create('Resource Consumption', _('consumes'), _('consumed by'), 'consume', 'process', '-', 'quantity') 
-    EventType.create('Cash Contribution', _('contributes cash'), _('cash contributed by'), 'cash', 'exchange', '+', 'value') 
+    EventType.create('Cash Contribution', _('contributes cash'), _('cash contributed by'), 'cash', 'exchange', '+', 'value')
+    EventType.create('Donation', _('donates cash'), _('cash donated by'), 'cash', 'exchange', '+', 'value') 
     EventType.create('Resource Contribution', _('contributes resource'), _('resource contributed by'), 'resource', 'exchange', '+', 'quantity') 
     EventType.create('Damage', _('damages'), _('damaged by'), 'out', 'agent', '-', 'value')  
     EventType.create('Expense', _('expense'), '', 'expense', 'exchange', '=', 'value') 
@@ -2706,7 +2710,8 @@ def create_usecase_eventtypes(app, **kwargs):
     if app != "valueaccounting":
         return
     UseCaseEventType.create('cash_contr', 'Time Contribution') 
-    UseCaseEventType.create('cash_contr', 'Cash Contribution') 
+    UseCaseEventType.create('cash_contr', 'Cash Contribution')  
+    UseCaseEventType.create('cash_contr', 'Donation') 
     UseCaseEventType.create('non_prod', 'Time Contribution')
     UseCaseEventType.create('rand', 'Citation')
     UseCaseEventType.create('rand', 'Resource Consumption')
@@ -5933,7 +5938,7 @@ class Exchange(models.Model):
         return self.events.filter(
             event_type__relationship='resource')
         
-    def cash_contribution_events(self):
+    def cash_contribution_events(self): #now includes cash contributions and donations
         return self.events.filter(
             event_type__relationship='cash')
     
@@ -7340,6 +7345,19 @@ def update_summary(agent, context_agent, resource_type, event_type):
         summary.delete()
 
 
+class EconomicEventManager(models.Manager):
+
+    def virtual_account_events(self, start_date=None, end_date=None):
+        if start_date and end_date:
+            events = EconomicEvent.objects.filter(resource__resource_type__behavior="account", event_date__gte=start_date, event_date__lte=end_date)
+        elif start_date:
+            events = EconomicEvent.objects.filter(resource__resource_type__behavior="account", event_date__gte=start_date)
+        elif end_date:
+            events = EconomicEvent.objects.filter(resource__resource_type__behavior="account", event_date__lte=end_date)
+        else:
+            events = EconomicEvent.objects.filter(resource__resource_type__behavior="account")
+        return events
+        
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="events", verbose_name=_('event type'))
@@ -7385,12 +7403,15 @@ class EconomicEvent(models.Model):
     accounting_reference = models.ForeignKey(AccountingReference, blank=True, null=True,
         verbose_name=_('accounting reference'), related_name="events",
         help_text=_('optional reference to an accounting grouping'))
+    event_reference = models.CharField(_('reference'), max_length=128, blank=True, null=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='events_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='events_changed', blank=True, null=True, editable=False)
     
     slug = models.SlugField(_("Page name"), editable=False)
+    
+    objects = EconomicEventManager()
 
     class Meta:
         ordering = ('-event_date',)

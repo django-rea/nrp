@@ -3047,9 +3047,10 @@ class Order(models.Model):
                     processes.append(c.process)
             processes = list(set(processes))
         ends = []
-        for p in processes:
-            if not p.next_processes_for_order(self):
-                ends.append(p)
+        #import pdb; pdb.set_trace()
+        for proc in processes:
+            if not proc.next_processes_for_order(self):
+                ends.append(proc)
         ordered_processes = []
         for end in ends:
             visited = []
@@ -5215,11 +5216,12 @@ class Process(models.Model):
             rt = oc.resource_type
             if oc.cycle_id() not in input_ids:
                 for cc in rt.wanting_commitments():
-                    if cc.stage == stage and cc.state == state:
-                        if dmnd:
-                            if cc.order_item == dmnd:
-                                if cc.process not in answer:
-                                    answer.append(cc.process)
+                    if cc.process:
+                        if cc.stage == stage and cc.state == state:
+                            if dmnd:
+                                if cc.order_item == dmnd:
+                                    if cc.process not in answer:
+                                        answer.append(cc.process)
         return answer
 
 

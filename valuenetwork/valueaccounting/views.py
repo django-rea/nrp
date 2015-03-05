@@ -9847,7 +9847,7 @@ def cash_report(request):
     event_ids = ""
     select_all = True
     selected_values = "all"
-    bank_accounts = None
+    external_accounts = None
     virtual_accounts = EconomicResource.objects.virtual_accounts()
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -9923,7 +9923,7 @@ def cash_report(request):
         "out_total": out_total,
         "balance": balance,
         "virtual_accounts": virtual_accounts,
-        "bank_accounts": bank_accounts,
+        "external_accounts": external_accounts,
         "starting_balance": starting_balance,
         "select_all": select_all,
         "event_ids": event_ids,
@@ -9936,7 +9936,7 @@ def cash_events_csv(request):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=contributions.csv'
     writer = csv.writer(response)
-    writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
+    writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Reference", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
     event_ids_split = event_ids.split(",")
     for event_id in event_ids_split:
         event = EconomicEvent.objects.get(pk=event_id)
@@ -9966,6 +9966,7 @@ def cash_events_csv(request):
              from_agent,
              to_agent,
              event.context_agent.name,
+             event.event_reference,
              event.description,
              url,
              event.exchange.use_case,

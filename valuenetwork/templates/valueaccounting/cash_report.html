@@ -171,7 +171,7 @@ ul {
                 <input type="submit" id="btn-filter1" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
                 <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %} checked="yes" {% endif %} /> {% trans "All in the date range" %}</p>
                 <p class="title"> {% trans "External Accounts" %} </p>
-                {% for ba in bank_accounts %}
+                {% for ba in external_accounts %}
                     <p><input type="checkbox" class="category" id="{{ ba.id }}" name="{{ ba.id }}" value="{{ ba.id }}" /> {{ ba.identifier }}</p>
                 {% endfor %}
                 <p class="title"> {% trans "Virtual Accounts" %} </p>

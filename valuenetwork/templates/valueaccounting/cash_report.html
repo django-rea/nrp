@@ -76,6 +76,7 @@ ul {
                     <th>{% trans "Cash Out" %}</th>
                     <th>{% trans "Project" %}</th>
                     <th>{% trans "To or From" %}</th>
+                    <th>{% trans "Reference" %}</th>
                 </thead>
                 <tbody>	
                     {% for event in events %}
@@ -99,6 +100,7 @@ ul {
                             {% else %}
                                 <td>{{ event.to_agent }}</td>
                             {% endif %}
+                            <td>{{ event.event_reference }}</td>
                         </tr>
 
                     {% endfor %}
@@ -109,6 +111,7 @@ ul {
                         <td>&nbsp;</td>
                         <td>{{ in_total }}</td>
                         <td>{{ out_total }}</td>
+                        <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
@@ -126,6 +129,7 @@ ul {
                         {% else %}
                             <td>{{ balance }}</td>
                         {% endif %}
+                        <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>

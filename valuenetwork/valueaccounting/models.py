@@ -7393,6 +7393,7 @@ class EconomicEvent(models.Model):
     accounting_reference = models.ForeignKey(AccountingReference, blank=True, null=True,
         verbose_name=_('accounting reference'), related_name="events",
         help_text=_('optional reference to an accounting grouping'))
+    event_reference = models.CharField(_('reference'), max_length=128, blank=True, null=True)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='events_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

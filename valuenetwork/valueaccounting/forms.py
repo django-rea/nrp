@@ -1478,7 +1478,7 @@ class PaymentEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'to_agent', 'from_agent', 'quantity', 'resource_type', 'resource', 'description', 'accounting_reference')
+        fields = ('event_date', 'to_agent', 'from_agent', 'quantity', 'resource_type', 'resource', 'description', 'accounting_reference', 'event_reference')
 
     def __init__(self, pattern=None, context_agent=None, posting=False, *args, **kwargs):
         super(PaymentEventForm, self).__init__(*args, **kwargs)
@@ -1538,7 +1538,7 @@ class CashReceiptForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'to_agent', 'quantity', 'resource_type', 'resource', 'description', 'accounting_reference')
+        fields = ('event_date', 'from_agent', 'to_agent', 'quantity', 'resource_type', 'resource', 'description', 'event_reference')
 
     def __init__(self, pattern=None, context_agent=None, posting=False, *args, **kwargs):
         #import pdb; pdb.set_trace()
@@ -1608,7 +1608,7 @@ class CashReceiptResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'to_agent', 'quantity', 'resource_type', 'description')
+        fields = ('event_date', 'from_agent', 'to_agent', 'quantity', 'resource_type', 'description', 'accounting_reference', 'event_reference')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(CashReceiptResourceForm, self).__init__(*args, **kwargs)
@@ -1937,7 +1937,7 @@ class CashContributionEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'value', 'resource_type', 'resource', 'description', 'event_type', 'accounting_reference')
+        fields = ('event_date', 'from_agent', 'value', 'resource_type', 'resource', 'description', 'event_type', 'accounting_reference', 'event_reference')
 
     def __init__(self, pattern=None, context_agent=None, posting=False, *args, **kwargs):
         super(CashContributionEventForm, self).__init__(*args, **kwargs)
@@ -1996,7 +1996,7 @@ class CashContributionResourceEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'value', 'resource_type', 'description', 'event_type', 'accounting_reference')
+        fields = ('event_date', 'from_agent', 'value', 'resource_type', 'description', 'event_type', 'accounting_reference', 'event_reference')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(CashContributionResourceEventForm, self).__init__(*args, **kwargs)

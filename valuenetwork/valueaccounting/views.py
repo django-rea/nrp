@@ -9849,6 +9849,7 @@ def cash_report(request):
     selected_vas = "all"
     external_accounts = None
     virtual_accounts = EconomicResource.objects.virtual_accounts()
+    option = "S"
     
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -9865,6 +9866,7 @@ def cash_report(request):
         else:
             starting_balance = 0
         #import pdb; pdb.set_trace()
+        option = request.POST["option"]
         selected_vas = request.POST["selected-vas"]
         if selected_vas:
             sv = selected_vas.split(",")
@@ -9886,6 +9888,7 @@ def cash_report(request):
     in_total = 0
     out_total = 0
     comma = ""
+    summary = {}
     for event in events:
         if event.creates_resources():
             event.in_out = "in"
@@ -9894,17 +9897,23 @@ def cash_report(request):
             event.in_out = "out"
             out_total += event.quantity
         if event.accounting_reference:
-            event.account = event.accounting_reference
+            event.account = event.accounting_reference.name
         else:
-            event.account = event.event_type
+            event.account = event.event_type.name
         event.virtual_account = event.resource.identifier
         event_ids = event_ids + comma + str(event.id)
         comma = ","
-
+        if event.account in summary:
+            summary[event.account] = summary[event.account] + event.quantity
+        else:
+            summary[event.account] = event.quantity
+                
     balance = starting_balance + in_total - out_total
-               
+    summary_list = sorted(summary.iteritems())
+    
     return render_to_response("valueaccounting/cash_report.html", {
         "events": events,
+        "summary_list": summary_list,
         "dt_selection_form": dt_selection_form,
         "balance_form": balance_form,
         "in_total": in_total,
@@ -9916,6 +9925,7 @@ def cash_report(request):
         "select_all": select_all,
         "selected_vas": selected_vas,
         "event_ids": event_ids,
+        "option": option,
     }, context_instance=RequestContext(request))
   
 @login_required    

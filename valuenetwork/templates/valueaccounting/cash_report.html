@@ -24,6 +24,9 @@ th
     color:  #7D1818;
     font-weight: bold;
 }
+.first-total td {
+    border-top: 3px solid lightgray;
+}
 .event {
     margin-left: 1em;
 }
@@ -54,6 +57,10 @@ ul {
     font-size: 1.1em;
     font-weight: bold;
 }
+.nav-tabs a {
+    font-weight: bold;
+    font-size: 1.1em;
+}
 </style>
 
 {% endblock %}
@@ -65,9 +72,43 @@ ul {
         {% include "_messages.html" %}
 	<div>
 		<legend>{% trans "Cash Flow Report" %}</legend>
+
         <div class="row-fluid">
-        <div class="span9">            
-            <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+        <div class="span9">
+            <ul class="nav nav-tabs">
+                <li id="S"><a href="javascript:showSummary()">Summary Report</a></li>
+                <li id="D"><a href="javascript:showDetail()">Detail Report</a></li>
+            </ul>
+
+            <table id="summary-table" style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+                <thead>
+                    <th>{% trans "Category" %}</th>
+                    <th>{% trans "Amount" %}</th>
+                </thead>
+                <tbody> 
+                    {% for k,v in summary_list %}
+                        <tr class="{% cycle 'odd' 'even' %}">
+                            <td>{{ k }}</td>
+                            <td>{{ v }}</td>
+                        </tr>
+                    {% endfor %}
+
+                    <tr class="total first-total">
+                        <td>Total In</td>
+                        <td>{{ in_total }}</td>
+                    </tr>
+                    <tr class="total">
+                        <td>Total Out</td>
+                        <td>{{ out_total }}</td>
+                    </tr>
+                    <tr class="bal">
+                        <td>Balance (starting = {{ starting_balance }})</td>
+                        <td>{{ balance }}</td>
+                    </tr>
+                </tbody>    
+            </table>
+
+            <table id="detail-table" style="width: 100%;" class="table table-bordered table-hover table-condensed" >
                 <thead>
                     <th>{% trans "Virtual Account" %}</th>
                     <th>{% trans "Date" %}</th>
@@ -111,7 +152,7 @@ ul {
 
                     {% endfor %}
 
-                    <tr class="total">
+                    <tr class="total first-total">
                         <td>Totals</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
@@ -141,12 +182,13 @@ ul {
                     </tr>
                 </tbody>	
             </table>
+
         </div>
 
         <div class="span3 filter">
             {% if events %}
                 <div>
-                    <a href=" {% url cash_events_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
+                    <a href=" {% url cash_events_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered detail list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
                 </div>
             {% endif %}
             <form id="filter-form" action="." method="POST">
@@ -187,6 +229,7 @@ ul {
                     <p><input type="checkbox" class="category" id="{{ va.id }}" name="{{ va.id }}" value="{{ va.id }}" /> {{ va.identifier }}</p>
                 {% endfor %}
                 <input type='hidden' id='selected-vas' name='selected-vas' value=' {{ selected_vas }} ' />
+                <input type='hidden' id='option' name='option' value='{{ option }}' />
                 <input type="submit" id="btn-filter2" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
             </form>
         </div>
@@ -206,7 +249,7 @@ ul {
 
 	$(document).ready(function(){
 
-		//$('#inventory').addClass('active');
+		//$('#projects').addClass('active');
 
         $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
@@ -219,6 +262,16 @@ ul {
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
         var selectedVas = "{{ selected_vas }}";
+
+        {% if option == "S" %}
+            $('#S').addClass('active');
+            $('#detail-table').hide();
+            $('#summary-table').show();
+        {% else %}
+            $('#D').addClass('active');
+            $('#detail-table').show();
+            $('#summary-table').hide();
+        {% endif %}
 
         $('.category').each(function()
         {
@@ -259,6 +312,23 @@ ul {
         })
 
 	}); // end document.ready
+
+
+        function showSummary() {
+            $('#detail-table').hide();
+            $('#summary-table').show();
+            $('#S').addClass('active');
+            $('#D').removeClass('active');
+            $('#option').val('S');
+        }
+
+        function showDetail() {
+            $('#detail-table').show();
+            $('#summary-table').hide();
+            $('#D').addClass('active');
+            $('#S').removeClass('active');
+            $('#option').val('D');
+        }
 
     </script>
 {% endblock %}

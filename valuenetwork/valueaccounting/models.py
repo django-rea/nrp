@@ -3057,11 +3057,7 @@ class Order(models.Model):
             end.all_previous_processes_for_order(self, ordered_processes, visited, 0)
         ordered_processes.reverse()
         #todo: review bug fixes
-        #order by date is not reliable here
-        #this sort appears to be about more than one end process
-        #ordered_processes = list(set(ordered_processes))
-        #ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
-        #ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
+        #this code might need more testing for orders with more than one end process
         return ordered_processes 
         
     def unordered_processes(self):
@@ -6986,25 +6982,8 @@ class Commitment(models.Model):
                     return ois[0]
                 else:
                     return ois
-
-    def all_processes_in_my_order_item_old(self):
-        ordered_processes = []
-        if self.order_item:
-            commitments = Commitment.objects.filter(order_item=self.order_item)
-            for c in commitments:
-                if c.process:
-                    ordered_processes.append(c.process)
-            #import pdb; pdb.set_trace()
-            if ordered_processes:
-                ordered_processes = list(set(ordered_processes))
-                ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
-                ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
-        return ordered_processes
-        
+       
     def all_processes_in_my_order_item(self):
-        #todo: review bug fixes
-        # see old code above, which returned processes in wrong sequence
-        # because they were all the same date.
         ordered_processes = []
         order_item = self.order_item
         if order_item:
@@ -7090,8 +7069,6 @@ class Commitment(models.Model):
         
     def adjust_workflow_commitments_process_added(self, process, user): #process added to the end of the order item
         #import pdb; pdb.set_trace()
-        #todo: review bug fixes.
-        #shdnt this adjust order_item as in adjust_workflow_commitments_process_deleted
         last_process = self.last_process_in_my_order_item() 
         process.add_stream_commitments(last_process=last_process, user=user)
         last_commitment = last_process.main_outgoing_commitment()
@@ -7100,8 +7077,6 @@ class Commitment(models.Model):
         
     def adjust_workflow_commitments_process_inserted(self, process, next_process, user):
         #import pdb; pdb.set_trace()
-        #todo: review bug fixes.
-        #shd this adjust order_item as in adjust_workflow_commitments_process_deleted
         all_procs = self.all_processes_in_my_order_item()
         process_index = all_procs.index(next_process)
         if process_index > 0:
@@ -7118,7 +7093,6 @@ class Commitment(models.Model):
         
     def adjust_workflow_commitments_process_deleted(self, process, user):
         #import pdb; pdb.set_trace()
-        #todo: review bug fixes.
         all_procs = self.all_processes_in_my_order_item()
         process_index = all_procs.index(process)
         last_process = None
@@ -7131,10 +7105,8 @@ class Commitment(models.Model):
                 last_commitment.order = self.order
                 last_commitment.order_item = last_commitment
                 last_commitment.save()
-                #todo: review bug fixes.
-                # the commitments related to the old order item had not 
-                # had their order item changed, and so were all deleted 
-                # along with the old order item.
+                #change the order item in dependent commitments
+                #before deleting the last process
                 if self.order_item == self:
                     dependent_commitments = Commitment.objects.filter(order_item=self)
                     for dc in dependent_commitments:

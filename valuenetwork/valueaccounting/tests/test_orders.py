@@ -349,5 +349,106 @@ class OrderTest(WebTest):
         p = order.all_processes()[0]
         rt = p.output_resource_types()[0]
         self.assertEqual(rt, heir)
-            
-            
+        
+    def create_3_process_order(self):
+        #add another process to self.wf_recipe
+        package_pt = ProcessType(
+            name="package",
+            estimated_duration=7200,
+        )
+        package_pt.save()
+        
+        to_be_event_type = self.wf_recipe.to_be_event_type
+        change_event_type = self.wf_recipe.change_event_type
+        change_pt = self.wf_recipe.change_pt
+        unit = self.wf_recipe.unit
+        
+        package_input = ProcessTypeResourceType(
+            process_type=package_pt,
+            resource_type=self.changeable,
+            stage=change_pt,
+            event_type=to_be_event_type,
+            quantity=Decimal("1000"),
+            unit_of_quantity=unit,
+        )
+        package_input.save()
+        
+        package_output = ProcessTypeResourceType(
+            process_type=package_pt,
+            stage=package_pt,
+            resource_type=self.changeable,
+            event_type=change_event_type,
+            quantity=Decimal("1000"),
+            unit_of_quantity=unit,
+        )
+        package_output.save()
+        
+        due_date = datetime.date.today()
+        order = Order(
+            name="test",
+            due_date=due_date,
+        )
+        order.save()
+
+        stages, inheritance = self.changeable.staged_process_type_sequence()
+        stage = stages[-1]
+        order_item = order.add_commitment(
+            resource_type=self.changeable,
+            context_agent=None,
+            quantity=Decimal("2000"),
+            event_type=change_event_type,
+            unit=unit,
+            description="Test",
+            stage=stage,
+        )
+        order_item.generate_producing_process(self.user, [], explode=True)
+        return order
+
+    def test_order_process_sequence(self):
+        """ Test sequencing when processes have same dates.
+        
+            This was a bug, test failed before code fix.
+        """
+        order = self.create_3_process_order()
+        order_item = order.order_items()[0]
+        
+        processes_b4 = order.all_processes()
+        oi_processes_b4 = order_item.all_processes_in_my_order_item()
+        #import pdb; pdb.set_trace()
+        for p in processes_b4:
+            p.start_date = order.due_date
+            p.end_date = order.due_date
+            p.save()
+        processes_after = order.all_processes()
+        #import pdb; pdb.set_trace()
+        oi_processes_after = order_item.all_processes_in_my_order_item()
+        self.assertEqual(processes_b4, processes_after)
+        self.assertEqual(oi_processes_b4, oi_processes_after)
+        
+    def test_delete_last_order_process(self):
+        order = self.create_3_process_order()
+        order_item = order.order_items()[0]
+        #delete last process
+        last_process = order.last_process_in_order()
+        order_item.adjust_workflow_commitments_process_deleted(process=last_process, user=self.user)
+        last_process.delete()
+        processes = order.all_processes()
+        self.assertFalse(last_process in processes)
+        self.assertEqual(len(processes), 2)
+        new_last_process = order.last_process_in_order()
+        self.assertEqual(new_last_process.name, "change")
+        
+    def test_delete_middle_order_process(self):
+        order = self.create_3_process_order()
+        order_item = order.order_items()[0]
+        #delete middle process
+        processes = order.all_processes()
+        middle_process = processes[1]
+        order_item.adjust_workflow_commitments_process_deleted(process=middle_process, user=self.user)
+        middle_process.delete()
+        processes = order.all_processes()
+        self.assertFalse(middle_process in processes)
+        self.assertEqual(len(processes), 2)
+        last_process = order.last_process_in_order()
+        self.assertEqual(last_process.name, "package")
+        

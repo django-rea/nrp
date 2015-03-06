@@ -247,7 +247,7 @@ textarea {
                       
                       {% for oh in item.onhand %}
                             <div class "onhand">
-                                {% trans 'Onhand' %}: <a href="{{ oh.get_absolute_url }}"> {{ oh }}</a>
+                                {% trans 'Onhand' %}: <a href="{{ oh.get_absolute_url }}"> {{ oh }} {{ oh.formatted_quantity }}</a>
                             </div>
                       {% endfor %}
                       {% for process in item.all_processes_in_my_order_item %}

@@ -3046,19 +3046,22 @@ class Order(models.Model):
                 if c.process:
                     processes.append(c.process)
             processes = list(set(processes))
-        roots = []
-        for p in processes:
-            if not p.next_processes_for_order(self):
-                roots.append(p)
+        ends = []
+        #import pdb; pdb.set_trace()
+        for proc in processes:
+            if not proc.next_processes_for_order(self):
+                ends.append(proc)
         ordered_processes = []
-        for root in roots:
+        for end in ends:
             visited = []
-            root.all_previous_processes_for_order(self, ordered_processes, visited, 0)
+            end.all_previous_processes_for_order(self, ordered_processes, visited, 0)
+        ordered_processes.reverse()
         #todo: review bug fixes
         #order by date is not reliable here
-        ordered_processes = list(set(ordered_processes))
-        ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
-        ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
+        #this sort appears to be about more than one end process
+        #ordered_processes = list(set(ordered_processes))
+        #ordered_processes = sorted(ordered_processes, key=attrgetter('end_date'))
+        #ordered_processes = sorted(ordered_processes, key=attrgetter('start_date'))
         return ordered_processes 
         
     def unordered_processes(self):
@@ -3635,6 +3638,17 @@ class EconomicResource(models.Model):
         
     def unit_of_quantity(self):
         return self.resource_type.unit
+        
+    def formatted_quantity(self):
+        unit = self.unit_of_quantity()
+        if unit:
+            if unit.symbol:
+                answer = "".join([unit.symbol, str(self.quantity)])
+            else:
+                answer = " ".join([str(self.quantity), unit.abbrev])
+        else:
+            answer = str(self.quantity)
+        return answer
 
     def change_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm
@@ -4310,7 +4324,11 @@ class EconomicResource(models.Model):
                 if flow not in events:
                     events.append(flow)
         return events
-         
+        
+    def possible_root_events(self):
+        root_names = ['Create Changeable', 'Resource Production',  'Receipt']
+        return self.events.filter(event_type__name__in=root_names)
+                
     def value_flow_going_forward(self):
         #todo: needs rework, see next method
         #import pdb; pdb.set_trace()
@@ -4320,14 +4338,7 @@ class EconomicResource(models.Model):
         self.depth = depth
         flows.append(self)
         self.value_flow_going_forward_dfs(flows, visited, depth)
-        creation_et = EventType.objects.get(name='Create Changeable')
-        production_et = EventType.objects.get(name='Resource Production')
-        receipt_et = EventType.objects.get(name='Receipt')
-        all_events = self.events.all()
-        events = all_events.filter(
-            Q(event_type=creation_et)|
-            Q(event_type=production_et)|
-            Q(event_type=receipt_et))
+        events = self.possible_root_events()
         if events:
             processes = []
             for event in events:
@@ -4359,6 +4370,15 @@ class EconomicResource(models.Model):
                             evt.depth = depth
                             flows.append(evt)
                             
+    def forward_flow(self):
+        flows = []
+        visited = []
+        depth = 0
+        self.depth = depth
+        flows.append(self)
+        usage_events = self.all_usage_events()
+        import pdb; pdb.set_trace()
+                            
     def staged_process_sequence_beyond_workflow(self):
         #todo: this was created for a DHen report 
         # but does not work yet because the converted data
@@ -4369,22 +4389,12 @@ class EconomicResource(models.Model):
             return processes
         creation_event = None
         #import pdb; pdb.set_trace()
-        creation_et = EventType.objects.get(name='Create Changeable')
-        production_et = EventType.objects.get(name='Resource Production')
-        receipt_et = EventType.objects.get(name='Receipt')
-        all_events = self.events.all()
-        events = all_events.filter(
-            Q(event_type=creation_et)|
-            Q(event_type=production_et)|
-            Q(event_type=receipt_et))
+        events = self.possible_root_events()
         if events:
             creation_event = events[0]
         if not creation_event:
             return processes
         if creation_event.process:
-            #all_processes = [event.process for event in events if event.process]
-            #all_processes = list(set(all_processes))
-            #processes.append(creation_event.process)
             creation_event.follow_process_chain_beyond_workflow(processes, all_events)
 
     def value_flow_going_forward_processes(self):
@@ -5206,11 +5216,12 @@ class Process(models.Model):
             rt = oc.resource_type
             if oc.cycle_id() not in input_ids:
                 for cc in rt.wanting_commitments():
-                    if cc.stage == stage and cc.state == state:
-                        if dmnd:
-                            if cc.order_item == dmnd:
-                                if cc.process not in answer:
-                                    answer.append(cc.process)
+                    if cc.process:
+                        if cc.stage == stage and cc.state == state:
+                            if dmnd:
+                                if cc.order_item == dmnd:
+                                    if cc.process not in answer:
+                                        answer.append(cc.process)
         return answer
 
 
@@ -7079,6 +7090,8 @@ class Commitment(models.Model):
         
     def adjust_workflow_commitments_process_added(self, process, user): #process added to the end of the order item
         #import pdb; pdb.set_trace()
+        #todo: review bug fixes.
+        #shdnt this adjust order_item as in adjust_workflow_commitments_process_deleted
         last_process = self.last_process_in_my_order_item() 
         process.add_stream_commitments(last_process=last_process, user=user)
         last_commitment = last_process.main_outgoing_commitment()
@@ -7087,6 +7100,8 @@ class Commitment(models.Model):
         
     def adjust_workflow_commitments_process_inserted(self, process, next_process, user):
         #import pdb; pdb.set_trace()
+        #todo: review bug fixes.
+        #shd this adjust order_item as in adjust_workflow_commitments_process_deleted
         all_procs = self.all_processes_in_my_order_item()
         process_index = all_procs.index(next_process)
         if process_index > 0:
@@ -7104,9 +7119,6 @@ class Commitment(models.Model):
     def adjust_workflow_commitments_process_deleted(self, process, user):
         #import pdb; pdb.set_trace()
         #todo: review bug fixes.
-        # all_processes_in_my_order_item() returned processes in the wrong sequence,
-        # because they were sorted by date and all had the same date.
-        # See new and old code.
         all_procs = self.all_processes_in_my_order_item()
         process_index = all_procs.index(process)
         last_process = None

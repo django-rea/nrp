@@ -100,7 +100,13 @@ ul {
                             {% else %}
                                 <td>{{ event.to_agent }}</td>
                             {% endif %}
-                            <td>{{ event.event_reference }}</td>
+                            <td>
+                                {% if event.event_reference %}
+                                    {{ event.event_reference }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            </td>
                         </tr>
 
                     {% endfor %}

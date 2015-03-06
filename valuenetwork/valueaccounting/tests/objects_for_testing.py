@@ -220,11 +220,12 @@ class WorkFlowRecipe(object):
                 )
                 self.change_event_type.save()
 
-        change_pt = ProcessType(
+        self.change_pt = ProcessType(
             name="change",
             estimated_duration=7200,
         )
-        change_pt.save()
+        self.change_pt.save()
+        change_pt = self.change_pt
 
         create_pt = ProcessType(
             name="create",

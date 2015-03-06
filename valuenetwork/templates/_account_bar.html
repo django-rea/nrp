@@ -8,6 +8,7 @@
             </a>
             <ul class="dropdown-menu">
                 <li><a href="{% url account_settings %}"><i class="icon-user"></i> Settings</a></li>
+                <li><a href="{% url tutorials %}"><i class="icon-user"></i> NRP Tutorials</a></li>
 				{% if user.is_staff %}
 	                <li><a href="/admin/"><i class="icon-wrench"></i> Admin</a></li>
 	                <li><a href="{% url maintain_patterns %}"><i class="icon-cog"></i> Patterns</a></li>
@@ -31,7 +32,9 @@
             {% else %}
                 <a href="{% url account_login %}?next={% firstof request.path '/' %}">
             {% endif %}
-            Log in</a></li>
+            Log in</a>
+        </li>
+        <li><a href="{% url tutorials %}"> NRP Tutorials</a></li>
         {% if ACCOUNT_OPEN_SIGNUP %}
             <li class="navbar-text">or</li>
             <li><a href="{% url account_signup %}">Sign up</a></li>

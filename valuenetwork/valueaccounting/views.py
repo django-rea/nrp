@@ -390,11 +390,8 @@ def change_agent(request, agent_id):
         #import pdb; pdb.set_trace()
         if change_form.is_valid():
             agent = change_form.save()
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/agent', agent.id))
-    return render_to_response("valueaccounting/change_agent.html", {
-        "change_form": change_form,
-        }, context_instance=RequestContext(request))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/agent', agent.id))
                         
 def agents(request):
     #import pdb; pdb.set_trace()

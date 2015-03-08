@@ -248,9 +248,10 @@ def project_process_resource_agent_graph(project_list, process_list):
             else:
                 match = True
             if match:
-                p_id = wct.process.node_id()
-                if p_id in processes:
-                    drt["next"].append(p_id)
+                if wct.process:
+                    p_id = wct.process.node_id()
+                    if p_id in processes:
+                        drt["next"].append(p_id)
         resource_types[ort.resource_type_node_id()] = drt
     #import pdb; pdb.set_trace()
     for order in order_set:

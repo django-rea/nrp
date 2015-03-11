@@ -62,23 +62,25 @@ def group_dfs_by_has_associate(root, node, all_associations, visited, depth):
     #works only for agents, and only follows association_from
     #import pdb; pdb.set_trace()
     to_return = []
-    visited.append(node)
-    node.depth = depth
-    to_return.append(node)
-    for association in all_associations:
-        if association.has_associate.id == node.id:
-                to_return.extend(group_dfs_by_has_associate(root, association.is_associate, all_associations, visited, depth+1))
+    if node not in visited:
+        visited.append(node)
+        node.depth = depth
+        to_return.append(node)
+        for association in all_associations:
+            if association.has_associate.id == node.id:
+                    to_return.extend(group_dfs_by_has_associate(root, association.is_associate, all_associations, visited, depth+1))
     return to_return
     
 def group_dfs_by_is_associate(root, node, all_associations, visited, depth): 
     #import pdb; pdb.set_trace()
     to_return = []
-    visited.append(node)
-    node.depth = depth
-    to_return.append(node)
-    for association in all_associations:
-        if association.is_associate.id == node.id:
-                to_return.extend(group_dfs_by_is_associate(root, association.has_associate, all_associations, visited, depth+1))
+    if node not in visited:
+        visited.append(node)
+        node.depth = depth
+        to_return.append(node)
+        for association in all_associations:
+            if association.is_associate.id == node.id:
+                    to_return.extend(group_dfs_by_is_associate(root, association.has_associate, all_associations, visited, depth+1))
     return to_return
     
 class Edge(object):

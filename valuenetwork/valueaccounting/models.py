@@ -596,7 +596,7 @@ class EconomicAgent(models.Model):
         else:     
             associations = AgentAssociation.objects.all().order_by("-association_type")
             #associations = associations.exclude(is_associate__agent_type__party_type="individual")
-            associations = associations.exclude(association_type__identifier="supplier")
+            #associations = associations.exclude(association_type__identifier="supplier")
             gas = group_dfs_by_has_associate(self, self, associations, [], 1)
             gas.extend(group_dfs_by_is_associate(self, self, associations, [], 1))
             agents = [self,]

@@ -123,7 +123,9 @@ ul {
                     {% for event in events %}
                         <tr class="{% cycle 'odd' 'even' %}">
                             <td>{{ event.event_date }}</td>
-                            <td><a href="{% url exchange_logging exchange_id=event.exchange.id %}">{{ event.account }}</a></td>
+                            <td>{% if event.exchange %}<a href="{% url exchange_logging exchange_id=event.exchange.id %}">{{ event.account }}</a>
+                                {% else %} {{ event.account }} {% endif %}
+                            </td>
                             <td>{{ event.virtual_account }}</td>
                             {% if event.in_out == "in" %}
                                 <td>{{ event.quantity }}</td>

@@ -110,9 +110,9 @@ ul {
 
             <table id="detail-table" style="width: 100%;" class="table table-bordered table-hover table-condensed" >
                 <thead>
-                    <th>{% trans "Virtual Account" %}</th>
                     <th>{% trans "Date" %}</th>
                     <th>{% trans "Category" %}</th>
+                    <th>{% trans "Virtual Account" %}</th>
                     <th>{% trans "Cash In" %}</th>
                     <th>{% trans "Cash Out" %}</th>
                     <th>{% trans "Project" %}</th>
@@ -122,9 +122,9 @@ ul {
                 <tbody>	
                     {% for event in events %}
                         <tr class="{% cycle 'odd' 'even' %}">
-                            <td>{{ event.virtual_account }}</td>
                             <td>{{ event.event_date }}</td>
-                            <td>{{ event.account }}</td>
+                            <td><a href="{% url exchange_logging exchange_id=event.exchange.id %}">{{ event.account }}</a></td>
+                            <td>{{ event.virtual_account }}</td>
                             {% if event.in_out == "in" %}
                                 <td>{{ event.quantity }}</td>
                             {% else %}

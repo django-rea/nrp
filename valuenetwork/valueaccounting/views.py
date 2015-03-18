@@ -8995,7 +8995,7 @@ def exchange_logging(request, exchange_id):
     payment_events = exchange.payment_events()
     expense_events = exchange.expense_events()
     work_events = exchange.work_events()
-    cash_events = exchange.cash_contribution_events()
+    cash_events = exchange.cash_events()
     material_events = exchange.material_contribution_events()
     cash_receipt_events = exchange.cash_receipt_events()
     shipment_events = exchange.shipment_events_no_commitment()

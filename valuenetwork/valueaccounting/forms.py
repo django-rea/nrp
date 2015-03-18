@@ -203,7 +203,7 @@ class EconomicResourceForm(forms.ModelForm):
             'stage', 
             'state', 
             'value_per_unit',
-            'value_per_unit_of_use')
+            )
 
     def __init__(self, vpu_help=None, *args, **kwargs):
         super(EconomicResourceForm, self).__init__(*args, **kwargs)

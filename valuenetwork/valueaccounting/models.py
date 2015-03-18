@@ -1075,7 +1075,7 @@ DIRECTION_CHOICES = (
     ('pay', _('payment')),
     ('receive', _('receipt')),
     ('expense', _('expense')),
-    ('cash', _('cash contribution')),
+    ('cash', _('cash input')),
     ('resource', _('resource contribution')),
     ('receivecash', _('cash receipt')),
     ('shipment', _('shipment')),
@@ -3721,6 +3721,7 @@ class EconomicResource(models.Model):
             #todo br: use
             #br = evt.bucket_rule(value_equation)
         #Purchase contributions use event.value.
+        #todo 3d:
         buys = self.purchase_events()
         for evt in buys:
             #import pdb; pdb.set_trace()
@@ -3784,6 +3785,7 @@ class EconomicResource(models.Model):
                             path.append(ip)
                         #Use contributions use resource value_per_unit_of_use.
                         elif ip.event_type.relationship == "use":
+                            #import pdb; pdb.set_trace()
                             if ip.resource:
                                 ip.value = ip.quantity * ip.resource.value_per_unit_of_use
                                 ip.save()
@@ -3794,9 +3796,9 @@ class EconomicResource(models.Model):
                                 #print padding, depth, ip.id, ip
                                 #print padding, "--- ip.value: ", ip.value
                                 #print padding, "--- pe_value:", pe_value 
-                                ip.resource.roll_up_value(path, depth, visited, value_equation)
                                 ip.depth = depth
                                 path.append(ip)
+                                ip.resource.roll_up_value(path, depth, visited, value_equation)
                                 #br = ip.bucket_rule(value_equation)
                         #Consume contributions use resource rolled up value_per_unit
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
@@ -4198,6 +4200,15 @@ class EconomicResource(models.Model):
     def resource_contribution_events(self):
         ret_et = EventType.objects.get(relationship="resource")
         return self.events.filter(event_type=ret_et)
+        
+    def cash_events(self): #includes cash contributions, donations and loans
+        return self.events.filter(
+            event_type__relationship='cash')
+            
+    def cash_contribution_events(self): #includes only cash contributions
+        #todo 3d:
+        return self.events.filter(
+            event_type__name='Cash Contribution')
         
     def purchase_events(self):
         rct_et = EventType.objects.get(relationship="receive")
@@ -5936,7 +5947,7 @@ class Exchange(models.Model):
         return self.events.filter(
             event_type__relationship='resource')
         
-    def cash_contribution_events(self): #now includes cash contributions and donations
+    def cash_events(self): #includes cash contributions, donations and loans
         return self.events.filter(
             event_type__relationship='cash')
     
@@ -5993,6 +6004,7 @@ class Exchange(models.Model):
                 trigger_fraction = trigger_event.value / rsum
             payments = self.payment_events()
             #share =  quantity / trigger_event.quantity
+            #todo 3d: is this where to get the contributions to the payment account?
             if payments.count() == 1:
                 evt = payments[0]
                 #import pdb; pdb.set_trace()
@@ -6004,9 +6016,15 @@ class Exchange(models.Model):
                 values += value
                 evt.depth = depth
                 path.append(evt)
+                contributions = evt.resource.cash_contribution_events()
+                depth += 1
+                for c in contributions:
+                    c.depth = depth
+                    path.append(c)
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
+                    contributions = evt.resource.cash_contribution_events()
                     fraction = evt.quantity / total
                     #evt.share = evt.quantity * share * fraction * trigger_fraction
                     evt.share = evt.quantity * fraction * trigger_fraction
@@ -7619,6 +7637,7 @@ class EconomicEvent(models.Model):
             stage = self.commitment.stage
         if stage:
             self.resource.historical_stage = stage
+        #todo 3d:
         return self.resource.roll_up_value(path, depth, visited, value_equation)
         
     def bucket_rule(self, value_equation):

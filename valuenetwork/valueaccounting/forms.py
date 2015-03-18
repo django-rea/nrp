@@ -1929,7 +1929,7 @@ class CashContributionEventForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
     event_type = forms.ModelChoiceField(
         queryset=EventType.objects.cash_event_types(),
-        label="Contribution (for future distributsions) or donation (gift)",
+        label="Contribution (for future distributsions) or Donation (gift) or Loan (paid back asap)",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
@@ -1976,7 +1976,7 @@ class CashContributionResourceEventForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
     event_type = forms.ModelChoiceField(
         queryset=EventType.objects.cash_event_types(),
-        label="Contribution (for future distributsions) or donation (gift)",
+        label="Contribution (for future distributsions) or Donation (gift) or Loan (paid back asap)",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))

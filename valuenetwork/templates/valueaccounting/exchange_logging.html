@@ -503,13 +503,13 @@ li {
         {% if cash_events or "cash" in slots %}
           <div class="log-section">
 		    <h3 style="margin-bottom: 4px;" >
-		        {% trans "Cash Contribution" %}:  
+		        {% trans "Cash Input" %}:  
 	            {% if agent %}
-	                <a href="#addCashModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log receipt of a cash contribution" >
-		                {% trans "Log a cash contribution" %}
+	                <a href="#addCashModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log receipt of cash" >
+		                {% trans "Log a cash input" %}
 	                </a>
                     <a href="#addCashResourceModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log receipt of a cash contribution and a new cash resource" >
-                        {% trans "Log a cash contribution to new account" %}
+                        {% trans "Log cash to new account" %}
                     </a>
 	             {% endif %}
 	        </h3>
@@ -518,7 +518,8 @@ li {
 			        <div class="event">
 				        <span ><span class="event-label">
                             {% if event.event_type.name == "Cash Contribution" %}{% trans "Contributed" %}
-                            {% else %} {% trans "Donated" %}{% endif%}: </span> 
+                            {% elif event.event_type.name == "Donation" %} {% trans "Donated" %}
+                            {% else %} {% trans "Loan" %} {% endif%}: </span> 
 				            <b>{{ event.value }} {{ event.unit_of_value}}</b> from <b>{{ event.from_agent.nick }}</b> {{ event.event_date }}</span>
      	                {% if logger or event.from_agent == agent  %}
 		                    <form

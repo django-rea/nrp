@@ -2676,6 +2676,7 @@ def create_event_types(app, **kwargs):
     EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '+', 'value')
     EventType.create('Cash Disbursement', _('disburses cash'), _('disbursed by'), 'disburse', 'exchange', '-', 'value')
     EventType.create('Payout', _('pays out'), _('paid by'), 'payout', 'agent', '-', 'value')
+    EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
     #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"

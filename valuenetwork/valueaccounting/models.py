@@ -3604,7 +3604,7 @@ class EconomicResource(models.Model):
             ])
             
     def context_agents(self):
-        pes = self.producing_events()
+        pes = self.where_from_events()
         cas = [pe.context_agent for pe in pes if pe.context_agent]
         if not cas:
             pts = self.resource_type.producing_process_types()
@@ -3984,9 +3984,9 @@ class EconomicResource(models.Model):
         return shares
          
     def compute_shipment_income_shares(self, value_equation, quantity):
-        visited = set()
-        path = []
-        depth = 0
+        #visited = set()
+        #path = []
+        #depth = 0
         #value_per_unit = self.roll_up_value(path, depth, visited, value_equation)
         #print "value_per_unit:", value_per_unit
         #value = quantity * value_per_unit
@@ -4065,6 +4065,7 @@ class EconomicResource(models.Model):
                             value = br.compute_claim_value(pe)
                         pe.share = value * distro_fraction
                         events.append(pe)
+                    #import pdb; pdb.set_trace()
                     if process.context_agent.compatible_value_equation(value_equation):
                         inputs = process.incoming_events()
                         for ip in inputs:
@@ -4083,12 +4084,24 @@ class EconomicResource(models.Model):
                                 #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
                             elif ip.event_type.relationship == "use":
                                 #use events are not contributions, but their resources may have contributions
+                                #todo 3d: use event
+                                #import pdb; pdb.set_trace()
                                 if ip.resource:
-                                    ip_value = ip.value * distro_fraction
+                                    value = ip.value
+                                    ip_value = value * distro_fraction
                                     d_qty = distro_qty
-                                    if ip_value:
+                                    if ip_value and value:
                                         d_qty = ip_value / value
-                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited) 
+                                    #d_qty may be the wrong qty to pass into compute_income_shares
+                                    #and compute_income_shares may be the wrong method anyway
+                                    #Maybe a use event method?
+                                    #What we want to do is pass the ip_value down to the exchange...
+                                    #Conceptually, we are distributing ip_value to the contributors to the resource!
+                                    new_visited = set()
+                                    path = []
+                                    depth = 0
+                                    resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
+                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
                             elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                                 #consume events are not contributions, but their resources may have contributions                       
                                 ip_value = ip.value * distro_fraction
@@ -4102,12 +4115,97 @@ class EconomicResource(models.Model):
                             elif ip.event_type.relationship == "cite":
                                 #import pdb; pdb.set_trace()   
                                 #citation events are not contributions, but their resources may have contributions
-                                ip_value = ip.value * distro_fraction
+                                value = ip.value
+                                ip_value = value * distro_fraction
                                 d_qty = distro_qty
-                                if ip_value:
+                                if ip_value and value:
                                     d_qty = ip_value / value
                                     #print "citation:", ip.id, ip, "ip.value:", ip.value
                                     #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                
+    def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
+        #Resource method
+        contributions = self.resource_contribution_events()
+        for evt in contributions:
+            br = evt.bucket_rule(value_equation)
+            value = evt.value
+            if br:
+                value = br.compute_claim_value(evt)
+            if value:
+                vpu = value / evt.quantity
+                #todo 3d: how to compute?
+                evt.share = quantity * vpu
+                events.append(evt)
+        buys = self.purchase_events()
+        for evt in buys:
+            if evt.exchange:
+                evt.exchange.compute_income_shares_for_use(value_equation, use_event, use_value, resource_value, events, visited)
+        processes = self.producing_processes()
+        #shd only be one producing process for a used resource..right?
+        for process in processes:
+            if process not in visited:
+                visited.add(process)
+                if quantity:
+                    #todo: how will this work for >1 processes producing the same resource?
+                    #what will happen to the shares of the inputs of the later processes?
+                    production_events = process.production_events()
+                    produced_qty = sum(pe.quantity for pe in production_events)
+                    #todo 3d: how to compute?
+                    #this fraction stuff only applies to shipped qties
+                    #which do not apply here...
+                    distro_fraction = 1
+                    distro_qty = quantity
+                    if produced_qty > quantity:
+                        distro_fraction = quantity / produced_qty
+                        quantity = Decimal("0.0")
+                    elif produced_qty <= quantity:
+                        distro_qty = produced_qty
+                        quantity -= produced_qty
+                    for pe in production_events:
+                        value = pe.quantity
+                        br = pe.bucket_rule(value_equation)
+                        if br:
+                            value = br.compute_claim_value(pe)
+                        #todo 3d: how to compute?
+                        pe.share = value * distro_fraction
+                        events.append(pe)
+                    if process.context_agent.compatible_value_equation(value_equation):
+                        inputs = process.incoming_events()
+                        for ip in inputs:
+                            #we assume here that work events are contributions
+                            if ip.event_type.relationship == "work":
+                                value = ip.value
+                                br = ip.bucket_rule(value_equation)
+                                if br:
+                                    value = br.compute_claim_value(ip)
+                                #todo 3d: how to compute?
+                                import pdb; pdb.set_trace()
+                                fraction = ip.value / resource_value
+                                ip.share = use_value * fraction
+                                #ip.share = value * distro_fraction
+                                events.append(ip)
+                            elif ip.event_type.relationship == "use":
+                                #use events are not contributions, but their resources may have contributions
+                                if ip.resource:
+                                    value = ip.value
+                                    ip_value = value * distro_fraction
+                                    d_qty = distro_qty
+                                    if ip_value and value:
+                                        d_qty = ip_value / value
+                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
+                            elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
+                                #consume events are not contributions, but their resources may have contributions                       
+                                ip_value = ip.value * distro_fraction
+                                d_qty = ip.quantity * distro_fraction
+                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                            elif ip.event_type.relationship == "cite":
+                                #citation events are not contributions, but their resources may have contributions
+                                value = ip.value
+                                ip_value = value * distro_fraction
+                                d_qty = distro_qty
+                                if ip_value and value:
+                                    d_qty = ip_value / value
                                 ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
 
     def direct_share_components(self, components, visited, depth):
@@ -4385,7 +4483,7 @@ class EconomicResource(models.Model):
         self.depth = depth
         flows.append(self)
         usage_events = self.all_usage_events()
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
                             
     def staged_process_sequence_beyond_workflow(self):
         #todo: this was created for a DHen report 
@@ -6005,7 +6103,6 @@ class Exchange(models.Model):
                 trigger_fraction = trigger_event.value / rsum
             payments = self.payment_events()
             #share =  quantity / trigger_event.quantity
-            #todo 3d: is this where to get the contributions to the payment account?
             if payments.count() == 1:
                 evt = payments[0]
                 #import pdb; pdb.set_trace()
@@ -6019,6 +6116,7 @@ class Exchange(models.Model):
                 path.append(evt)
                 contributions = evt.resource.cash_contribution_events()
                 depth += 1
+                #todo 3d: done, maybe
                 for c in contributions:
                     c.depth = depth
                     path.append(c)
@@ -6032,6 +6130,7 @@ class Exchange(models.Model):
                     evt.depth = depth
                     path.append(evt)
                     values += evt.share
+                    #todo 3d: do multiple payments make sense for cash contributions?
             for evt in self.work_events():
                 #import pdb; pdb.set_trace()
                 value = evt.quantity
@@ -6069,6 +6168,21 @@ class Exchange(models.Model):
                     value = br.compute_claim_value(evt)
                 evt.share = value * share
                 events.append(evt)
+                #todo 3d: intervene here
+                #import pdb; pdb.set_trace()
+                if evt.resource:
+                    candidates = evt.resource.cash_contribution_events()
+                    contributions = []
+                    for cand in candidates:
+                        br = cand.bucket_rule(value_equation)
+                        if br:
+                            cand.value = br.compute_claim_value(cand)
+                            if cand.value:
+                                contributions.append(cand)
+                    for ct in contributions:
+                        fraction = ct.quantity / value
+                        ct.share = ct.value * share * fraction * trigger_fraction
+                        events.append(ct)
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
@@ -6083,6 +6197,61 @@ class Exchange(models.Model):
                     #import pdb; pdb.set_trace()
                     value = br.compute_claim_value(evt)
                 evt.share = value * share * trigger_fraction
+                events.append(evt)
+                
+    def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
+        #exchange method
+        #import pdb; pdb.set_trace()
+        if self not in visited:
+            visited.add(self)
+            resource = use_event.resource
+            receipts = self.receipt_events()
+            trigger_fraction = 1
+            if receipts.count() > 1:
+                msg = " ".join([resource.__unicode__(), "has more than one receipt."])
+                assert False, msg
+            payments = self.payment_events()
+            cost = sum(p.quantity for p in payments)
+            share =  use_value / cost
+            if payments.count() == 1:
+                evt = payments[0]
+                #import pdb; pdb.set_trace()
+                value = evt.quantity
+                br = evt.bucket_rule(value_equation)
+                if br:
+                    #import pdb; pdb.set_trace()
+                    value = br.compute_claim_value(evt)
+                #todo 3d: how to compute?
+                evt.share = value * share
+                events.append(evt)
+                #todo 3d: intervene here
+                #import pdb; pdb.set_trace()
+                if evt.resource:
+                    contributions = evt.resource.cash_contribution_events()
+                    #import pdb; pdb.set_trace()
+                    for ct in contributions:
+                        fraction = ct.quantity / resource_value
+                        #todo 3d: how to compute?
+                        ct.share = use_value * fraction
+                        events.append(ct)
+            elif payments.count() > 1:
+                total = sum(p.quantity for p in payments)
+                for evt in payments:
+                    fraction = evt.quantity / total
+                    #todo 3d: how to compute?
+                    evt.share = evt.quantity * share * fraction
+                    events.append(evt)
+            for evt in self.work_events():
+                #import pdb; pdb.set_trace()
+                value = evt.quantity
+                br = evt.bucket_rule(value_equation)
+                if br:
+                    #import pdb; pdb.set_trace()
+                    value = br.compute_claim_value(evt)
+                evt.value = value
+                #todo 3d: how to compute?
+                fraction = value / resource_value
+                evt.share = use_value * fraction
                 events.append(evt)
                 
     def distribution_value_equation(self):
@@ -8367,6 +8536,7 @@ class ValueEquation(models.Model):
             if self.percentage_behavior == "remaining":
                 amount_to_distribute = amount_to_distribute - amount_distributed
         agent_amounts = {}
+        #import pdb; pdb.set_trace()
         for dtl in detail_sums:
             detail = dtl.split("~")
             if detail[0] in agent_amounts:
@@ -8590,6 +8760,7 @@ class ValueEquationBucket(models.Model):
             events = []
             for order in orders:
                 for order_item in order.order_items():
+                    #todo 3d: one method to chase
                     events.extend(order_item.compute_income_fractions(ve))
                 exchanges = Exchange.objects.filter(order=order)
                 #import pdb; pdb.set_trace()
@@ -8615,6 +8786,7 @@ class ValueEquationBucket(models.Model):
             for ship in shipment_events:
                 resource = ship.resource
                 qty = ship.quantity
+                #todo 3d: two methods to chase
                 if resource:
                     events.extend(resource.compute_shipment_income_shares(ve, qty))
                 else:
@@ -8682,9 +8854,9 @@ class ValueEquationBucket(models.Model):
                 obj = "shipment"
                 sel = " to the selected shipments"
             if share < claim.value:
-                reason = " The reason the value added is less than the contribution value is that the contribution added value to more than one deliverable."
+                reason = " The reason the value added is less than the contribution value is that the contribution's value was not all used for this deliverable."
             claim.event.explanation = "".join([
-                "This contribution added ", str(share), unit_of_value, 
+                "This contribution added ", str(share), " ", unit_of_value, 
                 " of value",
                 sel,
                 excuse,

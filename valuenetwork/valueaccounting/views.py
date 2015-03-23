@@ -6489,6 +6489,7 @@ def incoming_value_flows(request, resource_id):
     ve = None
     all_ves = None
     ve_selection_form = None
+    #import pdb; pdb.set_trace()
     ves = resource.value_equations()
     if len(ves) > 1:
         all_ves = ves

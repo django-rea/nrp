@@ -252,22 +252,69 @@ td {
     {
         var selectedDists = $("#id_input_distributions").val();
         adjustDist();
-        getShipments(selectedDists);
+        var shipmentSelectors = $(".shipment-event");
+        if (shipmentSelectors[0])
+        {
+            getShipments(selectedDists, shipmentSelectors);
+        }
+        var orderSelectors = $(".order");
+        if (orderSelectors[0])
+        {
+            getOrders(selectedDists, orderSelectors);
+        }
         
     }
     
-    function getShipments(selectedDists)
+    function getOrders(selectedDists, orderSelectors)
     {
         
-        var shipmentSelectors = $(".shipment-event");
-        if (shipmentSelectors)
+
+        if (selectedDists)
         {
-            if (selectedDists)
+            distId = selectedDists[0];
+            var jsonUrl = encodeURI("/accounting/json-distribution-related-order/" + distId + "/");
+            $.get(jsonUrl, function(data){
+                var orderId = data["order_id"];
+                var orderDesc = data["order_description"];
+                if (orderId)
+                {
+                    for(var i=0 ; i<orderSelectors.length ; i++)
+                    {
+                        var sel = orderSelectors[i];
+                        var selId = "#" + sel.id;
+                        //$(selId).val(orderArray).trigger("liszt:updated");
+                        $(selId)
+                            .append($("<option></option>")
+                            .attr("value",orderId)
+                            .text(orderDesc)); 
+                        $(selId).trigger("liszt:updated");
+                    }
+                }
+            });
+        }
+        else
+        {
+            for(var i=0 ; i<orderSelectors.length ; i++)
             {
-                distId = selectedDists[0];
-                var jsonUrl = encodeURI("/accounting/json-distribution-related-shipment/" + distId + "/");
-                $.get(jsonUrl, function(data){
-                    var shipId = data["ship_id"];
+                var sel = orderSelectors[i];
+                var selId = "#" + sel.id;
+                $(selId).val([]).trigger("liszt:updated");
+            }
+        }
+
+    }
+    
+    function getShipments(selectedDists, shipmentSelectors)
+    {
+        
+        if (selectedDists)
+        {
+            distId = selectedDists[0];
+            var jsonUrl = encodeURI("/accounting/json-distribution-related-shipment/" + distId + "/");
+            $.get(jsonUrl, function(data){
+                var shipId = data["ship_id"];
+                if (shipId)
+                {
                     var shipArray = [shipId,];
                     for(var i=0 ; i<shipmentSelectors.length ; i++)
                     {
@@ -275,20 +322,20 @@ td {
                         var selId = "#" + sel.id;
                         $(selId).val(shipArray).trigger("liszt:updated");
                     }
-                });
-            }
-            else
-            {
-                for(var i=0 ; i<shipmentSelectors.length ; i++)
-                {
-                    var sel = shipmentSelectors[i];
-                    var selId = "#" + sel.id;
-                    $(selId).val([]).trigger("liszt:updated");
                 }
+            });
+        }
+        else
+        {
+            for(var i=0 ; i<shipmentSelectors.length ; i++)
+            {
+                var sel = shipmentSelectors[i];
+                var selId = "#" + sel.id;
+                $(selId).val([]).trigger("liszt:updated");
             }
         }
+
     }
-    
     
     function adjustDist()
     {

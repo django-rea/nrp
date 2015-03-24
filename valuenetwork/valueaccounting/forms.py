@@ -3439,7 +3439,11 @@ class OrderMultiSelectForm(forms.Form):
         
     def __init__(self, context_agent, *args, **kwargs):
         super(OrderMultiSelectForm, self).__init__(*args, **kwargs)
-        self.fields["orders"].queryset = context_agent.orders_queryset()
+        #import pdb; pdb.set_trace()
+        if kwargs.get("data"):
+            self.fields["orders"].queryset = Order.objects.all()
+        else:
+            self.fields["orders"].queryset = context_agent.orders_queryset()
         
     def serialize(self):
         data = self.cleaned_data

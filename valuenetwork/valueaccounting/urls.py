@@ -453,6 +453,8 @@ urlpatterns += patterns("",
     url(r"^cash-report/$", 'valuenetwork.valueaccounting.views.cash_report', name="cash_report"),
     url(r"^json-distribution-related-shipment/(?P<distribution_id>\d+)/$", 'valuenetwork.valueaccounting.views.json_distribution_related_shipment', 
         name="json_distribution_related_shipment"),
+    url(r"^json-distribution-related-order/(?P<distribution_id>\d+)/$", 'valuenetwork.valueaccounting.views.json_distribution_related_order', 
+        name="json_distribution_related_order"),
     url(r'^cash-events-csv/$', 'valuenetwork.valueaccounting.views.cash_events_csv', 
         name="cash_events_csv"),
     url(r'^tutorials/$', direct_to_template, {

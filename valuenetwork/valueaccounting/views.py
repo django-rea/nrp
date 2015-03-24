@@ -1341,8 +1341,23 @@ def json_resource(request, resource_id):
 def json_distribution_related_shipment(request, distribution_id):
     d = get_object_or_404(EconomicEvent, pk=distribution_id)
     ship = d.get_shipment_for_distribution()
-    sd = {"ship_id": ship.id,}
+    sd = {}
+    if ship:
+        sd = {"ship_id": ship.id,}
     data = simplejson.dumps(sd)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    
+def json_distribution_related_order(request, distribution_id):
+    d = get_object_or_404(EconomicEvent, pk=distribution_id)
+    #import pdb; pdb.set_trace()
+    order = d.get_order_for_distribution()
+    od = {}
+    if order:
+        od = {
+                "order_id": order.id,
+                "order_description": order.__unicode__(),
+            }
+    data = simplejson.dumps(od)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
     
 class EventSummary(object):
@@ -9315,6 +9330,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
     pattern = ProcessPattern.objects.usecase_patterns(use_case)[0]
     if request.method == "POST":
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True, data=request.POST)
+        #import pdb; pdb.set_trace()
         if header_form.is_valid():
             data = header_form.cleaned_data
             ve = data["value_equation"]
@@ -9336,6 +9352,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             notes = data["notes"]
             serialized_filters = {}
             buckets = ve.buckets.all()
+            #import pdb; pdb.set_trace()
             for bucket in buckets:
                 if bucket.filter_method:
                     bucket_form = bucket.filter_entry_form(data=request.POST or None)
@@ -9354,7 +9371,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                 created_by=request.user,
             )
             #exchange.save()
-
+            
             exchange = ve.run_value_equation_and_save(
                 cash_receipts=crs,
                 input_distributions=inds,
@@ -9364,6 +9381,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                 serialized_filters=serialized_filters)
             for event in exchange.distribution_events():
                 send_distribution_notification(event)
+            
                 
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/exchange', exchange.id))

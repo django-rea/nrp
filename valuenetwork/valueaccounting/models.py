@@ -3764,6 +3764,7 @@ class EconomicResource(models.Model):
                     for ip in inputs:
                         #Work contributions use resource_type.value_per_unit
                         if ip.event_type.relationship == "work":
+                            #import pdb; pdb.set_trace()
                             value = ip.quantity * ip.value_per_unit()
                             if value_equation:
                                 br = ip.bucket_rule(value_equation)
@@ -4180,7 +4181,7 @@ class EconomicResource(models.Model):
                                 if br:
                                     value = br.compute_claim_value(ip)
                                 #todo 3d: how to compute?
-                                import pdb; pdb.set_trace()
+                                #import pdb; pdb.set_trace()
                                 fraction = ip.value / resource_value
                                 ip.share = use_value * fraction
                                 #ip.share = value * distro_fraction
@@ -7695,6 +7696,7 @@ class EconomicEvent(models.Model):
         return (datetime.date.today() - self.event_date).days
         
     def value_per_unit(self):
+        #import pdb; pdb.set_trace()
         if self.resource:
             return self.resource.value_per_unit
         if self.from_agent:
@@ -8288,6 +8290,16 @@ class EconomicEvent(models.Model):
                         if ship_ct == se.commitment:
                             the_shipment = se
         return the_shipment
+        
+    def get_order_for_distribution(self):
+        the_order = None
+        if self.event_type.name == "Distribution":
+            ex = self.exchange
+            dve = ex.distribution_value_equation()
+            orders = dve.orders()
+            if orders:
+                the_order = orders[0]
+        return the_order
         
     def independent_demand(self):
         if self.commitment:

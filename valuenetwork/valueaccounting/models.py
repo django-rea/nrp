@@ -3922,7 +3922,8 @@ class EconomicResource(models.Model):
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             ip.depth = depth
                             path.append(ip)
-                            ip.resource.rollup_explanation_traversal(path, visited, depth)
+                            if ip.resource:
+                                ip.resource.rollup_explanation_traversal(path, visited, depth)
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
                             path.append(ip)
@@ -3959,7 +3960,8 @@ class EconomicResource(models.Model):
                             ip.depth = depth
                             components.append(ip)
                             #depth += 1
-                            ip.resource.direct_value_components(components, visited, depth)
+                            if ip.resource:
+                                ip.resource.direct_value_components(components, visited, depth)
                             #depth += 1
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
@@ -4112,7 +4114,8 @@ class EconomicResource(models.Model):
                                 #if ip_value:
                                     #print "consumption:", ip.id, ip, "ip.value:", ip.value
                                     #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                             elif ip.event_type.relationship == "cite":
                                 #import pdb; pdb.set_trace()   
                                 #citation events are not contributions, but their resources may have contributions
@@ -4123,7 +4126,8 @@ class EconomicResource(models.Model):
                                     d_qty = ip_value / value
                                     #print "citation:", ip.id, ip, "ip.value:", ip.value
                                     #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                                 
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #Resource method
@@ -4199,7 +4203,8 @@ class EconomicResource(models.Model):
                                 #consume events are not contributions, but their resources may have contributions                       
                                 ip_value = ip.value * distro_fraction
                                 d_qty = ip.quantity * distro_fraction
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                             elif ip.event_type.relationship == "cite":
                                 #citation events are not contributions, but their resources may have contributions
                                 value = ip.value
@@ -4207,7 +4212,8 @@ class EconomicResource(models.Model):
                                 d_qty = distro_qty
                                 if ip_value and value:
                                     d_qty = ip_value / value
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
 
     def direct_share_components(self, components, visited, depth):
         depth += 1
@@ -4240,7 +4246,8 @@ class EconomicResource(models.Model):
                             ip.depth = depth
                             components.append(ip)
                             #depth += 1
-                            ip.resource.direct_value_components(components, visited, depth)
+                            if ip.resource:
+                                ip.resource.direct_value_components(components, visited, depth)
                             #depth += 1
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
@@ -5800,10 +5807,11 @@ class Process(models.Model):
                 elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                     ip.depth = depth
                     path.append(ip)
-                    value_per_unit = ip.resource.roll_up_value(path, depth, visited)
-                    ip.value = ip.quantity * value_per_unit
-                    ip.save()
-                    process_value += ip.value
+                    if ip.resource:
+                        value_per_unit = ip.resource.roll_up_value(path, depth, visited)
+                        ip.value = ip.quantity * value_per_unit
+                        ip.save()
+                        process_value += ip.value
                 #Citations valued later, after all other inputs added up
                 elif ip.event_type.relationship == "cite":
                     ip.depth = depth
@@ -5887,7 +5895,8 @@ class Process(models.Model):
                                 d_qty = ip.quantity * distro_fraction
                                 #print "consumption:", ip.id, ip, "ip.value:", ip.value
                                 #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                         elif ip.event_type.relationship == "cite":
                             #import pdb; pdb.set_trace()   
                             #citation events are not contributions, but their resources may have contributions
@@ -5896,7 +5905,8 @@ class Process(models.Model):
                                 d_qty = ip_value / value
                                 #print "citation:", ip.id, ip, "ip.value:", ip.value
                                 #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
     
 
 class ExchangeManager(models.Manager):
@@ -6115,23 +6125,25 @@ class Exchange(models.Model):
                 values += value
                 evt.depth = depth
                 path.append(evt)
-                contributions = evt.resource.cash_contribution_events()
-                depth += 1
-                #todo 3d: done, maybe
-                for c in contributions:
-                    c.depth = depth
-                    path.append(c)
+                if evt.resource
+                    contributions = evt.resource.cash_contribution_events()
+                    depth += 1
+                    #todo 3d: done, maybe
+                    for c in contributions:
+                        c.depth = depth
+                        path.append(c)
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
-                    contributions = evt.resource.cash_contribution_events()
-                    fraction = evt.quantity / total
-                    #evt.share = evt.quantity * share * fraction * trigger_fraction
-                    evt.share = evt.quantity * fraction * trigger_fraction
-                    evt.depth = depth
-                    path.append(evt)
-                    values += evt.share
-                    #todo 3d: do multiple payments make sense for cash contributions?
+                    if evt.resource:
+                        contributions = evt.resource.cash_contribution_events()
+                        fraction = evt.quantity / total
+                        #evt.share = evt.quantity * share * fraction * trigger_fraction
+                        evt.share = evt.quantity * fraction * trigger_fraction
+                        evt.depth = depth
+                        path.append(evt)
+                        values += evt.share
+                        #todo 3d: do multiple payments make sense for cash contributions?
             for evt in self.work_events():
                 #import pdb; pdb.set_trace()
                 value = evt.quantity

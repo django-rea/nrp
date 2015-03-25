@@ -1343,7 +1343,10 @@ def json_distribution_related_shipment(request, distribution_id):
     ship = d.get_shipment_for_distribution()
     sd = {}
     if ship:
-        sd = {"ship_id": ship.id,}
+        sd = {
+            "ship_id": ship.id,
+            "ship_description": ship.__unicode__(),
+        }
     data = simplejson.dumps(sd)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
     

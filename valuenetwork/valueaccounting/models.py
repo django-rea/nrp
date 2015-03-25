@@ -6125,7 +6125,7 @@ class Exchange(models.Model):
                 values += value
                 evt.depth = depth
                 path.append(evt)
-                if evt.resource
+                if evt.resource:
                     contributions = evt.resource.cash_contribution_events()
                     depth += 1
                     #todo 3d: done, maybe

@@ -22,10 +22,21 @@ from valuenetwork.equipment.forms import *
 
 def log_equipment_use(request, resource_id, agent_id):
     #import pdb; pdb.set_trace()
-    
+    equipment = get_object_or_404(EconomicResource, id=resource_id)
+    context_agent = get_object_or_404(EconomicAgent, id=agent_id)
+    init = {"event_date": datetime.date.today()}
+    equip_form = EquipmentUseForm(resource=equipment, context_agent=context_agent, initial=init, data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if equip_form.is_valid():
+            event = equip_form.save(commit=False)
+            event.resource_type = event.resource.resource_type
+            
+            #event.save()
     
     return render_to_response("equipment/log_equipment_use.html", {
-
+        "equip_form": equip_form,
+        "equipment": equipment,
     }, context_instance=RequestContext(request))
 
 

@@ -9,11 +9,25 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
-<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+<link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
+<link href="{% static "css/buttons.css" %}" rel="stylesheet">
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
+
+.title {
+    font-size: 1.9em;
+    font-weight: bold;
+    color: #669999;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+.eform {
+    border: solid 1px lightgray;
+    padding: 15px;
+}
 
 </style>
 
@@ -24,34 +38,41 @@
     <div class="container">
         {% include "_messages.html" %}
         <div>
-            <legend>{% trans "Log Equipment Use" %}</legend>
-    {% comment %}
+            <div class="title">{% trans "Log Use of " %}{{ equipment.identifier }}</div>
             <form id="equipForm" method="POST" action="">
                 {% csrf_token %}
-                <div class="span12">
+                <div class="eform">
                     {{ equip_form|as_bootstrap }}
-                    <div class="form-actions">
-                        <input type="submit" name="save" value="{% trans 'Save and go to step 2' %}" class="btn btn-primary" /> 
-                    </div>
+                    <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
                 </div>
-                <input type="hidden" id="use-case" name="next" value= "{{ use_case.identifier }}" />
             </div>
             </form>
-    {% endcomment %}
         </div>
     </div>
     
 </body>
 
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-    <script src="{% static 'js/chosen.jquery.js' %}"></script>
-    <script src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+<script src="{% static 'js/chosen.jquery.js' %}"></script>
 
-    <script type="text/javascript">
+<script type="text/javascript">
 
     $(document).ready(function(){
-    
+
+        $(".chzn-select").chosen();
+
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+        
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,2}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 100 with no more than 2 decimal places"
+        );
+
         jQuery.validator.setDefaults({ 
             success: function(label) {
                 label
@@ -60,27 +81,20 @@
             }
         });
 
-        $( "#id_start_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+        $.validator.addClassRules("quantity", { required: true, quantity: true, });
+        $.validator.addClassRules("date-entry", { required: true, date: true });
 
-        $( "#equipForm" ).validate({
-            rules: {
-                url: {
-                    url: true
-                },
-                process_pattern: {
-                    required: true
-                },
-                start_date: {
-                    required: true,
-                    date: true
-                },
-            },
-            highlight: function(label) {
-                $(label).closest('.control-group').addClass('error');
-            },
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
         });
 
     }); // end document.ready
-    </script>
+
+</script>
 
 </html>

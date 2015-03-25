@@ -1,53 +1,52 @@
-{% extends "site_base.html" %}
-
 {% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 
-{% block head_title %}{% trans "Log Equipment Use" %}{% endblock %}
+<title>{% trans "Log Equipment Use" %}</title>
 
-{% block extra_head %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
+<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
 
-#id_notes
-{
-  width: 32em;
-}
-
-
 </style>
-{% endblock %}
 
-{% block body_base %}
-<div class="container">
-    {% include "_messages.html" %}
-    <div>
-        <legend>{% trans "Log Equipment Use" %}</legend>
-{% comment %}
-        <form id="equipForm" method="POST" action="">
-            {% csrf_token %}
-            <div class="span12">
-                {{ equip_form|as_bootstrap }}
-                <div class="form-actions">
-                    <input type="submit" name="save" value="{% trans 'Save and go to step 2' %}" class="btn btn-primary" /> 
+</head>
+
+<body>
+
+    <div class="container">
+        {% include "_messages.html" %}
+        <div>
+            <legend>{% trans "Log Equipment Use" %}</legend>
+    {% comment %}
+            <form id="equipForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="span12">
+                    {{ equip_form|as_bootstrap }}
+                    <div class="form-actions">
+                        <input type="submit" name="save" value="{% trans 'Save and go to step 2' %}" class="btn btn-primary" /> 
+                    </div>
                 </div>
+                <input type="hidden" id="use-case" name="next" value= "{{ use_case.identifier }}" />
             </div>
-            <input type="hidden" id="use-case" name="next" value= "{{ use_case.identifier }}" />
+            </form>
+    {% endcomment %}
         </div>
-        </form>
-{% endcomment %}
     </div>
-</div>
-{% endblock %}
-{% block extra_script %}
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-{% endblock %}
+    
+</body>
 
-{% block extra_body %}
-    {{ block.super }}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+    <script src="js/bootstrap.min.js"></script>
 
     <script type="text/javascript">
 
@@ -82,5 +81,6 @@
         });
 
     }); // end document.ready
-    
- {% endblock %}
+    </script>
+
+</html>

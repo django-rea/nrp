@@ -286,6 +286,7 @@ td {
                             .append($("<option></option>")
                             .attr("value",orderId)
                             .text(orderDesc)); 
+                        $(selId).val(orderId);
                         $(selId).trigger("liszt:updated");
                     }
                 }
@@ -312,6 +313,7 @@ td {
             var jsonUrl = encodeURI("/accounting/json-distribution-related-shipment/" + distId + "/");
             $.get(jsonUrl, function(data){
                 var shipId = data["ship_id"];
+                var shipDesc = data["ship_description"];
                 if (shipId)
                 {
                     var shipArray = [shipId,];
@@ -319,7 +321,12 @@ td {
                     {
                         var sel = shipmentSelectors[i];
                         var selId = "#" + sel.id;
-                        $(selId).val(shipArray).trigger("liszt:updated");
+                        $(selId)
+                            .append($("<option></option>")
+                            .attr("value",shipId)
+                            .text(shipDesc)); 
+                        $(selId).val(shipId);
+                        $(selId).trigger("liszt:updated");
                     }
                 }
             });

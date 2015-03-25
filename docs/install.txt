@@ -40,6 +40,9 @@ See
 http://pillow.readthedocs.org/en/latest/installation.html#simple-installation
 for how to install Pillow on your operating system.
 
+Note: Apostolis Xekoukoulotakis reports that on Debian, Pillow requires
+libjpeg-dev and python2.7-dev.
+
 Here's PIL: https://pypi.python.org/pypi/PIL/
 
 6. create a virtualenv (assuming you installed virtualenvwrapper):

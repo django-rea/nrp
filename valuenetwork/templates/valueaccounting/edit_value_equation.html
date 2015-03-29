@@ -94,7 +94,7 @@ th
             {% if value_equation %}
                 {% trans "Edit Value Equation" %} {{ value_equation }}
                 <a class="indent" href="{% url value_equation_sandbox value_equation_id=value_equation.id %}">Value Equation Sandbox</a> 
-                {% if value_equation.live %}
+                {% if value_equation.live and user.is_staff %}
                     <a class="indent" href="{% url create_distribution_using_value_equation agent_id=value_equation.context_agent.id value_equation_id=value_equation.id %}">Distribute Income</a>
                 {% endif %}
             {% else %}

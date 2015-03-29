@@ -88,7 +88,7 @@ img {
         <legend>
             {% trans "Value Equation Sandbox" %}
             <a class="indent" href="{% url edit_value_equation value_equation_id=ve.id %}">Edit Value Equation</a> 
-            {% if ve.live %}
+            {% if ve.live and user.is_staff %}
                 <a class="indent" href="{% url create_distribution_using_value_equation agent_id=ve.context_agent.id value_equation_id=ve.id %}">Distribute Income</a>
             {% endif %}
             <a class="indent" href="{% url value_equations %}">Value Equations List</a>

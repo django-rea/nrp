@@ -1,0 +1,100 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<title>{% trans "Log Equipment Use" %}</title>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+<link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
+<link href="{% static "css/buttons.css" %}" rel="stylesheet">
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.title {
+    font-size: 1.9em;
+    font-weight: bold;
+    color: #669999;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+.eform {
+    border: solid 1px lightgray;
+    padding: 15px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+    <div class="container">
+        {% include "_messages.html" %}
+        <div>
+            <div class="title">{% trans "Log Use of " %}{{ equipment.identifier }}</div>
+            <form id="equipForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="eform">
+                    {{ equip_form|as_bootstrap }}
+                    <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+    
+</body>
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+<script src="{% static 'js/chosen.jquery.js' %}"></script>
+
+<script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $(".chzn-select").chosen();
+
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+        
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,2}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 100 with no more than 2 decimal places"
+        );
+
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
+        });
+
+        $.validator.addClassRules("quantity", { required: true, quantity: true, });
+        $.validator.addClassRules("date-entry", { required: true, date: true });
+
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
+        });
+
+    }); // end document.ready
+
+</script>
+
+</html>

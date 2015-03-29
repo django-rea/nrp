@@ -22,6 +22,12 @@ class EquipmentUseForm(forms.ModelForm):
     quantity = forms.DecimalField(required=True,
         label="Number of hours",
         widget=forms.TextInput(attrs={'value': '1.00', 'class': 'quantity  input-small'}))
+    #orders = forms.ModelChoiceField(
+    #    required=False,
+    #    queryset=Order.objects.all(),
+    #    label="Part of this order (optional)",
+    #    widget=forms.Select(
+    #        attrs={'class': 'chzn-select'}))
         
     class Meta:
         model = EconomicEvent
@@ -33,4 +39,5 @@ class EquipmentUseForm(forms.ModelForm):
         if context_agent:
             if resource:
                 self.fields["from_agent"].queryset = resource.equipment_users(context_agent=context_agent)
+            #self.fields["orders"].queryset = context_agent.orders_queryset()
             

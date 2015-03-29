@@ -20,6 +20,7 @@ from django.conf import settings
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.equipment.forms import *
 
+@login_required
 def log_equipment_use(request, resource_id, agent_id):
     #import pdb; pdb.set_trace()
     equipment = get_object_or_404(EconomicResource, id=resource_id)

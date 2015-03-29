@@ -30,7 +30,7 @@ def log_equipment_use(request, resource_id, agent_id):
         #import pdb; pdb.set_trace()
         if equip_form.is_valid():
             event = equip_form.save(commit=False)
-            event.resource_type = event.resource.resource_type
+            #event.resource_type = event.resource.resource_type
             
             #event.save()
     

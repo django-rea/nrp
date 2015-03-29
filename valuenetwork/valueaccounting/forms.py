@@ -864,7 +864,8 @@ class SelectResourceOfTypeForm(forms.Form):
             else:
                 if rts:
                     self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
-            
+
+                    
 class SelectContrResourceOfTypeForm(forms.Form):
     event_date = forms.DateField(
         required=True, 
@@ -1670,6 +1671,7 @@ class DistributionEventForm(forms.ModelForm):
                     else:
                         self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
             
+
 class DisbursementEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(
@@ -1713,6 +1715,7 @@ class DisbursementEventForm(forms.ModelForm):
                     else:
                         self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
 
+                        
 class ShipmentForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     from_agent = forms.ModelChoiceField(
@@ -1955,6 +1958,7 @@ class CashContributionEventForm(forms.ModelForm):
             self.context_agent = context_agent
             self.fields["from_agent"].queryset = context_agent.all_members()          
 
+            
 class CashContributionResourceEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     value = forms.DecimalField(

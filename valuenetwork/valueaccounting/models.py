@@ -4184,7 +4184,7 @@ class EconomicResource(models.Model):
                                 br = ip.bucket_rule(value_equation)
                                 if br:
                                     value = br.compute_claim_value(ip)
-                                #todo 3d: how to compute?
+                                #todo 3d: changed
                                 #import pdb; pdb.set_trace()
                                 fraction = ip.value / resource_value
                                 ip.share = use_value * fraction
@@ -6244,7 +6244,7 @@ class Exchange(models.Model):
                     #import pdb; pdb.set_trace()
                     for ct in contributions:
                         fraction = ct.quantity / resource_value
-                        #todo 3d: how to compute?
+                        #todo 3d: changed
                         ct.share = use_value * fraction
                         events.append(ct)
             elif payments.count() > 1:
@@ -6262,7 +6262,7 @@ class Exchange(models.Model):
                     #import pdb; pdb.set_trace()
                     value = br.compute_claim_value(evt)
                 evt.value = value
-                #todo 3d: how to compute?
+                #todo 3d: changed
                 fraction = value / resource_value
                 evt.share = use_value * fraction
                 events.append(evt)

@@ -859,6 +859,11 @@ class EconomicAgent(models.Model):
         agent_ids = [agent.id for agent in agent_list]
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
+    def context_equipment_users(self):
+        agent_list = self.all_members_list()
+        agent_list.extend([agent for agent in self.exchange_firms()])
+        return agent_list
+        
     def all_has_associates(self):
         return self.has_associates.all().order_by('association_type__name', 'is_associate__nick')
         
@@ -3676,6 +3681,7 @@ class EconomicResource(models.Model):
     #    return EconomicResourceForm(instance=self)
     
     def test_rollup(self, value_equation=None):
+        #leave the following uncommented
         import pdb; pdb.set_trace()
         visited = set()
         path = []
@@ -4583,6 +4589,12 @@ class EconomicResource(models.Model):
         
     def all_contacts(self):
         return self.agent_resource_roles.filter(is_contact=True)
+        
+    def equipment_users(self, context_agent):
+        agent_list = context_agent.context_equipment_users()
+        agent_list.extend([arr.agent for arr in self.agent_resource_roles.all()])
+        agent_ids = [agent.id for agent in agent_list]
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
         
     def payout_contacts(self):
         """ this method only applies to virtual account resources """

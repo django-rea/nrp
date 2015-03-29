@@ -146,6 +146,7 @@ INSTALLED_APPS = [
     
     # project
     'valuenetwork.valueaccounting',
+    'valuenetwork.equipment',
 
 ]
 

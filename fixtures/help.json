@@ -1,0 +1,74 @@
+[
+    {
+        "pk": 1, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "all_work", 
+            "description": "<b>Navigation:</b>\r\n\r\nIf you don't see anything, and think you should, try changing the dates.\r\n\r\nIf you see too much, narrow the date range or select a project.\r\n\r\nThe <i>previous</i> and <i>next</i> processes on the right side are links that will open the page for that process. \r\nIf you see a <i class=\"icon-search\"></i>, that means the process is on this page, and clicking the <i class=\"icon-search\"></i> will take you to it.\r\n\r\n<b>Take this task:</b>\r\n\r\nIf you see a \"Take this task\" button, you can click the button and commit to doing that work.\r\n\r\n<b>Todos:</b>\r\n\r\nYou can add a todo for yourself, or assign one to somebody else, or leave it unassigned.\r\n\r\nYou can take an unassigned todo by clicking \"Mine!\".\r\n\r\nYou can reject an assigned todo by clicking \"Decline\".\r\n\r\nIf a todo is yours, you should see a row for entering optional info: \r\nwhat you did, how many hours you spent, and a \"Done\" button. \r\nIf you just click \"Done\" and do not enter any other info, you will get the default 1 hour.\r\n\r\nIf you posted a todo, you will see \"Change\" and \"Delete\" buttons."
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "demand", 
+            "description": ""
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "exchange", 
+            "description": "Payment can be broken down into more than one contribution, if multiple affiliates shared the cost. The sum of all payments should equal Expense."
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "home", 
+            "description": "The first time you click help, the help contents will appear.\r\n\r\nThe next time you click help, they will disappear."
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "labnotes", 
+            "description": "This page will be saves immediately after you made changes. If not, a message will appear in red on the upper right corner. \r\n\r\nUse the space on the left to enter your notes about the process/experiment. You can also add links to other documents if necessary. You can use this labnote for many work sessions. Best practice is to mark the date of every day you work on, before your notes for the day. \r\n\r\nRECORD YOUR TIME\r\nTo record the time you work on the project, you either press the START button when you start your work and the STOP button when you finish or before taking a brake, or simply enter the total amount of hours at the end of the day. NOTE that the time is cumulative over the entire day. That meas that if you do 3 hours of work in the morning, take a brake and close the page, and come back later the same day to do 2 more hours, you need to enter 5 at the end of the day. If you have entered 3, when you reopen the labnote the same day you'll see the number 3. If you change it to 2 after the brake, your total time for the day will be 2. So just keep adding hours to the total amount you do.      \r\n\r\nADD INPUTS\r\nClick the INPUT button to add inputs. Inputs are components you use, tool and equipment. Components have units of numbers, so you need to enter the number of components used. Their number is cumulative during the entire R&D process, unlike the time. This means that if another day you use another component that you used before, you need to go in there and increment that number by one. Tools and equipment have time units. That means that you need to enter the total amount of time you used a tool and equipment. The total time of use is also cumulative over the entire process. Next time you use the same equipment you need to increment the number of hours associated with that particular equipment. \r\n\r\nADD OUTPUTS"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "my_work", 
+            "description": "This page offers two different ways to log your work.  \r\nSelecting a logging method starts with this <b>critical question:</b>\r\n<h3>Will you be creating a deliverable, tangible resource that should be tracked by the system for consumption, re-use or citation (ex. R&D or fabrication)?</h3>\r\n<ul>\r\n<li>Then you need a <b>process</b> which will associate your time contribution with your creations.</li>\r\n<ul>\r\n<li>The simplest way to log your work in a process is <i>if somebody else created the process</i>. Those tasks will appear on this page with a <b>Take this task</b> button.</li>\r\n<li>Otherwise you will need to <b>Create a production process</b> (in other words, if nobody else created the process, you will have to do it). Then you can log your time contributions as well as inputs and outputs and citations.</li>\r\n</ul>\r\n</ul>\r\n<h3>If you are not creating a deliverable, a tangible resources that need to be tracked (ex. office work):</h3>\r\n<ul>\r\n<li>You can use <b>Log non-production work</b>. It does not allow inputs or outputs, but does allow multiple time contributions per page.</li>\r\n<li><b>Todos</b> may be even simpler. You can assign them to yourself or others.</li>"
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "non_production", 
+            "description": "This page is used to log work that doesn't have a clear deliverable, or a deliverable that is not significant enough to be tracked by the NRP system. \r\n\r\nExamples are meetings, office work, writing, documenting, activities related to marketing, etc. \r\n\r\nSelect a Date, the Type of work (select the item that resembles the most to the activity you performed), and the Project. \r\n\r\nIf you don't find anything related to your activity in the Type of work list, contact someone who can create a new item for you. \r\n"
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "process", 
+            "description": "You may be able to log work on this page.\r\n\r\nIf you created this process, or are working on it, you can log almost anything.\r\n\r\nIf not, you can take tasks and then become a worker on this process, or you can log unplanned work.\r\n\r\nEach of the buttons has tool tips that explain it more.\r\n\r\nThe sections on the page correspond to the process context or pattern.  If you think this process should have something it doesn't, ask an admin for changes to the process pattern.\r\n\r\nIf this process does not have a process pattern, you will not be able to log anything.  Change the process and add a pattern."
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "supply", 
+            "description": "Use this page to log financial and material contributions. \r\nPURCHASE contributions are result in something being created in the inventory. For example, if you buy a tool, equipment, a consumable material, etc. \r\nEXPENSE contributions do not result in something being created in the inventory, for example paying for rent or recurring bills, paying for a plane ticket or for an event. \r\nCASH contributions are contributions in cash, to be used in the future, with no clear use for the moment. \r\nMATERIAL contributions are stuff that you have and want to share with sensoricans, with access conditions attached.   "
+        }
+    }
+]

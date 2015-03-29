@@ -9304,6 +9304,8 @@ def create_sale(request):
 @login_required
 def create_distribution(request, agent_id):
     #import pdb; pdb.set_trace()
+    if not request.user.is_staff:
+        return render_to_response('valueaccounting/no_permission.html')
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
     exchange_form = DistributionForm()
     if request.method == "POST":
@@ -9325,6 +9327,8 @@ def create_distribution(request, agent_id):
 @login_required
 def create_distribution_using_value_equation(request, agent_id, value_equation_id=None):
     #import pdb; pdb.set_trace()
+    if not request.user.is_staff:
+        return render_to_response('valueaccounting/no_permission.html')
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
     if value_equation_id:
         ve = ValueEquation.objects.get(id=value_equation_id)

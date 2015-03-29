@@ -93,7 +93,7 @@
                     {% endif %}
                     <a class="link" href="{% url value_equation_sandbox value_equation_id=ve.id %}">Value Equation Sandbox</a> 
                     {% if agent %}
-                      {% if ve.live %}
+                      {% if ve.live and user.is_staff %}
                         <a class="link" href="{% url create_distribution_using_value_equation agent_id=ve.context_agent.id value_equation_id=ve.id %}">Distribute Income</a>
                       {% endif %}
                     {% endif %}

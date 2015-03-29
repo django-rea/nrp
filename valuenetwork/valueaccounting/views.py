@@ -98,6 +98,8 @@ def create_agent(request):
             agent = form.save(commit=False)
             agent.created_by=request.user
             agent.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/agent', agent.id))  
     return HttpResponseRedirect("/accounting/agents/")
     
 @login_required
@@ -295,13 +297,13 @@ def projects(request):
                 aats.append(aat)
             node.aats = aats
     agent = get_agent(request)
-    project_create_form = ProjectForm()
+    agent_form = AgentCreateForm()
     
     return render_to_response("valueaccounting/projects.html", {
         "roots": roots,
         "agent": agent,
         "help": get_help("projects"),
-        "project_create_form": project_create_form,
+        "agent_form": agent_form,
     }, context_instance=RequestContext(request))
 
 '''

@@ -154,7 +154,9 @@ class HomePageLayout(models.Model):
 PAGE_CHOICES = (
     ('agent', _('Agent')),
     ('all_work', _('All Work')),
+    ('create_distribution', _('Create Distribution')),
     ('create_exchange', _('Create Exchange')),
+    ('create_sale', _('Create Sale')),
     ('demand', _('Demand')),
     ('ed_asmbly_recipe', _('Edit Assembly Recipes')),
     ('ed_wf_recipe', _('Edit Workflow Recipes')),

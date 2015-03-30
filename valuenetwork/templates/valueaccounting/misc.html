@@ -34,6 +34,13 @@
             <p>Pagelets require a context agent.</p>
         {% endif %}
 
+        <h3>Distribution without value equation</h3>
+        <form id="distForm" method="POST" action="">
+            {% csrf_token %}
+            {{ ca_form }}
+            <input type="submit" name="save" value="{% trans 'Go to distribution' %}" class="btn btn-primary" /> 
+        </form>
+
     </div>
     </div>
 {% endblock %}

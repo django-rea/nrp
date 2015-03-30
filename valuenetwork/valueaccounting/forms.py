@@ -87,6 +87,12 @@ class AgentSelectionForm(forms.Form):
         label="Select an existing Agent",
         required=False)
 
+class ContextAgentSelectionForm(forms.Form):
+    selected_agent = AgentModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label="Select a Context Agent",
+        empty_label=None,)
+
         
 #changed to create context_agents
 class ProjectForm(forms.ModelForm):
@@ -1650,7 +1656,7 @@ class DistributionEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'resource', 'description')
+        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'resource', 'description', 'accounting_reference', 'event_reference')
 
     def __init__(self, pattern=None, posting=False, *args, **kwargs):
         super(DistributionEventForm, self).__init__(*args, **kwargs)

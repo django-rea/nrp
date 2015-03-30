@@ -2533,9 +2533,19 @@ def misc(request):
         for ca in context_agents:
             if ca.events.all().count() > context_agent.events.all().count():
                 context_agent = ca
+                
+    ca_form = ContextAgentSelectionForm()
+    if request.method == "POST":
+        form = ContextAgentSelectionForm(data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            agent = data["selected_agent"]
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/create-distribution', agent.id))    
 
     return render_to_response("valueaccounting/misc.html", {
         "context_agent": context_agent,
+        "ca_form": ca_form,
     }, context_instance=RequestContext(request))
     
 @login_required

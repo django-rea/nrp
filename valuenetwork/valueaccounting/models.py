@@ -165,6 +165,7 @@ PAGE_CHOICES = (
     ('home', _('Home')),
     ('inventory', _('Inventory')),
     ('labnotes', _('Labnotes Form')),
+    ('locations', _('Locations')),
     ('associations', _('Maintain Associations')),
     ('my_work', _('My Work')),
     ('non_production', _('Non-production time logging')),

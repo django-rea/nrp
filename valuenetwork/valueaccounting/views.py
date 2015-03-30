@@ -342,6 +342,7 @@ def locations(request):
         "latitude": latitude,
         "longitude": longitude,
         "zoom": zoom,
+        "help": get_help("locations"),
     }, context_instance=RequestContext(request))
 
 @login_required

@@ -153,6 +153,7 @@ class HomePageLayout(models.Model):
 #for help text
 PAGE_CHOICES = (
     ('agent', _('Agent')),
+    ('agents', _('All Agents')),
     ('all_work', _('All Work')),
     ('create_distribution', _('Create Distribution')),
     ('create_exchange', _('Create Exchange')),

@@ -405,6 +405,7 @@ def agents(request):
         "agents": agents,
         "agent_form": agent_form,
         "user_agent": user_agent,
+        "help": get_help("agents"),
     }, context_instance=RequestContext(request))
     
 def radial_graph(request, agent_id):

@@ -153,8 +153,11 @@ class HomePageLayout(models.Model):
 #for help text
 PAGE_CHOICES = (
     ('agent', _('Agent')),
+    ('agents', _('All Agents')),
     ('all_work', _('All Work')),
+    ('create_distribution', _('Create Distribution')),
     ('create_exchange', _('Create Exchange')),
+    ('create_sale', _('Create Sale')),
     ('demand', _('Demand')),
     ('ed_asmbly_recipe', _('Edit Assembly Recipes')),
     ('ed_wf_recipe', _('Edit Workflow Recipes')),
@@ -162,6 +165,7 @@ PAGE_CHOICES = (
     ('home', _('Home')),
     ('inventory', _('Inventory')),
     ('labnotes', _('Labnotes Form')),
+    ('locations', _('Locations')),
     ('associations', _('Maintain Associations')),
     ('my_work', _('My Work')),
     ('non_production', _('Non-production time logging')),

@@ -21,6 +21,16 @@
 
 {% endblock %}
 
+{% block extra_head %}
+<style>
+.map {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>
+{% endblock %}
+
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
     <script src="{% static 'js/jquery.maphilight.min.js' %}"></script>

@@ -85,4 +85,9 @@ And this to load some starter help:
 
 15. point browser at http://127.0.0.1:8000/
 
+16. You will also want a local_settings.py file
+in the same directory as settings.py
+You can look at local_settings_example.py for ideas,
+but don't use it as-is.
+
 

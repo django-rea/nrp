@@ -74,6 +74,8 @@ SOUTH_MIGRATION_MODULES = {
 
 12. do this to install some starter facets and patterns:
 ./manage.py loaddata ./fixtures/starters.json
+And this to load some starter help:
+./manage.py loaddata ./fixtures/help.json
 
 13. run the tests
 ./manage.py test valueaccounting

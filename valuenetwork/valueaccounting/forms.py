@@ -2364,6 +2364,15 @@ def possible_parent_resource_types():
 class EconomicResourceTypeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    value_per_unit = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    value_per_unit_of_use = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
+    price_per_unit = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'price'}))
     substitutable = forms.BooleanField(
         required=False,
         help_text=_('Can any resource of this type be substituted for any other resource of this type?'),

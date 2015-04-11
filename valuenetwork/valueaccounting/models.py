@@ -4127,17 +4127,21 @@ class EconomicResource(models.Model):
                                 if ip.resource:
                                     ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                             elif ip.event_type.relationship == "cite":
-                                #import pdb; pdb.set_trace()   
+                                #import pdb; pdb.set_trace()
                                 #citation events are not contributions, but their resources may have contributions
-                                value = ip.value
-                                ip_value = value * distro_fraction
-                                d_qty = distro_qty
-                                if ip_value and value:
-                                    d_qty = ip_value / value
-                                    #print "citation:", ip.id, ip, "ip.value:", ip.value
-                                    #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
                                 if ip.resource:
-                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                    value = ip.value
+                                    ip_value = value * distro_fraction
+                                    d_qty = distro_qty
+                                    if ip_value and value:
+                                        d_qty = ip_value / value
+                                    #if ip.resource:
+                                    #    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                    new_visited = set()
+                                    path = []
+                                    depth = 0
+                                    resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
+                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
                                 
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #Resource method
@@ -4158,6 +4162,7 @@ class EconomicResource(models.Model):
                 evt.exchange.compute_income_shares_for_use(value_equation, use_event, use_value, resource_value, events, visited)
         processes = self.producing_processes()
         #shd only be one producing process for a used resource..right?
+        quantity = self.quantity
         for process in processes:
             if process not in visited:
                 visited.add(process)
@@ -4217,13 +4222,25 @@ class EconomicResource(models.Model):
                                     ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                             elif ip.event_type.relationship == "cite":
                                 #citation events are not contributions, but their resources may have contributions
-                                value = ip.value
-                                ip_value = value * distro_fraction
-                                d_qty = distro_qty
-                                if ip_value and value:
-                                    d_qty = ip_value / value
+                                #todo: use percent or compute_income_shares_for_use?
+                                #value = ip.value
+                                #ip_value = value * distro_fraction
+                                #d_qty = distro_qty
+                                #if ip_value and value:
+                                #    d_qty = ip_value / value
+                                #if ip.resource:
+                                #    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                                 if ip.resource:
-                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                    value = ip.value
+                                    ip_value = value * distro_fraction
+                                    d_qty = distro_qty
+                                    if ip_value and value:
+                                        d_qty = ip_value / value
+                                    new_visited = set()
+                                    path = []
+                                    depth = 0
+                                    resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
+                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
 
     def direct_share_components(self, components, visited, depth):
         depth += 1
@@ -5898,10 +5915,20 @@ class Process(models.Model):
                         elif ip.event_type.relationship == "use":
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
-                                ip_value = ip.value * distro_fraction
-                                if ip_value:
+                                #ip_value = ip.value * distro_fraction
+                                #if ip_value:
+                                #    d_qty = ip_value / value
+                                #    ip.resource.compute_income_shares(value_equation, d_qty, events, visited) 
+                                value = ip.value
+                                ip_value = value * distro_fraction
+                                d_qty = distro_qty
+                                if ip_value and value:
                                     d_qty = ip_value / value
-                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited) 
+                                new_visited = set()
+                                path = []
+                                depth = 0
+                                resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
+                                ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             #consume events are not contributions, but their resources may have contributions
                             ip_value = ip.value * distro_fraction
@@ -5914,15 +5941,24 @@ class Process(models.Model):
                                 if ip.resource:
                                     ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                         elif ip.event_type.relationship == "cite":
-                            #import pdb; pdb.set_trace()   
+                            #import pdb; pdb.set_trace()
                             #citation events are not contributions, but their resources may have contributions
-                            ip_value = ip.value * distro_fraction
-                            if ip_value:
-                                d_qty = ip_value / value
-                                #print "citation:", ip.id, ip, "ip.value:", ip.value
-                                #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                if ip.resource:
-                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                            #ip_value = ip.value * distro_fraction
+                            #if ip_value:
+                            #    d_qty = ip_value / value
+                            #    if ip.resource:
+                            #        ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                            if ip.resource:
+                                value = ip.value
+                                ip_value = value * distro_fraction
+                                d_qty = distro_qty
+                                if ip_value and value:
+                                    d_qty = ip_value / value
+                                new_visited = set()
+                                path = []
+                                depth = 0
+                                resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
+                                ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
     
 
 class ExchangeManager(models.Manager):

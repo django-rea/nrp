@@ -3708,8 +3708,6 @@ class EconomicResource(models.Model):
         #Resource contributions use event.value.
         contributions = self.resource_contribution_events()
         for evt in contributions:
-            #if evt.id == 3960:
-            #    import pdb; pdb.set_trace()
             value = evt.value
             if value_equation:
                 br = evt.bucket_rule(value_equation)
@@ -4026,10 +4024,6 @@ class EconomicResource(models.Model):
         #import pdb; pdb.set_trace()
         contributions = self.resource_contribution_events()
         for evt in contributions:
-            #if evt.id == 3960:
-            #    import pdb; pdb.set_trace()
-            #todo br
-            #import pdb; pdb.set_trace()
             br = evt.bucket_rule(value_equation)
             value = evt.value
             if br:
@@ -4118,8 +4112,6 @@ class EconomicResource(models.Model):
                             elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                                 #consume events are not contributions, but their resources may have contributions                       
                                 ip_value = ip.value * distro_fraction
-                                #if ip.resource.id == 98:
-                                #    import pdb; pdb.set_trace()
                                 d_qty = ip.quantity * distro_fraction
                                 #if ip_value:
                                     #print "consumption:", ip.id, ip, "ip.value:", ip.value
@@ -5932,8 +5924,7 @@ class Process(models.Model):
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             #consume events are not contributions, but their resources may have contributions
                             ip_value = ip.value * distro_fraction
-                            #if ip.resource.id == 98:
-                            #    import pdb; pdb.set_trace()
+                            #import pdb; pdb.set_trace()
                             if ip_value:
                                 d_qty = ip.quantity * distro_fraction
                                 #print "consumption:", ip.id, ip, "ip.value:", ip.value
@@ -6225,19 +6216,10 @@ class Exchange(models.Model):
             share =  quantity / trigger_event.quantity
             if payments.count() == 1:
                 evt = payments[0]
-                #import pdb; pdb.set_trace()
-                value = evt.quantity
-                br = evt.bucket_rule(value_equation)
-                if br:
-                    #import pdb; pdb.set_trace()
-                    value = br.compute_claim_value(evt)
-                evt.share = value * share
-                events.append(evt)
-                #todo 3d: intervene here
+                contributions = []
                 #import pdb; pdb.set_trace()
                 if evt.resource:
                     candidates = evt.resource.cash_contribution_events()
-                    contributions = []
                     for cand in candidates:
                         br = cand.bucket_rule(value_equation)
                         if br:
@@ -6248,6 +6230,13 @@ class Exchange(models.Model):
                         fraction = ct.quantity / value
                         ct.share = ct.value * share * fraction * trigger_fraction
                         events.append(ct)
+                if not contributions:                 
+                    value = evt.quantity
+                    br = evt.bucket_rule(value_equation)
+                    if br:
+                        value = br.compute_claim_value(evt)
+                    evt.share = value * share
+                    events.append(evt)
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
@@ -6280,25 +6269,21 @@ class Exchange(models.Model):
             share =  use_value / cost
             if payments.count() == 1:
                 evt = payments[0]
-                #import pdb; pdb.set_trace()
-                value = evt.quantity
-                br = evt.bucket_rule(value_equation)
-                if br:
-                    #import pdb; pdb.set_trace()
-                    value = br.compute_claim_value(evt)
-                #todo 3d: how to compute?
-                evt.share = value * share
-                events.append(evt)
-                #todo 3d: intervene here
-                #import pdb; pdb.set_trace()
+                contributions = []
                 if evt.resource:
                     contributions = evt.resource.cash_contribution_events()
-                    #import pdb; pdb.set_trace()
                     for ct in contributions:
                         fraction = ct.quantity / resource_value
                         #todo 3d: changed
                         ct.share = use_value * fraction
                         events.append(ct)
+                if not contributions:
+                    value = evt.quantity
+                    br = evt.bucket_rule(value_equation)
+                    if br:
+                        value = br.compute_claim_value(evt)
+                    evt.share = value * share
+                    events.append(evt)
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:

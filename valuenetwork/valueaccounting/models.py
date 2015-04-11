@@ -6230,7 +6230,9 @@ class Exchange(models.Model):
                         fraction = ct.quantity / value
                         ct.share = ct.value * share * fraction * trigger_fraction
                         events.append(ct)
-                if not contributions:                 
+                if not contributions:
+                    #if contributions were credited,
+                    # do not give credit for payment.
                     value = evt.quantity
                     br = evt.bucket_rule(value_equation)
                     if br:
@@ -6278,6 +6280,8 @@ class Exchange(models.Model):
                         ct.share = use_value * fraction
                         events.append(ct)
                 if not contributions:
+                    #if contributions were credited,
+                    # do not give credit for payment.
                     value = evt.quantity
                     br = evt.bucket_rule(value_equation)
                     if br:

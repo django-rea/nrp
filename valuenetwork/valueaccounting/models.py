@@ -6027,7 +6027,7 @@ class Exchange(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('exchange_details', (),
+        return ('exchange_logging', (),
             { 'exchange_id': str(self.id),})
 
     def save(self, *args, **kwargs):

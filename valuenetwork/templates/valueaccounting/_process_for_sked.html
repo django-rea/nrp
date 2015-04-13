@@ -41,11 +41,17 @@
 			    {% if item.associated_wanting_commitments %}
 			        <ul>
 				        {% for wanter in item.associated_wanting_commitments %}
-					        <li class="subline" >
-						        <span class="dependency">{% trans "Wanted by" %}:</span> 
-						        <a href="{{ wanter.process.get_absolute_url }}" target="_blank">{{ wanter.process.name }}</a> 
-						        {{ wanter.quantity }} {{ wanter.unit_of_quantity }} {{ wanter.due_date }} 
-					        </li>
+                            {% if wanter.process or wanter.exchange %}
+                                <li class="subline" >
+                                    <span class="dependency">{% trans "Wanted by" %}:</span> 
+                                    {% if wanter.process %}
+                                        <a href="{{ wanter.process.get_absolute_url }}" target="_blank">{{ wanter.process.name }}</a> 
+                                    {% elif wanter.exchange %}
+                                        <a href="{{ wanter.exchange.get_absolute_url }}" target="_blank">{{ wanter.exchange }}</a>
+                                    {% endif %}
+                                    {{ wanter.quantity }} {{ wanter.unit_of_quantity }} {{ wanter.due_date }} 
+                                </li>
+                            {% endif %}
 				        {% endfor %}
 				    </ul>
 			    {% endif %}

@@ -1337,11 +1337,11 @@ class EconomicResourceType(models.Model):
         help_text=_('if this resource has different units of use and inventory, this is the unit of use'))
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         limit_choices_to={'unit_type': 'value'},
-        verbose_name=_('unit of value'), related_name="resource_type_value_units")
+        verbose_name=_('unit of value'), related_name="resource_type_value_units", editable=False)
     value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
-        default=Decimal("0.00"))
+        default=Decimal("0.00"), editable=False)
     value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2, 
-        default=Decimal("0.00"))
+        default=Decimal("0.00"), editable=False)
     price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     unit_of_price = models.ForeignKey(Unit, blank=True, null=True,

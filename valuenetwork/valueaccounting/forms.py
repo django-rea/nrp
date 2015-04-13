@@ -2364,12 +2364,6 @@ def possible_parent_resource_types():
 class EconomicResourceTypeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
-    value_per_unit = forms.DecimalField(
-        max_digits=8, decimal_places=2,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
-    value_per_unit_of_use = forms.DecimalField(
-        max_digits=8, decimal_places=2,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     price_per_unit = forms.DecimalField(
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'price'}))
@@ -2380,7 +2374,7 @@ class EconomicResourceTypeForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('created_by', 'changed_by',)
+        exclude = ('created_by', 'changed_by', 'value_per_unit_of_use', 'value_per_unit', 'unit_of_value')
 
     def __init__(self, *args, **kwargs):
         super(EconomicResourceTypeForm, self).__init__(*args, **kwargs)
@@ -2391,12 +2385,6 @@ class EconomicResourceTypeForm(forms.ModelForm):
 class EconomicResourceTypeChangeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'existing-name input-xlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
-    value_per_unit = forms.DecimalField(
-        max_digits=8, decimal_places=2,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
-    value_per_unit_of_use = forms.DecimalField(
-        max_digits=8, decimal_places=2,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     price_per_unit = forms.DecimalField(
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'price'}))
@@ -2405,7 +2393,7 @@ class EconomicResourceTypeChangeForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('created_by', 'changed_by')
+        exclude = ('created_by', 'changed_by', 'value_per_unit_of_use', 'value_per_unit', 'unit_of_value')
         
     def __init__(self, *args, **kwargs):
         super(EconomicResourceTypeChangeForm, self).__init__(*args, **kwargs)
@@ -2432,7 +2420,7 @@ class EconomicResourceTypeAjaxForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('parent', 'created_by', 'changed_by', 'photo')
+        exclude = ('parent', 'created_by', 'changed_by', 'photo', 'value_per_unit_of_use', 'value_per_unit', 'unit_of_value')
 
 class AgentResourceTypeForm(forms.ModelForm):
     lead_time = forms.IntegerField(

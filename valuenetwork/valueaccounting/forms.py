@@ -439,7 +439,7 @@ class WorkflowProcessForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'new-pt-name process-info input-xlarge',}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -482,7 +482,7 @@ class AddProcessFromResourceForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     process_pattern = forms.ModelChoiceField(
@@ -936,7 +936,7 @@ class TodoForm(forms.ModelForm):
             attrs={'class': 'chzn-select'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -1416,7 +1416,7 @@ class WorkContributionChangeForm(forms.ModelForm):
             attrs={'class': 'chzn-select'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(required=False,
@@ -2199,7 +2199,7 @@ class CasualTimeContributionForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     #project = forms.ModelChoiceField(
@@ -2494,7 +2494,7 @@ class RecipeProcessTypeForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         required=False, 
         #empty_label="---------",
         widget=forms.Select(attrs={'class': 'chzn-select'}))
@@ -2523,7 +2523,7 @@ class RecipeProcessTypeChangeForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         required=False, 
         #empty_label="---------",
         widget=forms.Select(attrs={'class': 'chzn-select'}))
@@ -2873,7 +2873,7 @@ class ExchangeForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=True, 
@@ -2915,7 +2915,7 @@ class SaleForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=True, 

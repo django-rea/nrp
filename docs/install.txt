@@ -85,9 +85,23 @@ And this to load some starter help:
 
 15. point browser at http://127.0.0.1:8000/
 
-16. You will also want a local_settings.py file
+16. You may also want a local_settings.py file
 in the same directory as settings.py
 You can look at local_settings_example.py for ideas,
-but don't use it as-is.
+but don't use it as-is. (It has two database sections.
+You should keep only the sqlite one.)
+
+17. When you log in for the first time, you must 
+create an EconomicAgent for yourself. Go into Admin,
+which is on the pulldown menu by your username on the upper right.
+Click on Economic agents, and then click on "add economic agent".
+When you have added as much info as you want, go to the bottom
+of the page, and select your username in the first User
+select widget.
+You will be the only user who will need to do this.
+All other Agents and Users can be created from 
+the Organization page.
+
+
 
 

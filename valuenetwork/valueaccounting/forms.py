@@ -2780,6 +2780,7 @@ class ProcessTypeCitableStreamRecipeForm(forms.ModelForm):
 class ProcessTypeWorkForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
+        label = _("Type of work"),
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
@@ -2812,6 +2813,8 @@ class ProcessTypeWorkForm(forms.ModelForm):
             if use_pattern:
                 self.pattern = pattern
                 self.fields["resource_type"].queryset = pattern.work_resource_types()
+            if len(self.fields["resource_type"].queryset) > 0:
+                self.fields["unit_of_quantity"].initial = self.fields["resource_type"].queryset[0].unit_for_use()
 
 
 class TimeForm(forms.Form):

@@ -2463,7 +2463,7 @@ class XbillProcessTypeForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         required=False, 
         #empty_label="---------",
         widget=forms.Select(attrs={'class': 'chzn-select'}))

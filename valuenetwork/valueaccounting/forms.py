@@ -1722,19 +1722,24 @@ class DisbursementEventForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             rts = pattern.disbursement_resource_types()
-            self.fields["resource_type"].queryset = rts
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
+            #self.fields["resource_type"].queryset = rts
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
             else:
-                if rts:
+                if rts_vas:
                     if self.instance.id:
                         rt = self.instance.resource_type
                         if rt:
                             self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
                         else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
                     else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
 
                         
 class ShipmentForm(forms.ModelForm):

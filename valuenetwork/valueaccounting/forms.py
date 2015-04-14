@@ -1962,7 +1962,7 @@ class CashContributionEventForm(forms.ModelForm):
                     self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
         if context_agent:
             self.context_agent = context_agent
-            self.fields["from_agent"].queryset = context_agent.all_members()          
+            #self.fields["from_agent"].queryset = context_agent.all_members()          
 
             
 class CashContributionResourceEventForm(forms.ModelForm):
@@ -2016,7 +2016,7 @@ class CashContributionResourceEventForm(forms.ModelForm):
             self.fields["resource_type"].queryset = pattern.cash_contr_resource_types()
         if context_agent:
             self.context_agent = context_agent
-            self.fields["from_agent"].queryset = context_agent.all_members()
+            #self.fields["from_agent"].queryset = context_agent.all_members()
             
 class MaterialContributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

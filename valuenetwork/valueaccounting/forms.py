@@ -1553,19 +1553,23 @@ class CashReceiptForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             rts = pattern.cash_receipt_resource_types()
-            self.fields["resource_type"].queryset = rts
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
             else:
-                if rts:
+                if rts_vas:
                     if self.instance.id:
                         rt = self.instance.resource_type
                         if rt:
                             self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
                         else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
                     else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
         if context_agent:
             self.context_agent = context_agent
             self.fields["to_agent"].queryset = context_agent.all_ancestors()
@@ -1621,7 +1625,13 @@ class CashReceiptResourceForm(forms.ModelForm):
         super(CashReceiptResourceForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.cash_receipt_resource_types()
+            #self.fields["resource_type"].queryset = pattern.cash_receipt_resource_types()
+            rts = pattern.cash_receipt_resource_types()
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
         if context_agent:
             self.context_agent = context_agent
             self.fields["to_agent"].queryset = context_agent.all_ancestors()
@@ -1663,19 +1673,24 @@ class DistributionEventForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             rts = pattern.distribution_resource_types()
-            self.fields["resource_type"].queryset = rts
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
+            #self.fields["resource_type"].queryset = rts
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
             else:
-                if rts:
+                if rts_vas:
                     if self.instance.id:
                         rt = self.instance.resource_type
                         if rt:
                             self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
                         else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
                     else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
             
 
 class DisbursementEventForm(forms.ModelForm):
@@ -1954,12 +1969,17 @@ class CashContributionEventForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             rts = pattern.cash_contr_resource_types()
-            self.fields["resource_type"].queryset = rts
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
+            #self.fields["resource_type"].queryset = rts
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
             else:
-                if rts:
-                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                if rts_vas:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
         if context_agent:
             self.context_agent = context_agent
             #self.fields["from_agent"].queryset = context_agent.all_members()          
@@ -2013,7 +2033,13 @@ class CashContributionResourceEventForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             #import pdb; pdb.set_trace()
-            self.fields["resource_type"].queryset = pattern.cash_contr_resource_types()
+            #self.fields["resource_type"].queryset = pattern.cash_contr_resource_types()
+            rts = pattern.cash_contr_resource_types()
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
         if context_agent:
             self.context_agent = context_agent
             #self.fields["from_agent"].queryset = context_agent.all_members()

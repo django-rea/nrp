@@ -1,0 +1,144 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Virtual Accounts" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+</style>
+{% endblock %}
+
+{% block body_class %}value_equations{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    
+        <legend>
+            {% trans "Virtual Accounts" %}
+        </legend>
+        
+        <div class="row-fluid">
+            <div class="span12">
+                <ul>
+                {% for acct in virtual_accounts %}
+                
+                    <li>
+                        <a href="{{ acct.get_absolute_url }}">{{ acct.identifier }}</a> &nbsp;&nbsp;
+                        {% if acct.payout %}
+                            <a href="#payoutModal{{ acct.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                                Payout
+                            </a>
+                            
+                            <div class="modal hide fade payoutModal" id="payoutModal{{ acct.id }}" tabindex="-1" role="dialog" aria-labelledby="payout-label" aria-hidden="true">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h3 id="payout-label">{% trans "Payout from " %}{{ acct.identifier }}</h3>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="validateMe" id="payoutForm{{ acct.id }}" action="{% url payout_from_virtual_account account_id=acct.id %}" method="POST" >
+                                        {% csrf_token %}
+                                        {{ acct.payout_form|as_bootstrap }}
+                                        <input type="hidden" id="next" name="next" value="process" />
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </li>
+                    <ul>
+                        <li>{% trans "Owner" %}: {{ acct.owner }}, {% trans "Balance" %}: {{ acct.formatted_quantity }}
+                    </ul>
+                    
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+    
+{% endblock %}
+{% block extra_script %}
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+        
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                var thisForm = this.currentForm;
+                var formId = thisForm.id;
+                var maxField = "#" + formId + " input[name*='max']";
+                var max = parseFloat($(maxField).val()); 
+                if (isValidQuantity)
+                {
+                    value = parseFloat(value);
+                    if (value > max)
+                    {
+                        isValidQuantity = false;
+                    }
+                }
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number no greater than account balance with no more than 2 decimal places"
+        );
+        
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
+        });
+
+        $.validator.addClassRules("quantity", { 
+            required: true, 
+            quantity: true,
+        });
+        
+        $.validator.addClassRules("date-entry", { required: true, date: true, });
+
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
+        });
+
+
+        {% for acct in virtual_accounts %}
+            
+        {% endfor %}
+
+    }); // end document.ready
+    </script>
+{% endblock %}

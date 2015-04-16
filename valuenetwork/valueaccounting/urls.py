@@ -460,5 +460,9 @@ urlpatterns += patterns("",
     url(r'^tutorials/$', direct_to_template, {
         'template': 'valueaccounting/tutorials.html'
     }, name="tutorials"),
+    url(r'^virtual-accounts/$', 'valuenetwork.valueaccounting.views.virtual_accounts', 
+        name="virtual_accounts"),
+    url(r"^virtual-payout/(?P<account_id>\d+)/$", 'valuenetwork.valueaccounting.views.payout_from_virtual_account', 
+        name="payout_from_virtual_account"),
 )
 

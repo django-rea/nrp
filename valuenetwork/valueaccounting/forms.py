@@ -605,7 +605,27 @@ class UninventoriedProductionEventForm(forms.ModelForm):
         if qty_help:
             self.fields["quantity"].help_text = qty_help
 
+            
+class PayoutForm(forms.ModelForm):
+    event_date = forms.DateField(
+        label="Payout Date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
+    max = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    event_reference = forms.CharField(
+        required=False, 
+        label="Reference",
+        widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xlarge',}))
+   
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'quantity', 'event_reference', 'description')
 
+        
 class ProcessConsumableForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 

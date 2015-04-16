@@ -1,0 +1,147 @@
+[
+    {
+        "pk": 15, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "agent", 
+            "description": "One thing to understand here is the difference between an <b>Agent</b> and a <b>User</b>.\r\nAn <b>Agent</b> is a person or group that you want to include in your organization.\r\nA <b>User</b> is a login account (with a username and password and some settings) \r\nfor a person who can log in and use this system.\r\nAn Agent may have a User, but does not need to have one\r\nunless they need to log in.\r\nA User needs an Agent or they can't do much in this system.\r\n(If you see a button that allows you to change this Agent,\r\nyou have both an Agent and a User.)\r\n\r\n<b>Associations</b> are relationships between Agents."
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "agents", 
+            "description": "This page and the <a href=\"/accounting/projects/\">Organization</a> page\r\ngive you different views of your organization. \r\nThis page focuses more on Agent Types, \r\nwhile Organization focuses more on Agent relationships."
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "all_work", 
+            "description": "<b>Navigation:</b>\r\n\r\nIf you don't see anything, and think you should, try changing the dates.\r\n\r\nIf you see too much, narrow the date range or select a project.\r\n\r\nThe <i>previous</i> and <i>next</i> processes on the right side are links that will open the page for that process. \r\nIf you see a <i class=\"icon-search\"></i>, that means the process is on this page, and clicking the <i class=\"icon-search\"></i> will take you to it.\r\n\r\n<b>Take this task:</b>\r\n\r\nIf you see a \"Take this task\" button, you can click the button and commit to doing that work.\r\n\r\n<b>Todos:</b>\r\n\r\nYou can add a todo for yourself, or assign one to somebody else, or leave it unassigned.\r\n\r\nYou can take an unassigned todo by clicking \"Mine!\".\r\n\r\nYou can reject an assigned todo by clicking \"Decline\".\r\n\r\nIf a todo is yours, you should see a row for entering optional info: \r\nwhat you did, how many hours you spent, and a \"Done\" button. \r\nIf you just click \"Done\" and do not enter any other info, you will get the default 1 hour.\r\n\r\nIf you posted a todo, you will see \"Change\" and \"Delete\" buttons."
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "associations", 
+            "description": "The labels \"has these associates\" and \"is associated with\"\r\nmight be confusing, but they are just generic names\r\nfor the two ends of an association between two agents.\r\n\r\nThe names of the Association Types in the selection list\r\nshould be a bit easier to understand.\r\n\r\nBasically, \"has these associations\" is from the viewpoint \r\nof the Agent whose associations you are maintaining.\r\n\"Is associated with\" is from the viewpoint of the other \r\nAgent that you are associating to this one.\r\n\r\nClear as mud? Please suggest improvements.\r\n<a href=\"mailto:info@mikorizal.org\">Send us an email</a>."
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "demand", 
+            "description": ""
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "exchange", 
+            "description": "Payment can be broken down into more than one contribution, if multiple affiliates shared the cost. The sum of all payments should equal Expense."
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "home", 
+            "description": "The first time you click help, the help contents will appear.\r\n\r\nThe next time you click help, they will disappear."
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "inventory", 
+            "description": "NRP can keep a lot of resources in Inventory that might surprise you.\r\nLike designs, documents, or anything else you want to keep track of.\r\n\r\nYou may select any number of facets on the right and click \"Filter\" to shorten the list. "
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "labnotes", 
+            "description": "This page will be saves immediately after you made changes. If not, a message will appear in red on the upper right corner. \r\n\r\nUse the space on the left to enter your notes about the process/experiment. You can also add links to other documents if necessary. You can use this labnote for many work sessions. Best practice is to mark the date of every day you work on, before your notes for the day. \r\n\r\nRECORD YOUR TIME\r\nTo record the time you work on the project, you either press the START button when you start your work and the STOP button when you finish or before taking a brake, or simply enter the total amount of hours at the end of the day. NOTE that the time is cumulative over the entire day. That meas that if you do 3 hours of work in the morning, take a brake and close the page, and come back later the same day to do 2 more hours, you need to enter 5 at the end of the day. If you have entered 3, when you reopen the labnote the same day you'll see the number 3. If you change it to 2 after the brake, your total time for the day will be 2. So just keep adding hours to the total amount you do.      \r\n\r\nADD INPUTS\r\nClick the INPUT button to add inputs. Inputs are components you use, tool and equipment. Components have units of numbers, so you need to enter the number of components used. Their number is cumulative during the entire R&D process, unlike the time. This means that if another day you use another component that you used before, you need to go in there and increment that number by one. Tools and equipment have time units. That means that you need to enter the total amount of time you used a tool and equipment. The total time of use is also cumulative over the entire process. Next time you use the same equipment you need to increment the number of hours associated with that particular equipment. \r\n\r\nADD OUTPUTS"
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "locations", 
+            "description": "Locations are temporarily disabled.\r\n\r\nWe use Open Street Map, and were using MapQuest Community Edition map tiles.\r\nMapQuest recently killed their Community Edition services.\r\nLocations will return when we get time to replace those tiles."
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "my_work", 
+            "description": "This page offers two different ways to log your work.  \r\nSelecting a logging method starts with this <b>critical question:</b>\r\n<h3>Will you be creating a deliverable, tangible resource that should be tracked by the system for consumption, re-use or citation (ex. R&D or fabrication)?</h3>\r\n<ul>\r\n<li>Then you need a <b>process</b> which will associate your time contribution with your creations.</li>\r\n<ul>\r\n<li>The simplest way to log your work in a process is <i>if somebody else created the process</i>. Those tasks will appear on this page with a <b>Take this task</b> button.</li>\r\n<li>Otherwise you will need to <b>Create a production process</b> (in other words, if nobody else created the process, you will have to do it). Then you can log your time contributions as well as inputs and outputs and citations.</li>\r\n</ul>\r\n</ul>\r\n<h3>If you are not creating a deliverable, a tangible resources that need to be tracked (ex. office work):</h3>\r\n<ul>\r\n<li>You can use <b>Log non-production work</b>. It does not allow inputs or outputs, but does allow multiple time contributions per page.</li>\r\n<li><b>Todos</b> may be even simpler. You can assign them to yourself or others.</li>"
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "non_production", 
+            "description": "This page is used to log work that doesn't have a clear deliverable, or a deliverable that is not significant enough to be tracked by the NRP system. \r\n\r\nExamples are meetings, office work, writing, documenting, activities related to marketing, etc. \r\n\r\nSelect a Date, the Type of work (select the item that resembles the most to the activity you performed), and the Project. \r\n\r\nIf you don't find anything related to your activity in the Type of work list, contact someone who can create a new item for you. \r\n"
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "process", 
+            "description": "You may be able to log work on this page.\r\n\r\nIf you created this process, or are working on it, you can log almost anything.\r\n\r\nIf not, you can take tasks and then become a worker on this process, or you can log unplanned work.\r\n\r\nEach of the buttons has tool tips that explain it more.\r\n\r\nThe sections on the page correspond to the process context or pattern.  If you think this process should have something it doesn't, ask an admin for changes to the process pattern.\r\n\r\nIf this process does not have a process pattern, you will not be able to log anything.  Change the process and add a pattern."
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "projects", 
+            "description": "This is where you define your organization. \r\nOrganizations consist of Agents and the associations between them.\r\nAgents can be individual persons or groups.\r\n\r\nThis page and the <a href=\"/accounting/agents/\">All Agents</a> page\r\ngive you different views of your organization. \r\nThis page focuses more on Agent relationships, \r\nwhile All Agents focuses more on Agent Types."
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "resource_types", 
+            "description": "The short (but circular) explanation of Resource Types is that \r\nthey are the definitions of types of <a href=\"/accounting/inventory/\">Resources (or Inventory)</a>.\r\n\r\nSo, for example, on an e-commerce site, you order a Resource Type (like a tool),\r\nbut they deliver you a Resource (an actual tool that you can use).\r\n\r\nThe long explanation is in the <a href=\"/accounting/tutorials/\">Resoure Types tutorial</a>.\r\n\r\nYou may select any number of facets on the right and click \"Filter\" to shorten the list. "
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "valueaccounting.help", 
+        "fields": {
+            "page": "supply", 
+            "description": "Use this page to log financial and material contributions. \r\nPURCHASE contributions are result in something being created in the inventory. For example, if you buy a tool, equipment, a consumable material, etc. \r\nEXPENSE contributions do not result in something being created in the inventory, for example paying for rent or recurring bills, paying for a plane ticket or for an event. \r\nCASH contributions are contributions in cash, to be used in the future, with no clear use for the moment. \r\nMATERIAL contributions are stuff that you have and want to share with sensoricans, with access conditions attached.   "
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "valueaccounting.homepagelayout", 
+        "fields": {
+            "needs_panel_headline": "", 
+            "panel_1": "", 
+            "panel_2": "", 
+            "panel_3": "", 
+            "banner": "<div style=\"text-align: center; font-size: 1.8em;  font-weight: bold; margin: 0; padding: 0;\">\r\nNRP (Network Resource Planning) for Open Value Networks.\r\n</div>\r\n<p style=\"text-align: center; margin: 0; padding: 0;\">\r\nSee also  <a href=\"/accounting/tutorials/\">the setup tutorials</a>.\r\n</p>\r\n<div style=\"text-align: center; margin: 0; padding: 0;\">\r\n<img id=\"Image-Maps-Com-image-maps-2015-03-28-152551\"  src=\"/static/img/navmap.png\"  width=\"830\" height=\"447\" orgWidth=\"830\" orgHeight=\"447\" usemap=\"#image-maps-2015-03-28-152551\" alt=\"Links into the system\"  class=\"map\" style=\"display: block; margin: 0 auto;\" />\r\n<div style=\"display: none;\">\r\n\r\n<map name=\"image-maps-2015-03-28-152551\" id=\"ImageMapsCom-image-maps-2015-03-28-152551\">\r\n<area  alt=\"Cash Accounting\" title=\"Cash Accounting\" href=\"/accounting/cash-report/\" shape=\"rect\" coords=\"684,57,795,113\" style=\"outline:none;\" target=\"_self\"   data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area  alt=\"All Contributions\" title=\"All Contributions\" href=\"/accounting/all-contributions/\" shape=\"rect\" coords=\"685,119,795,173\" style=\"outline:none;\" target=\"_self\"    data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'   />\r\n<area  alt=\"My Work\" title=\"My Work\" href=\"/accounting/start/\" shape=\"rect\" coords=\"186,362,297,418\" style=\"outline:none;\" target=\"_self\"  data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'   />\r\n<area  alt=\"Financial Contributions\" title=\"Financial Contributions\" href=\"/accounting/exchanges/\" shape=\"rect\" coords=\"686,182,797,235\" style=\"outline:none;\" target=\"_self\"    data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}' ' />\r\n<area  alt=\"Material Contributions\" title=\"Material Contributions\" href=\"/accounting/material-contributions/\" shape=\"rect\" coords=\"687,241,795,297\" style=\"outline:none;\" target=\"_self\"  data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area  alt=\"Sales and Distributions\" title=\"Sales and Distributions\" href=\"/accounting/sales-and-distributions/\" shape=\"rect\" coords=\"684,304,795,359\" style=\"outline:none;\" target=\"_self\"   data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area  alt=\"Inventory\" title=\"Inventory\" href=\"/accounting/inventory/\" shape=\"rect\" coords=\"685,365,797,421\" style=\"outline:none;\" target=\"_self\"  data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area  alt=\"Organization\" title=\"Organization\" href=\"/accounting/projects/\" shape=\"rect\" coords=\"24,39,134,93\" style=\"outline:none;\" target=\"_self\"  data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapRT\" alt=\"Resource Types\" title=\"Resource Types and Recipes\" href=\"/accounting/resources/\" shape=\"rect\" coords=\"155,39,266,92\" style=\"outline:none;\" target=\"_self\"  data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapLoc\" alt=\"Locations\" title=\"Locations\" href=\"/accounting/locations/\" shape=\"rect\" coords=\"298,41,407,93\" style=\"outline:none;\" target=\"_self\"  data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapVE\" alt=\"Value Equations\" title=\"Value Equations\" href=\"/accounting/value-equations/\" shape=\"rect\" coords=\"441,39,548,92\" style=\"outline:none;\" target=\"_self\"  data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapDemand\" alt=\"Customer and Work Orders\" title=\"Customer and Work Orders\" href=\"/accounting/demand/\" shape=\"rect\" coords=\"26,171,137,226\" style=\"outline:none;\" target=\"_self\"  data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapNewOrder\" alt=\"New Customer Order\" title=\"New Customer Order\" href=\"/accounting/create-order/\" shape=\"rect\" coords=\"28,234,138,288\" style=\"outline:none;\" target=\"_self\"   data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapPlanRec\" alt=\"Plan Work from Recipe\" title=\"Plan Work from Recipe\" href=\"/accounting/plan-from-recipe/\" shape=\"rect\" coords=\"25,301,136,354\" style=\"outline:none;\" target=\"_self\"    data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapExp\" alt=\"Log Expense\" title=\"Log Expense\" href=\"/accounting/create-exchange/exp_contr/\" shape=\"rect\" coords=\"514,179,640,235\" style=\"outline:none;\" target=\"_self\"    data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}' />\r\n<area id=\"mapPlan\" alt=\"Plan Work Without Recipe\" title=\"Plan Work without Recipe\" href=\"/accounting/process-selections/\" shape=\"rect\" coords=\"25,363,137,419\" style=\"outline:none;\" target=\"_self\"    data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapPurch\" alt=\"Purchase\" title=\"Purchase\" href=\"/accounting/create-exchange/purch_contr/\" shape=\"rect\" coords=\"190,171,299,225\" style=\"outline:none;\" target=\"_self\"   data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapAll\" alt=\"All Work\" title=\"All Work\" href=\"/accounting/work/\" shape=\"rect\" coords=\"186,296,299,349\" style=\"outline:none;\" target=\"_self\"   data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapSale\" alt=\"Sale\" title=\"Sale\" href=\"/accounting/create-sale/\" shape=\"rect\" coords=\"347,174,457,229\" style=\"outline:none;\" target=\"_self\"   data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapVE\" alt=\"Value Equations\" title=\"Value Equations\" href=\"/accounting/value-equations/\" shape=\"rect\" coords=\"348,253,459,306\" style=\"outline:none;\" target=\"_self\"    data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}' />\r\n<area id=\"mapNonP\" alt=\"Non-Production Logging\" title=\"Non-Production Logging\" href=\"/accounting/unscheduled-time/\" shape=\"rect\" coords=\"516,253,637,304\" style=\"outline:none;\" target=\"_self\"   data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapMatlC\" alt=\"Material Contribution\" title=\"Material Contribution\" href=\"/accounting/create-exchange/res_contr/\" shape=\"rect\" coords=\"363,364,476,418\" style=\"outline:none;\" target=\"_self\"  data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area id=\"mapCashC\" alt=\"Cash Contribution\" title=\"Cash Contribution\" href=\"/accounting/create-exchange/cash_contr/\" shape=\"rect\" coords=\"502,364,610,419\" style=\"outline:none;\" target=\"_self\"  data-maphilight='{\"stroke\":false,\"fillOpacity\":0.05}'  />\r\n<area shape=\"rect\" coords=\"828,445,830,447\" alt=\"Image Map\" style=\"outline:none;\" title=\"Image Map\" href=\"http://www.image-maps.com/index.php?aff=mapped_users_48486\" />\r\n</map>\r\n\r\n</div>\r\n</div>", 
+            "footer": "", 
+            "creations_panel_headline": "", 
+            "use_work_panel": false, 
+            "use_needs_panel": false, 
+            "work_panel_headline": "", 
+            "use_creations_panel": false
+        }
+    }
+]

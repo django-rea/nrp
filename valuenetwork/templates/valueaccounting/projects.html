@@ -17,7 +17,7 @@
     font-style: italic;
 }
 .indent {
-    margin-left: 1.5em;
+    margin-left: 1.2em;
 }
 .assoc_group {
     color: green;
@@ -46,36 +46,30 @@
 
 	    <legend>
 	        {% trans "Organization" %} 
-{% comment %}
+
 	        {% if agent %}
-                <div style="display: inline;" >
-                <a href="#createProjectForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create new Project" %}</a>
-				</div>
-			
-
-
-            <div class="modal hide fade" id="createProjectForm" tabindex="-1" role="dialog" aria-labelledby="project-create-label" aria-hidden="true">
-		        <div class="modal-header">
-			        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-			        <h3 id="project-create-label">{% trans "Create a new Project" %}</h3>
-		        </div>
-		        <div class="modal-body">
-			        <form class="project-create-form" id="projectCreateForm" enctype="multipart/form-data" action="{% url create_project %}" method="POST" >
-				        {% csrf_token %}
-				        {{ project_create_form|as_bootstrap }}
-
-			          <div class="modal-footer">
-				        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-				        <button class="btn btn-primary">{% trans "Save changes" %}</button>
-			          </div>
-
-			        </form>
-
-	            </div>
-            </div>
+                &nbsp;&nbsp;&nbsp;
+                <a href="#create-agent" role="button" class="btn btn-primary" data-toggle="modal">Create New Agent</a>
+                
+                <div class="modal hide fade" id="create-agent" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 id="agent-label">{% trans "Create a New Agent" %}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <form class="validateMe" id="agentForm" enctype="multipart/form-data" action="{% url create_agent %}" method="POST" >
+                            {% csrf_token %}
+                            {{ agent_form|as_bootstrap }}
+                            <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
             {% endif %}
-{% endcomment %}
+
 
             <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>
             <a class="indent" href="{% url all_contributions %}">{% trans "All contributions" %}</a>
@@ -84,6 +78,7 @@
 {% endcomment %}
             <a class="indent" href="{% url project_network %}">{% trans "Network diagram" %}</a>
             <a class="indent" href="{% url cash_report %}">{% trans "Cash Flow Report" %}</a>
+            <a class="indent" href="{% url value_equations %}">{% trans "Value Equations" %}</a>
                 
         </legend>
         

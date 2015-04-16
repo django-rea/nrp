@@ -153,8 +153,11 @@ class HomePageLayout(models.Model):
 #for help text
 PAGE_CHOICES = (
     ('agent', _('Agent')),
+    ('agents', _('All Agents')),
     ('all_work', _('All Work')),
+    ('create_distribution', _('Create Distribution')),
     ('create_exchange', _('Create Exchange')),
+    ('create_sale', _('Create Sale')),
     ('demand', _('Demand')),
     ('ed_asmbly_recipe', _('Edit Assembly Recipes')),
     ('ed_wf_recipe', _('Edit Workflow Recipes')),
@@ -162,6 +165,7 @@ PAGE_CHOICES = (
     ('home', _('Home')),
     ('inventory', _('Inventory')),
     ('labnotes', _('Labnotes Form')),
+    ('locations', _('Locations')),
     ('associations', _('Maintain Associations')),
     ('my_work', _('My Work')),
     ('non_production', _('Non-production time logging')),
@@ -1333,11 +1337,11 @@ class EconomicResourceType(models.Model):
         help_text=_('if this resource has different units of use and inventory, this is the unit of use'))
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         limit_choices_to={'unit_type': 'value'},
-        verbose_name=_('unit of value'), related_name="resource_type_value_units")
+        verbose_name=_('unit of value'), related_name="resource_type_value_units", editable=False)
     value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
-        default=Decimal("0.00"))
+        default=Decimal("0.00"), editable=False)
     value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2, 
-        default=Decimal("0.00"))
+        default=Decimal("0.00"), editable=False)
     price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     unit_of_price = models.ForeignKey(Unit, blank=True, null=True,
@@ -3704,8 +3708,6 @@ class EconomicResource(models.Model):
         #Resource contributions use event.value.
         contributions = self.resource_contribution_events()
         for evt in contributions:
-            #if evt.id == 3960:
-            #    import pdb; pdb.set_trace()
             value = evt.value
             if value_equation:
                 br = evt.bucket_rule(value_equation)
@@ -3928,7 +3930,8 @@ class EconomicResource(models.Model):
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             ip.depth = depth
                             path.append(ip)
-                            ip.resource.rollup_explanation_traversal(path, visited, depth)
+                            if ip.resource:
+                                ip.resource.rollup_explanation_traversal(path, visited, depth)
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
                             path.append(ip)
@@ -3965,7 +3968,8 @@ class EconomicResource(models.Model):
                             ip.depth = depth
                             components.append(ip)
                             #depth += 1
-                            ip.resource.direct_value_components(components, visited, depth)
+                            if ip.resource:
+                                ip.resource.direct_value_components(components, visited, depth)
                             #depth += 1
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
@@ -4020,10 +4024,6 @@ class EconomicResource(models.Model):
         #import pdb; pdb.set_trace()
         contributions = self.resource_contribution_events()
         for evt in contributions:
-            #if evt.id == 3960:
-            #    import pdb; pdb.set_trace()
-            #todo br
-            #import pdb; pdb.set_trace()
             br = evt.bucket_rule(value_equation)
             value = evt.value
             if br:
@@ -4112,24 +4112,28 @@ class EconomicResource(models.Model):
                             elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                                 #consume events are not contributions, but their resources may have contributions                       
                                 ip_value = ip.value * distro_fraction
-                                #if ip.resource.id == 98:
-                                #    import pdb; pdb.set_trace()
                                 d_qty = ip.quantity * distro_fraction
                                 #if ip_value:
                                     #print "consumption:", ip.id, ip, "ip.value:", ip.value
                                     #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                             elif ip.event_type.relationship == "cite":
-                                #import pdb; pdb.set_trace()   
+                                #import pdb; pdb.set_trace()
                                 #citation events are not contributions, but their resources may have contributions
-                                value = ip.value
-                                ip_value = value * distro_fraction
-                                d_qty = distro_qty
-                                if ip_value and value:
-                                    d_qty = ip_value / value
-                                    #print "citation:", ip.id, ip, "ip.value:", ip.value
-                                    #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    value = ip.value
+                                    ip_value = value * distro_fraction
+                                    d_qty = distro_qty
+                                    if ip_value and value:
+                                        d_qty = ip_value / value
+                                    #if ip.resource:
+                                    #    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                    new_visited = set()
+                                    path = []
+                                    depth = 0
+                                    resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
+                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
                                 
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #Resource method
@@ -4150,6 +4154,7 @@ class EconomicResource(models.Model):
                 evt.exchange.compute_income_shares_for_use(value_equation, use_event, use_value, resource_value, events, visited)
         processes = self.producing_processes()
         #shd only be one producing process for a used resource..right?
+        quantity = self.quantity
         for process in processes:
             if process not in visited:
                 visited.add(process)
@@ -4186,7 +4191,7 @@ class EconomicResource(models.Model):
                                 br = ip.bucket_rule(value_equation)
                                 if br:
                                     value = br.compute_claim_value(ip)
-                                #todo 3d: how to compute?
+                                #todo 3d: changed
                                 #import pdb; pdb.set_trace()
                                 fraction = ip.value / resource_value
                                 ip.share = use_value * fraction
@@ -4205,15 +4210,29 @@ class EconomicResource(models.Model):
                                 #consume events are not contributions, but their resources may have contributions                       
                                 ip_value = ip.value * distro_fraction
                                 d_qty = ip.quantity * distro_fraction
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                             elif ip.event_type.relationship == "cite":
                                 #citation events are not contributions, but their resources may have contributions
-                                value = ip.value
-                                ip_value = value * distro_fraction
-                                d_qty = distro_qty
-                                if ip_value and value:
-                                    d_qty = ip_value / value
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                #todo: use percent or compute_income_shares_for_use?
+                                #value = ip.value
+                                #ip_value = value * distro_fraction
+                                #d_qty = distro_qty
+                                #if ip_value and value:
+                                #    d_qty = ip_value / value
+                                #if ip.resource:
+                                #    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    value = ip.value
+                                    ip_value = value * distro_fraction
+                                    d_qty = distro_qty
+                                    if ip_value and value:
+                                        d_qty = ip_value / value
+                                    new_visited = set()
+                                    path = []
+                                    depth = 0
+                                    resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
+                                    ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
 
     def direct_share_components(self, components, visited, depth):
         depth += 1
@@ -4246,7 +4265,8 @@ class EconomicResource(models.Model):
                             ip.depth = depth
                             components.append(ip)
                             #depth += 1
-                            ip.resource.direct_value_components(components, visited, depth)
+                            if ip.resource:
+                                ip.resource.direct_value_components(components, visited, depth)
                             #depth += 1
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
@@ -5812,10 +5832,11 @@ class Process(models.Model):
                 elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                     ip.depth = depth
                     path.append(ip)
-                    value_per_unit = ip.resource.roll_up_value(path, depth, visited)
-                    ip.value = ip.quantity * value_per_unit
-                    ip.save()
-                    process_value += ip.value
+                    if ip.resource:
+                        value_per_unit = ip.resource.roll_up_value(path, depth, visited)
+                        ip.value = ip.quantity * value_per_unit
+                        ip.save()
+                        process_value += ip.value
                 #Citations valued later, after all other inputs added up
                 elif ip.event_type.relationship == "cite":
                     ip.depth = depth
@@ -5886,29 +5907,49 @@ class Process(models.Model):
                         elif ip.event_type.relationship == "use":
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
-                                ip_value = ip.value * distro_fraction
-                                if ip_value:
+                                #ip_value = ip.value * distro_fraction
+                                #if ip_value:
+                                #    d_qty = ip_value / value
+                                #    ip.resource.compute_income_shares(value_equation, d_qty, events, visited) 
+                                value = ip.value
+                                ip_value = value * distro_fraction
+                                d_qty = distro_qty
+                                if ip_value and value:
                                     d_qty = ip_value / value
-                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited) 
+                                new_visited = set()
+                                path = []
+                                depth = 0
+                                resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
+                                ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             #consume events are not contributions, but their resources may have contributions
                             ip_value = ip.value * distro_fraction
-                            #if ip.resource.id == 98:
-                            #    import pdb; pdb.set_trace()
+                            #import pdb; pdb.set_trace()
                             if ip_value:
                                 d_qty = ip.quantity * distro_fraction
                                 #print "consumption:", ip.id, ip, "ip.value:", ip.value
                                 #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                if ip.resource:
+                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                         elif ip.event_type.relationship == "cite":
-                            #import pdb; pdb.set_trace()   
+                            #import pdb; pdb.set_trace()
                             #citation events are not contributions, but their resources may have contributions
-                            ip_value = ip.value * distro_fraction
-                            if ip_value:
-                                d_qty = ip_value / value
-                                #print "citation:", ip.id, ip, "ip.value:", ip.value
-                                #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
-                                ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                            #ip_value = ip.value * distro_fraction
+                            #if ip_value:
+                            #    d_qty = ip_value / value
+                            #    if ip.resource:
+                            #        ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                            if ip.resource:
+                                value = ip.value
+                                ip_value = value * distro_fraction
+                                d_qty = distro_qty
+                                if ip_value and value:
+                                    d_qty = ip_value / value
+                                new_visited = set()
+                                path = []
+                                depth = 0
+                                resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
+                                ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
     
 
 class ExchangeManager(models.Manager):
@@ -5986,7 +6027,7 @@ class Exchange(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('exchange_details', (),
+        return ('exchange_logging', (),
             { 'exchange_id': str(self.id),})
 
     def save(self, *args, **kwargs):
@@ -6127,23 +6168,25 @@ class Exchange(models.Model):
                 values += value
                 evt.depth = depth
                 path.append(evt)
-                contributions = evt.resource.cash_contribution_events()
-                depth += 1
-                #todo 3d: done, maybe
-                for c in contributions:
-                    c.depth = depth
-                    path.append(c)
+                if evt.resource:
+                    contributions = evt.resource.cash_contribution_events()
+                    depth += 1
+                    #todo 3d: done, maybe
+                    for c in contributions:
+                        c.depth = depth
+                        path.append(c)
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
-                    contributions = evt.resource.cash_contribution_events()
-                    fraction = evt.quantity / total
-                    #evt.share = evt.quantity * share * fraction * trigger_fraction
-                    evt.share = evt.quantity * fraction * trigger_fraction
-                    evt.depth = depth
-                    path.append(evt)
-                    values += evt.share
-                    #todo 3d: do multiple payments make sense for cash contributions?
+                    if evt.resource:
+                        contributions = evt.resource.cash_contribution_events()
+                        fraction = evt.quantity / total
+                        #evt.share = evt.quantity * share * fraction * trigger_fraction
+                        evt.share = evt.quantity * fraction * trigger_fraction
+                        evt.depth = depth
+                        path.append(evt)
+                        values += evt.share
+                        #todo 3d: do multiple payments make sense for cash contributions?
             for evt in self.work_events():
                 #import pdb; pdb.set_trace()
                 value = evt.quantity
@@ -6173,19 +6216,10 @@ class Exchange(models.Model):
             share =  quantity / trigger_event.quantity
             if payments.count() == 1:
                 evt = payments[0]
-                #import pdb; pdb.set_trace()
-                value = evt.quantity
-                br = evt.bucket_rule(value_equation)
-                if br:
-                    #import pdb; pdb.set_trace()
-                    value = br.compute_claim_value(evt)
-                evt.share = value * share
-                events.append(evt)
-                #todo 3d: intervene here
+                contributions = []
                 #import pdb; pdb.set_trace()
                 if evt.resource:
                     candidates = evt.resource.cash_contribution_events()
-                    contributions = []
                     for cand in candidates:
                         br = cand.bucket_rule(value_equation)
                         if br:
@@ -6196,6 +6230,15 @@ class Exchange(models.Model):
                         fraction = ct.quantity / value
                         ct.share = ct.value * share * fraction * trigger_fraction
                         events.append(ct)
+                if not contributions:
+                    #if contributions were credited,
+                    # do not give credit for payment.
+                    value = evt.quantity
+                    br = evt.bucket_rule(value_equation)
+                    if br:
+                        value = br.compute_claim_value(evt)
+                    evt.share = value * share
+                    events.append(evt)
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
@@ -6228,25 +6271,23 @@ class Exchange(models.Model):
             share =  use_value / cost
             if payments.count() == 1:
                 evt = payments[0]
-                #import pdb; pdb.set_trace()
-                value = evt.quantity
-                br = evt.bucket_rule(value_equation)
-                if br:
-                    #import pdb; pdb.set_trace()
-                    value = br.compute_claim_value(evt)
-                #todo 3d: how to compute?
-                evt.share = value * share
-                events.append(evt)
-                #todo 3d: intervene here
-                #import pdb; pdb.set_trace()
+                contributions = []
                 if evt.resource:
                     contributions = evt.resource.cash_contribution_events()
-                    #import pdb; pdb.set_trace()
                     for ct in contributions:
                         fraction = ct.quantity / resource_value
-                        #todo 3d: how to compute?
+                        #todo 3d: changed
                         ct.share = use_value * fraction
                         events.append(ct)
+                if not contributions:
+                    #if contributions were credited,
+                    # do not give credit for payment.
+                    value = evt.quantity
+                    br = evt.bucket_rule(value_equation)
+                    if br:
+                        value = br.compute_claim_value(evt)
+                    evt.share = value * share
+                    events.append(evt)
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
@@ -6262,7 +6303,7 @@ class Exchange(models.Model):
                     #import pdb; pdb.set_trace()
                     value = br.compute_claim_value(evt)
                 evt.value = value
-                #todo 3d: how to compute?
+                #todo 3d: changed
                 fraction = value / resource_value
                 evt.share = use_value * fraction
                 events.append(evt)

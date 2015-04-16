@@ -40,6 +40,9 @@ See
 http://pillow.readthedocs.org/en/latest/installation.html#simple-installation
 for how to install Pillow on your operating system.
 
+Note: Apostolis Xekoukoulotakis reports that on Debian, Pillow requires
+libjpeg-dev and python2.7-dev.
+
 Here's PIL: https://pypi.python.org/pypi/PIL/
 
 6. create a virtualenv (assuming you installed virtualenvwrapper):
@@ -71,6 +74,8 @@ SOUTH_MIGRATION_MODULES = {
 
 12. do this to install some starter facets and patterns:
 ./manage.py loaddata ./fixtures/starters.json
+And this to load some starter help:
+./manage.py loaddata ./fixtures/help.json
 
 13. run the tests
 ./manage.py test valueaccounting
@@ -79,5 +84,24 @@ SOUTH_MIGRATION_MODULES = {
 ./manage.py runserver
 
 15. point browser at http://127.0.0.1:8000/
+
+16. You may also want a local_settings.py file
+in the same directory as settings.py
+You can look at local_settings_example.py for ideas,
+but don't use it as-is. (It has two database sections.
+You should keep only the sqlite one.)
+
+17. When you log in for the first time, you must 
+create an EconomicAgent for yourself. Go into Admin,
+which is on the pulldown menu by your username on the upper right.
+Click on Economic agents, and then click on "add economic agent".
+When you have added as much info as you want, go to the bottom
+of the page, and select your username in the first User
+select widget.
+You will be the only user who will need to do this.
+All other Agents and Users can be created from 
+the Organization page.
+
+
 
 

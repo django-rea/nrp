@@ -1,5 +1,6 @@
 {% extends "banner_base.html" %}
 
+{% load staticfiles %}
 {% load i18n %}
 
 {% block head_title %}{% trans "Welcome" %}{% endblock %}
@@ -20,8 +21,19 @@
 
 {% endblock %}
 
+{% block extra_head %}
+<style>
+.map {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>
+{% endblock %}
+
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="{% static 'js/jquery.maphilight.min.js' %}"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -41,6 +53,7 @@
             $( "#help" ).text("Show Help");
         })
 
+        $('.map').maphilight();
 
 	}); // end document.ready
     </script>

@@ -18,7 +18,8 @@
 	<link href="{% static 'bootstrap/css/bootstrap.css' %}" rel="stylesheet">
     <link href="{% static 'bootstrap/css/bootstrap-responsive.css' %}" rel="stylesheet">
 
-	<script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="http://marvl.infotech.monash.edu/webcola/cola.v3.js"></script>
 
 <style>
 		body {
@@ -281,6 +282,7 @@ $(document).ready(function() {
         var nodes = [];
         var nodeIndex = {};
         var edges = [];
+        var constraints = [];
 
 function assembleNodes(){
 
@@ -303,7 +305,7 @@ function assembleNodes(){
             }               
         }
 
-        var xScale = 4500;
+        var xScale = 1000;
         function getX(date) {
             var x = (maxDate!=minDate) ? xScale * (date - minDate) / (maxDate - minDate) : 0;
             return x;
@@ -313,6 +315,7 @@ function assembleNodes(){
         for (var i in valnet.resourceTypes()) {
             var N = valnet.resourceTypes()[i];
             var rx = xScale * Math.random();
+            // doesn't make much diff
             var ry = 500 * Math.random();
 
             var width = 150;
@@ -327,7 +330,7 @@ function assembleNodes(){
             var N = valnet.processes()[i];
 
             var rx = getX(N.mid);
-
+            // doesn't make much diff
             var ry = 100 * Math.random();
 
             var width = Math.max(150, getX(Date.parse(N.end)) - getX(Date.parse(N.start)));
@@ -358,7 +361,11 @@ function viewProcessGraph() {
 		$('#container').html('');
 		$('#content').html('');
 
-		var maxWidth = 6000, maxHeight = 4000;
+		var maxWidth = 6000, maxHeight = 100;
+		
+        var d3cola = cola.d3adaptor()
+            .linkDistance(30)
+            .size([maxWidth, maxHeight]);
 
 		var svgCanvas = d3.select("#content").append("svg")
 			.attr("width", "100%")
@@ -376,7 +383,7 @@ function viewProcessGraph() {
           .append('svg:path')
             .attr('d', 'M0,-5L10,0L0,5')
             .attr('fill', '#000');
-
+/*
 		var force = d3.layout.force()
             .charge(-120)
 			.gravity(.09)
@@ -384,15 +391,20 @@ function viewProcessGraph() {
 			.linkStrength(0.1) //necessary to be < 1.0 to make sure charge (repulsion) is stronger
 			.charge(-500)
 			.size([maxWidth, maxHeight]);
+*/
+
 
         assembleNodes();
         
-		 force
-			  .nodes(nodes)
-			  .links(edges)
-			  .start();
+		 d3cola
+            .nodes(nodes)
+            .links(edges)         
+            //.constraints(constraints)
+            .symmetricDiffLinkLengths(5)
+            .avoidOverlaps(true)
+            .start(10,15,2);
 
-	      var drag = force.drag()
+	      var drag = d3cola.drag()
     		.on("dragstart", function() {
 				oncell = true;
 			}).on("dragend", function() {
@@ -410,7 +422,7 @@ function viewProcessGraph() {
 			  .enter().append("g")
 			  .attr("class", "node")
 			  .attr("type", function(d) {return d.type })
-			  .call(force.drag);
+			  .call(d3cola.drag);
 
 	        node.on("dblclick", function(d) {
 		        if (d3.event.defaultPrevented) return; // ignore drag
@@ -462,7 +474,7 @@ function viewProcessGraph() {
             .attr("fill", "black")
             .text(function(d) {return d.dates });
 
-		  force.on("tick", function() {
+		  d3cola.on("tick", function() {
 			node.attr("transform", function(d) { 
 				if (d.fixedX!=undefined) d.x = d.fixedX;
 				return "translate(" + d.x + "," + d.y + ")";
@@ -473,7 +485,7 @@ function viewProcessGraph() {
 				.attr("x2", function(d) { return d.target.x - d.target.width/2; })
 				.attr("y2", function(d) { return d.target.y; });
 
-			force.stop();
+			//d3cola.stop();
 
 		  });
 
@@ -489,16 +501,16 @@ function viewProcessGraph() {
 		var ssg = $("#content svg g");
 
 		var ended = false;
-	    force.on("end", function() {
+	    d3cola.on("end", function() {
 			ended = true;
 		});
 
 		function updateSVGTransform() {
 			ssg.attr('transform', 'translate(' + tx + ',' + ty +') scale('+scale+','+scale+')');
 			if (ended) {
-				force.start();
-				force.tick();
-				force.stop();
+				d3cola.start();
+				d3cola.tick();
+				d3cola.stop();
 			}
 		}
 

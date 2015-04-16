@@ -34,9 +34,12 @@
             <p>Pagelets require a context agent.</p>
         {% endif %}
 
-        <h3>Value Equation Tests and Snippets</h3>
-        <p><a href="{% url value_equations %}">Value Equations</a></p>
-        <p>Go to any resource page and look at Incoming Value Flows to see the cost rollup.</p>
+        <h3>Distribution without value equation</h3>
+        <form id="distForm" method="POST" action="">
+            {% csrf_token %}
+            {{ ca_form }}
+            <input type="submit" name="save" value="{% trans 'Go to distribution' %}" class="btn btn-primary" /> 
+        </form>
 
     </div>
     </div>

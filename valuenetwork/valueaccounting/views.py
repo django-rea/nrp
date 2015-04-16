@@ -98,6 +98,8 @@ def create_agent(request):
             agent = form.save(commit=False)
             agent.created_by=request.user
             agent.save()
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/agent', agent.id))  
     return HttpResponseRedirect("/accounting/agents/")
     
 @login_required
@@ -295,13 +297,13 @@ def projects(request):
                 aats.append(aat)
             node.aats = aats
     agent = get_agent(request)
-    project_create_form = ProjectForm()
+    agent_form = AgentCreateForm()
     
     return render_to_response("valueaccounting/projects.html", {
         "roots": roots,
         "agent": agent,
         "help": get_help("projects"),
-        "project_create_form": project_create_form,
+        "agent_form": agent_form,
     }, context_instance=RequestContext(request))
 
 '''
@@ -340,6 +342,7 @@ def locations(request):
         "latitude": latitude,
         "longitude": longitude,
         "zoom": zoom,
+        "help": get_help("locations"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -403,6 +406,7 @@ def agents(request):
         "agents": agents,
         "agent_form": agent_form,
         "user_agent": user_agent,
+        "help": get_help("agents"),
     }, context_instance=RequestContext(request))
     
 def radial_graph(request, agent_id):
@@ -1343,7 +1347,10 @@ def json_distribution_related_shipment(request, distribution_id):
     ship = d.get_shipment_for_distribution()
     sd = {}
     if ship:
-        sd = {"ship_id": ship.id,}
+        sd = {
+            "ship_id": ship.id,
+            "ship_description": ship.__unicode__(),
+        }
     data = simplejson.dumps(sd)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
     
@@ -2528,9 +2535,19 @@ def misc(request):
         for ca in context_agents:
             if ca.events.all().count() > context_agent.events.all().count():
                 context_agent = ca
+                
+    ca_form = ContextAgentSelectionForm()
+    if request.method == "POST":
+        form = ContextAgentSelectionForm(data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            agent = data["selected_agent"]
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/create-distribution', agent.id))    
 
     return render_to_response("valueaccounting/misc.html", {
         "context_agent": context_agent,
+        "ca_form": ca_form,
     }, context_instance=RequestContext(request))
     
 @login_required
@@ -9299,6 +9316,8 @@ def create_sale(request):
 @login_required
 def create_distribution(request, agent_id):
     #import pdb; pdb.set_trace()
+    if not request.user.is_staff:
+        return render_to_response('valueaccounting/no_permission.html')
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
     exchange_form = DistributionForm()
     if request.method == "POST":
@@ -9320,6 +9339,8 @@ def create_distribution(request, agent_id):
 @login_required
 def create_distribution_using_value_equation(request, agent_id, value_equation_id=None):
     #import pdb; pdb.set_trace()
+    if not request.user.is_staff:
+        return render_to_response('valueaccounting/no_permission.html')
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
     if value_equation_id:
         ve = ValueEquation.objects.get(id=value_equation_id)

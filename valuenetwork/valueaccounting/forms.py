@@ -87,6 +87,12 @@ class AgentSelectionForm(forms.Form):
         label="Select an existing Agent",
         required=False)
 
+class ContextAgentSelectionForm(forms.Form):
+    selected_agent = AgentModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label="Select a Context Agent",
+        empty_label=None,)
+
         
 #changed to create context_agents
 class ProjectForm(forms.ModelForm):
@@ -433,7 +439,7 @@ class WorkflowProcessForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'new-pt-name process-info input-xlarge',}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -476,7 +482,7 @@ class AddProcessFromResourceForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     process_pattern = forms.ModelChoiceField(
@@ -864,7 +870,8 @@ class SelectResourceOfTypeForm(forms.Form):
             else:
                 if rts:
                     self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
-            
+
+                    
 class SelectContrResourceOfTypeForm(forms.Form):
     event_date = forms.DateField(
         required=True, 
@@ -929,7 +936,7 @@ class TodoForm(forms.ModelForm):
             attrs={'class': 'chzn-select'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -1409,7 +1416,7 @@ class WorkContributionChangeForm(forms.ModelForm):
             attrs={'class': 'chzn-select'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(required=False,
@@ -1546,19 +1553,23 @@ class CashReceiptForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             rts = pattern.cash_receipt_resource_types()
-            self.fields["resource_type"].queryset = rts
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
             else:
-                if rts:
+                if rts_vas:
                     if self.instance.id:
                         rt = self.instance.resource_type
                         if rt:
                             self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
                         else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
                     else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
         if context_agent:
             self.context_agent = context_agent
             self.fields["to_agent"].queryset = context_agent.all_ancestors()
@@ -1614,7 +1625,13 @@ class CashReceiptResourceForm(forms.ModelForm):
         super(CashReceiptResourceForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
-            self.fields["resource_type"].queryset = pattern.cash_receipt_resource_types()
+            #self.fields["resource_type"].queryset = pattern.cash_receipt_resource_types()
+            rts = pattern.cash_receipt_resource_types()
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
         if context_agent:
             self.context_agent = context_agent
             self.fields["to_agent"].queryset = context_agent.all_ancestors()
@@ -1649,27 +1666,33 @@ class DistributionEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'resource', 'description')
+        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'resource', 'description', 'accounting_reference', 'event_reference')
 
     def __init__(self, pattern=None, posting=False, *args, **kwargs):
         super(DistributionEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             rts = pattern.distribution_resource_types()
-            self.fields["resource_type"].queryset = rts
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
+            #self.fields["resource_type"].queryset = rts
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
             else:
-                if rts:
+                if rts_vas:
                     if self.instance.id:
                         rt = self.instance.resource_type
                         if rt:
                             self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
                         else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
                     else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
             
+
 class DisbursementEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(
@@ -1699,20 +1722,26 @@ class DisbursementEventForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             rts = pattern.disbursement_resource_types()
-            self.fields["resource_type"].queryset = rts
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
+            #self.fields["resource_type"].queryset = rts
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
             else:
-                if rts:
+                if rts_vas:
                     if self.instance.id:
                         rt = self.instance.resource_type
                         if rt:
                             self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
                         else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
                     else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
 
+                        
 class ShipmentForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     from_agent = forms.ModelChoiceField(
@@ -1945,16 +1974,22 @@ class CashContributionEventForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             rts = pattern.cash_contr_resource_types()
-            self.fields["resource_type"].queryset = rts
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
+            #self.fields["resource_type"].queryset = rts
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
             else:
-                if rts:
-                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                if rts_vas:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
         if context_agent:
             self.context_agent = context_agent
-            self.fields["from_agent"].queryset = context_agent.all_members()          
+            #self.fields["from_agent"].queryset = context_agent.all_members()          
 
+            
 class CashContributionResourceEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     value = forms.DecimalField(
@@ -2003,10 +2038,16 @@ class CashContributionResourceEventForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             #import pdb; pdb.set_trace()
-            self.fields["resource_type"].queryset = pattern.cash_contr_resource_types()
+            #self.fields["resource_type"].queryset = pattern.cash_contr_resource_types()
+            rts = pattern.cash_contr_resource_types()
+            rts_vas = []
+            for rt in rts:
+                if rt.is_virtual_account():
+                    rts_vas.append(rt)
+            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
         if context_agent:
             self.context_agent = context_agent
-            self.fields["from_agent"].queryset = context_agent.all_members()
+            #self.fields["from_agent"].queryset = context_agent.all_members()
             
 class MaterialContributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -2189,7 +2230,7 @@ class CasualTimeContributionForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     #project = forms.ModelChoiceField(
@@ -2354,6 +2395,9 @@ def possible_parent_resource_types():
 class EconomicResourceTypeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    price_per_unit = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'price'}))
     substitutable = forms.BooleanField(
         required=False,
         help_text=_('Can any resource of this type be substituted for any other resource of this type?'),
@@ -2361,7 +2405,7 @@ class EconomicResourceTypeForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('created_by', 'changed_by',)
+        exclude = ('created_by', 'changed_by', 'value_per_unit_of_use', 'value_per_unit', 'unit_of_value')
 
     def __init__(self, *args, **kwargs):
         super(EconomicResourceTypeForm, self).__init__(*args, **kwargs)
@@ -2372,12 +2416,6 @@ class EconomicResourceTypeForm(forms.ModelForm):
 class EconomicResourceTypeChangeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'existing-name input-xlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
-    value_per_unit = forms.DecimalField(
-        max_digits=8, decimal_places=2,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
-    value_per_unit_of_use = forms.DecimalField(
-        max_digits=8, decimal_places=2,
-        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity'}))
     price_per_unit = forms.DecimalField(
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'price'}))
@@ -2386,7 +2424,7 @@ class EconomicResourceTypeChangeForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('created_by', 'changed_by')
+        exclude = ('created_by', 'changed_by', 'value_per_unit_of_use', 'value_per_unit', 'unit_of_value')
         
     def __init__(self, *args, **kwargs):
         super(EconomicResourceTypeChangeForm, self).__init__(*args, **kwargs)
@@ -2413,7 +2451,7 @@ class EconomicResourceTypeAjaxForm(forms.ModelForm):
     
     class Meta:
         model = EconomicResourceType
-        exclude = ('parent', 'created_by', 'changed_by', 'photo')
+        exclude = ('parent', 'created_by', 'changed_by', 'photo', 'value_per_unit_of_use', 'value_per_unit', 'unit_of_value')
 
 class AgentResourceTypeForm(forms.ModelForm):
     lead_time = forms.IntegerField(
@@ -2444,7 +2482,7 @@ class XbillProcessTypeForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         required=False, 
         #empty_label="---------",
         widget=forms.Select(attrs={'class': 'chzn-select'}))
@@ -2475,7 +2513,7 @@ class RecipeProcessTypeForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         required=False, 
         #empty_label="---------",
         widget=forms.Select(attrs={'class': 'chzn-select'}))
@@ -2504,7 +2542,7 @@ class RecipeProcessTypeChangeForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         required=False, 
         #empty_label="---------",
         widget=forms.Select(attrs={'class': 'chzn-select'}))
@@ -2761,6 +2799,7 @@ class ProcessTypeCitableStreamRecipeForm(forms.ModelForm):
 class ProcessTypeWorkForm(forms.ModelForm):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
+        label = _("Type of work"),
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-selector input-xlarge' }))
@@ -2793,6 +2832,8 @@ class ProcessTypeWorkForm(forms.ModelForm):
             if use_pattern:
                 self.pattern = pattern
                 self.fields["resource_type"].queryset = pattern.work_resource_types()
+            if len(self.fields["resource_type"].queryset) > 0:
+                self.fields["unit_of_quantity"].initial = self.fields["resource_type"].queryset[0].unit_for_use()
 
 
 class TimeForm(forms.Form):
@@ -2854,7 +2895,7 @@ class ExchangeForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=True, 
@@ -2896,7 +2937,7 @@ class SaleForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Project"),
+        label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=True, 

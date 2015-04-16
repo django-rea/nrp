@@ -28,6 +28,12 @@
     border: solid 1px lightgray;
     padding: 15px;
 }
+td {
+    padding-left:5px;
+}
+input-small {
+    width: 6em;
+}
 
 </style>
 
@@ -43,6 +49,17 @@
                 {% csrf_token %}
                 <div class="eform">
                     {{ equip_form|as_bootstrap }}
+                    {{ formset.management_form }}
+                    Consumed<br />
+                    <table>
+                    {% for form in formset %}
+                        <tr>
+                            <td>{{ form.id }}</td>
+                            <td>{{ form.identifier }}</td>
+                            <td>{{ form.quantity }} {{ consumable_rt.unit }}</td>
+                        </tr>
+                    {% endfor %}
+                    </table>
                     <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
                 </div>
             </div>

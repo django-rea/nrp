@@ -605,7 +605,27 @@ class UninventoriedProductionEventForm(forms.ModelForm):
         if qty_help:
             self.fields["quantity"].help_text = qty_help
 
+            
+class PayoutForm(forms.ModelForm):
+    event_date = forms.DateField(
+        label="Payout Date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(
+        widget=forms.TextInput(attrs={'value': '1.0', 'class': 'quantity input-small'}))
+    max = forms.DecimalField(required=False, widget=forms.HiddenInput)
+    event_reference = forms.CharField(
+        required=False, 
+        label="Reference",
+        widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xlarge',}))
+   
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'quantity', 'event_reference', 'description')
 
+        
 class ProcessConsumableForm(forms.ModelForm):
     resource_type = FacetedModelChoiceField(
         queryset=EconomicResourceType.objects.all(), 
@@ -1529,7 +1549,7 @@ class CashReceiptForm(forms.ModelForm):
         label="Receipt amount",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="Cash resource type received into",
         empty_label=None,
         widget=forms.Select(
@@ -1595,7 +1615,7 @@ class CashReceiptResourceForm(forms.ModelForm):
         label="Receipt amount",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="Cash resource type received into",
         empty_label=None,
         widget=forms.Select(
@@ -1650,7 +1670,7 @@ class DistributionEventForm(forms.ModelForm):
         label="Distribution amount",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="To cash resource type",
         empty_label=None,
         widget=forms.Select(
@@ -1699,7 +1719,7 @@ class DisbursementEventForm(forms.ModelForm):
         label="Disbursement amount",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="From cash resource type",
         empty_label=None,
         widget=forms.Select(
@@ -1937,7 +1957,7 @@ class CashContributionEventForm(forms.ModelForm):
     value = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="Cash resource type",
         empty_label=None,
         widget=forms.Select(
@@ -1995,7 +2015,7 @@ class CashContributionResourceEventForm(forms.ModelForm):
     value = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="Cash resource type",
         empty_label=None,
         widget=forms.Select(

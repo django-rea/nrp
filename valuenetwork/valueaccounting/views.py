@@ -10013,3 +10013,46 @@ def cash_events_csv(request):
             ]
         )
     return response
+
+def virtual_accounts(request):
+    #import pdb; pdb.set_trace()
+    virtual_accounts = EconomicResource.objects.filter(resource_type__behavior="account")
+    agent = get_agent(request)
+    if agent:
+        for va in virtual_accounts:
+            va.payout = va.allow_payout_by(agent, request.user)
+    
+    return render_to_response("valueaccounting/virtual_accounts.html", {
+        "virtual_accounts": virtual_accounts,
+        "agent": agent,
+    }, context_instance=RequestContext(request))
+
+@login_required    
+def payout_from_virtual_account(request, account_id):
+    if request.method == "POST":
+        acct = get_object_or_404(EconomicResource, pk=account_id)
+        owner = acct.owner()
+        event_type = EventType.objects.get(name="Payout")
+        context = None
+        cas = acct.context_agents() #todo: what is correct here?
+        if cas:
+            context = cas[0]
+        form = acct.payout_form(data=request.POST)
+        #import pdb; pdb.set_trace()
+        if form.is_valid():
+            cleaned_data = form.cleaned_data
+            event = form.save(commit=False)
+            event.event_type = event_type
+            event.from_agent = owner
+            event.to_agent = owner
+            event.resource_type = acct.resource_type
+            event.resource = acct
+            event.unit_of_quantity = acct.unit_of_quantity()
+            event.created_by = request.user
+            #event.context = context
+            event.save()
+            acct.quantity -= event.quantity
+            acct.save()
+    
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/virtual-accounts'))

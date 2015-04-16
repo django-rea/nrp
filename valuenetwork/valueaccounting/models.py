@@ -3618,7 +3618,7 @@ class EconomicResource(models.Model):
         if not cas:
             pts = self.resource_type.producing_process_types()
             cas = [pt.context_agent for pt in pts if pt.context_agent]
-        return cas
+        return list(set(cas))
 
     def shipped_on_orders(self):
         orders = []
@@ -3655,6 +3655,21 @@ class EconomicResource(models.Model):
         else:
             answer = str(self.quantity)
         return answer
+        
+    def allow_payout_by(self, agent, user):
+        if self.quantity:
+            if user.is_superuser:
+                return True
+        return False
+        
+    def payout_form(self, data=None):
+        from valuenetwork.valueaccounting.forms import PayoutForm
+        init = {
+            "event_date": datetime.date.today(),
+            "quantity": self.quantity,
+            "max": self.quantity,
+            }
+        return PayoutForm(prefix=str(self.id), initial=init, data=data)
 
     def change_form(self):
         from valuenetwork.valueaccounting.forms import EconomicResourceForm

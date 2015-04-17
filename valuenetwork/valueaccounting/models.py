@@ -6130,6 +6130,15 @@ class Exchange(models.Model):
     def shipment_events(self):
         return self.events.filter(
             event_type__relationship='shipment')
+    
+    def total_value_shipped(self):
+        ship_events = self.shipment_events()
+        total = 0
+        unit = None
+        for se in ship_events:
+            total += se.value
+            unit = se.unit_of_value
+        return total, unit
             
     def shipment_events_no_commitment(self):
         return self.events.filter(event_type__relationship='shipment').filter(commitment=None)

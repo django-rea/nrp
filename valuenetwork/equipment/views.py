@@ -24,12 +24,12 @@ from valuenetwork.valueaccounting.views import get_agent
 
 def consumable_formset(consumable_rt, data=None):
     ConsumableFormSet = formset_factory(form=ConsumableForm, extra=0)
-    init = []    
+    init = []
     consumable_resources = EconomicResource.objects.filter(resource_type=consumable_rt)
     for res in consumable_resources:
         d = {"resource_id": res.id,}
         init.append(d)   
-    formset = ConsumableFormSet(initial=init)
+    formset = ConsumableFormSet(initial=init, data=data)
     for form in formset:
         id = int(form["resource_id"].value())
         resource = EconomicResource.objects.get(id=id)
@@ -37,7 +37,7 @@ def consumable_formset(consumable_rt, data=None):
     return formset 
 
 @login_required
-def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, consumable_rt_id):
+def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, consumable_rt_id, payment_rt_id):
     #import pdb; pdb.set_trace()
     equipment_use_resource = get_object_or_404(EconomicResource, id=equip_use_resource_id)
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
@@ -51,7 +51,6 @@ def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, cons
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if equip_form.is_valid():
-            ship_events = []
             data = equip_form.cleaned_data
             input_date = data["event_date"]
             who = data["from_agent"]
@@ -77,15 +76,14 @@ def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, cons
                 context_agent = context_agent,
                 quantity = quantity,
                 unit_of_quantity = equipment_use_resource.resource_type.unit,
-                value = quantity * equipment_use_resource.value_per_unit,
-                unit_of_value = equipment_use_resource.resource_type.unit_of_value,
+                value = quantity * equipment_use_resource.resource_type.price_per_unit,
+                unit_of_value = equipment_use_resource.resource_type.unit_of_price,
                 created_by = request.user,
             )
             usage_ship_event.save()
-            ship_events.append(usage_ship_event)
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             formset = consumable_formset(data=request.POST, consumable_rt=consumable_rt)
-            for form in formset:
+            for form in formset.forms:
                 if form.is_valid():
                     data_cons = form.cleaned_data
                     if data_cons:
@@ -93,7 +91,7 @@ def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, cons
                         if qty:
                             if qty > 0:
                                 res_id = data_cons["resource_id"]
-                                consumable = EconomicResource.object.get(id=int(res_id))
+                                consumable = EconomicResource.objects.get(id=int(res_id))
                                 consume_ship_event = EconomicEvent(
                                     event_type = EventType.objects.get(name="Shipment"),
                                     event_date = input_date,
@@ -105,11 +103,13 @@ def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, cons
                                     context_agent = context_agent,
                                     quantity = qty,
                                     unit_of_quantity = consumable_rt.unit,
+                                    value = quantity * consumable.value_per_unit_of_use,
+                                    unit_of_value = consumable.resource_type.unit_of_price,
                                     created_by = request.user,
                                 )
                                 consume_ship_event.save()
-                                ship_events.append(consume_ship_event)
-
+        return HttpResponseRedirect('/%s/%s/%s/'
+            % ('equipment/pay-equipment-use', sale.id, payment_rt_id))
     
     return render_to_response("equipment/log_equipment_use.html", {
         "equip_form": equip_form,
@@ -118,3 +118,35 @@ def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, cons
         "consumable_rt": consumable_rt,
     }, context_instance=RequestContext(request))
 
+@login_required
+def pay_equipment_use(request, sale_id, payment_rt_id):
+    #import pdb; pdb.set_trace()
+    sale = get_object_or_404(Exchange, id=sale_id)
+    sale_total, sale_total_unit = sale.total_value_shipped()
+    rt = EconomicResourceType.objects.get(id=payment_rt_id)
+    paid = False
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        cr_event = EconomicEvent(
+            event_type = EventType.objects.get(name="Cash Receipt"),
+            event_date = sale.start_date,
+            exchange = sale,
+            resource_type = rt,
+            from_agent = sale.customer,
+            to_agent = sale.context_agent,
+            context_agent = sale.context_agent,
+            quantity = sale_total,
+            unit_of_quantity = sale_total_unit,
+            value = sale_total,
+            unit_of_value = sale_total_unit,
+            created_by = request.user,
+        )
+        cr_event.save()
+        paid = True
+        
+    return render_to_response("equipment/pay_equipment_use.html", {
+        "sale": sale,
+        "sale_total": sale_total,
+        "sale_total_unit": sale_total_unit,
+        "paid": paid,
+    }, context_instance=RequestContext(request))

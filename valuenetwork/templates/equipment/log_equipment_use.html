@@ -44,7 +44,7 @@ input-small {
     <div class="container">
         {% include "_messages.html" %}
         <div>
-            <div class="title">{% trans "Log Use of " %}{{ equipment.identifier }}</div>
+            <div class="title">{% trans "Log Equipment Use " %}</div>
             <form id="equipForm" method="POST" action="">
                 {% csrf_token %}
                 <div class="eform">
@@ -52,9 +52,9 @@ input-small {
                     {{ formset.management_form }}
                     Consumed<br />
                     <table>
-                    {% for form in formset %}
+                    {% for form in formset.forms %}
                         <tr>
-                            <td>{{ form.id }}</td>
+                            <td>{{ form.resource_id }}</td>
                             <td>{{ form.identifier }}</td>
                             <td>{{ form.quantity }} {{ consumable_rt.unit }}</td>
                         </tr>

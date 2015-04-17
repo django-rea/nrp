@@ -1,0 +1,92 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<title>{% trans "Pay for Equipment Use" %}</title>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+<link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
+<link href="{% static "css/buttons.css" %}" rel="stylesheet">
+
+<style>
+
+.title {
+    font-size: 1.9em;
+    font-weight: bold;
+    color: #669999;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+.eform {
+    border: solid 1px lightgray;
+    padding: 15px;
+}
+.total {
+    border: solid 2px firebrick;
+    font-weight: bold;
+    color: firebrick;
+    padding: 3px;
+    text-align: center;
+}
+td, tr {
+    text-align: left;
+}
+th {
+    background-color: #F0F5F5;
+}
+
+
+</style>
+
+</head>
+
+<body>
+
+    <div class="container">
+        {% include "_messages.html" %}
+        <div>
+            <div class="title">{% trans "Pay for Equipment Use" %}</div>
+            <form id="equipForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="eform">
+                    <p>This what you have used:</p>
+                    <table class="table table-bordered table-condensed">
+                        <tr>
+                            <th>Resource</th>
+                            <th>Used</th>
+                            <th>Owe</th>
+                        </tr>
+                        {% for event in sale.shipment_events %}
+                            <tr>
+                                <td>{{ event.resource }}</td>
+                                <td>{{ event.quantity }} {{ event.unit }}</td>
+                                <td>{{ event.value }} {{ event.unit_of_value }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    {% if paid %}
+                        <p class="total"> Paid, thank you ! </p>
+                    {% else %}
+                        <p class="total">Total owed: {{ sale_total }} {{ sale_total_unit }}</p>
+                        <p class="pay">Please pay the above amount and then press the button below.</p>
+                        <input type="submit" name="save" value="{% trans 'I paid' %}" class="btn btn-primary" /> 
+                    {% endif %}
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+    
+</body>
+
+<script type="text/javascript">
+
+ 
+</script>
+
+</html>

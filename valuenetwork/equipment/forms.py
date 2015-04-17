@@ -39,5 +39,3 @@ class ConsumableForm(forms.Form):
     resource_id = forms.CharField(widget=forms.HiddenInput)
     quantity = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.00', 'class': 'quantity input-mini'}))
-
-

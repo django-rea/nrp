@@ -1549,7 +1549,7 @@ class CashReceiptForm(forms.ModelForm):
         label="Receipt amount",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="Cash resource type received into",
         empty_label=None,
         widget=forms.Select(
@@ -1615,7 +1615,7 @@ class CashReceiptResourceForm(forms.ModelForm):
         label="Receipt amount",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="Cash resource type received into",
         empty_label=None,
         widget=forms.Select(
@@ -1670,7 +1670,7 @@ class DistributionEventForm(forms.ModelForm):
         label="Distribution amount",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="To cash resource type",
         empty_label=None,
         widget=forms.Select(
@@ -1719,7 +1719,7 @@ class DisbursementEventForm(forms.ModelForm):
         label="Disbursement amount",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="From cash resource type",
         empty_label=None,
         widget=forms.Select(
@@ -1957,7 +1957,7 @@ class CashContributionEventForm(forms.ModelForm):
     value = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="Cash resource type",
         empty_label=None,
         widget=forms.Select(
@@ -2015,7 +2015,7 @@ class CashContributionResourceEventForm(forms.ModelForm):
     value = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
+        queryset=EconomicResourceType.objects.all(),
         label="Cash resource type",
         empty_label=None,
         widget=forms.Select(

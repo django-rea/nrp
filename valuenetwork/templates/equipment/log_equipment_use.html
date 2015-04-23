@@ -21,12 +21,23 @@
     font-size: 1.9em;
     font-weight: bold;
     color: #669999;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
     margin-top: 10px;
 }
 .eform {
     border: solid 1px lightgray;
     padding: 15px;
+}
+td {
+    padding-left:5px;
+}
+input-small {
+    width: 6em;
+}
+.notes {
+    font-style: italic;
+    padding: 0;
+    margin: 0 0 4px 0;
 }
 
 </style>
@@ -38,11 +49,23 @@
     <div class="container">
         {% include "_messages.html" %}
         <div>
-            <div class="title">{% trans "Log Use of " %}{{ equipment.identifier }}</div>
+            <div class="title">{% trans "Log Use of " %} {{ equipment.identifier }}</div>
+            <div class="notes">Access rules: {{ equipment.access_rules }}</div>
             <form id="equipForm" method="POST" action="">
                 {% csrf_token %}
                 <div class="eform">
                     {{ equip_form|as_bootstrap }}
+                    {{ formset.management_form }}
+                    Consumed<br />
+                    <table>
+                    {% for form in formset.forms %}
+                        <tr>
+                            <td>{{ form.resource_id }}</td>
+                            <td>{{ form.identifier }}</td>
+                            <td>{{ form.quantity }} {{ consumable_rt.unit }}</td>
+                        </tr>
+                    {% endfor %}
+                    </table>
                     <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
                 </div>
             </div>

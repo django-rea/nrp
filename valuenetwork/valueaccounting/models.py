@@ -4618,6 +4618,14 @@ class EconomicResource(models.Model):
     def all_contacts(self):
         return self.agent_resource_roles.filter(is_contact=True)
         
+    def all_related_agents(self):
+        #import pdb; pdb.set_trace()
+        arrs = self.agent_resource_roles.all()
+        agent_ids = []
+        for arr in arrs:
+            agent_ids.append(arr.agent.id)
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
+    
     def equipment_users(self, context_agent):
         agent_list = context_agent.context_equipment_users()
         agent_list.extend([arr.agent for arr in self.agent_resource_roles.all()])
@@ -6130,15 +6138,6 @@ class Exchange(models.Model):
     def shipment_events(self):
         return self.events.filter(
             event_type__relationship='shipment')
-    
-    def total_value_shipped(self):
-        ship_events = self.shipment_events()
-        total = 0
-        unit = None
-        for se in ship_events:
-            total += se.value
-            unit = se.unit_of_value
-        return total, unit
             
     def shipment_events_no_commitment(self):
         return self.events.filter(event_type__relationship='shipment').filter(commitment=None)
@@ -8235,7 +8234,19 @@ class EconomicEvent(models.Model):
                 qty_string,
                 unit,
                 ])
-            
+    
+    def value_formatted_decimal(self):
+        #import pdb; pdb.set_trace()
+        val = self.value.quantize(Decimal('.01'), rounding=ROUND_UP)
+        if self.unit_of_value:
+            if self.unit_of_value.symbol:
+                value_string = "".join([self.unit_of_value.symbol, str(val)])
+            else:
+                value_string = " ".join([str(val), self.unit_of_value.abbrev])
+        else:
+            value_string = str(val)
+        return value_string
+    
     def form_prefix(self):
         return "-".join(["EVT", str(self.id)])
 

@@ -21,7 +21,7 @@
     font-size: 1.9em;
     font-weight: bold;
     color: #669999;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
     margin-top: 10px;
 }
 .eform {
@@ -34,6 +34,11 @@ td {
 input-small {
     width: 6em;
 }
+.notes {
+    font-style: italic;
+    padding: 0;
+    margin: 0 0 4px 0;
+}
 
 </style>
 
@@ -44,7 +49,8 @@ input-small {
     <div class="container">
         {% include "_messages.html" %}
         <div>
-            <div class="title">{% trans "Log Equipment Use " %}</div>
+            <div class="title">{% trans "Log Use of " %} {{ equipment.identifier }}</div>
+            <div class="notes">Access rules: {{ equipment.access_rules }}</div>
             <form id="equipForm" method="POST" action="">
                 {% csrf_token %}
                 <div class="eform">

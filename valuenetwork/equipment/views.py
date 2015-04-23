@@ -37,15 +37,17 @@ def consumable_formset(consumable_rt, data=None):
     return formset 
 
 @login_required
-def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, consumable_rt_id, payment_rt_id):
+def log_equipment_use(request, equip_resource_id, equip_use_resource_id, tech_resource_id, agent_id, pattern_id, consumable_rt_id, payment_rt_id):
     #import pdb; pdb.set_trace()
+    equipment = get_object_or_404(EconomicResource, id=equip_resource_id)
     equipment_use_resource = get_object_or_404(EconomicResource, id=equip_use_resource_id)
+    technician_resource = EconomicResource.objects.get(id=tech_resource_id)
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
     pattern = ProcessPattern.objects.get(id=pattern_id)
     consumable_rt = EconomicResourceType.objects.get(id=consumable_rt_id)
     agent = get_agent(request)
     init = {"event_date": datetime.date.today(), "from_agent": agent}
-    equip_form = EquipmentUseForm(resource=equipment_use_resource, context_agent=context_agent, initial=init, data=request.POST or None)
+    equip_form = EquipmentUseForm(equip_resource=equipment, use_resource=equipment_use_resource, context_agent=context_agent, initial=init, data=request.POST or None)
     formset = consumable_formset(consumable_rt=consumable_rt)
     
     if request.method == "POST":
@@ -55,8 +57,11 @@ def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, cons
             input_date = data["event_date"]
             who = data["from_agent"]
             quantity = data["quantity"]
+            technician = data["technician"]
+            technician_quantity = data["technician_hours"]
+            et_ship = EventType.objects.get(name="Shipment")
             sale = Exchange(
-                name="3D Printer Use",
+                name="Use of " + equipment.identifier,
                 use_case=UseCase.objects.get(identifier="sale"),
                 start_date=input_date,
                 process_pattern=pattern,
@@ -66,7 +71,7 @@ def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, cons
             )
             sale.save()
             usage_ship_event = EconomicEvent(
-                event_type = EventType.objects.get(name="Shipment"),
+                event_type = et_ship,
                 event_date = input_date,
                 resource = equipment_use_resource,
                 resource_type = equipment_use_resource.resource_type,
@@ -81,6 +86,35 @@ def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, cons
                 created_by = request.user,
             )
             usage_ship_event.save()
+            if technician and technician_quantity > 0:
+                tech_sale = Exchange(
+                    name="Technician on " + equipment.identifier,
+                    use_case=UseCase.objects.get(identifier="sale"),
+                    start_date=input_date,
+                    process_pattern=pattern,
+                    customer=who,
+                    created_by=request.user,
+                    context_agent=context_agent,
+                )
+                tech_sale.save()
+                tech_ship_event = EconomicEvent(
+                    event_type = et_ship,
+                    event_date = input_date,
+                    resource = technician_resource,
+                    resource_type = technician_resource.resource_type,
+                    exchange = tech_sale,
+                    from_agent = technician,
+                    to_agent = who,
+                    context_agent = context_agent,
+                    quantity = technician_quantity,
+                    unit_of_quantity = technician_resource.resource_type.unit,
+                    value = technician_quantity * technician_resource.resource_type.price_per_unit,
+                    unit_of_value = technician_resource.resource_type.unit_of_price,
+                    created_by = request.user,
+                )
+                tech_ship_event.save()
+            else:
+                tech_sale = None
             #import pdb; pdb.set_trace()
             formset = consumable_formset(data=request.POST, consumable_rt=consumable_rt)
             for form in formset.forms:
@@ -108,45 +142,88 @@ def log_equipment_use(request, equip_use_resource_id, agent_id, pattern_id, cons
                                     created_by = request.user,
                                 )
                                 consume_ship_event.save()
-        return HttpResponseRedirect('/%s/%s/%s/'
-            % ('equipment/pay-equipment-use', sale.id, payment_rt_id))
+        if tech_sale:
+            return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+                % ('equipment/pay-equipment-use', sale.id, payment_rt_id, equip_resource_id, tech_sale.id))
+        else:
+            return HttpResponseRedirect('/%s/%s/%s/%s/'
+                % ('equipment/pay-equipment-use', sale.id, payment_rt_id, equip_resource_id))
     
     return render_to_response("equipment/log_equipment_use.html", {
         "equip_form": equip_form,
         "formset": formset,
-        "equipment": equipment_use_resource,
+        "equipment_use": equipment_use_resource,
+        "equipment": equipment,
         "consumable_rt": consumable_rt,
     }, context_instance=RequestContext(request))
 
 @login_required
-def pay_equipment_use(request, sale_id, payment_rt_id):
+def pay_equipment_use(request, sale_id, payment_rt_id, equip_resource_id, tech_sale_id=None):
     #import pdb; pdb.set_trace()
     sale = get_object_or_404(Exchange, id=sale_id)
-    sale_total, sale_total_unit = sale.total_value_shipped()
-    rt = EconomicResourceType.objects.get(id=payment_rt_id)
+    tech_sale = None
+    if tech_sale_id:
+        tech_sale = get_object_or_404(Exchange, id=tech_sale_id)
+    payment_rt = EconomicResourceType.objects.get(id=payment_rt_id)
+    payment_unit = payment_rt.unit
+    equipment = EconomicResource.objects.get(id=equip_resource_id)
     paid = False
+    tech_total = Decimal(0)
+    sale_total = Decimal(0)
+    tech_total_formatted = None
+    ship_events = sale.shipment_events()
+    for se in ship_events:
+        sale_total += se.value
+    sale_total_formatted = "".join([payment_rt.unit.symbol, str(sale_total.quantize(Decimal('.01'), rounding=ROUND_UP))])
+    if tech_sale_id:
+        tech_events = tech_sale.shipment_events()
+        for te in tech_events:
+            tech_total += te.value
+            technician = te.from_agent
+        tech_total_formatted = "".join([payment_rt.unit.symbol, str(tech_total.quantize(Decimal('.01'), rounding=ROUND_UP))])    
+    
     if request.method == "POST":
         #import pdb; pdb.set_trace()
+        
         cr_event = EconomicEvent(
             event_type = EventType.objects.get(name="Cash Receipt"),
             event_date = sale.start_date,
             exchange = sale,
-            resource_type = rt,
+            resource_type = payment_rt,
             from_agent = sale.customer,
             to_agent = sale.context_agent,
             context_agent = sale.context_agent,
             quantity = sale_total,
-            unit_of_quantity = sale_total_unit,
+            unit_of_quantity = payment_unit,
             value = sale_total,
-            unit_of_value = sale_total_unit,
+            unit_of_value = payment_unit,
             created_by = request.user,
         )
         cr_event.save()
+        if tech_total > 0:
+            tech_event = EconomicEvent(
+                event_type = EventType.objects.get(name="Cash Receipt"),
+                event_date = tech_sale.start_date,
+                exchange = tech_sale,
+                resource_type = payment_rt,
+                from_agent = tech_sale.customer,
+                to_agent = technician,
+                context_agent = sale.context_agent,
+                quantity = tech_total,
+                unit_of_quantity = payment_unit,
+                value = tech_total,
+                unit_of_value = payment_unit,
+                created_by = request.user,
+            )
+            tech_event.save()
         paid = True
         
     return render_to_response("equipment/pay_equipment_use.html", {
         "sale": sale,
-        "sale_total": sale_total,
-        "sale_total_unit": sale_total_unit,
+        "tech_sale": tech_sale,
+        "sale_total": sale_total_formatted,
+        "tech_total": tech_total_formatted,
+        "payment_unit": payment_unit,
         "paid": paid,
+        "equipment": equipment,
     }, context_instance=RequestContext(request))

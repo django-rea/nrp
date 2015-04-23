@@ -19,7 +19,7 @@
     font-size: 1.9em;
     font-weight: bold;
     color: #669999;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     margin-top: 10px;
 }
 .eform {
@@ -31,7 +31,7 @@
     font-weight: bold;
     color: firebrick;
     padding: 3px;
-    text-align: center;
+    margin-bottom: 5px;
 }
 td, tr {
     text-align: left;
@@ -50,7 +50,7 @@ th {
     <div class="container">
         {% include "_messages.html" %}
         <div>
-            <div class="title">{% trans "Pay for Equipment Use" %}</div>
+            <div class="title">{% trans "Pay for Use of " %} {{ equipment.identifier }}</div>
             <form id="equipForm" method="POST" action="">
                 {% csrf_token %}
                 <div class="eform">
@@ -65,15 +65,29 @@ th {
                             <tr>
                                 <td>{{ event.resource }}</td>
                                 <td>{{ event.quantity }} {{ event.unit }}</td>
-                                <td>{{ event.value }} {{ event.unit_of_value }}</td>
+                                <td>{{ event.value_formatted_decimal }}</td>
                             </tr>
                         {% endfor %}
+                        {% if tech_sale %}
+                            {% for event in tech_sale.shipment_events %}
+                                <tr>
+                                    <td>{{ event.resource }}</td>
+                                    <td>{{ event.quantity }} {{ event.unit }}</td>
+                                    <td>{{ event.value_formatted_decimal }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
                     </table>
                     {% if paid %}
                         <p class="total"> Paid, thank you ! </p>
                     {% else %}
-                        <p class="total">Total owed: {{ sale_total }} {{ sale_total_unit }}</p>
-                        <p class="pay">Please pay the above amount and then press the button below.</p>
+                        <p class="pay">Please pay the following and then press the button below:</p>
+                        <div class="total">
+                            Total owed for equipment: {{ sale_total }}
+                            {% if tech_total %}
+                                <br />Total owed to technician: {{ tech_total }}
+                            {% endif %}
+                        </div>
                         <input type="submit" name="save" value="{% trans 'I paid' %}" class="btn btn-primary" /> 
                     {% endif %}
                 </div>

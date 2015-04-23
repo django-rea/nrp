@@ -3320,6 +3320,8 @@ class ValueEquationForm(forms.ModelForm):
  
    
 class ValueEquationBucketForm(forms.ModelForm):
+    sequence = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'input-small integer',}))
+    percentage = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'input-small integer',}))
     distribution_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.all(),
         required=False, 
@@ -3336,6 +3338,7 @@ class ValueEquationBucketRuleForm(forms.ModelForm):
     event_type = forms.ModelChoiceField(
         queryset=EventType.objects.used_for_value_equations(),
         required=True,
+        empty_label=None,
         help_text="A default equation will appear below when you select an event type.",
         widget=forms.Select(attrs={'class': 'chzn-select input-medium event-type-selector'}))
     claim_creation_equation = forms.CharField(
@@ -3376,7 +3379,7 @@ class ValueEquationSandboxForm(forms.Form):
         widget=forms.Select(
             attrs={'class': 've-selector'}))
     amount_to_distribute = forms.DecimalField(required=False,
-        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money validateMe input-small'}))
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money quantity input-small'}))
 
         
 class BucketRuleFilterSetForm(forms.Form):

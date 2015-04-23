@@ -36,14 +36,13 @@ class EquipmentUseForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('from_agent', 'event_date', 'quantity')
 
-    def __init__(self, use_resource=None, equip_resource=None, context_agent=None, *args, **kwargs):
+    def __init__(self, equip_resource=None, context_agent=None, *args, **kwargs):
         super(EquipmentUseForm, self).__init__(*args, **kwargs)
         #import pdb; pdb.set_trace()
-        if context_agent:
-            if use_resource:
-                self.fields["from_agent"].queryset = use_resource.equipment_users(context_agent=context_agent)
         if equip_resource:
             self.fields["technician"].queryset = equip_resource.all_related_agents()
+            if context_agent:
+                self.fields["from_agent"].queryset = equip_resource.equipment_users(context_agent=context_agent)
 
 class ConsumableForm(forms.Form):
     resource_id = forms.CharField(widget=forms.HiddenInput)

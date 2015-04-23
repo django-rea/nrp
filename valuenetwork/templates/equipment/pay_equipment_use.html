@@ -63,7 +63,11 @@ th {
                         </tr>
                         {% for event in sale.shipment_events %}
                             <tr>
+                              {% if event.resource %}
                                 <td>{{ event.resource }}</td>
+                              {% else %}
+                                <td>{{ event.resource_type }}</td>
+                              {% endif %}
                                 <td>{{ event.quantity }} {{ event.unit }}</td>
                                 <td>{{ event.value_formatted_decimal }}</td>
                             </tr>
@@ -71,7 +75,7 @@ th {
                         {% if tech_sale %}
                             {% for event in tech_sale.shipment_events %}
                                 <tr>
-                                    <td>{{ event.resource }}</td>
+                                    <td>{{ event.resource_type }}</td>
                                     <td>{{ event.quantity }} {{ event.unit }}</td>
                                     <td>{{ event.value_formatted_decimal }}</td>
                                 </tr>

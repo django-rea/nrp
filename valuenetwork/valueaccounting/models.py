@@ -882,12 +882,13 @@ class EconomicAgent(models.Model):
         return self.agent_type.is_context
         
     def orders_queryset(self):
+        #import pdb; pdb.set_trace()
         orders = []
         exf = self.exchange_firm()
         cr_orders = []
         if exf:
             crs = self.undistributed_cash_receipts()
-            cr_orders = [cr.exchange.order for cr in crs]
+            cr_orders = [cr.exchange.order for cr in crs if cr.exchange]
         for order in Order.objects.all():
             cas = order.context_agents()
             if self in cas:
@@ -941,10 +942,14 @@ class EconomicAgent(models.Model):
         #exchange firm might put cash receipt into a more general virtual account
         if exf:
             crs = exf.undistributed_cash_receipts()
-            for cr in crs:
-                if cr.is_undistributed():
-                    if cr.resource.is_virtual_account_of(self):
-                        cr_ids.append(cr.id)
+            cr_ids.extend(cr.id for cr in crs)
+            #todo: analyze this.
+            #is_undistributed is unnecessary: crs only includes undistributed
+            #is_virtual_account_of is the restriction that needs analysis
+            #for cr in crs:
+            #    if cr.is_undistributed():
+            #        if cr.resource.is_virtual_account_of(self):
+            #            cr_ids.append(cr.id)
         return EconomicEvent.objects.filter(id__in=cr_ids)
         
     def undistributed_distributions(self):
@@ -1199,14 +1204,14 @@ class EventType(models.Model):
 
     def default_event_value_equation(self):
         if self.used_for_value_equations():
-            if self.relationship == "use":
-                return "quantity * valuePerUnitOfUse"
-            elif self.relationship == "cite" or self.relationship == "pay":
+            if self.relationship == "cite" or self.relationship == "pay":
                 return "quantity"
             elif self.relationship == "resource" or self.relationship == "receive":
                 return "value"
             elif self.relationship == "expense" or self.relationship == "cash":
                 return "value"
+            elif self.relationship == "use":
+                return "quantity * valuePerUnitOfUse"
             else:
                 return "quantity * valuePerUnit"
         return ""
@@ -1220,6 +1225,7 @@ class EventType(models.Model):
             "shipment",
             "adjust",
             "distribute",
+            "use",
         ]
         bad_names = [
             "Work Provision",
@@ -4109,6 +4115,9 @@ class EconomicResource(models.Model):
                                 #todo 3d: use event
                                 #import pdb; pdb.set_trace()
                                 if ip.resource:
+                                    #experiment for equipment maintenance fee
+                                    #ip.share = ip.value
+                                    #events.append(ip)
                                     value = ip.value
                                     ip_value = value * distro_fraction
                                     d_qty = distro_qty
@@ -8838,10 +8847,12 @@ class ValueEquationBucket(models.Model):
                     order_string,
                     ])
             events = []
+            #import pdb; pdb.set_trace()
             for order in orders:
                 for order_item in order.order_items():
                     #todo 3d: one method to chase
-                    events.extend(order_item.compute_income_fractions(ve))
+                    oi_events = order_item.compute_income_fractions(ve)
+                    events.extend(oi_events)
                 exchanges = Exchange.objects.filter(order=order)
                 #import pdb; pdb.set_trace()
                 for exchange in exchanges:

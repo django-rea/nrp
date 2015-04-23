@@ -51,7 +51,7 @@ input-small {
         <div>
             <div class="title">{% trans "Log Use of " %} {{ equipment.identifier }}</div>
             <div class="notes">Access rules: {{ equipment.access_rules }}</div>
-            <form id="equipForm" method="POST" action="">
+            <form class="validateMe" id="equipForm" method="POST" action="">
                 {% csrf_token %}
                 <div class="eform">
                     {{ equip_form|as_bootstrap }}

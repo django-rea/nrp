@@ -260,7 +260,7 @@ th
                                         <h3 id="create-vebr-label{{ bucket.id }}">{% trans "Create Bucket Rule for " %}{{ bucket.name }} </h3>
                                     </div>
                                     <div class="modal-body cvebr-body">
-                                        <form class="validateMe"  action="{% url create_value_equation_bucket_rule bucket_id=bucket.id %}" method="POST" >
+                                        <form class="validateMe" action="{% url create_value_equation_bucket_rule bucket_id=bucket.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ bucket.rule_form|as_bootstrap }}
                                             {{ bucket.rule_filter_form|as_bootstrap }}

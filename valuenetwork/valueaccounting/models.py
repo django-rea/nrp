@@ -3714,6 +3714,13 @@ class EconomicResource(models.Model):
         value_per_unit = self.roll_up_value(path, depth, visited, value_equation)
         print "value_per_unit:", value_per_unit
         return path
+        
+    def compute_value_per_unit(self, value_equation=None):
+        #import pdb; pdb.set_trace()
+        visited = set()
+        path = []
+        depth = 0
+        return self.roll_up_value(path, depth, visited, value_equation)
     
     def roll_up_value(self, path, depth, visited, value_equation=None):
         # EconomicResource method

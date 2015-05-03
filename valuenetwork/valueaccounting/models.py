@@ -429,6 +429,15 @@ class EconomicAgent(models.Model):
         unique_slugify(self, self.nick)
         super(EconomicAgent, self).save(*args, **kwargs)
         
+    def delete(self, *args, **kwargs):
+        aus = self.users.all()
+        if aus:
+            for au in aus:
+                user = au.user
+                user.delete()
+                au.delete()
+        super(EconomicAgent, self).delete(*args, **kwargs)
+        
     @models.permalink
     def get_absolute_url(self):
         return ('agent', (),
@@ -961,6 +970,23 @@ class EconomicAgent(models.Model):
             if id.is_undistributed():
                 id_ids.append(id.id)
         return EconomicEvent.objects.filter(id__in=id_ids)
+        
+    def is_deletable(self):
+        if self.given_events.filter(quantity__gt=0):
+            return False
+        if self.taken_events.filter(quantity__gt=0):
+            return False
+        if self.given_commitments.filter(quantity__gt=0):
+            return False
+        if self.taken_commitments.filter(quantity__gt=0):
+            return False
+        if self.exchanges_as_customer.all():
+            return False
+        if self.exchanges_as_supplier.all():
+            return False
+        if self.virtual_accounts():
+            return False
+        return True
                 
         
 class AgentUser(models.Model):
@@ -6273,6 +6299,7 @@ class Exchange(models.Model):
                     #if contributions were credited,
                     # do not give credit for payment.
                     value = evt.quantity
+                    #import pdb; pdb.set_trace()
                     br = evt.bucket_rule(value_equation)
                     if br:
                         value = br.compute_claim_value(evt)

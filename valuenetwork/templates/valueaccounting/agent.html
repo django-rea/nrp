@@ -72,6 +72,18 @@
 			{% if user_agent and change_form %}
 		        <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
 	        {% endif %}
+	        
+	        {% if user.is_superuser and agent.is_deletable %}
+                <form
+                    style="display: inline;" 
+                    class="delete-agent-form" 
+                    id="deleteAgentForm" 
+                    action="{% url delete_agent agent_id=agent.id %}" 
+                    method="POST" >
+                    {% csrf_token %}
+                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete Agent" >Delete</button>
+                </form>
+	        {% endif %}
 
 	        {% if user.is_superuser and user_form %}
                 <a href="#createUserForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create User" %}</a>

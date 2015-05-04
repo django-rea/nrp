@@ -115,7 +115,7 @@ th
                         <h3 id="create-ve-label">{% trans "Create Value Equation" %}</h3>
                     </div>
                     <div class="modal-body">
-                        <form action="{% url create_value_equation %}" method="POST" >
+                        <form class="validateMe" action="{% url create_value_equation %}" method="POST" >
                             {% csrf_token %}
                             {{ value_equation_form }}
                             <div class="modal-footer">
@@ -152,7 +152,7 @@ th
                             <h3 id="change-ve-label">{% trans "Change Value Equation" %} </h3>
                         </div>
                         <div class="modal-body">
-                            <form action="{% url change_value_equation value_equation_id=value_equation.id %}" method="POST" >
+                            <form class="validateMe"  action="{% url change_value_equation value_equation_id=value_equation.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ value_equation_form|as_bootstrap }}
                                 <div class="modal-footer">
@@ -169,7 +169,7 @@ th
                             <h3 id="create-veb-label">{% trans "Create Value Equation Bucket" %} </h3>
                         </div>
                         <div class="modal-body">
-                            <form action="{% url create_value_equation_bucket value_equation_id=value_equation.id %}" method="POST" >
+                            <form class="validateMe"  action="{% url create_value_equation_bucket value_equation_id=value_equation.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ value_equation_bucket_form|as_bootstrap }}
                                 <div class="modal-footer">
@@ -239,7 +239,7 @@ th
                                         <h3 id="change-veb-label">{% trans "Change Value Equation Bucket" %} </h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form action="{% url change_value_equation_bucket bucket_id=bucket.id %}" method="POST" >
+                                        <form class="validateMe"  action="{% url change_value_equation_bucket bucket_id=bucket.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ bucket.change_form|as_bootstrap }}
                                             <div class="modal-footer">
@@ -260,7 +260,7 @@ th
                                         <h3 id="create-vebr-label{{ bucket.id }}">{% trans "Create Bucket Rule for " %}{{ bucket.name }} </h3>
                                     </div>
                                     <div class="modal-body cvebr-body">
-                                        <form action="{% url create_value_equation_bucket_rule bucket_id=bucket.id %}" method="POST" >
+                                        <form class="validateMe" action="{% url create_value_equation_bucket_rule bucket_id=bucket.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ bucket.rule_form|as_bootstrap }}
                                             {{ bucket.rule_filter_form|as_bootstrap }}
@@ -376,6 +376,7 @@ th
 {% endblock %}
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
     <script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
@@ -395,6 +396,18 @@ th
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
+        
+        $.validator.addClassRules("event-type-selector", { required: true });
+        $.validator.addClassRules("integer", { digits: true });
+
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
+        });
 
         $(".event-type-selector").change(getDefaultEquation);
         

@@ -1663,6 +1663,15 @@ def delete_resource(request, resource_id):
         else:
             return HttpResponseRedirect('/%s/'
                 % ('accounting/cleanup-resources'))
+                
+@login_required
+def delete_agent(request, agent_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        agt = get_object_or_404(EconomicAgent, pk=agent_id)
+        agt.delete()
+        return HttpResponseRedirect('/%s/'
+            % ('accounting/agents'))
 
 @login_required
 def delete_order_confirmation(request, order_id):

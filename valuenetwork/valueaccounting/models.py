@@ -429,6 +429,15 @@ class EconomicAgent(models.Model):
         unique_slugify(self, self.nick)
         super(EconomicAgent, self).save(*args, **kwargs)
         
+    def delete(self, *args, **kwargs):
+        aus = self.users.all()
+        if aus:
+            for au in aus:
+                user = au.user
+                user.delete()
+                au.delete()
+        super(EconomicAgent, self).delete(*args, **kwargs)
+        
     @models.permalink
     def get_absolute_url(self):
         return ('agent', (),
@@ -882,12 +891,13 @@ class EconomicAgent(models.Model):
         return self.agent_type.is_context
         
     def orders_queryset(self):
+        #import pdb; pdb.set_trace()
         orders = []
         exf = self.exchange_firm()
         cr_orders = []
         if exf:
             crs = self.undistributed_cash_receipts()
-            cr_orders = [cr.exchange.order for cr in crs]
+            cr_orders = [cr.exchange.order for cr in crs if cr.exchange]
         for order in Order.objects.all():
             cas = order.context_agents()
             if self in cas:
@@ -941,10 +951,14 @@ class EconomicAgent(models.Model):
         #exchange firm might put cash receipt into a more general virtual account
         if exf:
             crs = exf.undistributed_cash_receipts()
-            for cr in crs:
-                if cr.is_undistributed():
-                    if cr.resource.is_virtual_account_of(self):
-                        cr_ids.append(cr.id)
+            cr_ids.extend(cr.id for cr in crs)
+            #todo: analyze this.
+            #is_undistributed is unnecessary: crs only includes undistributed
+            #is_virtual_account_of is the restriction that needs analysis
+            #for cr in crs:
+            #    if cr.is_undistributed():
+            #        if cr.resource.is_virtual_account_of(self):
+            #            cr_ids.append(cr.id)
         return EconomicEvent.objects.filter(id__in=cr_ids)
         
     def undistributed_distributions(self):
@@ -956,6 +970,23 @@ class EconomicAgent(models.Model):
             if id.is_undistributed():
                 id_ids.append(id.id)
         return EconomicEvent.objects.filter(id__in=id_ids)
+        
+    def is_deletable(self):
+        if self.given_events.filter(quantity__gt=0):
+            return False
+        if self.taken_events.filter(quantity__gt=0):
+            return False
+        if self.given_commitments.filter(quantity__gt=0):
+            return False
+        if self.taken_commitments.filter(quantity__gt=0):
+            return False
+        if self.exchanges_as_customer.all():
+            return False
+        if self.exchanges_as_supplier.all():
+            return False
+        if self.virtual_accounts():
+            return False
+        return True
                 
         
 class AgentUser(models.Model):
@@ -1199,14 +1230,14 @@ class EventType(models.Model):
 
     def default_event_value_equation(self):
         if self.used_for_value_equations():
-            if self.relationship == "use":
-                return "quantity * valuePerUnitOfUse"
-            elif self.relationship == "cite" or self.relationship == "pay":
+            if self.relationship == "cite" or self.relationship == "pay":
                 return "quantity"
             elif self.relationship == "resource" or self.relationship == "receive":
                 return "value"
             elif self.relationship == "expense" or self.relationship == "cash":
                 return "value"
+            elif self.relationship == "use":
+                return "quantity * valuePerUnitOfUse"
             else:
                 return "quantity * valuePerUnit"
         return ""
@@ -1220,6 +1251,7 @@ class EventType(models.Model):
             "shipment",
             "adjust",
             "distribute",
+            "use",
         ]
         bad_names = [
             "Work Provision",
@@ -3708,6 +3740,13 @@ class EconomicResource(models.Model):
         value_per_unit = self.roll_up_value(path, depth, visited, value_equation)
         print "value_per_unit:", value_per_unit
         return path
+        
+    def compute_value_per_unit(self, value_equation=None):
+        #import pdb; pdb.set_trace()
+        visited = set()
+        path = []
+        depth = 0
+        return self.roll_up_value(path, depth, visited, value_equation)
     
     def roll_up_value(self, path, depth, visited, value_equation=None):
         # EconomicResource method
@@ -4109,6 +4148,9 @@ class EconomicResource(models.Model):
                                 #todo 3d: use event
                                 #import pdb; pdb.set_trace()
                                 if ip.resource:
+                                    #experiment for equipment maintenance fee
+                                    #ip.share = ip.value
+                                    #events.append(ip)
                                     value = ip.value
                                     ip_value = value * distro_fraction
                                     d_qty = distro_qty
@@ -6251,6 +6293,7 @@ class Exchange(models.Model):
                     #if contributions were credited,
                     # do not give credit for payment.
                     value = evt.quantity
+                    #import pdb; pdb.set_trace()
                     br = evt.bucket_rule(value_equation)
                     if br:
                         value = br.compute_claim_value(evt)
@@ -8852,10 +8895,12 @@ class ValueEquationBucket(models.Model):
                     order_string,
                     ])
             events = []
+            #import pdb; pdb.set_trace()
             for order in orders:
                 for order_item in order.order_items():
                     #todo 3d: one method to chase
-                    events.extend(order_item.compute_income_fractions(ve))
+                    oi_events = order_item.compute_income_fractions(ve)
+                    events.extend(oi_events)
                 exchanges = Exchange.objects.filter(order=order)
                 #import pdb; pdb.set_trace()
                 for exchange in exchanges:

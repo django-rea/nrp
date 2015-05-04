@@ -4982,15 +4982,9 @@ class ProcessManager(models.Manager):
 
     def finished(self):
         return Process.objects.filter(finished=True)
-
-    #def processes_with_expenses(self, start=None, end=None):
-    #    #import pdb; pdb.set_trace()
-    #    et_exp = EventType.objects.get(name="Process Expense")
-    #    if start and end:
-    #        procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False).filter(event_date__range=[start, end])]
-    #    else:
-    #        procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False)]
-    #    return list(set(procs))
+    
+    def current(self):
+        return Process.objects.filter(finished=False).filter(start_date__lte=datetime.date.today()).filter(end_date__gte=datetime.date.today())
 
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -6530,7 +6524,7 @@ class Commitment(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
         blank=True, null=True,
         verbose_name=_('resource type'), related_name='commitments')
-    resource = models.ForeignKey(EconomicResource, 
+    resource = models.ForeignKey(EconomicResource,
         blank=True, null=True,
         verbose_name=_('resource'), related_name='commitments')
     process = models.ForeignKey(Process,

@@ -59,7 +59,64 @@ def log_equipment_use(request, equip_resource_id, equip_use_rt_id, tech_rt_id, a
             quantity = data["quantity"]
             technician = data["technician"]
             technician_quantity = data["technician_hours"]
+            process = data ["process"]
             et_ship = EventType.objects.get(name="Shipment")
+            et_use = EventType.objects.get(name="Resource use")
+            et_consume = EventType.objects.get(name="Resource Consumption")
+            
+            if not process:
+                process = Process(
+                    name="Print using " + equipment.identifier,
+                    end_date=input_date,
+                    start_date=input_date,
+                    process_pattern=pattern,
+                    created_by=request.user,
+                    context_agent=context_agent,
+                    started=input_date,
+                    finished=True,
+                )
+                process.save()
+            use_event = EconomicEvent(
+                event_type = et_use,
+                event_date = input_date,
+                resource_type = equipment,
+                process = process,
+                from_agent = context_agent,
+                to_agent = who,
+                context_agent = context_agent,
+                quantity = quantity,
+                unit_of_quantity = equipment.unit_of_use,
+                created_by = request.user,
+            )
+            use_event.save()
+            formset = consumable_formset(data=request.POST, consumable_rt=consumable_rt)
+            for form in formset.forms:
+                if form.is_valid():
+                    data_cons = form.cleaned_data
+                    if data_cons:
+                        qty = data_cons["quantity"]
+                        if qty:
+                            if qty > 0:
+                                res_id = data_cons["resource_id"]
+                                consumable = EconomicResource.objects.get(id=int(res_id))
+                                consume_event = EconomicEvent(
+                                    event_type = et_consume,
+                                    event_date = input_date,
+                                    resource = consumable,
+                                    resource_type = consumable.resource_type,
+                                    prcess = process,
+                                    from_agent = context_agent,
+                                    to_agent = who,
+                                    context_agent = context_agent,
+                                    quantity = qty,
+                                    unit_of_quantity = consumable_rt.unit,
+                                    value = quantity * consumable.value_per_unit,
+                                    unit_of_value = consumable.resource_type.unit_of_price,
+                                    created_by = request.user,
+                                )
+                                consume_event.save()            
+            
+            
             sale = Exchange(
                 name="Use of " + equipment.identifier,
                 use_case=UseCase.objects.get(identifier="sale"),
@@ -135,7 +192,7 @@ def log_equipment_use(request, equip_resource_id, equip_use_rt_id, tech_rt_id, a
                                     context_agent = context_agent,
                                     quantity = qty,
                                     unit_of_quantity = consumable_rt.unit,
-                                    value = quantity * consumable.value_per_unit_of_use,
+                                    value = quantity * consumable.value_per_unit,
                                     unit_of_value = consumable.resource_type.unit_of_price,
                                     created_by = request.user,
                                 )

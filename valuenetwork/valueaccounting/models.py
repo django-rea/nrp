@@ -2718,6 +2718,8 @@ def create_event_types(app, **kwargs):
     EventType.create('Cash Disbursement', _('disburses cash'), _('disbursed by'), 'disburse', 'exchange', '-', 'value')
     EventType.create('Payout', _('pays out'), _('paid by'), 'payout', 'agent', '-', 'value')
     EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
+    #the following is for fees, taxes, other extraneous charges not involved in a value equation
+    EventType.create('Fee', _('fees'), _('charged by'), 'cash', 'exchange', '-', 'value')
     #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
@@ -6202,6 +6204,7 @@ class Exchange(models.Model):
     def roll_up_value(self, trigger_event, path, depth, visited, value_equation=None):
         #exchange method
         #import pdb; pdb.set_trace()
+        values = Decimal("0.0")
         if self not in visited:
             visited.add(self)
             depth += 1

@@ -8,19 +8,6 @@ from django.utils.translation import ugettext_lazy as _
 from valuenetwork.valueaccounting.models import *
 
 class EquipmentUseForm(forms.ModelForm):
-    #commitment = forms.ModelChoiceField(
-    #    required=False,
-    #    queryset=Commitment.objects.all(),
-    #    label="Is this printer use planned? If so, choose the plan",
-    #    widget=forms.Select(
-    #        attrs={'class': 'chzn-select'}))
-    process = forms.ModelChoiceField(
-        required=False,
-        queryset=Process.objects.all(),
-        label="Is this part of an existing process?", 
-        help_text="(or leave blank and one will be created)",
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'}))
     event_date = forms.DateField(
         required=True, 
         label="Date of use",
@@ -28,7 +15,7 @@ class EquipmentUseForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=True,
         queryset=EconomicAgent.objects.all(),
-        label="Who is using",
+        label="Who is paying",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
@@ -47,12 +34,12 @@ class EquipmentUseForm(forms.ModelForm):
         
     class Meta:
         model = EconomicEvent
-        fields = ('process', 'from_agent', 'event_date', 'quantity')
+        fields = ('from_agent', 'event_date', 'quantity')
 
     def __init__(self, equip_resource=None, context_agent=None, *args, **kwargs):
         super(EquipmentUseForm, self).__init__(*args, **kwargs)
-        #import pdb; pdb.set_trace()
-        self.fields["process"].queryset = Process.objects.current()
+        #import pdb; pdb.set_trace()    
+        #self.fields["process"].queryset = Process.objects.current()
         if equip_resource:
             self.fields["technician"].queryset = equip_resource.all_related_agents()
             if context_agent:
@@ -65,7 +52,23 @@ class ConsumableForm(forms.Form):
 
 class PaymentForm(forms.Form):
     resource_id = forms.CharField(widget=forms.HiddenInput)
+    #commitment = forms.ModelChoiceField(
+    #    required=False,
+    #    queryset=Commitment.objects.all(),
+    #    label="Is this printer use planned? If so, choose the plan",
+    #    widget=forms.Select(
+    #        attrs={'class': 'chzn-select'}))
+    #process = forms.ModelChoiceField(
+    #    required=False,
+    #    queryset=Process.objects.all(),
+    #    label="Is this part of an existing process?", 
+    #    help_text="(or leave blank and one will be created)",
+    #    widget=forms.Select(
+    #        attrs={'class': 'chzn-select'}))
     #event_reference = forms.CharField(
     #    required=True, 
     #    label="Paid by (cash, check, paypal, etc.)",
     #    widget=forms.TextInput(attrs={'class': 'reference',}))
+    
+    
+    #self.fields["process"].queryset = Process.objects.current()

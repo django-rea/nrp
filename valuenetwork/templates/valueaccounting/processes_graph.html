@@ -293,15 +293,30 @@ function assembleNodes(){
 
         for (var i in valnet.processes()) {
             var N = valnet.processes()[i];
-            var start = Date.parse(N.start);
-            var end = Date.parse(N.end);
+            if (N.start == N.end)
+            {
+                var start = Date.parse(N.start) - 75;
+                var end = Date.parse(N.end) + 75;
+            }
+            else
+            {
+                var start = Date.parse(N.start);
+                var end = Date.parse(N.end);
+            }
             var mid = (start + end)/2.0;
             N.mid = mid;    
             if (minDate == -1)
-                minDate = maxDate = mid;
-            else {
-                if (mid < minDate) minDate = mid;
-                if (mid > maxDate) maxDate = mid;
+            {
+                //minDate = maxDate = mid;
+                minDate = start;
+                maxDate = end;
+            }
+            else 
+            {
+                //if (mid < minDate) minDate = mid;
+                //if (mid > maxDate) maxDate = mid;
+                if (start < minDate) minDate = start;
+                if (end > maxDate) maxDate = end;
             }               
         }
 
@@ -485,7 +500,7 @@ function viewProcessGraph() {
 				.attr("x2", function(d) { return d.target.x - d.target.width/2; })
 				.attr("y2", function(d) { return d.target.y; });
 
-			//d3cola.stop();
+			d3cola.stop();
 
 		  });
 

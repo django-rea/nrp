@@ -2718,6 +2718,8 @@ def create_event_types(app, **kwargs):
     EventType.create('Cash Disbursement', _('disburses cash'), _('disbursed by'), 'disburse', 'exchange', '-', 'value')
     EventType.create('Payout', _('pays out'), _('paid by'), 'payout', 'agent', '-', 'value')
     EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
+    #the following is for fees, taxes, other extraneous charges not involved in a value equation
+    EventType.create('Fee', _('fees'), _('charged by'), 'cash', 'exchange', '-', 'value')
     #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
@@ -5024,15 +5026,9 @@ class ProcessManager(models.Manager):
 
     def finished(self):
         return Process.objects.filter(finished=True)
-
-    #def processes_with_expenses(self, start=None, end=None):
-    #    #import pdb; pdb.set_trace()
-    #    et_exp = EventType.objects.get(name="Process Expense")
-    #    if start and end:
-    #        procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False).filter(event_date__range=[start, end])]
-    #    else:
-    #        procs = [exp.process for exp in EconomicEvent.objects.filter(event_type=et_exp).filter(process__isnull=False)]
-    #    return list(set(procs))
+    
+    def current(self):
+        return Process.objects.filter(finished=False).filter(start_date__lte=datetime.date.today()).filter(end_date__gte=datetime.date.today())
 
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -6208,6 +6204,7 @@ class Exchange(models.Model):
     def roll_up_value(self, trigger_event, path, depth, visited, value_equation=None):
         #exchange method
         #import pdb; pdb.set_trace()
+        values = Decimal("0.0")
         if self not in visited:
             visited.add(self)
             depth += 1
@@ -6587,7 +6584,7 @@ class Commitment(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
         blank=True, null=True,
         verbose_name=_('resource type'), related_name='commitments')
-    resource = models.ForeignKey(EconomicResource, 
+    resource = models.ForeignKey(EconomicResource,
         blank=True, null=True,
         verbose_name=_('resource'), related_name='commitments')
     process = models.ForeignKey(Process,

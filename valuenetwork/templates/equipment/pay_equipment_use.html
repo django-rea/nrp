@@ -61,6 +61,7 @@ th {
                             <th>Used</th>
                             <th>Owe</th>
                         </tr>
+{% comment %}
                         {% for event in sale.shipment_events %}
                             <tr>
                               {% if event.resource %}
@@ -81,6 +82,7 @@ th {
                                 </tr>
                             {% endfor %}
                         {% endif %}
+{% endcomment %}
                     </table>
                     {% if paid %}
                         <p class="total"> Paid, thank you ! </p>

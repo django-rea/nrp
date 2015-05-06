@@ -453,7 +453,7 @@ def pay_equipment_use(request, sale_id, payment_rt_id, equip_resource_id):
         paid = True
         
     return render_to_response("equipment/pay_equipment_use.html", {
-        "process": process,
+        "sale": sale,
         "sale_total": sale_total_formatted,
         "payment_unit": payment_unit,
         "paid": paid,

@@ -6080,8 +6080,11 @@ class Exchange(models.Model):
         verbose_name_plural = _("exchanges")
 
     def __unicode__(self):
+        pattern_name = ""
+        if self.process_pattern:
+            pattern_name = self.process_pattern.name
         return " ".join([
-            self.process_pattern.name,
+            pattern_name,
             "starting",
             self.start_date.strftime('%Y-%m-%d'),
             ])

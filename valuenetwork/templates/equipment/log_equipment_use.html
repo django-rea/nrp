@@ -95,6 +95,7 @@ input-small {
             },
             "Please enter a number less than 100 with no more than 2 decimal places"
         );
+        /*
 
         jQuery.validator.setDefaults({ 
             success: function(label) {
@@ -103,7 +104,7 @@ input-small {
                     .closest('.control-group').addClass('success');
             }
         });
-
+        */
         $.validator.addClassRules("quantity", { required: true, quantity: true, });
         $.validator.addClassRules("date-entry", { required: true, date: true });
 

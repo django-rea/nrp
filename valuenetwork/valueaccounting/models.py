@@ -6206,6 +6206,14 @@ class Exchange(models.Model):
         return self.__unicode__()
         
     def roll_up_value(self, trigger_event, path, depth, visited, value_equation=None):
+        """ Rolling up value from an exchange for a resource.
+        
+            trigger_event is a receipt for a resource.
+            All of the expenses and work contributions in the Exchange
+            must be spread among all of the receipts, with this receipt
+            getting its share.
+        """
+        
         #exchange method
         #import pdb; pdb.set_trace()
         values = Decimal("0.0")
@@ -6216,12 +6224,13 @@ class Exchange(models.Model):
             depth += 1
             path.append(self)
             values = Decimal("0.0")
+            
             receipts = self.receipt_events()
             trigger_fraction = 1
             if receipts.count() > 1:
                 rsum = sum(r.value for r in receipts)
                 trigger_fraction = trigger_event.value / rsum
-            payments = self.payment_events()
+            payments = self.payment_events().filter(to_agent=trigger_event.from_agent)
             #share =  quantity / trigger_event.quantity
             if payments.count() == 1:
                 evt = payments[0]
@@ -6231,7 +6240,7 @@ class Exchange(models.Model):
                 if br:
                     #import pdb; pdb.set_trace()
                     value = br.compute_claim_value(evt)
-                values += value
+                values += value * trigger_fraction
                 evt.depth = depth
                 path.append(evt)
                 if evt.resource:
@@ -6244,15 +6253,41 @@ class Exchange(models.Model):
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
+                    fraction = evt.quantity / total
+                    #depth += 1
                     if evt.resource:
                         contributions = evt.resource.cash_contribution_events()
-                        fraction = evt.quantity / total
                         #evt.share = evt.quantity * share * fraction * trigger_fraction
                         evt.share = evt.quantity * fraction * trigger_fraction
                         evt.depth = depth
                         path.append(evt)
                         values += evt.share
                         #todo 3d: do multiple payments make sense for cash contributions?
+                    else:
+                        value = evt.quantity
+                        br = evt.bucket_rule(value_equation)
+                        if br:
+                            #import pdb; pdb.set_trace()
+                            value = br.compute_claim_value(evt)
+                        evt.share = value * fraction * trigger_fraction
+                        evt.depth = depth
+                        path.append(evt)
+                        values += evt.share
+            #todo: also need expenses
+            expenses = self.expense_events()
+            for ex in expenses:
+                ex.depth = depth
+                path.append(ex)
+                value = ex.value
+                values += value * trigger_fraction
+                exp_payments = self.payment_events().filter(to_agent=ex.from_agent)
+                for exp in exp_payments:
+                    depth += 1
+                    exp.depth = depth
+                    path.append(exp)
+                    depth -= 1
+                depth -= 1
+                        
             for evt in self.work_events():
                 #import pdb; pdb.set_trace()
                 value = evt.quantity

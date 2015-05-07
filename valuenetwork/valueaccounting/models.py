@@ -6216,8 +6216,8 @@ class Exchange(models.Model):
         #exchange method
         #import pdb; pdb.set_trace()
         values = Decimal("0.0")
-        if self not in visited:
-            visited.add(self)
+        if trigger_event not in visited:
+            visited.add(trigger_event)
             depth += 1
             self.depth = depth
             depth += 1

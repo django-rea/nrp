@@ -2160,10 +2160,6 @@ class EconomicResourceType(models.Model):
             return False
         else:
             return True
-        
-    def compute_value_equation_price_per_unit(self, value_equation=None):
-        
-        return 5
 
 
 class ResourceTypeList(models.Model):

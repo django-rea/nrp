@@ -61,7 +61,7 @@ th {
                             <th>Used</th>
                             <th>Owe</th>
                         </tr>
-                        {% for event in process.input_events %}
+                        {% for event in process.incoming_events %}
                             <tr>
                               {% if event.resource %}
                                 <td>{{ event.resource }}</td>

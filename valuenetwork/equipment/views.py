@@ -43,6 +43,7 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
     equipment_svc_rt = get_object_or_404(EconomicResourceType, id=equip_svc_rt_id)
     equipment_fee_rt = get_object_or_404(EconomicResourceType, id=equip_fee_rt_id)
     technician_rt = EconomicResourceType.objects.get(id=tech_rt_id)
+    payment_rt = EconomicResourceType.objects.get(id=payment_rt_id)
     context_agent = get_object_or_404(EconomicAgent, id=context_agent_id)
     pattern = ProcessPattern.objects.get(id=pattern_id)
     consumable_rt = EconomicResourceType.objects.get(id=consumable_rt_id)
@@ -92,6 +93,8 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 context_agent = context_agent,
                 quantity = quantity,
                 unit_of_quantity = equipment.resource_type.unit_of_use,
+                value = 0,
+                unit_of_value = payment_rt.unit,
                 created_by = request.user,
             )
             use_event.save()
@@ -105,7 +108,6 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                             if qty > 0:
                                 res_id = data_cons["resource_id"]
                                 consumable = EconomicResource.objects.get(id=int(res_id))
-                                price = consumable.compute_value_per_unit(value_equation=ve)
                                 consume_event = EconomicEvent(
                                     event_type = et_consume,
                                     event_date = input_date,
@@ -117,14 +119,11 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                                     context_agent = context_agent,
                                     quantity = qty,
                                     unit_of_quantity = consumable_rt.unit,
-                                    value = price * qty,
                                     unit_of_value = consumable.resource_type.unit_of_price,
                                     created_by = request.user,
                                 )
-                                consume_event.save() 
-                                total_price += consume_event.value    
+                                consume_event.save()
             if technician and technician_quantity > 0:
-                price = technician_rt.compute_value_equation_price_per_unit(value_equation=ve)
                 tech_event = EconomicEvent(
                     event_type = et_work,
                     event_date = input_date,
@@ -135,7 +134,6 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                     context_agent = process.context_agent,
                     quantity = technician_quantity,
                     unit_of_quantity = technician_rt.unit,
-                    value = quantity * price,
                     unit_of_value = technician_rt.unit_of_price,
                     created_by = request.user,
                 )
@@ -161,14 +159,15 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 context_agent = process.context_agent,
                 quantity = 1,
                 unit_of_quantity = equipment_svc_rt.unit,
-                value = total_price,
                 unit_of_value = equipment_svc_rt.unit_of_price,
                 created_by = request.user,
             )
             output_event.save()
+            total_value = output_event.resource.compute_value_per_unit(value_equation=ve)
+            output_event.value = total_value
+            output_event.save()
             
             #import pdb; pdb.set_trace()
-            owed = printer_service.compute_value_per_unit(value_equation=ve)
             sale = Exchange(
                 name="Use of " + equipment.identifier,
                 use_case=UseCase.objects.get(identifier="sale"),
@@ -194,7 +193,6 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 created_by = request.user,
             )
             mtnce_fee_event.save()
-            #owed += mtnce_fee_event.quantity
             ship_event = EconomicEvent(
                 event_type = et_ship,
                 event_date = input_date,
@@ -205,7 +203,7 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 context_agent = context_agent,
                 quantity = 1,
                 unit_of_quantity = equipment_svc_rt.unit,
-                value = owed,
+                value = total_value,
                 unit_of_value = equipment_svc_rt.unit_of_price,
                 created_by = request.user,
             )

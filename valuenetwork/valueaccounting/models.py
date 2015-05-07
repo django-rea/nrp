@@ -6083,7 +6083,11 @@ class Exchange(models.Model):
         pattern_name = ""
         if self.process_pattern:
             pattern_name = self.process_pattern.name
+        name = ""
+        if self.name:
+            name = self.name + ","
         return " ".join([
+            name,
             pattern_name,
             "starting",
             self.start_date.strftime('%Y-%m-%d'),

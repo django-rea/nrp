@@ -61,8 +61,7 @@ th {
                             <th>Used</th>
                             <th>Owe</th>
                         </tr>
-{% comment %}
-                        {% for event in sale.shipment_events %}
+                        {% for event in process.input_events %}
                             <tr>
                               {% if event.resource %}
                                 <td>{{ event.resource }}</td>
@@ -73,26 +72,18 @@ th {
                                 <td>{{ event.value_formatted_decimal }}</td>
                             </tr>
                         {% endfor %}
-                        {% if tech_sale %}
-                            {% for event in tech_sale.shipment_events %}
-                                <tr>
-                                    <td>{{ event.resource_type }}</td>
-                                    <td>{{ event.quantity }} {{ event.unit }}</td>
-                                    <td>{{ event.value_formatted_decimal }}</td>
-                                </tr>
-                            {% endfor %}
-                        {% endif %}
-{% endcomment %}
+                        <tr>
+                            <td>{{ mtnce_event.resource_type }}</td>
+                            <td>{{ mtnce_event.quantity }} {{ mtnce_event.unit }}</td>
+                            <td>{{ mtnce_event.value_formatted_decimal }}</td>
+                        </tr>
                     </table>
                     {% if paid %}
                         <p class="total"> Paid, thank you ! </p>
                     {% else %}
                         <p class="pay">Please pay the following and then press the button below:</p>
                         <div class="total">
-                            Total owed for equipment: {{ sale_total }}
-                            {% if tech_total %}
-                                <br />Total owed to technician: {{ tech_total }}
-                            {% endif %}
+                            Total owed: {{ sale_total }}
                         </div>
                         <input type="submit" name="save" value="{% trans 'I paid' %}" class="btn btn-primary" /> 
                     {% endif %}

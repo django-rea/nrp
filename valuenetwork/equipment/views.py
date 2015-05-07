@@ -165,12 +165,7 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 unit_of_value = equipment_svc_rt.unit_of_price,
                 created_by = request.user,
             )
-            output_event.save()     
-            #run distribution to get prices based on distributions
-            #ve_exchange = Exchange(
-            #    
-            #)
-            #dist = ve.run_value_equation_and_save(exchange=ve_exchange, money_resource=, amount_to_distribute, serialized_filters, cash_receipts=None, input_distributions=None):
+            output_event.save()
             
             #import pdb; pdb.set_trace()
             owed = printer_service.compute_value_per_unit(value_equation=ve)
@@ -183,7 +178,7 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 created_by=request.user,
             )
             sale.save()
-            #todo: hardcoded fee event
+            #todo: hardcoded fee event for now
             mtnce_fee_event = EconomicEvent(
                 event_type = et_fee,
                 event_date = input_date,
@@ -215,66 +210,9 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 created_by = request.user,
             )
             ship_event.save()
-            
-            '''            
-            if technician and technician_quantity > 0:
-                tech_sale = Exchange(
-                    name="Technician on " + equipment.identifier,
-                    use_case=UseCase.objects.get(identifier="sale"),
-                    start_date=input_date,
-                    process_pattern=pattern,
-                    customer=who,
-                    created_by=request.user,
-                    context_agent=context_agent,
-                )
-                tech_sale.save()
-                tech_ship_event = EconomicEvent(
-                    event_type = et_ship,
-                    event_date = input_date,
-                    resource_type = technician_rt,
-                    exchange = tech_sale,
-                    from_agent = technician,
-                    to_agent = who,
-                    context_agent = context_agent,
-                    quantity = technician_quantity,
-                    unit_of_quantity = technician_rt.unit,
-                    value = technician_quantity * technician_rt.price_per_unit,
-                    unit_of_value = technician_rt.unit_of_price,
-                    created_by = request.user,
-                )
-                tech_ship_event.save()
-            else:
-                tech_sale = None
-            #import pdb; pdb.set_trace()
-            formset = consumable_formset(data=request.POST, consumable_rt=consumable_rt)
-            for form in formset.forms:
-                if form.is_valid():
-                    data_cons = form.cleaned_data
-                    if data_cons:
-                        qty = data_cons["quantity"]
-                        if qty:
-                            if qty > 0:
-                                res_id = data_cons["resource_id"]
-                                consumable = EconomicResource.objects.get(id=int(res_id))
-                                consume_ship_event = EconomicEvent(
-                                    event_type = EventType.objects.get(name="Shipment"),
-                                    event_date = input_date,
-                                    resource = consumable,
-                                    resource_type = consumable.resource_type,
-                                    exchange = sale,
-                                    from_agent = context_agent,
-                                    to_agent = who,
-                                    context_agent = context_agent,
-                                    quantity = qty,
-                                    unit_of_quantity = consumable_rt.unit,
-                                    value = quantity * consumable.value_per_unit,
-                                    unit_of_value = consumable.resource_type.unit_of_price,
-                                    created_by = request.user,
-                                )
-                                consume_ship_event.save()
-            '''                               
-            return HttpResponseRedirect('/%s/%s/%s/%s/'
-                % ('equipment/pay-equipment-use', sale.id, payment_rt_id, equip_resource_id))
+ 
+            return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/'
+                % ('equipment/pay-equipment-use', sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id))
     
     return render_to_response("equipment/log_equipment_use.html", {
         "equip_form": equip_form,
@@ -284,28 +222,22 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
     }, context_instance=RequestContext(request))
 
 @login_required
-def pay_equipment_use(request, sale_id, payment_rt_id, equip_resource_id):
+def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resource_id, mtnce_fee_event_id):
     #import pdb; pdb.set_trace()
     sale = get_object_or_404(Exchange, id=sale_id)
+    process = get_object_or_404(Process, id=process_id)
     payment_rt = EconomicResourceType.objects.get(id=payment_rt_id)
     payment_unit = payment_rt.unit
     equipment = EconomicResource.objects.get(id=equip_resource_id)
     paid=False
-    sale_total = Decimal(0)
-    
-    '''
-
     ship_events = sale.shipment_events()
+    sale_total = 0
     for se in ship_events:
         sale_total += se.value
+    mtnce_event = EconomicEvent.objects.get(id=mtnce_fee_event_id)
+    sale_total += mtnce_event.quantity
     sale_total_formatted = "".join([payment_rt.unit.symbol, str(sale_total.quantize(Decimal('.01'), rounding=ROUND_UP))])
-    if tech_sale_id:
-        tech_events = tech_sale.shipment_events()
-        for te in tech_events:
-            tech_total += te.value
-            technician = te.from_agent
-        tech_total_formatted = "".join([payment_rt.unit.symbol, str(tech_total.quantize(Decimal('.01'), rounding=ROUND_UP))])    
-    '''
+
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         
@@ -392,31 +324,17 @@ def pay_equipment_use(request, sale_id, payment_rt_id, equip_resource_id):
                                 consume_ship_event.save()
 
 
-
-            mtnce_fee_event = EconomicEvent(
-                event_type = et_use,
-                event_date = input_date,
-                resource_type = equipment_fee_rt,
-                process = process,
-                from_agent = context_agent,
-                to_agent = context_agent,
-                context_agent = context_agent,
-                quantity = quantity,
-                unit_of_quantity = equipment_fee_rt.unit,
-                value = quantity * equipment_fee_rt.price_per_unit,
-                unit_of_value = equipment_fee_rt.unit_of_price,
-                created_by = request.user,
-            )
-            mtnce_fee_event.save()
+           #ve_exchange = Exchange(
+            #    
+            #)
+            #dist = ve.run_value_equation_and_save(exchange=ve_exchange, money_resource=, amount_to_distribute, serialized_filters, cash_receipts=None, input_distributions=None):
+ 
 
 
                                 
 
         '''            
 
-        
-        
-        
         
         
         cr_et = EventType.objects.get(name="Cash Receipt")
@@ -454,7 +372,8 @@ def pay_equipment_use(request, sale_id, payment_rt_id, equip_resource_id):
         paid = True
         
     return render_to_response("equipment/pay_equipment_use.html", {
-        "sale": sale,
+        "process": process,
+        "mtnce_event": mtnce_event,
         "sale_total": sale_total_formatted,
         "payment_unit": payment_unit,
         "paid": paid,

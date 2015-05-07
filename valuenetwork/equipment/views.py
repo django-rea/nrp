@@ -124,6 +124,7 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                                 consume_event.save() 
                                 total_price += consume_event.value    
             if technician and technician_quantity > 0:
+                price = technician_rt.compute_value_equation_price_per_unit(value_equation=ve)
                 tech_event = EconomicEvent(
                     event_type = et_work,
                     event_date = input_date,
@@ -134,7 +135,7 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                     context_agent = process.context_agent,
                     quantity = technician_quantity,
                     unit_of_quantity = technician_rt.unit,
-                    value = quantity * technician_rt.price_per_unit,
+                    value = quantity * price,
                     unit_of_value = technician_rt.unit_of_price,
                     created_by = request.user,
                 )
@@ -188,8 +189,8 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 event_date = input_date,
                 resource_type = equipment_fee_rt,
                 exchange = sale,
-                from_agent = who,
-                to_agent = context_agent,
+                from_agent = context_agent,
+                to_agent = who,
                 context_agent = context_agent,
                 quantity = use_event.quantity * equipment_fee_rt.price_per_unit,
                 unit_of_quantity = equipment_fee_rt.unit_of_price,

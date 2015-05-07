@@ -2161,7 +2161,7 @@ class EconomicResourceType(models.Model):
         else:
             return True
         
-    def compute_value_equation_price_per_unit(self, value_equation):
+    def compute_value_equation_price_per_unit(self, value_equation=None):
         
         return 5
 

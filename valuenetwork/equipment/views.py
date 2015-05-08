@@ -201,6 +201,7 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 event_type = et_ship,
                 event_date = input_date,
                 resource_type = equipment_svc_rt,
+                resource = printer_service,
                 exchange = sale,
                 from_agent = context_agent,
                 to_agent = who,
@@ -232,6 +233,7 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
     payment_unit = payment_rt.unit
     equipment = EconomicResource.objects.get(id=equip_resource_id)
     ve = ValueEquation.objects.get(id=ve_id)
+    ve_exchange = None
     paid=False
     ship_events = sale.shipment_events()
     sale_total = 0
@@ -302,4 +304,6 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
         "payment_unit": payment_unit,
         "paid": paid,
         "equipment": equipment,
+        "ve_exchange": ve_exchange,
+        "ve": ve,
     }, context_instance=RequestContext(request))

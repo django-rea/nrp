@@ -275,6 +275,7 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
         crs = [cr_event]
         #BOB!
         serialized_filters = {}
+        dist_shipment = ship_events[0]
         buckets = ve.buckets.all()
         #import pdb; pdb.set_trace()
         for bucket in buckets:

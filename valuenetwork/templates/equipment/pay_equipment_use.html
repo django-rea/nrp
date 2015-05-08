@@ -39,7 +39,10 @@ td, tr {
 th {
     background-color: #F0F5F5;
 }
-
+.dist {
+    border: solid 2px lightgray;
+    padding: 3px;
+}
 
 </style>
 
@@ -79,7 +82,16 @@ th {
                         </tr>
                     </table>
                     {% if paid %}
-                        <p class="total"> Paid, thank you ! </p>
+                        <p class="total"> Paid {{ sale_total }}, thank you ! </p>
+                        <div class="dist">
+                            <p>The following distribution of your payment was made:</p>
+                            <ul>
+                            {% for dist in ve_exchange.distribution_events %}
+                                <li>{{ dist.to_agent.nick }}: {{ dist.distribution_quantity_formatted }}</li>
+                            {% endfor %}
+                            </ul>
+                            <p>The value equation used was: {{ ve.name }}
+                        </div>
                     {% else %}
                         <p class="pay">Please pay the following and then press the button below:</p>
                         <div class="total">

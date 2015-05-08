@@ -28,10 +28,13 @@
 }
 .total {
     border: solid 2px firebrick;
-    font-weight: bold;
-    color: firebrick;
     padding: 3px;
     margin-bottom: 5px;
+}
+.owed {
+    font-weight: bold;
+    color: firebrick;
+    font-size: 1.1em;
 }
 td, tr {
     text-align: left;
@@ -98,7 +101,7 @@ ul {
                         </tr>
                     </table>
                     {% if paid %}
-                        <p class="total"> Paid {{ sale_total }}, thank you ! </p>
+                        <p class="total owed"> Paid {{ sale_total }}, thank you ! </p>
                         <div class="dist">
                             <p>The following distribution of your payment was made:</p>
                             <ul>
@@ -111,8 +114,8 @@ ul {
                     {% else %}
                         <p class="pay">Please pay the following and then press the button below:</p>
                         <div class="total">
-                            Total owed: {{ sale_total }}<br />
-                            <span class="normal">Payment method:</span> {{ pay_form.payment_method }}<br />
+                            <span class="owed">Total owed: {{ sale_total }}</span><br />
+                            <span>Payment method:</span> {{ pay_form.payment_method }}<br />
                             <input type="submit" name="save" value="{% trans 'I paid' %}" class="btn btn-primary" /> 
                         </div>
                     {% endif %}

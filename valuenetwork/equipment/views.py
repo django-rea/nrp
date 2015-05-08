@@ -213,8 +213,8 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
             )
             ship_event.save()
  
-            return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/'
-                % ('equipment/pay-equipment-use', sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id))
+            return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/%s/'
+                % ('equipment/pay-equipment-use', sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id, ve_id))
     
     return render_to_response("equipment/log_equipment_use.html", {
         "equip_form": equip_form,
@@ -224,13 +224,14 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
     }, context_instance=RequestContext(request))
 
 @login_required
-def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resource_id, mtnce_fee_event_id):
+def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resource_id, mtnce_fee_event_id, ve_id):
     #import pdb; pdb.set_trace()
     sale = get_object_or_404(Exchange, id=sale_id)
     process = get_object_or_404(Process, id=process_id)
     payment_rt = EconomicResourceType.objects.get(id=payment_rt_id)
     payment_unit = payment_rt.unit
     equipment = EconomicResource.objects.get(id=equip_resource_id)
+    ve = ValueEquation.objects.get(id=ve_id)
     paid=False
     ship_events = sale.shipment_events()
     sale_total = 0
@@ -243,11 +244,13 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         cr_et = EventType.objects.get(name="Cash Receipt")
+        money_resource = sale.context_agent.virtual_accounts()[0]
         cr_event = EconomicEvent(
             event_type = cr_et,
             event_date = sale.start_date,
             exchange = sale,
             resource_type = payment_rt,
+            resource = money_resource,
             from_agent = sale.customer,
             to_agent = sale.context_agent,
             context_agent = sale.context_agent,
@@ -260,15 +263,25 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
         cr_event.save()                                
         paid = True
 
-           #ve_exchange = Exchange(
-            #    
-            #)
-            #dist = ve.run_value_equation_and_save(exchange=ve_exchange, money_resource=, amount_to_distribute, serialized_filters, cash_receipts=None, input_distributions=None):
- 
+        use_case = UseCase.objects.get(identifier="distribution")
+        dist_pattern = ProcessPattern.objects.usecase_patterns(use_case)[0]
+        ve_exchange = Exchange(name="Distribution for use of " + equipment.identifier,
+            process_pattern=dist_pattern,
+            use_case=use_case,
+            start_date=sale.start_date,
+            context_agent=sale.context_agent,
+            created_by=request.user,
+        )
+        crs = [cr_event]
+        ve_exchange = ve.run_value_equation_and_save(
+            cash_receipts=crs,
+            exchange=ve_exchange, 
+            money_resource=money_resource, 
+            amount_to_distribute=cr_event.quantity, 
+            serialized_filters={})
+        #for event in ve_exchange.distribution_events():
+        #    send_distribution_notification(event)
 
-
-
-        
     return render_to_response("equipment/pay_equipment_use.html", {
         "process": process,
         "mtnce_event": mtnce_event,

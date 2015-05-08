@@ -73,7 +73,7 @@
 		        <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
 	        {% endif %}
 	        
-	        {% if user.is_superuser and agent.is_deletable %}
+	        {% if user.is_staff and agent.is_deletable %}
                 <form
                     style="display: inline;" 
                     class="delete-agent-form" 

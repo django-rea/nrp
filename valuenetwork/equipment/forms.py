@@ -52,11 +52,11 @@ class ConsumableForm(forms.Form):
 
 class PaymentForm(forms.Form):
     #resource_id = forms.CharField(widget=forms.HiddenInput)
-    payment_method = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-xsmall'})) 
+    payment_method = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-small pay'})) 
                                        
     def __init__(self, *args, **kwargs):
         super(PaymentForm, self).__init__(*args, **kwargs)
-        self.fields["payment_method"].choices = [('cash', 'Cash'), ('check', 'Check'), ('paypal', 'Paypal'), ('other', 'Other')]                                      
+        self.fields["payment_method"].choices = [('Cash', 'Cash'), ('Check', 'Check'), ('Paypal', 'Paypal'), ('Other', 'Other')]                                      
                                        
     #commitment = forms.ModelChoiceField(
     #    required=False,

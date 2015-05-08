@@ -40,12 +40,24 @@ th {
     background-color: #F0F5F5;
 }
 .dist {
-    border: solid 2px lightgray;
+    border: solid 2px #8A8A5C;
     padding: 3px;
+    color: #8A8A5C;
+    font-weight: bold;
 }
+/*
 ul {
     margin: 0;
     padding: 0;
+}
+*/
+.pay {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+.normal {
+    font-weight: normal;
+    color: black;
 }
 
 </style>
@@ -94,13 +106,13 @@ ul {
                                 <li>{{ dist.to_agent.nick }}: {{ dist.distribution_quantity_formatted }}</li>
                             {% endfor %}
                             </ul>
-                            <p>The value equation used was: {{ ve.name }}
+                            <p>Value equation: {{ ve.name }}</p>
                         </div>
                     {% else %}
                         <p class="pay">Please pay the following and then press the button below:</p>
                         <div class="total">
-                            Total owed: {{ sale_total }}
-                            {{ pay_form.payment_method }}
+                            Total owed: {{ sale_total }}<br />
+                            <span class="normal">Payment method:</span> {{ pay_form.payment_method }}<br />
                             <input type="submit" name="save" value="{% trans 'I paid' %}" class="btn btn-primary" /> 
                         </div>
                     {% endif %}

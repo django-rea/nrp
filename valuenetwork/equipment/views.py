@@ -265,7 +265,7 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
                 unit_of_quantity = payment_unit,
                 value = sale_total,
                 unit_of_value = payment_unit,
-                reference = payment_method,
+                event_reference = payment_method,
                 created_by = request.user,
             )
             cr_event.save()                                
@@ -321,4 +321,5 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
         "equipment": equipment,
         "ve_exchange": ve_exchange,
         "ve": ve,
+        "pay_form": pay_form,
     }, context_instance=RequestContext(request))

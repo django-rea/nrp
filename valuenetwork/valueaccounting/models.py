@@ -2719,7 +2719,7 @@ def create_event_types(app, **kwargs):
     EventType.create('Payout', _('pays out'), _('paid by'), 'payout', 'agent', '-', 'value')
     EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
     #the following is for fees, taxes, other extraneous charges not involved in a value equation
-    EventType.create('Fee', _('fees'), _('charged by'), 'cash', 'exchange', '-', 'value')
+    EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
     #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
@@ -6194,7 +6194,11 @@ class Exchange(models.Model):
     def disbursement_events(self):
         return self.events.filter(
             event_type__relationship='disburse')
-            
+             
+    def fee_events(self):
+        return self.events.filter(
+            event_type__relationship='fee')
+    
     def sorted_events(self):
         events = self.events.all().order_by("event_type__name")
         return events

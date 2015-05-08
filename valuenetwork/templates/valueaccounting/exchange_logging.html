@@ -685,6 +685,30 @@ li {
           </div>
         {% endif %}
 
+        {% if fee_events or "fee" in slots %}
+          <div class="log-section">
+            <h3 style="margin-bottom: 4px;" >
+                {% trans "Fees or Other Charges" %}:
+{% comment %}
+                {% if agent %}
+                    <a href="#feeModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a fee, tax, or other charge" >
+                        {% trans "Log fee" %}
+                    </a>
+                {% endif %}
+{% endcomment %}
+            </h3>
+            {% if fee_events %}
+                {% for event in fee_events %}
+                    <div class="event">
+                        <span ><span class="event-label">{% trans "Charged" %}: </span> 
+                        {{ event.resource_type }}</b> 
+                        <b> {{ event.value }} {{ event.unit_of_value }}</b> {{ event.event_date }} </span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+          </div>
+        {% endif %}
+
         {% if cash_receipt_events or "receivecash" in slots %}
           <div class="log-section">
             <h3 style="margin-bottom: 4px;" >

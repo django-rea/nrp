@@ -280,11 +280,20 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
         #import pdb; pdb.set_trace()
         for bucket in buckets:
             if bucket.filter_method:
-                bucket_form = bucket.filter_entry_form(data=request.POST or None)
-                if bucket_form.is_valid():
-                    ser_string = bucket_data = bucket_form.serialize()
-                    serialized_filters[bucket.id] = ser_string
-                    bucket.form = bucket_form
+                #'{"shipments": [4836], "method": "Shipment"}'}
+                ser_string = "".join([
+                    '{"shipments": [',
+                    str(dist_shipment.id),
+                    '], "method": "Shipment"}'
+                    ])
+                serialized_filters[bucket.id] = ser_string
+                
+                #data[bucket.id] = [dist_shipment,]
+                #bucket_form = bucket.filter_entry_form(data=request.POST or None)
+                #if bucket_form.is_valid():
+                #    ser_string = bucket_data = bucket_form.serialize()
+                #    serialized_filters[bucket.id] = ser_string
+                #    bucket.form = bucket_form
         ve_exchange = ve.run_value_equation_and_save(
             cash_receipts=crs,
             exchange=ve_exchange, 

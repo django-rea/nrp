@@ -37,7 +37,7 @@ def consumable_formset(consumable_rt, data=None):
     return formset 
 
 @login_required
-def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, sale_pattern_id, equip_svc_rt_id, equip_fee_rt_id, tech_rt_id, consumable_rt_id, payment_rt_id, ve_id):
+def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, sale_pattern_id, equip_svc_rt_id, equip_fee_rt_id, tech_rt_id, consumable_rt_id, payment_rt_id, ve_id, va_id):
     #import pdb; pdb.set_trace()
     equipment = get_object_or_404(EconomicResource, id=equip_resource_id)
     equipment_svc_rt = get_object_or_404(EconomicResourceType, id=equip_svc_rt_id)
@@ -50,6 +50,7 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
     consumable_rt = EconomicResourceType.objects.get(id=consumable_rt_id)
     logged_on_agent = get_agent(request)
     ve = ValueEquation.objects.get(id=ve_id)
+    mtnce_virtual_account = EconomicResource.objects.get(id=va_id)
     init = {"event_date": datetime.date.today(), "from_agent": logged_on_agent}
     equip_form = EquipmentUseForm(equip_resource=equipment, context_agent=context_agent, initial=init, data=request.POST or None)
     formset = consumable_formset(consumable_rt=consumable_rt)
@@ -186,9 +187,10 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 event_type = et_fee,
                 event_date = input_date,
                 resource_type = equipment_fee_rt,
+                resource = mtnce_virtual_account,
                 exchange = sale,
-                from_agent = context_agent,
-                to_agent = who,
+                from_agent = who,
+                to_agent = context_agent,
                 context_agent = context_agent,
                 quantity = use_event.quantity * equipment_fee_rt.price_per_unit,
                 unit_of_quantity = equipment_fee_rt.unit_of_price,
@@ -213,6 +215,8 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
                 created_by = request.user,
             )
             ship_event.save()
+            printer_service.quantity = 0
+            printer_service.save()
  
             return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/%s/'
                 % ('equipment/pay-equipment-use', sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id, ve_id))

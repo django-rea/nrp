@@ -108,6 +108,7 @@ ul {
                             {% for dist in ve_exchange.distribution_events %}
                                 <li>{{ dist.to_agent.nick }}: {{ dist.distribution_quantity_formatted }}</li>
                             {% endfor %}
+                                <li>{{ mtnce_event.resource.identifier }}: {{ mtnce_event.value_formatted_decimal }}</li>
                             </ul>
                             <p>Value equation: {{ ve.name }}</p>
                         </div>

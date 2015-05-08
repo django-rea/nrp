@@ -8599,7 +8599,7 @@ class ValueEquation(models.Model):
             return True
             
     def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute, serialized_filters, cash_receipts=None, input_distributions=None):
-        import pdb; pdb.set_trace()
+        #$import pdb; pdb.set_trace()
         distribution_events, contribution_events = self.run_value_equation(
             amount_to_distribute=amount_to_distribute,
             serialized_filters=serialized_filters)
@@ -8723,7 +8723,7 @@ class ValueEquation(models.Model):
         return exchange
         
     def run_value_equation(self, amount_to_distribute, serialized_filters):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         detail_sums = []
         claim_events = []
         contribution_events = []

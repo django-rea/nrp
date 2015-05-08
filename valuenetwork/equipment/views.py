@@ -273,12 +273,24 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
             created_by=request.user,
         )
         crs = [cr_event]
+        #BOB!
+        serialized_filters = {}
+        buckets = ve.buckets.all()
+        #import pdb; pdb.set_trace()
+        for bucket in buckets:
+            if bucket.filter_method:
+                bucket_form = bucket.filter_entry_form(data=request.POST or None)
+                if bucket_form.is_valid():
+                    ser_string = bucket_data = bucket_form.serialize()
+                    serialized_filters[bucket.id] = ser_string
+                    bucket.form = bucket_form
         ve_exchange = ve.run_value_equation_and_save(
             cash_receipts=crs,
             exchange=ve_exchange, 
             money_resource=money_resource, 
             amount_to_distribute=cr_event.quantity, 
-            serialized_filters={})
+            serialized_filters=serialized_filters)
+        #todo: this should send notifications some day?
         #for event in ve_exchange.distribution_events():
         #    send_distribution_notification(event)
 

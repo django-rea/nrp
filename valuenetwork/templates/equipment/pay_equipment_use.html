@@ -43,6 +43,10 @@ th {
     border: solid 2px lightgray;
     padding: 3px;
 }
+ul {
+    margin: 0;
+    padding: 0;
+}
 
 </style>
 
@@ -96,8 +100,9 @@ th {
                         <p class="pay">Please pay the following and then press the button below:</p>
                         <div class="total">
                             Total owed: {{ sale_total }}
+                            {{ pay_form.payment_method }}
+                            <input type="submit" name="save" value="{% trans 'I paid' %}" class="btn btn-primary" /> 
                         </div>
-                        <input type="submit" name="save" value="{% trans 'I paid' %}" class="btn btn-primary" /> 
                     {% endif %}
                 </div>
             </div>

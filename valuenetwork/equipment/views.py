@@ -242,60 +242,66 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
     mtnce_event = EconomicEvent.objects.get(id=mtnce_fee_event_id)
     sale_total += mtnce_event.quantity
     sale_total_formatted = "".join([payment_rt.unit.symbol, str(sale_total.quantize(Decimal('.01'), rounding=ROUND_UP))])
+    pay_form = PaymentForm(data=request.POST or None)
 
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        cr_et = EventType.objects.get(name="Cash Receipt")
-        money_resource = sale.context_agent.virtual_accounts()[0]
-        cr_event = EconomicEvent(
-            event_type = cr_et,
-            event_date = sale.start_date,
-            exchange = sale,
-            resource_type = payment_rt,
-            resource = money_resource,
-            from_agent = sale.customer,
-            to_agent = sale.context_agent,
-            context_agent = sale.context_agent,
-            quantity = sale_total,
-            unit_of_quantity = payment_unit,
-            value = sale_total,
-            unit_of_value = payment_unit,
-            created_by = request.user,
-        )
-        cr_event.save()                                
-        paid = True
+        import pdb; pdb.set_trace()
+        if pay_form.is_valid():
+            data = pay_form.cleaned_data
+            payment_method = data["payment_method"]
+            
+            cr_et = EventType.objects.get(name="Cash Receipt")
+            money_resource = sale.context_agent.virtual_accounts()[0]
+            cr_event = EconomicEvent(
+                event_type = cr_et,
+                event_date = sale.start_date,
+                exchange = sale,
+                resource_type = payment_rt,
+                resource = money_resource,
+                from_agent = sale.customer,
+                to_agent = sale.context_agent,
+                context_agent = sale.context_agent,
+                quantity = sale_total,
+                unit_of_quantity = payment_unit,
+                value = sale_total,
+                unit_of_value = payment_unit,
+                reference = payment_method,
+                created_by = request.user,
+            )
+            cr_event.save()                                
+            paid = True
 
-        use_case = UseCase.objects.get(identifier="distribution")
-        dist_pattern = ProcessPattern.objects.usecase_patterns(use_case)[0]
-        ve_exchange = Exchange(name="Distribution for use of " + equipment.identifier,
-            process_pattern=dist_pattern,
-            use_case=use_case,
-            start_date=sale.start_date,
-            context_agent=sale.context_agent,
-            created_by=request.user,
-        )
-        crs = [cr_event]
-        #BOB!
-        serialized_filters = {}
-        dist_shipment = ship_events[0]
-        buckets = ve.buckets.all()
-        #import pdb; pdb.set_trace()
-        for bucket in buckets:
-            if bucket.filter_method:
-                bucket_form = bucket.filter_entry_form(data=request.POST or None)
-                if bucket_form.is_valid():
-                    ser_string = bucket_data = bucket_form.serialize()
-                    serialized_filters[bucket.id] = ser_string
-                    bucket.form = bucket_form
-        ve_exchange = ve.run_value_equation_and_save(
-            cash_receipts=crs,
-            exchange=ve_exchange, 
-            money_resource=money_resource, 
-            amount_to_distribute=cr_event.quantity, 
-            serialized_filters=serialized_filters)
-        #todo: this should send notifications some day?
-        #for event in ve_exchange.distribution_events():
-        #    send_distribution_notification(event)
+            use_case = UseCase.objects.get(identifier="distribution")
+            dist_pattern = ProcessPattern.objects.usecase_patterns(use_case)[0]
+            ve_exchange = Exchange(name="Distribution for use of " + equipment.identifier,
+                process_pattern=dist_pattern,
+                use_case=use_case,
+                start_date=sale.start_date,
+                context_agent=sale.context_agent,
+                created_by=request.user,
+            )
+            crs = [cr_event]
+            #BOB!
+            serialized_filters = {}
+            dist_shipment = ship_events[0]
+            buckets = ve.buckets.all()
+            #import pdb; pdb.set_trace()
+            for bucket in buckets:
+                if bucket.filter_method:
+                    bucket_form = bucket.filter_entry_form(data=request.POST or None)
+                    if bucket_form.is_valid():
+                        ser_string = bucket_data = bucket_form.serialize()
+                        serialized_filters[bucket.id] = ser_string
+                        bucket.form = bucket_form
+            ve_exchange = ve.run_value_equation_and_save(
+                cash_receipts=crs,
+                exchange=ve_exchange, 
+                money_resource=money_resource, 
+                amount_to_distribute=cr_event.quantity, 
+                serialized_filters=serialized_filters)
+            #todo: this should send notifications some day?
+            #for event in ve_exchange.distribution_events():
+            #    send_distribution_notification(event)
 
     return render_to_response("equipment/pay_equipment_use.html", {
         "process": process,

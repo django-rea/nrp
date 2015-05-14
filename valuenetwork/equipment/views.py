@@ -55,7 +55,7 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
     init = {"event_date": datetime.date.today(), "from_agent": logged_on_agent}
     equip_form = EquipmentUseForm(equip_resource=equipment, context_agent=context_agent, initial=init, data=request.POST or None)
     formset = consumable_formset(consumable_rt=consumable_rt)
-    process_form = ProcessForm(data=request.POST or Non)
+    process_form = ProcessForm(data=request.POST or None)
     
     if request.method == "POST":
         #import pdb; pdb.set_trace()

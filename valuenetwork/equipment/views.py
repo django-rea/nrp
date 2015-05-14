@@ -194,6 +194,8 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
                 created_by = request.user,
             )
             mtnce_fee_event.save()
+            mtnce_virtual_account.quantity = mtnce_virtual_account.quantity + mtnce_fee_event.quantity
+            mtnce_virtual_account.save()
             ship_event = EconomicEvent(
                 event_type = et_ship,
                 event_date = input_date,
@@ -307,7 +309,9 @@ def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equ
                 event_reference = payment_method,
                 created_by = request.user,
             )
-            cr_event.save()                                
+            cr_event.save()
+            money_resource.quantity = money_resource.quantity + sale_total
+            money_resource.save()
             paid = True
 
             use_case = UseCase.objects.get(identifier="distribution")

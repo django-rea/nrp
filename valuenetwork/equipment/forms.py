@@ -7,6 +7,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from valuenetwork.valueaccounting.models import *
 
+ 
+class ProcessModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return ": ".join([obj.context_agent.nick, obj.shorter_label()])
+    
 class EquipmentUseForm(forms.ModelForm):
     event_date = forms.DateField(
         required=True, 
@@ -57,24 +62,24 @@ class PaymentForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(PaymentForm, self).__init__(*args, **kwargs)
         self.fields["payment_method"].choices = [('Cash', 'Cash'), ('Check', 'Check'), ('Paypal', 'Paypal'), ('Other', 'Other')]                                      
-                                       
+    
+class ProcessForm(forms.Form):                    
+    process = ProcessModelChoiceField(
+        required=False,
+        queryset=Process.objects.current_or_future(),
+        label="What project process will this be used in?", 
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+   
+
+    
     #commitment = forms.ModelChoiceField(
     #    required=False,
     #    queryset=Commitment.objects.all(),
     #    label="Is this printer use planned? If so, choose the plan",
     #    widget=forms.Select(
     #        attrs={'class': 'chzn-select'}))
-    #process = forms.ModelChoiceField(
-    #    required=False,
-    #    queryset=Process.objects.all(),
-    #    label="Is this part of an existing process?", 
-    #    help_text="(or leave blank and one will be created)",
-    #    widget=forms.Select(
-    #        attrs={'class': 'chzn-select'}))
     #event_reference = forms.CharField(
     #    required=True, 
     #    label="Paid by (cash, check, paypal, etc.)",
     #    widget=forms.TextInput(attrs={'class': 'reference',}))
-    
-    
-    #self.fields["process"].queryset = Process.objects.current()

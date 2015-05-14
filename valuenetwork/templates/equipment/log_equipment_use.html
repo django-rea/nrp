@@ -54,6 +54,9 @@ input-small {
             <form class="validateMe" id="equipForm" method="POST" action="">
                 {% csrf_token %}
                 <div class="eform">
+                    {% if scenario == '2' %}
+                        {{ process_form|as_bootstrap }}
+                    {% endif %}
                     {{ equip_form|as_bootstrap }}
                     {{ formset.management_form }}
                     Consumed<br />

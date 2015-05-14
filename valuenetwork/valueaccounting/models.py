@@ -2720,6 +2720,8 @@ def create_event_types(app, **kwargs):
     EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
     #the following is for fees, taxes, other extraneous charges not involved in a value equation
     EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
+    #the following is for xfers within the network for now; may become more universal later
+    EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '-', 'quantity')
     #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
@@ -5029,6 +5031,9 @@ class ProcessManager(models.Manager):
     
     def current(self):
         return Process.objects.filter(finished=False).filter(start_date__lte=datetime.date.today()).filter(end_date__gte=datetime.date.today())
+    
+    def current_or_future(self):
+        return Process.objects.filter(finished=False).filter(end_date__gte=datetime.date.today())
 
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)

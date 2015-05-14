@@ -55,6 +55,7 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
     init = {"event_date": datetime.date.today(), "from_agent": logged_on_agent}
     equip_form = EquipmentUseForm(equip_resource=equipment, context_agent=context_agent, initial=init, data=request.POST or None)
     formset = consumable_formset(consumable_rt=consumable_rt)
+    process_form = ProcessForm(data=request.POST or Non)
     
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -65,14 +66,19 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
             quantity = data["quantity"]
             technician = data["technician"]
             technician_quantity = data["technician_hours"]
-            #process = data ["process"]
             et_ship = EventType.objects.get(name="Shipment")
             et_use = EventType.objects.get(name="Resource use")
             et_consume = EventType.objects.get(name="Resource Consumption")
             et_work = EventType.objects.get(name="Time Contribution")
             et_create = EventType.objects.get(name="Resource Production")
             et_fee = EventType.objects.get(name="Fee")
+            et_transfer = EventType.objects.get(name="Transfer")
             total_price = 0
+            next_process = None
+            if scenario == '2':
+                if process_form.is_valid():
+                    pdata = process_form.cleaned_data
+                    next_process = pdata["process"]
 
             process = Process(
                 name="Paid service: Use of " + equipment.identifier,
@@ -85,22 +91,6 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
                 finished=True,
             )
             process.save()
-            use_event = EconomicEvent(
-                event_type = et_use,
-                event_date = input_date,
-                resource_type = equipment.resource_type,
-                resource = equipment,
-                process = process,
-                from_agent = context_agent,
-                to_agent = context_agent,
-                context_agent = context_agent,
-                quantity = quantity,
-                unit_of_quantity = equipment.resource_type.unit_of_use,
-                value = 0,
-                unit_of_value = payment_rt.unit,
-                created_by = request.user,
-            )
-            use_event.save()
             formset = consumable_formset(data=request.POST, consumable_rt=consumable_rt)
             for form in formset.forms:
                 if form.is_valid():
@@ -173,12 +163,16 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
             output_event.save()
             
             #import pdb; pdb.set_trace()
+            if scenario == '2':
+                cust = next_process.context_agent
+            else:
+                cust = who
             sale = Exchange(
                 name="Use of " + equipment.identifier,
                 process_pattern=sale_pattern,
                 use_case=UseCase.objects.get(identifier="sale"),
                 start_date=input_date,
-                customer=who,
+                customer=cust,
                 context_agent=context_agent,
                 created_by=request.user,
             )
@@ -190,12 +184,12 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
                 resource_type = equipment_fee_rt,
                 resource = mtnce_virtual_account,
                 exchange = sale,
-                from_agent = who,
-                to_agent = context_agent,
+                from_agent = context_agent,
+                to_agent = cust,
                 context_agent = context_agent,
-                quantity = use_event.quantity * equipment_fee_rt.price_per_unit,
+                quantity = quantity * equipment_fee_rt.price_per_unit,
                 unit_of_quantity = equipment_fee_rt.unit_of_price,
-                value = use_event.quantity * equipment_fee_rt.price_per_unit,
+                value = quantity * equipment_fee_rt.price_per_unit,
                 unit_of_value = equipment_fee_rt.unit_of_price,
                 created_by = request.user,
             )
@@ -207,7 +201,7 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
                 resource = printer_service,
                 exchange = sale,
                 from_agent = context_agent,
-                to_agent = who,
+                to_agent = cust,
                 context_agent = context_agent,
                 quantity = 1,
                 unit_of_quantity = equipment_svc_rt.unit,
@@ -218,19 +212,56 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
             ship_event.save()
             printer_service.quantity = 0
             printer_service.save()
+            
+            #import pdb; pdb.set_trace()
+            if scenario == '2':
+                if next_process:
+                    use_event = EconomicEvent(
+                        event_type = et_use,
+                        event_date = input_date,
+                        resource_type = equipment.resource_type,
+                        resource = equipment,
+                        process = next_process,
+                        from_agent = context_agent,
+                        to_agent = next_process.context_agent,
+                        context_agent = next_process.context_agent,
+                        quantity = quantity,
+                        unit_of_quantity = equipment.resource_type.unit_of_use,
+                        value = 0,
+                        unit_of_value = payment_rt.unit,
+                        created_by = request.user,
+                    )
+                    use_event.save()
+                    svc_input_event = EconomicEvent(
+                        event_type = et_consume,
+                        event_date = input_date,
+                        resource_type = equipment_svc_rt,
+                        resource = printer_service,
+                        process = next_process,
+                        from_agent = next_process.context_agent,
+                        to_agent = next_process.context_agent,
+                        context_agent = next_process.context_agent,
+                        quantity = 1,
+                        unit_of_quantity = equipment_svc_rt.unit,
+                        unit_of_value = equipment_svc_rt.unit_of_price,
+                        created_by = request.user,
+                    )
+                    svc_input_event.save()
  
-            return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/%s/%s/'
-                % ('equipment/pay-equipment-use', scenario, sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id, ve_id))
+            return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/%s/%s/%s/%s/'
+                % ('equipment/pay-equipment-use', scenario, sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id, ve_id, quantity, who.id))
     
     return render_to_response("equipment/log_equipment_use.html", {
         "equip_form": equip_form,
+        "process_form": process_form,
         "formset": formset,
         "equipment": equipment,
         "consumable_rt": consumable_rt,
+        "scenario": scenario,
     }, context_instance=RequestContext(request))
 
 @login_required
-def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equip_resource_id, mtnce_fee_event_id, ve_id):
+def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equip_resource_id, mtnce_fee_event_id, ve_id, use_qty, who_id):
     #scenario: 1=commercial, 2=project, 3=other
     #import pdb; pdb.set_trace()
     sale = get_object_or_404(Exchange, id=sale_id)
@@ -240,12 +271,14 @@ def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equ
     equipment = EconomicResource.objects.get(id=equip_resource_id)
     ve = ValueEquation.objects.get(id=ve_id)
     ve_exchange = None
+    who = EconomicAgent.objects.get(id=who_id)
     paid=False
     ship_events = sale.shipment_events()
     sale_total_no_fee = 0
     for se in ship_events:
         sale_total_no_fee += se.value
     mtnce_event = EconomicEvent.objects.get(id=mtnce_fee_event_id)
+    mtnce_use = str(use_qty) + " " + equipment.resource_type.unit_of_use.abbrev
     sale_total = sale_total_no_fee + mtnce_event.quantity
     sale_total_formatted = "".join([payment_rt.unit.symbol, str(sale_total.quantize(Decimal('.01'), rounding=ROUND_UP))])
     pay_form = PaymentForm(data=request.POST or None)
@@ -264,7 +297,7 @@ def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equ
                 exchange = sale,
                 resource_type = payment_rt,
                 resource = money_resource,
-                from_agent = sale.customer,
+                from_agent = who,
                 to_agent = sale.context_agent,
                 context_agent = sale.context_agent,
                 quantity = sale_total,
@@ -320,6 +353,7 @@ def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equ
     return render_to_response("equipment/pay_equipment_use.html", {
         "process": process,
         "mtnce_event": mtnce_event,
+        "mtnce_use": mtnce_use,
         "sale_total": sale_total_formatted,
         "payment_unit": payment_unit,
         "paid": paid,

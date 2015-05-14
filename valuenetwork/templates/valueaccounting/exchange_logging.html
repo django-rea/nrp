@@ -555,7 +555,9 @@ li {
                     </a>
                 {% endif %}
             </h3>
-            <div class="hdg">Ordered Items</div>
+            {% if exchange.shipment_commitments %}
+                <div class="hdg">Ordered Items</div>
+            {% endif %}
             {% for item in exchange.shipment_commitments %}
                 <div class="commitment" >
                     <span class="bold" >{{ item.shorter_label }}</span>

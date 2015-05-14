@@ -103,7 +103,7 @@ ul {
                     {% if paid %}
                         <p class="total owed"> Paid {{ sale_total }}, thank you ! </p>
                         <div class="dist">
-                            <p>The following distribution of your payment was made:</p>
+                            <p>Here is the distribution of your payment:</p>
                             <ul>
                             {% for dist in ve_exchange.distribution_events %}
                                 <li>{{ dist.to_agent.nick }}: {{ dist.distribution_quantity_formatted }}</li>

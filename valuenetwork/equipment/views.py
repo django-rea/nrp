@@ -37,8 +37,9 @@ def consumable_formset(consumable_rt, data=None):
     return formset 
 
 @login_required
-def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, sale_pattern_id, equip_svc_rt_id, equip_fee_rt_id, tech_rt_id, consumable_rt_id, payment_rt_id, ve_id, va_id):
+def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pattern_id, sale_pattern_id, equip_svc_rt_id, equip_fee_rt_id, tech_rt_id, consumable_rt_id, payment_rt_id, ve_id, va_id):
     #import pdb; pdb.set_trace()
+    #scenario: 1=commercial, 2=project, 3=other
     equipment = get_object_or_404(EconomicResource, id=equip_resource_id)
     equipment_svc_rt = get_object_or_404(EconomicResourceType, id=equip_svc_rt_id)
     equipment_fee_rt = get_object_or_404(EconomicResourceType, id=equip_fee_rt_id)
@@ -218,8 +219,8 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
             printer_service.quantity = 0
             printer_service.save()
  
-            return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/%s/'
-                % ('equipment/pay-equipment-use', sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id, ve_id))
+            return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/%s/%s/'
+                % ('equipment/pay-equipment-use', scenario, sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id, ve_id))
     
     return render_to_response("equipment/log_equipment_use.html", {
         "equip_form": equip_form,
@@ -229,7 +230,8 @@ def log_equipment_use(request, equip_resource_id, context_agent_id, pattern_id, 
     }, context_instance=RequestContext(request))
 
 @login_required
-def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resource_id, mtnce_fee_event_id, ve_id):
+def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equip_resource_id, mtnce_fee_event_id, ve_id):
+    #scenario: 1=commercial, 2=project, 3=other
     #import pdb; pdb.set_trace()
     sale = get_object_or_404(Exchange, id=sale_id)
     process = get_object_or_404(Process, id=process_id)
@@ -240,11 +242,11 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
     ve_exchange = None
     paid=False
     ship_events = sale.shipment_events()
-    sale_total = 0
+    sale_total_no_fee = 0
     for se in ship_events:
-        sale_total += se.value
+        sale_total_no_fee += se.value
     mtnce_event = EconomicEvent.objects.get(id=mtnce_fee_event_id)
-    sale_total += mtnce_event.quantity
+    sale_total = sale_total_no_fee + mtnce_event.quantity
     sale_total_formatted = "".join([payment_rt.unit.symbol, str(sale_total.quantize(Decimal('.01'), rounding=ROUND_UP))])
     pay_form = PaymentForm(data=request.POST or None)
 
@@ -285,7 +287,6 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
                 created_by=request.user,
             )
             crs = [cr_event]
-            #BOB!
             serialized_filters = {}
             dist_shipment = ship_events[0]
             buckets = ve.buckets.all()
@@ -310,7 +311,7 @@ def pay_equipment_use(request, sale_id, process_id, payment_rt_id, equip_resourc
                 cash_receipts=crs,
                 exchange=ve_exchange, 
                 money_resource=money_resource, 
-                amount_to_distribute=cr_event.quantity, 
+                amount_to_distribute=sale_total_no_fee, 
                 serialized_filters=serialized_filters)
             #todo: this should send notifications some day?
             #for event in ve_exchange.distribution_events():

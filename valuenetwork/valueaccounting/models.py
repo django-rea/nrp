@@ -6188,6 +6188,10 @@ class Exchange(models.Model):
     def shipment_events(self):
         return self.events.filter(
             event_type__relationship='shipment')
+                
+    def transfer_events(self):
+        return self.events.filter(
+            event_type__relationship='transfer')
             
     def shipment_events_no_commitment(self):
         return self.events.filter(event_type__relationship='shipment').filter(commitment=None)

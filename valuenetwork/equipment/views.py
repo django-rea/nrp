@@ -197,7 +197,7 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
             mtnce_virtual_account.quantity = mtnce_virtual_account.quantity + mtnce_fee_event.quantity
             mtnce_virtual_account.save()
             ship_event = EconomicEvent(
-                event_type = et_ship,
+                event_type = et_transfer,
                 event_date = input_date,
                 resource_type = equipment_svc_rt,
                 resource = printer_service,
@@ -275,7 +275,7 @@ def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equ
     ve_exchange = None
     who = EconomicAgent.objects.get(id=who_id)
     paid=False
-    ship_events = sale.shipment_events()
+    ship_events = sale.transfer_events()
     sale_total_no_fee = 0
     for se in ship_events:
         sale_total_no_fee += se.value

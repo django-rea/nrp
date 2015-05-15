@@ -163,7 +163,7 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
             output_event.save()
             
             #import pdb; pdb.set_trace()
-            if scenario == '2':
+            if scenario == '2' and next_process:
                 cust = next_process.context_agent
             else:
                 cust = who

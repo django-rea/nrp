@@ -542,7 +542,7 @@ li {
           </div>
         {%endif%}
 
-        {% if shipment_events or "shipment" in slots %}
+        {% if shipment_events or "shipment" in slots or transfer_events %}
           <div class="log-section">
             <h3 style="margin-bottom: 4px;" >
                 {% trans "Shipments" %}:  
@@ -678,6 +678,20 @@ li {
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete payment" >X</button>
                             </form>
                         {% endif %}
+                        {% if event.description %}
+                           <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+                        {% endif %}  
+                    </div>
+                {% endfor %}
+            {% endif %}
+            {% if transfer_events %}
+                <div class="hdg">Transfers</div>
+                {% for event in transfer_events %}
+                    <div class="event">
+                        <span ><span class="event-label">{% trans "Transferred" %}: </span> 
+                        <b>{{ event.quantity }} {{ event.unit_of_quantity }} 
+                        {% if event.resource %}{{ event.resource }}{% else %}{{ event.resource_type }}{% endif %}</b> 
+                        <b> {{ event.value }} {{ event.unit_of_value }}</b> {{ event.event_date }} </span>
                         {% if event.description %}
                            <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
                         {% endif %}  

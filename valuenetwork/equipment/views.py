@@ -37,7 +37,10 @@ def consumable_formset(consumable_rt, data=None):
     return formset 
 
 @login_required
-def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pattern_id, sale_pattern_id, equip_svc_rt_id, equip_fee_rt_id, tech_rt_id, consumable_rt_id, payment_rt_id, ve_id, va_id):
+def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pattern_id, 
+    sale_pattern_id, equip_svc_rt_id, equip_fee_rt_id, tech_rt_id, consumable_rt_id, 
+    payment_rt_id, ve_id, va_id, part_rt_id=None
+):
     #import pdb; pdb.set_trace()
     #scenario: 1=commercial, 2=project, 3=other
     equipment = get_object_or_404(EconomicResource, id=equip_resource_id)
@@ -216,7 +219,43 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
             printer_service.save()
             
             #import pdb; pdb.set_trace()
-            if scenario == '2':
+            if scenario == '1': 
+                next_process = Process(
+                    name="Make commercial 3D printed part",
+                    end_date=input_date,
+                    start_date=input_date,
+                    process_pattern=pattern,
+                    created_by=request.user,
+                    context_agent=context_agent,
+                    started=input_date,
+                    finished=True,
+                )
+                next_process.save()
+                if part_rt_id:
+                    part_rt = EconomicResourceType.objects.get(id=part_rt_id)
+                    printed_part = EconomicResource(
+                        resource_type=part_rt,
+                        identifier="Commercial 3D printed part " + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
+                        quantity=1,
+                        created_by=request.user,
+                    )
+                    printed_part.save()
+                output_part_event = EconomicEvent(
+                    event_type = et_create,
+                    event_date = input_date,
+                    resource_type = part_rt,
+                    resource = printed_part,
+                    process = next_process,
+                    from_agent = context_agent,
+                    to_agent = context_agent,
+                    context_agent = context_agent,
+                    quantity = 1,
+                    unit_of_quantity = part_rt.unit,
+                    unit_of_value = part_rt.unit_of_price,
+                    created_by = request.user,
+                )
+                output_part_event.save()
+            if scenario == '2' or scenario == '1': 
                 if next_process:
                     use_event = EconomicEvent(
                         event_type = et_use,
@@ -248,8 +287,8 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
                         unit_of_value = equipment_svc_rt.unit_of_price,
                         created_by = request.user,
                     )
-                    svc_input_event.save()
- 
+                    svc_input_event.save()             
+
             return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/%s/%s/%s/%s/'
                 % ('equipment/pay-equipment-use', scenario, sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id, ve_id, quantity, who.id))
     

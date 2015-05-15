@@ -487,7 +487,7 @@ class EconomicAgent(models.Model):
         return self.given_events.filter(is_contribution=True)
 
     def user(self):
-        users = self.users.all()
+        users = self.users.filter(user__is_active=True)
         if users:
             return users[0]
         else:
@@ -8088,12 +8088,13 @@ class EconomicEvent(models.Model):
         return None
         
     def bucket_rule_for_context_agent(self):
-        ves = self.context_agent.live_value_equations()
         bucket_rule = None
-        for ve in ves:
-            bucket_rule = self.bucket_rule(ve)
-            if bucket_rule:
-                break
+        if self.context_agent:
+            ves = self.context_agent.live_value_equations()
+            for ve in ves:
+                bucket_rule = self.bucket_rule(ve)
+                if bucket_rule:
+                    break
         return bucket_rule
            
     def claims(self):
@@ -8166,19 +8167,15 @@ class EconomicEvent(models.Model):
             claim.new = False
             return claim
         else:
-            #order = None
-            #if self.commitment:
-            #    order = self.commitment.independent_demand
-            #else:
-            #    if self.process:
-            #        order = self.process.independent_demand()
             value = bucket_rule.compute_claim_value(self)
+            against_agent = self.to_agent
+            if self.event_type.name == "Payment":
+                against_agent = self.context_agent
             claim = Claim(
-                #order=order,
                 value_equation_bucket_rule=bucket_rule,
                 claim_date=datetime.date.today(),
                 has_agent=self.from_agent,
-                against_agent=self.to_agent,
+                against_agent=against_agent,
                 context_agent=self.context_agent,
                 value=value,
                 unit_of_value=self.unit_of_value,
@@ -9037,21 +9034,26 @@ class ValueEquationBucket(models.Model):
         #import pdb; pdb.set_trace()
         claims = []
         for event in events:
-            #changed for contextAgentDistributions
-            if not event.context_agent.compatible_value_equation(self.value_equation):
-                context_agent = self.value_equation.context_agent
-                claim = event.get_unsaved_context_agent_claim(context_agent, event.vebr)
-            else:
-                claim = event.get_unsaved_contribution_claim(event.vebr)
             fraction = 1
             if event.value:
                 try:
                     fraction = event.share / event.value
                 except AttributeError:
                     pass
-            claim.share = claim.original_value * fraction 
-            claim.event = event
-            claims.append(claim)
+            existing_claim = next((c for c in claims if c.event == event),0)
+            if existing_claim:
+                claim = existing_claim
+                addition = claim.original_value * fraction
+                claim.share += addition
+            else:
+                if not event.context_agent.compatible_value_equation(self.value_equation):
+                    context_agent = self.value_equation.context_agent
+                    claim = event.get_unsaved_context_agent_claim(context_agent, event.vebr)
+                else:
+                    claim = event.get_unsaved_contribution_claim(event.vebr)
+                claim.share = claim.original_value * fraction 
+                claim.event = event
+                claims.append(claim)
         return claims
 
     def create_distribution_claim_events(self, portion_of_amount, claims):

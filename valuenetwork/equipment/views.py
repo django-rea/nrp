@@ -134,6 +134,7 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
                     unit_of_quantity = technician_rt.unit,
                     unit_of_value = technician_rt.unit_of_price,
                     created_by = request.user,
+                    is_contribution = True,
                 )
                 tech_event.save()
                 total_price += tech_event.value
@@ -166,7 +167,7 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
             output_event.save()
             
             #import pdb; pdb.set_trace()
-            if scenario == '2':
+            if scenario == '2' and next_process:
                 cust = next_process.context_agent
             else:
                 cust = who
@@ -353,6 +354,7 @@ def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equ
                 unit_of_value = payment_unit,
                 event_reference = payment_method,
                 created_by = request.user,
+                is_contribution = True,
             )
             cr_event.save()
             money_resource.quantity = money_resource.quantity + sale_total

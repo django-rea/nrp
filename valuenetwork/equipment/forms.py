@@ -6,6 +6,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from valuenetwork.valueaccounting.models import *
+from valuenetwork.valueaccounting.forms import WorkModelChoiceField
 
  
 class ProcessModelChoiceField(forms.ModelChoiceField):
@@ -70,16 +71,45 @@ class ProcessForm(forms.Form):
         label="What project process will this be used in?", 
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
-   
 
+class AdditionalCitationForm(forms.ModelForm):
+    resource = forms.ModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        label="Design to cite",
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'chzn-select',}))
+    quantity = forms.DecimalField(required=False,
+        label="Allocate to this citation",
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'quantity input-mini'}))
     
-    #commitment = forms.ModelChoiceField(
-    #    required=False,
-    #    queryset=Commitment.objects.all(),
-    #    label="Is this printer use planned? If so, choose the plan",
-    #    widget=forms.Select(
-    #        attrs={'class': 'chzn-select'}))
-    #event_reference = forms.CharField(
-    #    required=True, 
-    #    label="Paid by (cash, check, paypal, etc.)",
-    #    widget=forms.TextInput(attrs={'class': 'reference',}))
+    class Meta:
+        model = EconomicEvent
+        fields = ('resource', 'quantity')
+   
+    def __init__(self, cite_rt=None, *args, **kwargs):
+        super(AdditionalCitationForm, self).__init__(*args, **kwargs)
+        if cite_rt:
+            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=cite_rt)  
+            
+class AdditionalWorkForm(forms.ModelForm):
+    resource_type = WorkModelChoiceField(
+        queryset=EconomicResourceType.objects.filter(behavior="work"), 
+        label="Type of work",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.individuals(),
+        label="Who worked",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(required=False,
+        label="Hours worked",
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'quantity input-mini'}))
+    
+    class Meta:
+        model = EconomicEvent
+        fields = ('resource_type', 'from_agent', 'quantity')
+        

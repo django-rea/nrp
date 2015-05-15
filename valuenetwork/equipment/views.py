@@ -39,7 +39,7 @@ def consumable_formset(consumable_rt, data=None):
 @login_required
 def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pattern_id, 
     sale_pattern_id, equip_svc_rt_id, equip_fee_rt_id, tech_rt_id, consumable_rt_id, 
-    payment_rt_id, ve_id, va_id, part_rt_id=None
+    payment_rt_id, ve_id, va_id, part_rt_id, cite_rt_id
 ):
     #import pdb; pdb.set_trace()
     #scenario: 1=commercial, 2=project, 3=other
@@ -231,15 +231,14 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
                     finished=True,
                 )
                 next_process.save()
-                if part_rt_id:
-                    part_rt = EconomicResourceType.objects.get(id=part_rt_id)
-                    printed_part = EconomicResource(
-                        resource_type=part_rt,
-                        identifier="Commercial 3D printed part " + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
-                        quantity=1,
-                        created_by=request.user,
-                    )
-                    printed_part.save()
+                part_rt = EconomicResourceType.objects.get(id=part_rt_id)
+                printed_part = EconomicResource(
+                    resource_type=part_rt,
+                    identifier="Commercial 3D printed part " + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
+                    quantity=1,
+                    created_by=request.user,
+                )
+                printed_part.save()
                 output_part_event = EconomicEvent(
                     event_type = et_create,
                     event_date = input_date,
@@ -289,8 +288,13 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
                     )
                     svc_input_event.save()             
 
-            return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/%s/%s/%s/%s/'
-                % ('equipment/pay-equipment-use', scenario, sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id, ve_id, quantity, who.id))
+            #import pdb; pdb.set_trace()
+            if next_process:
+                return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/%s/%s/%s/%s/%s/%s/'
+                    % ('equipment/pay-equipment-use', scenario, sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id, ve_id, quantity, who.id, next_process.id, int(cite_rt_id)))
+            else:
+                return HttpResponseRedirect('/%s/%s/%s/%s/%s/%s/%s/%s/%s/%s/'
+                    % ('equipment/pay-equipment-use', scenario, sale.id, process.id, payment_rt_id, equip_resource_id, mtnce_fee_event.id, ve_id, quantity, who.id))
     
     return render_to_response("equipment/log_equipment_use.html", {
         "equip_form": equip_form,
@@ -302,7 +306,9 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
     }, context_instance=RequestContext(request))
 
 @login_required
-def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equip_resource_id, mtnce_fee_event_id, ve_id, use_qty, who_id):
+def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equip_resource_id, 
+    mtnce_fee_event_id, ve_id, use_qty, who_id, next_process_id=None, cite_rt_id=None
+):
     #scenario: 1=commercial, 2=project, 3=other
     #import pdb; pdb.set_trace()
     sale = get_object_or_404(Exchange, id=sale_id)
@@ -404,4 +410,60 @@ def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equ
         "ve_exchange": ve_exchange,
         "ve": ve,
         "pay_form": pay_form,
+        "scenario": scenario,
+        "next_process_id": next_process_id,
+        "cite_rt_id": cite_rt_id,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def log_additional_inputs(request, cite_rt_id, process_id):
+    #import pdb; pdb.set_trace()
+    process = get_object_or_404(Process, id=process_id)
+    cite_rt = EconomicResourceType.objects.get(id=cite_rt_id)
+    cite_unit = cite_rt.unit_of_use
+    cite_form = AdditionalCitationForm(prefix="cite", cite_rt=cite_rt, data=request.POST or None)
+    work_form = AdditionalWorkForm(prefix = "work", data=request.POST or None)
+    done = None
+
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        cite = request.POST.get("cite")
+        work = request.POST.get("work")
+        done = request.POST.get("done")
+        input_date = datetime.date.today()
+        if cite:
+            if cite_form.is_valid():
+                cite_et = EventType.objects.get(name="Citation")
+                citation = cite_form.save(commit=False)
+                citation.event_type = cite_et
+                citation.resource_type = citation.resource.resource_type
+                citation.event_date = input_date
+                citation.from_agent = process.context_agent
+                citation.to_agent = process.context_agent
+                citation.process = process
+                citation.context_agent = process.context_agent
+                citation.unit_of_quantity = cite_rt.unit_of_use
+                citation.created_by = request.user
+                citation.save()
+        elif work:
+            if work_form.is_valid():
+                work_et = EventType.objects.get(name="Time Contribution")
+                work_event = work_form.save(commit=False)
+                work_event.event_type = work_et
+                work_event.event_date = input_date
+                work_event.to_agent = process.context_agent
+                work_event.process = process
+                work_event.context_agent = process.context_agent
+                work_event.unit_of_quantity = work_event.resource_type.unit
+                work_event.is_contribution = True
+                work_event.created_by = request.user
+                work_event.save()
+ 
+
+    return render_to_response("equipment/log_additional_inputs.html", {
+        "process": process,
+        "cite_form": cite_form,
+        "work_form": work_form,
+        "cite_unit": cite_unit,
+        "done": done,
     }, context_instance=RequestContext(request))

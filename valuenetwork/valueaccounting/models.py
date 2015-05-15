@@ -8167,21 +8167,15 @@ class EconomicEvent(models.Model):
             claim.new = False
             return claim
         else:
-            #order = None
-            #if self.commitment:
-            #    order = self.commitment.independent_demand
-            #else:
-            #    if self.process:
-            #        order = self.process.independent_demand()
             value = bucket_rule.compute_claim_value(self)
+            against_agent = self.to_agent
+            if self.event_type.name == "Payment":
+                against_agent = self.context_agent
             claim = Claim(
-                #order=order,
                 value_equation_bucket_rule=bucket_rule,
                 claim_date=datetime.date.today(),
                 has_agent=self.from_agent,
-                #todo: this is sometimes wrong
-                # e.g. for payments
-                against_agent=self.to_agent,
+                against_agent=against_agent,
                 context_agent=self.context_agent,
                 value=value,
                 unit_of_value=self.unit_of_value,

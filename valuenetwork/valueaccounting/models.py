@@ -487,7 +487,7 @@ class EconomicAgent(models.Model):
         return self.given_events.filter(is_contribution=True)
 
     def user(self):
-        users = self.users.all()
+        users = self.users.filter(user__is_active=True)
         if users:
             return users[0]
         else:

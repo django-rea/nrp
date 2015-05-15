@@ -42,8 +42,11 @@ input-small {
     margin-bottom: 10px;
     padding: 7px;
 }
-h4 {
-    color: firebrick;
+.done {
+    border: solid 2px #8A8A5C;
+    padding: 3px;
+    color: #8A8A5C;
+    font-weight: bold;
 }
 
 </style>
@@ -58,7 +61,7 @@ h4 {
             <div class="title">{% trans "Log More Inputs" %}</div>
             <div class="notes">Process: {{ process }}</div>
             {% if done %}
-                <div class="eform">
+                <div class="done">
                     <h4>Process input events</h4>
                     <ul>
                     {% for event in process.incoming_events %}

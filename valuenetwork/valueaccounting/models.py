@@ -1961,6 +1961,9 @@ class EconomicResourceType(models.Model):
 
     def producing_agent_relationships(self):
         return self.agents.filter(event_type__relationship='out')
+        
+    def work_agent_relationships(self):
+        return self.agents.filter(event_type__relationship='work')
 
     def consuming_agent_relationships(self):
         return self.agents.filter(event_type__relationship='in')
@@ -1970,6 +1973,9 @@ class EconomicResourceType(models.Model):
 
     def producing_agents(self):
         return [art.agent for art in self.producing_agent_relationships()]
+        
+    def work_agents(self):
+        return [art.agent for art in self.work_agent_relationships()] 
 
     def producer_relationships(self):
         return self.agents.filter(event_type__relationship='out')
@@ -7292,9 +7298,10 @@ class Commitment(models.Model):
             art.commitment = self
         return arts
 
-    def possible_source_users(self):
-        srcs = self.sources()
-        agents = [src.agent for src in srcs]
+    def possible_work_users(self):
+        srcs = self.resource_type.work_agents()
+        members = self.context_agent.all_members_list()
+        agents = [agent for agent in srcs if agent in members]
         users = [a.user() for a in agents if a.user()]
         return [u.user for u in users]
 

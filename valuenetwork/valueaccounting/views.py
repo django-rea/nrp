@@ -4087,7 +4087,7 @@ def new_process_worker(request, commitment_id):
             if notification:
                 #import pdb; pdb.set_trace()
                 agent = get_agent(request)
-                users = ct.possible_source_users()
+                users = ct.possible_work_users()
                 if users:
                     notification.send(
                         users, 
@@ -4991,7 +4991,7 @@ def add_process_worker(request, process_id):
             if notification:
                 #import pdb; pdb.set_trace()
                 agent = get_agent(request)
-                users = ct.possible_source_users()
+                users = ct.possible_work_users()
                 if users:
                     notification.send(
                         users, 
@@ -7790,7 +7790,7 @@ def change_process(request, process_id):
                                     if notification:
                                         #import pdb; pdb.set_trace()
                                         agent = get_agent(request)
-                                        users = ct.possible_source_users()
+                                        users = ct.possible_work_users()
                                         if users:
                                             notification.send(
                                                 users, 
@@ -8269,7 +8269,7 @@ def process_selections(request, rand=0):
                         #import pdb; pdb.set_trace()
                         if not work_commitment.from_agent:
                             agent = get_agent(request)
-                            users = work_commitment.possible_source_users()
+                            users = work_commitment.possible_work_users()
                             if users:
                                 notification.send(
                                     users, 
@@ -8441,7 +8441,7 @@ def plan_from_recipe(request):
                     independent_demand=demand, 
                     event_type__relationship="work")
                 for ct in work_cts:                           
-                    users = ct.possible_source_users()
+                    users = ct.possible_work_users()
                     if users:
                         notification.send(
                             users, 
@@ -8590,7 +8590,7 @@ def plan_from_rt_recipe(request, resource_type_id):
                     independent_demand=demand, 
                     event_type__relationship="work")
                 for ct in work_cts:                           
-                    users = ct.possible_source_users()
+                    users = ct.possible_work_users()
                     if users:
                         notification.send(
                             users, 

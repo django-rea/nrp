@@ -9044,6 +9044,7 @@ def exchange_logging(request, exchange_id):
     distribution_events = exchange.distribution_events()
     disbursement_events = exchange.disbursement_events()
     fee_events = exchange.fee_events()
+    transfer_events = exchange.transfer_events()    
 
     if agent and pattern:
         #import pdb; pdb.set_trace()
@@ -9127,6 +9128,8 @@ def exchange_logging(request, exchange_id):
         for event in material_events:
             total_in = total_in + event.value
         for event in fee_events:
+            total_out = total_out + event.value
+        for event in transfer_events:
             total_out = total_out + event.value
         #for event in cash_events:
         #    event.changeform = CashContributionEventForm(
@@ -9243,6 +9246,7 @@ def exchange_logging(request, exchange_id):
         "shipment_events": shipment_events,
         "material_events": material_events,
         "fee_events": fee_events,
+        "transfer_events": transfer_events,
         "add_receipt_form": add_receipt_form,
         "add_to_resource_form": add_to_resource_form,
         "add_to_contr_resource_form": add_to_contr_resource_form,

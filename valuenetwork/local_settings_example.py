@@ -50,4 +50,6 @@ MAP_LATITUDE = 38.2749497
 MAP_LONGITUDE = 23.8102717
 MAP_ZOOM = 6
 
+STATIC_URL = "/static/"
+
 #and you can override any other settings in settings.py

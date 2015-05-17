@@ -930,8 +930,8 @@ class EconomicAgent(models.Model):
                             pc_cas = list(set(pc_cas))
                             if self not in pc_cas:
                                 ids_to_delete.append(ship.id)
-                    else:
-                        ids_to_delete.append(ship.id)
+                    #else:
+                    #    ids_to_delete.append(ship.id)
                 if ids_to_delete:
                     qs = qs.exclude(id__in=ids_to_delete)
         else:
@@ -1230,7 +1230,7 @@ class EventType(models.Model):
 
     def default_event_value_equation(self):
         if self.used_for_value_equations():
-            if self.relationship == "cite" or self.relationship == "pay":
+            if self.relationship == "cite" or self.relationship == "pay" or self.name == "Cash Receipt":
                 return "quantity"
             elif self.relationship == "resource" or self.relationship == "receive":
                 return "value"
@@ -1247,7 +1247,7 @@ class EventType(models.Model):
             "consume",
             "in",
             #"pay",
-            "receivecash",
+            #"receivecash",
             "shipment",
             "adjust",
             "distribute",
@@ -1961,6 +1961,9 @@ class EconomicResourceType(models.Model):
 
     def producing_agent_relationships(self):
         return self.agents.filter(event_type__relationship='out')
+        
+    def work_agent_relationships(self):
+        return self.agents.filter(event_type__relationship='work')
 
     def consuming_agent_relationships(self):
         return self.agents.filter(event_type__relationship='in')
@@ -1970,6 +1973,9 @@ class EconomicResourceType(models.Model):
 
     def producing_agents(self):
         return [art.agent for art in self.producing_agent_relationships()]
+        
+    def work_agents(self):
+        return [art.agent for art in self.work_agent_relationships()] 
 
     def producer_relationships(self):
         return self.agents.filter(event_type__relationship='out')
@@ -2462,7 +2468,7 @@ class ProcessPattern(models.Model):
             for res in rt_resources:
                 resources.append(res)
         resource_ids = [res.id for res in resources]
-        return EconomicResource.objects.filter(id__in=resource_ids)
+        return EconomicResource.objects.filter(id__in=resource_ids).order_by("-created_date")
                 
     def material_contr_resource_types(self):
         return self.resource_types_for_relationship("resource")
@@ -4103,6 +4109,10 @@ class EconomicResource(models.Model):
             #    events.append(evt)
             if evt.exchange:
                 evt.exchange.compute_income_shares(value_equation, evt, quantity, events, visited)
+        xfers = self.transfer_events()
+        for evt in xfers:
+            if evt.exchange:
+                evt.exchange.compute_income_shares(value_equation, evt, quantity, events, visited)
         processes = self.producing_processes()
         for process in processes:
             if process not in visited:
@@ -4129,6 +4139,7 @@ class EconomicResource(models.Model):
                             #import pdb; pdb.set_trace()
                             value = br.compute_claim_value(pe)
                         pe.share = value * distro_fraction
+                        pe.value = value
                         events.append(pe)
                     #import pdb; pdb.set_trace()
                     if process.context_agent.compatible_value_equation(value_equation):
@@ -4400,6 +4411,10 @@ class EconomicResource(models.Model):
     def purchase_events(self):
         rct_et = EventType.objects.get(relationship="receive")
         return self.events.filter(event_type=rct_et)
+        
+    def transfer_events(self):
+        tx_et = EventType.objects.get(name="Transfer")
+        return self.events.filter(event_type=tx_et)
 
     def all_usage_events(self):
         return self.events.exclude(event_type__relationship="out").exclude(event_type__relationship="receive").exclude(event_type__relationship="resource").exclude(event_type__relationship="cash")
@@ -6325,19 +6340,26 @@ class Exchange(models.Model):
         if trigger_event not in visited:
             visited.add(trigger_event)
             
-            receipts = self.receipt_events()
             trigger_fraction = 1
-            if receipts.count() > 1:
-                rsum = sum(r.value for r in receipts)
-                trigger_fraction = trigger_event.value / rsum
-            payments = self.payment_events().filter(to_agent=trigger_event.from_agent)
             share =  quantity / trigger_event.quantity
+            receipts = self.receipt_events()
+            if receipts:
+                if receipts.count() > 1:
+                    rsum = sum(r.value for r in receipts)
+                    trigger_fraction = trigger_event.value / rsum
+                payments = self.payment_events().filter(to_agent=trigger_event.from_agent)
+                #share =  quantity / trigger_event.quantity
+            else:
+                xfers = self.transfer_events()
+                if xfers:
+                    payments = self.cash_receipt_events().filter(from_agent=trigger_event.to_agent)
             
             if payments.count() == 1:
                 evt = payments[0]
+                value = evt.quantity
                 contributions = []
                 #import pdb; pdb.set_trace()
-                if evt.resource:
+                if evt.resource and not xfers:
                     candidates = evt.resource.cash_contribution_events()
                     for cand in candidates:
                         br = cand.bucket_rule(value_equation)
@@ -6352,8 +6374,7 @@ class Exchange(models.Model):
                         events.append(ct)
                 if not contributions:
                     #if contributions were credited,
-                    # do not give credit for payment.
-                    value = evt.quantity
+                    # do not give credit for payment. 
                     #import pdb; pdb.set_trace()
                     br = evt.bucket_rule(value_equation)
                     if br:
@@ -7292,9 +7313,10 @@ class Commitment(models.Model):
             art.commitment = self
         return arts
 
-    def possible_source_users(self):
-        srcs = self.sources()
-        agents = [src.agent for src in srcs]
+    def possible_work_users(self):
+        srcs = self.resource_type.work_agents()
+        members = self.context_agent.all_members_list()
+        agents = [agent for agent in srcs if agent in members]
         users = [a.user() for a in agents if a.user()]
         return [u.user for u in users]
 
@@ -9051,9 +9073,10 @@ class ValueEquationBucket(models.Model):
                     claim = event.get_unsaved_context_agent_claim(context_agent, event.vebr)
                 else:
                     claim = event.get_unsaved_contribution_claim(event.vebr)
-                claim.share = claim.original_value * fraction 
-                claim.event = event
-                claims.append(claim)
+                if claim.value:
+                    claim.share = claim.original_value * fraction 
+                    claim.event = event
+                    claims.append(claim)
         return claims
 
     def create_distribution_claim_events(self, portion_of_amount, claims):

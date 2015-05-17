@@ -584,13 +584,7 @@ hr {
 					        {% endif %}
 				        </div>
 			        {% endif %}
-	                {% if not item.from_agent %}
-			            {% for source in item.resource_type.producing_agent_relationships %}
-				            <p class="detail-line">
-					            <b>{% trans "Possible source" %}:</b><span class="agent" > {{ source.agent.name }}</span>
-				            </p>
-			            {% endfor %}
-			        {% endif %}
+
                     <hr />
 		        {% endfor %}
 		        

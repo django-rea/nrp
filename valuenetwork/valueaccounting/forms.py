@@ -3336,7 +3336,7 @@ class ValueEquationBucketForm(forms.ModelForm):
    
 class ValueEquationBucketRuleForm(forms.ModelForm):
     event_type = forms.ModelChoiceField(
-        queryset=EventType.objects.used_for_value_equations(),
+        queryset=EventType.objects.used_for_value_equations().order_by("name"),
         required=True,
         empty_label=None,
         help_text="A default equation will appear below when you select an event type.",

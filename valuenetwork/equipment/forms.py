@@ -17,26 +17,26 @@ class EquipmentUseForm(forms.ModelForm):
     event_date = forms.DateField(
         required=True, 
         label="Date of use",
-        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+        widget=forms.TextInput(attrs={'class': 'form-control input-sm date-entry', }))
     from_agent = forms.ModelChoiceField(
         required=True,
         queryset=EconomicAgent.objects.all(),
         label="Who is paying",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
+            attrs={'class': 'chzn-select form-control'})) 
     quantity = forms.DecimalField(required=True,
         label="Equipment hours used",
-        widget=forms.TextInput(attrs={'value': '1.00', 'class': 'quantity  input-mini'}))
+        widget=forms.TextInput(attrs={'value': '1.00', 'class': 'quantity input-sm form-control'}))
     technician = forms.ModelChoiceField(
         required=False,
         queryset=EconomicAgent.objects.all(),
         label="Technician (if applicable)",
         widget=forms.Select(
-            attrs={'class': 'chzn-select'}))
+            attrs={'class': 'chzn-select form-control'}))
     technician_hours = forms.DecimalField(required=True,
         label="Technician hours spent",
-        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'quantity  input-mini'}))
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'quantity input-sm form-control'}))
         
     class Meta:
         model = EconomicEvent
@@ -54,11 +54,11 @@ class EquipmentUseForm(forms.ModelForm):
 class ConsumableForm(forms.Form):
     resource_id = forms.CharField(widget=forms.HiddenInput)
     quantity = forms.DecimalField(required=False,
-        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'quantity input-mini'}))
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'quantity input-sm form-control inline'}))
 
 class PaymentForm(forms.Form):
     #resource_id = forms.CharField(widget=forms.HiddenInput)
-    payment_method = forms.ChoiceField(widget=forms.Select(attrs={'class': 'input-small pay'})) 
+    payment_method = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-control input-sm pay'})) 
                                        
     def __init__(self, *args, **kwargs):
         super(PaymentForm, self).__init__(*args, **kwargs)
@@ -70,17 +70,17 @@ class ProcessForm(forms.Form):
         queryset=Process.objects.current_or_future(),
         label="What project process will this be used in?", 
         widget=forms.Select(
-            attrs={'class': 'chzn-select'}))
+            attrs={'class': 'chzn-select form-control'}))
 
 class AdditionalCitationForm(forms.ModelForm):
     resource = forms.ModelChoiceField(
         queryset=EconomicResource.objects.all(), 
         label="Design to cite",
         empty_label=None,
-        widget=forms.Select(attrs={'class': 'chzn-select',}))
+        widget=forms.Select(attrs={'class': 'chzn-select form-control',}))
     quantity = forms.DecimalField(required=False,
         label="Allocate to this citation",
-        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'quantity input-mini'}))
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'quantity form-control input-sm inline'}))
     
     class Meta:
         model = EconomicEvent
@@ -97,17 +97,17 @@ class AdditionalWorkForm(forms.ModelForm):
         label="Type of work",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'}))
+            attrs={'class': 'chzn-select form-control'}))
     from_agent = forms.ModelChoiceField(
         required=False,
         queryset=EconomicAgent.objects.individuals(),
         label="Who worked",
         empty_label=None,
         widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
+            attrs={'class': 'chzn-select form-control'})) 
     quantity = forms.DecimalField(required=False,
         label="Hours worked",
-        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'quantity input-mini'}))
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'form-control quantity input-sm'}))
     
     class Meta:
         model = EconomicEvent

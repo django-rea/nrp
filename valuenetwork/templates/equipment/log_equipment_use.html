@@ -1,19 +1,26 @@
 {% load staticfiles %}
 {% load i18n %}
-{% load bootstrap_tags %}
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<!DOCTYPE html>
+<html lang="en">
 
 <title>{% trans "Log Equipment Use" %}</title>
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
-<link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 <link href="{% static "css/buttons.css" %}" rel="stylesheet">
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
 
 <style>
 
@@ -39,6 +46,29 @@ input-small {
     padding: 0;
     margin: 0 0 4px 0;
 }
+.lbl {
+    margin-top: 5px;
+    font-weight: bold;
+}
+.quantity {
+    width: 6em;
+}
+.date-entry {
+    width: 10em;
+}
+.inline {
+    display: inline;
+    margin-bottom: 3px;
+}
+.form-group {
+    margin-bottom: 7px;
+}
+label {
+    margin-bottom: 2px;
+}
+body {
+    font-size: 13px;
+}
 
 </style>
 
@@ -46,26 +76,48 @@ input-small {
 
 <body>
 
-    <div class="container">
+    <div class="container-fluid">
         {% include "_messages.html" %}
-        <div>
+        <div class="row">
+          <div class="col-xs-12">
             <div class="title">{% trans "Log Use of " %} {{ equipment.identifier }}</div>
             <div class="notes">Access rules: {{ equipment.access_rules }}</div>
             <form class="validateMe" id="equipForm" method="POST" action="">
                 {% csrf_token %}
                 <div class="eform">
                     {% if scenario == '2' %}
-                        {{ process_form|as_bootstrap }}
+                        <div class="form-group">
+                            <label for="id_process">What project process will this be used in?</label>
+                            {{ process_form.process }}
+                        </div>
                     {% endif %}
-                    {{ equip_form|as_bootstrap }}
-                    {{ formset.management_form }}
-                    Consumed<br />
+                    <div class="form-group">
+                        <label for="id_from_agent">Who is paying</label>
+                        {{ equip_form.from_agent }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_event_date">Date of use</label>
+                        {{ equip_form.event_date }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_quantity">Equipment hours used</label>
+                        {{ equip_form.quantity }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_quantity">Technician (if applicable)</label>
+                        {{ equip_form.technician }}
+                    </div>  <div class="form-group">
+                        <label for="id_quantity">Technician hours spent</label>
+                        {{ equip_form.technician_hours }}
+                    </div>
+                    <p class="lbl">Consumed</p>
                     <table>
+                    {{ formset.management_form }}
                     {% for form in formset.forms %}
                         <tr>
                             <td>{{ form.resource_id }}</td>
                             <td>{{ form.identifier }}</td>
-                            <td>{{ form.quantity }} {{ consumable_rt.unit }}</td>
+                            <td>{{ form.quantity }} {{ consumable_rt.unit.abbrev }}</td>
                         </tr>
                     {% endfor %}
                     </table>
@@ -73,6 +125,7 @@ input-small {
                 </div>
             </div>
             </form>
+          </div>
         </div>
     </div>
     
@@ -82,6 +135,7 @@ input-small {
 <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 <script src="{% static 'js/chosen.jquery.js' %}"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 
 <script type="text/javascript">
 

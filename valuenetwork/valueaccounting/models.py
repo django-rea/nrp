@@ -7161,6 +7161,7 @@ class Commitment(models.Model):
                 
     def net_for_order(self):
         #this method does netting after an order has been scheduled
+        #see tiddler Bug 2105-01-25
         #import pdb; pdb.set_trace()
         rt = self.resource_type
         stage = self.stage

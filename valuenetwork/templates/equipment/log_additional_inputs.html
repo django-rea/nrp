@@ -1,19 +1,26 @@
 {% load staticfiles %}
 {% load i18n %}
-{% load bootstrap_tags %}
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<!DOCTYPE html>
+<html lang="en">
 
 <title>{% trans "Log Additional Inputs" %}</title>
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
-<link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 <link href="{% static "css/buttons.css" %}" rel="stylesheet">
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
 
 <style>
 
@@ -48,6 +55,22 @@ input-small {
     color: #8A8A5C;
     font-weight: bold;
 }
+.quantity {
+    width: 6em;
+}
+.form-group {
+    margin-bottom: 7px;
+}
+label {
+    margin-bottom: 2px;
+}
+body {
+    font-size: 13px;
+}
+.inline {
+    display: inline;
+    margin-bottom: 3px;
+}
 
 </style>
 
@@ -55,9 +78,10 @@ input-small {
 
 <body>
 
-    <div class="container">
+    <div class="container-fluid">
         {% include "_messages.html" %}
-        <div>
+        <div class="row">
+          <div class="col-xs-12">
             <div class="title">{% trans "Log More Inputs" %}</div>
             <div class="notes">Process: {{ process }}</div>
             {% if done %}
@@ -74,25 +98,36 @@ input-small {
                     {% csrf_token %}
                     <div class="eform">
                         <div class="section">
-                            Design to cite<br />
-                            {{ cite_form.resource }}<br />
-                            Allocate for citation<br />
-                            {{ cite_form.quantity }} {{ cite_unit }}<br />
+                            <div class="form-group">
+                                <label for="id_cite-resource">Design to cite</label>
+                                {{ cite_form.resource }}
+                            </div>
+                            <div class="form-group">
+                                <label for="id_cite-quantity">Allocate for citation</label><br />
+                                {{ cite_form.quantity }} {{ cite_unit }}
+                            </div>
                             <input type="submit" name="cite" value="{% trans 'Save Citation' %}" class="btn btn-primary" /> 
                         </div>
                         <div class="section">
-                            Type of work<br />
-                            {{ work_form.resource_type }}<br />
-                            Who worked<br />
-                            {{ work_form.from_agent }}<br />
-                            Hours worked<br />
-                            {{ work_form.quantity }}<br />
+                            <div class="form-group">
+                                <label for="id_work-resource_type">Type of work</label>
+                                {{ work_form.resource_type }}
+                            </div>
+                            <div class="form-group">
+                                <label for="id_work-from_agent">Who worked</label>
+                                {{ work_form.from_agent }}
+                            </div>
+                            <div class="form-group">
+                                <label for="id_work-quantity">Hours worked</label>
+                                {{ work_form.quantity }}
+                            </div>
                             <input type="submit" name="work" value="{% trans 'Save Work' %}" class="btn btn-primary" />
                         </div>
                         <input type="submit" name="done" value="{% trans 'Done' %}" class="btn btn-info" />
                     </div>
                 </form>
             {% endif %}
+          </div>
         </div>
     </div>
     

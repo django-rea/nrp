@@ -2430,7 +2430,8 @@ class ProcessPattern(models.Model):
         return self.resource_types_for_relationship("receive")
         
     def receipt_resource_types_with_resources(self):
-        rts = [rt for rt in self.resource_types_for_relationship("receive") if rt.onhand()]
+        #import pdb; pdb.set_trace()
+        rts = [rt for rt in self.resource_types_for_relationship("receive") if rt.all_resources()] # if rt.onhand()]
         rt_ids = [rt.id for rt in rts]
         return EconomicResourceType.objects.filter(id__in=rt_ids)
         

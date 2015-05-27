@@ -113,7 +113,7 @@ ul {
                     {% if paid %}
                         <p class="total owed"> 
                             Paid {{ sale_total }}, thank you ! &nbsp;&nbsp;
-                            {% if scenario == '1' or scenario == '2' %}
+                            {% if scenario == '2' %}
                                 <a href="{% url log_additional_inputs cite_rt_id=cite_rt_id  process_id=next_process_id %}" class="btn btn-primary">More inputs if needed</a>
                             {% endif %}
                         </p>

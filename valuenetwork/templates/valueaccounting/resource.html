@@ -121,11 +121,12 @@
                         <th style="text-align: right;">{% trans "Quantity" %}</th>
                         <td>{{ resource.quantity }} {{ resource.unit_of_quantity }}</td>
                     </tr>
+{% comment %}
                     <tr>
                         <th style="text-align: right;">{% trans "Quality" %}</th>
                         <td>{{ resource.quality }}</td>
                     </tr>
-
+{% endcomment %}
                     {% if resource.value_per_unit_of_use and resource.resource_type.unit_of_use %}
                         <tr>
 	                        <th style="text-align: right; vertical-align: top; ">{% trans "Value per" %} {{ resource.resource_type.unit_of_use.abbrev }} {% trans "of use" %}</th>

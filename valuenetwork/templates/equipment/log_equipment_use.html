@@ -121,7 +121,8 @@ body {
                         </tr>
                     {% endfor %}
                     </table>
-                    <input type="submit" name="save" value="{% trans 'Save and Continue' %}" class="btn btn-primary" /> 
+                    <input type='hidden' id='submitted' name='submitted' value='' />
+                    <input type="submit" name="save" id="submitButton" value="{% trans 'Save and Continue' %}" class="btn btn-primary" /> 
                 </div>
             </div>
             </form>
@@ -140,6 +141,12 @@ body {
 <script type="text/javascript">
 
     $(document).ready(function(){
+    
+        var submitted = $("#submitted").val();
+        if (submitted)
+        {
+            disableSubmit();
+        }
 
         $(".chzn-select").chosen();
 
@@ -173,8 +180,22 @@ body {
                 }
             });
         });
+        
+        $("#equipForm").submit(function(event) {
+ 
+            event.preventDefault();
+            $("#submitted").val("true");
+            disableSubmit();
+            this.submit();
+            
+        });
 
     }); // end document.ready
+    
+    function disableSubmit()
+    {
+        $("#submitButton").attr("disabled", "disabled");
+    }
 
 </script>
 

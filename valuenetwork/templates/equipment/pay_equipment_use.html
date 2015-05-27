@@ -132,7 +132,8 @@ ul {
                         <div class="total">
                             <span class="owed">Total owed: {{ sale_total }}</span><br />
                             <span>Payment method:</span> {{ pay_form.payment_method }}<br />
-                            <input type="submit" name="save" value="{% trans 'I paid' %}" class="btn btn-primary" /> 
+                            <input type='hidden' id='submitted' name='submitted' value='' />
+                            <input type="submit" name="save" id="submitButton" value="{% trans 'I paid' %}" class="btn btn-primary" /> 
                         </div>
                     {% endif %}
                 </div>
@@ -144,8 +145,33 @@ ul {
     
 </body>
 
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+
 <script type="text/javascript">
 
+    $(document).ready(function(){
+    
+        var submitted = $("#submitted").val();
+        if (submitted)
+        {
+            disableSubmit();
+        }
+        
+        $("#equipForm").submit(function(event) {
+ 
+            event.preventDefault();
+            $("#submitted").val("true");
+            disableSubmit();
+            this.submit();
+            
+        });
+
+    }); // end document.ready
+    
+    function disableSubmit()
+    {
+        $("#submitButton").attr("disabled", "disabled");
+    }
  
 </script>
 

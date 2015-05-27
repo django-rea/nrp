@@ -1182,7 +1182,11 @@ hr {
 			            <div class="event" >
 				            <span class="event-label">{% trans "Used" %}:</span>
 				            <span class="event" > 
-				                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+                                {% if event.resource %}
+                                    <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+                                {% else %}
+                                    <b><a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
+                                {% endif %}
 				                {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
                             </span>
 				            {% if logger %}

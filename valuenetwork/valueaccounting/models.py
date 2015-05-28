@@ -4687,6 +4687,14 @@ class EconomicResource(models.Model):
         for arr in arrs:
             agent_ids.append(arr.agent.id)
         return EconomicAgent.objects.filter(pk__in=agent_ids)
+        
+    def related_agents(self, role):
+        #import pdb; pdb.set_trace()
+        arrs = self.agent_resource_roles.filter(role=role)
+        agent_ids = []
+        for arr in arrs:
+            agent_ids.append(arr.agent.id)
+        return EconomicAgent.objects.filter(pk__in=agent_ids)
     
     def equipment_users(self, context_agent):
         agent_list = context_agent.context_equipment_users()

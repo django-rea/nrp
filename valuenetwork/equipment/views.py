@@ -39,10 +39,10 @@ def consumable_formset(consumable_rt, data=None):
 @login_required
 def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pattern_id, 
     sale_pattern_id, equip_svc_rt_id, equip_fee_rt_id, tech_rt_id, consumable_rt_id, 
-    payment_rt_id, ve_id, va_id, part_rt_id, cite_rt_id
+    payment_rt_id, tech_rel_id, ve_id, va_id, part_rt_id, cite_rt_id
 ):
     #import pdb; pdb.set_trace()
-    #scenario: 1=commercial, 2=project, 3=other
+    #scenario: 1=commercial, 2=project, 3=fablab, 4=techshop, 5=other
     equipment = get_object_or_404(EconomicResource, id=equip_resource_id)
     equipment_svc_rt = get_object_or_404(EconomicResourceType, id=equip_svc_rt_id)
     equipment_fee_rt = get_object_or_404(EconomicResourceType, id=equip_fee_rt_id)
@@ -55,8 +55,9 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
     logged_on_agent = get_agent(request)
     ve = ValueEquation.objects.get(id=ve_id)
     mtnce_virtual_account = EconomicResource.objects.get(id=va_id)
+    tech_rel_type = AgentResourceRoleType.objects.get(id=tech_rel_id)
     init = {"event_date": datetime.date.today(), "from_agent": logged_on_agent}
-    equip_form = EquipmentUseForm(equip_resource=equipment, context_agent=context_agent, initial=init, data=request.POST or None)
+    equip_form = EquipmentUseForm(equip_resource=equipment, context_agent=context_agent, tech_type=tech_rel_type, initial=init, data=request.POST or None)
     formset = consumable_formset(consumable_rt=consumable_rt)
     process_form = ProcessForm(data=request.POST or None)
     
@@ -310,7 +311,7 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
 def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equip_resource_id, 
     mtnce_fee_event_id, ve_id, use_qty, who_id, next_process_id=None, cite_rt_id=None
 ):
-    #scenario: 1=commercial, 2=project, 3=other
+    #scenario: 1=commercial, 2=project, 3=fablab, 4=techshop, 5=other
     #import pdb; pdb.set_trace()
     sale = get_object_or_404(Exchange, id=sale_id)
     process = get_object_or_404(Process, id=process_id)

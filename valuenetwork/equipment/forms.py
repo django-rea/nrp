@@ -67,7 +67,7 @@ class PaymentForm(forms.Form):
 class ProcessForm(forms.Form):                    
     process = ProcessModelChoiceField(
         required=False,
-        queryset=Process.objects.current_or_future(),
+        queryset=Process.objects.current_or_future_with_use(),
         label="What project process will this be used in?", 
         widget=forms.Select(
             attrs={'class': 'chzn-select form-control'}))

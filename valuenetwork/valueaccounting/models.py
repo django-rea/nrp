@@ -5058,6 +5058,16 @@ class ProcessManager(models.Manager):
     
     def current_or_future(self):
         return Process.objects.filter(finished=False).filter(end_date__gte=datetime.date.today())
+    
+    def current_or_future_with_use(self):
+        #import pdb; pdb.set_trace()
+        processes = Process.objects.current_or_future()
+        ids = []
+        use_et = EventType.objects.get(name="Resource use")
+        for process in processes:
+            if use_et in process.process_pattern.event_types():
+                ids.append(process.id)
+        return Process.objects.filter(pk__in=ids)
 
 class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)

@@ -62,4 +62,6 @@ COPY ./cmd/run-server.sh /usr/local/bin/run-server.sh
 
 RUN chmod +x /usr/local/bin/run-server.sh
 
+VOLUME /var/www/valuenetwork
+
 CMD ["/usr/local/bin/run-server.sh"]

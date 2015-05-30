@@ -75,5 +75,5 @@ and `requirements.txt` in order to leverage cache layers.
 ## Run the application container
 
 ```
-docker run -d valuenetwwork
+docker run -d valuenetwork
 ```

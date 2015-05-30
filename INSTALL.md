@@ -37,7 +37,11 @@ sudo a2ensite valuenetwork.conf
 
 ```
 
-From the host machine
+From the host machine, figure the ip address of the guest machine before adding a new entry to your host file.
+
+```
+VAGRANT_LOG=ERROR vagrant ssh -c 'ip address | grep eth0 | grep inet'
+```
 
 ```
 VAGRANT_HOST=192.168.1.44
@@ -75,5 +79,24 @@ and `requirements.txt` in order to leverage cache layers.
 ## Run the application container
 
 ```
-docker run -d valuenetwork
+cd /vagrant
+docker run --net=host -v `pwd`:/var/www/valuenetwork -d valuenetwork
 ```
+
+## Access pages served by the web server
+
+When running the container from within a virtual machine using vagrant,
+the virtual network interface `eth0` of the box is relied upon to run a web server listening to port 8000.
+
+```
+# Option "--net" allows us to leverage the box virtual network interface
+--net=host
+```
+
+At image build time, the command which can be found in `cmd/run-server.sh` 
+would have been copied to `/var/www/valuenetwork` (path available from within the docker container).
+
+As a result, the web server running from within the docker container, from within a virtual machine, 
+listens to requests on port 8000 of the guest loopback address.
+
+The apache2 proxy exposes the server from the host machine.

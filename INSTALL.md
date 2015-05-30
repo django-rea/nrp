@@ -100,3 +100,7 @@ As a result, the web server running from within the docker container, from withi
 listens to requests on port 8000 of the guest loopback address.
 
 The apache2 proxy exposes the server from the host machine.
+
+At this step, you should be able to access `http://valuenetwork.dev` in a browser installed on your host:
+
+![Homepage](docs/images/homepage.png)

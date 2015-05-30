@@ -1,0 +1,6 @@
+#!/bin/bash
+
+EMAIL='VALUE_NETWORK_EMAIL'
+USER='VALUE_NETWORK_USER'
+PASSWORD='VALUE_NETWORK_PASSWORD'
+echo "from django.contrib.auth.models import User; User.objects.create_superuser('$USER', '$EMAIL', '$PASSWORD')" | python manage.py shell

@@ -60,10 +60,12 @@ MEDIA_URL = "/site_media/media/"
 # in apps" "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = os.path.join(PACKAGE_ROOT, "site_media", "static")
+#STATIC_ROOT = os.path.join(PACKAGE_ROOT, "static")
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = "/site_media/static/"
+#STATIC_URL = "/static/"
 
 # Additional locations of static files
 STATICFILES_DIRS = [

@@ -1302,6 +1302,7 @@ class WorkEventAgentForm(forms.ModelForm):
 
 
 class WorkCommitmentForm(forms.ModelForm):
+    due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     resource_type = WorkModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
         label="Type of work",
@@ -1316,7 +1317,7 @@ class WorkCommitmentForm(forms.ModelForm):
    
     class Meta:
         model = Commitment
-        fields = ('resource_type','quantity', 'unit_of_quantity', 'description')
+        fields = ('due_date', 'resource_type','quantity', 'unit_of_quantity', 'description')
 
     def __init__(self, pattern=None, *args, **kwargs):
         #import pdb; pdb.set_trace()
@@ -1324,7 +1325,6 @@ class WorkCommitmentForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             self.fields["resource_type"].queryset = pattern.work_resource_types()
-
 
 class ProcessWorkForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(

@@ -4982,7 +4982,7 @@ def add_process_worker(request, process_id):
             ct.order_item = process.order_item()
             ct.independent_demand=demand
             ct.event_type=event_type
-            ct.due_date=process.end_date
+            #ct.due_date=process.end_date
             ct.resource_type=rt
             ct.context_agent=process.context_agent
             ct.unit_of_quantity=rt.directional_unit("use")
@@ -5822,7 +5822,8 @@ def process_oriented_logging(request, process_id):
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", pattern=pattern, context_agent=context_agent, initial=work_init)
                     #is this correct? see commented-out lines above
                 if logger:
-                    add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern)
+                    date_init = {"due_date": process.end_date,}
+                    add_work_form = WorkCommitmentForm(prefix='work', pattern=pattern, initial=date_init)
 
         if "cite" in slots:
             unplanned_cite_form = UnplannedCiteEventForm(prefix='unplannedcite', pattern=pattern)

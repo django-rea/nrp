@@ -11,7 +11,7 @@ Background on Value Networks: http://www.sensorica.co/value-networks
 
 The prototype used the https://github.com/pinax/pinax-project-account starter project, built on the Django framework.
 
-See /docs/install.txt for developer installation instructions. (More doc to come.)
+See /docs/install.txt for developer installation instructions or [INSTALL.md](INSTALL.md).
 
 The valueaccounting app could be split out and used in other Django projects.
 

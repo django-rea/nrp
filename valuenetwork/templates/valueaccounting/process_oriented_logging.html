@@ -18,6 +18,11 @@
     font-style: italic;
 }
 
+.info {
+    margin: 0;
+    font-style: italic;
+}
+
 .event {
     margin-left: 2em; 
     margin-bottom: 4px;
@@ -390,7 +395,9 @@ hr {
 	        {% endif %}
         </div>
 
-        
+        <p class="info">
+            {% trans "Requirements are ordered by due date" %}
+        </p>
 	    {% if work_reqs or process.uncommitted_work_events or "work" in slots %}
 		    <div class="log-section">
 		        <h3 style="margin-bottom: 4px;" >

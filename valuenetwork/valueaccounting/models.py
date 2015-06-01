@@ -6913,9 +6913,12 @@ class Commitment(models.Model):
         return ProcessForm(initial=init, prefix=prefix)
 
     def change_work_form(self):
-        from valuenetwork.valueaccounting.forms import ChangeWorkCommitmentForm
+        from valuenetwork.valueaccounting.forms import WorkCommitmentForm
         prefix=self.form_prefix()
-        return ChangeWorkCommitmentForm(instance=self, prefix=prefix)
+        pattern = None
+        if self.process:
+            pattern = self.process.process_pattern
+        return WorkCommitmentForm(instance=self, pattern=pattern, prefix=prefix)
     
     def can_add_to_resource(self):
         #todo: figure out how to allow for workflow stream resources

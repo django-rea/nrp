@@ -4,6 +4,7 @@ Code Contributors
 Bob Haugen
 Lynn Foster
 Seth Horne
+Thierry Marianne
 
 Ideas, testing, issue and bug reporting
 =======================================

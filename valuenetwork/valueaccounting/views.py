@@ -1317,6 +1317,9 @@ def json_resource_type_resources_with_locations(request, resource_type_id):
             "location": loc,
         }
         resources.append({"fields": fields})
+    rt = EconomicResourceType.objects.get(id=resource_type_id)
+    if rt.behavior == "account":
+        
     data = simplejson.dumps(resources, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
     

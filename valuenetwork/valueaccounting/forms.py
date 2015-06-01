@@ -1780,6 +1780,7 @@ class ShipmentForm(forms.ModelForm):
         empty_label=None,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
     value = forms.DecimalField(
+        label="Price (total, not per unit)",
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
@@ -1817,6 +1818,7 @@ class UninventoriedShipmentForm(forms.ModelForm):
         queryset=EconomicResourceType.objects.none(),
         widget=forms.Select(attrs={'class': 'input-xxlarge resourceType resource-type-selector'}))
     value = forms.DecimalField(
+        label="Price (total, not per unit)",
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
@@ -2957,7 +2959,7 @@ class SaleForm(forms.ModelForm):
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Context"),
+        label=_("Context (who made the sale)"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=True, 

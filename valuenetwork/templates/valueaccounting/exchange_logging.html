@@ -124,8 +124,26 @@ li {
 
 	  <div class="span7">
         <div class="totals">
-            <span class="total-top">{% trans "Total money in" %}: {{ total_in }} </span> 
-            <span class="total-top">{% trans "Total money out" %}: {{ total_out }} </span> 
+            {% if use_case.identifier == "cash_contr" %}
+                <span class="total-top">{% trans "Total cash contributions" %}: {{ total_in }} </span> 
+            {% elif use_case.identifier == "res_contr" %}
+                <span class="total-top">{% trans "Total resource contributions" %}: {{ total_in }} </span> 
+            {% elif use_case.identifier == "purch_contr" %}
+                <span class="total-top">{% trans "Total receipts and expenses" %}: {{ total_in }} </span> 
+                <span class="total-top">{% trans "Total payments" %}: {{ total_out }} </span> 
+            {% elif use_case.identifier == "exp_contr" %}
+                <span class="total-top">{% trans "Total expenses" %}: {{ total_in }} </span> 
+                <span class="total-top">{% trans "Total payments" %}: {{ total_out }} </span> 
+            {% elif use_case.identifier == "sale" %}
+                <span class="total-top">{% trans "Total cash receipts" %}: {{ total_in }} </span> 
+                <span class="total-top">{% trans "Total shipments" %}: {{ total_out }} </span> 
+            {% elif use_case.identifier == "distribution" %}
+                <span class="total-top">{% trans "Total disbursements" %}: {{ total_in }} </span> 
+                <span class="total-top">{% trans "Total distributions" %}: {{ total_out }} </span> 
+            {% else %}
+                <span class="total-top">{% trans "Total money in" %}: {{ total_in }} </span> 
+                <span class="total-top">{% trans "Total money out" %}: {{ total_out }} </span> 
+            {% endif %}
             <br />
         </div>
         {% if receipt_events or "receive" in slots %}

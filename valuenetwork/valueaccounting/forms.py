@@ -2950,6 +2950,25 @@ class ExchangeForm(forms.ModelForm):
         if context_agent:
             self.fields["supplier"].queryset = context_agent.all_suppliers()
             
+class ExchangeFlowForm(forms.Form):
+    start_date = forms.DateField(required=True, 
+        label=_("Transfer Date"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    to_agent = forms.ModelChoiceField(required=False,
+        queryset=EconomicAgent.objects.all(),
+        label="Transferred To", 
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    quantity = forms.DecimalField(required=True,
+        label="Quantity",
+        widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
+    paid = forms.DecimalField(required=True,
+        label="Paid",
+        widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
+    notes = forms.CharField(required=False,
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+                        
 class SaleForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(), 

@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load thumbnail %}
 {% load staticfiles %}
+{% load bootstrap_tags %}
 
 {% block head_title %}{% trans "Inventory " %} {% endblock %}
 
@@ -19,12 +20,12 @@ h4 {
 h4 a {
 	font-size: 1.4em;
 }
-
+/*
 ul {
 	list-style-type:none;
 	margin-left: 0;
 }
-
+*/
 .economic-resource-type {
 	background-color: lightyellow;
 }
@@ -91,8 +92,10 @@ ul {
     float: left;
     margin-bottom: 6px;
 }
+
 .arrow {
-    float: right;
+    /*float: right;*/
+    margin-left: .6em;
 }
 .top {
     color: firebrick;
@@ -110,6 +113,9 @@ ul {
 a {
     color: black;
 }
+.ttl {
+    font-weight: bold;
+}
 
 </style>
 {% endblock %}
@@ -120,85 +126,91 @@ a {
     <div class="container">
         {% include "_messages.html" %}
     <div class="row-fluid">
+        <div class="span12">
+            <form id="category-form" action="." method="POST">
+                {% csrf_token %}
+                Owner: {{ resource_form.to_agent }}&nbsp;&nbsp;&nbsp;
+                Resource type: {{ resource_form.resource_type }}&nbsp;&nbsp;&nbsp;
+                Location: {{ resource_form.current_location }}&nbsp;&nbsp;&nbsp;
+                [other filters.....]&nbsp;&nbsp;&nbsp;
+                <input type='hidden' id='categories' name='categories' value='' />
+                <input type="submit" name="submit" class="btn btn-info" value="Filter" />
+            </form>
+        </div>
+    </div>
+    <div class="row-fluid">
         <div class="span3">
-            <span class="top">Available On Farm</span>
-            <a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "New resource" %}</a>
+            <span class="top">Farm (Available)</span>
+            <a class="btn btn-primary btn-mini" href="resourceModal" data-toggle="modal">{% trans "Add resource" %}</a>
         </div>
         <div class="span3">
-            <span class="top">Harvested</span>
+            <span class="top">Harvester</span>
+{% comment %}
             <a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Receive resource" %}</a>
+{% endcomment %}
         </div>
         <div class="span3">
-            <span class="top">Dried</span>
+            <span class="top">Dryer</span>
+{% comment %}
             <a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Receive resource" %}</a>
+{% endcomment %}
+        </div>
+        <div class="span3">
+            <span class="top">Seller</span>
+{% comment %}
+            <a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Receive resource" %}</a>
+{% endcomment %}
         </div>
     </div>
 	<div class="row-fluid">
 		<div class="span3 column">
-            <a href="#editProcess" data-toggle="modal">
+            <a data-toggle="modal" class="btn btn-primary btn-mini">Add Process</a>
             <div class="card">
-                <b>Red clover</b> <br />
-                Location: Pheasant Run<br />
-                Quantity:
+                <b>Anise hyssop</b>
+                <ul> 
+                    <li>Pheasant Run<a href="#farmModal" role="button" data-toggle="modal"><img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></a></li>
+                    <li>CHC<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                    <li>Dancing Waters<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                    <li>JoBo<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                </ul>
             </div>
-            </a>
-            <a href="#completeProcess" data-toggle="modal"><img src="{% static 'img/stock_next.png' %}" title="Complete this process" class="arrow" /></a>
             <div class="card">
-                <b>Borage</b> <br />
-                Location: Pheasant Run<br />
-                Quantity:
+                <b>Borage</b> 
+                <ul>
+                    <li>Pheasant Run<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                    <li>CHC<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                    <li>Ocooch Moutain<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                </ul>
             </div>
-            <img src="{% static 'img/stock_next.png' %}" title="Complete this process" class="arrow" />
-            <div class="card">
-                <b>Anise hyssop</b> <br />
-                Location: Dancing Waters<br />
-                Quantity:
-            </div>
-            <img src="{% static 'img/stock_next.png' %}" title="Complete this process" class="arrow" />
 		</div>
         <div class="span3 column">
+            <a data-toggle="modal" class="btn btn-primary btn-mini">Add Process</a>
             <div class="card">
-                <b>Anise Hyssop</b>: 91514 <br />
-                Location: Namaste<br />
-                Quantity: 3.2 LB
+                <b>Cleavers</b>
+                <ul>
+                    <li>Johanna 3.2 LB<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                    <li>Lynn 5.0 LB<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                </ul>
             </div>
-            <img src="{% static 'img/stock_next.png' %}" title="Complete this process" class="arrow" />
-            <div class="card">
-                <b>Anise Hyssop</b>: 92014 <br />
-                Location: Namaste<br />
-                Quantity: 1.2 LB
-            </div>
-            <img src="{% static 'img/stock_next.png' %}" title="Complete this process" class="arrow" />
-            <div class="card">
-                <b>Calendula</b>: 92114 <br />
-                Location: Namaste<br />
-                Quantity: 1.1 LB
-            </div>
-            <img src="{% static 'img/stock_next.png' %}" title="Complete this process" class="arrow" />
-            <div class="card">
-                <b>Peppermint</b>: 92214 <br />
-                Location: Namaste<br />
-                Quantity: 2 LB
-            </div>
-            <img src="{% static 'img/stock_next.png' %}" title="Complete this process" class="arrow" />
         </div>
         <div class="span3 column">
+            <a data-toggle="modal" class="btn btn-primary btn-mini">Add Process</a>
             <div class="card">
-                <b>Peppermint</b>: 91214 <br />
-                Location: Namaste<br />
-                Quantity: .5 LB
+                <b>Anise Hyssop</b>
+                <ul>
+                    <li>JoBo 91514 3.2 LB<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                    <li>Fizz 91512 5.0 LB<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                </ul>
             </div>
             <div class="card">
-                <b>Borage</b>: 90114 <br />
-                Location: Namaste<br />
-                Quantity: .5 LB
-            </div>
-            <div class="card">
-                <b>Borage</b>: 90214 <br />
-                Location: Namaste<br />
-                Quantity: .5 LB
+                <b>Cleavers</b>
+                <ul>
+                    <li>JoBo 606505 10.2 LB<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                    <li>Fizz 30303 5.0 LB<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                </ul>
             </div>
         </div>
+{% comment %}
 		<div class="span3 filter">
 			<h3 >{% trans "Filter Board" %}</h3>
 			<form id="category-form" action="." method="POST">
@@ -217,6 +229,28 @@ a {
 				<input type="submit" name="submit" class="btn btn-info" value="Filter" />
 			</form>
 		</div>
+{% endcomment %}
+        <div class="span3 column">
+            <a data-toggle="modal" class="btn btn-primary btn-mini">Add Process</a>
+            <div class="card">
+                <b>Cleavers</b>
+                <ul>
+                    <li>T4P 60605 10.2 LB<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                </ul>
+            </div>
+            <div class="card">
+                <b>Nettles</b>
+                <ul>
+                    <li>T4P 60605 10.2 LB<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                </ul>
+            </div>
+            <div class="card">
+                <b>Peppermint</b>
+                <ul>
+                    <li>T4P 90605 20.2 LB<img src="{% static 'img/stock_next.png' %}" title="Move to next stage" class="arrow" /></li>
+                </ul>
+            </div>
+        </div>
 	</div>
 
         <div class="modal hide fade" id="completeProcess" tabindex="-1" role="dialog" aria-labelledby="complete-process" aria-hidden="true">
@@ -255,6 +289,53 @@ a {
             </div>
         </div>
     </div>
+
+        <div class="modal hide fade" id="farmModal" tabindex="-1" role="dialog" aria-labelledby="farm" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="farm">{% trans "Farm to Harvester" %}</h3>
+            </div>
+            <div class="modal-body">
+                <form class="validateMe" id="farmForm" enctype="multipart/form-data" action="{% url inventory_board_demo %}" method="POST" >
+                    {% csrf_token %}
+                    <p class="ttl">Anise Hyssop from Pheasant Run Farm</p>
+                    {{ move_harvester_form }}
+                    <div class="modal-footer">
+                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                        <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+    <div class="modal hide fade resourceModal" id="resourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="resource-label">{% trans "Create Resource of type" %} {{ resource_type.name }}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="." method="POST" >
+                {% csrf_token %}
+                {{ create_form|as_bootstrap }}
+                {{ create_role_formset.management_form }}
+                Resource access roles<br />
+                {% for form in create_role_formset %}
+                    <tr>
+                        <td>{{ form.role }}</td>
+                        <td>{{ form.agent }}</td>
+                        <td>{{ form.is_contact }} Is contact</td>
+                    </tr>
+                {% endfor %}
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                    <button class="btn btn-primary">{% trans "Save" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
 {% endblock %}
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>

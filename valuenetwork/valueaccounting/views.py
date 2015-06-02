@@ -1318,8 +1318,9 @@ def json_resource_type_resources_with_locations(request, resource_type_id):
         }
         resources.append({"fields": fields})
     rt = EconomicResourceType.objects.get(id=resource_type_id)
-    if rt.behavior == "account":
-        
+    #if rt.behavior == "account":
+        #for res in resources:
+            
     data = simplejson.dumps(resources, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
     
@@ -9542,10 +9543,16 @@ def inventory_board_demo(request):
     pattern = ProcessPattern.objects.get(name="Change")
     resource_form = ResourceFlowForm(pattern=pattern)
     process_form = PlanProcessForm()
+    move_harvester_form = ExchangeFlowForm()
+    move_dryer_form = ExchangeFlowForm()
+    move_seller_form = ExchangeFlowForm()
     
     return render_to_response("valueaccounting/inventory_board_demo.html", {
         "resource_form": resource_form,
         "process_form": process_form,
+        "move_harvester_form": move_harvester_form,
+        "move_dryer_form": move_dryer_form,
+        "move_seller_form": move_seller_form,
     }, context_instance=RequestContext(request))
 
 def lots(request):

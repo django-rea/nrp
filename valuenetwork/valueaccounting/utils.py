@@ -1,11 +1,7 @@
 import datetime
-from itertools import chain, imap
 
-from django.contrib.contenttypes.models import ContentType
 from django.utils.html import linebreaks
 from django.contrib.sites.models import Site
-
-from valuenetwork.valueaccounting.models import Commitment, Process
 
 def split_thousands(n, sep=','):
     s = str(n)
@@ -28,7 +24,7 @@ def flattened_children(node, all_nodes, to_return):
          if subnode.parent and subnode.parent.id == node.id:
              flattened_children(subnode, all_nodes, to_return)
      return to_return
-     
+
 def flattened_children_by_association(node, all_associations, to_return): #works only for agents
     #todo: figure out why this failed when AAs were ordered by from_agent
     #import pdb; pdb.set_trace()
@@ -39,7 +35,7 @@ def flattened_children_by_association(node, all_associations, to_return): #works
         if association.has_associate.id == node.id and association.association_type.association_behavior == "child":
             flattened_children_by_association(association.is_associate, all_associations, to_return)
     return to_return
-    
+
 def flattened_group_associations(node, all_associations, to_return): #works only for agents
     #import pdb; pdb.set_trace()
     to_return.append(node)
@@ -47,7 +43,7 @@ def flattened_group_associations(node, all_associations, to_return): #works only
         if association.has_associate.id == node.id and association.from_agent.agent_type.party_type!="individual":
             flattened_group_associations(association.is_associate, all_associations, to_return)
     return to_return
-    
+
 def agent_dfs_by_association(node, all_associations, depth): #works only for agents
     #todo: figure out why this failed when AAs were ordered by from_agent
     #import pdb; pdb.set_trace()
@@ -58,7 +54,7 @@ def agent_dfs_by_association(node, all_associations, depth): #works only for age
             to_return.extend(agent_dfs_by_association(association.is_associate, all_associations, depth+1))
     return to_return
 
-def group_dfs_by_has_associate(root, node, all_associations, visited, depth): 
+def group_dfs_by_has_associate(root, node, all_associations, visited, depth):
     #works only for agents, and only follows association_from
     #import pdb; pdb.set_trace()
     to_return = []
@@ -70,7 +66,7 @@ def group_dfs_by_has_associate(root, node, all_associations, visited, depth):
             if association.has_associate.id == node.id:
                     to_return.extend(group_dfs_by_has_associate(root, association.is_associate, all_associations, visited, depth+1))
     return to_return
-    
+
 def group_dfs_by_is_associate(root, node, all_associations, visited, depth): 
     #import pdb; pdb.set_trace()
     to_return = []
@@ -82,7 +78,7 @@ def group_dfs_by_is_associate(root, node, all_associations, visited, depth):
             if association.is_associate.id == node.id:
                     to_return.extend(group_dfs_by_is_associate(root, association.has_associate, all_associations, visited, depth+1))
     return to_return
-    
+
 class Edge(object):
     def __init__(self, from_node, to_node, label):
         self.from_node = from_node
@@ -105,7 +101,7 @@ def process_link_label(from_process, to_process):
     intersect = set(outputs) & set(inputs)
     label = ", ".join(rt.name for rt in intersect)
     return label
-            
+
 def process_graph(processes):
     nodes = []
     visited = set()
@@ -174,60 +170,76 @@ def process_graph(processes):
     return big_d
 
 def project_process_resource_agent_graph(project_list, process_list):
-    projects = {}
     processes = {}
-    resource_types = {}
     rt_set = set()
     orders = {}
-    order_set = set()
     agents = {}
     agent_dict = {}
-    current_site = Site.objects.get_current()
-    url_starter = "".join(["http://", current_site.domain])
-    #url_starter = "http://valnet.webfactional.com"
-    #url_starter = ""
-    for p in project_list:
-        d = {
-            "name": p.name,
-            }
-        projects[p.node_id()] = d   
-    #import pdb; pdb.set_trace()
+
     for p in process_list:
-        project_id = ""
-        if p.context_agent:
-            project_id = p.context_agent.node_id()
-        order_id = ""
-        order = p.independent_demand()
-        if order:
-            order_id = order.node_id()
-            if order not in order_set:
-                order_set.add(order)
         dp = {
             "name": p.name,
             "type": "process",
-            "url": "".join([url_starter, p.get_absolute_url()]),
-            "project-id": project_id,
-            "order-id": order_id,
+            "url": "".join([get_url_starter(), p.get_absolute_url()]),
+            "project-id": get_project_id(p),
+            "order-id": get_order_id(p),
             "start": p.start_date.strftime('%Y-%m-%d'),
             "end": p.end_date.strftime('%Y-%m-%d'),
             "orphan": p.is_orphan(),
             "next": []
             }
         processes[p.node_id()] = dp
-        p.dp = dp
-        #rts = p.output_resource_types()
+
+    for p in process_list:
+        order = p.independent_demand()
+        if order:
+            orders[order.node_id()] = get_order_details(order, get_url_starter(), processes)
+
         orts = p.outgoing_commitments()
+
         for ort in orts:
             if ort not in rt_set:
                 rt_set.add(ort)
+
         next_ids = [ort.resource_type_node_id() for ort in p.outgoing_commitments()]
-        dp["next"].extend(next_ids)       
+        processes[p.node_id()]["next"].extend(next_ids)
         agnts = p.working_agents()
         for a in agnts:
             if a not in agent_dict:
                 agent_dict[a] = []
             agent_dict[a].append(p)
-    #import pdb; pdb.set_trace()
+
+    for agnt, procs in agent_dict.items():
+        da = {
+            "name": agnt.name,
+            "type": "agent",
+            "processes": []
+            }
+        for p in procs:
+            da["processes"].append(p.node_id())
+        agents[agnt.node_id()] = da
+
+    big_d = {
+        "projects": get_projects(project_list),
+        "processes": processes,
+        "agents": agents,
+        "resource_types": get_resource_types(rt_set, processes),
+        "orders": orders,
+    }
+
+    return big_d
+
+def get_order_id(p):
+    order = p.independent_demand()
+    order_id = ''
+    if order:
+        order_id = order.node_id()
+
+    return order_id
+
+def get_resource_types(rt_set, processes):
+    resource_types = {}
+
     for ort in rt_set:
         rt = ort.resource_type
         name = rt.name
@@ -236,12 +248,11 @@ def project_process_resource_agent_graph(project_list, process_list):
         drt = {
             "name": name,
             "type": "resourcetype",
-            "url": "".join([url_starter, rt.get_absolute_url()]),
+            "url": "".join([get_url_starter(), rt.get_absolute_url()]),
             "photo-url": rt.photo_url,
             "next": []
             }
-        #import pdb; pdb.set_trace()
-        #for p in rt.wanting_processes():
+
         for wct in rt.wanting_commitments():
             match = False
             if ort.stage:
@@ -255,41 +266,44 @@ def project_process_resource_agent_graph(project_list, process_list):
                     if p_id in processes:
                         drt["next"].append(p_id)
         resource_types[ort.resource_type_node_id()] = drt
-    #import pdb; pdb.set_trace()
-    for order in order_set:
-        receiver_name = ""
-        if order.receiver:
-            receiver_name = order.receiver.name
-        dord = {
-            "name": order.__unicode__(),
-            "type": "order",
-            "for": receiver_name,
-            "due": order.due_date.strftime('%Y-%m-%d'),
-            "url": "".join([url_starter, order.get_absolute_url()]),
-            "processes": []
+
+    return resource_types
+
+def get_projects(project_list):
+    projects = {}
+    for p in project_list:
+        d = {
+            "name": p.name,
             }
-        for p in order.all_processes():
-            p_id = p.node_id()
-            if p_id in processes:
-                dord["processes"].append(p_id)
-        orders[order.node_id()] = dord
-    for agnt, procs in agent_dict.items():
-        da = {
-            "name": agnt.name,
-            "type": "agent",
-            "processes": []
-            }
-        for p in procs:
-            da["processes"].append(p.node_id())
-        agents[agnt.node_id()] = da
-    big_d = {
-        "projects": projects,
-        "processes": processes,
-        "agents": agents,
-        "resource_types": resource_types,
-        "orders": orders,
-    }
-    return big_d
+        projects[p.node_id()] = d
+
+    return projects
+
+def get_project_id(p):
+    project_id = ""
+    if p.context_agent:
+        project_id = p.context_agent.node_id()
+
+    return project_id
+
+def get_url_starter():
+    return "".join(["http://", Site.objects.get_current().domain])
+
+def get_order_details(order, url_starter, processes):
+    receiver_name = ""
+    if order.receiver:
+        receiver_name = order.receiver.name
+
+    dord = {
+        "name": order.__unicode__(),
+        "type": "order",
+        "for": receiver_name,
+        "due": order.due_date.strftime('%Y-%m-%d'),
+        "url": "".join([url_starter, order.get_absolute_url()]),
+        "processes": []
+        }
+
+    return dord
 
 def project_process_graph(project_list, process_list):
     projects = {}
@@ -335,8 +349,9 @@ def project_process_graph(project_list, process_list):
         "processes": processes,
         "agents": agents,
     }
-    return big_d      
-            
+
+    return big_d
+
 def project_graph(producers):
     nodes = []
     edges = []

@@ -364,6 +364,9 @@ def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equ
     sale_total_no_fee = 0
     for se in ship_events:
         sale_total_no_fee += se.value
+    ship_events = sale.shipment_events()
+    for se in ship_events:
+        sale_total_no_fee += se.value
     mtnce_event = EconomicEvent.objects.get(id=mtnce_fee_event_id)
     mtnce_use = str(use_qty) + " " + equipment.resource_type.unit_of_use.abbrev
     sale_total = sale_total_no_fee + mtnce_event.quantity

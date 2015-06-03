@@ -69,6 +69,12 @@ li {
     float: right;
     color: green;
     font-size: 10pt;
+    margin-bottom: 0;
+    margin-top: 2px;
+}
+.info {
+    float: right;
+    margin-left: 5px;
 }
 .btn-mini {
     margin-top: 1px;
@@ -94,6 +100,7 @@ li {
 .commitment {
     margin-left: 1em;
 }
+
 </style>
 
 {% endblock %}
@@ -165,6 +172,11 @@ li {
                         {% trans "Add to an existing resource" %}
                     </a>
 	            {% endif %}
+                <span class="info"> <a href="#" id="rec-info" data-toggle="popover" data-trigger='hover' title="Receipt" 
+                    data-content="You can enter one or more items received for this purchase. These can be inventoried items or
+                    items not worth inventorying.  You can create a new item (resource), or add to the quantity of an existing resource.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
                 <span class="total">Total: {{ receipt_total }}</span>
 	        </h3>
             {% if receipt_events %}
@@ -236,6 +248,16 @@ li {
 		                {% trans "Log an expense" %}
 	                </a>
 	            {% endif %}
+                <span class="info"> <a href="#" id="exp-info" data-toggle="popover" data-trigger='hover' title="Expense" 
+                    data-content={% if use_case.identifier == "exp_contr" %}
+                    "Examples of expense are rent, insurance, phone bills, and other benefits received that are not concrete. 
+                    You can enter more than one expense."
+                    {% else %}
+                    "Expenses are shipping, tariffs, taxes, transportation, or other costs associated with this purchase.
+                    You can enter more than one expense."
+                    {% endif %}>
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
                 <span class="total">Total: {{ expense_total }}</span>
 	        </h3>
 
@@ -296,6 +318,13 @@ li {
                         {% trans "Log a disbursement" %}
                     </a>
                 {% endif %}
+                <span class="info"> <a href="#" id="disb-info" data-toggle="popover" data-trigger='hover' title="Cash Disbursement" 
+                    data-content="Disbursements are the resources (usually from cash receipts) used to distribute income.  Usually this is
+                    done by running the value equation.  You might have to create one manually here if the distribution
+                    was calculated outside the system.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
+                <span class="total">Total: {{ disburse_total }}</span>
             </h3>
 
             {% if disbursement_events %}
@@ -356,6 +385,12 @@ li {
                         {% trans "Log a distribution" %}
                     </a>
                 {% endif %}
+                <span class="info"> <a href="#" id="dist-info" data-toggle="popover" data-trigger='hover' title="Income Distribution" 
+                    data-content="Usually distributions are created by running the value equation. You might have to create one manually here,
+                    if the distribution was made outside of the system.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
+                <span class="total">Total: {{ distribution_total }}</span>
             </h3>
 
             {% if distribution_events %}
@@ -417,6 +452,12 @@ li {
 		                {% trans "Log a payment" %}
 	                </a>
 	             {% endif %}
+                <span class="info"> <a href="#" id="pay-info" data-toggle="popover" data-trigger='hover' title="Payment" 
+                    data-content="Enter a payment for each agent (individual, organization) who paid for the purchase.
+                    {% if use_case.identifier == "purch_contr" %}The total of the payments should equal the total receipts and expenses.{% endif %}">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
+                <span class="total">Total: {{ payment_total }}</span>
 	        </h3>
 
             {% if payment_events %}
@@ -479,6 +520,12 @@ li {
                         {% trans "Add to an existing resource" %}
                     </a>
 	             {% endif %}
+                <span class="info"> <a href="#" id="matl-info" data-toggle="popover" data-trigger='hover' title="Material Contribution" 
+                    data-content="You can enter one or more material contributions (like equipment or tools).  You should enter the 
+                    estimated average market price.  This can be found on the internet, using websites like eBay.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
+                <span class="total">Total: {{ matl_contr_total }}</span>
 	        </h3>
             {% if material_events %}
 		        {% for event in material_events %}
@@ -530,6 +577,12 @@ li {
                         {% trans "Log cash to new account" %}
                     </a>
 	             {% endif %}
+                <span class="info"> <a href="#" id="cash-info" data-toggle="popover" data-trigger='hover' title="Cash Contribution" 
+                    data-content="You can enter one or more cash contributions for different agents (affiliates, members, etc.).
+                    They can be contributions (eligible for income distribution), donations (gifts), or loans (repay as soon as possible).">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
+                <span class="total">Total: {{ cash_contr_total }}</span>
 	        </h3>
             {% if cash_events %}
 		        {% for event in cash_events %}
@@ -572,6 +625,11 @@ li {
                         {% trans "Log unordered uninventoried shipment" %}
                     </a>
                 {% endif %}
+                <span class="info"> <a href="#" id="ship-info" data-toggle="popover" data-trigger='hover' title="Shipment or Delivery" 
+                    data-content="You can enter one or more items that were shipped or delivered to a customer outside the network.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
+                <span class="total">Total: {{ shipment_total }}</span>
             </h3>
             {% if exchange.shipment_commitments %}
                 <div class="hdg">Ordered Items</div>
@@ -730,6 +788,11 @@ li {
                     </a>
                 {% endif %}
 {% endcomment %}
+                <span class="info"> <a href="#" id="fee-info" data-toggle="popover" data-trigger='hover' title="Fee or Tax" 
+                    data-content="Fees are a charge based on other events.  Examples are maintenance fees, or sales tax.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
+                <span class="total">Total: {{ fee_total }}</span>
             </h3>
             {% if fee_events %}
                 {% for event in fee_events %}
@@ -755,6 +818,11 @@ li {
                         {% trans "Log a cash receipt to new account" %}
                     </a>
                 {% endif %}
+                <span class="info"> <a href="#" id="cr-info" data-toggle="popover" data-trigger='hover' title="Cash Receipt" 
+                    data-content="Enter cash received from a customer external to the network, in return for something provided by the network.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
+                <span class="total">Total: {{ cash_receipt_total }}</span>
             </h3>
 
             {% if cash_receipt_events %}
@@ -813,6 +881,11 @@ li {
 		                {% trans "Log a work event" %}
 	                </a>
 	             {% endif %}
+                <span class="info"> <a href="#" id="work-info" data-toggle="popover" data-trigger='hover' title="Work Event" 
+                    data-content="Enter the time you spent on this exchange. This might be preparing paperwork, 
+                    communicating, traveling, even logging the exchange.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
             </h3>
 
             {% for event in work_events %}
@@ -1177,6 +1250,20 @@ li {
 		$(".chzn-select").chosen();
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+        $('#work-info').popover()
+        $('#cr-info').popover()
+        $('#rec-info').popover()
+        $('#pay-info').popover()
+        $('#ship-info').popover()
+        $('#matl-info').popover()
+        $('#cash-info').popover()
+        $('#exp-info').popover()
+        $('#purch-info').popover()
+        $('#dist-info').popover()
+        $('#disb-info').popover()
+        $('#fee-info').popover()
+        $('#xfer-info').popover()
 		
 		jQuery.validator.addMethod("quantity",
             function(value, element) {

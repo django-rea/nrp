@@ -1317,10 +1317,6 @@ def json_resource_type_resources_with_locations(request, resource_type_id):
             "location": loc,
         }
         resources.append({"fields": fields})
-    rt = EconomicResourceType.objects.get(id=resource_type_id)
-    #if rt.behavior == "account":
-        #for res in resources:
-            
     data = simplejson.dumps(resources, ensure_ascii=False)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
     
@@ -9029,6 +9025,16 @@ def exchange_logging(request, exchange_id):
     slots = []
     expense_total = 0
     receipt_total = 0
+    cash_receipt_total = 0
+    purchase_total = 0
+    cash_contr_total = 0
+    matl_contr_total = 0
+    shipment_total = 0
+    payment_total = 0
+    disburse_total = 0
+    distribution_total = 0
+    fee_total = 0
+    transfer_total = 0
     total_in = 0
     total_out = 0
     shipped_ids = []
@@ -9062,6 +9068,7 @@ def exchange_logging(request, exchange_id):
         #    req.changeform = req.change_form()
         for event in payment_events:
             total_out = total_out + event.quantity
+            payment_total = payment_total + event.quantity
             event.changeform = PaymentEventForm(
                 pattern=pattern,
                 context_agent=context_agent,
@@ -9091,6 +9098,7 @@ def exchange_logging(request, exchange_id):
                 prefix=str(event.id))
         for event in cash_receipt_events:
             total_in = total_in + event.quantity
+            cash_receipt_total = cash_receipt_total + event.quantity
             #import pdb; pdb.set_trace()
             event.changeform = CashReceiptForm(
                 pattern=pattern,
@@ -9099,6 +9107,7 @@ def exchange_logging(request, exchange_id):
                 prefix=str(event.id))
         for event in shipment_events:
             total_out = total_out + event.value
+            shipment_total = shipment_total + event.value
             #import pdb; pdb.set_trace()
             if event.resource:
                 event.changeform = ShipmentForm(
@@ -9114,28 +9123,34 @@ def exchange_logging(request, exchange_id):
                     prefix=str(event.id))                
         for event in distribution_events:
             total_out = total_out + event.quantity
+            distribution_total = distribution_total + event.quantity
             event.changeform = DistributionEventForm(
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id))
         for event in disbursement_events:
             total_in = total_in + event.quantity
+            disburse_total = disburse_total + event.quantity
             event.changeform = DisbursementEventForm(
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id))
         for event in cash_events:
             total_in = total_in + event.value
+            cash_contr_total = cash_contr_total + event.value
             #event.changeform = CashEventForm(
             #    pattern=pattern,
             #    instance=event, 
             #    prefix=str(event.id))
         for event in material_events:
             total_in = total_in + event.value
+            matl_contr_total = matl_contr_total + event.value
         for event in fee_events:
             total_out = total_out + event.value
+            fee_total = fee_total + event.value
         for event in transfer_events:
             total_out = total_out + event.value
+            shipment_total = shipment_total + event.value #todo: transfers will become their own slot
         #for event in cash_events:
         #    event.changeform = CashContributionEventForm(
         #        pattern=pattern,
@@ -9273,6 +9288,16 @@ def exchange_logging(request, exchange_id):
         #"add_commit_payment_form": add_commit_payment_form,
         "expense_total": expense_total,
         "receipt_total": receipt_total,
+        "cash_receipt_total": cash_receipt_total,
+        "purchase_total": purchase_total,
+        "cash_contr_total": cash_contr_total,
+        "matl_contr_total": matl_contr_total,
+        "shipment_total": shipment_total,
+        "payment_total": payment_total,
+        "disburse_total": disburse_total,
+        "distribution_total": distribution_total,
+        "fee_total": fee_total,
+        "transfer_total": transfer_total,
         "total_in": total_in,
         "total_out": total_out,
         "shipped_ids": shipped_ids,

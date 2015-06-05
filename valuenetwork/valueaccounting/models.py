@@ -1390,7 +1390,6 @@ class EconomicResourceType(models.Model):
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
     description = models.TextField(_('description'), blank=True, null=True)
-    #rate = models.DecimalField(_('rate'), max_digits=6, decimal_places=2, default=Decimal("0.00"), editable=False)
     accounting_reference = models.ForeignKey(AccountingReference, blank=True, null=True,
         verbose_name=_('accounting reference'), related_name="resource_types",
         help_text=_('optional reference to an external account'))
@@ -3537,6 +3536,16 @@ class ProcessType(models.Model):
     def xbill_class(self):
         return "process-type"
 
+
+class ResourceTypeSpecialPrice(models.Model):
+    resource_type = models.ForeignKey(EconomicResourceType, 
+        verbose_name=_('resource type'), related_name='prices')
+    identifier = models.CharField(_('identifier'), max_length=128)
+    description = models.TextField(_('description'), blank=True, null=True)
+    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.00"))
+    stage = models.ForeignKey(ProcessType, related_name="price_at_stage",
+        verbose_name=_('stage'), blank=True, null=True)
     
 
 class GoodResourceManager(models.Manager):
@@ -3601,6 +3610,8 @@ class EconomicResource(models.Model):
     value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.00"))
+    price_per_unit = models.DecimalField(_('price per unit'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
@@ -7815,6 +7826,10 @@ class EconomicEvent(models.Model):
         default=Decimal("0.0"))
     unit_of_value = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit of value'), related_name="event_value_units")
+    price = models.DecimalField(_('price'), max_digits=8, decimal_places=2, 
+        default=Decimal("0.0"))
+    unit_of_price = models.ForeignKey(Unit, blank=True, null=True,
+        verbose_name=_('unit of price'), related_name="event_price_units")
     commitment = models.ForeignKey(Commitment, blank=True, null=True,
         verbose_name=_('fulfills commitment'), related_name="fulfillment_events",
         on_delete=models.SET_NULL)
@@ -8424,6 +8439,18 @@ class EconomicEvent(models.Model):
             value_string = str(val)
         return value_string
     
+    def price_formatted_decimal(self):
+        #import pdb; pdb.set_trace()
+        val = self.price.quantize(Decimal('.01'), rounding=ROUND_UP)
+        if self.unit_of_price:
+            if self.unit_of_price.symbol:
+                price_string = "".join([self.unit_of_price.symbol, str(val)])
+            else:
+                price_string = " ".join([str(val), self.unit_of_price.abbrev])
+        else:
+            price_string = str(val)
+        return price_string
+        
     def form_prefix(self):
         return "-".join(["EVT", str(self.id)])
 

@@ -39,7 +39,7 @@ def consumable_formset(consumable_rt, data=None):
 @login_required
 def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pattern_id, 
     sale_pattern_id, equip_svc_rt_id, equip_fee_rt_id, tech_rt_id, consumable_rt_id, 
-    payment_rt_id, tech_rel_id, ve_id, va_id, techshop_rt_id, fablab_rt_id, part_rt_id, cite_rt_id
+    payment_rt_id, tech_rel_id, ve_id, va_id, price_id, part_rt_id, cite_rt_id
 ):
     #import pdb; pdb.set_trace()
     #scenario: 1=commercial, 2=project, 3=fablab, 4=techshop, 5=other
@@ -139,6 +139,26 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
                 )
                 tech_event.save()
                 total_price += tech_event.value
+            #import pdb; pdb.set_trace()
+            if scenario == '3' or scenario == '4': #fablab, techshop
+                use_event = EconomicEvent(
+                    event_type = et_use,
+                    event_date = input_date,
+                    resource_type = equipment.resource_type,
+                    resource = equipment,
+                    process = process,
+                    from_agent = context_agent,
+                    to_agent = who,
+                    context_agent = context_agent,
+                    quantity = quantity,
+                    unit_of_quantity = equipment.resource_type.unit_of_use,
+                    price = quantity * ResourceTypeSpecialPrice.objects.get(id=price_id).price_per_unit,
+                    unit_of_price = equipment.resource_type.unit_of_price,
+                    created_by = request.user,
+                )
+                use_event.save()
+                total_price += use_event.price
+                
             #ephemeral output resource
             printer_service = EconomicResource(
                 resource_type=equipment_svc_rt,
@@ -164,31 +184,11 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
             )
             output_event.save()
             total_value = output_event.resource.compute_value_per_unit(value_equation=ve)
+            if scenario == '3' or scenario == '4': #fablab, techshop
+                total_value += use_event.price
             output_event.value = total_value
             output_event.save()
-            
-            if scenario == '3' or scenario == '4': #fablab, techshop
-                if scenario == '3':
-                    use_svc_rt = EconomicResourceType.objects.get(id=fablab_rt_id)
-                else:
-                    use_svc_rt = EconomicResourceType.objects.get(id=techshop_rt_id)
-                use_event = EconomicEvent(
-                    event_type = et_use,
-                    event_date = input_date,
-                    resource_type = equipment.resource_type,
-                    resource = equipment,
-                    process = process,
-                    from_agent = context_agent,
-                    to_agent = who,
-                    context_agent = context_agent,
-                    quantity = quantity,
-                    unit_of_quantity = equipment.resource_type.unit_of_use,
-                    value = quantity * use_svc_rt.price_per_unit,
-                    unit_of_value = use_svc_rt.unit_of_price,
-                    created_by = request.user,
-                )
-                use_event.save()
-            
+
             #import pdb; pdb.set_trace()
             if scenario == '2' and next_process:
                 cust = next_process.context_agent
@@ -239,22 +239,22 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
                 created_by = request.user,
             )
             ship_event.save()
-            if scenario == '3' or scenario == '4':
-                use_ship_event = EconomicEvent(
-                    event_type = et_ship,
-                    event_date = input_date,
-                    resource_type = use_svc_rt,
-                    exchange = sale,
-                    from_agent = context_agent,
-                    to_agent = who,
-                    context_agent = context_agent,
-                    quantity = quantity,
-                    unit_of_quantity = use_svc_rt.unit,
-                    value = quantity * use_svc_rt.price_per_unit,
-                    unit_of_value = use_svc_rt.unit_of_price,
-                    created_by = request.user,
-                )
-                use_ship_event.save()
+            #if scenario == '3' or scenario == '4':
+            #    use_ship_event = EconomicEvent(
+            #        event_type = et_ship,
+            #        event_date = input_date,
+            #        resource_type = use_svc_rt,
+            #        exchange = sale,
+            #        from_agent = context_agent,
+            #        to_agent = who,
+            #        context_agent = context_agent,
+            #        quantity = quantity,
+            #        unit_of_quantity = use_svc_rt.unit,
+            #        value = quantity * use_svc_rt.price_per_unit,
+            #        unit_of_value = use_svc_rt.unit_of_price,
+            #        created_by = request.user,
+            #    )
+            #    use_ship_event.save()
             printer_service.quantity = 0
             printer_service.save()
             
@@ -364,9 +364,9 @@ def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equ
     sale_total_no_fee = 0
     for se in ship_events:
         sale_total_no_fee += se.value
-    ship_events = sale.shipment_events()
-    for se in ship_events:
-        sale_total_no_fee += se.value
+    #ship_events = sale.shipment_events()
+    #for se in ship_events:
+    #    sale_total_no_fee += se.value
     mtnce_event = EconomicEvent.objects.get(id=mtnce_fee_event_id)
     mtnce_use = str(use_qty) + " " + equipment.resource_type.unit_of_use.abbrev
     sale_total = sale_total_no_fee + mtnce_event.quantity

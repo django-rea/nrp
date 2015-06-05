@@ -101,7 +101,7 @@ ul {
                                 <td>{{ event.resource_type }}</td>
                               {% endif %}
                                 <td>{{ event.quantity }} {{ event.unit }}</td>
-                                <td>{{ event.value_formatted_decimal }}</td>
+                                <td>{% if event.price > 0 %}{{ event.price_formatted_decimal }}{% else %}{{ event.value_formatted_decimal }}{% endif%}</td>
                             </tr>
                         {% endfor %}
                         <tr>

@@ -534,7 +534,17 @@ class ProcessInputForm(forms.ModelForm):
             if use_pattern:
                 self.pattern = pattern
                 self.fields["resource_type"].queryset = pattern.input_resource_types()
-                
+
+class SpecialPriceForm(forms.Form):
+    identifier = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    price_per_unit = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'price'}))
+    
 #new
 class UnplannedWorkEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

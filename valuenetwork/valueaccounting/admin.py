@@ -21,6 +21,11 @@ class HelpAdmin(admin.ModelAdmin):
 
 admin.site.register(Help, HelpAdmin)
 
+class ResourceTypeSpecialPriceAdmin(admin.ModelAdmin):
+    list_display = ('resource_type', 'identifier', 'description', 'price_per_unit')
+    
+admin.site.register(ResourceTypeSpecialPrice, ResourceTypeSpecialPriceAdmin)
+
 class ResourceClassAdmin(admin.ModelAdmin):
     list_display = ('name', 'description',)
     

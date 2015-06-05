@@ -5768,7 +5768,8 @@ def process_oriented_logging(request, process_id):
     if agent and pattern:
         slots = pattern.slots()
         event_types = pattern.event_types()
-        if request.user.is_superuser or request.user == process.created_by:
+        #if request.user.is_superuser or request.user == process.created_by:
+        if request.user.is_staff or request.user == process.created_by:
             logger = True
             super_logger = True
         #import pdb; pdb.set_trace()

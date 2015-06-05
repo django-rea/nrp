@@ -385,7 +385,7 @@ def pay_equipment_use(request, scenario, sale_id, process_id, payment_rt_id, equ
                 event_type = cr_et,
                 event_date = sale.start_date,
                 exchange = sale,
-                resource_type = payment_rt,
+                resource_type = payment_rt, #todo: fix?? ends up being canadian dollars and a virtual account
                 resource = money_resource,
                 from_agent = who,
                 to_agent = sale.context_agent,

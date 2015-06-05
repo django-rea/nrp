@@ -915,7 +915,8 @@ class EconomicAgent(models.Model):
         shipments = []
         exf = self.exchange_firm()
         ship = EventType.objects.get(label="ships")
-        qs = EconomicEvent.objects.filter(event_type=ship)
+        transfer = EventType.objects.get(label="transfers")
+        qs = EconomicEvent.objects.filter(Q(event_type=ship)|Q(event_type=transfer))
         #todo: retest, may need production events for shipments to tell
         #if a shipment shd be excluded or not
         if exf:
@@ -4178,6 +4179,7 @@ class EconomicResource(models.Model):
                                     #experiment for equipment maintenance fee
                                     #ip.share = ip.value
                                     #events.append(ip)
+                                    #ve bug: where does ip.value come from?
                                     value = ip.value
                                     ip_value = value * distro_fraction
                                     d_qty = distro_qty
@@ -6389,7 +6391,8 @@ class Exchange(models.Model):
                 value = evt.quantity
                 contributions = []
                 #import pdb; pdb.set_trace()
-                if evt.resource and not xfers:
+                #if evt.resource and not xfers:
+                if evt.resource:
                     candidates = evt.resource.cash_contribution_events()
                     for cand in candidates:
                         br = cand.bucket_rule(value_equation)

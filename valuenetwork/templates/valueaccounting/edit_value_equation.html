@@ -131,13 +131,6 @@ th
            <div class="span7 ve">
 
                 <span class="name">{{ value_equation }}</span>
-                <span>for context <b>
-                    {% if value_equation.context_agent %}
-                        {{ value_equation.context_agent.nick }}
-                    {% else %}
-                        None
-                    {% endif %}</b>
-                </span>
                 {% if user = ve.created_by or user.is_superuser %}
                     <div style="display: inline;" >
                         <a href="#change-ve" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Change" %}</a>
@@ -207,6 +200,13 @@ th
                     {% endif %}
                 </div>
 
+                <div>Context: <b>
+                    {% if value_equation.context_agent %}
+                        {{ value_equation.context_agent.nick }}
+                    {% else %}
+                        None
+                    {% endif %}</b>
+                </div>
                 <div class="indent">
                     Bucket percentages are calculated using the method: <b>{{ value_equation.get_percentage_behavior_display }}</b>
                 </div>

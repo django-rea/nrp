@@ -3874,7 +3874,11 @@ class EconomicResource(models.Model):
                         elif ip.event_type.relationship == "use":
                             #import pdb; pdb.set_trace()
                             if ip.resource:
-                                ip.value = ip.quantity * ip.resource.value_per_unit_of_use
+                                #price changes
+                                if ip.price:
+                                    ip.value = ip.price
+                                else:
+                                    ip.value = ip.quantity * ip.resource.value_per_unit_of_use
                                 ip.save()
                                 pe_value += ip.value
                                 #padding = ""
@@ -4175,7 +4179,11 @@ class EconomicResource(models.Model):
                                 #equip logging changes
                                 #import pdb; pdb.set_trace()
                                 if ip.resource:
-                                    ip.value = ip.quantity * ip.resource.value_per_unit_of_use
+                                    #price changes
+                                    if ip.price:
+                                        ip.value = ip.price
+                                    else:
+                                        ip.value = ip.quantity * ip.resource.value_per_unit_of_use
                                     ip.save()
 
                                     #experiment for equipment maintenance fee
@@ -4302,6 +4310,11 @@ class EconomicResource(models.Model):
                             elif ip.event_type.relationship == "use":
                                 #use events are not contributions, but their resources may have contributions
                                 if ip.resource:
+                                    #price changes
+                                    if ip.price:
+                                        ip.value = ip.price
+                                    else:
+                                        ip.value = ip.quantity * ip.resource.value_per_unit_of_use
                                     value = ip.value
                                     ip_value = value * distro_fraction
                                     d_qty = distro_qty
@@ -5951,7 +5964,11 @@ class Process(models.Model):
                 #Use contributions use resource value_per_unit_of_use.
                 elif ip.event_type.relationship == "use":
                     if ip.resource:
-                        ip.value = ip.quantity * ip.resource.value_per_unit_of_use
+                        #price changes
+                        if ip.price:
+                            ip.value = ip.price
+                        else:
+                            ip.value = ip.quantity * ip.resource.value_per_unit_of_use
                         ip.save()
                         process_value += ip.value
                         ip.resource.roll_up_value(path, depth, visited)
@@ -6036,10 +6053,11 @@ class Process(models.Model):
                         elif ip.event_type.relationship == "use":
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
-                                #ip_value = ip.value * distro_fraction
-                                #if ip_value:
-                                #    d_qty = ip_value / value
-                                #    ip.resource.compute_income_shares(value_equation, d_qty, events, visited) 
+                                #price changes
+                                if ip.price:
+                                    ip.value = ip.price
+                                else:
+                                    ip.value = ip.quantity * ip.resource.value_per_unit_of_use
                                 value = ip.value
                                 ip_value = value * distro_fraction
                                 d_qty = distro_qty
@@ -8064,6 +8082,7 @@ class EconomicEvent(models.Model):
                     "* Event quantity:", str(self.quantity)
                     ])
         elif self.event_type.relationship == "use":
+            #todo: needs price changes
             vpu = self.resource.value_per_unit_of_use
             value = vpu * self.quantity
             if p_qty:

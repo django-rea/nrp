@@ -9694,6 +9694,7 @@ def value_equation_sandbox(request, value_equation_id=None):
     buckets = []
     agent_totals = []
     details = []
+    total = None
     if ves:
         if not ve:
             ve = ves[0]
@@ -9713,6 +9714,7 @@ def value_equation_sandbox(request, value_equation_id=None):
                         serialized_filters[bucket.id] = ser_string
                         bucket.form = bucket_form
             agent_totals, details = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
+            total = sum(at.quantity for at in agent_totals)
             #import pdb; pdb.set_trace()
 
     else:
@@ -9725,6 +9727,7 @@ def value_equation_sandbox(request, value_equation_id=None):
         "buckets": buckets,
         "agent_totals": agent_totals,
         "details": details,
+        "total": total,
         "ve": ve,
     }, context_instance=RequestContext(request))
 

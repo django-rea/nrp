@@ -184,8 +184,8 @@ def log_equipment_use(request, scenario, equip_resource_id, context_agent_id, pa
             )
             output_event.save()
             total_value = output_event.resource.compute_value_per_unit(value_equation=ve)
-            if scenario == '3' or scenario == '4': #fablab, techshop
-                total_value += use_event.price
+            #if scenario == '3' or scenario == '4': #fablab, techshop
+            #    total_value += use_event.price
             output_event.value = total_value
             output_event.save()
 

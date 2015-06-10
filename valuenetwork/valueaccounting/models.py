@@ -6488,10 +6488,10 @@ class Exchange(models.Model):
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #exchange method
         #import pdb; pdb.set_trace()
+        locals = []
         if self not in visited:
             visited.add(self)
             resource = use_event.resource
-            receipts = self.receipt_events()
             trigger_fraction = 1
             #equip logging changes
             receipts = self.receipt_events()
@@ -6547,7 +6547,8 @@ class Exchange(models.Model):
                             resource_fraction = ct.quantity / resource_value
                             #is use_value relevant here? Or use_share (use_value / cost)?
                             #and since we have multiple payments, must consider total!
-                            share_addition = use_share * resource_fraction * payment_fraction
+                            #share_addition = use_value * use_share * resource_fraction * payment_fraction
+                            share_addition = use_value * resource_fraction * payment_fraction
                             existing_ct = next((evt for evt in events if evt == ct),0)
                             if existing_ct:
                                 #import pdb; pdb.set_trace()
@@ -6556,6 +6557,7 @@ class Exchange(models.Model):
                             else:
                                 ct.share = share_addition
                                 events.append(ct)
+                                locals.append(ct)
                     if not contributions:
                         #if contributions were credited,
                         # do not give credit for payment.
@@ -6573,6 +6575,8 @@ class Exchange(models.Model):
                 fraction = value / resource_value
                 evt.share = use_value * fraction
                 events.append(evt)
+            local_total = sum(lo.share for lo in locals)
+            #print "local_total:", local_total
                 
     def distribution_value_equation(self):
         ves = self.value_equation.all()
@@ -8908,6 +8912,7 @@ class ValueEquation(models.Model):
         #import pdb; pdb.set_trace()
         et = EventType.objects.get(name='Distribution')
         distribution_events = []
+        #import pdb; pdb.set_trace()
         for agent_id in agent_amounts:   
             distribution = EconomicEvent(
                 event_type = et,
@@ -8924,6 +8929,10 @@ class ValueEquation(models.Model):
             distribution.dist_claim_events = agent_claim_events
             distribution_events.append(distribution)
         #import pdb; pdb.set_trace()
+        #equip logging changes       
+        #et = EventType.objects.get(name="Cash Contribution")
+        #total_ccs = sum(e.share for e in contribution_events if e.event_type==et)
+        #print "total_ccs:", total_ccs
         return distribution_events, contribution_events
         
 class DistributionValueEquation(models.Model):

@@ -166,10 +166,14 @@ img {
                         <tbody> 
                             {% for at in agent_totals %}
                                 <tr class="{% cycle 'odd' 'even' %}">
-                                    <td>{{ at.to_agent }}</td>
+                                    <td>{{ at.to_agent.name }}</td>
                                     <td style="text-align: right;" >{{ at.quantity }}</td>
                                 </tr>
                             {% endfor %}
+                            <tr>
+                                <th> Total </th>
+                                <td  style="text-align: right;"> {{ total }} </td>
+                            </tr>
                         <tbody> 
                     </table>
                   </div>

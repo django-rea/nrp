@@ -8962,7 +8962,7 @@ class ValueEquation(models.Model):
             max_dist.quantity = (max_dist.quantity + delta).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
             claim_events = max_dist.dist_claim_events
             for ce in claim_events:
-                if ce.value > delta:
+                if ce.value > abs(delta):
                     ce.value += delta
                     break
             

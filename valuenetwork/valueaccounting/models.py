@@ -6506,7 +6506,7 @@ class Exchange(models.Model):
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #exchange method
         #import pdb; pdb.set_trace()
-        locals = []
+        #locals = []
         if self not in visited:
             visited.add(self)
             resource = use_event.resource
@@ -6575,7 +6575,7 @@ class Exchange(models.Model):
                             else:
                                 ct.share = share_addition
                                 events.append(ct)
-                                locals.append(ct)
+                                #locals.append(ct)
                     if not contributions:
                         #if contributions were credited,
                         # do not give credit for payment.
@@ -6593,7 +6593,9 @@ class Exchange(models.Model):
                 fraction = value / resource_value
                 evt.share = use_value * fraction
                 events.append(evt)
-            local_total = sum(lo.share for lo in locals)
+            #for l in locals:
+            #    print l.from_agent, l.quantity, "share:", l.share
+            #local_total = sum(lo.share for lo in locals)
             #print "local_total:", local_total
                 
     def distribution_value_equation(self):
@@ -8509,7 +8511,7 @@ class EconomicEvent(models.Model):
     
     def value_formatted_decimal(self):
         #import pdb; pdb.set_trace()
-        val = self.value.quantize(Decimal('.01'), rounding=ROUND_UP)
+        val = self.value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
         if self.unit_of_value:
             if self.unit_of_value.symbol:
                 value_string = "".join([self.unit_of_value.symbol, str(val)])
@@ -8521,7 +8523,7 @@ class EconomicEvent(models.Model):
     
     def price_formatted_decimal(self):
         #import pdb; pdb.set_trace()
-        val = self.price.quantize(Decimal('.01'), rounding=ROUND_UP)
+        val = self.price.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
         if self.unit_of_price:
             if self.unit_of_price.symbol:
                 price_string = "".join([self.unit_of_price.symbol, str(val)])
@@ -8893,6 +8895,7 @@ class ValueEquation(models.Model):
         
     def run_value_equation(self, amount_to_distribute, serialized_filters):
         #import pdb; pdb.set_trace()
+        atd = amount_to_distribute
         detail_sums = []
         claim_events = []
         contribution_events = []
@@ -8947,11 +8950,22 @@ class ValueEquation(models.Model):
                 ce.event = distribution
             distribution.dist_claim_events = agent_claim_events
             distribution_events.append(distribution)
-        #import pdb; pdb.set_trace()
-        #equip logging changes       
-        #et = EventType.objects.get(name="Cash Contribution")
-        #total_ccs = sum(e.share for e in contribution_events if e.event_type==et)
-        #print "total_ccs:", total_ccs
+        
+        distributed = sum(de.quantity for de in distribution_events)
+        delta = atd - distributed
+        if delta:
+            max_dist = distribution_events[0]
+            for de in distribution_events:
+                if de.quantity > max_dist.quantity:
+                    max_dist = de
+            #import pdb; pdb.set_trace()
+            max_dist.quantity = (max_dist.quantity + delta).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+            claim_events = max_dist.dist_claim_events
+            for ce in claim_events:
+                if ce.value > delta:
+                    ce.value += delta
+                    break
+            
         return distribution_events, contribution_events
         
 class DistributionValueEquation(models.Model):

@@ -2355,6 +2355,7 @@ def timeline(request):
         from_agent=None,
         event_type__relationship="work").order_by("due_date")
     return render_to_response("valueaccounting/timeline.html", {
+        "orderId": 0,
         "timeline_date": timeline_date,
         "unassigned": unassigned,
     }, context_instance=RequestContext(request))
@@ -2367,6 +2368,30 @@ def json_timeline(request):
     data = simplejson.dumps(events, ensure_ascii=False)
     #import pdb; pdb.set_trace()
     return HttpResponse(data, mimetype="text/json-comment-filtered")
+    
+def order_timeline(request, order_id):
+    order = get_object_or_404(Order, pk=order_id)
+    timeline_date = order.due_date.strftime("%b %e %Y 00:00:00 GMT-0600")
+    unassigned = Commitment.objects.unfinished().filter(
+        independent_demand=order,
+        from_agent=None,
+        event_type__relationship="work").order_by("due_date")
+    return render_to_response("valueaccounting/timeline.html", {
+        "orderId": order.id,
+        "timeline_date": timeline_date,
+        "unassigned": unassigned,
+    }, context_instance=RequestContext(request))
+
+def json_order_timeline(request, order_id):
+    events = {'dateTimeFormat': 'Gregorian','events':[]}
+    order = get_object_or_404(Order, pk=order_id)
+    processes = order.all_processes()
+    orders = [order,]
+    create_events(orders, processes, events)
+    data = simplejson.dumps(events, ensure_ascii=False)
+    #import pdb; pdb.set_trace()
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+
 
 def json_processes(request, order_id=None):
     #import pdb; pdb.set_trace()

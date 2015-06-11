@@ -206,6 +206,8 @@ textarea {
 					    {% trans "Production Schedule" %}:
 					    {% if order.all_processes %}
                             <a class="indent" href="{% url processes_graph object_type='O' object_id=order.id %}">Process graph diagram</a>
+                            
+                            <a class="indent" href="{% url order_timeline order_id=order.id %}">Timeline</a>
 					    {% endif %}
 				    </h3> 
 					

@@ -33,7 +33,7 @@
     <div class="container">
         {% include "_messages.html" %}
 		<h1>{% trans "Timeline" %}</h1>
-		<p>{% trans "Double-click on months to slide days. Click on event in day to show details." %}</p>	
+		<p>{% trans "Double-click on date in bottom lane to slide to that day. Click on process in top lane to show details." %}</p>	
 		<div id="my-timeline" style="height: 600px; border: 1px solid #aaa"></div>
 
 {% comment %}
@@ -120,10 +120,20 @@ $(document).ready(function() {
     	    this._timeZone //+ (new Date().getTimezoneOffset() / 60)
     	).toLocaleDateString();
 	};
+	
+	var jsonUrl = encodeURI("/accounting/json-timeline/");
 
-	tl.loadJSON("{% url json_timeline %}", function(data, url) {
-    	eventSource.loadJSON(data, url);
-  	});
+	var orderId = {{ orderId }};
+	
+	if (orderId)
+	{
+        jsonUrl = encodeURI("/accounting/json-order-timeline/" + orderId);
+    }
+
+    
+    tl.loadJSON(jsonUrl, function(data, url) {
+        eventSource.loadJSON(data, url);
+    });
 
 	$(".duedate").click(function() 
 	{

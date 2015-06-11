@@ -8964,8 +8964,9 @@ class ValueEquation(models.Model):
             for ce in claim_events:
                 if ce.value > abs(delta):
                     ce.value += delta
-                    if ce.claim.value_equation_bucket_rule.claim_rule_type == "debt-like":
-                        claim.value = claim.value += delta
+                    claim = ce.claim
+                    if claim.value_equation_bucket_rule.claim_rule_type == "debt-like":
+                        claim.value += delta
                         if claim.value < 0:
                             claim.value = 0
                     break

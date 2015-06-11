@@ -3138,6 +3138,18 @@ class Order(models.Model):
             return processes[-1]
         else:
             return None
+            
+    def first_process_in_order(self):
+        processes = list(self.unordered_processes())
+        if processes:
+            first = processes[0]
+            for p in processes:
+                if p.start_date < first.start_date:
+                    first = p
+            return first
+        else:
+            return None
+
                 
     def process_types(self):
         pts = []

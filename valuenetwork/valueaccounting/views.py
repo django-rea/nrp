@@ -2371,7 +2371,11 @@ def json_timeline(request):
     
 def order_timeline(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
-    timeline_date = order.due_date.strftime("%b %e %Y 00:00:00 GMT-0600")
+    first_process = order.first_process_in_order()
+    timeline_date = datetime.date.today().strftime("%b %e %Y 00:00:00 GMT-0600")
+    if first_process:
+        if first_process.start_date:
+            timeline_date = first_process.start_date.strftime("%b %e %Y 00:00:00 GMT-0600")
     unassigned = Commitment.objects.unfinished().filter(
         independent_demand=order,
         from_agent=None,

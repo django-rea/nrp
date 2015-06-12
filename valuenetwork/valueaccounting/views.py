@@ -2349,21 +2349,46 @@ def project_network(request):
         "edges": edges,
     }, context_instance=RequestContext(request))
 
-def timeline(request):
+def timeline(request, from_date, to_date, context_id):
+    try:
+        from_date_date = datetime.datetime(*time.strptime(from_date, '%Y_%m_%d')[0:5]).date()
+        to_date_date = datetime.datetime(*time.strptime(to_date, '%Y_%m_%d')[0:5]).date()
+    except ValueError:
+        raise Http404
+    context_id = int(context_id)
+    if context_id:
+        context_agent = get_object_or_404(EconomicAgent, pk=context_id)
     timeline_date = datetime.date.today().strftime("%b %e %Y 00:00:00 GMT-0600")
     unassigned = Commitment.objects.unfinished().filter(
         from_agent=None,
         event_type__relationship="work").order_by("due_date")
     return render_to_response("valueaccounting/timeline.html", {
         "orderId": 0,
+        "context_id": context_id,
+        "from_date": from_date,
+        "to_date": to_date,
         "timeline_date": timeline_date,
         "unassigned": unassigned,
     }, context_instance=RequestContext(request))
 
-def json_timeline(request):
+def json_timeline(request, from_date, to_date, context_id):
+    try:
+        start = datetime.datetime(*time.strptime(from_date, '%Y_%m_%d')[0:5]).date()
+        end = datetime.datetime(*time.strptime(to_date, '%Y_%m_%d')[0:5]).date()
+    except ValueError:
+        raise Http404
+    context_id = int(context_id)
+    context_agent = None
+    if context_id:
+        context_agent = get_object_or_404(EconomicAgent, pk=context_id)
     events = {'dateTimeFormat': 'Gregorian','events':[]}
-    orders = Order.objects.all()
-    processes = Process.objects.unfinished()
+    processes = Process.objects.unfinished().filter(
+        Q(start_date__range=(start, end)) | Q(end_date__range=(start, end)) |
+        Q(start_date__lt=start, end_date__gt=end))      
+    if context_agent:
+        processes = processes.filter(context_agent=context_agent)
+    orders = [p.independent_demand() for p in processes if p.independent_demand()]
+    orders = list(set(orders))
     create_events(orders, processes, events)
     data = simplejson.dumps(events, ensure_ascii=False)
     #import pdb; pdb.set_trace()
@@ -3296,6 +3321,7 @@ def change_process_sked_ajax(request):
 
 def work(request):
     agent = get_agent(request)
+    context_id = 0
     start = datetime.date.today()
     end = start + datetime.timedelta(days=90)
     init = {"start_date": start, "end_date": end}
@@ -3318,8 +3344,11 @@ def work(request):
                 proj_data = ca_form.cleaned_data
                 proj_id = proj_data["context_agent"]
                 if proj_id.isdigit:
+                    context_id = proj_id
                     chosen_context_agent = EconomicAgent.objects.get(id=proj_id)
-
+    
+    start_date = start.strftime('%Y_%m_%d')
+    end_date = end.strftime('%Y_%m_%d')
     processes, context_agents = assemble_schedule(start, end, chosen_context_agent)
     todos = Commitment.objects.todos().filter(due_date__range=(start, end))
     work_now = settings.USE_WORK_NOW
@@ -3328,6 +3357,9 @@ def work(request):
         "context_agents": context_agents,
         "all_processes": processes,
         "date_form": date_form,
+        "start_date": start_date,
+        "end_date": end_date,
+        "context_id": context_id,
         "todo_form": todo_form,
         "ca_form": ca_form,
         "todos": todos,

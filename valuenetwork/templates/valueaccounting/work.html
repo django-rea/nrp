@@ -192,7 +192,7 @@ th, td {
 {% comment %}
 		        <a href="{% url today %}">{% trans "Today" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 {% endcomment %}
-		        <a href="{% url timeline %}">{% trans "Timeline" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
+		        <a href="{% url timeline from_date=start_date to_date=end_date context_id=context_id %}">{% trans "Timeline" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        <a href="{% url processes_graph %}">{% trans "Process Diagram" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        <a href="{% url labnotes_history %}">{% trans "Work Notes History" %}</a>&nbsp;&nbsp;&nbsp;&nbsp;
 		        {% if agent %}

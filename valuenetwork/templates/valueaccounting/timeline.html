@@ -124,10 +124,17 @@ $(document).ready(function() {
 	var jsonUrl = encodeURI("/accounting/json-timeline/");
 
 	var orderId = {{ orderId }};
+	var fromDate = "{{ from_date }}" + "/";
+	var toDate = "{{ to_date }}" + "/";
+	var contextId = {{ context_id }} + "/";
 	
 	if (orderId)
 	{
-        jsonUrl = encodeURI("/accounting/json-order-timeline/" + orderId);
+        var jsonUrl = encodeURI("/accounting/json-order-timeline/" + orderId);
+    }
+    else
+    {
+        var jsonUrl = encodeURI("/accounting/json-timeline/" + fromDate + toDate + contextId);
     }
 
     

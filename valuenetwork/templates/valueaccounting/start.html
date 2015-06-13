@@ -173,7 +173,7 @@ th, td {
         {% include "_messages.html" %}
 	
 		<legend>
-		    {% trans "My Work" %} &nbsp;&nbsp;&nbsp;<a href="{% url timeline %}">{% trans "Timeline" %}</a> 
+		    {% trans "My Work" %} 
 		    {% if agent %}
 		        &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a>
 		        &nbsp;&nbsp;&nbsp;<a href="{% url agent_stats agent_id=agent.id %}">{% trans "Comparative stats" %}</a>

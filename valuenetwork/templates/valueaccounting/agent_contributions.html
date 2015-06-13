@@ -2,6 +2,7 @@
 
 {% load staticfiles %}
 {% load i18n %}
+{% load bootstrap_tags %}
 
 {% block head_title %}{% trans "Contributions from " %} {{ agent }}{% endblock %}
 
@@ -38,8 +39,18 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>
-            {% trans "Contributions from " %} {{ agent }} &nbsp;&nbsp;&nbsp;
-            <a href="{% url agent_value_accounting agent_id=agent.id %}">{% trans "Value Accounting" %}</a>
+            <span style="vertical-align: top;" >
+                {% trans "Contributions from " %} {{ agent }} &nbsp;&nbsp;&nbsp;
+                <a href="{% url agent_value_accounting agent_id=agent.id %}" style="vertical-align: top;">{% trans "Value Accounting" %}</a>
+            </span>
+            &nbsp;&nbsp;&nbsp;
+            <form id="filterForm" action="." method="POST" style="display: inline; "   >
+                {% csrf_token %}
+                {{ et_form.event_types }}
+                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Filter' %}" style="display: inline; vertical-align: top;" />
+
+                
+            </form>
 		</legend>
 		{% if user_is_agent %}
             <p>
@@ -195,6 +206,8 @@
             $(this).val(pageNumber);
         });
 
+        $("select").chosen();
+        
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
         $('.date-entry').change(saveDate);

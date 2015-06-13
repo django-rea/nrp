@@ -2162,6 +2162,14 @@ class WorkSelectionForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(WorkSelectionForm, self).__init__(*args, **kwargs)
         self.fields["type_of_work"].choices = [('', '----------')] + [(rt.id, rt.name) for rt in EconomicResourceType.objects.all()]
+        
+        
+class EventTypeFilterForm(forms.Form):
+    event_types = forms.MultipleChoiceField()
+
+    def __init__(self, event_types, *args, **kwargs):
+        super(EventTypeFilterForm, self).__init__(*args, **kwargs)
+        self.fields["event_types"].choices = [('', '----------')] + [(et.id, et.name) for et in event_types]
 
 
 class ProjectSelectionForm(forms.Form):

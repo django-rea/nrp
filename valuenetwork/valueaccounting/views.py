@@ -1108,6 +1108,17 @@ def contribution_history(request, agent_id):
     if agent == user_agent:
         user_is_agent = True
     event_list = agent.contributions()
+    event_types = {e.event_type for e in event_list}
+    et_form = EventTypeFilterForm(event_types=event_types, data=request.POST or None)
+    if request.method == "POST":
+        if et_form.is_valid():
+            #import pdb; pdb.set_trace()
+            data = et_form.cleaned_data
+            et_ids = data["event_types"]
+            #belt and suspenders: if no et_ids, form is not valid
+            if et_ids:
+                event_list = event_list.filter(event_type__id__in=et_ids)
+            
     paginator = Paginator(event_list, 25)
 
     page = request.GET.get('page')
@@ -1124,6 +1135,7 @@ def contribution_history(request, agent_id):
         "agent": agent,
         "user_is_agent": user_is_agent,
         "events": events,
+        "et_form": et_form,
     }, context_instance=RequestContext(request))
     
 @login_required

@@ -41,7 +41,8 @@ def dhen_board(request, context_agent_id):
         rt.farm_resources = rt.onhand_for_exchange_stage(stage=farm_stage)
         for res in rt.farm_resources:
             res.owns = res.available_events()[0].from_agent
-        
+            if res.available_events()[0].event_date > e_date:
+                res.future = True
 
     
     return render_to_response("board/dhen_board.html", {

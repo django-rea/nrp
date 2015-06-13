@@ -57,6 +57,12 @@
 img {
     margin: 0;
 }
+.gray {
+    color: gray;
+}
+.gray a {
+    color: gray;
+}
 
 </style>
 {% endblock %}
@@ -110,10 +116,15 @@ img {
                         <div class="card-hdr">{{ rt.name }}</div>
                         <ul> 
                           {% for res in rt.farm_resources %}
+                            {% if res.future %}
+                            <li class="gray">{{ res.owns }} <a href="{{ res.get_absolute_url }}">{{ res.identifier }}</a> {{ res.formatted_quantity }}
+                            </li>
+                            {% else %}
                             <li>{{ res.owns }} <a href="{{ res.get_absolute_url }}">{{ res.identifier }}</a> {{ res.formatted_quantity }}
                                 {% if agent %}<a href="#farmModal" role="button" data-toggle="modal">
                                 <img src="{% static 'img/stock_next.png' %}" height="20" width="20" title="Move to next stage" class="arrow" /></a>{% endif %}
                             </li>
+                            {% endif %}
                           {% endfor %}
                         </ul>
                     </div>

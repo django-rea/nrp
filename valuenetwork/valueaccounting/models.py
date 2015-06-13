@@ -402,6 +402,9 @@ class EconomicAgent(models.Model):
     phone_secondary = models.CharField(_('secondary phone'), max_length=32, blank=True, null=True)
     latitude = models.FloatField(_('latitude'), default=0.0, blank=True, null=True)
     longitude = models.FloatField(_('longitude'), default=0.0, blank=True, null=True)
+    primary_location = models.ForeignKey(Location, 
+        verbose_name=_('current location'), related_name='agents_at_location', 
+        blank=True, null=True)
     reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     photo = ThumbnailerImageField(_("photo"),
@@ -1467,6 +1470,12 @@ class EconomicResourceType(models.Model):
         return EconomicResource.goods.filter(
             resource_type=self,
             stage=stage,
+            quantity__gt=0)
+             
+    def onhand_for_exchange_stage(self, stage):
+        return EconomicResource.goods.filter(
+            resource_type=self,
+            exchange_stage=stage,
             quantity__gt=0)
     
     def onhand_for_resource_driven_recipe(self):
@@ -2690,6 +2699,8 @@ def create_use_cases(app, **kwargs):
     UseCase.create('distribution', _('Distribution'), True)
     UseCase.create('val_equation', _('Value Equation'), True)
     UseCase.create('payout', _('Payout'), True)
+    UseCase.create('transfer', _('Transfer'))
+    UseCase.create('available', _('Make Available'), True)
     print "created use cases"
 
 post_migrate.connect(create_use_cases)
@@ -2728,7 +2739,9 @@ def create_event_types(app, **kwargs):
     #the following is for fees, taxes, other extraneous charges not involved in a value equation
     EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
     #the following is for xfers within the network for now; may become more universal later
-    EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '-', 'quantity')
+    EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '+-', 'quantity')
+    EventType.create('Reciprocal Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '+-', 'quantity')
+    EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'exchange', '+', 'quantity')
     #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
@@ -2811,7 +2824,9 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('val_equation', 'Time Contribution')
     UseCaseEventType.create('val_equation', 'Resource Production')
     UseCaseEventType.create('payout', 'Payout')
-    #UseCaseEventType.create('val_equation', 'Process Expense')
+    UseCaseEventType.create('transfer', 'Transfer')
+    UseCaseEventType.create('transfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('available', 'Make Available')
 
     print "created use case event type associations"
 
@@ -3602,6 +3617,8 @@ class EconomicResource(models.Model):
         related_name="stream_resources", verbose_name=_('order item'))
     stage = models.ForeignKey(ProcessType, related_name="resources_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
+    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="resources_at_exchange_stage",
+        verbose_name=_('exchange stage'), blank=True, null=True)
     state = models.ForeignKey(ResourceState, related_name="resources_at_state",
         verbose_name=_('state'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
@@ -4436,7 +4453,7 @@ class EconomicResource(models.Model):
         return self.events.filter(
             Q(event_type__relationship='out')|Q(event_type__relationship='receive')|Q(event_type__relationship='receivecash')
             |Q(event_type__relationship='cash')|Q(event_type__relationship='resource')|Q(event_type__relationship='change')
-            |Q(event_type__relationship='distribute'))
+            |Q(event_type__relationship='distribute')|Q(event_type__relationship='available'))
             
     def where_to_events(self):
         return self.events.filter(
@@ -4470,7 +4487,11 @@ class EconomicResource(models.Model):
     def transfer_events(self):
         tx_et = EventType.objects.get(name="Transfer")
         return self.events.filter(event_type=tx_et)
-
+        
+    def available_events(self):
+        av_et = EventType.objects.get(name="Make Available")
+        return self.events.filter(event_type=av_et)
+    
     def all_usage_events(self):
         return self.events.exclude(event_type__relationship="out").exclude(event_type__relationship="receive").exclude(event_type__relationship="resource").exclude(event_type__relationship="cash")
 
@@ -4590,7 +4611,7 @@ class EconomicResource(models.Model):
         return events
         
     def possible_root_events(self):
-        root_names = ['Create Changeable', 'Resource Production',  'Receipt']
+        root_names = ['Create Changeable', 'Resource Production',  'Receipt', 'Make Available']
         return self.events.filter(event_type__name__in=root_names)
                 
     def value_flow_going_forward(self):

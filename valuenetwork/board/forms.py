@@ -9,12 +9,12 @@ from valuenetwork.valueaccounting.models import *
 
             
 class ExchangeFlowForm(forms.Form):
-    start_date = forms.DateField(required=True, 
+    event_date = forms.DateField(required=True, 
         label=_("Transfer Date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     to_agent = forms.ModelChoiceField(required=False,
         queryset=EconomicAgent.objects.all(),
-        label="Transferred To", 
+        label="Transfer To", 
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(required=True,
@@ -22,14 +22,24 @@ class ExchangeFlowForm(forms.Form):
         widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
     paid = forms.DecimalField(required=True,
         label="Paid",
-        widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
+        widget=forms.TextInput(attrs={'value': '0', 'class': 'quantity  input-small'}))
     notes = forms.CharField(required=False,
         widget=forms.Textarea(attrs={'class': 'item-description',}))
+        
+    def __init__(self, assoc_type_identifier=None, context_agent=None, qty_help=None, *args, **kwargs):
+        super(ExchangeFlowForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if context_agent and assoc_type_identifier:
+            self.fields["to_agent"].queryset = context_agent.all_has_associates_by_type(assoc_type_identifier=assoc_type_identifier)   
+        if qty_help:
+            self.fields["quantity"].help_text = qty_help
+
+class ZeroOutForm(forms.Form):
     zero_out = forms.BooleanField(
         required=False,
         label="Last harvest of this resource type on this farm (zero out farm inventory)", 
         widget=forms.CheckboxInput())
-
+    
 class PlanProcessForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -66,11 +76,13 @@ class AvailableForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('from_agent', 'resource_type', 'event_date', 'quantity', 'description')
 
-    def __init__(self, pattern=None, *args, **kwargs):
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(AvailableForm, self).__init__(*args, **kwargs)
         #import pdb; pdb.set_trace()
         if pattern:
             self.pattern = pattern
             et = EventType.objects.get(name="Make Available")
             self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
+        if context_agent:
+            self.fields["from_agent"].queryset = context_agent.all_has_associates_by_type(assoc_type_identifier="Grower")
  

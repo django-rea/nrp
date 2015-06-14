@@ -4731,7 +4731,7 @@ class EconomicResource(models.Model):
         prefix=self.form_prefix()
         qty_help = " ".join(["unit:", self.unit_of_quantity().abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
-            
+    
     def owner(self): #returns first owner
         owner_roles = self.agent_resource_roles.filter(role__is_owner=True)
         if owner_roles:

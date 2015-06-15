@@ -144,7 +144,7 @@ def transfer_resource(request, context_agent_id, resource_id, assoc_type_identif
                     rec_xfer_event = EconomicEvent(
                         event_type = EventType.objects.get(name="Reciprocal Transfer"),
                         event_date = event_date,
-                        resource_type = ResourceType.objects.filter(unit__unit_type=[0],
+                        resource_type = ResourceType.objects.filter(unit__unit_type="value")[0],
                         exchange = exchange,
                         from_agent = from_agent,
                         to_agent = to_agent,

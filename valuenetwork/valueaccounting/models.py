@@ -4453,13 +4453,21 @@ class EconomicResource(models.Model):
         return self.events.filter(
             Q(event_type__relationship='out')|Q(event_type__relationship='receive')|Q(event_type__relationship='receivecash')
             |Q(event_type__relationship='cash')|Q(event_type__relationship='resource')|Q(event_type__relationship='change')
-            |Q(event_type__relationship='distribute')|Q(event_type__relationship='available'))
-            
+            |Q(event_type__relationship='distribute')|Q(event_type__relationship='available')|Q(event_type__relationship='transfer'))
+
+    #todo: add transfer?
     def where_to_events(self):
         return self.events.filter(
             Q(event_type__relationship='in')|Q(event_type__relationship='consume')|Q(event_type__relationship='use')
             |Q(event_type__relationship='cite')|Q(event_type__relationship='pay')|Q(event_type__relationship='shipment')
             |Q(event_type__relationship='shipment')|Q(event_type__relationship='disburse'))
+
+    def last_exchange_event(self):  #todo: could a resource ever go thru the same exchange stage more than once?
+        events = self.where_from_events().filter(exchange_stage=self.exchange_stage)
+        if events:
+            return events[0]
+        else:
+            return None  
 
     def consuming_events(self):
         return self.events.filter(event_type__relationship='consume')
@@ -7917,6 +7925,8 @@ class EconomicEvent(models.Model):
     resource = models.ForeignKey(EconomicResource, 
         blank=True, null=True,
         verbose_name=_('resource'), related_name='events')
+    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="events_creating_exchange_stage",
+        verbose_name=_('exchange stage'), blank=True, null=True)
     process = models.ForeignKey(Process,
         blank=True, null=True,
         verbose_name=_('process'), related_name='events',

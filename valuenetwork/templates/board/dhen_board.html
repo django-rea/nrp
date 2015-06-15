@@ -89,7 +89,7 @@ h3 {
 {% endcomment %}
     <div class="row-fluid">
         <div class="span3">
-            <span class="top">Farm</span>
+            <span class="top">Harvesting Site</span>
             {% if agent %}
                 <a class="btn btn-primary btn-mini" href="#availableModal" data-toggle="modal">{% trans "Add Available" %}</a>
             {% endif %}
@@ -98,7 +98,7 @@ h3 {
             <span class="top">Harvester</span>
         </div>
         <div class="span3">
-            <span class="top">Dryer</span>
+            <span class="top">Drying Site</span>
             {% if agent %}
                 <a data-toggle="modal" class="btn btn-primary btn-mini">{% trans "Combine Lots" %}</a>
             {% endif %}
@@ -133,7 +133,9 @@ h3 {
                                         <h3 id="farm">Farm to Harvester: {{ res.resource_type }} {{ res.identifier }}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="validateMe" id="farmForm" enctype="multipart/form-data" action="{% url transfer_resource context_agent_id=context_agent.id resource_id=res.id %}" method="POST" >
+                                        <form class="validateMe" id="farmForm" enctype="multipart/form-data" 
+                                            action="{% url transfer_resource context_agent_id=context_agent.id resource_id=res.id assoc_type_identifier='HarvestSite' %}" 
+                                            method="POST" >
                                             {% csrf_token %}
                                             {{ res.transfer_form|as_bootstrap }}
                                             <div class="modal-footer">
@@ -227,7 +229,8 @@ h3 {
             <h3 id="available-label">{% trans "Add availability" %}</h3>
         </div>
         <div class="modal-body">
-            <form class="validateMe" id="availableForm" enctype="multipart/form-data" action="{% url add_available context_agent_id=context_agent.id %}" method="POST" >
+            <form class="validateMe" id="availableForm" enctype="multipart/form-data" 
+                action="{% url add_available context_agent_id=context_agent.id assoc_type_identifier='HarvestSite' %}" method="POST" >
                 {% csrf_token %}
                 {{ available_form|as_bootstrap }}
                 <div class="modal-footer">

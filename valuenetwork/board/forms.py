@@ -7,7 +7,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from valuenetwork.valueaccounting.models import *
 
-            
+
+PAID_CHOICES = (('paid', 'Paid for'),
+    ('later', 'Will pay later'),
+    ('never', 'Payment not needed'))
+
 class ExchangeFlowForm(forms.Form):
     event_date = forms.DateField(required=True, 
         label=_("Transfer Date"),
@@ -20,11 +24,16 @@ class ExchangeFlowForm(forms.Form):
     quantity = forms.DecimalField(required=True,
         label="Quantity",
         widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
-    paid = forms.DecimalField(required=True,
-        label="Paid",
-        widget=forms.TextInput(attrs={'value': '0', 'class': 'quantity  input-small'}))
+    value = forms.DecimalField(
+        help_text="Total value of the transfer, not value for each unit.",
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
     notes = forms.CharField(required=False,
         widget=forms.Textarea(attrs={'class': 'item-description',}))
+    paid = forms.MultipleChoiceField(required=True,
+        widget=forms.RadioSelect, choices=PAID_CHOICES)
         
     def __init__(self, assoc_type_identifier=None, context_agent=None, qty_help=None, *args, **kwargs):
         super(ExchangeFlowForm, self).__init__(*args, **kwargs)

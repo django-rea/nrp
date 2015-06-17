@@ -3968,7 +3968,7 @@ class EconomicResource(models.Model):
                 weights = sum(v[1] for v in values)
                 if weighted_values and weights:
                     value_per_unit = weighted_values / weights
-        self.value_per_unit = value_per_unit.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+        self.value_per_unit = value_per_unit.quantize(Decimal('.01'), rounding=ROUND_UP)
         self.save()
         #padding = ""
         #for x in range(0,depth):
@@ -6437,8 +6437,7 @@ class Exchange(models.Model):
                 value = evt.quantity
                 contributions = []
                 #import pdb; pdb.set_trace()
-                #if evt.resource and not xfers:
-                if evt.resource:
+                if evt.resource and not xfers:
                     candidates = evt.resource.cash_contribution_events()
                     for cand in candidates:
                         br = cand.bucket_rule(value_equation)
@@ -6467,7 +6466,8 @@ class Exchange(models.Model):
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
                     fraction = evt.quantity / total
-                    if evt.resource:
+                    #if evt.resource:
+                    if evt.resource and not xfers:
                         contributions = evt.resource.cash_contribution_events()
                         evt.share = evt.quantity * share * fraction * trigger_fraction
                         #evt.share = evt.quantity * fraction * trigger_fraction
@@ -6518,7 +6518,7 @@ class Exchange(models.Model):
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #exchange method
         #import pdb; pdb.set_trace()
-        #locals = []
+        locals = []
         if self not in visited:
             visited.add(self)
             resource = use_event.resource
@@ -6540,12 +6540,14 @@ class Exchange(models.Model):
                     
             cost = sum(p.quantity for p in payments)
             #equip logging changes
+            #does this make any sense for use events?
             use_share =  use_value / cost
             if payments.count() == 1:
                 evt = payments[0]
                 contributions = []
                 if evt.resource:
                     contributions = evt.resource.cash_contribution_events()
+                    #import pdb; pdb.set_trace()
                     for ct in contributions:
                         fraction = ct.quantity / resource_value
                         #todo 3d: changed
@@ -6558,7 +6560,8 @@ class Exchange(models.Model):
                     br = evt.bucket_rule(value_equation)
                     if br:
                         value = br.compute_claim_value(evt)
-                    evt.share = value * use_share
+                    #evt.share = value * use_share?
+                    evt.share = use_value
                     events.append(evt)
             elif payments.count() > 1:
                 total = sum(p.quantity for p in payments)
@@ -6580,6 +6583,7 @@ class Exchange(models.Model):
                             #share_addition = use_value * use_share * resource_fraction * payment_fraction
                             share_addition = use_value * resource_fraction * payment_fraction
                             existing_ct = next((evt for evt in events if evt == ct),0)
+                            #import pdb; pdb.set_trace()
                             if existing_ct:
                                 #import pdb; pdb.set_trace()
                                 existing_ct.share += share_addition
@@ -6587,12 +6591,14 @@ class Exchange(models.Model):
                             else:
                                 ct.share = share_addition
                                 events.append(ct)
-                                #locals.append(ct)
+                                locals.append(ct)
                     if not contributions:
                         #if contributions were credited,
                         # do not give credit for payment.
-                        evt.share = value * use_share * payment_fraction
+                        #evt.share = value * use_share * payment_fraction
+                        evt.share = use_value * payment_fraction
                         events.append(evt)
+            #import pdb; pdb.set_trace()
             for evt in self.work_events():
                 #import pdb; pdb.set_trace()
                 value = evt.quantity
@@ -6605,11 +6611,17 @@ class Exchange(models.Model):
                 fraction = value / resource_value
                 evt.share = use_value * fraction
                 events.append(evt)
-            #for l in locals:
-            #    print l.from_agent, l.quantity, "share:", l.share
+            local_total = sum(lo.share for lo in locals)
+            delta = use_value - local_total
+            if delta:
+                max_share = locals[0]
+                for lo in locals:
+                    if lo.share > max_share.share:
+                        max_share = lo
+            max_share.share = (max_share.share + delta)
             #local_total = sum(lo.share for lo in locals)
             #print "local_total:", local_total
-                
+            
     def distribution_value_equation(self):
         ves = self.value_equation.all()
         if ves:
@@ -8926,6 +8938,7 @@ class ValueEquation(models.Model):
                 else:
                     serialized_filter = serialized_filters.get(bucket.id)
                     if serialized_filter:
+                        #import pdb; pdb.set_trace()
                         ces, contributions = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
                         for ce in ces:
                             detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
@@ -8962,9 +8975,10 @@ class ValueEquation(models.Model):
                 ce.event = distribution
             distribution.dist_claim_events = agent_claim_events
             distribution_events.append(distribution)
-        
+        #clean up rounding errors
         distributed = sum(de.quantity for de in distribution_events)
         delta = atd - distributed
+        #import pdb; pdb.set_trace()
         if delta:
             max_dist = distribution_events[0]
             for de in distribution_events:
@@ -9106,12 +9120,14 @@ class ValueEquationBucket(models.Model):
             vebr_events = vebr.filter_events(bucket_events)
             contribution_events.extend(vebr_events)
         claims = self.claims_from_events(contribution_events)
+        #import pdb; pdb.set_trace()
         if claims:
             total_amount = 0
             for claim in claims:
                 total_amount = total_amount + claim.share
             if total_amount > 0:
-                portion_of_amount = amount_to_distribute / total_amount
+                #import pdb; pdb.set_trace()
+                portion_of_amount = amount_to_distribute / total_amount 
             else:
                 portion_of_amount = Decimal("0.0")
             #import pdb; pdb.set_trace()

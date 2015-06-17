@@ -7002,6 +7002,9 @@ class Commitment(models.Model):
 
     def form_prefix(self):
         return "-".join(["CT", str(self.id)])
+        
+    def invite_form_prefix(self):
+        return "-".join(["invite", str(self.id)])
 
     def commitment_form(self):
         from valuenetwork.valueaccounting.forms import CommitmentForm
@@ -7035,6 +7038,24 @@ class Commitment(models.Model):
         if self.process:
             pattern = self.process.process_pattern
         return WorkCommitmentForm(instance=self, pattern=pattern, prefix=prefix)
+        
+    def invite_collaborator_form(self):
+        from valuenetwork.valueaccounting.forms import WorkCommitmentForm
+        prefix=self.invite_form_prefix()
+        pattern = None
+        if self.process:
+            pattern = self.process.process_pattern
+        init = {
+            "resource_type": self.resource_type, 
+            "unit_of_quantity": self.unit_of_quantity,
+            }
+        form = WorkCommitmentForm(
+            pattern=pattern, 
+            prefix=prefix, 
+            initial=init)
+            
+        #import pdb; pdb.set_trace()
+        return form
     
     def can_add_to_resource(self):
         #todo: figure out how to allow for workflow stream resources

@@ -467,5 +467,7 @@ urlpatterns += patterns("",
     url(r"^virtual-payout/(?P<account_id>\d+)/$", 'valuenetwork.valueaccounting.views.payout_from_virtual_account', 
         name="payout_from_virtual_account"),
     url(r"^delete-agent/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.delete_agent', name="delete_agent"),
+    url(r"^invite-collaborator/(?P<commitment_id>\d+)/$", 'valuenetwork.valueaccounting.views.invite_collaborator', 
+        name="invite_collaborator"),
 )
 

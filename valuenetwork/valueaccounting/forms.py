@@ -1340,6 +1340,7 @@ class WorkCommitmentForm(forms.ModelForm):
             self.pattern = pattern
             self.fields["resource_type"].queryset = pattern.work_resource_types()
 
+                                    
 class ProcessWorkForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(
         queryset=EconomicResourceType.objects.none(),

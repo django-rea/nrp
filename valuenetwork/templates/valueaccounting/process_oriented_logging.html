@@ -489,11 +489,43 @@ hr {
 						                </form>
 					                </div>
 				                </div>
+				                
+				                <a href="#inviteModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a work requirement">
+                                    {% trans "Invite a collaborator" %}
+                                </a>
+                                
 			                {% comment %}
 			                {% elif super_logger %}
 			                    <button class="btn btn-info btn-mini" title="Log work for {{ item.from_agent }}" >{% trans "Log work" %}</button>
 		                    {% endcomment %}
 			                {% endif %}
+			                <div class="modal hide fade" id="inviteModal" tabindex="-1" role="dialog" aria-labelledby="invite-label" aria-hidden="true">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+                                    <h3 id="invite-label">
+                                            {% trans "Invite a collaborator" %}
+                                    </h3>
+                                    
+                                </div>
+                                <div class="modal-body">
+                                    <form class="invite-form validateMe" id="inviteForm" action="{% url invite_collaborator commitment_id=item.id %}" method="POST" >
+                                        {% csrf_token %}
+
+                                            {{ item.invite_collaborator_form|as_bootstrap }}
+
+                                    <div class="modal-footer">
+                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                        <button class="btn btn-primary">
+                                            {% trans "Invite collaborator" %}
+                                        </button>
+                                    </div>
+
+
+                                    </form>
+                                </div>
+                            </div>
+			                
 
 			                {% if work_events %}
 			                    <div class="event">

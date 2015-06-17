@@ -22,7 +22,11 @@ class AgentModelChoiceField(forms.ModelChoiceField):
         
 class WorkModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        return obj.name
+        if obj.description:
+            label = ": ".join([obj.name, obj.description])
+        else:
+            label = obj.name
+        return label
         
 class ResourceModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):

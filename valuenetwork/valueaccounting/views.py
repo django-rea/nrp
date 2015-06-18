@@ -6143,7 +6143,7 @@ def add_unplanned_input_event(request, process_id, slot):
             event_date = data["event_date"]
             unit = rt.unit
             if et == "use":
-                unit = rt.unit_of_use
+                unit = rt.unit_for_use()
             resource = EconomicResource.objects.get(id=r_id)
             default_agent = process.default_agent()
             from_agent = resource.owner() or default_agent
@@ -6155,7 +6155,6 @@ def add_unplanned_input_event(request, process_id, slot):
                 from_agent = from_agent,
                 to_agent = default_agent,
                 process = process,
-                #project = process.project,
                 context_agent = process.context_agent,
                 event_date = event_date,
                 quantity=qty,
@@ -6164,6 +6163,10 @@ def add_unplanned_input_event(request, process_id, slot):
                 changed_by = request.user,
             )
             event.save()
+            if event_type.consumes_resources():    
+                resource.quantity -= event.quantity
+                resource.changed_by=request.user
+                resource.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 

@@ -44,7 +44,9 @@ img {
 	<div class="row-fluid">
 		<div class="span9">
 		    <legend>
-			    {% trans "Inventory" %}&nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url locations %}">{% trans "Locations" %}</a>
+			    {% trans "Inventory" %}
+			    &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url resource_types %}">{% trans "Resource Types" %}</a>
+			    &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url locations %}">{% trans "Locations" %}</a>
 		    </legend>
             {% for rt in resource_types %}
                 <div class="rtype"> <a href="{% url resource_type resource_type_id=rt.id %}">{{ rt.name }}</a> ( {{ rt.facet_list }} )</div>

@@ -44,6 +44,11 @@
                             <div class="nav-collapse">
                                 {% block nav %}
                                         <ul class="nav">
+                                            <li id="projects" >
+                                                <a href="{% url 'projects' %}" 
+                                                title="{% trans 'Networks and Projects' %}" 
+                                                >{% trans 'Organization' %}</a>
+                                            </li>
                                             <li id="demand" >
                                                 <a href="{% url 'demand' %}" 
                                                 title="{% trans 'Customer and R&amp;D Orders' %}" 
@@ -59,16 +64,12 @@
                                                 title="{% trans 'Available resources with their histories' %}"  
                                                 >{% trans 'Inventory' %}</a>
                                             </li>
-                                            <li id="resource-types" >
-                                                <a href="{% url 'resource_types' %}" 
-                                                title="{% trans 'Resource types and recipes' %}" 
-                                                >{% trans 'Resource Types' %}</a>
+                                            <li id="distribution" >
+                                                <a href="{% url 'value_equations' %}" 
+                                                title="{% trans 'Value Equations and income distributions' %}" 
+                                                >{% trans 'Distribution' %}</a>
                                             </li>
-                                            <li id="projects" >
-                                                <a href="{% url 'projects' %}" 
-                                                title="{% trans 'Networks and Projects' %}" 
-                                                >{% trans 'Organization' %}</a>
-                                            </li>
+                                            
                                             {% if request.user.is_authenticated %}
                                                 <li id="my-work" >
                                                     <a href="{% url 'start' %}"  

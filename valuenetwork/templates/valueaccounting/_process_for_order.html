@@ -1,7 +1,14 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-<span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process.name }}</a>
+<span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process.name }}</a></br>
+<span class="process-dates">
+    {% trans "Scheduled start date" %}: {{ process.start_date }}, 
+    {% if process.start %}
+        {% trans "Actual start date" %}: {{ process.start }}, 
+    {% endif %}
+    {% trans "Scheduled end date" %}: {{ process.end_date }}
+</span>
 
 {% if agent %}
     {% if process.too_late %}

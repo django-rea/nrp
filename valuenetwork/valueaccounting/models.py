@@ -5886,23 +5886,29 @@ class Process(models.Model):
 
     def reschedule_forward(self, delta_days, user):
         #import pdb; pdb.set_trace()
-        fps = self.previous_processes()
-        if fps:
-            slack =  99999
-            for fp in fps:
-                slax = self.start_date - fp.end_date
-                slack = min(slack, slax.days)
-            slack = max(slack, 0)
-            delta_days -= slack
-            delta_days = max(delta_days, 0)
-            #munge for partial days
-            delta_days += 1
+        if not self.started:
+            fps = self.previous_processes()
+            if fps:
+                slack =  99999
+                for fp in fps:
+                    slax = self.start_date - fp.end_date
+                    slack = min(slack, slax.days)
+                slack = max(slack, 0)
+                delta_days -= slack
+                delta_days = max(delta_days, 0)
+                #munge for partial days
+                delta_days += 1
         if delta_days:
-            self.start_date = self.start_date + datetime.timedelta(days=delta_days)
-            if self.end_date:
+            if self.started:
+                if not self.end_date:
+                    self.end_date = self.started + datetime.timedelta(minutes=self.estimated_duration)
                 self.end_date = self.end_date + datetime.timedelta(days=delta_days)
             else:
-                 self.end_date = self.start_date
+                self.start_date = self.start_date + datetime.timedelta(days=delta_days)
+                if self.end_date:
+                    self.end_date = self.end_date + datetime.timedelta(days=delta_days)
+                else:
+                    self.end_date = self.start_date + datetime.timedelta(minutes=self.estimated_duration)
             self.changed_by = user
             self.save()
             self.reschedule_connections(delta_days, user)

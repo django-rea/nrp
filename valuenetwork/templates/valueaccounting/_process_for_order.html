@@ -4,20 +4,30 @@
 <span class="prefix process-prefix">{% trans "Process" %}:</span> <a href="{{ process.get_absolute_url }}">{{ process.name }}</a></br>
 <span class="process-dates">
     {% trans "Scheduled start date" %}: {{ process.start_date }}, 
-    {% if process.start %}
-        {% trans "Actual start date" %}: {{ process.start }}, 
+    {% if process.started %}
+        {% trans "Actual start date" %}: {{ process.started }}, 
     {% endif %}
     {% trans "Scheduled end date" %}: {{ process.end_date }}
 </span>
 
 {% if agent %}
     {% if process.too_late %}
-        <form class="reskedProcessForm" id="reskedProcessForm-{{ process.id }}" action="{% url forward_schedule_process process_id=process.id %}" method="POST" >
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
-            <span class="error" style="margin-left: 2em;">{% trans "Should have started" %} {{ process.start_date|timesince }} {% trans "ago" %}</span> &nbsp;
-            <button class="btn btn-warning btn-mini" title="Reschedule forward from today" >{% trans "Reschedule forward" %}</button>
-        </form>
+        {% if process.start_date and process.end_date %}
+            <form class="reskedProcessForm" id="reskedProcessForm-{{ process.id }}" action="{% url forward_schedule_process process_id=process.id %}" method="POST" >
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                <span class="error" style="margin-left: 2em;">
+                    {% if process.started %}
+                        {% if process.end_date %}
+                            {% trans "Should have finished" %} {{ process.end_date|timesince }} {% trans "ago" %}
+                        {% endif %}
+                    {% else %}
+                        {% trans "Should have started" %} {{ process.start_date|timesince }} {% trans "ago" %}
+                    {% endif %}
+                </span> &nbsp;
+                <button class="btn btn-warning btn-mini" title="Reschedule forward from today" >{% trans "Reschedule forward" %}</button>
+            </form>
+        {% endif %}
     {% endif %}
 {% endif %}
 <ul>

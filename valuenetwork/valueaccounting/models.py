@@ -1477,7 +1477,13 @@ class EconomicResourceType(models.Model):
             resource_type=self,
             exchange_stage=stage,
             quantity__gt=0)
-    
+              
+    def commits_for_exchange_stage(self, stage):
+        return Commitment.objects.filter(
+            exchange_stage=stage,
+            resource_type = self,
+            finished=False)
+       
     def onhand_for_resource_driven_recipe(self):
         return EconomicResource.goods.filter(
             resource_type=self,
@@ -4463,11 +4469,21 @@ class EconomicResource(models.Model):
             |Q(event_type__relationship='shipment')|Q(event_type__relationship='disburse'))
 
     def last_exchange_event(self):  #todo: could a resource ever go thru the same exchange stage more than once?
+        #import pdb; pdb.set_trace()
+        #todo: this doesn't work, is using the wrong stage - current instead of previous
         events = self.where_from_events().filter(exchange_stage=self.exchange_stage)
         if events:
             return events[0]
         else:
             return None  
+        
+    def owner_based_on_exchange(self):
+        #todo: this doesn't work, see last method
+        event = self.last_exchange_event()
+        if event:
+            return event.to_agent
+        else:
+            return None
 
     def consuming_events(self):
         return self.events.filter(event_type__relationship='consume')
@@ -6820,6 +6836,8 @@ class Commitment(models.Model):
         related_name="commitments", verbose_name=_('event type'))
     stage = models.ForeignKey(ProcessType, related_name="commitments_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
+    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="commitments_at_exchange_stage",
+        verbose_name=_('exchange stage'), blank=True, null=True)
     state = models.ForeignKey(ResourceState, related_name="commitments_at_state",
         verbose_name=_('state'), blank=True, null=True)
     commitment_date = models.DateField(_('commitment date'), default=datetime.date.today)
@@ -7241,6 +7259,18 @@ class Commitment(models.Model):
 
     def unfilled_quantity(self):
         return self.quantity - self.fulfilled_quantity()
+    
+    def remaining_formatted_quantity(self):
+        qty = self.unfilled_quantity()
+        unit = self.unit_of_quantity
+        if unit:
+            if unit.symbol:
+                answer = "".join([unit.symbol, str(qty)])
+            else:
+                answer = " ".join([str(qty), unit.abbrev])
+        else:
+            answer = str(qty)
+        return answer
         
     def is_fulfilled(self):
         if self.unfilled_quantity():

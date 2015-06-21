@@ -49,19 +49,30 @@
 }
 .item-description {
     height: 50px;
-    width: 480px;
+    width: 550px;
 }
 img {
     margin: 0;
 }
 .gray {
-    color: gray;
-}
-.gray a {
-    color: gray;
+    color: #A6A6A6;
 }
 h3 {
     color: firebrick;
+}
+.notes {
+    margin-left: 3em;
+    padding-right: 2em;
+    font-style: italic;
+    font-size: .9em;
+}
+.modal-hdg {
+    font-weight: bold;
+    color: #5C8A8A;
+    font-size: 1.3em;
+}
+.xfer {
+    width: 600px;
 }
 
 </style>
@@ -95,9 +106,6 @@ h3 {
             {% endif %}
         </div>
         <div class="span3">
-            <span class="top">Harvester</span>
-        </div>
-        <div class="span3">
             <span class="top">Drying Site</span>
             {% if agent %}
                 <a data-toggle="modal" class="btn btn-primary btn-mini">{% trans "Combine Lots" %}</a>
@@ -113,28 +121,99 @@ h3 {
 	<div class="row-fluid">
 		<div class="span3 column">
             {% for rt in resource_types %}
-                {% if rt.farm_resources %}
+                {% if rt.farm_commits %}
                     <div class="card">
                         <div class="card-hdr">{{ rt.name }}</div>
                         <ul> 
-                          {% for res in rt.farm_resources %}
-                            {% if res.future %}
-                                <li class="gray">{{ res.owns }} <a href="{{ res.get_absolute_url }}">{{ res.identifier }}</a> {{ res.formatted_quantity }}
+                          {% for com in rt.farm_commits %}
+                            {% if com.unfilled_quantity > 0 %}
+                              {% if com.future %}
+                                <li class="gray">{{ com.from_agent }} - {{ com.remaining_formatted_quantity }} - {{ com.commitment_date }}
+                                {% if com.description %}
+                                  <div class="notes gray"> {{ com.description|urlize|linebreaks }} </div>
+                                {% endif %}
                                 </li>
-                            {% else %}
-                                <li>{{ res.owns }} <a href="{{ res.get_absolute_url }}">{{ res.identifier }}</a> {{ res.formatted_quantity }}
-                                    {% if agent %}<a href="#farmModal{{ res.id }}" role="button" data-toggle="modal">
+                              {% else %}
+                                <li>{{ com.from_agent }} - {{ com.remaining_formatted_quantity }} - {{ com.commitment_date }}
+                                    {% if agent %}<a href="#farmModal{{ com.id }}" role="button" data-toggle="modal">
                                     <img src="{% static 'img/stock_next.png' %}" height="20" width="20" title="Transfer to harvester" class="arrow" /></a>
                                     {% endif %}
                                 </li>
-                                <div class="modal hide fade xfer" id="farmModal{{ res.id }}" tabindex="-1" role="dialog" aria-labelledby="farm" aria-hidden="true">
+                                <div class="modal hide fade xfer" id="farmModal{{ com.id }}" tabindex="-1" role="dialog" aria-labelledby="farm" aria-hidden="true">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                        <h3 id="farm">Farm to Harvester: {{ res.resource_type }} {{ res.identifier }}</h3>
+                                        <h3 id="farm">{{ com.resource_type }} from {{ com.from_agent.nick }}</h3>
                                     </div>
                                     <div class="modal-body">
                                         <form class="validateMe" id="farmForm" enctype="multipart/form-data" 
-                                            action="{% url transfer_resource context_agent_id=context_agent.id resource_id=res.id assoc_type_identifier='HarvestSite' %}" 
+                                            action="{% url purchase_resource context_agent_id=context_agent.id assoc_type_identifier='HarvestSite' commitment_id=com.id %}" 
+                                            method="POST" >
+                                            {% csrf_token %}
+                                            {{ com.zero_form|as_bootstrap }}
+                                            <p class="modal-hdg">Harvester Breakout</p>
+                                            {{ com.multiple_formset.management_form }}
+                                            <table>
+                                                <tr>
+                                                    <td>Harvester</td>
+                                                    <td>Quantity (lbs)</td>
+                                                    <td>Paid to Farm</td>
+                                                    <td>Amount</td>
+                                                    <td>Paid to Harvester</td>
+                                                    <td>Amount</td>
+                                                </tr>
+                                                {% for form in com.multiple_formset %}
+                                                    <tr class="form-row">
+                                                        <td class="td-role">{{ form.to_agent }}</td>
+                                                        <td class="td-agent">{{ form.quantity }}</td>
+                                                        <td class="text-center">{{ form.paid_stage_1 }}</td>
+                                                        <td class="text-center">{{ form.value_stage_1 }}</td>
+                                                        <td class="text-center">{{ form.paid_stage_2 }}</td>
+                                                        <td class="text-center">{{ form.value_stage_2 }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </table>
+                                            <p class="modal-hdg">Combine Harvester Resources</p>
+                                            {{ com.lot_form|as_bootstrap }}
+                                            {{ com.transfer_form|as_bootstrap }}
+                                            <div class="modal-footer">
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% if com.description %}
+                                  <div class="notes"> {{ com.description|urlize|linebreaks }} </div>
+                                {% endif %}
+                              {% endif %} 
+                            {% endif %}
+                          {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            {% endfor %}
+		</div>
+
+        <div class="span3 column">
+            {% for rt in resource_types %}
+                {% if rt.dryer_resources %}
+                    <div class="card">
+                        <div class="card-hdr">{{ rt.name }}</div>
+                        <ul> 
+                            {% for res in rt.harvester_resources %}
+                                <li>{{ res.owner_based_on_exchange.nick }} - {{ res.identifier }} - {{ res.formatted_quantity }} 
+                                    {% if agent %}<a href="#harvesterModal{{ res.id }}" role="button" data-toggle="modal">
+                                    <img src="{% static 'img/stock_next.png' %}" height="20" width="20" title="Transfer to seller" class="arrow" /></a>
+                                    {% endif %}
+                                </li>
+                                <div class="modal hide fade xfer" id="harvesterModal{{ res.id }}" tabindex="-1" role="dialog" aria-labelledby="harv" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="harv">Harvester to Drying Site: {{ res.resource_type }} from {{ res.owner_based_on_exchange.nick }}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="validateMe" id="harvForm" enctype="multipart/form-data" 
+                                            action="{% url transfer_resource context_agent_id=context_agent.id assoc_type_identifier='Harvester' resource_id=res.id %}" 
                                             method="POST" >
                                             {% csrf_token %}
                                             {{ res.transfer_form|as_bootstrap }}
@@ -145,25 +224,21 @@ h3 {
                                         </form>
                                     </div>
                                 </div>
-                            {% endif %}
-                          {% endfor %}
+                                {% if res.description %}
+                                  <div class="notes"> {{ res.description|urlize|linebreaks }} </div>
+                                {% endif %}
+                            {% endfor %}
                         </ul>
                     </div>
                 {% endif %}
             {% endfor %}
-		</div>
+        </div>
+
         <div class="span3 column">
 
 
         </div>
-        <div class="span3 column">
 
-
-        </div>
-        <div class="span3 column">
-
-
-        </div>
 {% comment %}
         <div class="span3 filter">
             <h3 >{% trans "Filter Board" %}</h3>
@@ -186,13 +261,14 @@ h3 {
 {% endcomment %}
 	</div>
 
+{% comment %}
         <div class="modal hide fade" id="completeProcess" tabindex="-1" role="dialog" aria-labelledby="complete-process" aria-hidden="true">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 <h3 id="complete-process">{% trans "Complete this process" %}</h3>
             </div>
             <div class="modal-body">
-                <form class="validateMe" id="addToResourceForm" enctype="multipart/form-data" action="{% url workflow_board_demo %}" method="POST" >
+                <form class="validateMe" id="addToResourceForm" enctype="multipart/form-data" action="{% url  %}" method="POST" >
                     {% csrf_token %}
                     Date complete: {{ resource_form.event_date }}<br />
                     Quantity: {{ resource_form.quantity }} LB<br />
@@ -222,6 +298,7 @@ h3 {
             </div>
         </div>
     </div>
+{% endcomment %}
 
     <div class="modal hide fade" id="availableModal" tabindex="-1" role="dialog" aria-labelledby="available-label" aria-hidden="true">
         <div class="modal-header">

@@ -5096,11 +5096,11 @@ def invite_collaborator(request, commitment_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         prefix = commitment.invite_form_prefix()
-        form = WorkCommitmentForm(data=request.POST, prefix=prefix)
+        form = InviteCollaboratorForm(data=request.POST, prefix=prefix)
         if form.is_valid():
             input_data = form.cleaned_data
             demand = process.independent_demand()
-            rt = input_data["resource_type"]
+            rt = commitment.resource_type
             pattern = process.process_pattern
             event_type = pattern.event_type_for_resource_type("work", rt)
             ct = form.save(commit=False)
@@ -5109,10 +5109,9 @@ def invite_collaborator(request, commitment_id):
             ct.order_item = process.order_item()
             ct.independent_demand=demand
             ct.event_type=event_type
-            #ct.due_date=process.end_date
             ct.resource_type=rt
             ct.context_agent=process.context_agent
-            ct.unit_of_quantity=rt.directional_unit("use")
+            ct.unit_of_quantity=rt.unit
             ct.created_by=request.user
             ct.save()
             if notification:

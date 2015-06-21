@@ -7046,19 +7046,17 @@ class Commitment(models.Model):
         return WorkCommitmentForm(instance=self, pattern=pattern, prefix=prefix)
         
     def invite_collaborator_form(self):
-        from valuenetwork.valueaccounting.forms import WorkCommitmentForm
+        from valuenetwork.valueaccounting.forms import InviteCollaboratorForm
         prefix=self.invite_form_prefix()
-        pattern = None
-        if self.process:
-            pattern = self.process.process_pattern
-        init = {
-            "resource_type": self.resource_type, 
-            "unit_of_quantity": self.unit_of_quantity,
-            }
-        form = WorkCommitmentForm(
-            pattern=pattern, 
-            prefix=prefix, 
-            initial=init)
+        unit = self.resource_type.unit
+        qty_help = ""
+        if unit:
+            rt_name = self.resource_type.name
+            unit_string = unit.abbrev
+            qty_help = " ".join(["Type of work:", rt_name, ", unit:", unit.abbrev, ", up to 2 decimal places"])
+        form = InviteCollaboratorForm(
+            qty_help=qty_help, 
+            prefix=prefix)
             
         #import pdb; pdb.set_trace()
         return form

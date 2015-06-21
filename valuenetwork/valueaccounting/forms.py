@@ -1340,6 +1340,27 @@ class WorkCommitmentForm(forms.ModelForm):
             self.pattern = pattern
             self.fields["resource_type"].queryset = pattern.work_resource_types()
 
+            
+class InviteCollaboratorForm(forms.ModelForm):
+    due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(
+        required=True,
+        help_text="",
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+   
+    class Meta:
+        model = Commitment
+        fields = ('due_date', 'quantity', 'description')
+
+    def __init__(self, qty_help=None, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        super(InviteCollaboratorForm, self).__init__(*args, **kwargs)
+        if qty_help:
+            self.fields["quantity"].help_text = qty_help
+
                                     
 class ProcessWorkForm(forms.ModelForm):
     resource_type = WorkModelChoiceField(

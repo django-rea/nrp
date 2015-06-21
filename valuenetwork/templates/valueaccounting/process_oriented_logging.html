@@ -421,7 +421,7 @@ hr {
 		        {% for item in work_reqs %}
 			        <div class="commitment">
 				        <span class="work-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
-                        {% if logger %}
+                        {% if super_logger or agent == item.from_agent %}
 				            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change work requirement">
 			                       <i class="icon-edit"></i>
 	                        </a>

@@ -109,6 +109,7 @@ def create_user(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     if request.method == "POST":
         user_form = UserCreationForm(data=request.POST)
+        import pdb; pdb.set_trace()
         if user_form.is_valid():
             user = user_form.save(commit=False)
             user.email = agent.email
@@ -206,77 +207,6 @@ def create_user_and_agent(request):
         "agent_selection_form": agent_selection_form,
     }, context_instance=RequestContext(request))
     
-def create_user_and_agent_old(request):
-    if not request.user.is_superuser:
-        return render_to_response('valueaccounting/no_permission.html')
-    user_form = UserCreationForm(data=request.POST or None)
-    agent_form = AgentForm(data=request.POST or None)
-    agent_selection_form = AgentSelectionForm()
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        sa_id = request.POST.get("selected_agent")
-        agent = None
-        if sa_id:
-            agent = EconomicAgent.objects.get(id=sa_id)
-        if user_form.is_valid():
-            user = user_form.save(commit=False)
-            user.first_name = request.POST.get("first_name")
-            user.last_name = request.POST.get("last_name")
-            user.email = request.POST.get("email")
-            nick = request.POST.get("nick")
-            description = request.POST.get("description")
-            url = request.POST.get("url")
-            address = request.POST.get("address")
-            email = request.POST.get("email")
-            agent_type_id = request.POST.get("agent_type")
-            errors = False
-            if agent:
-                agent.description = description
-                agent.url = url
-                agent.address = address
-                if agent_type_id:
-                    if agent.agent_type.id != agent_type_id:
-                        agent_type = AgentType.objects.get(id=agent_type_id)
-                        agent.agent_type = agent_type
-                if not agent.email:
-                    agent.email = email
-            else:
-                if nick and user.first_name:
-                    try:
-                        agent = EconomicAgent.objects.get(nick=nick)
-                        errors = True
-                    except EconomicAgent.DoesNotExist:
-                        pass
-                else:
-                    errors = True
-                if not errors:
-                    name = " ".join([user.first_name, user.last_name])
-                    agent_type = AgentType.objects.get(id=agent_type_id)
-                    agent = EconomicAgent(
-                        nick = nick,
-                        name = name,
-                        description = description,
-                        url = url,
-                        address = address,
-                        agent_type = agent_type,
-                    )  
-            if errors:
-                agent_form.is_valid()
-            else:
-                user.save()           
-                agent.save()
-                au = AgentUser(
-                    agent = agent,
-                    user = user)
-                au.save()
-                return HttpResponseRedirect("/admin/valueaccounting/economicagent/")
-    
-    return render_to_response("valueaccounting/create_user_and_agent.html", {
-        "user_form": user_form,
-        "agent_form": agent_form,
-        "agent_selection_form": agent_selection_form,
-    }, context_instance=RequestContext(request))
-
 def projects(request):
     #import pdb; pdb.set_trace()
     projects = EconomicAgent.objects.context_agents()  
@@ -4274,6 +4204,7 @@ def add_unplanned_output(request, process_id):
                 event.event_date = datetime.date.today()
                 event.created_by = request.user
                 event.save()
+                process.set_started(event.event_date, request.user)
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -4510,6 +4441,7 @@ def add_process_expense(request, process_id):
                 event.unit_of_quantity = rt.unit
                 event.created_by = request.user
                 event.save()
+                process.set_started(event.event_date, request.user)
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -6058,6 +5990,8 @@ def add_unplanned_cite_event(request, process_id):
                     changed_by = request.user,
                 )
                 event.save()
+                process.set_started(event.event_date, request.user)
+                
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
         
@@ -6118,7 +6052,9 @@ def log_stage_change_event(request, commitment_id, resource_id):
         event.save()
         resource.stage = change_commitment.stage
         resource.quantity = quantity
-        resource.save()   
+        resource.save()
+        process.set_started(event.event_date, request.user)
+        
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
@@ -6173,6 +6109,8 @@ def add_unplanned_input_event(request, process_id, slot):
                 resource.quantity -= event.quantity
                 resource.changed_by=request.user
                 resource.save()
+            process.set_started(event.event_date, request.user)
+                
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
@@ -6224,6 +6162,7 @@ def log_resource_for_commitment(request, commitment_id):
             changed_by = request.user,
         )
         event.save()
+        ct.process.set_started(event.event_date, request.user)
         
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
@@ -6260,6 +6199,7 @@ def add_to_resource_for_commitment(request, commitment_id):
                 changed_by = request.user,
             )
             event.save()
+            ct.process.set_started(event.event_date, request.user)
         
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
@@ -6317,6 +6257,8 @@ def add_work_event(request, commitment_id):
         event.changed_by = request.user
         event.is_contribution=True
         event.save()
+        ct.process.set_started(event.event_date, request.user)
+        
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
 
@@ -6343,6 +6285,8 @@ def add_unplanned_work_event(request, process_id):
             event.changed_by = request.user
             event.is_contribution=True
             event.save()
+            process.set_started(event.event_date, request.user)
+            
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
@@ -6394,6 +6338,8 @@ def add_use_event(request, commitment_id, resource_id):
         event.created_by = request.user
         event.changed_by = request.user
         event.save()
+        ct.process.set_started(event.event_date, request.user)
+        
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
         
@@ -6424,6 +6370,8 @@ def add_citation_event(request, commitment_id, resource_id):
         event.created_by = request.user
         event.changed_by = request.user
         event.save()
+        ct.process.set_started(event.event_date, request.user)
+        
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
 
@@ -6455,6 +6403,8 @@ def add_consumption_event(request, commitment_id, resource_id):
             resource.quantity -= event.quantity
             resource.changed_by=request.user
             resource.save()
+        ct.process.set_started(event.event_date, request.user)
+            
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
 
@@ -6484,6 +6434,8 @@ def log_citation(request, commitment_id, resource_id):
             changed_by = request.user,
         )
         event.save()
+        ct.process.set_started(event.event_date, request.user)
+        
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
 

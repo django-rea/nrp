@@ -5234,6 +5234,12 @@ class Process(models.Model):
         if self.events.all():
             return False
         return True
+        
+    def set_started(self, date, user):
+        if not self.started:
+            self.started = date
+            self.changed_by=user
+            self.save()
 
     def default_agent(self):
         if self.context_agent:

@@ -46,19 +46,15 @@ class ExchangeFlowForm(forms.Form):
 class MultipleExchangeEventForm(forms.Form):
     to_agent = forms.ModelChoiceField(required=False,
         queryset=EconomicAgent.objects.all(),
-        label="Transfer To", 
         widget=forms.Select(
             attrs={'class': 'chzn-select input-medium'}))
     quantity = forms.DecimalField(required=True,
-        label="Quantity",
         widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-mini'}))
     value_stage_1 = forms.DecimalField(
-        help_text="Total value of the transfer, not value for each unit.",
         widget=forms.TextInput(attrs={'value': '0', 'class': 'value input-mini',}))
     paid_stage_1 = forms.ChoiceField(required=True,
         widget=forms.Select(attrs={'class': 'input-small'}), choices=PAID_CHOICES)
     value_stage_2 = forms.DecimalField(
-        help_text="Total value of the transfer, not value for each unit.",
         widget=forms.TextInput(attrs={'value': '0', 'class': 'value input-mini',}))
     paid_stage_2 = forms.ChoiceField(required=True,
         widget=forms.Select(attrs={'class': 'input-small'}), choices=PAID_CHOICES)

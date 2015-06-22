@@ -126,7 +126,6 @@ h3 {
                         <div class="card-hdr">{{ rt.name }}</div>
                         <ul> 
                           {% for com in rt.farm_commits %}
-                            {% if com.unfilled_quantity > 0 %}
                               {% if com.future %}
                                 <li class="gray">{{ com.from_agent }} - {{ com.remaining_formatted_quantity }} - {{ com.commitment_date }}
                                 {% if com.description %}
@@ -186,7 +185,6 @@ h3 {
                                   <div class="notes"> {{ com.description|urlize|linebreaks }} </div>
                                 {% endif %}
                               {% endif %} 
-                            {% endif %}
                           {% endfor %}
                         </ul>
                     </div>

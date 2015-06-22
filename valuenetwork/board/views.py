@@ -147,6 +147,11 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
             xfer_patterns = [puc.pattern for puc in xfer_use_case.patterns.all()]
             if xfer_patterns:
                 xfer_pattern = xfer_patterns[0]
+            proc_use_case = UseCase.objects.get(identifier="rand")
+            proc_pattern = None
+            proc_patterns = [puc.pattern for puc in proc_use_case.patterns.all()]
+            if proc_patterns:
+                proc_pattern = proc_patterns[0]
             receipt_et = EventType.objects.get(name="Receipt")
             transfer_et = EventType.objects.get(name="Transfer")
             rec_transfer_et = EventType.objects.get(name="Reciprocal Transfer")
@@ -154,9 +159,10 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
             consume_et = EventType.objects.get(name="Resource Consumption")
             produce_et = EventType.objects.get(name="Resource Production")
             pay_rt = EconomicResourceType.objects.filter(unit__unit_type="value")[0]
-            formset = create_exchange_formset(prefix=prefix, data=request.POST, context_agent=context_agent, assoc_type_identifier=assoc_type_identifier)
+            formset = create_exchange_formset(prefix=prefix, data=request.POST, context_agent=context_agent, assoc_type_identifier=next_stage.identifier)
             quantity = 0
             ces = []
+            #import pdb; pdb.set_trace()
             for form_ee in formset.forms:
                 if form_ee.is_valid():
                     data_ee = form_ee.cleaned_data
@@ -293,7 +299,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                                     exchange_stage=next_stage,
                                     due_date=event_date,
                                     from_agent=xfer_event.to_agent,
-                                    to_agent=rxfer_event.from_agent,
+                                    to_agent=xfer_event.from_agent,
                                     context_agent=context_agent,
                                     resource_type=pay_rt,
                                     quantity=value_stage_2,
@@ -312,15 +318,16 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                             from_agent = xfer_event.to_agent,
                             to_agent = to_agent,
                             context_agent = context_agent,
-                            quantity = quantity,
+                            quantity = breakout_quantity,
                             unit_of_quantity = resource.resource_type.unit,
                             created_by = request.user,
                         )
                         consume_event.save()
                         ces.append(consume_event)
-                        
+            
             process = Process(
                 name="Combined harvested: new lot",
+                process_pattern=proc_pattern,
                 end_date=event_date,
                 start_date=event_date,
                 created_by=request.user,
@@ -354,6 +361,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
             )
             prod_event.save()
             
+            #import pdb; pdb.set_trace()
             if zero_out == True:
                 commitment.finished = True
                 commitment.save()

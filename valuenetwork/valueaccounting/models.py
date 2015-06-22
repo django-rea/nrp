@@ -1479,10 +1479,15 @@ class EconomicResourceType(models.Model):
             quantity__gt=0)
               
     def commits_for_exchange_stage(self, stage):
-        return Commitment.objects.filter(
+        cfes = []
+        commits = Commitment.objects.filter(
             exchange_stage=stage,
             resource_type = self,
             finished=False)
+        for com in commits:
+            if com.unfilled_quantity > 0:
+                cfes.append(com)
+        return cfes
        
     def onhand_for_resource_driven_recipe(self):
         return EconomicResource.goods.filter(
@@ -5164,8 +5169,9 @@ class ProcessManager(models.Manager):
         ids = []
         use_et = EventType.objects.get(name="Resource use")
         for process in processes:
-            if use_et in process.process_pattern.event_types():
-                ids.append(process.id)
+            if process.process_pattern:
+                if use_et in process.process_pattern.event_types():
+                    ids.append(process.id)
         return Process.objects.filter(pk__in=ids)
 
 class Process(models.Model):

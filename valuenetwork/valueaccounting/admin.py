@@ -83,7 +83,7 @@ class EconomicEventInline(admin.TabularInline):
     
 class ExchangeAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
-    list_display = ('id', 'use_case', 'name', 'context_agent', 'supplier')
+    list_display = ('id', 'start_date', 'use_case', 'name', 'context_agent', 'supplier')
     inlines = [ EconomicEventInline, ]
 
 admin.site.register(Exchange, ExchangeAdmin)

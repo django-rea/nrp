@@ -3710,6 +3710,45 @@ def commit_to_task(request, commitment_id):
                     % ('accounting/work-now', process.id, ct.id))
         
         return HttpResponseRedirect(next)
+        
+@login_required
+def join_task(request, commitment_id):
+    if request.method == "POST":
+        ct = get_object_or_404(Commitment, id=commitment_id)
+        process = ct.process
+        agent = get_agent(request)
+        prefix = ct.join_form_prefix()
+        form = CommitmentForm(data=request.POST, prefix=prefix)
+        next = request.POST.get("next")
+        #import pdb; pdb.set_trace()
+        if form.is_valid():
+            data = form.cleaned_data
+            new_ct = form.save(commit=False)
+            """
+            start_date = data["start_date"]
+            description = data["description"]
+            quantity = data["quantity"]
+            unit_of_quantity = data["unit_of_quantity"]
+            ct.start_date=start_date
+            ct.quantity=quantity
+            ct.unit_of_quantity=unit_of_quantity
+            ct.description=description
+            """
+            new_ct.due_date = ct.due_date
+            new_ct.resource_type = ct.resource_type
+            new_ct.order_item = ct.order_item
+            new_ct.independent_demand = ct.independent_demand
+            new_ct.event_type = ct.event_type
+            new_ct.process = process
+            new_ct.from_agent = agent
+            new_ct.to_agent = ct.to_agent
+            new_ct.context_agent = ct.context_agent
+            new_ct.stage = ct.stage
+            new_ct.state = ct.state
+            new_ct.created_by=request.user
+            new_ct.save()
+        
+        return HttpResponseRedirect(next)
 
 @login_required
 def change_commitment(request, commitment_id):

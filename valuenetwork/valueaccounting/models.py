@@ -7022,6 +7022,19 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import CommitmentForm
         prefix=self.form_prefix()
         return CommitmentForm(instance=self, prefix=prefix)
+    
+    def join_form_prefix(self):
+        return "-".join(["JOIN", str(self.id)])
+        
+    def join_form(self):
+        from valuenetwork.valueaccounting.forms import CommitmentForm
+        prefix = self.join_form_prefix()
+        init = {
+            "start_date": datetime.date.today,
+            "unit_of_quantity": self.unit_of_quantity,
+            "description": self.description,
+            }
+        return CommitmentForm(initial=init, prefix=prefix)
    
     def change_form(self):
         from valuenetwork.valueaccounting.forms import ChangeCommitmentForm

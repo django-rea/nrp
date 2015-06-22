@@ -577,10 +577,36 @@ hr {
 				                </div>
 				            {% endif %}
 		                {% endwith %}
+		                {% if agent %}
+                            {% if agent != item.from_agent %}
+                                <a href="#joinForm{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                                    {% trans "Join this task" %}
+                                </a>
+                                <div class="modal hide fade joinForm" id="joinForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="join-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="join-label">{% trans "Join this task" %}: {{ item.resource_type.name }}</h3>
+                                        <p>{% trans "You are committing to collaborate with " %} {{ item.from_agent }}</p>
+                                    </div>
+                                    <div class="modal-body">
+                                        
+                                        <form class="joinForm validateMe" enctype="multipart/form-data" action="{% url join_task commitment_id=item.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ item.join_form|as_bootstrap }}
+                                            <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
+                                          <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Join this task" %}' />
+                                          </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endif %}
 			            
 				        </div>
 			        {% else %}
-					        <span class="taken">{% trans "Unassigned" %} </span>
+                        <span class="taken">{% trans "Unassigned" %} </span>
 					        {% if logger %}
 				                <form
 				                    style="display: inline;" 
@@ -621,6 +647,7 @@ hr {
 							        </div>
 						        </div>
 					        {% endif %}
+
 				        </div>
 			        {% endif %}
 

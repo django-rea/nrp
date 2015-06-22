@@ -151,4 +151,29 @@ class AvailableForm(forms.ModelForm):
             self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
         if context_agent:
             self.fields["from_agent"].queryset = context_agent.all_has_associates_by_type(assoc_type_identifier="HarvestSite")
- 
+
+class CombineResourcesForm(forms.Form):
+    event_date = forms.DateField(required=True, 
+        label=_("Transfer Date"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    resources = forms.ModelMultipleChoiceField(
+        required=True,
+        queryset=EconomicResource.objects.all(),
+        label=_("Select more than one lot to be combined"),
+        widget=forms.SelectMultiple(attrs={'class': 'cash chzn-select input-xxlarge'}))   
+    identifier = forms.CharField(
+        required=True, 
+        label="New lot number",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    #quantity = forms.DecimalField(required=True,
+    #    label="Total Quantity",
+    #    widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
+    notes = forms.CharField(required=False,
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+        
+    def __init__(self, stage=None, resource_type=None, *args, **kwargs):
+        super(CombineResourcesForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if resource_type and stage:
+            self.fields["resources"].queryset = resource_type.onhand_for_exchange_stage(stage=stage)
+             

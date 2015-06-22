@@ -36,8 +36,8 @@ def dhen_board(request, context_agent_id):
     dryer_stage = AgentAssociationType.objects.get(identifier="DryingSite")
     seller_stage = AgentAssociationType.objects.get(identifier="Seller")
     rts = pattern.get_resource_types(event_type=et)
+    init = {"event_date": e_date, "paid": "paid"}
     for rt in rts:
-        init = {"event_date": e_date, "paid": "paid"}
         rt.farm_commits = rt.commits_for_exchange_stage(stage=farm_stage) 
         for com in rt.farm_commits:
             if com.commitment_date > e_date:
@@ -54,6 +54,9 @@ def dhen_board(request, context_agent_id):
             qty_help = " ".join([res.unit_of_quantity().abbrev, ", up to 2 decimal places"])
             res.transfer_form = TransferFlowForm(initial=init, qty_help=qty_help, assoc_type_identifier="Seller", context_agent=context_agent, prefix=prefix)
         rt.seller_resources = rt.onhand_for_exchange_stage(stage=seller_stage)
+        if rt.seller_resources:
+            init_rt = {"event_date": e_date,} 
+            rt.combine_form = CombineResourcesForm(prefix = rt.form_prefix(), initial=init_rt, resource_type=rt, stage=seller_stage)
     
     return render_to_response("board/dhen_board.html", {
         "agent": agent,
@@ -482,5 +485,88 @@ def transfer_resource(request, context_agent_id, assoc_type_identifier, resource
                     )
                     commit.save()
                                                 
+    return HttpResponseRedirect('/%s/%s/'
+        % ('board/dhen-board', context_agent_id))
+
+def combine_resources(request, context_agent_id, assoc_type_identifier, resource_type_id):
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        resource_type = get_object_or_404(EconomicResourceType, id=resource_type_id)
+        context_agent = EconomicAgent.objects.get(id=context_agent_id)
+        stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
+        prefix = resource_type.form_prefix()
+        form = CombineResourcesForm(prefix=prefix, data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            event_date = data["event_date"] 
+            resources = data["resources"]
+            identifier = data["identifier"]
+            notes = data["notes"]
+            proc_use_case = UseCase.objects.get(identifier="rand")
+            proc_pattern = None
+            proc_patterns = [puc.pattern for puc in proc_use_case.patterns.all()]
+            if proc_patterns:
+                proc_pattern = proc_patterns[0]
+            consume_et = EventType.objects.get(name="Resource Consumption")
+            produce_et = EventType.objects.get(name="Resource Production")
+            if resources:
+                process = Process(
+                    name="Combined: new lot",
+                    process_pattern=proc_pattern,
+                    end_date=event_date,
+                    start_date=event_date,
+                    started=event_date,
+                    context_agent=context_agent,
+                    finished=True,
+                    created_by=request.user,
+                )
+                process.save()
+                
+                qty = 0
+                for res in resources:
+                    consume_event = EconomicEvent(
+                        event_type = consume_et,
+                        event_date = event_date,
+                        resource = res,
+                        resource_type = res.resource_type,
+                        process=process,
+                        exchange_stage=stage,
+                        from_agent = res.owner_based_on_exchange(),
+                        to_agent = res.owner_based_on_exchange(),
+                        context_agent = context_agent,
+                        quantity = res.quantity,
+                        unit_of_quantity = res.resource_type.unit,
+                        created_by = request.user,
+                    )
+                    consume_event.save()
+                    qty += res.quantity
+                    res.quantity = 0
+                    res.save()
+                prod_resource = EconomicResource(
+                    identifier=identifier,
+                    resource_type=resource_type,
+                    quantity=qty,
+                    exchange_stage=stage,
+                    notes=notes,
+                    created_by=request.user                
+                )
+                prod_resource.save()
+                prod_event = EconomicEvent(
+                    event_type = produce_et,
+                    event_date = event_date,
+                    resource = prod_resource,
+                    resource_type = prod_resource.resource_type,
+                    exchange_stage=stage,
+                    process = process,
+                    from_agent = res.owner_based_on_exchange(),
+                    to_agent = res.owner_based_on_exchange(),
+                    context_agent = context_agent,
+                    quantity = qty,
+                    unit_of_quantity = prod_resource.resource_type.unit,
+                    description=notes,
+                    created_by = request.user,               
+                )
+                prod_event.save()
+            
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))

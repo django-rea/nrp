@@ -108,7 +108,7 @@ h3 {
         <div class="span3">
             <span class="top">Drying Site</span>
             {% if agent %}
-                <a data-toggle="modal" class="btn btn-primary btn-mini">{% trans "Combine Lots" %}</a>
+                <a data-toggle="modal" class="btn btn-primary btn-mini">{% trans "Receive" %}</a>
             {% endif %}
         </div>
         <div class="span3">
@@ -196,7 +196,8 @@ h3 {
             {% for rt in resource_types %}
                 {% if rt.dryer_resources %}
                     <div class="card">
-                        <div class="card-hdr">{{ rt.name }}</div>
+                        <div class="card-hdr">{{ rt.name }}
+                        </div>
                         <ul> 
                             {% for res in rt.dryer_resources %}
                                 <li>{{ res.owner_based_on_exchange.nick }} ~ <a href="{% url resource resource_id=res.id %}">{{ res.identifier }}</a> ~ {{ res.formatted_quantity }} 
@@ -204,7 +205,8 @@ h3 {
                                     <img src="{% static 'img/stock_next.png' %}" height="20" width="20" title="Transfer to seller" class="arrow" /></a>
                                     {% endif %}
                                 </li>
-                                <div class="modal hide fade xfer" id="harvesterModal{{ res.id }}" tabindex="-1" role="dialog" aria-labelledby="harv" aria-hidden="true">
+                                {% if agent %}
+                                  <div class="modal hide fade xfer" id="harvesterModal{{ res.id }}" tabindex="-1" role="dialog" aria-labelledby="harv" aria-hidden="true">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                         <h3 id="harv">{{ res.resource_type }} from {{ res.owner_based_on_exchange.nick }}</h3>
@@ -221,7 +223,8 @@ h3 {
                                             </div>
                                         </form>
                                     </div>
-                                </div>
+                                  </div>
+                                {% endif %}
                                 {% if res.notes %}
                                   <div class="notes"> {{ res.notes|urlize|linebreaks }} </div>
                                 {% endif %}
@@ -236,7 +239,31 @@ h3 {
             {% for rt in resource_types %}
                 {% if rt.seller_resources %}
                     <div class="card">
-                        <div class="card-hdr">{{ rt.name }}</div>
+                        <div class="card-hdr">{{ rt.name }}
+                            {% if agent %}
+                                <a href="#combineModal{{ rt.id }}" role="button"  data-toggle="modal" class="btn btn-primary btn-mini">{% trans "Combine Lots" %}</a>
+                            {% endif %}
+                        </div>
+                       {% if agent %}
+                          <div class="modal hide fade xfer" id="combineModal{{ rt.id }}" tabindex="-1" role="dialog" aria-labelledby="combine" aria-hidden="true">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h3 id="combine">Combine lots for {{ rt.name }}</h3>
+                            </div>
+                            <div class="modal-body">
+                                <form class="validateMe" id="combineForm" enctype="multipart/form-data" 
+                                    action="{% url combine_resources context_agent_id=context_agent.id assoc_type_identifier='Seller' resource_type_id=rt.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    {{ rt.combine_form|as_bootstrap }}
+                                    <div class="modal-footer">
+                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                        <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                                    </div>
+                                </form>
+                            </div>
+                          </div>
+                        {% endif %}
                         <ul> 
                             {% for res in rt.seller_resources %}
                                 <li>{{ res.owner_based_on_exchange.nick }} ~ <a href="{% url resource resource_id=res.id %}">{{ res.identifier }}</a> ~ {{ res.formatted_quantity }} 

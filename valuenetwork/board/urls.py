@@ -9,4 +9,6 @@ urlpatterns = patterns("",
         'valuenetwork.board.views.transfer_resource', name="transfer_resource"),
     url(r'^purchase-resource/(?P<context_agent_id>\d+)/(?P<assoc_type_identifier>\w+)/(?P<commitment_id>\d+)/$', 
         'valuenetwork.board.views.purchase_resource', name="purchase_resource"),
+    url(r'^combine-resources/(?P<context_agent_id>\d+)/(?P<assoc_type_identifier>\w+)/(?P<resource_type_id>\d+)/$', 
+        'valuenetwork.board.views.combine_resources', name="combine_resources"),
 )

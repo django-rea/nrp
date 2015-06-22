@@ -2102,7 +2102,10 @@ class EconomicResourceType(models.Model):
     def source_create_form(self):
         from valuenetwork.valueaccounting.forms import AgentResourceTypeForm
         return AgentResourceTypeForm(prefix=self.source_create_prefix())
-
+            
+    def form_prefix(self):
+        return "".join(["RT", str(self.id)])
+    
     def directional_unit(self, direction):
         answer = self.unit
         if self.unit_of_use:

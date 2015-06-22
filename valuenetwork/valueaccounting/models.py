@@ -7032,7 +7032,7 @@ class Commitment(models.Model):
         init = {
             "start_date": datetime.date.today,
             "unit_of_quantity": self.unit_of_quantity,
-            "description": self.description,
+            "description": "Explain how you propose to help.",
             }
         return CommitmentForm(initial=init, prefix=prefix)
    

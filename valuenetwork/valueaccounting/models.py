@@ -4475,7 +4475,7 @@ class EconomicResource(models.Model):
 
     def last_exchange_event(self):  #todo: could a resource ever go thru the same exchange stage more than once?
         #import pdb; pdb.set_trace()
-        #todo: this doesn't work, is using the wrong stage - current instead of previous
+        #todo: this works for the moment because I'm storing exchange stage in the resource even if it came out of a process last (dhen)
         events = self.where_from_events().filter(exchange_stage=self.exchange_stage)
         if events:
             return events[0]
@@ -4483,7 +4483,6 @@ class EconomicResource(models.Model):
             return None  
         
     def owner_based_on_exchange(self):
-        #todo: this doesn't work, see last method
         event = self.last_exchange_event()
         if event:
             return event.to_agent

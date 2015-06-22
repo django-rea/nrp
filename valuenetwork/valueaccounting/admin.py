@@ -79,12 +79,17 @@ admin.site.register(ClaimEvent, ClaimEventAdmin)
 class EconomicEventInline(admin.TabularInline):
     model = EconomicEvent
     fk_name = 'exchange'
-    fields = ('event_type', 'event_date', 'resource_type', 'quantity', 'unit_of_quantity', 'value', 'unit_of_value')
+    fields = ('event_type', 'event_date', 'resource_type', 'exchange_stage', 'quantity', 'unit_of_quantity', 'value', 'unit_of_value', 'from_agent', 'to_agent')
+ 
+class CommitInline(admin.TabularInline):
+    model = Commitment
+    fk_name = 'exchange'
+    fields = ('event_type', 'commitment_date', 'resource_type', 'exchange_stage', 'quantity', 'unit_of_quantity', 'from_agent', 'to_agent')
     
 class ExchangeAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
     list_display = ('id', 'start_date', 'use_case', 'name', 'context_agent', 'supplier')
-    inlines = [ EconomicEventInline, ]
+    inlines = [ EconomicEventInline, CommitInline ]
 
 admin.site.register(Exchange, ExchangeAdmin)
 

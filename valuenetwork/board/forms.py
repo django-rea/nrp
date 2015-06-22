@@ -12,6 +12,37 @@ PAID_CHOICES = (('paid', 'Paid for'),
     ('later', 'Will pay later'),
     ('never', 'Payment not needed'))
 
+class TransferFlowForm(forms.Form):
+    event_date = forms.DateField(required=True, 
+        label=_("Transfer Date"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
+    to_agent = forms.ModelChoiceField(required=False,
+        queryset=EconomicAgent.objects.all(),
+        label="Transfer To", 
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    quantity = forms.DecimalField(required=True,
+        label="Quantity",
+        widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
+    value = forms.DecimalField(
+        help_text="Total value of the transfer, not value for each unit.",
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    notes = forms.CharField(required=False,
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    paid = forms.ChoiceField(required=True,
+        widget=forms.Select, choices=PAID_CHOICES)
+        
+    def __init__(self, assoc_type_identifier=None, context_agent=None, qty_help=None, *args, **kwargs):
+        super(TransferFlowForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if context_agent and assoc_type_identifier:
+            self.fields["to_agent"].queryset = context_agent.all_has_associates_by_type(assoc_type_identifier=assoc_type_identifier)   
+        if qty_help:
+            self.fields["quantity"].help_text = qty_help
+            
 class ExchangeFlowForm(forms.Form):
     event_date = forms.DateField(required=True, 
         label=_("Transfer Date"),
@@ -64,10 +95,10 @@ class ZeroOutForm(forms.Form):
         required=False,
         label="Last harvest of this herb on this farm (remove farm availability)", 
         widget=forms.CheckboxInput())
-    bundle_stages = forms.BooleanField(
-        required=False,
-        label="Harvesting site and harvester are the same, sell directly to drying site (doesn't work yet)", 
-        widget=forms.CheckboxInput())
+    #bundle_stages = forms.BooleanField(
+    #    required=False,
+    #    label="Harvesting site and harvester are the same, sell directly to drying site (doesn't work yet)", 
+    #    widget=forms.CheckboxInput())
     
 class NewResourceForm(forms.Form):   
     identifier = forms.CharField(

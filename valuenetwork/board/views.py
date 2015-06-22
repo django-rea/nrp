@@ -33,7 +33,6 @@ def dhen_board(request, context_agent_id):
     process_form = PlanProcessForm()
     et = EventType.objects.get(name="Transfer")
     farm_stage = AgentAssociationType.objects.get(identifier="HarvestSite")
-    #harvester_stage = AgentAssociationType.objects.get(identifier="Harvester")
     dryer_stage = AgentAssociationType.objects.get(identifier="DryingSite")
     seller_stage = AgentAssociationType.objects.get(identifier="Seller")
     rts = pattern.get_resource_types(event_type=et)
@@ -51,15 +50,10 @@ def dhen_board(request, context_agent_id):
             com.multiple_formset = create_exchange_formset(context_agent=context_agent, assoc_type_identifier="Harvester", prefix=prefix)
         rt.dryer_resources = rt.onhand_for_exchange_stage(stage=dryer_stage)
         for res in rt.dryer_resources:
-            res.owns = res.purchase_events()[0].from_agent
             prefix = res.form_prefix()
             qty_help = " ".join([res.unit_of_quantity().abbrev, ", up to 2 decimal places"])
-            res.transfer_form = ExchangeFlowForm(initial=init, qty_help=qty_help, assoc_type_identifier="DryingSite", context_agent=context_agent, prefix=prefix)
-          
-    
-
-    
-    
+            res.transfer_form = TransferFlowForm(initial=init, qty_help=qty_help, assoc_type_identifier="Seller", context_agent=context_agent, prefix=prefix)
+        rt.seller_resources = rt.onhand_for_exchange_stage(stage=seller_stage)
     
     return render_to_response("board/dhen_board.html", {
         "agent": agent,
@@ -100,28 +94,41 @@ def create_exchange_formset(context_agent, assoc_type_identifier, prefix, data=N
         form.fields["paid_stage_2"].initial = "paid"
     return formset
 
+#todo: hardcoded recipe and exchange types
+def get_next_stage(assoc_type_identifier):
+    if assoc_type_identifier == "HarvestSite":
+        next_stage = AgentAssociationType.objects.get(identifier="Harvester")
+    elif assoc_type_identifier == "Harvester":
+        next_stage = AgentAssociationType.objects.get(identifier="DryingSite")
+    elif assoc_type_identifier == "DryingSite":
+        next_stage = AgentAssociationType.objects.get(identifier="Seller")
+    else:
+        next_stage = None
+    return next_stage
+    
 @login_required
 def purchase_resource(request, context_agent_id, assoc_type_identifier, commitment_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
+        commitment = get_object_or_404(Commitment, id=commitment_id)
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
         stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
-        #todo: hardcoded recipe and exchange types
-        if assoc_type_identifier == "HarvestSite":
-            next_stage = AgentAssociationType.objects.get(identifier="Harvester")
-        elif assoc_type_identifier == "Harvester":
-            next_stage = AgentAssociationType.objects.get(identifier="DryingSite")
-        elif assoc_type_identifier == "DryingSite":
-            next_stage = AgentAssociationType.objects.get(identifier="Seller")
-        else:
-            next_stage = None
-        
-        commitment = Commitment.objects.get(id=commitment_id)
+        next_stage = get_next_stage(assoc_type_identifier)
+        next_next_stage = get_next_stage(next_stage.identifier)
         prefix = commitment.form_prefix()
         form = ExchangeFlowForm(prefix=prefix, data=request.POST)
         lot_form = NewResourceForm(prefix=prefix, data=request.POST)
         zero_form = ZeroOutForm(prefix=prefix, data=request.POST)
-        if form.is_valid() and lot_form.is_valid() and zero_form.is_valid():
+
+        if zero_form.is_valid():        
+            #import pdb; pdb.set_trace()
+            zero_data = zero_form.cleaned_data
+            zero_out = zero_data["zero_out"]
+            if zero_out == True:
+                commitment.finished = True
+                commitment.save()
+        
+        if form.is_valid() and lot_form.is_valid():
             data = form.cleaned_data
             event_date = data["event_date"] 
             to_agent = data["to_agent"]
@@ -134,9 +141,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
             notes  = data["notes"]
             lot_data = lot_form.cleaned_data
             identifier = lot_data["identifier"]
-            zero_data = zero_form.cleaned_data
-            zero_out = zero_data["zero_out"]
-            bundle_stages = zero_data["bundle_stages"]
+            #bundle_stages = zero_data["bundle_stages"]
             purch_use_case = UseCase.objects.get(identifier="purch_contr")
             purch_pattern = None
             purch_patterns = [puc.pattern for puc in purch_use_case.patterns.all()]
@@ -187,8 +192,8 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                         resource = EconomicResource(
                             identifier=commitment.resource_type.name + " from farm",
                             resource_type=commitment.resource_type,
-                            quantity=breakout_quantity,
-                            exchange_stage=next_stage,
+                            quantity=0,
+                            exchange_stage=next_next_stage,
                             created_by=request.user
                         )
                         resource.save()
@@ -198,6 +203,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                             resource = resource,
                             resource_type = resource.resource_type,
                             exchange = exchange,
+                            exchange_stage=next_stage,
                             commitment=commitment,
                             from_agent = commitment.from_agent,
                             to_agent = breakout_to_agent,
@@ -216,7 +222,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                                     event_date = event_date,
                                     resource_type = pay_rt,
                                     exchange = exchange,
-                                    exchange_stage=stage,
+                                    exchange_stage=next_stage,
                                     from_agent = receipt_event.to_agent,
                                     to_agent = receipt_event.from_agent,
                                     context_agent = context_agent,
@@ -233,7 +239,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                                     commitment_date=event_date,
                                     event_type=pay_et,
                                     exchange=exchange,
-                                    exchange_stage=stage,
+                                    exchange_stage=next_stage,
                                     due_date=event_date,
                                     from_agent=receipt_event.to_agent,
                                     to_agent=receipt_event.from_agent,
@@ -262,6 +268,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                             resource = resource,
                             resource_type = resource.resource_type,
                             exchange = xfer_exchange,
+                            exchange_stage=next_next_stage,
                             from_agent = commitment.from_agent,
                             to_agent = breakout_to_agent,
                             context_agent = context_agent,
@@ -279,7 +286,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                                     event_date = event_date,
                                     resource_type = pay_rt,
                                     exchange = xfer_exchange,
-                                    exchange_stage=next_stage,
+                                    exchange_stage=next_next_stage,
                                     from_agent = xfer_event.to_agent,
                                     to_agent = xfer_event.from_agent,
                                     context_agent = context_agent,
@@ -296,7 +303,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                                     commitment_date=event_date,
                                     event_type=pay_et,
                                     exchange=xfer_exchange,
-                                    exchange_stage=next_stage,
+                                    exchange_stage=next_next_stage,
                                     due_date=event_date,
                                     from_agent=xfer_event.to_agent,
                                     to_agent=xfer_event.from_agent,
@@ -315,6 +322,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                             event_date = event_date,
                             resource = resource,
                             resource_type = resource.resource_type,
+                            exchange_stage=next_next_stage,
                             from_agent = xfer_event.to_agent,
                             to_agent = to_agent,
                             context_agent = context_agent,
@@ -330,8 +338,10 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                 process_pattern=proc_pattern,
                 end_date=event_date,
                 start_date=event_date,
+                started=event_date,
+                context_agent=context_agent,
+                finished=True,
                 created_by=request.user,
-                context_agent=context_agent                 
             )
             process.save()
             for ce in ces:
@@ -341,7 +351,8 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                 identifier=identifier,
                 resource_type=commitment.resource_type,
                 quantity=quantity,
-                exchange_stage=next_stage,
+                exchange_stage=next_next_stage,
+                notes=notes,
                 created_by=request.user                
             )
             prod_resource.save()
@@ -350,6 +361,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                 event_date = event_date,
                 resource = prod_resource,
                 resource_type = prod_resource.resource_type,
+                exchange_stage=next_next_stage,
                 process = process,
                 from_agent = to_agent,
                 to_agent = to_agent,
@@ -361,143 +373,87 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
             )
             prod_event.save()
             
-            #import pdb; pdb.set_trace()
-            if zero_out == True:
-                commitment.finished = True
-                commitment.save()
-            
             #todo: put skip stage here!
             
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))
 
 @login_required
-def transfer_resource(request, context_agent_id, assoc_type_identifier, resource_id=None):
+def transfer_resource(request, context_agent_id, assoc_type_identifier, resource_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        resource = EconomicResource.objects.get(id=resource_id)
+        resource = get_object_or_404(EconomicResource, id=resource_id)
+        context_agent = EconomicAgent.objects.get(id=context_agent_id)
         stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
-        #todo: hardcoded recipe and exchange types
-        if assoc_type_identifier == "HarvestSite":
-            next_stage = AgentAssociationType.objects.get(identifier="Harvester")
-        elif assoc_type_identifier == "Harvester":
-            next_stage = AgentAssociationType.objects.get(identifier="Drying Site")
-        elif assoc_type_identifier == "DryingSite":
-            next_stage = AgentAssociationType.objects.get(identifier="Seller")
-        else:
-            next_stage = None
-        from_agent = resource.last_exchange_event().to_agent
+        next_stage = get_next_stage(assoc_type_identifier)
         prefix = resource.form_prefix()
-        form = ExchangeFlowForm(prefix=prefix, data=request.POST)
+        form = TransferFlowForm(prefix=prefix, data=request.POST)
+        
         if form.is_valid():
             data = form.cleaned_data
             event_date = data["event_date"] 
             to_agent = data["to_agent"]
             quantity = data["quantity"]
             value = data["value"]
+            if not value:
+                value = 0
             unit_of_value = data["unit_of_value"]
             paid = data["paid"]
-            notes  = data["notes"]
-            lot_form = NewResourceForm(prefix=prefix, data=request.POST)
-            identifier = None
-            if lot_form:
-                lot_data = form.cleaned_data
-                identifier = lot_data["identifier"]
-            zero_form = ZeroOutForm(prefix=prefix, data=request.POST)
-            zero_out = False
-            if zero_form:
-                zero_data = form.cleaned_data
-                zero_out = zero_data["zero_out"]
-                
-            if identifier:
-                process = Process(
-                    name="Harvest: new lot",
-                    end_date=event_date,
-                    start_date=event_date,
-                    created_by=request.user,
-                    context_agent=context_agent                   
-                )
-                process.save()
-                event_in = EconomicEvent(
-                    event_type = EventType.objects.get(name="Resource Consumption"),
-                    event_date = event_date,
-                    resource = resource,
-                    resource_type = resource.resource_type,
-                    process = process,
-                    from_agent = from_agent,
-                    to_agent = to_agent,
-                    context_agent = context_agent,
-                    quantity = quantity,
-                    unit_of_quantity = resource.resource_type.unit,
-                    created_by = request.user,
-                )
-                event_in.save()
-                new_resource = EconomicResource(
-                    identifier=identifier,
-                    resource_type=resource.resource_type,
-                    quantity=quantity,
-                    exchange_stage=AgentAssociationType.objects.get(identifier="Harvester"),
-                    created_by=request.user
-                    )
-                event_out = EconomicEvent(
-                    event_type = EventType.objects.get(name="Resource Production"),
-                    event_date = event_date,
-                    resource = new_resource,
-                    resource_type = resource.resource_type,
-                    process = process,
-                    from_agent = from_agent,
-                    to_agent = to_agent,
-                    context_agent = context_agent,
-                    quantity = quantity,
-                    unit_of_quantity = resource.resource_type.unit,
-                    created_by = request.user,
-                )
-                event_out.save()
-                if zero_out == True:
-                    resource.quantity = 0
-                else:
-                    resource.quantity -= quantity
-                if resource.quantity < 0:
-                    resource.quantity = 0
-                resource.save()
-                
-            use_case = UseCase.objects.get(identifier="transfer")
-            exchange = Exchange(
+            notes = data["notes"]
+            xfer_use_case = UseCase.objects.get(identifier="transfer")
+            xfer_pattern = None
+            xfer_patterns = [puc.pattern for puc in xfer_use_case.patterns.all()]
+            if xfer_patterns:
+                xfer_pattern = xfer_patterns[0]
+            transfer_et = EventType.objects.get(name="Transfer")
+            rec_transfer_et = EventType.objects.get(name="Reciprocal Transfer")
+            pay_et = EventType.objects.get(name="Payment")
+            pay_rt = EconomicResourceType.objects.filter(unit__unit_type="value")[0]
+            #import pdb; pdb.set_trace()
+                        
+            xfer_exchange = Exchange(
                 name="Transfer " + resource.resource_type.name,
-                use_case=use_case,
-                process_pattern=use_case.process_patterns()[0],
+                use_case=xfer_use_case,
+                process_pattern=xfer_pattern,
                 start_date=event_date,
                 context_agent=context_agent,
                 created_by=request.user,                
             )
-            exchange.save()
+            xfer_exchange.save()
             xfer_event = EconomicEvent(
-                event_type = EventType.objects.get(name="Transfer"),
+                event_type = transfer_et,
                 event_date = event_date,
                 resource = resource,
                 resource_type = resource.resource_type,
-                exchange = exchange,
-                from_agent = from_agent,
+                exchange = xfer_exchange,
+                exchange_stage=next_stage,
+                from_agent = resource.owner_based_on_exchange(),
                 to_agent = to_agent,
                 context_agent = context_agent,
                 quantity = quantity,
                 unit_of_quantity = resource.resource_type.unit,
                 value = value,
                 unit_of_value = unit_of_value,
-                description = notes,
                 created_by = request.user,
             )
             xfer_event.save()
-            
+            resource.exchange_stage = next_stage
+            resource.quantity = quantity
+            if resource.notes:
+                resource.notes = resource.notes + "    -------    " + notes
+            else:
+                resource.notes = notes
+            resource.save()
             if paid == "paid":
                 if value > 0:
-                    rec_xfer_event = EconomicEvent(
-                        event_type = EventType.objects.get(name="Reciprocal Transfer"),
+                    pay_event = EconomicEvent(
+                        event_type = rec_transfer_et,
                         event_date = event_date,
-                        resource_type = ResourceType.objects.filter(unit__unit_type="value")[0],
-                        exchange = exchange,
-                        from_agent = from_agent,
-                        to_agent = to_agent,
+                        resource_type = pay_rt,
+                        exchange = xfer_exchange,
+                        exchange_stage=next_stage,
+                        from_agent = xfer_event.to_agent,
+                        to_agent = xfer_event.from_agent,
                         context_agent = context_agent,
                         quantity = value,
                         unit_of_quantity = unit_of_value,
@@ -505,20 +461,26 @@ def transfer_resource(request, context_agent_id, assoc_type_identifier, resource
                         unit_of_value = unit_of_value,
                         created_by = request.user,                        
                     )
-                    rec_xfer_event.save()
+                    pay_event.save()
             elif paid == "later":
                 if value > 0:
                     commit = Commitment (
-                        event_type=EventType.objects.get(name="Reciprocal Transfer"),
-                        exchange=exchange,
+                        commitment_date=event_date,
+                        event_type=rec_transfer_et,
+                        exchange=xfer_exchange,
+                        exchange_stage=next_stage,
                         due_date=event_date,
-                        from_agent=to_agent,
-                        to_agent=from_agent,
+                        from_agent=xfer_event.to_agent,
+                        to_agent=xfer_event.from_agent,
                         context_agent=context_agent,
-                        quantity=quantity,
-                        unit_of_value = unit_of_value,
+                        resource_type=pay_rt,
+                        quantity=value,
+                        unit_of_quantity=unit_of_value,
+                        value=value,
+                        unit_of_value=unit_of_value,
                         created_by=request.user,                        
                     )
                     commit.save()
+                                                
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))

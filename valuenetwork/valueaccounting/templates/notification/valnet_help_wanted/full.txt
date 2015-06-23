@@ -1,6 +1,7 @@
 {% load i18n %}{% blocktrans %}{{ creator }} requests help that fits your skills:
 
-Work required: {{ resource_type }} Estimated duration: {{ hours }} {{ unit }}, Due: {{ due_date }}
+Work required: {{ resource_type }}, Estimated duration: {{ hours }} {{ unit }}
+Due: {{ due_date }}
 
 {{ description }}
 

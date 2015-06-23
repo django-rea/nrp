@@ -402,6 +402,9 @@ class EconomicAgent(models.Model):
     phone_secondary = models.CharField(_('secondary phone'), max_length=32, blank=True, null=True)
     latitude = models.FloatField(_('latitude'), default=0.0, blank=True, null=True)
     longitude = models.FloatField(_('longitude'), default=0.0, blank=True, null=True)
+    primary_location = models.ForeignKey(Location, 
+        verbose_name=_('current location'), related_name='agents_at_location', 
+        blank=True, null=True)
     reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     photo = ThumbnailerImageField(_("photo"),
@@ -1468,7 +1471,24 @@ class EconomicResourceType(models.Model):
             resource_type=self,
             stage=stage,
             quantity__gt=0)
-    
+             
+    def onhand_for_exchange_stage(self, stage):
+        return EconomicResource.goods.filter(
+            resource_type=self,
+            exchange_stage=stage,
+            quantity__gt=0)
+              
+    def commits_for_exchange_stage(self, stage):
+        cfes = []
+        commits = Commitment.objects.filter(
+            exchange_stage=stage,
+            resource_type = self,
+            finished=False)
+        for com in commits:
+            if com.unfilled_quantity > 0:
+                cfes.append(com)
+        return cfes
+       
     def onhand_for_resource_driven_recipe(self):
         return EconomicResource.goods.filter(
             resource_type=self,
@@ -2082,7 +2102,10 @@ class EconomicResourceType(models.Model):
     def source_create_form(self):
         from valuenetwork.valueaccounting.forms import AgentResourceTypeForm
         return AgentResourceTypeForm(prefix=self.source_create_prefix())
-
+            
+    def form_prefix(self):
+        return "".join(["RT", str(self.id)])
+    
     def directional_unit(self, direction):
         answer = self.unit
         if self.unit_of_use:
@@ -2690,6 +2713,8 @@ def create_use_cases(app, **kwargs):
     UseCase.create('distribution', _('Distribution'), True)
     UseCase.create('val_equation', _('Value Equation'), True)
     UseCase.create('payout', _('Payout'), True)
+    UseCase.create('transfer', _('Transfer'))
+    UseCase.create('available', _('Make Available'), True)
     print "created use cases"
 
 post_migrate.connect(create_use_cases)
@@ -2728,7 +2753,9 @@ def create_event_types(app, **kwargs):
     #the following is for fees, taxes, other extraneous charges not involved in a value equation
     EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
     #the following is for xfers within the network for now; may become more universal later
-    EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '-', 'quantity')
+    EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '+-', 'quantity')
+    EventType.create('Reciprocal Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '+-', 'quantity')
+    EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'exchange', '+', 'quantity')
     #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
@@ -2811,7 +2838,9 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('val_equation', 'Time Contribution')
     UseCaseEventType.create('val_equation', 'Resource Production')
     UseCaseEventType.create('payout', 'Payout')
-    #UseCaseEventType.create('val_equation', 'Process Expense')
+    UseCaseEventType.create('transfer', 'Transfer')
+    UseCaseEventType.create('transfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('available', 'Make Available')
 
     print "created use case event type associations"
 
@@ -3602,6 +3631,8 @@ class EconomicResource(models.Model):
         related_name="stream_resources", verbose_name=_('order item'))
     stage = models.ForeignKey(ProcessType, related_name="resources_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
+    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="resources_at_exchange_stage",
+        verbose_name=_('exchange stage'), blank=True, null=True)
     state = models.ForeignKey(ResourceState, related_name="resources_at_state",
         verbose_name=_('state'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
@@ -4436,13 +4467,30 @@ class EconomicResource(models.Model):
         return self.events.filter(
             Q(event_type__relationship='out')|Q(event_type__relationship='receive')|Q(event_type__relationship='receivecash')
             |Q(event_type__relationship='cash')|Q(event_type__relationship='resource')|Q(event_type__relationship='change')
-            |Q(event_type__relationship='distribute'))
-            
+            |Q(event_type__relationship='distribute')|Q(event_type__relationship='available')|Q(event_type__relationship='transfer'))
+
+    #todo: add transfer?
     def where_to_events(self):
         return self.events.filter(
             Q(event_type__relationship='in')|Q(event_type__relationship='consume')|Q(event_type__relationship='use')
             |Q(event_type__relationship='cite')|Q(event_type__relationship='pay')|Q(event_type__relationship='shipment')
             |Q(event_type__relationship='shipment')|Q(event_type__relationship='disburse'))
+
+    def last_exchange_event(self):  #todo: could a resource ever go thru the same exchange stage more than once?
+        #import pdb; pdb.set_trace()
+        #todo: this works for the moment because I'm storing exchange stage in the resource even if it came out of a process last (dhen)
+        events = self.where_from_events().filter(exchange_stage=self.exchange_stage)
+        if events:
+            return events[0]
+        else:
+            return None  
+        
+    def owner_based_on_exchange(self):
+        event = self.last_exchange_event()
+        if event:
+            return event.to_agent
+        else:
+            return None
 
     def consuming_events(self):
         return self.events.filter(event_type__relationship='consume')
@@ -4470,7 +4518,11 @@ class EconomicResource(models.Model):
     def transfer_events(self):
         tx_et = EventType.objects.get(name="Transfer")
         return self.events.filter(event_type=tx_et)
-
+        
+    def available_events(self):
+        av_et = EventType.objects.get(name="Make Available")
+        return self.events.filter(event_type=av_et)
+    
     def all_usage_events(self):
         return self.events.exclude(event_type__relationship="out").exclude(event_type__relationship="receive").exclude(event_type__relationship="resource").exclude(event_type__relationship="cash")
 
@@ -4590,7 +4642,7 @@ class EconomicResource(models.Model):
         return events
         
     def possible_root_events(self):
-        root_names = ['Create Changeable', 'Resource Production',  'Receipt']
+        root_names = ['Create Changeable', 'Resource Production',  'Receipt', 'Make Available']
         return self.events.filter(event_type__name__in=root_names)
                 
     def value_flow_going_forward(self):
@@ -4710,7 +4762,7 @@ class EconomicResource(models.Model):
         prefix=self.form_prefix()
         qty_help = " ".join(["unit:", self.unit_of_quantity().abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
-            
+    
     def owner(self): #returns first owner
         owner_roles = self.agent_resource_roles.filter(role__is_owner=True)
         if owner_roles:
@@ -5119,8 +5171,9 @@ class ProcessManager(models.Manager):
         ids = []
         use_et = EventType.objects.get(name="Resource use")
         for process in processes:
-            if use_et in process.process_pattern.event_types():
-                ids.append(process.id)
+            if process.process_pattern:
+                if use_et in process.process_pattern.event_types():
+                    ids.append(process.id)
         return Process.objects.filter(pk__in=ids)
 
 class Process(models.Model):
@@ -6815,6 +6868,8 @@ class Commitment(models.Model):
         related_name="commitments", verbose_name=_('event type'))
     stage = models.ForeignKey(ProcessType, related_name="commitments_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
+    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="commitments_at_exchange_stage",
+        verbose_name=_('exchange stage'), blank=True, null=True)
     state = models.ForeignKey(ResourceState, related_name="commitments_at_state",
         verbose_name=_('state'), blank=True, null=True)
     commitment_date = models.DateField(_('commitment date'), default=datetime.date.today)
@@ -7268,6 +7323,18 @@ class Commitment(models.Model):
 
     def unfilled_quantity(self):
         return self.quantity - self.fulfilled_quantity()
+    
+    def remaining_formatted_quantity(self):
+        qty = self.unfilled_quantity()
+        unit = self.unit_of_quantity
+        if unit:
+            if unit.symbol:
+                answer = "".join([unit.symbol, str(qty)])
+            else:
+                answer = " ".join([str(qty), unit.abbrev])
+        else:
+            answer = str(qty)
+        return answer
         
     def is_fulfilled(self):
         if self.unfilled_quantity():
@@ -7952,6 +8019,8 @@ class EconomicEvent(models.Model):
     resource = models.ForeignKey(EconomicResource, 
         blank=True, null=True,
         verbose_name=_('resource'), related_name='events')
+    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="events_creating_exchange_stage",
+        verbose_name=_('exchange stage'), blank=True, null=True)
     process = models.ForeignKey(Process,
         blank=True, null=True,
         verbose_name=_('process'), related_name='events',

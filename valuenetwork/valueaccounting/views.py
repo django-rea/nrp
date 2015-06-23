@@ -19,6 +19,7 @@ from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
+from django.contrib.sites.models import Site
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
@@ -43,6 +44,9 @@ def get_help(page_name):
         return Help.objects.get(page=page_name)
     except Help.DoesNotExist:
         return None
+        
+def get_site_name():
+    return Site.objects.get_current().name
 
 def home(request):
     layout = None
@@ -3365,6 +3369,7 @@ def add_todo(request):
                 if notification:
                     if todo.from_agent:
                         if todo.from_agent != agent:
+                            site_name = get_site_name()
                             user = todo.from_agent.user()
                             if user:
                                 #import pdb; pdb.set_trace()
@@ -3373,6 +3378,7 @@ def add_todo(request):
                                     "valnet_new_todo", 
                                     {"description": todo.description,
                                     "creator": agent,
+                                    "site_name": site_name,
                                     }
                                 )
             
@@ -3517,6 +3523,7 @@ def todo_delete(request, todo_id):
                 if todo.from_agent:
                     agent = get_agent(request)
                     if todo.from_agent != agent:
+                        site_name = get_site_name()
                         user = todo.from_agent.user()
                         if user:
                             #import pdb; pdb.set_trace()
@@ -3525,6 +3532,7 @@ def todo_delete(request, todo_id):
                                 "valnet_deleted_todo", 
                                 {"description": todo.description,
                                 "creator": agent,
+                                "site_name": site_name,
                                 }
                             )
             todo.delete()
@@ -4137,6 +4145,7 @@ def new_process_worker(request, commitment_id):
                 #import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 users = ct.possible_work_users()
+                site_name = get_site_name()
                 if users:
                     notification.send(
                         users, 
@@ -4148,6 +4157,7 @@ def new_process_worker(request, commitment_id):
                         "description": ct.description or "",
                         "process": ct.process,
                         "creator": agent,
+                        "site_name": site_name,
                         }
                     )
                 
@@ -5043,6 +5053,7 @@ def add_process_worker(request, process_id):
                 #import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 users = ct.possible_work_users()
+                site_name = get_site_name()
                 if users:
                     notification.send(
                         users, 
@@ -5054,6 +5065,7 @@ def add_process_worker(request, process_id):
                         "description": ct.description or "",
                         "process": ct.process,
                         "creator": agent,
+                        "site_name": site_name,
                         }
                     )
                 
@@ -5089,6 +5101,7 @@ def invite_collaborator(request, commitment_id):
                 #import pdb; pdb.set_trace()
                 agent = get_agent(request)
                 users = ct.possible_work_users()
+                site_name = get_site_name()
                 if users:
                     notification.send(
                         users, 
@@ -5100,6 +5113,7 @@ def invite_collaborator(request, commitment_id):
                         "description": ct.description or "",
                         "process": ct.process,
                         "creator": agent,
+                        "site_name": site_name,
                         }
                     )
                 
@@ -7913,6 +7927,7 @@ def change_process(request, process_id):
                                         #import pdb; pdb.set_trace()
                                         agent = get_agent(request)
                                         users = ct.possible_work_users()
+                                        site_name = get_site_name()
                                         if users:
                                             notification.send(
                                                 users, 
@@ -7924,6 +7939,7 @@ def change_process(request, process_id):
                                                 "description": ct.description or "",
                                                 "process": ct.process,
                                                 "creator": agent,
+                                                "site_name": site_name,
                                                 }
                                             )
                         elif ct_from_id:
@@ -8392,6 +8408,7 @@ def process_selections(request, rand=0):
                         if not work_commitment.from_agent:
                             agent = get_agent(request)
                             users = work_commitment.possible_work_users()
+                            site_name = get_site_name()
                             if users:
                                 notification.send(
                                     users, 
@@ -8403,6 +8420,7 @@ def process_selections(request, rand=0):
                                     "description": work_commitment.description or "",
                                     "process": work_commitment.process,
                                     "creator": agent,
+                                    "site_name": site_name,
                                     }
                                 )
 
@@ -8564,6 +8582,7 @@ def plan_from_recipe(request):
                     event_type__relationship="work")
                 for ct in work_cts:                           
                     users = ct.possible_work_users()
+                    site_name = get_site_name()
                     if users:
                         notification.send(
                             users, 
@@ -8575,6 +8594,7 @@ def plan_from_recipe(request):
                             "description": ct.description or "",
                             "process": ct.process,
                             "creator": agent,
+                            "site_name": site_name,
                             }
                         )
  
@@ -8713,6 +8733,7 @@ def plan_from_rt_recipe(request, resource_type_id):
                     event_type__relationship="work")
                 for ct in work_cts:                           
                     users = ct.possible_work_users()
+                    site_name = get_site_name()
                     if users:
                         notification.send(
                             users, 
@@ -8724,6 +8745,7 @@ def plan_from_rt_recipe(request, resource_type_id):
                             "description": ct.description or "",
                             "process": ct.process,
                             "creator": agent,
+                            "site_name": site_name,
                             }
                         )
  
@@ -9601,12 +9623,14 @@ def send_distribution_notification(distribution_event):
         #import pdb; pdb.set_trace()
         to_agent = distribution_event.to_agent
         users =  users = [au.user for au in to_agent.users.all()]
+        site_name = get_site_name()
         if users:
             notification.send(
                 users, 
                 "valnet_distribution", 
                 {"distribution": distribution_event,
                 "account": distribution_event.resource,
+                "site_name": site_name,
                 }
             )
 

@@ -1,10 +1,14 @@
 {% load i18n %}{% blocktrans %}{{ creator }} requests help that fits your skills:
 
-{{ resource_type }} {{ hours }} {{ unit }}, Due: {{ due_date }}
+Work required: {{ resource_type }} Estimated duration: {{ hours }} {{ unit }}, Due: {{ due_date }}
 
 {{ description }}
 
 for Process: {{ process }}
 
-You can see it here:{% endblocktrans %}
+This message has most likely been sent to other individuals. 
+IF you want to take the task, you can, but if not others will take it. 
+First-come-first-served. 
+
+You can see the process here:{% endblocktrans %}
 http://{{ current_site }}{{ process.get_absolute_url }}

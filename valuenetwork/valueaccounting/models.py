@@ -4657,13 +4657,19 @@ class EconomicResource(models.Model):
         events = self.possible_root_events()
         if events:
             processes = []
+            exchanges = []
             for event in events:
                 flows.insert(0, event)
                 if event.process:
                     if event.process not in processes:
                         processes.append(event.process)
+                if event.exchange:
+                    if event.exchange not in exchanges:
+                        exchanges.append(event.exchange)
             for process in processes:
                 flows.insert(0, process)
+            for exchange in exchanges:
+                flows.insert(0, exchange)
         return flows
                 
     def value_flow_going_forward_dfs(self, flows, visited, depth):
@@ -4675,16 +4681,37 @@ class EconomicResource(models.Model):
             for event in self.all_usage_events().order_by("id"):
                 event.depth = depth
                 flows.append(event)
-                p = event.process
-                if p:
-                    if not p in visited:
+                proc = event.process
+                exch = event.exchange
+                if proc:
+                    if not proc in visited:
+                        visited.append(proc)
                         depth += 1
-                        p.depth = depth
-                        flows.append(p)
+                        proc.depth = depth
+                        flows.append(proc)
                         depth += 1
-                        for evt in p.production_events():
+                        for evt in proc.production_events():
                             evt.depth = depth
                             flows.append(evt)
+                            resource = evt.resource
+                            if resource:
+                                if resource not in flows:
+                                    flows.append(resource)
+                                    resource.value_flow_going_forward_dfs(flows, visited, depth)
+                if exch:
+                    if not exch in visited:
+                        visited.append(exch)
+                        depth += 1
+                        exch.depth = depth
+                        flows.append(exch)
+                        depth += 1
+                        #todo: transfers will be trouble...
+                        #import pdb; pdb.set_trace()
+                        #for evt in exch.production_events():
+                        #    evt.depth = depth
+                        #    flows.append(evt)
+                        #    if evt.resource:
+                        #        evt.resource.value_flow_going_forward_dfs(flows, visited, depth)
                             
     def forward_flow(self):
         flows = []

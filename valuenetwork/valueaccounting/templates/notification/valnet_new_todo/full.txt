@@ -2,5 +2,7 @@
 
 {{ description }}
 
+Site name: {{ site_name }}
+
 You can see it here:{% endblocktrans %}
 http://{{ current_site }}{%url start %}

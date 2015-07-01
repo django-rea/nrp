@@ -85,7 +85,7 @@
                 </form>
 	        {% endif %}
 
-	        {% if user.is_superuser and user_form %}
+	        {% if user.is_staff and user_form %}
                 <a href="#createUserForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create User" %}</a>
             {% endif %}
 	        

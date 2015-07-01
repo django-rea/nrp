@@ -3808,8 +3808,13 @@ def uncommit(request, commitment_id):
         process = ct.process
         ct.from_agent = None
         ct.save()
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+    next = request.POST.get("next")
+    if next == "start":
+        return HttpResponseRedirect('/%s/'
+            % ('accounting/start'))
+    else:
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process', process.id))
 
 @login_required
 def forward_schedule_source(request, commitment_id, source_id):
@@ -5323,6 +5328,17 @@ def work_done(request):
             commitment.save()
 
     return HttpResponse("Ok", mimetype="text/plain")
+    
+@login_required
+def commitment_finished(request, commitment_id):
+    #import pdb; pdb.set_trace()
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    if not commitment.finished:
+        commitment.finished = True
+        commitment.changed_by = request.user
+        commitment.save()
+    return HttpResponseRedirect('/%s/'
+            % ('accounting/start'))
 
 @login_required
 def process_done(request):

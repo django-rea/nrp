@@ -211,11 +211,13 @@ th, td {
 									<b>Task: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 								</li>
 								{% if item.description %}
-                                    <p class="description">
-                                        {{ item.description|urlize|linebreaks }}
-                                    </p>
+                                    <ul>
+                                        <li class="work-description">
+                                            {{ item.description|urlize|linebreaks }}
+                                        </li>
+                                    </ul>
                                 {% endif %}
-								<p style="margin-left: 1em; margin-bottom: 0;">
+								<div style="margin-left: 1em; margin-bottom: 0;">
                                     {% trans "Project" %}: {{ item.context_agent }}</br>
                                     {% trans "Order" %}: {{ item.independent_demand }}</br>
                                     {% trans "Process" %}: {{ item.process }}
@@ -224,7 +226,27 @@ th, td {
                                         <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
                                     {% endif %}
                                     <a href="{{ item.process.get_absolute_url }}" role="button" class="btn btn-info btn-mini">Log work on process</a>
-								</p>
+                                    <form
+                                        style="display: inline;" 
+                                        class="finish-form" 
+                                        id="finishForm{{ item.id }}" 
+                                        action="{% url commitment_finished commitment_id=item.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" id="next" name="next" value="start" />
+                                        <button style="display: inline;"  class="btn btn-primary btn-mini" title="Close" >Close task</button>
+                                    </form>
+                                    <form
+                                        style="display: inline;" 
+                                        class="uncommit-form" 
+                                        id="uncommitForm{{ item.id }}" 
+                                        action="{% url uncommit commitment_id=item.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" id="next" name="next" value="start" />
+                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit" >Unassign</button>
+                                    </form>
+								</div>
 
 
 							{% endfor %}

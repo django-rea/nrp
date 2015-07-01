@@ -54,6 +54,7 @@
   height: 400px;
 }
 
+
 .btn {
     margin-left: 10px;
 }
@@ -80,6 +81,16 @@ li {
 .modal {
     width: 600px;
 }
+
+.takeTaskModal {
+    width: 610px;
+    height: 550px;
+}
+
+.takeTaskBody {
+    max-height: 550px;
+}
+
 .subsection-label {
     font-weight: bold;
 }
@@ -95,6 +106,7 @@ li {
 .unplanned {
     color: 	#7D1818;
 }
+
 .event-label {
     color: green;
     font-weight: bold;
@@ -625,23 +637,28 @@ hr {
 							        {% trans "Take this task" %}
 						        </a>
 
-						        <div class="modal hide fade commitmentForm" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+						        <div class="modal hide fade takeTaskModal" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
 							        <div class="modal-header">
 								        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                         <h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
 							        </div>
-							        <div class="modal-body">
+							        <div class="takeTaskBody modal-body">
 
-								        <form class="commitmentForm validateMe" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+								        <form class="commitmentForm validateMe takeTaskForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
 									        {% csrf_token %}
 									        {{ item.commitment_form|as_bootstrap }}
 									        <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
-								          <div class="modal-footer">
-									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-									        <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
-									        {% if work_now %}
-									            <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
-									        {% endif %}
+								          <div class="modal-footer takeTaskFooter">
+                                            <div class="info">
+                                                {% trans "You are committing to do this work." %}</br>
+                                                {% trans "The estimated time above is a guess about how long it will take." %}</br>
+                                                {% trans "The next step is to do the work and log your actual time." %}
+                                            </div>
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+                                            {% if work_now %}
+                                                <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+                                            {% endif %}
 								          </div>
 								        </form>
 							        </div>

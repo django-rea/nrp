@@ -182,12 +182,12 @@ th, td {
 
 			<p class="top-buttons">
 				{% if agent %}
-
+{% comment %}
 				    <a href="{% url process_selections %}" role="button" class="btn btn-primary" 
 				        title="Log time and create resources." >
 				        {% trans "Create a production process" %}
 			        </a>
-
+{% endcomment %}
 					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" 
 					    title="When you are not creating resources." >
 					    {% trans "Log non-production work" %}
@@ -202,24 +202,28 @@ th, td {
 		
           <div class="span6">
             <div class="my-work">
-				<h3 style="margin-bottom: 4px;" >{% trans "What I've been working on" %}:</h3>
+				<h3 style="margin-bottom: 4px;" >{% trans "My unfinished production work" %}:</h3>
 
 				{% if my_work %}
 						<ul>
 							{% for item in my_work %}
 								<li>
-									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-									{% if work_now %}
-									    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
-									{% endif %}
+									<b>Task: {{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
 								</li>
+								{% if item.description %}
+                                    <p class="description">
+                                        {{ item.description|urlize|linebreaks }}
+                                    </p>
+                                {% endif %}
 								<p style="margin-left: 1em; margin-bottom: 0;">
-									{% trans "for process" %}: {{ item.process }}
-									{% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %} 
+                                    {% trans "Project" %}: {{ item.context_agent }}</br>
+                                    {% trans "Order" %}: {{ item.independent_demand }}</br>
+                                    {% trans "Process" %}: {{ item.process }}
+                                    {% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %} </br>
+                                    {% if work_now %}
+                                        <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
+                                    {% endif %}
                                     <a href="{{ item.process.get_absolute_url }}" role="button" class="btn btn-info btn-mini">Log work on process</a>
-								</p>
-								<p style="margin-left: 1em; margin-bottom: 0;">
-									{% trans "for order" %}: {{ item.independent_demand }}
 								</p>
 
 

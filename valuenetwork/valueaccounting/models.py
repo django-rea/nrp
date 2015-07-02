@@ -2931,7 +2931,7 @@ class Order(models.Model):
         if process:
             process_name = ", " + process.name
         if self.name:
-            process_name = " ".join(["to", self.name])
+            process_name = " ".join(["for", self.name])
         if self.provider:
             provider_name = self.provider.name
             provider_label = ", provider:"

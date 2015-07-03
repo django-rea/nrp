@@ -66,7 +66,10 @@ class AgentForm(forms.Form):
 
 class AgentCreateForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'required-field input-xlarge',}))   
-    nick = forms.CharField(label="ID", widget=forms.TextInput(attrs={'class': 'required-field',}))   
+    nick = forms.CharField(
+        label="ID", 
+        help_text="Must be unique, and no more than 32 characters",
+        widget=forms.TextInput(attrs={'class': 'required-field',}))   
     email = forms.EmailField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
     address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))

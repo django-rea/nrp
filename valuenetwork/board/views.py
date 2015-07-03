@@ -27,17 +27,19 @@ def dhen_board(request, context_agent_id):
     context_agent = get_object_or_404(EconomicAgent, id=context_agent_id)
     agent = get_agent(request)
     pattern = ProcessPattern.objects.get(name="Transfer")
+    rec_pattern = ProcessPattern.objects.get(name="Purchase Contribution")
     e_date = datetime.date.today()
-    init = {"commitment_date": e_date, }
-    available_form = AvailableForm(initial=init, pattern=pattern, context_agent=context_agent)
-    process_form = PlanProcessForm()
+    init = {"commitment_date": e_date }
+    available_form = AvailableForm(initial=init, pattern=pattern, context_agent=context_agent, prefix="AVL")
+    init = {"event_date": e_date, "paid": "later", }
+    receive_form = ReceiveForm(initial=init, pattern=rec_pattern, context_agent=context_agent, prefix="REC")
     et = EventType.objects.get(name="Transfer")
     farm_stage = AgentAssociationType.objects.get(identifier="HarvestSite")
     dryer_stage = AgentAssociationType.objects.get(identifier="DryingSite")
     seller_stage = AgentAssociationType.objects.get(identifier="Seller")
     rts = pattern.get_resource_types(event_type=et)
-    init = {"event_date": e_date, "paid": "paid"}
     for rt in rts:
+        init = {"event_date": e_date,}
         rt.farm_commits = rt.commits_for_exchange_stage(stage=farm_stage) 
         for com in rt.farm_commits:
             if com.commitment_date > e_date:
@@ -49,6 +51,7 @@ def dhen_board(request, context_agent_id):
             com.lot_form = NewResourceForm(prefix=prefix)
             com.multiple_formset = create_exchange_formset(context_agent=context_agent, assoc_type_identifier="Harvester", prefix=prefix)
         rt.dryer_resources = rt.onhand_for_exchange_stage(stage=dryer_stage)
+        init = {"event_date": e_date, "paid": "later"}
         for res in rt.dryer_resources:
             prefix = res.form_prefix()
             qty_help = " ".join([res.unit_of_quantity().abbrev, ", up to 2 decimal places"])
@@ -62,7 +65,7 @@ def dhen_board(request, context_agent_id):
         "agent": agent,
         "context_agent": context_agent,
         "available_form": available_form,
-        "process_form": process_form,
+        "receive_form": receive_form,
         "resource_types": rts,
     }, context_instance=RequestContext(request))
 
@@ -71,7 +74,7 @@ def add_available(request, context_agent_id, assoc_type_identifier):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
-        form = AvailableForm(data=request.POST)
+        form = AvailableForm(data=request.POST, prefix="AVL")
         if form.is_valid():
             commit = form.save(commit=False)
             commit.event_type = EventType.objects.get(name="Receipt")
@@ -85,6 +88,59 @@ def add_available(request, context_agent_id, assoc_type_identifier):
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))
 
+@login_required
+def receive_directly(request, context_agent_id, assoc_type_identifier):
+    if request.method == "POST":
+        context_agent = EconomicAgent.objects.get(id=context_agent_id)
+        stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
+        form = ReceiveForm(data=request.POST, prefix="REC")
+        if form.is_valid():        
+            #import pdb; pdb.set_trace()
+            data = form.cleaned_data
+            event_date = data["event_date"]
+            identifier = data["identifier"]
+            from_agent = data["from_agent"] 
+            resource_type = data["resource_type"]
+            quantity = data["quantity"]
+            description = data["description"] 
+            receipt_et = EventType.objects.get(name="Receipt")
+            exchange = Exchange(
+                name="Purchase from farm " + resource_type.name,
+                use_case=UseCase.objects.get(identifier="purch_contr"),
+                process_pattern=ProcessPattern.objects.get(name="Purchase Contribution"),
+                start_date=event_date,
+                context_agent=context_agent,
+                created_by=request.user,                
+            )
+            exchange.save()
+            resource = EconomicResource(
+                identifier=identifier,
+                resource_type=resource_type,
+                quantity=quantity,
+                exchange_stage=stage,
+                created_by=request.user
+            )
+            resource.save()
+            event = EconomicEvent(
+                event_type = receipt_et,
+                event_date = event_date,
+                resource = resource,
+                resource_type = resource_type,
+                exchange = exchange,
+                exchange_stage=stage,
+                from_agent = from_agent,
+                to_agent = to_agent,
+                context_agent = context_agent,
+                quantity = quantity,
+                unit_of_quantity = resource_type.unit,
+                value = value,
+                unit_of_value = unit_of_value,
+                created_by = request.user,                
+            )
+            event.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('board/dhen-board', context_agent_id))
+
 def create_exchange_formset(context_agent, assoc_type_identifier, prefix, data=None):
     ExchangeFormSet = formset_factory(MultipleExchangeEventForm, extra=10)
     #init = {"paid": "paid"}
@@ -93,8 +149,8 @@ def create_exchange_formset(context_agent, assoc_type_identifier, prefix, data=N
     for form in formset:
         #id = int(form["facet_id"].value())
         form.fields["to_agent"].queryset = to_agents
-        form.fields["paid_stage_1"].initial = "paid"
-        form.fields["paid_stage_2"].initial = "paid"
+        form.fields["paid_stage_1"].initial = "never"
+        form.fields["paid_stage_2"].initial = "later"
     return formset
 
 #todo: hardcoded recipe and exchange types

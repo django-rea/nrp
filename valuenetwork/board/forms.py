@@ -165,9 +165,6 @@ class CombineResourcesForm(forms.Form):
         required=True, 
         label="New lot number",
         widget=forms.TextInput(attrs={'class': 'item-name',}))
-    #quantity = forms.DecimalField(required=True,
-    #    label="Total Quantity",
-    #    widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
     notes = forms.CharField(required=False,
         widget=forms.Textarea(attrs={'class': 'item-description',}))
         
@@ -176,4 +173,56 @@ class CombineResourcesForm(forms.Form):
         #import pdb; pdb.set_trace()
         if resource_type and stage:
             self.fields["resources"].queryset = resource_type.onhand_for_exchange_stage(stage=stage)
-             
+
+class ReceiveForm(forms.Form):
+    event_date = forms.DateField(required=True, 
+        label=_("Receipt Date"),
+        widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))  
+    identifier = forms.CharField(
+        required=True, 
+        label="New lot number",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        label="Farm or other source", 
+        empty_label=None,
+        queryset=EconomicAgent.objects.all(),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    to_agent = forms.ModelChoiceField(
+        required=True,
+        label="Receiver", 
+        empty_label=None,
+        queryset=EconomicAgent.objects.all(),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector resourceType chzn-select input-large'}))
+    quantity = forms.DecimalField(required=True,
+        label="Quantity in pounds up to 2 decimal places",
+        widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
+    paid = forms.ChoiceField(required=True,
+        widget=forms.Select, choices=PAID_CHOICES)
+    value = forms.DecimalField(
+        help_text="Total value of the receipt, not value for each unit.",
+        widget=forms.TextInput(attrs={'value': '0', 'class': 'value input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))   
+    description = forms.CharField(
+        required=False,
+        label="Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+        
+    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
+        super(ReceiveForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            et = EventType.objects.get(name="Receipt")
+            self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
+        if context_agent:
+            self.fields["from_agent"].queryset = context_agent.all_has_associates_by_type(assoc_type_identifier="HarvestSite")
+            self.fields["to_agent"].queryset = context_agent.all_has_associates_by_type(assoc_type_identifier="DryingSite") 

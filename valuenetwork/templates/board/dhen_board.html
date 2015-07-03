@@ -17,7 +17,6 @@
     background-color: whitesmoke; 
     border: 1px solid gainsboro;
     padding: 6px;
-    height: 600px;
     position: relative;
 }
 .card {
@@ -99,27 +98,27 @@ h3 {
     </div>
 {% endcomment %}
     <div class="row-fluid">
-        <div class="span3">
+        <div class="span4">
             <span class="top">Harvesting Site</span>
             {% if agent %}
                 <a class="btn btn-primary btn-mini" href="#availableModal" data-toggle="modal">{% trans "Add Available" %}</a>
             {% endif %}
         </div>
-        <div class="span3">
+        <div class="span4">
             <span class="top">Drying Site</span>
             {% if agent %}
-                <a data-toggle="modal" class="btn btn-primary btn-mini">{% trans "Receive" %}</a>
+                <a data-toggle="modal" class="btn btn-primary btn-mini" href="#receiveModal">{% trans "Receive" %}</a>
             {% endif %}
         </div>
-        <div class="span3">
+        <div class="span4">
             <span class="top">Seller</span>
             {% if agent %}
-                <a data-toggle="modal" class="btn btn-primary btn-mini">{% trans "Make Sale" %}</a>
+                <a data-toggle="modal" class="btn btn-primary btn-mini" href="{% url create_sale %}">{% trans "Make Sale" %}</a>
             {% endif %}
         </div>
     </div>
 	<div class="row-fluid">
-		<div class="span3 column">
+		<div class="span4 column">
             {% for rt in resource_types %}
                 {% if rt.farm_commits %}
                     <div class="card">
@@ -192,7 +191,7 @@ h3 {
             {% endfor %}
 		</div>
 
-        <div class="span3 column">
+        <div class="span4 column">
             {% for rt in resource_types %}
                 {% if rt.dryer_resources %}
                     <div class="card">
@@ -235,7 +234,7 @@ h3 {
             {% endfor %}
         </div>
 
-        <div class="span3 column">
+        <div class="span4 column">
             {% for rt in resource_types %}
                 {% if rt.seller_resources %}
                     <div class="card">
@@ -300,45 +299,6 @@ h3 {
 {% endcomment %}
 	</div>
 
-{% comment %}
-        <div class="modal hide fade" id="completeProcess" tabindex="-1" role="dialog" aria-labelledby="complete-process" aria-hidden="true">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h3 id="complete-process">{% trans "Complete this process" %}</h3>
-            </div>
-            <div class="modal-body">
-                <form class="validateMe" id="addToResourceForm" enctype="multipart/form-data" action="{% url  %}" method="POST" >
-                    {% csrf_token %}
-                    Date complete: {{ resource_form.event_date }}<br />
-                    Quantity: {{ resource_form.quantity }} LB<br />
-                    Notes: {{ resource_form.notes }}
-                <div class="modal-footer">
-                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
-                </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="modal hide fade" id="editProcess" tabindex="-1" role="dialog" aria-labelledby="complete-process" aria-hidden="true">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h3 id="complete-process">{% trans "Change this process" %}</h3>
-            </div>
-            <div class="modal-body">
-                <form class="validateMe" id="editProcessForm" enctype="multipart/form-data" action="{% url workflow_board_demo %}" method="POST" >
-                    {% csrf_token %}
-                    {{ process_form|as_bootstrap }}
-                <div class="modal-footer">
-                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
-                </div>
-                </form>
-            </div>
-        </div>
-    </div>
-{% endcomment %}
-
     <div class="modal hide fade" id="availableModal" tabindex="-1" role="dialog" aria-labelledby="available-label" aria-hidden="true">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -349,6 +309,24 @@ h3 {
                 action="{% url add_available context_agent_id=context_agent.id assoc_type_identifier='HarvestSite' %}" method="POST" >
                 {% csrf_token %}
                 {{ available_form|as_bootstrap }}
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                    <button class="btn btn-primary">{% trans "Save" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hide fade" id="receiveModal" tabindex="-1" role="dialog" aria-labelledby="receive-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="receive-label">{% trans "Receive directly" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="validateMe" id="availableForm" enctype="multipart/form-data" 
+                action="{% url receive_directly context_agent_id=context_agent.id assoc_type_identifier='DryingSite' %}" method="POST" >
+                {% csrf_token %}
+                {{ receive_form|as_bootstrap }}
                 <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                     <button class="btn btn-primary">{% trans "Save" %}</button>

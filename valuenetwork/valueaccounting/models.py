@@ -1662,6 +1662,8 @@ class EconomicResourceType(models.Model):
                     stage__isnull=False,
                     event_type=creation_et)
             else:
+                #bug: this code failed when it got more than one result
+                #see https://github.com/valnet/valuenetwork/issues/403
                 creation = self.process_types.get(
                     stage__isnull=False,
                     event_type=creation_et)

@@ -232,12 +232,15 @@ def projects(request):
             node.aats = aats
     agent = get_agent(request)
     agent_form = AgentCreateForm()
+    nicks = '~'.join([
+        agt.nick for agt in EconomicAgent.objects.all()])
     
     return render_to_response("valueaccounting/projects.html", {
         "roots": roots,
         "agent": agent,
         "help": get_help("projects"),
         "agent_form": agent_form,
+        "nicks": nicks,
     }, context_instance=RequestContext(request))
 
 '''
@@ -335,12 +338,15 @@ def agents(request):
     user_agent = get_agent(request)
     agents = EconomicAgent.objects.all().order_by("agent_type__name", "name")
     agent_form = AgentCreateForm()
+    nicks = '~'.join([
+        agt.nick for agt in EconomicAgent.objects.all()])
 
     return render_to_response("valueaccounting/agents.html", {
         "agents": agents,
         "agent_form": agent_form,
         "user_agent": user_agent,
         "help": get_help("agents"),
+        "nicks": nicks,
     }, context_instance=RequestContext(request))
     
 def radial_graph(request, agent_id):

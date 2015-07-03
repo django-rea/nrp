@@ -139,6 +139,7 @@
 
 {% block extra_script %}
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 {% endblock %}
 
 
@@ -157,6 +158,37 @@
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
+        
+        function html_unescape(text) {
+            // Unescape a string that was escaped using django.utils.html.escape.
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            text = text.replace(/&amp;/g, '&');
+            return text;
+        }
+
+        var nickArray = html_unescape("{{ nicks }}").split("~");
+        
+        jQuery.validator.addMethod("unique", function(value, element, param) {
+            return this.optional(element) || $.inArray(value, param) < 0; // <-- Check if the value is not in the array.
+        }, "ID is not unique.");
+
+        $('#agentForm').validate(
+        {
+            rules: {
+                nick: {
+                    required: true,
+                    maxlength: 32,
+                    unique: nickArray
+                }
+            },
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            }
+
+        });
         
         $(".list").hide();
         

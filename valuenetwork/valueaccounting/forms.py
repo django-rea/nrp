@@ -212,6 +212,7 @@ class EconomicResourceForm(forms.ModelForm):
             'independent_demand', 
             'order_item', 
             'stage', 
+            'exchange_stage',
             'state', 
             'stage', 
             'state', 
@@ -244,7 +245,7 @@ class CreateEconomicResourceForm(forms.ModelForm):
 
     class Meta:
         model = EconomicResource
-        exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand', 'order_item', 'stage', 'state', 'value_per_unit_of_use', 'value_per_unit')
+        exclude = ('resource_type', 'owner', 'author', 'custodian', 'quality', 'independent_demand', 'order_item', 'stage', 'state', 'value_per_unit_of_use', 'value_per_unit', 'exchange_stage')
 
 
 class TransformEconomicResourceForm(forms.ModelForm):
@@ -779,6 +780,10 @@ class UnplannedOutputForm(forms.ModelForm):
     notes = forms.CharField(
         required=False,
         label="Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    access_rules = forms.CharField(
+        required=False,
+        label="Resource Access Rules", 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
         
     class Meta:

@@ -1605,6 +1605,17 @@ hr {
             <form class="unplanned-output-form validateMe" enctype="multipart/form-data" action="{% url add_unplanned_output process_id=process.id %}" method="POST" >
                 {% csrf_token %}
                 {{ unplanned_output_form|as_bootstrap }}
+                {{ role_formset.management_form }}
+                Resource Roles
+                <table>
+                    {% for form in role_formset %}
+                        <tr>
+                            <td>{{ form.role }}</td>
+                            <td>{{ form.agent }}</td>
+                            <td>{{ form.is_contact }} Is contact</td>
+                        </tr>
+                    {% endfor %}
+                </table>
               <div class="modal-footer">
                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                 <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />

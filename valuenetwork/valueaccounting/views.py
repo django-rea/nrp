@@ -4234,12 +4234,14 @@ def add_unplanned_output(request, process_id):
                 notes = output_data["notes"]
                 url = output_data["url"]
                 photo_url = output_data["photo_url"]
+                access_rules = output_data["access_rules"]
                 demand = None
                 if not rt.substitutable:
                     demand = process.independent_demand()
                     #flow todo: add order_item ? [no]
                     #N/A I think, but see also
                     #add_process_output
+                    
                 resource = EconomicResource(
                     resource_type=rt,
                     identifier=identifier,
@@ -4248,10 +4250,12 @@ def add_unplanned_output(request, process_id):
                     url=url,
                     photo_url=photo_url,
                     quantity=event.quantity,
+                    access_rules=access_rules,
                     #unit_of_quantity=event.unit_of_quantity,
                     created_by=request.user,
                 )
                 resource.save()
+                
                 event.resource = resource
                 pattern = process.process_pattern
                 event_type = pattern.event_type_for_resource_type("out", rt)
@@ -4265,6 +4269,21 @@ def add_unplanned_output(request, process_id):
                 event.created_by = request.user
                 event.save()
                 process.set_started(event.event_date, request.user)
+                
+                role_formset =  resource_role_agent_formset(prefix="resource", data=request.POST)
+                for form_rra in role_formset.forms:
+                    if form_rra.is_valid():
+                        data_rra = form_rra.cleaned_data
+                        if data_rra:
+                            role = data_rra["role"]
+                            agent = data_rra["agent"]
+                            if role and agent:
+                                rra = AgentResourceRole()
+                                rra.agent = agent
+                                rra.role = role
+                                rra.resource = resource
+                                rra.is_contact = data_rra["is_contact"]
+                                rra.save()
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -5924,6 +5943,7 @@ def process_oriented_logging(request, process_id):
         output_resource_types = pattern.output_resource_types()        
         unplanned_output_form = UnplannedOutputForm(prefix='unplannedoutput')
         unplanned_output_form.fields["resource_type"].queryset = output_resource_types
+        role_formset = resource_role_agent_formset(prefix="resource")
         produce_et = EventType.objects.get(name="Resource Production")
         change_et = EventType.objects.get(name="Change")
         if "out" in slots:
@@ -6009,6 +6029,7 @@ def process_oriented_logging(request, process_id):
         "unplanned_consumption_form": unplanned_consumption_form,
         "unplanned_use_form": unplanned_use_form,
         "unplanned_output_form": unplanned_output_form,
+        "role_formset": role_formset,
         "process_expense_form": process_expense_form,
         "slots": slots,
         "to_be_changed_requirement": to_be_changed_requirement,

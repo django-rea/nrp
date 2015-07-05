@@ -91,21 +91,27 @@ def add_available(request, context_agent_id, assoc_type_identifier):
 @login_required
 def receive_directly(request, context_agent_id, assoc_type_identifier):
     if request.method == "POST":
+        import pdb; pdb.set_trace()
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
         stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
         form = ReceiveForm(data=request.POST, prefix="REC")
         if form.is_valid():        
-            #import pdb; pdb.set_trace()
             data = form.cleaned_data
             event_date = data["event_date"]
             identifier = data["identifier"]
             from_agent = data["from_agent"] 
+            to_agent = data["to_agent"] 
             resource_type = data["resource_type"]
             quantity = data["quantity"]
             description = data["description"] 
+            paid = data["paid"]
+            value = data["value"]
+            unit_of_value = data["unit_of_value"]
             receipt_et = EventType.objects.get(name="Receipt")
+            pay_et = EventType.objects.get(name="Payment")
+            pay_rt = EconomicResourceType.objects.filter(unit__unit_type="value")[0]
             exchange = Exchange(
-                name="Purchase from farm " + resource_type.name,
+                name="Purchase " + resource_type.name + " from " + from_agent.nick,
                 use_case=UseCase.objects.get(identifier="purch_contr"),
                 process_pattern=ProcessPattern.objects.get(name="Purchase Contribution"),
                 start_date=event_date,
@@ -118,6 +124,7 @@ def receive_directly(request, context_agent_id, assoc_type_identifier):
                 resource_type=resource_type,
                 quantity=quantity,
                 exchange_stage=stage,
+                notes=description,
                 created_by=request.user
             )
             resource.save()
@@ -135,9 +142,48 @@ def receive_directly(request, context_agent_id, assoc_type_identifier):
                 unit_of_quantity = resource_type.unit,
                 value = value,
                 unit_of_value = unit_of_value,
+                description=description,
                 created_by = request.user,                
             )
             event.save()
+            
+            if paid == "paid":
+                if value > 0:
+                    pay_event = EconomicEvent(
+                        event_type = pay_et,
+                        event_date = event_date,
+                        resource_type = pay_rt,
+                        exchange = exchange,
+                        exchange_stage=stage,
+                        from_agent = event.to_agent,
+                        to_agent = event.from_agent,
+                        context_agent = context_agent,
+                        quantity = value,
+                        unit_of_quantity = unit_of_value,
+                        value = value,
+                        unit_of_value = unit_of_value,
+                        created_by = request.user,                        
+                    )
+                    pay_event.save()
+            elif paid == "later":
+                if value > 0:
+                    commit = Commitment (
+                        commitment_date=event_date,
+                        event_type=pay_et,
+                        exchange=exchange,
+                        exchange_stage=stage,
+                        due_date=event_date,
+                        from_agent=event.to_agent,
+                        to_agent=event.from_agent,
+                        context_agent=context_agent,
+                        resource_type=pay_rt,
+                        quantity=value,
+                        unit_of_quantity=unit_of_value,
+                        value=value,
+                        unit_of_value=unit_of_value,
+                        created_by=request.user,                        
+                    )
+                    commit.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))
 

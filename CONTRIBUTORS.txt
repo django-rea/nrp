@@ -10,5 +10,6 @@ Ideas, testing, issue and bug reporting
 =======================================
 
 Tiberius Brastaviceanu
+Abran Khalid
 Francois Bergeron
 Jonathan Olesik

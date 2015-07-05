@@ -5906,6 +5906,7 @@ def process_oriented_logging(request, process_id):
     unplanned_use_form = None
     unplanned_output_form = None
     process_expense_form = None
+    role_formset = None
     slots = []
     event_types = []
     work_now = settings.USE_WORK_NOW

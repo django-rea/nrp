@@ -11,14 +11,34 @@ from valuenetwork.valueaccounting.models import *
 PAID_CHOICES = (('paid', 'Paid for'),
     ('later', 'Will pay later'),
     ('never', 'Payment not needed'))
+        
+class FilterForm(forms.Form):
+    context_agent = forms.ModelChoiceField(required=True,
+        queryset=EconomicAgent.objects.context_agents(),
+        empty_label=None, 
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    resource_type = forms.ModelChoiceField(required=False,
+        queryset=EconomicResourceType.objects.all(),
+        widget=forms.Select(
+            attrs={'class': 'resource-type-selector chzn-select input-large'}))
 
+    def __init__(self, pattern=None, *args, **kwargs):
+        super(FilterForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if pattern:
+            self.pattern = pattern
+            et = EventType.objects.get(name="Transfer")
+            self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
+            
 class TransferFlowForm(forms.Form):
     event_date = forms.DateField(required=True, 
         label=_("Transfer Date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
-    to_agent = forms.ModelChoiceField(required=False,
+    to_agent = forms.ModelChoiceField(required=True,
         queryset=EconomicAgent.objects.all(),
         label="Transfer To", 
+        empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(required=True,
@@ -47,9 +67,10 @@ class ExchangeFlowForm(forms.Form):
     event_date = forms.DateField(required=True, 
         label=_("Transfer Date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
-    to_agent = forms.ModelChoiceField(required=False,
+    to_agent = forms.ModelChoiceField(required=True,
         queryset=EconomicAgent.objects.all(),
-        label="Transfer To", 
+        label="Transfer To",
+        empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     quantity = forms.DecimalField(required=True,
@@ -95,10 +116,6 @@ class ZeroOutForm(forms.Form):
         required=False,
         label="Last harvest of this herb on this farm (remove farm availability)", 
         widget=forms.CheckboxInput())
-    #bundle_stages = forms.BooleanField(
-    #    required=False,
-    #    label="Harvesting site and harvester are the same, sell directly to drying site (doesn't work yet)", 
-    #    widget=forms.CheckboxInput())
     
 class NewResourceForm(forms.Form):   
     identifier = forms.CharField(
@@ -123,11 +140,13 @@ class AvailableForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=True,
         label="Farm", 
+        empty_label=None, 
         queryset=EconomicAgent.objects.all(),
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
+        empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'resource-type-selector resourceType chzn-select input-large'}))
     quantity = forms.DecimalField(required=True,
@@ -198,6 +217,7 @@ class ReceiveForm(forms.Form):
             attrs={'class': 'chzn-select'}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
+        empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'resource-type-selector resourceType chzn-select input-large'}))
     quantity = forms.DecimalField(required=True,

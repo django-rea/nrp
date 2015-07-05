@@ -73,6 +73,12 @@ h3 {
 .xfer {
     width: 600px;
 }
+.fltr {
+    margin-right: 1em;
+}
+.fltr-label {
+    vertical-align: 7px;
+}
 
 </style>
 {% endblock %}
@@ -85,14 +91,25 @@ h3 {
 {% comment %}
     <div class="row-fluid">
         <div class="span12">
-            <form id="category-form" action="." method="POST">
+            <form id="filterForm" action="." method="POST" >
                 {% csrf_token %}
-                Owner: {{ resource_form.to_agent }}&nbsp;&nbsp;&nbsp;
-                Resource type: {{ resource_form.resource_type }}&nbsp;&nbsp;&nbsp;
-                Location: {{ resource_form.current_location }}&nbsp;&nbsp;&nbsp;
-                [other filters.....]&nbsp;&nbsp;&nbsp;
-                <input type='hidden' id='categories' name='categories' value='' />
-                <input type="submit" name="submit" class="btn btn-info" value="Filter" />
+                <div id="div_id_context_agent" class="control-group" style="display: inline;" >
+                    <label for="id_context_agent" class="control-label fltr-label" style="display: inline; " >
+                        {% trans "Context" %}
+                    </label>
+                    <div class="controls fltr" style="display: inline;" >
+                        {{ filter_form.context_agent }}
+                    </div>                    
+                </div>
+                <div id="div_id_resource_type" class="control-group" style="display: inline;" >
+                    <label for="id_context_agent" class="control-label fltr-label" style="display: inline;  " >
+                        {% trans "Resource Type" %}
+                    </label>
+                    <div class="controls fltr" style="display: inline;" >
+                        {{ filter_form.resource_type }}
+                    </div>                    
+                </div>
+                <input type="submit" name="submit" class="btn btn-info fltr-label" style="display: inline; " value="{% trans 'Reload' %}" />
             </form>
         </div>
     </div>
@@ -347,6 +364,8 @@ h3 {
     <script type="text/javascript">
 
 	$(document).ready(function(){
+
+        $('#work').addClass('active');
 
         $(".chzn-select").chosen();
 

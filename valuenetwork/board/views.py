@@ -22,11 +22,25 @@ from valuenetwork.board.forms import *
 from valuenetwork.valueaccounting.views import get_agent
 
 #todo: a lot of this can be configured instead of hard-coded
-def dhen_board(request, context_agent_id):
+def dhen_board(request, context_agent_id=None):
     #import pdb; pdb.set_trace()
-    context_agent = get_object_or_404(EconomicAgent, id=context_agent_id)
     agent = get_agent(request)
     pattern = ProcessPattern.objects.get(name="Transfer")
+    selected_resource_type = None
+    filter_form = FilterForm(pattern=pattern, data=request.POST or None,)
+    #if request.method == "POST":
+    #    if filter_form.is_valid():
+    #        data = filter_form.cleaned_data
+    #        context_agent = data["context_agent"]
+    #        selected_resource_type = data["resource_type"]
+    #elif context_agent_id:
+    #    context_agent = EconomicAgent.objects.get(id=context_agent_id)
+    #else:
+    #    context_agent = filter_form.fields["context_agent"].queryset[0] #todo: hack, this happens to be DHEN
+    if context_agent_id:
+        context_agent = EconomicAgent.objects.get(id=context_agent_id)
+    else:
+        context_agent = EconomicAgent.objects.get(id=3) #todo:  BIG hack alert!!!!
     rec_pattern = ProcessPattern.objects.get(name="Purchase Contribution")
     e_date = datetime.date.today()
     init = {"commitment_date": e_date }
@@ -40,7 +54,7 @@ def dhen_board(request, context_agent_id):
     rts = pattern.get_resource_types(event_type=et)
     for rt in rts:
         init = {"event_date": e_date,}
-        rt.farm_commits = rt.commits_for_exchange_stage(stage=farm_stage) 
+        rt.farm_commits = rt.commits_for_exchange_stage(stage=farm_stage)
         for com in rt.farm_commits:
             if com.commitment_date > e_date:
                 com.future = True
@@ -66,6 +80,7 @@ def dhen_board(request, context_agent_id):
         "context_agent": context_agent,
         "available_form": available_form,
         "receive_form": receive_form,
+        "filter_form": filter_form,
         "resource_types": rts,
     }, context_instance=RequestContext(request))
 
@@ -91,7 +106,7 @@ def add_available(request, context_agent_id, assoc_type_identifier):
 @login_required
 def receive_directly(request, context_agent_id, assoc_type_identifier):
     if request.method == "POST":
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
         stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
         form = ReceiveForm(data=request.POST, prefix="REC")

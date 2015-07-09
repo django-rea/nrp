@@ -919,7 +919,7 @@ class EconomicAgent(models.Model):
         shipments = []
         exf = self.exchange_firm()
         ship = EventType.objects.get(label="ships")
-        transfer = EventType.objects.get(label="transfers")
+        transfer = EventType.objects.get(name="Reciprocal Transfer")
         qs = EconomicEvent.objects.filter(Q(event_type=ship)|Q(event_type=transfer))
         #todo: retest, may need production events for shipments to tell
         #if a shipment shd be excluded or not
@@ -1087,10 +1087,6 @@ RELATIONSHIP_STATE_CHOICES = (
 )
 
 class AgentAssociation(models.Model):
-    #is_associate = models.ForeignKey(EconomicAgent,
-    #    verbose_name=_('is associate of'), related_name='associations_from')
-    #has_associate = models.ForeignKey(EconomicAgent,
-    #    verbose_name=_('has associate'), related_name='associations_to')
     is_associate = models.ForeignKey(EconomicAgent,
         verbose_name=_('is associate of'), related_name='is_associate_of')
     has_associate = models.ForeignKey(EconomicAgent,

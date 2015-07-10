@@ -210,11 +210,17 @@ img {
                                         {{ detail.unit_of_quantity.abbrev }}
                                     {% endif %}
                                 </td>
-                                 <td>{{ detail.vebr.claim_creation_equation }}</td>
+                                <td>{{ detail.vebr.claim_creation_equation }}</td>
                                 <td>{{ detail.distr_amt }}</td>
                                 <td>{{ detail.explanation }}</td>
                             </tr>
                         {% endfor %}
+                        <tr>
+                            <th colspan="4" style="" ></th>
+                            <td style="text-align: right;">Total:</td>
+                            <td>{{ hours }}</td>
+                            <th  colspan="3"></th>
+                        </tr>
                     <tbody> 
                 </table> 
                 * Does not include buckets with a distribution directly to one agent.

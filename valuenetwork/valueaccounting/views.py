@@ -9959,7 +9959,6 @@ def value_equation_sandbox(request, value_equation_id=None):
             agent_totals, details = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
             total = sum(at.quantity for at in agent_totals)
             hours = sum(d.quantity for d in details)
-            print "hours:", hours
 
     else:
         for bucket in buckets:
@@ -9972,6 +9971,7 @@ def value_equation_sandbox(request, value_equation_id=None):
         "agent_totals": agent_totals,
         "details": details,
         "total": total,
+        "hours": hours,
         "ve": ve,
     }, context_instance=RequestContext(request))
 

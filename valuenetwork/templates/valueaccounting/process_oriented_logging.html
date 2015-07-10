@@ -127,6 +127,10 @@ li {
     margin-top: 1px;
     margin-bottom: 1px;
 }
+.info {
+    float: right;
+    margin-left: 5px;
+}
 /*
 hr {
     margin-top: 3px;
@@ -145,7 +149,7 @@ hr {
         {% include "_messages.html" %}
 	<div>
 	<legend>
-		{% trans "Process" %}: <span class="process" >{{ process }} {% if process.started %} - {% trans "Started" %} {{ process.started }}{% endif %} </span>
+		{% trans "Process" %}: <span class="process" >{{ process }} </span>
 		{% if agent %}
             <a href="#changeProcess" role="button" class="btn btn-info" data-toggle="modal" title="Change this process">
                 {% trans "Change" %}
@@ -196,11 +200,12 @@ hr {
 		                {% trans "Add an output requirement" %}
 	                </a>
 	             {% endif %}
-	              {% if agent %}
+                 {% if agent %}
 		                <a href="#unplannedOutputModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unplanned output" >
 			                {% trans "Log an unplanned output" %}
 		                </a>
-	                {% endif %}
+                 {% endif %}
+
 	        </h2>
 
             <h4 class="subsection-label">{% trans "Scheduled" %}:</h4>
@@ -600,7 +605,7 @@ hr {
 
                               {% if agent %}
                                 <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="I want to log work I have done on this task" >
-                                    {% trans "I already did some work" %}
+                                    {% trans "I did some work" %}
                                 </a>
 
                                 <div class="modal hide fade workEventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
@@ -1664,6 +1669,9 @@ hr {
 	$(document).ready(function(){
 
 		$('#work').addClass('active');
+
+        $('out-info').popover();
+
 
 		$(".chzn-select").chosen();
         $(".chzn-select").trigger("liszt:updated");

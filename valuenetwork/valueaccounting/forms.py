@@ -1468,6 +1468,29 @@ class InputEventForm(forms.ModelForm):
         if qty_help:
             self.fields["quantity"].help_text = qty_help
 
+class InputEventAgentForm(forms.ModelForm):
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.individuals(),
+        label="Work done by",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))  
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'from_agent', 'quantity', 'description')
+
+    def __init__(self, qty_help=None, *args, **kwargs):
+        super(InputEventAgentForm, self).__init__(*args, **kwargs)
+        if qty_help:
+            self.fields["quantity"].help_text = qty_help
+            
 #may be obsolete
 class WorkContributionChangeForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)

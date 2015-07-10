@@ -5894,6 +5894,7 @@ def process_oriented_logging(request, process_id):
     logger = False
     worker = False
     super_logger = False
+    todays_date = datetime.date.today()
     change_process_form = ProcessForm(instance=process)
     add_output_form = None
     add_citation_form = None
@@ -5931,6 +5932,8 @@ def process_oriented_logging(request, process_id):
             if agent == req.from_agent:
                 logger = True
                 worker = True  
+            init = {"from_agent": agent, "event_date": todays_date}
+            req.input_work_form_init = req.input_event_form_init(init=init)
         for req in consume_reqs:
             req.changeform = req.change_form()
         for req in use_reqs:
@@ -6338,16 +6341,16 @@ def log_payment_for_commitment(request, commitment_id):
 @login_required
 def add_work_event(request, commitment_id):
     ct = get_object_or_404(Commitment, pk=commitment_id)
-    form = ct.input_event_form(data=request.POST)
+    form = ct.input_event_form_init(data=request.POST)
+    #import pdb; pdb.set_trace()
     if form.is_valid():
         event = form.save(commit=False)
         event.commitment = ct
         event.event_type = ct.event_type
-        event.from_agent = ct.from_agent
+        #event.from_agent = ct.from_agent
         event.to_agent = ct.process.default_agent()
         event.resource_type = ct.resource_type
         event.process = ct.process
-        #event.project = ct.project
         event.context_agent = ct.context_agent
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user

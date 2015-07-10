@@ -7259,7 +7259,17 @@ class Commitment(models.Model):
         prefix=self.form_prefix()
         qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
-
+            
+    def input_event_form_init(self, init=None, data=None):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import InputEventAgentForm
+        prefix=self.form_prefix()
+        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
+        if init:
+            return InputEventAgentForm(qty_help=qty_help, prefix=prefix, initial=init, data=data)
+        else:
+            return InputEventAgentForm(qty_help=qty_help, prefix=prefix, data=data)
+    
     def consumption_event_form(self):        
         from valuenetwork.valueaccounting.forms import InputEventForm
         prefix=self.form_prefix()

@@ -23,13 +23,18 @@
     font-style: italic;
 }
 
-.event {
-    margin-left: 2em; 
-    margin-bottom: 4px;
+.event-section {
+    margin: 4px; 
+    padding: 4px;
+    border: 1px solid lightgray;
+    background-color: #F0F6F0;
 }
 
 .commitment {
-    margin-top: 4px;
+    margin: 4px;
+    border: 1px solid lightgray;
+    background-color: #FAFCFC;
+    padding: 5px;
 }
 
 .notes {
@@ -58,7 +63,7 @@
 .btn {
     margin-left: 10px;
 }
-h3, h4 {
+h3, h4, h2 {
     color: firebrick;
 }
 li {
@@ -68,15 +73,15 @@ li {
     font-style: italic;
     font-weight: normal;
     border: solid 1px gainsboro;
-    background-color: honeydew;
+    background-color: #FAFCFC;
     padding: 4px;
     margin: 4px 0 10px 0;
 }
 .log-section {
-    border: solid 1px gainsboro;
+    border: solid 1px lightgray;
     background-color: beige; 
     padding: 4px;
-    margin-bottom: 7px;   
+    margin-bottom: 10px;   
 }
 .modal {
     width: 600px;
@@ -93,6 +98,7 @@ li {
 
 .subsection-label {
     font-weight: bold;
+    color:  #7D1818;
 }
 .detail-line {
     margin: 0 0 0 2em;
@@ -101,10 +107,8 @@ li {
     font-style: italic;
     font-weight: bold;
     color: #5C8A8A;
-    margin-left: 2em;
 }
 .unplanned {
-    color: 	#7D1818;
 }
 
 .event-label {
@@ -123,11 +127,13 @@ li {
     margin-top: 1px;
     margin-bottom: 1px;
 }
+/*
 hr {
     margin-top: 3px;
     margin-bottom: 2px;
     border-color: #D6E2E2;
 }
+*/
 </style>
 
 {% endblock %}
@@ -150,7 +156,7 @@ hr {
                     <h3 id="change-process">{% trans "Change " %} {{ process }} </h3>
                 </div>
                 <div class="modal-body">
-                    <form class="validateMe" id="process-form" enctype="multipart/form-data" 
+                    <form class="validateMe" id="process-form" name="chgproc" enctype="multipart/form-data" 
                         action="{% url change_process process_id=process.id %}" method="POST" >
                         {% csrf_token %}
                         {{ change_process_form|as_bootstrap }}
@@ -183,8 +189,8 @@ hr {
 
 		<div class="span8">
           <div class="log-section">
-		    <h3 style="margin-bottom: 4px;" >
-		        {% trans "Outputs" %}:  
+		    <h2 style="margin-bottom: 4px;" >
+		        {% trans "Outputs" %}
 		        {% if logger %}
 		            <a href="#addOutputModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add an output requirement">
 		                {% trans "Add an output requirement" %}
@@ -195,12 +201,12 @@ hr {
 			                {% trans "Log an unplanned output" %}
 		                </a>
 	                {% endif %}
+	        </h2>
 
-	        </h3>
+            <h4 class="subsection-label">{% trans "Scheduled" %}:</h4>
 		    {% for item in process.outgoing_commitments %}
-			    <div>
-				    <b>{% trans "Scheduled" %}:</b> 
-				    
+              <div class="commitment">
+                <div>
                     <span class="output-requirement" >
                         <b>{{ item.resource_type.name }}
                         {% if item.stage %}
@@ -239,7 +245,7 @@ hr {
                                                 <h3 id="resource-label">{% trans "Change " %} {{ resource }} to @{{ changeable_requirement.stage }}</h3>
                                             </div>
                                             <div class="modal-body">
-                                                <form class="resource-form validateMe" id="resourceForm{{ item.id }}" enctype="multipart/form-data" 
+                                                <form class="resource-form validateMe" id="resourceForm{{ item.id }}" name="resfrm{{ item.id }}" enctype="multipart/form-data" 
                                                     action="{% url log_stage_change_event commitment_id=to_be_changed_requirement.id resource_id=resource.id %}" method="POST" >
                                                     {% csrf_token %}
                                                     {{ resource.transform_form|as_bootstrap }}
@@ -268,7 +274,7 @@ hr {
                                             <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
                                         </div>
                                         <div class="modal-body">
-                                            <form class="commitmentForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+                                            <form class="commitmentForm{{ item.id }} validateMe" name="comout{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
                                                 {% csrf_token %}
                                                 {{ item.change_form|as_bootstrap }}
                                                 <input type="hidden" id="next" name="next" value="process" />
@@ -307,7 +313,7 @@ hr {
                                         <h3 id="resource-label">{% trans "Log new" %} {{ item.resource_type.name }}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="resource-form validateMe" id="resourceForm{{ item.id }}" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >
+                                        <form class="resource-form validateMe" id="resourceForm{{ item.id }}" name="resout{{ item.id }}" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ item.resource_create_form|as_bootstrap }}
                                         <div class="modal-footer">
@@ -324,7 +330,7 @@ hr {
                                         <h3 id="add-to-resource-label">{% trans "Add to " %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="add-to-resource-form validateMe" id="addToResourceForm{{ item.id }}" enctype="multipart/form-data" action="{% url add_to_resource_for_commitment commitment_id=item.id %}" method="POST" >
+                                        <form class="add-to-resource-form validateMe" id="addToResourceForm{{ item.id }}" name="addtores{{ item.id }}" enctype="multipart/form-data" action="{% url add_to_resource_for_commitment commitment_id=item.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ item.select_resource_form|as_bootstrap }}
                                         <div class="modal-footer">
@@ -344,7 +350,7 @@ hr {
 	            {% endif %}
 			
 			    {% for event in item.fulfilling_events %}
-				    <div class="event" >
+				    <div class="event-section" >
 					    <span class="event-label">{% trans "Completed" %}:</span> <span class="event" >
                             {{ event.event_type.label }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
                         </span>
@@ -370,20 +376,20 @@ hr {
                         {% endif %}
 					
 				    </div>
-                    <hr />
 			    {% endfor %}
+              </div>
 		    {% endfor %}
 
-
             {% if process.uncommitted_production_events %}
-                <h4 class="unplanned">{% trans "Unplanned Production" %}:</h4>
+                <h4 class="subsection-label">{% trans "Unplanned Production" %}:</h4>
 		        {% for event in process.uncommitted_production_events %}
-			        <div class="event" >
-				        <b>{% trans "Created" %}: <span class="event" >
+			        <div class="event-section" >
+				        <span class="event-label">{% trans "Created" %}: </span>
+                        <span class="event" >
                             {% if event.resource %}
-                                <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+                                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
                             {% else %}
-                                <a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
+                                <b><a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
                             {% endif %}
 				            {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				        {% if logger %}
@@ -402,7 +408,6 @@ hr {
                             </form>
 		                {% endif %}
 			        </div>
-                    <hr />
 		        {% endfor %}
 	        {% endif %}
         </div>
@@ -410,17 +415,22 @@ hr {
         <p class="info">
             {% trans "Requirements are ordered by due date" %}
         </p>
+
 	    {% if work_reqs or process.uncommitted_work_events or "work" in slots %}
 		    <div class="log-section">
-		        <h3 style="margin-bottom: 4px;" >
-		            {% trans "Work" %}: 
+		        <h2 style="margin-bottom: 4px;" >
+		            {% trans "Work" %} 
 		            {% if logger %}
 			            <a href="#addWorkModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a work requirement">
+{% comment %}
 		                    {% if worker %}
                                 {% trans "Invite a collaborator" %}
                             {% else %}
+{% endcomment %}
                                 {% trans "Add a work requirement" %}
+{% comment %}
                             {% endif %}
+{% endcomment %}
 	                    </a>
                     {% endif %}
 		            {% if agent %}
@@ -428,11 +438,14 @@ hr {
 			                {% trans "Log unplanned work" %}
 		                </a>
 	                {% endif %}
-	            </h3>
-            
+	            </h2>
+
+                <h4 class="subsection-label">{% trans "Planned Work" %}:</h4>            
 		        {% for item in work_reqs %}
 			        <div class="commitment">
 				        <span class="work-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
+                        {% with item.fulfilling_events as work_events %}
+                        {% if agent and not work_events %}
                         {% if super_logger or agent == item.from_agent %}
 				            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change work requirement">
 			                       <i class="icon-edit"></i>
@@ -444,7 +457,7 @@ hr {
 			                        <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
 		                        </div>
 		                        <div class="modal-body">
-			                        <form class="commitmentForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+			                        <form class="commitmentForm{{ item.id }} validateMe" name="uncomm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
 				                        {% csrf_token %}
 				                        {{ item.changeform|as_bootstrap }}
 				                        <input type="hidden" id="next" name="next" value="process" />
@@ -455,14 +468,25 @@ hr {
 			                        </form>
 		                        </div>
 	                        </div>
+                            <form
+                                style="display: inline;" 
+                                class="delete-commitment-form" 
+                                id="deleteCommitmentForm{{ item.id }}" 
+                                action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work requirement" >X</button>
+                            </form>
+                        {% endif %}
                         {% endif %}
                         {% if item.description %}
                             <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
                         {% endif %}
 
-                    {% if item.from_agent %}
-				        <span class="taken">{% trans "Taken by" %}<span class="agent" > {{ item.from_agent.nick }}</span></span>
-				        {% with item.fulfilling_events as work_events %}
+                        <div>
+                         {% if item.from_agent %}
+				          <span class="taken">{% trans "Taken by" %}<span class="agent" > {{ item.from_agent.nick }}</span></span>
 				            {% if agent == item.from_agent %} 
 
 				                {% if not work_events %}
@@ -474,91 +498,150 @@ hr {
                                         method="POST" >
                                         {% csrf_token %}
                                     	<input type="hidden" id="next" name="next" value="process" />
-                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit" >X</button>
+                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit to this task" >X</button>
                                     </form>
 				                {% endif %}
 
-				                <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your work" >
-					                {% trans "Log work" %}
-				                </a>
+{% comment %}
 				                {% if work_now and item.unit_of_quantity.unit_type == "time" %}
-				                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
+				                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" title="I'll start working on this now, I can time and document while working">{% trans "I'll start working now" %}</a>
 			                    {% endif %}
-			
-				                <div class="modal hide fade workEventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
-					                <div class="modal-header">
-						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-						                <h3 id="event-label">{% trans "Add Work Contribution" %}</h3>
-					                </div>
-					                <div class="modal-body">
-						                <form class="eventForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url add_work_event commitment_id=item.id %}" method="POST" >
-							                {% csrf_token %}
-							                {{ item.input_event_form|as_bootstrap }}
-						                  <div class="modal-footer">
-							                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-							                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
-						                  </div>
-						                </form>
-					                </div>
-				                </div>
+{% endcomment %}			
 				                
-				                <a href="#inviteModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a work requirement">
+				                <a href="#inviteModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Create a new requirement like this one for others to work on">
                                     {% trans "Invite a collaborator" %}
                                 </a>
-                                
-			                {% comment %}
-			                {% elif super_logger %}
-			                    <button class="btn btn-info btn-mini" title="Log work for {{ item.from_agent }}" >{% trans "Log work" %}</button>
-		                    {% endcomment %}
-			                {% endif %}
-			                <div class="modal hide fade" id="inviteModal" tabindex="-1" role="dialog" aria-labelledby="invite-label" aria-hidden="true">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 
+                                <div class="modal hide fade" id="inviteModal" tabindex="-1" role="dialog" aria-labelledby="invite-label" aria-hidden="true">
+                                  <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                     <h3 id="invite-label">
                                             {% trans "Invite a collaborator" %}
                                     </h3>
-                                    
-                                </div>
-                                <div class="modal-body">
-                                    <form class="invite-form validateMe" id="inviteForm" action="{% url invite_collaborator commitment_id=item.id %}" method="POST" >
+                                  </div>
+                                  <div class="modal-body">
+                                    <form class="invite-form validateMe" id="inviteForm" name="invite" action="{% url invite_collaborator commitment_id=item.id %}" method="POST" >
                                         {% csrf_token %}
-
                                             {{ item.invite_collaborator_form|as_bootstrap }}
-
                                     <div class="modal-footer">
                                         <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                         <button class="btn btn-primary">
                                             {% trans "Invite collaborator" %}
                                         </button>
                                     </div>
-
-
                                     </form>
+                                  </div>
                                 </div>
-                            </div>
-			                
+ 
+                              {% else %}
+                                    {% if agent %}
+                                        <a href="#joinForm{{ item.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Create a new requirement like this one and assign it to me">
+                                            {% trans "Join this task" %}
+                                        </a>
+                                        <div class="modal hide fade joinForm" id="joinForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="join-label" aria-hidden="true">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                <h3 id="join-label">{% trans "Join this task" %}: {{ item.resource_type.name }}</h3>
+                                                <p>{% trans "You are committing to collaborate with " %} {{ item.from_agent }}</p>
+                                            </div>
+                                            <div class="modal-body">
+                                                
+                                                <form class="joinForm validateMe" name="join{{ item.id }}" enctype="multipart/form-data" action="{% url join_task commitment_id=item.id %}" method="POST" >
+                                                    {% csrf_token %}
+                                                    {{ item.join_form|as_bootstrap }}
+                                                    <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
+                                                <div class="modal-footer">
+                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                    <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Join this task" %}' />
+                                                </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    {% endif %}
 
+			                  {% endif %}
+                           
+                          {% else %}
+                                <span class="taken">{% trans "Unassigned" %} </span>
+             
+                                    {% if agent %}                           
+                                        <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="I commit to working on this later, assign this task to me">
+                                            {% trans "I'll work on this later" %}
+                                        </a>
+
+                                        <div class="modal hide fade takeTaskModal" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                <h3 id="commitment-label">{% trans "Commit to this task" %}: {{ item.resource_type.name }}</h3>
+                                            </div>
+                                            <div class="takeTaskBody modal-body">
+                                                <form class="commitmentForm validateMe takeTaskForm" name="tt{{ item.id }}" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+                                                    {% csrf_token %}
+                                                    {{ item.commitment_form|as_bootstrap }}
+                                                    <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
+                                                <div class="modal-footer takeTaskFooter">
+                                                    <div class="info">
+                                                        {% trans "You are committing to do this work." %}</br>
+                                                        {% trans "The estimated time above is a guess about how long it will take." %}</br>
+                                                        {% trans "The next step is to do the work and log your actual time." %}
+                                                    </div>
+                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                    <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+                                                    {% if work_now %}
+                                                        <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+                                                    {% endif %}
+                                                </div>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                    {% endif %} 
+                              {% endif %}
+
+                              {% if agent %}
+                                <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="I want to log work I have done on this task" >
+                                    {% trans "I already did some work" %}
+                                </a>
+
+                                <div class="modal hide fade workEventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="event-label">{% trans "Add Work Contribution" %}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="eventForm{{ item.id }} validateMe" name="ef{{ item.id }}" enctype="multipart/form-data" action="{% url add_work_event commitment_id=item.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ item.input_work_form_init|as_bootstrap }}
+                                            <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                              {% endif %}
+                            </div>
+                
 			                {% if work_events %}
-			                    <div class="event">
+			                    <div class="event-section">
 			                        <div class="subsection-label event-label" >{% trans "Work events" %}:</div>
 				                    {% for event in work_events %}
 					                    <div>
-					                    {{ event.event_date }} {{ event.quantity }} {{ event.unit_of_quantity.name  }}
-					                    
-					                    {% if agent == item.from_agent  %}
+					                    {{ event.event_date }} {{ event.quantity }} {{ event.unit_of_quantity.name  }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span>
+                                        {% if agent %}
+					                    {% if agent == event.from_agent or user == event.created_by  %}
 					                        
-							                <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+							                <a href="#eventChgModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 								               <i class="icon-edit"></i>
 							                </a>
 						
-							                <div class="modal hide fade workEventModal" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+							                <div class="modal hide fade workEventModal" id="eventChgModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
 								                <div class="modal-header">
 									                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 									                <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
 								                </div>
 								                <div class="modal-body">
-									                <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_work_event event_id=event.id %}" method="POST" >
+									                <form class="eventForm{{ event.id }} validateMe" name="efc{{ event.id }}" enctype="multipart/form-data" action="{% url change_work_event event_id=event.id %}" method="POST" >
 										                {% csrf_token %}
 										                {{ event.change_form|as_bootstrap }}
 										                <input type="hidden" id="next" name="next" value="process" />
@@ -581,6 +664,7 @@ hr {
                                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work contribution!" >X</button>
                                             </form>
 					                    {% endif %}
+                                        {% endif %}
 					                    {% if event.description %}
 			                               <div class="notes"> {{ event.description|urlize|linebreaks }}</div>
 		                                {% endif %}
@@ -588,109 +672,31 @@ hr {
 				                    {% endfor %}
 				                </div>
 				            {% endif %}
-		                {% endwith %}
-		                {% if agent %}
-                            {% if agent != item.from_agent %}
-                                <a href="#joinForm{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-                                    {% trans "Join this task" %}
-                                </a>
-                                <div class="modal hide fade joinForm" id="joinForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="join-label" aria-hidden="true">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                        <h3 id="join-label">{% trans "Join this task" %}: {{ item.resource_type.name }}</h3>
-                                        <p>{% trans "You are committing to collaborate with " %} {{ item.from_agent }}</p>
-                                    </div>
-                                    <div class="modal-body">
-                                        
-                                        <form class="joinForm validateMe" enctype="multipart/form-data" action="{% url join_task commitment_id=item.id %}" method="POST" >
-                                            {% csrf_token %}
-                                            {{ item.join_form|as_bootstrap }}
-                                            <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
-                                          <div class="modal-footer">
-                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                            <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Join this task" %}' />
-                                          </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endif %}
 			            
-				        </div>
-			        {% else %}
-                        <span class="taken">{% trans "Unassigned" %} </span>
-					        {% if logger %}
-				                <form
-				                    style="display: inline;" 
-                                    class="delete-commitment-form" 
-                                    id="deleteCommitmentForm{{ item.id }}" 
-                                    action="{% url delete_process_commitment commitment_id=item.id %}" 
-                                    method="POST" >
-                                    {% csrf_token %}
-                                	<input type="hidden" id="next" name="next" value="process" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work requirement" >X</button>
-                                </form>
-                            {% endif %}
-
-                            {% if agent %}                           
-						        <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-							        {% trans "Take this task" %}
-						        </a>
-
-						        <div class="modal hide fade takeTaskModal" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
-							        <div class="modal-header">
-								        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                        <h3 id="commitment-label">{% trans "Take this task" %}: {{ item.resource_type.name }}</h3>
-							        </div>
-							        <div class="takeTaskBody modal-body">
-
-								        <form class="commitmentForm validateMe takeTaskForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
-									        {% csrf_token %}
-									        {{ item.commitment_form|as_bootstrap }}
-									        <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
-								          <div class="modal-footer takeTaskFooter">
-                                            <div class="info">
-                                                {% trans "You are committing to do this work." %}</br>
-                                                {% trans "The estimated time above is a guess about how long it will take." %}</br>
-                                                {% trans "The next step is to do the work and log your actual time." %}
-                                            </div>
-                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                            <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
-                                            {% if work_now %}
-                                                <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
-                                            {% endif %}
-								          </div>
-								        </form>
-							        </div>
-						        </div>
-					        {% endif %}
-
-				        </div>
-			        {% endif %}
-
-                    <hr />
+                        {% endwith %}
+                    </div>
 		        {% endfor %}
 		        
                 {% if unplanned_work %}
-                    <h4 class="unplanned">{% trans "Unplanned Work Events" %}:</h4>
+                    <h4 class="subsection-label">{% trans "Unplanned Work" %}:</h4>
 		            {% for event in unplanned_work %}
-			            <div >
+			            <div class="event-section">
 				            <span class="event" ><span class="event-label">{% trans "Work event" %}: </span>
 				            <b> {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span></span>
                             
 			                {% if agent == event.from_agent or user == event.created_by  %}
 		                        
-				                <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+				                <a href="#eventChgModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change this work contribution">
 					               <i class="icon-edit"></i>
 				                </a>
 			
-				                <div class="modal hide fade workEventModal" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+				                <div class="modal hide fade workEventModal" id="eventChgModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
 					                <div class="modal-header">
 						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 						                <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
 					                </div>
 					                <div class="modal-body">
-						                <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_unplanned_work_event event_id=event.id %}" method="POST" >
+						                <form class="eventForm{{ event.id }} validateMe" name="efcc{{ event.id }}" enctype="multipart/form-data" action="{% url change_unplanned_work_event event_id=event.id %}" method="POST" >
 							                {% csrf_token %}
 							                {{ event.changeform|as_bootstrap }}
 							                <input type="hidden" id="next" name="next" value="process" />
@@ -719,17 +725,15 @@ hr {
 	                        {% endif %}
 				            
 			            </div>
-                        <hr />
 		            {% endfor %}
 		        {% endif %}
             </div>
 	    {% endif %}
           
-
-		  {% if process.citation_requirements or process.uncommitted_citation_events or "cite" in slots %}
+        {% if process.citation_requirements or process.uncommitted_citation_events or "cite" in slots %}
             <div class="log-section">
-			    <h3>
-			        {% trans "Citations" %}: 
+			    <h2>
+			        {% trans "Citations" %}
 			        {% if logger %}
 			            <a href="#addCiteModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a citation requirement">
 		                    {% trans "Add a citation requirement" %}
@@ -740,30 +744,31 @@ hr {
 			                {% trans "Log unplanned citation" %}
 		                </a>
 	                {% endif %}
-                </h3>
-                    {% if agent %}
-                        <div class="modal hide fade" id="unplannedCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
-                            <div class="modal-header">
-	                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                <h3 id="cite-label">{% trans "Add an unplanned citation" %}</h3>
-                            </div>
-                            <div class="modal-body">
-                                <form class="cite-form validateMe" enctype="multipart/form-data" id="addUnplannedCiteForm" action="{% url add_unplanned_cite_event process_id=process.id %}" method="POST" >
-	                              {% csrf_token %}
-	                              {{ unplanned_cite_form|as_bootstrap }}
-                                  <span id="cite-unit">{{ context_agent.cite_unit }}</span>
-	                              <div class="modal-footer">
-		                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-		                            <button id="select-resource" class="btn btn-primary">{% trans "Add citation" %}</button>
-	                              </div>
-                                </form>
-                            </div>
+                </h2>
+                {% if agent %}
+                    <div class="modal hide fade" id="unplannedCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="cite-label">{% trans "Add an unplanned citation" %}</h3>
                         </div>
+                        <div class="modal-body">
+                            <form class="cite-form validateMe" name="cite" enctype="multipart/form-data" id="addUnplannedCiteForm" action="{% url add_unplanned_cite_event process_id=process.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ unplanned_cite_form|as_bootstrap }}
+                                <span id="cite-unit">{{ context_agent.cite_unit }}</span>
+                                <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <button id="select-resource" class="btn btn-primary">{% trans "Add citation" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
 
-	                {% endif %}
+                {% endif %}
 
 			    {% for item in citation_requirements %}
-			        <div class="commitment" >
+                  <div class="commitment" >
+                    <div>
 			            <span class="citation-requirement" ><b>{{ item.resource_type }}</b></span>
 			            {% if logger %}
 			                {% if not item.fulfilling_events %}
@@ -790,9 +795,10 @@ hr {
                             <div class="onhand" >
                                 <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
                                 {% with resource.event as event %}
-                                    <span style="color: green; font-weight: bold;">{% trans "Cited" %} 
+                                  <div class="event-section" style="display: inline;">
+                                    <span style="color: green; font-weight: bold;">{% trans "Cited" %}: </span>
                                         {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
-                                    </span>
+                                    
                                     {% if logger %}
                                         <form
                                             style="display: inline;" 
@@ -805,11 +811,11 @@ hr {
                                             <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
                                         </form>
                                     {% endif %}
+                                  </div>
                                 {% endwith %}
                             </div>
                         {% endfor %}
                     {% endif %}
-				    
 				    
 				    {% if item.onhand %}
 					    {% for resource in item.onhand %}
@@ -830,7 +836,7 @@ hr {
                                                     <h3 id="event-label">{% trans "Log citation of" %} {{ resource.identifier  }}</h3>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form class="eventForm{{ resource.id }} validateMe" enctype="multipart/form-data" 
+                                                    <form class="eventForm{{ resource.id }} validateMe" name="res{{ resource.id }}" enctype="multipart/form-data" 
                                                         action="{% url add_citation_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         {{ resource.cite_event_form|as_bootstrap }}
@@ -848,13 +854,13 @@ hr {
 						    {% endif %}
 					    {% endfor %}
 				    {% endif %}
-                    <hr />
+                  </div>
 			    {% endfor %}
 			    
                 {% if process.uncommitted_citation_events %}
-                    <h4 class="unplanned">{% trans "Unplanned Citations" %}:</h4>
+                    <h4 class="subsection-label">{% trans "Unplanned Citations" %}:</h4>
                     {% for event in process.uncommitted_citation_events %}
-			            <div class="event" >
+			            <div class="event-section" >
 				            <span class="event-label">{% trans "Cited" %}:</span> 
 				            <span class="event" >
 				                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b> 
@@ -873,7 +879,6 @@ hr {
                                 </form>
 					        {% endif %}
 			            </div>
-                        <hr />
 		            {% endfor %}
 	            {% endif %}
 					
@@ -883,8 +888,8 @@ hr {
           {% if consume_reqs or uncommitted_consumption or "consume" in slots %}
             <div class="log-section">
             
-		        <h3 style="margin-bottom: 4px;" >
-		            {% trans "Consumable Inputs" %}: 
+		        <h2 style="margin-bottom: 4px;" >
+		            {% trans "Consumable Inputs" %}
 		            {% if logger %}
 		                <a href="#addConsumableModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a consumable input requirement">
 		                    {% trans "Add a consumable input requirement" %}
@@ -895,7 +900,7 @@ hr {
 			                {% trans "Log unplanned consumption" %}
 		                </a>
 	                {% endif %}
-	            </h3>
+	            </h2>
 
 	             {% if agent %}
                         <div class="modal hide fade" id="unplannedConsumptionModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-consumption-label" aria-hidden="true">
@@ -904,7 +909,7 @@ hr {
                                 <h3 id="unplanned-consumption-label">{% trans "Add unplanned consumption" %}</h3>
                             </div>
                             <div class="modal-body">
-                                <form class="consumption-form validateMe" enctype="multipart/form-data" id="addUnplannedConsumptionForm" 
+                                <form class="consumption-form validateMe" name="cf" enctype="multipart/form-data" id="addUnplannedConsumptionForm" 
                                     action="{% url add_unplanned_input_event process_id=process.id slot='c' %}" method="POST" >
 	                              {% csrf_token %}
 	                              {{ unplanned_consumption_form|as_bootstrap }}
@@ -920,7 +925,8 @@ hr {
 
 	            
 		        {% for item in consume_reqs %}
-			        <div class="commitment" >
+                  <div class="commitment" >
+                    <div>
 				        <span class="consumable-requirement" >
                             <b>
                                 {{ item.resource_type.name }}{% if item.stage %}@{{ item.stage }}{% endif %}:
@@ -938,7 +944,7 @@ hr {
 				                    <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
 			                    </div>
 			                    <div class="modal-body">
-				                    <form class="commitmentForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+				                    <form class="commitmentForm{{ item.id }} validateMe" name="com{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
 					                    {% csrf_token %}
 					                    {{ item.changeform|as_bootstrap }}
 					                    <input type="hidden" id="next" name="next" value="process" />
@@ -994,7 +1000,7 @@ hr {
 						                    <h3 id="event-label">{% trans "Log consumption of" %} {{ resource.identifier }}</h3>
 					                    </div>
 					                    <div class="modal-body">
-						                    <form class="eventForm{{ resource.id }} validateMe" enctype="multipart/form-data" 
+						                    <form class="eventForm{{ resource.id }} validateMe" name="efr{{ resource.id }}" enctype="multipart/form-data" 
 						                        action="{% url add_consumption_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
 							                    {% csrf_token %}
 							                    {{ resource.consumption_event_form|as_bootstrap }}
@@ -1008,9 +1014,9 @@ hr {
 					            {% endif %}						    
                                 {% for event in resource.consuming_events %}
                                     {% if event.commitment = item %}
-							            <div class="use" >
+							            <div class="use event-section" >
 								            <span class="event-label">{% trans "Consumed" %}:</span><span>
-								                {{ event.resource.identifier }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
+								                 {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
 								                {% trans "by" %} {{ event.from_agent }}
 							                </span>
 								            {% if logger %}
@@ -1065,13 +1071,14 @@ hr {
 					        </p>
 				        {% endfor %}
 			        {% endif %}
-                    <hr />
+            </div>
+
 		        {% endfor %}
 
                 {% if uncommitted_consumption %}
-                    <h4 class="unplanned">{% trans "Unplanned Consumption" %}:</h4>
+                    <h4 class="subsection-label">{% trans "Unplanned Consumption" %}:</h4>
 		            {% for event in uncommitted_consumption %}
-			            <div class="event" >
+			            <div class="event-section" >
 				            <span class="event-label">{% trans "Consumed" %}:</span> 
 				            <span class="event" >
                                 <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b>
@@ -1093,16 +1100,15 @@ hr {
                                 </form>
 			                {% endif %}
 			            </div>
-                        <hr />
 		            {% endfor %}
 	            {% endif %}
-	        </div>
+          </div>
 	    {% endif %}
-     
+
 	    {% if use_reqs or uncommitted_use  or "use" in slots %}
 		    <div class="log-section">
-		        <h3 style="margin-bottom: 4px;" >
-		            {% trans "Usable Inputs" %}:
+		        <h2 style="margin-bottom: 4px;" >
+		            {% trans "Usable Inputs" %}
 		            {% if logger %}
 		                <a href="#addUsableModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a usable input requirement">
 		                    {% trans "Add a usable input requirement" %}
@@ -1113,7 +1119,7 @@ hr {
 			                {% trans "Log unplanned use" %}
 		                </a>
 	                {% endif %}
-	            </h3>
+	            </h2>
 
 	            {% if agent %}
                     <div class="modal hide fade" id="unplannedUseModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-use-label" aria-hidden="true">
@@ -1122,7 +1128,7 @@ hr {
                             <h3 id="unplanned-use-label">{% trans "Add unplanned use" %}</h3>
                         </div>
                         <div class="modal-body">
-                            <form class="use-form validateMe" enctype="multipart/form-data" id="addUnplannedUseForm" 
+                            <form class="use-form validateMe" name="enuse" enctype="multipart/form-data" id="addUnplannedUseForm" 
                                 action="{% url add_unplanned_input_event process_id=process.id slot='u' %}" method="POST" >
                               {% csrf_token %}
                               {{ unplanned_use_form|as_bootstrap }}
@@ -1137,7 +1143,8 @@ hr {
                 {% endif %}
 
 		        {% for item in use_reqs %}
-			        <div class="commitment" >
+                  <div class="commitment" >
+                    <div>
 				        <span class="usable-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
 
 				        {% if logger %}
@@ -1151,7 +1158,7 @@ hr {
 				                    <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
 			                    </div>
 			                    <div class="modal-body">
-				                    <form class="commitmentForm{{ item.id }} validateMe" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+				                    <form class="commitmentForm{{ item.id }} validateMe" name="cm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
 					                    {% csrf_token %}
 					                    {{ item.changeform|as_bootstrap }}
 					                    <input type="hidden" id="next" name="next" value="process" />
@@ -1196,7 +1203,7 @@ hr {
 						                    <h3 id="event-label">{% trans "Log use of" %} {{ resource.identifier  }}</h3>
 					                    </div>
 					                    <div class="modal-body">
-						                    <form class="eventForm{{ resource.id }} validateMe" enctype="multipart/form-data" 
+						                    <form class="eventForm{{ resource.id }} validateMe" name="resef{{ resource.id }}" enctype="multipart/form-data" 
 						                        action="{% url add_use_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
 							                    {% csrf_token %}
 							                    {{ resource.use_event_form|as_bootstrap }}
@@ -1210,7 +1217,7 @@ hr {
 						        {% endif %}
                                 {% for event in resource.using_events %}
                                     {% if event.commitment = item %}
-							            <div  class="use" >
+							            <div  class="use event-section" >
 								            <span class="event-label">{% trans "Used" %}:</span> <span > 
 								                {{ event.resource.identifier }} {{ event.quantity }} {{ item.resource_type.unit_for_use }} {{ event.event_date }} 
 								                {% trans "by" %} {{ event.from_agent }}
@@ -1256,13 +1263,13 @@ hr {
 					        </p>
 				        {% endfor %}
 			        {% endif %}
-                    <hr />
+</div>
 		        {% endfor %}
 
                 {% if uncommitted_use %}
-                    <h4 class="unplanned">{% trans "Unplanned Use" %}:</h4>
+                    <h4 class="subsection-label">{% trans "Unplanned Use" %}:</h4>
 		            {% for event in uncommitted_use %}
-			            <div class="event" >
+			            <div class="event-section" >
 				            <span class="event-label">{% trans "Used" %}:</span>
 				            <span class="event" > 
                                 {% if event.resource %}
@@ -1288,12 +1295,11 @@ hr {
                                 </form>
 			                {% endif %}
 			            </div>
-                        <hr />
 		            {% endfor %}
 	            {% endif %}
 	        </div>
 	    {% endif %}
-     
+
         {% if uncommitted_process_expenses  or "payexpense" in slots %}
             <div class="log-section">
                 <h3 style="margin-bottom: 4px;" >
@@ -1312,7 +1318,7 @@ hr {
                             <h3 id="unplanned-expense-label">{% trans "Add unplanned expense" %}</h3>
                         </div>
                         <div class="modal-body">
-                            <form class="expense-form validateMe" enctype="multipart/form-data" id="addUnplannedExpenseForm" 
+                            <form class="expense-form validateMe" name="unexp" enctype="multipart/form-data" id="addUnplannedExpenseForm" 
                                 action="{% url add_process_expense process_id=process.id %}" method="POST" >
                               {% csrf_token %}
                               {{ process_expense_form|as_bootstrap }}
@@ -1327,7 +1333,7 @@ hr {
                 {% endif %}
 
                 {% if uncommitted_process_expenses %}
-                    {% comment %} <h4 class="unplanned">{% trans "Unplanned Expense Payments" %}:</h4>{% endcomment %}
+                    {% comment %} <h4 class="subsection-label">{% trans "Unplanned Expense Payments" %}:</h4>{% endcomment %}
                     {% for event in uncommitted_process_expenses %}
                         <div class="event" >
                             <span class="event-label">{% trans "Paid" %}:</span>
@@ -1354,11 +1360,11 @@ hr {
                                 <div class="notes"> {{ event.description|urlize|linebreaks }}</div>
                             {% endif %}
                         </div>
-                        <hr />
                     {% endfor %}
                 {% endif %}
             </div>
-        {% endif %}          
+        {% endif %}  
+        
 	    </div>
 
 	    <div class="span4">
@@ -1429,7 +1435,7 @@ hr {
         </div>
         {% if add_output_form %}
         <div class="modal-body">
-            <form class="output-form validateMe" enctype="multipart/form-data" id="addOutputForm" action="{% url add_process_output process_id=process.id %}" method="POST" >
+            <form class="output-form validateMe" name="addout" enctype="multipart/form-data" id="addOutputForm" action="{% url add_process_output process_id=process.id %}" method="POST" >
 	            {% csrf_token %}
 
                     <p class="modal-line">{% trans "Resource Type" %} </p>
@@ -1464,7 +1470,7 @@ hr {
             <h3 id="resource-consumable-create-label">{% trans "Create a new Resource Type" %}</h3>
         </div>
         <div class="modal-body">
-            <form class="resource-create-form validateMe" id="resource-create-form" enctype="multipart/form-data" action="." method="POST" >
+            <form class="resource-create-form validateMe" id="resource-create-form" name="rescreate" enctype="multipart/form-data" action="." method="POST" >
                 {% csrf_token %}
                 {{ resource_type_form|as_bootstrap }}
                 {{ facet_formset.management_form }}
@@ -1494,7 +1500,7 @@ hr {
             
         </div>
         <div class="modal-body">
-            <form class="cite-form" enctype="multipart/form-data" id="addCitationForm" action="{% url add_process_citation process_id=process.id %}" method="POST" >
+            <form class="cite-form" enctype="multipart/form-data" id="addCitationForm" name="addcite" action="{% url add_process_citation process_id=process.id %}" method="POST" >
 	            {% csrf_token %}
 
                     {{ add_citation_form|as_bootstrap }}
@@ -1517,7 +1523,7 @@ hr {
             
         </div>
         <div class="modal-body">
-            <form class="consumable-form validateMe" enctype="multipart/form-data" id="addConsumableForm" 
+            <form class="consumable-form validateMe" enctype="multipart/form-data" id="addConsumableForm" name="addcons" 
                 action="{% url add_process_input process_id=process.id slot='c' %}" method="POST" >
 	            {% csrf_token %}
 
@@ -1541,7 +1547,7 @@ hr {
             
         </div>
         <div class="modal-body">
-            <form class="usable-form validateMe" enctype="multipart/form-data" id="addUsableForm" 
+            <form class="usable-form validateMe" enctype="multipart/form-data" id="addUsableForm" name="adduse" 
                 action="{% url add_process_input process_id=process.id  slot='u' %}" method="POST" >
 	            {% csrf_token %}
 
@@ -1571,7 +1577,7 @@ hr {
             
         </div>
         <div class="modal-body">
-            <form class="work-form validateMe" id="addWorkForm" action="{% url add_process_worker process_id=process.id %}" method="POST" >
+            <form class="work-form validateMe" id="addWorkForm" name="addwork" action="{% url add_process_worker process_id=process.id %}" method="POST" >
 	            {% csrf_token %}
 
                     {{ add_work_form|as_bootstrap }}
@@ -1579,7 +1585,7 @@ hr {
               <div class="modal-footer">
 	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 	            <button class="btn btn-primary">
-	                {% if worker %}
+                {% if worker %}
                     {% trans "Invite collaborator" %}
                 {% else %}
                     {% trans "Add work requirement" %}
@@ -1602,7 +1608,7 @@ hr {
             <h3 id="unplanned-output">{% trans "Log Unplanned Output" %}</h3>
         </div>
         <div class="modal-body">
-            <form class="unplanned-output-form validateMe" enctype="multipart/form-data" action="{% url add_unplanned_output process_id=process.id %}" method="POST" >
+            <form class="unplanned-output-form validateMe" name="unout" enctype="multipart/form-data" action="{% url add_unplanned_output process_id=process.id %}" method="POST" >
                 {% csrf_token %}
                 {{ unplanned_output_form|as_bootstrap }}
                 {{ role_formset.management_form }}
@@ -1630,7 +1636,7 @@ hr {
             <h3 id="unplanned-work">{% trans "Log Unplanned Work Contribution" %}</h3>
         </div>
         <div class="modal-body">
-            <form class="unplanned-work-form validateMe" enctype="multipart/form-data" action="{% url add_unplanned_work_event process_id=process.id %}" method="POST" >
+            <form class="unplanned-work-form validateMe" enctype="multipart/form-data" name="unwork" action="{% url add_unplanned_work_event process_id=process.id %}" method="POST" >
                 {% csrf_token %}
                 {{ unplanned_work_form|as_bootstrap }}
               <div class="modal-footer">
@@ -1660,6 +1666,7 @@ hr {
 		$('#work').addClass('active');
 
 		$(".chzn-select").chosen();
+        $(".chzn-select").trigger("liszt:updated");
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 

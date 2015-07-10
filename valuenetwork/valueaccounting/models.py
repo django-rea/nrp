@@ -2270,7 +2270,7 @@ class ProcessPatternManager(models.Manager):
     def production_patterns(self):
         #import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(
-            Q(use_case__identifier='rand')|Q(use_case__identifier='design'))
+            Q(use_case__identifier='rand')|Q(use_case__identifier='design')|Q(use_case__identifier='recipe'))
         pattern_ids = [uc.pattern.id for uc in use_cases]
         return ProcessPattern.objects.filter(id__in=pattern_ids)
         
@@ -3874,7 +3874,6 @@ class EconomicResource(models.Model):
         citations = []
         production_value = Decimal("0.0")
         #rollup stage change
-        #import pdb; pdb.set_trace()
         processes = self.producing_processes_for_historical_stage()
         for process in processes:
             pe_value = Decimal("0.0")
@@ -3883,6 +3882,7 @@ class EconomicResource(models.Model):
                 depth += 1
                 process.depth = depth
                 #todo share: credit for production events?
+                #todo: eliminate production for other resources
                 production_qty = process.production_quantity()
                 path.append(process)
                 #depth += 1
@@ -4172,14 +4172,21 @@ class EconomicResource(models.Model):
         for evt in xfers:
             if evt.exchange:
                 evt.exchange.compute_income_shares(value_equation, evt, quantity, events, visited)
-        processes = self.producing_processes()
+        #import pdb; pdb.set_trace()
+        #income_shares stage change
+        processes = self.producing_processes_for_historical_stage()
+        try:
+            stage = self.historical_stage
+        except AttributeError:
+            if self.stage:
+                processes = [p for p in processes if p.process_type==self.stage]
         for process in processes:
             if process not in visited:
                 visited.add(process)
                 if quantity:
                     #todo: how will this work for >1 processes producing the same resource?
                     #what will happen to the shares of the inputs of the later processes?
-                    production_events = process.production_events()
+                    production_events = [e for e in process.production_events() if e.resource==self]
                     produced_qty = sum(pe.quantity for pe in production_events)
                     distro_fraction = 1
                     distro_qty = quantity
@@ -4253,6 +4260,7 @@ class EconomicResource(models.Model):
                                 new_visited = set()
                                 path = []
                                 depth = 0
+                                
                                 value_per_unit = ip.roll_up_value(path, depth, new_visited, value_equation)
                                 ip.value = ip.quantity * value_per_unit
                                 ip.save()                     
@@ -4262,7 +4270,8 @@ class EconomicResource(models.Model):
                                     #print "consumption:", ip.id, ip, "ip.value:", ip.value
                                     #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
                                 if ip.resource:
-                                    ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
+                                    #income_shares stage change
+                                    ip.compute_income_shares(value_equation, d_qty, events, visited)
                             elif ip.event_type.relationship == "cite":
                                 #import pdb; pdb.set_trace()
                                 #citation events are not contributions, but their resources may have contributions
@@ -8331,12 +8340,25 @@ class EconomicEvent(models.Model):
         # EconomicEvent method
         #rollup stage change
         stage = None
+        #what is no commitment? Can that happen with staged events?
         if self.commitment:
             stage = self.commitment.stage
         if stage:
             self.resource.historical_stage = stage
         #todo 3d:
         return self.resource.roll_up_value(path, depth, visited, value_equation)
+        
+    def compute_income_shares(self, value_equation, d_qty, events, visited):
+        # EconomicEvent method
+        #income_shares stage change
+        stage = None
+        #what is no commitment? Can that happen with staged events?
+        if self.commitment:
+            stage = self.commitment.stage
+        if stage:
+            self.resource.historical_stage = stage
+        #todo 3d:
+        return self.resource.compute_income_shares(value_equation, d_qty, events, visited)
         
     def bucket_rule(self, value_equation):
         brs = ValueEquationBucketRule.objects.filter(
@@ -8794,6 +8816,8 @@ class EconomicEvent(models.Model):
         shares = []
         if self.event_type.name == "Shipment":
             commitment = self.commitment
+            #problem: if the shipment event with no (an uninventoried) resource has no commitment,
+            #we can't find the process it came from.
             if commitment:
                 production_commitments = commitment.get_production_commitments_for_shipment()
                 if production_commitments:
@@ -9265,9 +9289,16 @@ class ValueEquationBucket(models.Model):
         claim_events = []
         contribution_events = []
         bucket_events = self.gather_bucket_events(context_agent=context_agent, serialized_filter=serialized_filter)
+        #import pdb; pdb.set_trace()
+        #tot = Decimal("0.0")
         for vebr in rules:
             vebr_events = vebr.filter_events(bucket_events)
             contribution_events.extend(vebr_events)
+            #hours = sum(e.quantity for e in vebr_events)
+            #print vebr.filter_rule_deserialized(), "hours:", hours
+            #tot += hours
+            
+        #print "total vebr hours:", tot
         claims = self.claims_from_events(contribution_events)
         #import pdb; pdb.set_trace()
         if claims:
@@ -9370,6 +9401,7 @@ class ValueEquationBucket(models.Model):
             #lots = [e.resource for e in shipment_events]
             #import pdb; pdb.set_trace()
             events = []
+            #tot = Decimal("0.0")
             for ship in shipment_events:
                 resource = ship.resource
                 qty = ship.quantity
@@ -9378,6 +9410,11 @@ class ValueEquationBucket(models.Model):
                     events.extend(resource.compute_shipment_income_shares(ve, qty))
                 else:
                     events.extend(ship.compute_income_fractions_for_process(ve))
+                #hours = sum(e.quantity for e in events)
+                #print ship, "hours:", hours
+                #tot += hours
+                
+            #print "total event hours:", tot
                     
         for event in events:
             event.filter = filter

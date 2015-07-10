@@ -6001,6 +6001,7 @@ def process_oriented_logging(request, process_id):
         role_formset = resource_role_agent_formset(prefix="resource")
         produce_et = EventType.objects.get(name="Resource Production")
         change_et = EventType.objects.get(name="Change")
+        #import pdb; pdb.set_trace()
         if "out" in slots:
             if logger:
                 if change_et in event_types:
@@ -9937,6 +9938,7 @@ def value_equation_sandbox(request, value_equation_id=None):
     agent_totals = []
     details = []
     total = None
+    hours = None
     if ves:
         if not ve:
             ve = ves[0]
@@ -9957,7 +9959,7 @@ def value_equation_sandbox(request, value_equation_id=None):
                         bucket.form = bucket_form
             agent_totals, details = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
             total = sum(at.quantity for at in agent_totals)
-            #import pdb; pdb.set_trace()
+            hours = sum(d.quantity for d in details)
 
     else:
         for bucket in buckets:
@@ -9970,6 +9972,7 @@ def value_equation_sandbox(request, value_equation_id=None):
         "agent_totals": agent_totals,
         "details": details,
         "total": total,
+        "hours": hours,
         "ve": ve,
     }, context_instance=RequestContext(request))
 

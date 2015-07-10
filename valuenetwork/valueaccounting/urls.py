@@ -473,5 +473,6 @@ urlpatterns += patterns("",
         name="invite_collaborator"),
     url(r"^commitment-finished/(?P<commitment_id>\d+)/$", 'valuenetwork.valueaccounting.views.commitment_finished', 
         name="commitment_finished"),
+    url(r"^json-organization/$", 'valuenetwork.valueaccounting.views.json_organization', name="json_organization"),
 )
 

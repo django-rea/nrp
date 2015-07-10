@@ -1294,6 +1294,57 @@ def json_resource(request, resource_id):
     data = simplejson.dumps(rdict)
     return HttpResponse(data, mimetype="text/json-comment-filtered")
     
+def json_organization(request):
+    #import pdb; pdb.set_trace()
+    agent_types = AgentType.objects.all()
+    at_dict = {}
+    for at in agent_types:
+        fields = {
+            "name": at.name,
+            "is_context": at.is_context,
+        }
+        at_dict[at.name] = fields
+    agents = EconomicAgent.objects.all()
+    agent_dict = {}
+    for agent in agents:
+        fields = {
+            "class": "EconomicAgent",
+            "pk": agent.pk,
+            "id": agent.nick,
+            "name": agent.name,
+            "agent_type": agent.agent_type.name,
+        }
+        agent_dict[agent.nick] = fields
+    aa_types = AgentAssociationType.objects.all()
+    aat_dict = {}
+    for aat in aa_types:
+        fields = {
+            "name": aat.name,
+            "plural_name": aat.plural_name,
+            "label": aat.label,
+            "inverse_label": aat.inverse_label,
+            "description": aat.description,
+        }
+        aat_dict[aat.name] = fields
+    associations = AgentAssociation.objects.all()
+    assoc_dict = {}
+    for a in associations:
+        fields = {
+            "pk": a.pk,
+            "is_associate": a.is_associate.nick,
+            "has_associate": a.has_associate.nick,
+            "association_type": a.association_type.name,
+        }
+        assoc_dict[a.pk] = fields
+    big_d = {
+        "agentTypes": at_dict,
+        "agents": agent_dict,
+        "agentAssociationTypes": aat_dict,
+        "agentAssociations": assoc_dict,
+    }
+    data = simplejson.dumps(big_d)
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    
 def json_distribution_related_shipment(request, distribution_id):
     d = get_object_or_404(EconomicEvent, pk=distribution_id)
     ship = d.get_shipment_for_distribution()
@@ -3789,8 +3840,8 @@ def change_commitment(request, commitment_id):
             #flow todo: explode?
             #explode wd apply to rt changes, which will not happen here
             #handle_commitment_changes will propagate qty changes
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process', process.id))
 
 @login_required
 def change_exchange_commitment(request, commitment_id):

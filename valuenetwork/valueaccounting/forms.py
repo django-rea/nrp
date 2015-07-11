@@ -3417,7 +3417,8 @@ class ValueEquationForm(forms.ModelForm):
    
 class ValueEquationBucketForm(forms.ModelForm):
     sequence = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'input-small integer',}))
-    percentage = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'input-small integer',}))
+    percentage = forms.DecimalField(
+        widget=forms.TextInput(attrs={'value': '0', 'class': 'quantity  input-small'}))
     distribution_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.all(),
         required=False, 

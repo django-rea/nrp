@@ -9982,7 +9982,7 @@ def value_equation_sandbox(request, value_equation_id=None):
             #dan_details = [d for d in details if d.from_agent==daniel]
             agent_subtotals = {}
             for d in details:
-                key = "-".join([str(d.from_agent.id), str(d.from_agent.id)])
+                key = "-".join([str(d.from_agent.id), str(d.vebr.id)])
                 if key not in agent_subtotals:
                     agent_subtotals[key] = AgentSubtotal(d.from_agent, d.vebr)
                 sub = agent_subtotals[key]

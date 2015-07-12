@@ -131,6 +131,11 @@ li {
     float: right;
     margin-left: 5px;
 }
+.normal {
+    font-size: 1em;
+    color: black;
+    font-weight: normal;
+}
 /*
 hr {
     margin-top: 3px;
@@ -205,7 +210,14 @@ hr {
 			                {% trans "Log an unplanned output" %}
 		                </a>
                  {% endif %}
-
+                <span class="info"> <a href="#" id="out-info" data-toggle="popover" data-trigger='hover' title="Process Outputs" 
+                    data-content="When the output item is created, log it so that it can be used in other processes or exchanged
+                    inside or outside the network.  If you
+                    have created secondary outputs or unplanned outputs, log them also.  Logged outputs will then appear
+                    in inventory if it is an inventoried item.  You can also create new requirements that were missed in the
+                    planning.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
 	        </h2>
 
             <h4 class="subsection-label">{% trans "Scheduled" %}:</h4>
@@ -417,10 +429,6 @@ hr {
 	        {% endif %}
         </div>
 
-        <p class="info">
-            {% trans "Requirements are ordered by due date" %}
-        </p>
-
 	    {% if work_reqs or process.uncommitted_work_events or "work" in slots %}
 		    <div class="log-section">
 		        <h2 style="margin-bottom: 4px;" >
@@ -443,9 +451,17 @@ hr {
 			                {% trans "Log unplanned work" %}
 		                </a>
 	                {% endif %}
+                <span class="info"> <a href="#" id="work-info" data-toggle="popover" data-trigger='hover' title="Logging Work" 
+                    data-content="Networks that distribute income based on work contributions should log their work here.  (if
+                    you distribute income based on deliverables, this is optional.) 
+                    When logging work, there are coordination features where people can request others to collaborate on a task, or join
+                    others on a task.  You can also commit to a task before doing the work, which will signal others your intention
+                    to do the work.  Or you can just log the work directly without committing to the task.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
 	            </h2>
 
-                <h4 class="subsection-label">{% trans "Planned Work" %}:</h4>            
+                <h4 class="subsection-label">{% trans "Planned Work" %}: <span class="normal">{% trans "(Requirements are ordered by due date)" %}</span></h4>            
 		        {% for item in work_reqs %}
 			        <div class="commitment">
 				        <span class="work-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
@@ -749,6 +765,13 @@ hr {
 			                {% trans "Log unplanned citation" %}
 		                </a>
 	                {% endif %}
+                    <span class="info"> <a href="#" id="cite-info" data-toggle="popover" data-trigger='hover' title="Citations" 
+                        data-content="Citations give you an opportunity to include non-material contributions such as designs
+                        or documented ideas into the value flow so they are eligible for income distribution. The person citing makes the decision what the cited contribution
+                        is worth in the context of this process. (This comes from the practice in the scientific community
+                        where is it customary to give credit to all whose work has helped you.)">
+                        <img src="{% static 'img/information-icon.png' %}" /></a>
+                    </span>
                 </h2>
                 {% if agent %}
                     <div class="modal hide fade" id="unplannedCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
@@ -905,6 +928,12 @@ hr {
 			                {% trans "Log unplanned consumption" %}
 		                </a>
 	                {% endif %}
+                    <span class="info"> <a href="#" id="consume-info" data-toggle="popover" data-trigger='hover' title="Consumed Inputs" 
+                        data-content="Consumable inputs are decremented from inventory, as they are consumed in the process.  This would
+                        include parts or components that go into an assembly, as well as things like solder or 3D printing polymer or filaments.
+                        Basically if they are gone at the end of the process, they should be logged here.  Inventory is automatically adjusted.">
+                        <img src="{% static 'img/information-icon.png' %}" /></a>
+                    </span>
 	            </h2>
 
 	             {% if agent %}
@@ -1124,6 +1153,11 @@ hr {
 			                {% trans "Log unplanned use" %}
 		                </a>
 	                {% endif %}
+                    <span class="info"> <a href="#" id="use-info" data-toggle="popover" data-trigger='hover' title="Used Inputs" 
+                        data-content="Used inputs still exist at the end of the process, although they were unavailable during 
+                        the process.  Typical examples are equipment, tools, and space.  Inventory is not decremented.">
+                        <img src="{% static 'img/information-icon.png' %}" /></a>
+                    </span>
 	            </h2>
 
 	            {% if agent %}
@@ -1268,7 +1302,7 @@ hr {
 					        </p>
 				        {% endfor %}
 			        {% endif %}
-</div>
+                  </div>
 		        {% endfor %}
 
                 {% if uncommitted_use %}
@@ -1305,71 +1339,6 @@ hr {
 	        </div>
 	    {% endif %}
 
-        {% if uncommitted_process_expenses  or "payexpense" in slots %}
-            <div class="log-section">
-                <h3 style="margin-bottom: 4px;" >
-                    {% trans "Expense Payments" %}:
-                    {% if agent %}
-                        <a href="#unplannedExpenseModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned expense" >
-                            {% trans "Log process expense" %}
-                        </a>
-                    {% endif %}
-                </h3>
-
-                {% if agent %}
-                    <div class="modal hide fade" id="unplannedExpenseModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-expense-label" aria-hidden="true">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                            <h3 id="unplanned-expense-label">{% trans "Add unplanned expense" %}</h3>
-                        </div>
-                        <div class="modal-body">
-                            <form class="expense-form validateMe" name="unexp" enctype="multipart/form-data" id="addUnplannedExpenseForm" 
-                                action="{% url add_process_expense process_id=process.id %}" method="POST" >
-                              {% csrf_token %}
-                              {{ process_expense_form|as_bootstrap }}
-                              <div class="modal-footer">
-                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                <button id="select-resource" class="btn btn-primary">{% trans "Add Expense" %}</button>
-                              </div>
-                            </form>
-                        </div>
-                    </div>
-
-                {% endif %}
-
-                {% if uncommitted_process_expenses %}
-                    {% comment %} <h4 class="subsection-label">{% trans "Unplanned Expense Payments" %}:</h4>{% endcomment %}
-                    {% for event in uncommitted_process_expenses %}
-                        <div class="event" >
-                            <span class="event-label">{% trans "Paid" %}:</span>
-                            <span > 
-                                <b>{{ event.value }} {{ event.unit_of_value }}</b> {{ event.event_date }} for {{ event.resource_type }}
-                                 <span class="taken">{% trans "Contributed by" %} {{ event.from_agent.nick }}</span>
-                            </span>
-                            {% if logger %}
-                                {% comment %}
-                                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
-                                {% endcomment %}
-                                <form
-                                    style="display: inline;" 
-                                    class="delete-form" 
-                                    id="deleteForm{{ event.id }}" 
-                                    action="{% url delete_event event_id=event.id %}" 
-                                    method="POST" >
-                                    {% csrf_token %}
-                                    <input type="hidden" id="next" name="next" value="process" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete expense event" >X</button>
-                                </form>
-                            {% endif %}
-                            {% if event.description %}
-                                <div class="notes"> {{ event.description|urlize|linebreaks }}</div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            </div>
-        {% endif %}  
-        
 	    </div>
 
 	    <div class="span4">
@@ -1670,8 +1639,11 @@ hr {
 
 		$('#work').addClass('active');
 
-        $('out-info').popover();
-
+        $('#out-info').popover();
+        $('#work-info').popover();
+        $('#cite-info').popover();
+        $('#use-info').popover();
+        $('#consume-info').popover();
 
 		$(".chzn-select").chosen();
         $(".chzn-select").trigger("liszt:updated");

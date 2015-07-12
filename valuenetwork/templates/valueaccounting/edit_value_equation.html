@@ -402,6 +402,19 @@ th
         $.validator.addClassRules("event-type-selector", { required: true });
         $.validator.addClassRules("integer", { digits: true });
 
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number with no more than 2 decimal places"
+        );
+
+        $.validator.addClassRules("quantity", { 
+            required: true, 
+            quantity: true,
+        });
+
         $('.validateMe').each( function(){
             var form = $(this);
             form.validate({

@@ -9256,7 +9256,7 @@ class ValueEquationBucket(models.Model):
         verbose_name=_('value equation'), related_name='buckets')
     filter_method =  models.CharField(_('filter method'), null=True, blank=True, 
         max_length=12, choices=FILTER_METHOD_CHOICES)
-    percentage = models.IntegerField(_('bucket percentage'), null=True)    
+    percentage = models.DecimalField(_('bucket percentage'), max_digits=8, decimal_places=2, default=Decimal("0.0"))
     distribution_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         related_name="value_equation_buckets", verbose_name=_('distribution agent')) 

@@ -1,7 +1,7 @@
 import datetime
 import time
 import csv
-from operator import attrgetter
+from operator import itemgetter, attrgetter, methodcaller
 
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseServerError, Http404, HttpResponseNotFound, HttpResponseRedirect
@@ -9995,8 +9995,10 @@ def value_equation_sandbox(request, value_equation_id=None):
                     continue
             #import pdb; pdb.set_trace()
             agent_subtotals = agent_subtotals.values()
+            agent_subtotals = sorted(agent_subtotals, key=methodcaller('key'))
+            #agent_subtotals.sort(lambda x, y: cmp(x.agent, y.agent))
             details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))
-            details = sorted(details, key=attrgetter('vebr', 'from_agent'))
+            #details = sorted(details, key=attrgetter('vebr', 'from_agent'))
             #details = sorted(details, key=attrgetter('vebr'), reverse = True)
             #details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))
             #details.sort(lambda x, y: cmp(x.vebr, y.vebr))

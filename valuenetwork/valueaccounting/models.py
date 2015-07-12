@@ -6209,7 +6209,46 @@ class Process(models.Model):
                                 depth = 0
                                 resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
                                 ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
+
+
+class ExchangeTypeManager(models.Manager):
     
+    def sale_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='sale')
+
+# fiscal sponsorship - sponsor (temp note)
+class ExchangeType(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    use_case = models.ForeignKey(UseCase,
+        blank=True, null=True,
+        verbose_name=_('use case'), related_name='exchange_types')
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('pattern'), related_name='exchange_types')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
+        verbose_name=_('context agent'), related_name='exchange_types')
+    description = models.TextField(_('description'), blank=True, null=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='exchange_types_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='exchange_types_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = ExchangeTypeManager()
+    
+    class Meta:
+        ordering = ('name',)
+            
+    def __unicode__(self):
+        return self.name
+            
+    def save(self, *args, **kwargs):
+        unique_slugify(self, self.name)
+        super(ExchangeType, self).save(*args, **kwargs)   
 
 class ExchangeManager(models.Manager):
 
@@ -6247,6 +6286,9 @@ class Exchange(models.Model):
     use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
         verbose_name=_('use case'), related_name='exchanges')
+    exchange_type = models.ForeignKey(ExchangeType,
+        blank=True, null=True,
+        verbose_name=_('exchange type'), related_name='exchanges')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         limit_choices_to={"agent_type__is_context": True,},
@@ -6278,15 +6320,17 @@ class Exchange(models.Model):
         verbose_name_plural = _("exchanges")
 
     def __unicode__(self):
-        pattern_name = ""
+        show_name = ""
         if self.process_pattern:
-            pattern_name = self.process_pattern.name
+            show_name = self.process_pattern.name
+        if self.exchange_type:
+            show_name = self.exchange_type.name
         name = ""
         if self.name:
             name = self.name + ","
         return " ".join([
             name,
-            pattern_name,
+            show_name,
             "starting",
             self.start_date.strftime('%Y-%m-%d'),
             ])

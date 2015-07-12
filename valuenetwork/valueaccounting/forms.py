@@ -3045,15 +3045,18 @@ class ExchangeFlowForm(forms.Form):
 
                         
 class SaleForm(forms.ModelForm):
+    exchange_type = forms.ModelChoiceField(
+        queryset=ExchangeType.objects.sale_exchange_types(),
+        widget=forms.Select(
+            attrs={'class': 'exchange-selector'}))
     process_pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(), 
         label=_("Pattern"),
-        empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
-        label=_("Context (who made the sale)"),
+        label=_("Context (who interacts with the payer)"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     start_date = forms.DateField(required=True, 
@@ -3061,11 +3064,12 @@ class SaleForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     customer = forms.ModelChoiceField(required=False,
         queryset=EconomicAgent.objects.none(),
-        label="Customer",
+        label="Payer",
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     order = forms.ModelChoiceField(
         required=False,
         queryset=Order.objects.customer_orders(),
+        label="Order (optional)",
         widget=forms.Select(attrs={'class': 'resource chzn-select input-xxlarge',}))
     notes = forms.CharField(required=False, 
         label=_("Comments"),
@@ -3073,7 +3077,7 @@ class SaleForm(forms.ModelForm):
     
     class Meta:
         model = Exchange
-        fields = ('process_pattern', 'context_agent', 'customer', 'order', 'start_date', 'notes')
+        fields = ('exchange_type', 'process_pattern', 'context_agent', 'customer', 'order', 'start_date', 'notes')
         
     def __init__(self, context_agent=None, *args, **kwargs):
         #import pdb; pdb.set_trace()

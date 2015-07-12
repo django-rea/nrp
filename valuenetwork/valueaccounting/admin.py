@@ -192,6 +192,14 @@ class ProcessTypeAdmin(admin.ModelAdmin):
 admin.site.register(ProcessType, ProcessTypeAdmin)
 
 
+class ExchangeTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'use_case', 'context_agent', 'process_pattern' )
+    list_filter = ['context_agent', 'use_case']
+    search_fields = ['name',]
+
+admin.site.register(ExchangeType, ExchangeTypeAdmin)
+
+
 class EventTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'label', 'inverse_label', 'related_to', 'relationship', 'resource_effect', 'unit_type' )
     list_filter = ['resource_effect', 'related_to', 'relationship',]

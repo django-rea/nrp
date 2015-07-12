@@ -143,7 +143,7 @@ li {
                 <span class="total-top">{% trans "Total payments" %}: {{ total_out }} </span> 
             {% elif use_case.identifier == "sale" %}
                 <span class="total-top">{% trans "Total cash receipts" %}: {{ total_in }} </span> 
-                <span class="total-top">{% trans "Total shipments" %}: {{ total_out }} </span> 
+                <span class="total-top">{% trans "Total deliveries" %}: {{ total_out }} </span> 
             {% elif use_case.identifier == "distribution" %}
                 <span class="total-top">{% trans "Total disbursements" %}: {{ total_in }} </span> 
                 <span class="total-top">{% trans "Total distributions" %}: {{ total_out }} </span> 
@@ -616,17 +616,18 @@ li {
         {% if shipment_events or "shipment" in slots or transfer_events %}
           <div class="log-section">
             <h3 style="margin-bottom: 4px;" >
-                {% trans "Shipments" %}:  
+                {% trans "Deliveries" %}:  
                 {% if agent %}
                     <a href="#shipmentModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unordered shipment or delivery from inventory" >
-                        {% trans "Log unordered shipment from inventory" %}
+                        {% trans "Log unordered delivery from inventory" %}
                     </a>
                     <a href="#shipmentRTModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unordered shipment or delivery for an uninventoried item" >
-                        {% trans "Log unordered uninventoried shipment" %}
+                        {% trans "Log unordered uninventoried delivery" %}
                     </a>
                 {% endif %}
                 <span class="info"> <a href="#" id="ship-info" data-toggle="popover" data-trigger='hover' title="Shipment or Delivery" 
-                    data-content="You can enter one or more items that were shipped or delivered to a customer outside the network.">
+                    data-content="You can enter one or more items that were shipped or delivered or made available to an agent outside the network.
+                    This can include making it available as open source to the outside world.">
                     <img src="{% static 'img/information-icon.png' %}" /></a>
                 </span>
                 <span class="total">Total: {{ shipment_total }}</span>
@@ -684,7 +685,7 @@ li {
 
                 {% for event in item.fulfilling_events %}
                     <div class="event" >
-                        <span class="event-label">{% trans "Shipped" %}:</span> <span>
+                        <span class="event-label">{% trans "Delivered" %}:</span> <span>
                             {{ event.event_type.label }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
                         </span>
                         {% if logger %}
@@ -710,10 +711,10 @@ li {
             {% endfor %}
 
             {% if shipment_events %}
-                <div class="hdg">Unordered Shipped Items</div>
+                <div class="hdg">Unordered Delivered Items</div>
                 {% for event in shipment_events %}
                     <div class="event">
-                        <span ><span class="event-label">{% trans "Shipped" %}: </span> 
+                        <span ><span class="event-label">{% trans "Delivered" %}: </span> 
                         <b>{{ event.quantity }} {{ event.unit_of_quantity }} 
                         {% if event.resource %}{{ event.resource }}{% else %}{{ event.resource_type }}{% endif %}</b> 
                         <b> {{ event.value }} {{ event.unit_of_value }}</b> {{ event.event_date }} </span>
@@ -725,7 +726,7 @@ li {
                             <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                    <h3 id="event-label">{% trans "Change Shipment Event" %}</h3>
+                                    <h3 id="event-label">{% trans "Change Delivery Event" %}</h3>
                                 </div>
                                 <div class="modal-body">
                                 {% if event.resource %}
@@ -991,7 +992,7 @@ li {
         <div class="modal hide fade" id="shipmentModal" tabindex="-1" role="dialog" aria-labelledby="shipment" aria-hidden="true">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h3 id="shipment">{% trans "Log a Shipped Resource" %}</h3>
+                <h3 id="shipment">{% trans "Log a Delivered Resource" %}</h3>
             </div>
             <div class="modal-body">
                 <form class="validateMe" id="shipmentForm" enctype="multipart/form-data" action="{% url add_shipment exchange_id=exchange.id %}" method="POST" >
@@ -1008,7 +1009,7 @@ li {
         <div class="modal hide fade" id="shipmentRTModal" tabindex="-1" role="dialog" aria-labelledby="shipmentun" aria-hidden="true">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h3 id="shipmentun">{% trans "Log a Shipped Uninventoried Resource" %}</h3>
+                <h3 id="shipmentun">{% trans "Log a Delivered Uninventoried Resource" %}</h3>
             </div>
             <div class="modal-body">
                 <form class="validateMe" id="shipmentRTForm" enctype="multipart/form-data" action="{% url add_uninventoried_shipment exchange_id=exchange.id %}" method="POST" >

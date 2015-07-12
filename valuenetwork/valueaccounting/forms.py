@@ -3370,7 +3370,7 @@ class DeliveryFilterSetForm(forms.Form):
             event_type__relationship="shipment",
             #exclude customer order shipments?,
             ),
-        label=_("Select one or more Shipment Events"),
+        label=_("Select one or more Delivery Events"),
         #empty_label=None,
         widget=forms.SelectMultiple(attrs={'class': 'shipment-event chzn-select input-xxlarge'}))
     process_types = forms.ModelMultipleChoiceField(
@@ -3641,7 +3641,7 @@ class ShipmentMultiSelectForm(forms.Form):
         queryset=EconomicEvent.objects.filter(
             event_type__relationship="shipment",
             ),
-        label=_("Select one or more Shipment Events"),
+        label=_("Select one or more Delivery Events"),
         #empty_label=None,
         widget=forms.SelectMultiple(attrs={'class': 'shipment-event chzn-select input-xxlarge validateMe'}))
         

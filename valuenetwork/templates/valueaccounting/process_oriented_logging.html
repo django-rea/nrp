@@ -38,8 +38,11 @@
 }
 
 .notes {
-    margin-left: 1em;
+    margin: 3px 1em 3px 1em;
     font-style: italic;
+    border: 1px solid lightgray;
+    padding: 3px 3px 0px 5px;
+    font-size: .9em;
 }
 
 .error {
@@ -522,12 +525,6 @@ hr {
                                         <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit to this task" >X</button>
                                     </form>
 				                {% endif %}
-
-{% comment %}
-				                {% if work_now and item.unit_of_quantity.unit_type == "time" %}
-				                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" title="I'll start working on this now, I can time and document while working">{% trans "I'll start working now" %}</a>
-			                    {% endif %}
-{% endcomment %}			
 				                
 				                <a href="#inviteModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Create a new requirement like this one for others to work on">
                                     {% trans "Invite a collaborator" %}
@@ -640,6 +637,11 @@ hr {
                                         </form>
                                     </div>
                                 </div>
+{% comment %}
+                                {% if work_now and item.unit_of_quantity.unit_type == "time" %}
+                                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" title="I'll start working on this now, I can time and document while working">{% trans "I'll start working now" %}</a>
+                                {% endif %}
+{% endcomment %}   
                               {% endif %}
                             </div>
                 
@@ -742,7 +744,7 @@ hr {
 		                    {% endif %}
 
 			                {% if event.description %}
-		                       <div class="notes indent"> {{ event.description|urlize|linebreaks }}</div>
+		                       <div class="notes"> {{ event.description|urlize|linebreaks }}</div>
 	                        {% endif %}
 				            
 			            </div>

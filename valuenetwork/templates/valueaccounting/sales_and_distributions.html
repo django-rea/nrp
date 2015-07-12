@@ -34,14 +34,14 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-		<legend>{% trans "Sales and Distributions" %}
+		<legend>{% trans "External Exchanges and Distributions" %}
             {% if agent %} for {{ agent.agent_type }} {{ agent.name }} {% endif %}
         </legend>
 
         <div class="span8">
           <div class="totals">
             <span class="total">Cash Receipts total: {{ total_cash_receipts }} </span> 
-            <span class="total">Shipments total: {{ total_shipments }} </span> 
+            <span class="total">Deliveries total: {{ total_shipments }} </span> 
             <span class="total">Distributions total: {{ total_distributions }} </span> 
             <br />
             * Note these totals are valid only if the events selected all use the same currency.

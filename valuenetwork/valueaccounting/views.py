@@ -9924,6 +9924,22 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
         "count": count,
     }, context_instance=RequestContext(request))
 
+
+class AgentSubtotal(object):
+    def __init__(self, agent, bucket_rule, quantity=Decimal('0.0'), value=Decimal('0.0'), distr_amt=Decimal('0.0')):
+        self.agent = agent
+        self.bucket_rule = bucket_rule
+        self.quantity = quantity
+        self.value = value
+        self.distr_amt=distr_amt
+
+    def key(self):
+        return "-".join([str(self.agent.id), str(self.bucket_rule.id)])
+
+    def quantity_formatted(self):
+        return self.quantity.quantize(Decimal('.01'), rounding=ROUND_UP)
+        
+
 @login_required
 def value_equation_sandbox(request, value_equation_id=None):
     #import pdb; pdb.set_trace()
@@ -9939,6 +9955,7 @@ def value_equation_sandbox(request, value_equation_id=None):
     details = []
     total = None
     hours = None
+    agent_subtotals = None
     if ves:
         if not ve:
             ve = ves[0]
@@ -9960,6 +9977,29 @@ def value_equation_sandbox(request, value_equation_id=None):
             agent_totals, details = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
             total = sum(at.quantity for at in agent_totals)
             hours = sum(d.quantity for d in details)
+            #import pdb; pdb.set_trace()
+            #daniel = EconomicAgent.objects.get(nick="Daniel")
+            #dan_details = [d for d in details if d.from_agent==daniel]
+            agent_subtotals = {}
+            for d in details:
+                key = "-".join([str(d.from_agent.id), str(d.from_agent.id)])
+                if key not in agent_subtotals:
+                    agent_subtotals[key] = AgentSubtotal(d.from_agent, d.vebr)
+                sub = agent_subtotals[key]
+                sub.quantity += d.quantity
+                sub.value += d.share
+                try:
+                    sub.distr_amt += d.distr_amt
+                except AttributeError:
+                    #import pdb; pdb.set_trace()
+                    continue
+            #import pdb; pdb.set_trace()
+            agent_subtotals = agent_subtotals.values()
+            details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))
+            details = sorted(details, key=attrgetter('vebr', 'from_agent'))
+            #details = sorted(details, key=attrgetter('vebr'), reverse = True)
+            #details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))
+            #details.sort(lambda x, y: cmp(x.vebr, y.vebr))
 
     else:
         for bucket in buckets:
@@ -9971,6 +10011,7 @@ def value_equation_sandbox(request, value_equation_id=None):
         "buckets": buckets,
         "agent_totals": agent_totals,
         "details": details,
+        "agent_subtotals": agent_subtotals,
         "total": total,
         "hours": hours,
         "ve": ve,

@@ -157,7 +157,7 @@ img {
                         <button style="display: inline;"  class="btn btn-info" title="Change this value equation" >Change Value Equation</button>
                     </form>
 {% endcomment %}
-                    <span class="hdg">Results:</span>
+                    <span class="hdg">Agent Totals:</span>
                     <table class="table table-bordered table-condensed" >
                         <thead>
                             <th>{% trans "Agent" %}</th>
@@ -177,13 +177,37 @@ img {
                         <tbody> 
                     </table>
                   </div>
+
+                  <div id="subtotals" >
+                    <span class="hdg">Subtotals:</span>
+                    <table class="table table-bordered table-condensed" >
+                        <thead>
+                            <th>{% trans "Agent" %}</th>
+                            <th>{% trans "Filter" %}</th>
+                            <th style="text-align: right;">{% trans "Qty" %}</th>
+                            <th style="text-align: right;">{% trans "Value Added" %}</th>
+                            <th style="text-align: right;">{% trans "Distribution Amount" %}</th>
+                        </thead>
+                        <tbody> 
+                            {% for sub in agent_subtotals %}
+                                <tr class="{% cycle 'odd' 'even' %}">
+                                    <td>{{ sub.agent.name }}</td>
+                                    <td>{{ sub.bucket_rule.filter }}</td>
+                                    <td style="text-align: right;" >{{ sub.quantity }}</td>
+                                    <td style="text-align: right;" >{{ sub.value }}</td>
+                                    <td style="text-align: right;" >{{ sub.distr_amt }}</td>
+                                </tr>
+                            {% endfor %}
+                        <tbody> 
+                    </table>
+                  </div>
                 {% endif %}
             </div>
         </div>
 
         {% if details %}
             <div class="row-fluid" id="detail-section">
-                <span class="hdg">Details behind the results:*</span>
+                <span class="hdg">Details:*</span> * Does not include buckets with a distribution directly to one agent.
                 <table class="table table-bordered table-condensed" >
                     <thead>
                         <th>{% trans "Bucket" %}</th>
@@ -223,7 +247,6 @@ img {
                         </tr>
                     <tbody> 
                 </table> 
-                * Does not include buckets with a distribution directly to one agent.
             </div>
         {% endif %}
        
@@ -250,6 +273,7 @@ img {
         {
             $("#loading").show();
             $("#distributions").hide();
+            $("#subtotals").hide();
             $("#detail-section").hide();
         }
         

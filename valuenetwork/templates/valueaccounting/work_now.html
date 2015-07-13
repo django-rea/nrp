@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Work Notes for " %} {{ commitment.from_agent.name }} doing {{ commitment.resource_type.name }} on {{ process.name }}{% endblock %}
+{% block head_title %}{% trans "Work Notes on " %} {{ commitment.resource_type.name }} on {{ process.name }}{% endblock %}
 
 {% block extra_head %}
 
@@ -97,11 +97,11 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>
-			{% trans "Work Notes for " %} <i>{{ commitment.from_agent.name }}</i>
-			<span style="font-size: 60%;" > 
-			    {% trans "doing" %}: <i>{{ commitment.resource_type.name }}</i> {% trans "on Process" %}:  <i>{{ process.name }}</i> {% trans "due" %}:  <i>{{ process.end_date }}</i> 
+			{% trans "Work Notes for " %} 
+			<span style="font-size: 80%;" > 
+			    <i>{{ commitment.resource_type.name }}</i> {% trans "on Process" %}:  <i>{{ process.name }}</i> {% trans "due" %}:  <i>{{ process.end_date }}</i> 
 				{% trans "Estimated duration" %}: <i>{{ commitment.quantity }} {{ commitment.unit_of_quantity.abbrev }}</i>
-				{% trans "Project" %}: <i>{{ process.project }}</i>
+				{% comment %}{% trans "Project" %}: <i>{{ process.project }}</i>{% endcomment %}
                 &nbsp;&nbsp;&nbsp;&nbsp;
 				<span id="saving"></span>
 			</span>
@@ -135,6 +135,7 @@
 			</div>
 			<div class="span3">
 			    <div class="row-fluid">
+{% comment %}
 				    <div class="span8">
 					    <p>
 					        {% if process.work_requirements.count > 1 %}
@@ -143,10 +144,11 @@
 					        {% trans "This process is done" %} {{ wb_form.process_done }}
 					    </p>
 				    </div>
-				    <div class="span2">
-				        <a href="{{ process.get_absolute_url }}" class="btn btn-primary btn-mini" 
+{% endcomment %}
+				    <div class="span10">
+				        <a href="{{ process.get_absolute_url }}" class="btn btn-primary" 
 				            title="Close page" >
-				            {% trans "Close" %}
+				            {% trans "Save and Close" %}
 			            </a>
 			        </div>
                 </div>
@@ -156,7 +158,7 @@
 				        <button role="button" id="stop" name="stop"  class="btn btn-info" disabled="disabled" >{% trans "Stop" %}</button>
 				        
 				        <div>
-					        <label><b>{% trans "Time spent today" %}:</b></label>
+					        <label><b>{% trans "Time spent in this work session" %}:</b></label>
 					        {{ wb_form.quantity }}
 					        <br/>{{ wb_form.quantity.help_text }}
 					        {% if prev %}<br/>Previously: {{ prev }}{% endif %}

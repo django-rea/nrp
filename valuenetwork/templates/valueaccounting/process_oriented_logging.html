@@ -617,8 +617,13 @@ hr {
                               {% endif %}
 
                               {% if agent %}
+
+                                {% if work_now and item.unit_of_quantity.unit_type == "time" %}
+                                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" title="I'll start working on this now, I can time and document while working">{% trans "I'll start working now" %}</a>
+                                {% endif %}
+
                                 <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="I want to log work I have done on this task" >
-                                    {% trans "I did some work" %}
+                                    {% trans "I did some work on this" %}
                                 </a>
 
                                 <div class="modal hide fade workEventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
@@ -637,11 +642,7 @@ hr {
                                         </form>
                                     </div>
                                 </div>
-{% comment %}
-                                {% if work_now and item.unit_of_quantity.unit_type == "time" %}
-                                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" title="I'll start working on this now, I can time and document while working">{% trans "I'll start working now" %}</a>
-                                {% endif %}
-{% endcomment %}   
+
                               {% endif %}
                             </div>
                 

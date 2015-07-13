@@ -5571,7 +5571,6 @@ def create_worknow_context(
         from_agent=agent,
         to_agent=process.default_agent(),
         process=process,
-        #project=process.project,
         context_agent=process.context_agent,
         quantity=Decimal("0"),
         is_contribution=True,
@@ -5631,9 +5630,9 @@ def work_now(
     ct = None  
     if commitment_id:
         ct = get_object_or_404(Commitment, id=commitment_id)    
-        if not request.user.is_superuser:
-            if agent != ct.from_agent:
-                return render_to_response('valueaccounting/no_permission.html')
+        #if not request.user.is_superuser:
+        #    if agent != ct.from_agent:
+        #        return render_to_response('valueaccounting/no_permission.html')
     template_params = create_worknow_context(
         request, 
         process,

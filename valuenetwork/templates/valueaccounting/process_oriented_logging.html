@@ -469,7 +469,7 @@ hr {
 			        <div class="commitment">
 				        <span class="work-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
                         {% with item.fulfilling_events as work_events %}
-                        {% if agent and not work_events %}
+                        {% if agent %}
                         {% if super_logger or agent == item.from_agent %}
 				            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change work requirement">
 			                       <i class="icon-edit"></i>
@@ -492,16 +492,18 @@ hr {
 			                        </form>
 		                        </div>
 	                        </div>
-                            <form
-                                style="display: inline;" 
-                                class="delete-commitment-form" 
-                                id="deleteCommitmentForm{{ item.id }}" 
-                                action="{% url delete_process_commitment commitment_id=item.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                                <input type="hidden" id="next" name="next" value="process" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work requirement" >X</button>
-                            </form>
+                            {% if not work_events %}
+                                <form
+                                    style="display: inline;" 
+                                    class="delete-commitment-form" 
+                                    id="deleteCommitmentForm{{ item.id }}" 
+                                    action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work requirement" >X</button>
+                                </form>
+                            {% endif %}
                         {% endif %}
                         {% endif %}
                         {% if item.description %}

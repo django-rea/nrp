@@ -7658,6 +7658,13 @@ class Commitment(models.Model):
         agents = [agent for agent in srcs if agent in members]
         users = [a.user() for a in agents if a.user()]
         return [u.user for u in users]
+        
+    def workers(self):
+        answer = [evt.from_agent for evt in self.fulfilling_events() if evt.from_agent]
+        if self.event_type__relationship=="work":
+            if self.from_agent:
+                answer.append(self.from_agent)
+        return list(set(answer))
 
     def reschedule_forward(self, delta_days, user):
         #import pdb; pdb.set_trace()

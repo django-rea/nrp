@@ -1,0 +1,13 @@
+{% load i18n %}{% blocktrans %}{{ creator }} would like to join this task:
+
+Work required: {{ resource_type }}, Estimated duration: {{ hours }} {{ unit }}
+Due: {{ due_date }}
+
+{{ description }}
+
+for Process: {{ process }}
+
+This message has been sent to you because you are assigned this task.
+
+You can see the process here:{% endblocktrans %}
+http://{{ current_site }}{{ process.get_absolute_url }}

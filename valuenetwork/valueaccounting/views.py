@@ -3818,6 +3818,10 @@ def join_task(request, commitment_id):
             #import pdb; pdb.set_trace()
             from_agent = ct.from_agent
             users = [au.user for au in from_agent.users.all()]
+            workers = ct.
+            for worker in workers:
+                worker_users = [au.user for au in worker.users.all()]
+                users.extend(worker_users)
             site_name = get_site_name()
             if users:
                 notification.send(
@@ -3828,14 +3832,14 @@ def join_task(request, commitment_id):
                     "hours": ct.quantity,
                     "unit": ct.resource_type.unit,
                     "description": ct.description or "",
-                    "process": ct.process,
+                    "process": process,
                     "creator": agent,
                     "site_name": site_name,
                     }
                 )
         
         return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/process', ct.process.id))
+            % ('accounting/process', process.id))
 
 @login_required
 def change_commitment(request, commitment_id):

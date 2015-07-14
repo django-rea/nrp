@@ -7,7 +7,7 @@ Due: {{ due_date }}
 
 for Process: {{ process }}
 
-This message has been sent to you because you are assigned this task.
+This message has been sent to you because you are working on this task or have assigned yourself to this task.
 
 You can see the process here:{% endblocktrans %}
 http://{{ current_site }}{{ process.get_absolute_url }}

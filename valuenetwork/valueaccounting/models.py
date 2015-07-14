@@ -7660,8 +7660,9 @@ class Commitment(models.Model):
         return [u.user for u in users]
         
     def workers(self):
-        answer = [evt.from_agent for evt in self.fulfilling_events() if evt.from_agent]
+        answer = []
         if self.event_type__relationship=="work":
+            answer = [evt.from_agent for evt in self.fulfilling_events() if evt.from_agent]
             if self.from_agent:
                 answer.append(self.from_agent)
         return list(set(answer))

@@ -3818,7 +3818,7 @@ def join_task(request, commitment_id):
             #import pdb; pdb.set_trace()
             from_agent = ct.from_agent
             users = [au.user for au in from_agent.users.all()]
-            workers = ct.
+            workers = ct.workers()
             for worker in workers:
                 worker_users = [au.user for au in worker.users.all()]
                 users.extend(worker_users)

@@ -7661,7 +7661,7 @@ class Commitment(models.Model):
         
     def workers(self):
         answer = []
-        if self.event_type__relationship=="work":
+        if self.event_type.relationship=="work":
             answer = [evt.from_agent for evt in self.fulfilling_events() if evt.from_agent]
             if self.from_agent:
                 answer.append(self.from_agent)

@@ -3782,6 +3782,7 @@ def join_task(request, commitment_id):
         ct = get_object_or_404(Commitment, id=commitment_id)
         process = ct.process
         agent = get_agent(request)
+        '''
         prefix = ct.join_form_prefix()
         form = CommitmentForm(data=request.POST, prefix=prefix)
         next = request.POST.get("next")
@@ -3812,8 +3813,29 @@ def join_task(request, commitment_id):
             new_ct.state = ct.state
             new_ct.created_by=request.user
             new_ct.save()
+        '''
+        if notification:
+            #import pdb; pdb.set_trace()
+            from_agent = ct.from_agent
+            users = [au.user for au in from_agent.users.all()]
+            site_name = get_site_name()
+            if users:
+                notification.send(
+                    users, 
+                    "valnet_join_task", 
+                    {"resource_type": ct.resource_type,
+                    "due_date": ct.due_date,
+                    "hours": ct.quantity,
+                    "unit": ct.resource_type.unit,
+                    "description": ct.description or "",
+                    "process": ct.process,
+                    "creator": agent,
+                    "site_name": site_name,
+                    }
+                )
         
-        return HttpResponseRedirect(next)
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/process', ct.process.id))
 
 @login_required
 def change_commitment(request, commitment_id):
@@ -5158,7 +5180,7 @@ def invite_collaborator(request, commitment_id):
     commitment = get_object_or_404(Commitment, pk=commitment_id)
     process = commitment.process
     if request.method == "POST":
-        #import pdb; pdb.set_trace()
+        '''
         prefix = commitment.invite_form_prefix()
         form = InviteCollaboratorForm(data=request.POST, prefix=prefix)
         if form.is_valid():
@@ -5178,25 +5200,26 @@ def invite_collaborator(request, commitment_id):
             ct.unit_of_quantity=rt.unit
             ct.created_by=request.user
             ct.save()
-            if notification:
-                #import pdb; pdb.set_trace()
-                agent = get_agent(request)
-                users = ct.possible_work_users()
-                site_name = get_site_name()
-                if users:
-                    notification.send(
-                        users, 
-                        "valnet_help_wanted", 
-                        {"resource_type": ct.resource_type,
-                        "due_date": ct.due_date,
-                        "hours": ct.quantity,
-                        "unit": ct.resource_type.unit,
-                        "description": ct.description or "",
-                        "process": ct.process,
-                        "creator": agent,
-                        "site_name": site_name,
-                        }
-                    )
+        '''
+        #import pdb; pdb.set_trace()
+        if notification:
+            agent = get_agent(request)
+            users = commitment.possible_work_users()
+            site_name = get_site_name()
+            if users:
+                notification.send(
+                    users, 
+                    "valnet_help_wanted", 
+                    {"resource_type": commitment.resource_type,
+                    "due_date": commitment.due_date,
+                    "hours": commitment.quantity,
+                    "unit": commitment.resource_type.unit,
+                    "description": commitment.description or "",
+                    "process": commitment.process,
+                    "creator": agent,
+                    "site_name": site_name,
+                    }
+                )
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))

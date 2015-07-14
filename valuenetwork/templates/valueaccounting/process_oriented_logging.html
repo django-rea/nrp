@@ -42,7 +42,6 @@
     font-style: italic;
     border: 1px solid lightgray;
     padding: 3px 3px 0px 5px;
-    font-size: .9em;
 }
 
 .error {
@@ -216,7 +215,7 @@ hr {
                 <span class="info"> <a href="#" id="out-info" data-toggle="popover" data-trigger='hover' title="Process Outputs" 
                     data-content="When the output item is created, log it so that it can be used in other processes or exchanged
                     inside or outside the network.  If you
-                    have created secondary outputs or unplanned outputs, log them also.  Logged outputs will then appear
+                    have created secondary outputs or unplanned outputs, log them also.  A logged output will then appear
                     in inventory if it is an inventoried item.  You can also create new requirements that were missed in the
                     planning.">
                     <img src="{% static 'img/information-icon.png' %}" /></a>
@@ -437,16 +436,12 @@ hr {
 		        <h2 style="margin-bottom: 4px;" >
 		            {% trans "Work" %} 
 		            {% if logger %}
-			            <a href="#addWorkModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a work requirement">
-{% comment %}
+			            <a href="#addWorkModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a work requirement, people with those skills will be notified">
 		                    {% if worker %}
                                 {% trans "Invite a collaborator" %}
                             {% else %}
-{% endcomment %}
                                 {% trans "Add a work requirement" %}
-{% comment %}
                             {% endif %}
-{% endcomment %}
 	                    </a>
                     {% endif %}
 		            {% if agent %}
@@ -528,7 +523,7 @@ hr {
                                     </form>
 				                {% endif %}
 				                
-				                <a href="#inviteModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Create a new requirement like this one for others to work on">
+				                <a href="#inviteModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Notify others with these skills that you want help with this task">
                                     {% trans "Invite a collaborator" %}
                                 </a>
 
@@ -542,7 +537,10 @@ hr {
                                   <div class="modal-body">
                                     <form class="invite-form validateMe" id="inviteForm" name="invite" action="{% url invite_collaborator commitment_id=item.id %}" method="POST" >
                                         {% csrf_token %}
-                                            {{ item.invite_collaborator_form|as_bootstrap }}
+{% comment %}
+                                        {{ item.invite_collaborator_form|as_bootstrap }}
+{% endcomment %}
+                                        <b>Notify people with these skills that you would like help with this task.</b><br />
                                     <div class="modal-footer">
                                         <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                         <button class="btn btn-primary">
@@ -555,20 +553,25 @@ hr {
  
                               {% else %}
                                     {% if agent %}
-                                        <a href="#joinForm{{ item.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Create a new requirement like this one and assign it to me">
+                                        <a href="#joinForm{{ item.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Notify the person who has taken the task that you want to help">
                                             {% trans "Join this task" %}
                                         </a>
                                         <div class="modal hide fade joinForm" id="joinForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="join-label" aria-hidden="true">
                                             <div class="modal-header">
                                                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                                 <h3 id="join-label">{% trans "Join this task" %}: {{ item.resource_type.name }}</h3>
+{% comment %}
                                                 <p>{% trans "You are committing to collaborate with " %} {{ item.from_agent }}</p>
+{% endcomment %}
                                             </div>
                                             <div class="modal-body">
                                                 
                                                 <form class="joinForm validateMe" name="join{{ item.id }}" enctype="multipart/form-data" action="{% url join_task commitment_id=item.id %}" method="POST" >
                                                     {% csrf_token %}
+{% comment %}
                                                     {{ item.join_form|as_bootstrap }}
+{% endcomment %}
+                                                    <b>Notify the person assigned to this task that you would like to help.</b><br />
                                                     <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
                                                 <div class="modal-footer">
                                                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>

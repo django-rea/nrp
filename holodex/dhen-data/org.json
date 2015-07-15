@@ -49,24 +49,24 @@
             "@type": "RelationshipType", 
             "name": "Customer", 
             "plural_name": "Customers", 
-            "label": "buys from", 
-            "inverse_label": "sells to", 
+            "label": "customer", 
+            "inverse_label": "vendor", 
             "description": "", 
             "roleTypes": [
                 {
                     "@type": "RoleType", 
-                    "id": "roleTypes/buys", 
-                    "name": "buys", 
-                    "pluralName": "buyss", 
+                    "id": "roleTypes/customer", 
+                    "name": "customer", 
+                    "pluralName": "customers", 
                     "relationshipType": "relationshipTypes/Customer", 
                     "linkType": "whatever", 
                     "label": "whatever"
                 }, 
                 {
                     "@type": "RoleType", 
-                    "id": "roleTypes/buys", 
-                    "name": "sells", 
-                    "pluralName": "sellss", 
+                    "id": "roleTypes/customer", 
+                    "name": "vendor", 
+                    "pluralName": "vendors", 
                     "relationshipType": "relationshipTypes/Customer", 
                     "linkType": "whatever", 
                     "label": "whatever"
@@ -106,7 +106,7 @@
             "name": "Trainer", 
             "plural_name": "Trainers", 
             "label": "trainer for", 
-            "inverse_label": "trained by", 
+            "inverse_label": "trainee of", 
             "description": "", 
             "roleTypes": [
                 {
@@ -121,8 +121,8 @@
                 {
                     "@type": "RoleType", 
                     "id": "roleTypes/trainer", 
-                    "name": "trained", 
-                    "pluralName": "traineds", 
+                    "name": "trainee", 
+                    "pluralName": "trainees", 
                     "relationshipType": "relationshipTypes/Trainer", 
                     "linkType": "whatever", 
                     "label": "whatever"
@@ -133,24 +133,24 @@
             "@type": "RelationshipType", 
             "name": "Harvesting Site", 
             "plural_name": "Harvesting Sites", 
-            "label": "grows for", 
-            "inverse_label": "harvests at", 
+            "label": "grower for", 
+            "inverse_label": "harvester at", 
             "description": "", 
             "roleTypes": [
                 {
                     "@type": "RoleType", 
-                    "id": "roleTypes/grows", 
-                    "name": "grows", 
-                    "pluralName": "growss", 
+                    "id": "roleTypes/grower", 
+                    "name": "grower", 
+                    "pluralName": "growers", 
                     "relationshipType": "relationshipTypes/Harvesting Site", 
                     "linkType": "whatever", 
                     "label": "whatever"
                 }, 
                 {
                     "@type": "RoleType", 
-                    "id": "roleTypes/grows", 
-                    "name": "harvests", 
-                    "pluralName": "harvestss", 
+                    "id": "roleTypes/grower", 
+                    "name": "harvester", 
+                    "pluralName": "harvesters", 
                     "relationshipType": "relationshipTypes/Harvesting Site", 
                     "linkType": "whatever", 
                     "label": "whatever"
@@ -162,7 +162,7 @@
             "name": "Storage Site", 
             "plural_name": "Storage Sites", 
             "label": "stores for", 
-            "inverse_label": "stored at", 
+            "inverse_label": "storer at", 
             "description": "", 
             "roleTypes": [
                 {
@@ -177,8 +177,8 @@
                 {
                     "@type": "RoleType", 
                     "id": "roleTypes/stores", 
-                    "name": "stored", 
-                    "pluralName": "storeds", 
+                    "name": "storer", 
+                    "pluralName": "storers", 
                     "relationshipType": "relationshipTypes/Storage Site", 
                     "linkType": "whatever", 
                     "label": "whatever"
@@ -190,7 +190,7 @@
             "name": "Drying Site", 
             "plural_name": "Drying Sites", 
             "label": "dryer for", 
-            "inverse_label": "dried at", 
+            "inverse_label": "dries at", 
             "description": "", 
             "roleTypes": [
                 {
@@ -205,8 +205,8 @@
                 {
                     "@type": "RoleType", 
                     "id": "roleTypes/dryer", 
-                    "name": "dried", 
-                    "pluralName": "drieds", 
+                    "name": "dries", 
+                    "pluralName": "driess", 
                     "relationshipType": "relationshipTypes/Drying Site", 
                     "linkType": "whatever", 
                     "label": "whatever"
@@ -245,8 +245,8 @@
             "@type": "RelationshipType", 
             "name": "Advisor", 
             "plural_name": "Advisors", 
-            "label": "advisor", 
-            "inverse_label": "advised by", 
+            "label": "advisor to", 
+            "inverse_label": "advisee of", 
             "description": "", 
             "roleTypes": [
                 {
@@ -261,8 +261,8 @@
                 {
                     "@type": "RoleType", 
                     "id": "roleTypes/advisor", 
-                    "name": "advised", 
-                    "pluralName": "adviseds", 
+                    "name": "advisee", 
+                    "pluralName": "advisees", 
                     "relationshipType": "relationshipTypes/Advisor", 
                     "linkType": "whatever", 
                     "label": "whatever"

@@ -16,7 +16,7 @@ from django.utils import simplejson
 from valuenetwork.valueaccounting.models import *
 
 SCRIPT_ROOT = os.path.abspath(os.path.dirname(__file__))
-file_path = os.path.join(SCRIPT_ROOT, "holodex", "dhen-data", "dhen.org")
+file_path = os.path.join(SCRIPT_ROOT, "holodex", "dhen-data", "org.json")
 
 agent_types = AgentType.objects.all()
 

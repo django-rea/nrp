@@ -1,1341 +1,900 @@
 {
     "agentTypes": {
-        "Organization": {
-            "@type": "AgentType", 
-            "is_context": false, 
-            "name": "Organization"
-        }, 
         "Individual": {
             "@type": "AgentType", 
-            "is_context": false, 
-            "name": "Individual"
+            "name": "Individual", 
+            "is_context": false
         }, 
         "Network": {
             "@type": "AgentType", 
-            "is_context": true, 
-            "name": "Network"
+            "name": "Network", 
+            "is_context": true
+        }, 
+        "Organization": {
+            "@type": "AgentType", 
+            "name": "Organization", 
+            "is_context": false
         }
     }, 
-    "agentAssociations": {
-        "1": {
-            "association_type": "Trainer", 
-            "pk": 1, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Johanna O'Tigham"
+    "relationshipTypes": {
+        "Child": {
+            "@type": "RelationshipType", 
+            "name": "Child", 
+            "plural_name": "Children", 
+            "label": "child of", 
+            "inverse_label": "parent of", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/child", 
+                    "name": "child", 
+                    "pluralName": "childs", 
+                    "relationshipType": "relationshipTypes/Child", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/child", 
+                    "name": "parent", 
+                    "pluralName": "parents", 
+                    "relationshipType": "relationshipTypes/Child", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "6": {
-            "association_type": "Customer", 
-            "pk": 6, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Tea for the People"
+        "Customer": {
+            "@type": "RelationshipType", 
+            "name": "Customer", 
+            "plural_name": "Customers", 
+            "label": "buys from", 
+            "inverse_label": "sells to", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/buys", 
+                    "name": "buys", 
+                    "pluralName": "buyss", 
+                    "relationshipType": "relationshipTypes/Customer", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/buys", 
+                    "name": "sells", 
+                    "pluralName": "sellss", 
+                    "relationshipType": "relationshipTypes/Customer", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "7": {
-            "association_type": "Child", 
-            "pk": 7, 
-            "target": "WildFarmacy", 
-            "@type": "AgentAssociation", 
-            "source": "DHEN"
+        "Harvester": {
+            "@type": "RelationshipType", 
+            "name": "Harvester", 
+            "plural_name": "Harvesters", 
+            "label": "harvester for", 
+            "inverse_label": "harvested by", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/harvester", 
+                    "name": "harvester", 
+                    "pluralName": "harvesters", 
+                    "relationshipType": "relationshipTypes/Harvester", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/harvester", 
+                    "name": "harvested", 
+                    "pluralName": "harvesteds", 
+                    "relationshipType": "relationshipTypes/Harvester", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "8": {
-            "association_type": "Child", 
-            "pk": 8, 
-            "target": "WildFarmacy", 
-            "@type": "AgentAssociation", 
-            "source": "Tea for the People"
+        "Trainer": {
+            "@type": "RelationshipType", 
+            "name": "Trainer", 
+            "plural_name": "Trainers", 
+            "label": "trainer for", 
+            "inverse_label": "trained by", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/trainer", 
+                    "name": "trainer", 
+                    "pluralName": "trainers", 
+                    "relationshipType": "relationshipTypes/Trainer", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/trainer", 
+                    "name": "trained", 
+                    "pluralName": "traineds", 
+                    "relationshipType": "relationshipTypes/Trainer", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "9": {
-            "association_type": "Harvester", 
-            "pk": 9, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Nad Geraldson"
+        "Harvesting Site": {
+            "@type": "RelationshipType", 
+            "name": "Harvesting Site", 
+            "plural_name": "Harvesting Sites", 
+            "label": "grows for", 
+            "inverse_label": "harvests at", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/grows", 
+                    "name": "grows", 
+                    "pluralName": "growss", 
+                    "relationshipType": "relationshipTypes/Harvesting Site", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/grows", 
+                    "name": "harvests", 
+                    "pluralName": "harvestss", 
+                    "relationshipType": "relationshipTypes/Harvesting Site", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "10": {
-            "association_type": "Harvesting Site", 
-            "pk": 10, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Nad Geraldson"
+        "Storage Site": {
+            "@type": "RelationshipType", 
+            "name": "Storage Site", 
+            "plural_name": "Storage Sites", 
+            "label": "stores for", 
+            "inverse_label": "stored at", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/stores", 
+                    "name": "stores", 
+                    "pluralName": "storess", 
+                    "relationshipType": "relationshipTypes/Storage Site", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/stores", 
+                    "name": "stored", 
+                    "pluralName": "storeds", 
+                    "relationshipType": "relationshipTypes/Storage Site", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "12": {
-            "association_type": "Harvesting Site", 
-            "pk": 12, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Namaste Lane Gardens"
+        "Drying Site": {
+            "@type": "RelationshipType", 
+            "name": "Drying Site", 
+            "plural_name": "Drying Sites", 
+            "label": "dryer for", 
+            "inverse_label": "dried at", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/dryer", 
+                    "name": "dryer", 
+                    "pluralName": "dryers", 
+                    "relationshipType": "relationshipTypes/Drying Site", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/dryer", 
+                    "name": "dried", 
+                    "pluralName": "drieds", 
+                    "relationshipType": "relationshipTypes/Drying Site", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "13": {
-            "association_type": "Storage Site", 
-            "pk": 13, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Namaste Lane Gardens"
+        "Supplier": {
+            "@type": "RelationshipType", 
+            "name": "Supplier", 
+            "plural_name": "Suppliers", 
+            "label": "supplier for", 
+            "inverse_label": "supplied by", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/supplier", 
+                    "name": "supplier", 
+                    "pluralName": "suppliers", 
+                    "relationshipType": "relationshipTypes/Supplier", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/supplier", 
+                    "name": "supplied", 
+                    "pluralName": "supplieds", 
+                    "relationshipType": "relationshipTypes/Supplier", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "14": {
-            "association_type": "Drying Site", 
-            "pk": 14, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Namaste Lane Gardens"
+        "Advisor": {
+            "@type": "RelationshipType", 
+            "name": "Advisor", 
+            "plural_name": "Advisors", 
+            "label": "advisor", 
+            "inverse_label": "advised by", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/advisor", 
+                    "name": "advisor", 
+                    "pluralName": "advisors", 
+                    "relationshipType": "relationshipTypes/Advisor", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/advisor", 
+                    "name": "advised", 
+                    "pluralName": "adviseds", 
+                    "relationshipType": "relationshipTypes/Advisor", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "15": {
-            "association_type": "Harvesting Site", 
-            "pk": 15, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Dancing Waters Permaculture Coop"
+        "Admin": {
+            "@type": "RelationshipType", 
+            "name": "Admin", 
+            "plural_name": "Admins", 
+            "label": "administers", 
+            "inverse_label": "administered by", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/administers", 
+                    "name": "administers", 
+                    "pluralName": "administerss", 
+                    "relationshipType": "relationshipTypes/Admin", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/administers", 
+                    "name": "administered", 
+                    "pluralName": "administereds", 
+                    "relationshipType": "relationshipTypes/Admin", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "16": {
-            "association_type": "Trainer", 
-            "pk": 16, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Megan Pierce"
+        "Owner": {
+            "@type": "RelationshipType", 
+            "name": "Owner", 
+            "plural_name": "Owners", 
+            "label": "owner", 
+            "inverse_label": "owned by", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/owner", 
+                    "name": "owner", 
+                    "pluralName": "owners", 
+                    "relationshipType": "relationshipTypes/Owner", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/owner", 
+                    "name": "owned", 
+                    "pluralName": "owneds", 
+                    "relationshipType": "relationshipTypes/Owner", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "17": {
-            "association_type": "Harvester", 
-            "pk": 17, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Megan Pierce"
+        "Responsibility": {
+            "@type": "RelationshipType", 
+            "name": "Responsibility", 
+            "plural_name": "Responsibilities", 
+            "label": "responsible for", 
+            "inverse_label": "responsibility", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/responsible", 
+                    "name": "responsible", 
+                    "pluralName": "responsibles", 
+                    "relationshipType": "relationshipTypes/Responsibility", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/responsible", 
+                    "name": "responsibility", 
+                    "pluralName": "responsibilitys", 
+                    "relationshipType": "relationshipTypes/Responsibility", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "18": {
-            "association_type": "Supplier", 
-            "pk": 18, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Fizz"
+        "Member": {
+            "@type": "RelationshipType", 
+            "name": "Member", 
+            "plural_name": "Members", 
+            "label": "member", 
+            "inverse_label": "group", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/member", 
+                    "name": "member", 
+                    "pluralName": "members", 
+                    "relationshipType": "relationshipTypes/Member", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/member", 
+                    "name": "group", 
+                    "pluralName": "groups", 
+                    "relationshipType": "relationshipTypes/Member", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }, 
-        "19": {
-            "association_type": "Supplier", 
-            "pk": 19, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Tea for the People"
-        }, 
-        "20": {
-            "association_type": "Admin", 
-            "pk": 20, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Johanna O'Tigham"
-        }, 
-        "21": {
-            "association_type": "Admin", 
-            "pk": 21, 
-            "target": "Tea for the People", 
-            "@type": "AgentAssociation", 
-            "source": "Johanna O'Tigham"
-        }, 
-        "22": {
-            "association_type": "Admin", 
-            "pk": 22, 
-            "target": "WildFarmacy", 
-            "@type": "AgentAssociation", 
-            "source": "Johanna O'Tigham"
-        }, 
-        "23": {
-            "association_type": "Admin", 
-            "pk": 23, 
-            "target": "Namaste Lane Gardens", 
-            "@type": "AgentAssociation", 
-            "source": "Johanna O'Tigham"
-        }, 
-        "24": {
-            "association_type": "Harvesting Site", 
-            "pk": 24, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Ella Bella Farm"
-        }, 
-        "25": {
-            "association_type": "Owner", 
-            "pk": 25, 
-            "target": "Ella Bella Farm", 
-            "@type": "AgentAssociation", 
-            "source": "Mary Benson"
-        }, 
-        "26": {
-            "association_type": "Owner", 
-            "pk": 26, 
-            "target": "Dancing Waters Permaculture Coop", 
-            "@type": "AgentAssociation", 
-            "source": "Megan Pierce"
-        }, 
-        "27": {
-            "association_type": "Responsibility", 
-            "pk": 27, 
-            "target": "Ella Bella Farm", 
-            "@type": "AgentAssociation", 
-            "source": "Megan Pierce"
-        }, 
-        "28": {
-            "association_type": "Owner", 
-            "pk": 28, 
-            "target": "Whispering Winds PermaFarm", 
-            "@type": "AgentAssociation", 
-            "source": "Nad Geraldson"
-        }, 
-        "29": {
-            "association_type": "Harvesting Site", 
-            "pk": 29, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "KJ Jakobson"
-        }, 
-        "30": {
-            "association_type": "Advisor", 
-            "pk": 30, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "KJ Jakobson"
-        }, 
-        "31": {
-            "association_type": "Customer", 
-            "pk": 31, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Barb Bitondo"
-        }, 
-        "32": {
-            "association_type": "Customer", 
-            "pk": 32, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Lusa"
-        }, 
-        "34": {
-            "association_type": "Drying Site", 
-            "pk": 34, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Whispering Winds PermaFarm"
-        }, 
-        "35": {
-            "association_type": "Customer", 
-            "pk": 35, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "LSW"
-        }, 
-        "36": {
-            "association_type": "Supplier", 
-            "pk": 36, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Ocooch Mtn Elderberries"
-        }, 
-        "37": {
-            "association_type": "Supplier", 
-            "pk": 37, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Sweet Springs Farm"
-        }, 
-        "38": {
-            "association_type": "Customer", 
-            "pk": 38, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Community Pharmacy"
-        }, 
-        "40": {
-            "association_type": "Harvesting Site", 
-            "pk": 40, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "CHC"
-        }, 
-        "42": {
-            "association_type": "Harvesting Site", 
-            "pk": 42, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Jan Kenyon Echo valley"
-        }, 
-        "43": {
-            "association_type": "Harvesting Site", 
-            "pk": 43, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Johanna O'Tigham"
-        }, 
-        "44": {
-            "association_type": "Harvesting Site", 
-            "pk": 44, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Mark  Heffernan"
-        }, 
-        "45": {
-            "association_type": "Harvester", 
-            "pk": 45, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Lynn Foster"
-        }, 
-        "46": {
-            "association_type": "Harvester", 
-            "pk": 46, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Johanna O'Tigham"
-        }, 
-        "47": {
-            "association_type": "Seller", 
-            "pk": 47, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Tea for the People"
-        }, 
-        "48": {
-            "association_type": "Seller", 
-            "pk": 48, 
-            "target": "DHEN", 
-            "@type": "AgentAssociation", 
-            "source": "Fizzeology"
-        }, 
-        "49": {
-            "association_type": "Harvester", 
-            "pk": 49, 
-            "target": "Amy", 
-            "@type": "AgentAssociation", 
-            "source": "Adrian White"
-        }, 
-        "50": {
-            "association_type": "Customer", 
-            "pk": 50, 
-            "target": "Angie Bernstein", 
-            "@type": "AgentAssociation", 
-            "source": "Amy"
+        "Seller": {
+            "@type": "RelationshipType", 
+            "name": "Seller", 
+            "plural_name": "Sellers", 
+            "label": "seller for", 
+            "inverse_label": "consigner to", 
+            "description": "", 
+            "roleTypes": [
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/seller", 
+                    "name": "seller", 
+                    "pluralName": "sellers", 
+                    "relationshipType": "relationshipTypes/Seller", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }, 
+                {
+                    "@type": "RoleType", 
+                    "id": "roleTypes/seller", 
+                    "name": "consigner", 
+                    "pluralName": "consigners", 
+                    "relationshipType": "relationshipTypes/Seller", 
+                    "linkType": "whatever", 
+                    "label": "whatever"
+                }
+            ]
         }
     }, 
     "agents": {
-        "VFC": {
-            "pk": 46, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "VFC", 
-            "id": "VFC"
-        }, 
-        "Mark  Heffernan": {
-            "pk": 30, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Mark  Heffernan", 
-            "id": "Mark  Heffernan"
-        }, 
-        "Keren  Orr": {
-            "pk": 97, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Keren  Orr", 
-            "id": "Keren  Orr"
-        }, 
-        "Daniel": {
-            "pk": 27, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Daniel?", 
-            "id": "Daniel"
-        }, 
-        "L V": {
-            "pk": 37, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "L V", 
-            "id": "L V"
-        }, 
-        "Mike  Breckel": {
-            "pk": 77, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Mike  Breckel", 
-            "id": "Mike  Breckel"
-        }, 
-        "DCO": {
-            "pk": 117, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "DCO", 
-            "id": "DCO"
-        }, 
-        "Sarah Brehm": {
-            "pk": 107, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Sarah Brehm", 
-            "id": "Sarah Brehm"
-        }, 
-        "LSW": {
-            "pk": 49, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Lady Slipper Wellness", 
-            "id": "LSW"
-        }, 
-        "Red Clover Birth": {
-            "pk": 129, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Red Clover Birth", 
-            "id": "Red Clover Birth"
-        }, 
-        "Lauren McElroy": {
-            "pk": 19, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Lauren McElroy", 
-            "id": "Lauren McElroy"
-        }, 
-        "Mary Glick": {
-            "pk": 86, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Mary Glick", 
-            "id": "Mary Glick"
-        }, 
-        "Ryan Evans": {
-            "pk": 113, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Ryan Evans", 
-            "id": "Ryan Evans"
-        }, 
-        "Daniel Knotke": {
-            "pk": 82, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Daniel Knotke", 
-            "id": "Daniel Knotke"
-        }, 
-        "Aurora (Gregg)  Boeder": {
-            "pk": 22, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Aurora (Gregg)  Boeder", 
-            "id": "Aurora (Gregg)  Boeder"
-        }, 
-        "Jon Passi": {
-            "pk": 96, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Jon Passi", 
-            "id": "Jon Passi"
-        }, 
-        "PF": {
-            "pk": 48, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "PF", 
-            "id": "PF"
-        }, 
-        "Herbalists Without Borders": {
-            "pk": 128, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Herbalists Without Borders", 
-            "id": "Herbalists Without Borders"
-        }, 
-        "Shivani Arjuna": {
-            "pk": 67, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Shivani Arjuna", 
-            "id": "Shivani Arjuna"
-        }, 
-        "Mary Benson": {
-            "pk": 13, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Mary Benson", 
-            "id": "Mary Benson"
-        }, 
-        "Angie Lemar": {
-            "pk": 24, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Angie Lemar", 
-            "id": "Angie Lemar"
-        }, 
-        "Tracy Mangold": {
-            "pk": 120, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Tracy Mangold", 
-            "id": "Tracy Mangold"
-        }, 
-        "CHC": {
-            "pk": 47, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "Canyon Homestead Cooperative", 
-            "id": "CHC"
-        }, 
-        "Connie Minowa": {
-            "pk": 25, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Connie Minowa", 
-            "id": "Connie Minowa"
-        }, 
-        "Angie Bernstein": {
-            "pk": 17, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Angie Bernstein", 
-            "id": "Angie Bernstein"
-        }, 
-        "Joe Clark": {
-            "pk": 66, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Joe Clark", 
-            "id": "Joe Clark"
-        }, 
-        "Megan Pierce": {
-            "pk": 6, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Megan Pierce", 
-            "id": "Megan Pierce"
-        }, 
-        "Namaste Lane Gardens": {
-            "pk": 8, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "Namaste Lane Gardens", 
-            "id": "Namaste Lane Gardens"
-        }, 
-        "Darsi": {
-            "pk": 74, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Darsi", 
-            "id": "Darsi"
-        }, 
-        "Shawna Bohan": {
-            "pk": 23, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Shawna Bohan", 
-            "id": "Shawna Bohan"
-        }, 
-        "Ed Martin": {
-            "pk": 80, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Ed Martin", 
-            "id": "Ed Martin"
-        }, 
-        "Julie Marie Kienitz": {
-            "pk": 71, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Julie Marie Kienitz", 
-            "id": "Julie Marie Kienitz"
-        }, 
-        "Community Pharmacy": {
-            "pk": 116, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Community Pharmacy", 
-            "id": "Community Pharmacy"
-        }, 
-        "Kathy Crittenden": {
-            "pk": 36, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Kathy Crittenden", 
-            "id": "Kathy Crittenden"
-        }, 
-        "Jennifer  Morales": {
-            "pk": 60, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Jennifer  Morales", 
-            "id": "Jennifer  Morales"
-        }, 
-        "Paul": {
-            "pk": 115, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Paul", 
-            "id": "Paul"
-        }, 
-        "Neil Lott": {
-            "pk": 103, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Neil Lott", 
-            "id": "Neil Lott"
-        }, 
-        "tiffany": {
-            "pk": 110, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "tiffany", 
-            "id": "tiffany"
-        }, 
-        "M.RT": {
-            "pk": 32, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "M.RT?", 
-            "id": "M.RT"
-        }, 
-        "Shawn Lavoie": {
-            "pk": 108, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Shawn Lavoie", 
-            "id": "Shawn Lavoie"
-        }, 
-        "Urbal Health": {
-            "pk": 123, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Urbal Health", 
-            "id": "Urbal Health"
-        }, 
-        "Julie Knowles": {
-            "pk": 59, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Julie Knowles", 
-            "id": "Julie Knowles"
-        }, 
-        "Cheryl Mickelson": {
-            "pk": 57, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Cheryl Mickelson", 
-            "id": "Cheryl Mickelson"
-        }, 
-        "elise": {
-            "pk": 92, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "elise", 
-            "id": "elise"
-        }, 
-        "Nora  Roughen-Schmidt": {
-            "pk": 104, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Nora  Roughen-Schmidt", 
-            "id": "Nora  Roughen-Schmidt"
-        }, 
-        "Aja Neidel": {
-            "pk": 89, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Aja Neidel", 
-            "id": "Aja Neidel"
-        }, 
-        "PR": {
-            "pk": 43, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "Pheasant Ridge Permaculture", 
-            "id": "PR"
-        }, 
-        "Chris Leinberger": {
-            "pk": 18, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Chris Leinberger", 
-            "id": "Chris Leinberger"
-        }, 
-        "Adrian White": {
-            "pk": 88, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Adrian White", 
-            "id": "Adrian White"
-        }, 
-        "Kathy Neidert": {
-            "pk": 65, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Kathy Neidert", 
-            "id": "Kathy Neidert"
-        }, 
-        "Erik Gunderson": {
-            "pk": 79, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Erik Gunderson", 
-            "id": "Erik Gunderson"
-        }, 
-        "Jane H-S": {
-            "pk": 124, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Jane H-S", 
-            "id": "Jane H-S"
-        }, 
-        "Prestegard": {
-            "pk": 41, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Prestegard?", 
-            "id": "Prestegard"
-        }, 
         "Lynn Foster": {
+            "@type": "Agent", 
             "pk": 1, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
+            "id": "Lynn Foster", 
             "name": "Lynn Foster", 
-            "id": "Lynn Foster"
-        }, 
-        "Erica Solis": {
-            "pk": 93, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Erica Solis", 
-            "id": "Erica Solis"
-        }, 
-        "Family Prestegard": {
-            "pk": 55, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Family Prestegard", 
-            "id": "Family Prestegard"
-        }, 
-        "Monty Brunette": {
-            "pk": 40, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Monty Brunette", 
-            "id": "Monty Brunette"
-        }, 
-        "benjamin": {
-            "pk": 112, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "benjamin", 
-            "id": "benjamin"
-        }, 
-        "Barb Bitondo": {
-            "pk": 16, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Barb Bitondo", 
-            "id": "Barb Bitondo"
-        }, 
-        "Tea for the People": {
-            "pk": 4, 
-            "agent_type": "Network", 
-            "@type": "EconomicAgent", 
-            "name": "Tea for the People", 
-            "id": "Tea for the People"
-        }, 
-        "luvrfarm": {
-            "pk": 111, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "luvrfarm", 
-            "id": "luvrfarm"
-        }, 
-        "Carol Jacobs": {
-            "pk": 62, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Carol Jacobs", 
-            "id": "Carol Jacobs"
-        }, 
-        "Lizzie Shelter": {
-            "pk": 84, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Lizzie Shelter", 
-            "id": "Lizzie Shelter"
-        }, 
-        "EB": {
-            "pk": 34, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "EB?", 
-            "id": "EB"
-        }, 
-        "Candis Murphy": {
-            "pk": 114, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Candis Murphy", 
-            "id": "Candis Murphy"
-        }, 
-        "Fizzeology": {
-            "pk": 125, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Fizzeology", 
-            "id": "Fizzeology"
-        }, 
-        "Johanna O'Tigham": {
-            "pk": 5, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Johanna O'Tigham", 
-            "id": "Johanna O'Tigham"
-        }, 
-        "WildFarmacy": {
-            "pk": 7, 
-            "agent_type": "Network", 
-            "@type": "EconomicAgent", 
-            "name": "WildFarmacy", 
-            "id": "WildFarmacy"
-        }, 
-        "Rick Rider": {
-            "pk": 106, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Rick Rider", 
-            "id": "Rick Rider"
-        }, 
-        "Loreen Kalish": {
-            "pk": 100, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Loreen Kalish", 
-            "id": "Loreen Kalish"
-        }, 
-        "Michaela Oherlihy": {
-            "pk": 39, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Michaela Oherlihy", 
-            "id": "Michaela Oherlihy"
-        }, 
-        "bob": {
-            "pk": 2, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Bob Haugen", 
-            "id": "bob"
-        }, 
-        "SSF": {
-            "pk": 130, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Sweet Springs Farm", 
-            "id": "SSF"
-        }, 
-        "Forrest": {
-            "pk": 51, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Forrest", 
-            "id": "Forrest"
-        }, 
-        "Adrienne Fox": {
-            "pk": 83, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Adrienne Fox", 
-            "id": "Adrienne Fox"
-        }, 
-        "Daniel Nickelatti": {
-            "pk": 50, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Daniel Nickelatti", 
-            "id": "Daniel Nickelatti"
-        }, 
-        "Stone\u2019s Throw Ecovillage": {
-            "pk": 56, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Stone\u2019s Throw Ecovillage", 
-            "id": "Stone\u2019s Throw Ecovillage"
-        }, 
-        "Jan Kenyon Echo valley": {
-            "pk": 58, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Jan Kenyon Echo valley", 
-            "id": "Jan Kenyon Echo valley"
-        }, 
-        "Peter Willis": {
-            "pk": 105, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Peter Willis", 
-            "id": "Peter Willis"
-        }, 
-        "Arwyn Wildingway": {
-            "pk": 68, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Arwyn Wildingway", 
-            "id": "Arwyn Wildingway"
-        }, 
-        "Tom Cocchiola": {
-            "pk": 69, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Tom Cocchiola", 
-            "id": "Tom Cocchiola"
-        }, 
-        "Joel Gordon": {
-            "pk": 95, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Joel Gordon", 
-            "id": "Joel Gordon"
-        }, 
-        "Brad Niemceck": {
-            "pk": 61, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Brad Niemceck", 
-            "id": "Brad Niemceck"
-        }, 
-        "Fizzeology Foods": {
-            "pk": 52, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Fizzeology Foods", 
-            "id": "Fizzeology Foods"
-        }, 
-        "Lusa Organics": {
-            "pk": 127, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Lusa Organics", 
-            "id": "Lusa Organics"
-        }, 
-        "Martha Stutzman": {
-            "pk": 85, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Martha Stutzman", 
-            "id": "Martha Stutzman"
+            "type": "agentTypes/Individual"
         }, 
         "Amy": {
+            "@type": "Agent", 
             "pk": 131, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
+            "id": "Amy", 
             "name": "Amy", 
-            "id": "Amy"
+            "type": "agentTypes/Individual"
         }, 
-        "Bernie Pitsch": {
-            "pk": 73, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Bernie Pitsch", 
-            "id": "Bernie Pitsch"
+        "Tea for the People": {
+            "@type": "Agent", 
+            "pk": 4, 
+            "id": "Tea for the People", 
+            "name": "Tea for the People", 
+            "type": "agentTypes/Network"
         }, 
-        "Cate Eddy": {
-            "pk": 70, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Cate Eddy", 
-            "id": "Cate Eddy"
+        "Johanna O'Tigham": {
+            "@type": "Agent", 
+            "pk": 5, 
+            "id": "Johanna O'Tigham", 
+            "name": "Johanna O'Tigham", 
+            "type": "agentTypes/Individual"
         }, 
-        "Laurie Stiers": {
-            "pk": 118, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Laurie Stiers", 
-            "id": "Laurie Stiers"
+        "Megan Pierce": {
+            "@type": "Agent", 
+            "pk": 6, 
+            "id": "Megan Pierce", 
+            "name": "Megan Pierce", 
+            "type": "agentTypes/Individual"
         }, 
-        "Jen Duhr": {
-            "pk": 64, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Jen Duhr", 
-            "id": "Jen Duhr"
+        "WildFarmacy": {
+            "@type": "Agent", 
+            "pk": 7, 
+            "id": "WildFarmacy", 
+            "name": "WildFarmacy", 
+            "type": "agentTypes/Network"
         }, 
-        "Faith Anacker": {
-            "pk": 78, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Faith Anacker", 
-            "id": "Faith Anacker"
-        }, 
-        "Carol Willis": {
-            "pk": 75, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Carol Willis", 
-            "id": "Carol Willis"
-        }, 
-        "Whispering Winds PermaFarm": {
-            "pk": 10, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "Whispering Winds PermaFarm", 
-            "id": "Whispering Winds PermaFarm"
-        }, 
-        "Dwight Zeitlow": {
-            "pk": 91, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Dwight Zeitlow", 
-            "id": "Dwight Zeitlow"
-        }, 
-        "Zack Gaugush": {
-            "pk": 109, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Zack Gaugush", 
-            "id": "Zack Gaugush"
-        }, 
-        "Ella Bella Farm": {
-            "pk": 14, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "Ella Bella Farm", 
-            "id": "Ella Bella Farm"
-        }, 
-        "Justin Trussoni": {
-            "pk": 63, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Justin Trussoni", 
-            "id": "Justin Trussoni"
-        }, 
-        "West Ruck": {
-            "pk": 33, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "West Ruck", 
-            "id": "West Ruck"
-        }, 
-        "Rachel (LaFarge)": {
-            "pk": 76, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Rachel (LaFarge)", 
-            "id": "Rachel (LaFarge)"
-        }, 
-        "Meikel And": {
-            "pk": 72, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Meikel And", 
-            "id": "Meikel And"
-        }, 
-        "Amy Fenn": {
-            "pk": 90, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Amy Fenn", 
-            "id": "Amy Fenn"
-        }, 
-        "Seward Cafe": {
-            "pk": 122, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Seward Cafe", 
-            "id": "Seward Cafe"
-        }, 
-        "Lisa Kivirist": {
-            "pk": 99, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Lisa Kivirist", 
-            "id": "Lisa Kivirist"
-        }, 
-        "Dancing Waters Permaculture Coop": {
-            "pk": 11, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "Dancing Waters Permaculture Coop", 
-            "id": "Dancing Waters Permaculture Coop"
-        }, 
-        "Anunda": {
-            "pk": 31, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Anunda", 
-            "id": "Anunda"
-        }, 
-        "Sweet Springs Farm": {
-            "pk": 42, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Sweet Springs Farm", 
-            "id": "Sweet Springs Farm"
-        }, 
-        "Josh": {
-            "pk": 87, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Josh", 
-            "id": "Josh"
-        }, 
-        "Kriss Marion": {
-            "pk": 98, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Kriss Marion", 
-            "id": "Kriss Marion"
-        }, 
-        "Jess Kreuger": {
-            "pk": 94, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Jess Kreuger", 
-            "id": "Jess Kreuger"
-        }, 
-        "Viroqua Food Coop": {
-            "pk": 126, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Viroqua Food Coop", 
-            "id": "Viroqua Food Coop"
-        }, 
-        "Saul McLeod": {
-            "pk": 28, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Saul McLeod", 
-            "id": "Saul McLeod"
-        }, 
-        "test": {
-            "pk": 132, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "test", 
-            "id": "test"
-        }, 
-        "Fizz": {
-            "pk": 12, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "Fizzeology", 
-            "id": "Fizz"
-        }, 
-        "Barbara Bitondo": {
-            "pk": 121, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Barbara Bitondo", 
-            "id": "Barbara Bitondo"
-        }, 
-        "Miranda Pollock": {
-            "pk": 101, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Miranda Pollock", 
-            "id": "Miranda Pollock"
-        }, 
-        "PP": {
-            "pk": 26, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "PP?", 
-            "id": "PP"
-        }, 
-        "Family Johnson": {
-            "pk": 35, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Family Johnson", 
-            "id": "Family Johnson"
-        }, 
-        "DHEN": {
-            "pk": 3, 
-            "agent_type": "Network", 
-            "@type": "EconomicAgent", 
-            "name": " Driftless Herbal Exchange Network", 
-            "id": "DHEN"
-        }, 
-        "KJ Jakobson": {
-            "pk": 15, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "KJ Jakobson", 
-            "id": "KJ Jakobson"
-        }, 
-        "Ocooch Mtn Elderberries": {
-            "pk": 21, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "Ocooch Mtn Elderberries", 
-            "id": "Ocooch Mtn Elderberries"
-        }, 
-        "Wilma Yoder": {
-            "pk": 29, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Wilma Yoder", 
-            "id": "Wilma Yoder"
-        }, 
-        "Pheasant Ridge Permaculture": {
-            "pk": 54, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "Pheasant Ridge Permaculture", 
-            "id": "Pheasant Ridge Permaculture"
-        }, 
-        "Lusa": {
-            "pk": 45, 
-            "agent_type": "Organization", 
-            "@type": "EconomicAgent", 
-            "name": "Lusa", 
-            "id": "Lusa"
-        }, 
-        "Lumen Hobbins": {
-            "pk": 20, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Lumen Hobbins", 
-            "id": "Lumen Hobbins"
-        }, 
-        "Nan  Marshall": {
-            "pk": 102, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Nan  Marshall", 
-            "id": "Nan  Marshall"
-        }, 
-        "Julie": {
-            "pk": 53, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Julie", 
-            "id": "Julie"
+        "Namaste Lane Gardens": {
+            "@type": "Agent", 
+            "pk": 8, 
+            "id": "Namaste Lane Gardens", 
+            "name": "Namaste Lane Gardens", 
+            "type": "agentTypes/Organization"
         }, 
         "Nad Geraldson": {
+            "@type": "Agent", 
             "pk": 9, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
+            "id": "Nad Geraldson", 
             "name": "Nad Geraldson", 
-            "id": "Nad Geraldson"
+            "type": "agentTypes/Individual"
         }, 
-        "Oriana Kruszewski": {
-            "pk": 81, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Oriana Kruszewski", 
-            "id": "Oriana Kruszewski"
+        "Whispering Winds PermaFarm": {
+            "@type": "Agent", 
+            "pk": 10, 
+            "id": "Whispering Winds PermaFarm", 
+            "name": "Whispering Winds PermaFarm", 
+            "type": "agentTypes/Organization"
         }, 
-        "Mary Christenson": {
-            "pk": 38, 
-            "agent_type": "Individual", 
-            "@type": "EconomicAgent", 
-            "name": "Mary Christenson", 
-            "id": "Mary Christenson"
+        "Dancing Waters Permaculture Coop": {
+            "@type": "Agent", 
+            "pk": 11, 
+            "id": "Dancing Waters Permaculture Coop", 
+            "name": "Dancing Waters Permaculture Coop", 
+            "type": "agentTypes/Organization"
+        }, 
+        "Fizz": {
+            "@type": "Agent", 
+            "pk": 12, 
+            "id": "Fizz", 
+            "name": "Fizzeology", 
+            "type": "agentTypes/Organization"
+        }, 
+        "Mary Benson": {
+            "@type": "Agent", 
+            "pk": 13, 
+            "id": "Mary Benson", 
+            "name": "Mary Benson", 
+            "type": "agentTypes/Individual"
+        }, 
+        "Ella Bella Farm": {
+            "@type": "Agent", 
+            "pk": 14, 
+            "id": "Ella Bella Farm", 
+            "name": "Ella Bella Farm", 
+            "type": "agentTypes/Organization"
+        }, 
+        "KJ Jakobson": {
+            "@type": "Agent", 
+            "pk": 15, 
+            "id": "KJ Jakobson", 
+            "name": "KJ Jakobson", 
+            "type": "agentTypes/Individual"
+        }, 
+        "Barb Bitondo": {
+            "@type": "Agent", 
+            "pk": 16, 
+            "id": "Barb Bitondo", 
+            "name": "Barb Bitondo", 
+            "type": "agentTypes/Individual"
+        }, 
+        "Angie Bernstein": {
+            "@type": "Agent", 
+            "pk": 17, 
+            "id": "Angie Bernstein", 
+            "name": "Angie Bernstein", 
+            "type": "agentTypes/Individual"
+        }, 
+        "DHEN": {
+            "@type": "Agent", 
+            "pk": 3, 
+            "id": "DHEN", 
+            "name": " Driftless Herbal Exchange Network", 
+            "type": "agentTypes/Network"
+        }, 
+        "Ocooch Mtn Elderberries": {
+            "@type": "Agent", 
+            "pk": 21, 
+            "id": "Ocooch Mtn Elderberries", 
+            "name": "Ocooch Mtn Elderberries", 
+            "type": "agentTypes/Organization"
+        }, 
+        "Mark  Heffernan": {
+            "@type": "Agent", 
+            "pk": 30, 
+            "id": "Mark  Heffernan", 
+            "name": "Mark  Heffernan", 
+            "type": "agentTypes/Individual"
+        }, 
+        "Sweet Springs Farm": {
+            "@type": "Agent", 
+            "pk": 42, 
+            "id": "Sweet Springs Farm", 
+            "name": "Sweet Springs Farm", 
+            "type": "agentTypes/Individual"
+        }, 
+        "Lusa": {
+            "@type": "Agent", 
+            "pk": 45, 
+            "id": "Lusa", 
+            "name": "Lusa", 
+            "type": "agentTypes/Organization"
+        }, 
+        "CHC": {
+            "@type": "Agent", 
+            "pk": 47, 
+            "id": "CHC", 
+            "name": "Canyon Homestead Cooperative", 
+            "type": "agentTypes/Organization"
+        }, 
+        "LSW": {
+            "@type": "Agent", 
+            "pk": 49, 
+            "id": "LSW", 
+            "name": "Lady Slipper Wellness", 
+            "type": "agentTypes/Individual"
+        }, 
+        "Jan Kenyon Echo valley": {
+            "@type": "Agent", 
+            "pk": 58, 
+            "id": "Jan Kenyon Echo valley", 
+            "name": "Jan Kenyon Echo valley", 
+            "type": "agentTypes/Individual"
+        }, 
+        "Adrian White": {
+            "@type": "Agent", 
+            "pk": 88, 
+            "id": "Adrian White", 
+            "name": "Adrian White", 
+            "type": "agentTypes/Individual"
+        }, 
+        "Community Pharmacy": {
+            "@type": "Agent", 
+            "pk": 116, 
+            "id": "Community Pharmacy", 
+            "name": "Community Pharmacy", 
+            "type": "agentTypes/Individual"
+        }, 
+        "Fizzeology": {
+            "@type": "Agent", 
+            "pk": 125, 
+            "id": "Fizzeology", 
+            "name": "Fizzeology", 
+            "type": "agentTypes/Individual"
         }
     }, 
-    "agentAssociationTypes": {
-        "Customer": {
-            "plural_name": "Customers", 
-            "description": "", 
-            "inverse_label": "sells to", 
-            "label": "buys from", 
-            "@type": "AgentAssociationType", 
-            "name": "Customer"
+    "relationships": {
+        "49": {
+            "@type": "Relationship", 
+            "pk": 49, 
+            "source": "Adrian White", 
+            "target": "Amy", 
+            "type": "relationshipTypes/Harvester"
         }, 
-        "Trainer": {
-            "plural_name": "Trainers", 
-            "description": "", 
-            "inverse_label": "trainer", 
-            "label": "trainer for", 
-            "@type": "AgentAssociationType", 
-            "name": "Trainer"
+        "50": {
+            "@type": "Relationship", 
+            "pk": 50, 
+            "source": "Amy", 
+            "target": "Angie Bernstein", 
+            "type": "relationshipTypes/Customer"
         }, 
-        "Harvester": {
-            "plural_name": "Harvesters", 
-            "description": "", 
-            "inverse_label": "harvested by", 
-            "label": "harvester for", 
-            "@type": "AgentAssociationType", 
-            "name": "Harvester"
+        "31": {
+            "@type": "Relationship", 
+            "pk": 31, 
+            "source": "Barb Bitondo", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Customer"
         }, 
-        "Admin": {
-            "plural_name": "Admins", 
-            "description": "", 
-            "inverse_label": "administered by", 
-            "label": "administers", 
-            "@type": "AgentAssociationType", 
-            "name": "Admin"
+        "40": {
+            "@type": "Relationship", 
+            "pk": 40, 
+            "source": "CHC", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvesting Site"
         }, 
-        "Drying Site": {
-            "plural_name": "Drying Sites", 
-            "description": "", 
-            "inverse_label": "herbs dried at", 
-            "label": "dries herbs for", 
-            "@type": "AgentAssociationType", 
-            "name": "Drying Site"
+        "38": {
+            "@type": "Relationship", 
+            "pk": 38, 
+            "source": "Community Pharmacy", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Customer"
         }, 
-        "Advisor": {
-            "plural_name": "Advisors", 
-            "description": "", 
-            "inverse_label": "advised by", 
-            "label": "advisor", 
-            "@type": "AgentAssociationType", 
-            "name": "Advisor"
+        "7": {
+            "@type": "Relationship", 
+            "pk": 7, 
+            "source": "DHEN", 
+            "target": "WildFarmacy", 
+            "type": "relationshipTypes/Child"
         }, 
-        "Seller": {
-            "plural_name": "Sellers", 
-            "description": "", 
-            "inverse_label": "sells through", 
-            "label": "sells for", 
-            "@type": "AgentAssociationType", 
-            "name": "Seller"
+        "15": {
+            "@type": "Relationship", 
+            "pk": 15, 
+            "source": "Dancing Waters Permaculture Coop", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvesting Site"
         }, 
-        "Member": {
-            "plural_name": "Members", 
-            "description": "", 
-            "inverse_label": "group", 
-            "label": "member", 
-            "@type": "AgentAssociationType", 
-            "name": "Member"
+        "24": {
+            "@type": "Relationship", 
+            "pk": 24, 
+            "source": "Ella Bella Farm", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvesting Site"
         }, 
-        "Owner": {
-            "plural_name": "Owners", 
-            "description": "", 
-            "inverse_label": "owned by", 
-            "label": "owner", 
-            "@type": "AgentAssociationType", 
-            "name": "Owner"
+        "18": {
+            "@type": "Relationship", 
+            "pk": 18, 
+            "source": "Fizz", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Supplier"
         }, 
-        "Storage Site": {
-            "plural_name": "Storage Sites", 
-            "description": "", 
-            "inverse_label": "herbs stored at", 
-            "label": "stores herbs for", 
-            "@type": "AgentAssociationType", 
-            "name": "Storage Site"
+        "48": {
+            "@type": "Relationship", 
+            "pk": 48, 
+            "source": "Fizzeology", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Seller"
         }, 
-        "Child": {
-            "plural_name": "Children", 
-            "description": "", 
-            "inverse_label": "parent of", 
-            "label": "child of", 
-            "@type": "AgentAssociationType", 
-            "name": "Child"
+        "42": {
+            "@type": "Relationship", 
+            "pk": 42, 
+            "source": "Jan Kenyon Echo valley", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvesting Site"
         }, 
-        "Supplier": {
-            "plural_name": "Suppliers", 
-            "description": "", 
-            "inverse_label": "supplied by", 
-            "label": "supplier for", 
-            "@type": "AgentAssociationType", 
-            "name": "Supplier"
+        "1": {
+            "@type": "Relationship", 
+            "pk": 1, 
+            "source": "Johanna O'Tigham", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Trainer"
         }, 
-        "Responsibility": {
-            "plural_name": "Responsibilities", 
-            "description": "", 
-            "inverse_label": "responsibility", 
-            "label": "responsible for", 
-            "@type": "AgentAssociationType", 
-            "name": "Responsibility"
+        "20": {
+            "@type": "Relationship", 
+            "pk": 20, 
+            "source": "Johanna O'Tigham", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Admin"
         }, 
-        "Harvesting Site": {
-            "plural_name": "Harvesting Sites", 
-            "description": "", 
-            "inverse_label": "herbs harvested at", 
-            "label": "grows herbs for", 
-            "@type": "AgentAssociationType", 
-            "name": "Harvesting Site"
+        "21": {
+            "@type": "Relationship", 
+            "pk": 21, 
+            "source": "Johanna O'Tigham", 
+            "target": "Tea for the People", 
+            "type": "relationshipTypes/Admin"
+        }, 
+        "22": {
+            "@type": "Relationship", 
+            "pk": 22, 
+            "source": "Johanna O'Tigham", 
+            "target": "WildFarmacy", 
+            "type": "relationshipTypes/Admin"
+        }, 
+        "23": {
+            "@type": "Relationship", 
+            "pk": 23, 
+            "source": "Johanna O'Tigham", 
+            "target": "Namaste Lane Gardens", 
+            "type": "relationshipTypes/Admin"
+        }, 
+        "43": {
+            "@type": "Relationship", 
+            "pk": 43, 
+            "source": "Johanna O'Tigham", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvesting Site"
+        }, 
+        "46": {
+            "@type": "Relationship", 
+            "pk": 46, 
+            "source": "Johanna O'Tigham", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvester"
+        }, 
+        "29": {
+            "@type": "Relationship", 
+            "pk": 29, 
+            "source": "KJ Jakobson", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvesting Site"
+        }, 
+        "30": {
+            "@type": "Relationship", 
+            "pk": 30, 
+            "source": "KJ Jakobson", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Advisor"
+        }, 
+        "35": {
+            "@type": "Relationship", 
+            "pk": 35, 
+            "source": "LSW", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Customer"
+        }, 
+        "32": {
+            "@type": "Relationship", 
+            "pk": 32, 
+            "source": "Lusa", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Customer"
+        }, 
+        "45": {
+            "@type": "Relationship", 
+            "pk": 45, 
+            "source": "Lynn Foster", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvester"
+        }, 
+        "44": {
+            "@type": "Relationship", 
+            "pk": 44, 
+            "source": "Mark  Heffernan", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvesting Site"
+        }, 
+        "25": {
+            "@type": "Relationship", 
+            "pk": 25, 
+            "source": "Mary Benson", 
+            "target": "Ella Bella Farm", 
+            "type": "relationshipTypes/Owner"
+        }, 
+        "16": {
+            "@type": "Relationship", 
+            "pk": 16, 
+            "source": "Megan Pierce", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Trainer"
+        }, 
+        "17": {
+            "@type": "Relationship", 
+            "pk": 17, 
+            "source": "Megan Pierce", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvester"
+        }, 
+        "26": {
+            "@type": "Relationship", 
+            "pk": 26, 
+            "source": "Megan Pierce", 
+            "target": "Dancing Waters Permaculture Coop", 
+            "type": "relationshipTypes/Owner"
+        }, 
+        "27": {
+            "@type": "Relationship", 
+            "pk": 27, 
+            "source": "Megan Pierce", 
+            "target": "Ella Bella Farm", 
+            "type": "relationshipTypes/Responsibility"
+        }, 
+        "9": {
+            "@type": "Relationship", 
+            "pk": 9, 
+            "source": "Nad Geraldson", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvester"
+        }, 
+        "10": {
+            "@type": "Relationship", 
+            "pk": 10, 
+            "source": "Nad Geraldson", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvesting Site"
+        }, 
+        "28": {
+            "@type": "Relationship", 
+            "pk": 28, 
+            "source": "Nad Geraldson", 
+            "target": "Whispering Winds PermaFarm", 
+            "type": "relationshipTypes/Owner"
+        }, 
+        "12": {
+            "@type": "Relationship", 
+            "pk": 12, 
+            "source": "Namaste Lane Gardens", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Harvesting Site"
+        }, 
+        "13": {
+            "@type": "Relationship", 
+            "pk": 13, 
+            "source": "Namaste Lane Gardens", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Storage Site"
+        }, 
+        "14": {
+            "@type": "Relationship", 
+            "pk": 14, 
+            "source": "Namaste Lane Gardens", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Drying Site"
+        }, 
+        "36": {
+            "@type": "Relationship", 
+            "pk": 36, 
+            "source": "Ocooch Mtn Elderberries", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Supplier"
+        }, 
+        "37": {
+            "@type": "Relationship", 
+            "pk": 37, 
+            "source": "Sweet Springs Farm", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Supplier"
+        }, 
+        "6": {
+            "@type": "Relationship", 
+            "pk": 6, 
+            "source": "Tea for the People", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Customer"
+        }, 
+        "8": {
+            "@type": "Relationship", 
+            "pk": 8, 
+            "source": "Tea for the People", 
+            "target": "WildFarmacy", 
+            "type": "relationshipTypes/Child"
+        }, 
+        "19": {
+            "@type": "Relationship", 
+            "pk": 19, 
+            "source": "Tea for the People", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Supplier"
+        }, 
+        "47": {
+            "@type": "Relationship", 
+            "pk": 47, 
+            "source": "Tea for the People", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Seller"
+        }, 
+        "34": {
+            "@type": "Relationship", 
+            "pk": 34, 
+            "source": "Whispering Winds PermaFarm", 
+            "target": "DHEN", 
+            "type": "relationshipTypes/Drying Site"
         }
     }
 }

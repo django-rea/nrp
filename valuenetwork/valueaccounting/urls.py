@@ -474,5 +474,6 @@ urlpatterns += patterns("",
     url(r"^commitment-finished/(?P<commitment_id>\d+)/$", 'valuenetwork.valueaccounting.views.commitment_finished', 
         name="commitment_finished"),
     url(r"^json-organization/$", 'valuenetwork.valueaccounting.views.json_organization', name="json_organization"),
+    url(r"^orders/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.orders', name="orders"),
 )
 

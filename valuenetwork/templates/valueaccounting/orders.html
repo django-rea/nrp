@@ -1,0 +1,170 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Orders for " %}{{ agent }}{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+.error {
+    color: red;
+}
+.reskedForm {
+    display: inline;
+}
+li {
+    list-style-type: none;
+}
+textarea {
+    width: 480px;
+}
+.project-line {
+    font-size: 1.2em;
+    color: brown;
+    font-weight: bold;
+    margin-top: 1.5em;
+}
+.process {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: .8em;
+    background-color: lightyellow;
+    border: 1px solid gainsboro;
+    padding: 1em;
+}
+.resource-type {
+    font-weight: bold;
+    font-size: 1.1em;
+    vertical-align: text-bottom;
+}
+.oi {
+    color: firebrick;
+    font-size: 1.2em;
+    vertical-align: text-bottom;
+}
+.production-process-btn {
+    vertical-align: text-bottom;
+}
+.space-down {
+    margin-top: 12px;
+}
+.for, .req-description p, .description p {
+    font-size: 1em;
+    font-style: italic;
+    font-weight: normal;
+}
+.section {
+    color:     #008A2E;
+    font-size: 1em;
+}
+.indent {
+    margin-left: 1em;
+}
+.process-btn {
+    margin-top: 10px;
+}
+.btn-warning {
+    margin-top: 5px;
+}
+.wf-project-form {
+    height: 400px;
+}
+.btn-primary {
+    margin-bottom: 1px;
+}
+.process-dates {
+    font-size: 70%;
+    color:     #008A2E;
+    font-weight: normal;
+}
+.url {
+    font-size: 70%;
+    font-weight: normal;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+<div class="container">
+    {% include "_messages.html" %}
+    <div>
+        <legend>
+            {% trans "Active Orders for " %}{{ agent }}
+        </legend>
+        
+        <div>
+            {% for order in orders %}
+                <div>
+                    <h3>
+                        {{ order.get_order_type_display }} {{ order.id }}: 
+                        {{ order.name }}
+                        <span class="process-dates" > {% trans "Due " %}: {{ order.due_date }} </span> 
+                        &nbsp;&nbsp;
+                        <span class="url">
+                            <a href="{% url order_schedule order_id=order.id %}" target="_blank" >{% trans "Detailed schedule" %}</a>
+                        </span>
+                    </h3>
+                    {% for item in order.order_items %}
+                        <div>
+                            <table class="table table-bordered" >
+                                {% with item.all_processes_in_my_order_item as processes %}
+                                <tbody>
+                                    <tr>
+                                        {% for process in processes  %}
+                                            <td>
+                                                <a href="{{ process.get_absolute_url }}" target="_blank" >
+                                                    {{ process.name }}
+                                                </a>
+                                            </td>
+                                        {% endfor %}
+                                            <td>{% trans "Order Item" %}: {{ item.resource_type }}</td>
+                                    </tr>
+                                </tbody>
+                                {% endwith %}
+                            </table>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_script %}
+
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $('#projects').addClass('active');
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+        
+    }); // end document.ready
+    
+    </script>
+    
+{% endblock %}

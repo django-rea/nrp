@@ -2845,6 +2845,16 @@ def schedule_commitment(
                             schedule.append(art)
 
     return schedule
+    
+def orders(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    orders = agent.active_orders()
+    
+    return render_to_response("valueaccounting/orders.html", {
+        "agent": agent,
+        "orders": orders,
+    }, context_instance=RequestContext(request))
+    
 
 def order_schedule(request, order_id):
     agent = get_agent(request)

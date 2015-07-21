@@ -474,6 +474,14 @@ class EconomicAgent(models.Model):
 
     def consumed_and_used_resource_types(self):
         return [ptrt.resource_type for ptrt in self.consumed_and_used_resource_type_relationships()]
+        
+    def orders(self):
+        ps = self.processes.all()
+        oset = {p.independent_demand() for p in ps if p.commitments.all()}
+        return list(oset)
+        
+    def active_orders(self):
+        return [o for o in self.orders() if o.has_open_processes()]
 
     def xbill_parents(self):
         return self.produced_resource_type_relationships()

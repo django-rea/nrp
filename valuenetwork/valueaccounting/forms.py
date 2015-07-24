@@ -3410,8 +3410,10 @@ class ValueEquationForm(forms.ModelForm):
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(),
         required=True,
+        empty_label=None,
         widget=forms.Select(attrs={'class': 'chzn-select',}))
-    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    name = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'input-xlarge required-field',}))
     description = forms.CharField(required=False, 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
 

@@ -4,6 +4,7 @@ from decimal import *
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from django.utils import simplejson
 
 from valuenetwork.valueaccounting.models import *
 
@@ -3521,14 +3522,12 @@ class BucketRuleFilterSetForm(forms.Form):
         resource_types = data.get("resource_types")
         if resource_types:
             json["resource_types"] = [pt.id for pt in resource_types]
-        from django.utils import simplejson
         #import pdb; pdb.set_trace()
         string = simplejson.dumps(json)            
         return string
 
     def deserialize(self, json):
         #import pdb; pdb.set_trace()
-        from django.utils import simplejson
         json = simplejson.loads(json)
         dict = {}
         process_types = json.get("process_types")
@@ -3574,12 +3573,10 @@ class DateRangeForm(forms.Form):
         context_agent = data.get("context_agent")
         if context_agent:
             json["context_agent"] = context_agent.id
-        from django.utils import simplejson
         string = simplejson.dumps(json)            
         return string
         
     def deserialize(self, json):
-        from django.utils import simplejson
         json = simplejson.loads(json)
         dict = {}
         dict["method"] = json["method"]
@@ -3617,12 +3614,11 @@ class OrderMultiSelectForm(forms.Form):
         orders = data.get("orders")
         if orders:
             json["orders"] = [order.id for order in orders]
-        from django.utils import simplejson
+        
         string = simplejson.dumps(json)            
         return string
         
     def deserialize(self, json):
-        from django.utils import simplejson
         json = simplejson.loads(json)
         dict = {}
         dict["method"] = json["method"]
@@ -3656,12 +3652,10 @@ class ShipmentMultiSelectForm(forms.Form):
         shipments = data.get("shipments")
         if shipments:
             json["shipments"] = [s.id for s in shipments]
-        from django.utils import simplejson
         string = simplejson.dumps(json)            
         return string
         
     def deserialize(self, json):
-        from django.utils import simplejson
         json = simplejson.loads(json)
         dict = {}
         dict["method"] = json["method"]
@@ -3671,5 +3665,44 @@ class ShipmentMultiSelectForm(forms.Form):
             for pk in shipments:
                 l.append(EconomicEvent.objects.get(pk=pk))
             dict["shipments"] = l
+        return dict
+
+        
+class ProcessMultiSelectForm(forms.Form):
+    processes = forms.ModelMultipleChoiceField(
+        required=True,
+        queryset=Process.objects.none(),
+        label=_("Select one or more Processes"),
+        widget=forms.SelectMultiple(attrs={'class': 'order chzn-select input-xxlarge validateMe'}))
+        
+    def __init__(self, context_agent, *args, **kwargs):
+        super(ProcessMultiSelectForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        #if kwargs.get("data"):
+        #    self.fields["processes"].queryset = Order.objects.all()
+        #else:
+        #    self.fields["processes"].queryset = context_agent.processes_queryset()
+        self.fields["processes"].queryset = context_agent.processes.all()
+        
+    def serialize(self):
+        data = self.cleaned_data
+        #import pdb; pdb.set_trace()
+        json = {"method": "Process",}
+        processes = data.get("processes")
+        if processes:
+            json["processes"] = [process.id for process in processes]
+        string = simplejson.dumps(json)            
+        return string
+        
+    def deserialize(self, json):
+        json = simplejson.loads(json)
+        dict = {}
+        dict["method"] = json["method"]
+        processes = json.get("processes")
+        if processes:
+            l = []
+            for pk in processes:
+                l.append(Process.objects.get(pk=pk))
+            dict["processes"] = l
         return dict
         

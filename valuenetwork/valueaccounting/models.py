@@ -7904,6 +7904,8 @@ class Commitment(models.Model):
         proportional contribution to the order_item's resource value.
         event.fraction is that event's fraction of the total shares.
         
+        Commitment (order_item) method.
+        
         """
         events = self.fulfilling_events()
         resources = []
@@ -9212,7 +9214,7 @@ class ValueEquation(models.Model):
         distributed = sum(de.quantity for de in distribution_events)
         delta = atd - distributed
         #import pdb; pdb.set_trace()
-        if delta:
+        if delta and distribution_events:
             max_dist = distribution_events[0]
             for de in distribution_events:
                 if de.quantity > max_dist.quantity:
@@ -9307,6 +9309,7 @@ FILTER_METHOD_CHOICES = (
     ('order', _('Order')),
     ('shipment', _('Shipment or Delivery')),
     ('dates', _('Date range')),
+    ('process', _('Process')),
 )
 
 class ValueEquationBucket(models.Model): 
@@ -9475,7 +9478,29 @@ class ValueEquationBucket(models.Model):
                 #tot += hours
                 
             #print "total event hours:", tot
-                    
+        elif self.filter_method == 'process':
+            from valuenetwork.valueaccounting.forms import ProcessMultiSelectForm
+            form = ProcessMultiSelectForm(context_agent=context_agent)
+            bucket_filter = form.deserialize(serialized_filter)
+            processes = bucket_filter["processes"]
+            if processes:
+                process_string = ", ".join([str(proc.id) for proc in processes])
+                filter = "".join([
+                    "Processes: ",
+                    process_string,
+                    ])
+            events = []
+            #import pdb; pdb.set_trace()
+            visited = set()
+            for proc in processes:
+                order_item = None
+                qty = sum(pe.quantity for pe in proc.production_events())
+                #qty = Decimal("1.0")
+                proc_events = []
+                #visited = set()
+                proc.compute_income_shares(ve, order_item, qty, proc_events, visited)
+                events.extend(proc_events)
+
         for event in events:
             event.filter = filter
         return events
@@ -9599,6 +9624,12 @@ class ValueEquationBucket(models.Model):
                 form = ShipmentMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent)
             else:
                 form = ShipmentMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent, data=data)
+        elif self.filter_method == "process":
+            from valuenetwork.valueaccounting.forms import ProcessMultiSelectForm
+            if data == None:
+                form = ProcessMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent)
+            else:
+                form = ProcessMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent, data=data)
         elif self.filter_method == "dates":
             from valuenetwork.valueaccounting.forms import DateRangeForm
             if data == None:
@@ -9707,12 +9738,6 @@ class ValueEquationBucketRule(models.Model):
     def default_equation(self):
         et = self.event_type
         return et.default_event_value_equation()
-            
-    def filter_rule_deserialized(self):
-        from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
-        form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)
-        #import pdb; pdb.set_trace()
-        return form.deserialize(json=self.filter_rule)
         
     def filter_rule_display_list(self):
         json = self.filter_rule_deserialized()

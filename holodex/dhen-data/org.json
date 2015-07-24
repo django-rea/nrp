@@ -12,8 +12,7 @@
                     "name": "child",
                     "pluralName": "childs",
                     "relationshipType": "relationshipTypes/Child",
-                    "linkType": "linkTypes/child-of",
-                    "label": "role 1 label"
+                    "labels": "A child of {relation}"
                 },
                 {
                     "@type": "RoleType",
@@ -21,8 +20,7 @@
                     "name": "parent",
                     "pluralName": "parents",
                     "relationshipType": "relationshipTypes/Child",
-                    "linkType": "linkTypes/parent-of",
-                    "label": "role 2 label"
+                    "label": "a parent of {relation}"
                 }
             ],
             "links": [
@@ -32,7 +30,7 @@
                     "relationshipType": "relationshipTypes/Child",
                     "source": "roleTypes/child",
                     "target": "roleTypes/parent",
-                    "label": "link 1 label"
+                    "labels": "{source} is a child of {target}"
                 },
                 {
                     "@type": "LinkType",
@@ -40,7 +38,8 @@
                     "relationshipType": "relationshipTypes/Child",
                     "source": "roleTypes/parent",
                     "target": "roleTypes/child",
-                    "label": "link 2 label"
+                    "labels": "{source} is a parent of {target}",
+                    "queryLabels": "Groups that incorporate {target},Groups incorporated by {source}"
                 }
             ]
         },
@@ -57,7 +56,7 @@
                     "pluralName": "customers",
                     "relationshipType": "relationshipTypes/Customer",
                     "linkType": "linkTypes/customer",
-                    "label": "role 1 label"
+                    "label": "a customer of {relation}"
                 },
                 {
                     "@type": "RoleType",
@@ -66,25 +65,27 @@
                     "pluralName": "vendors",
                     "relationshipType": "relationshipTypes/Customer",
                     "linkType": "linkTypes/vendor",
-                    "label": "role 2 label"
+                    "label": "a vendor to {relation}"
                 }
             ],
             "links": [
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/customer",
+                    "id": "linkTypes/purchases-from",
                     "relationshipType": "relationshipTypes/Customer",
                     "source": "roleTypes/customer",
                     "target": "roleTypes/vendor",
-                    "label": "link 1 label"
+                    "labels": "{source} purchases from {target}",
+                    "queryLabels": "{agentType} that purchase from {target}, {agentType} that buy from {target}"
                 },
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/vendor",
+                    "id": "linkTypes/supply",
                     "relationshipType": "relationshipTypes/Customer",
                     "source": "roleTypes/vendor",
                     "target": "roleTypes/customer",
-                    "label": "link 2 label"
+                    "label": "{source} supplies {target}",
+                    "queryLabels": "{agentType} that supply {target}, {agentType} who supply {target}, {agentType} supplied by {source}, {agentTypes} that supply in {context}"
                 }
             ]
         },
@@ -100,8 +101,7 @@
                     "name": "harvester",
                     "pluralName": "harvesters",
                     "relationshipType": "relationshipTypes/Harvester",
-                    "linkType": "linkTypes/harvester-for",
-                    "label": "role 1 label"
+                    "label": "a harvester of herbs for {relation}"
                 },
                 {
                     "@type": "RoleType",
@@ -109,8 +109,7 @@
                     "name": "harvested",
                     "pluralName": "harvesteds",
                     "relationshipType": "relationshipTypes/Harvester",
-                    "linkType": "linkTypes/harvested-by",
-                    "label": "role 2 label"
+                    "labels": "herbs harvested by {relation}"
                 }
             ],
             "links": [
@@ -120,16 +119,9 @@
                     "relationshipType": "relationshipTypes/Harvester",
                     "source": "roleTypes/harvester",
                     "target": "roleTypes/harvested",
-                    "label": "link 1 label"
+                    "labels": "{source} harvests {target}",
+                    "queryLabels": "People who harvest for {target}"
                 },
-                {
-                    "@type": "LinkType",
-                    "id": "linkTypes/harvested-by",
-                    "relationshipType": "relationshipTypes/Harvester",
-                    "source": "roleTypes/harvested",
-                    "target": "roleTypes/harvester",
-                    "label": "link 2 label"
-                }
             ]
         },
         "Trainer": {
@@ -144,8 +136,7 @@
                     "name": "trainer",
                     "pluralName": "trainers",
                     "relationshipType": "relationshipTypes/Trainer",
-                    "linkType": "linkTypes/trainer-for",
-                    "label": "role 1 label"
+                    "labels": "a trainer of {relation}"
                 },
                 {
                     "@type": "RoleType",
@@ -153,29 +144,23 @@
                     "name": "trainee",
                     "pluralName": "trainees",
                     "relationshipType": "relationshipTypes/Trainer",
-                    "linkType": "linkTypes/trainee-of",
-                    "label": "role 2 label"
+                    "labels": " a trainee of {relation}"
                 }
             ],
             "links": [
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/trainer-for",
+                    "id": "linkTypes/trains",
                     "relationshipType": "relationshipTypes/Trainer",
                     "source": "roleTypes/trainer",
                     "target": "roleTypes/trainee",
-                    "label": "link 1 label"
-                },
-                {
-                    "@type": "LinkType",
-                    "id": "linkTypes/trainee-of",
-                    "relationshipType": "relationshipTypes/Trainer",
-                    "source": "roleTypes/trainee",
-                    "target": "roleTypes/trainer",
-                    "label": "link 2 label"
+                    "labels": "{source} trains {target}",
+                    "queryLabels": "People who train {target}, People trained by {source}, People whom {source} trains, People who train others for {context}"
                 }
             ]
         },
+        /* Question: Sites may be the context for relationships?*/
+
         "Harvesting Site": {
             "@type": "RelationshipType",
             "name": "Harvesting Site",
@@ -188,8 +173,7 @@
                     "name": "grower",
                     "pluralName": "growers",
                     "relationshipType": "relationshipTypes/Harvesting Site",
-                    "linkType": "linkTypes/grower-for",
-                    "label": "role 1 label"
+                    "labels": "a grower for {context}"
                 },
                 {
                     "@type": "RoleType",
@@ -197,26 +181,18 @@
                     "name": "harvester",
                     "pluralName": "harvesters",
                     "relationshipType": "relationshipTypes/Harvesting Site",
-                    "linkType": "linkTypes/harvester-at",
-                    "label": "role 2 label"
+                    "label": "a harvesting site for {relation}"
                 }
             ],
             "links": [
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/grower-for",
+                    "id": "linkTypes/grows",
                     "relationshipType": "relationshipTypes/Harvesting Site",
                     "source": "roleTypes/grower",
                     "target": "roleTypes/harvester",
-                    "label": "link 1 label"
-                },
-                {
-                    "@type": "LinkType",
-                    "id": "linkTypes/harvester-at",
-                    "relationshipType": "relationshipTypes/Harvesting Site",
-                    "source": "roleTypes/harvester",
-                    "target": "roleTypes/grower",
-                    "label": "link 2 label"
+                    "labels": "{source} grows {target}",
+                    "queryLabels": "People who grow {target}"
                 }
             ]
         },
@@ -232,7 +208,6 @@
                     "name": "stores",
                     "pluralName": "storess",
                     "relationshipType": "relationshipTypes/Storage Site",
-                    "linkType": "linkTypes/stores-for",
                     "label": "role 1 label"
                 },
                 {
@@ -320,8 +295,7 @@
                     "name": "supplier",
                     "pluralName": "suppliers",
                     "relationshipType": "relationshipTypes/Supplier",
-                    "linkType": "linkTypes/supplier-for",
-                    "label": "role 1 label"
+                    "label": "a supplier to {relation}"
                 },
                 {
                     "@type": "RoleType",
@@ -329,26 +303,18 @@
                     "name": "supplied",
                     "pluralName": "supplieds",
                     "relationshipType": "relationshipTypes/Supplier",
-                    "linkType": "linkTypes/supplied-by",
-                    "label": "role 2 label"
+                    "labels": "a customer of {relation}"
                 }
             ],
             "links": [
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/supplier-for",
+                    "id": "linkTypes/supply",
                     "relationshipType": "relationshipTypes/Supplier",
                     "source": "roleTypes/supplier",
                     "target": "roleTypes/supplied",
-                    "label": "link 1 label"
-                },
-                {
-                    "@type": "LinkType",
-                    "id": "linkTypes/supplied-by",
-                    "relationshipType": "relationshipTypes/Supplier",
-                    "source": "roleTypes/supplied",
-                    "target": "roleTypes/supplier",
-                    "label": "link 2 label"
+                    "labels": "{source} supplies {target}",
+                    "queryLabels": "{agentType} who supply {target}, {agentType} that supply {target}, {agentType} that are supplied by {source} "
                 }
             ]
         },
@@ -364,8 +330,7 @@
                     "name": "advisor",
                     "pluralName": "advisors",
                     "relationshipType": "relationshipTypes/Advisor",
-                    "linkType": "linkTypes/advisor-to",
-                    "label": "role 1 label"
+                    "labels": "an advisor of {relation}"
                 },
                 {
                     "@type": "RoleType",
@@ -373,30 +338,22 @@
                     "name": "advisee",
                     "pluralName": "advisees",
                     "relationshipType": "relationshipTypes/Advisor",
-                    "linkType": "linkTypes/advisee-of",
-                    "label": "role 2 label"
+                    "labels": "an advisee of {relation}"
                 }
             ],
             "links": [
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/advisor-to",
+                    "id": "linkTypes/advises",
                     "relationshipType": "relationshipTypes/Advisor",
                     "source": "roleTypes/advisor",
                     "target": "roleTypes/advisee",
-                    "label": "link 1 label"
-                },
-                {
-                    "@type": "LinkType",
-                    "id": "linkTypes/advisee-of",
-                    "relationshipType": "relationshipTypes/Advisor",
-                    "source": "roleTypes/advisee",
-                    "target": "roleTypes/advisor",
-                    "label": "link 2 label"
+                    "labels": "{source} advises {target}",
+                    "queryLabels": "{agentType} who advise {target}, {agentType} who are advised by {source}"
                 }
             ]
         },
-        "Admin": {
+        "Admininstration": {
             "@type": "RelationshipType",
             "name": "Admin",
             "pluralName": "Admins",
@@ -404,21 +361,19 @@
             "roleTypes": [
                 {
                     "@type": "RoleType",
-                    "id": "roleTypes/administers",
-                    "name": "administers",
-                    "pluralName": "administerss",
-                    "relationshipType": "relationshipTypes/Admin",
-                    "linkType": "linkTypes/administers",
-                    "label": "role 1 label"
+                    "id": "roleTypes/administrator",
+                    "name": "administrator",
+                    "pluralName": "administrators",
+                    "relationshipType": "relationshipTypes/Administration",
+                    "labels": "an adminstrator for {context}"
                 },
                 {
                     "@type": "RoleType",
                     "id": "roleTypes/administered",
                     "name": "administered",
                     "pluralName": "administereds",
-                    "relationshipType": "relationshipTypes/Admin",
-                    "linkType": "linkTypes/administered-by",
-                    "label": "role 2 label"
+                    "relationshipType": "relationshipTypes/Administration",
+                    "label": "an administered group"
                 }
             ],
             "links": [
@@ -428,19 +383,12 @@
                     "relationshipType": "relationshipTypes/Admin",
                     "source": "roleTypes/administers",
                     "target": "roleTypes/administered",
-                    "label": "link 1 label"
-                },
-                {
-                    "@type": "LinkType",
-                    "id": "linkTypes/administered-by",
-                    "relationshipType": "relationshipTypes/Admin",
-                    "source": "roleTypes/administered",
-                    "target": "roleTypes/administers",
-                    "label": "link 2 label"
+                    "labels": "{source} administers {target}",
+                    "queryLabels": "People who administer {target}, Organisations administered by {source}, People who adminster in {context}"
                 }
             ]
         },
-        "Owner": {
+        "Ownership": {
             "@type": "RelationshipType",
             "name": "Owner",
             "pluralName": "Owners",
@@ -452,35 +400,26 @@
                     "name": "owner",
                     "pluralName": "owners",
                     "relationshipType": "relationshipTypes/Owner",
-                    "linkType": "linkTypes/owner",
-                    "label": "role 1 label"
+                    "labels": "an owner of {property}"
                 },
                 {
                     "@type": "RoleType",
-                    "id": "roleTypes/owned",
-                    "name": "owned",
-                    "pluralName": "owneds",
+                    "id": "roleTypes/property",
+                    "name": "property",
+                    "pluralName": "property",
                     "relationshipType": "relationshipTypes/Owner",
-                    "linkType": "linkTypes/owned-by",
-                    "label": "role 2 label"
+                    "labels": "property of {relation}"
                 }
             ],
             "links": [
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/owner",
-                    "relationshipType": "relationshipTypes/Owner",
+                    "id": "linkTypes/owns",
+                    "relationshipType": "relationshipTypes/Ownership",
                     "source": "roleTypes/owner",
-                    "target": "roleTypes/owned",
-                    "label": "link 1 label"
-                },
-                {
-                    "@type": "LinkType",
-                    "id": "linkTypes/owned-by",
-                    "relationshipType": "relationshipTypes/Owner",
-                    "source": "roleTypes/owned",
-                    "target": "roleTypes/owner",
-                    "label": "link 2 label"
+                    "target": "roleTypes/property",
+                    "labels": "{source} owns {target}",
+                    "queryLabels": "People who own {target}, Property owned by {source}"
                 }
             ]
         },
@@ -496,8 +435,7 @@
                     "name": "responsible",
                     "pluralName": "responsibles",
                     "relationshipType": "relationshipTypes/Responsibility",
-                    "linkType": "linkTypes/responsible-for",
-                    "label": "role 1 label"
+                    "labels": ""
                 },
                 {
                     "@type": "RoleType",
@@ -506,32 +444,25 @@
                     "pluralName": "responsibilitys",
                     "relationshipType": "relationshipTypes/Responsibility",
                     "linkType": "linkTypes/responsibility",
-                    "label": "role 2 label"
+                    "labels": "a responsibility of {relation}"
                 }
             ],
             "links": [
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/responsible-for",
+                    "id": "linkTypes/take-responsibility-for",
                     "relationshipType": "relationshipTypes/Responsibility",
                     "source": "roleTypes/responsible",
                     "target": "roleTypes/responsibility",
-                    "label": "link 1 label"
-                },
-                {
-                    "@type": "LinkType",
-                    "id": "linkTypes/responsibility",
-                    "relationshipType": "relationshipTypes/Responsibility",
-                    "source": "roleTypes/responsibility",
-                    "target": "roleTypes/responsible",
-                    "label": "link 2 label"
+                    "labels": "{source} takes responsibility for {target}",
+                    "queryLabels": "People who take responsibility for {target}"
                 }
             ]
         },
-        "Member": {
+        "Membership": {
             "@type": "RelationshipType",
-            "name": "Member",
-            "pluralName": "Members",
+            "name": "Membership",
+            "pluralName": "Memberships",
             "description": "An agent is a member of a group.",
             "roleTypes": [
                 {
@@ -541,7 +472,7 @@
                     "pluralName": "members",
                     "relationshipType": "relationshipTypes/Member",
                     "linkType": "linkTypes/member",
-                    "label": "role 1 label"
+                    "labels": "a member of {relation}"
                 },
                 {
                     "@type": "RoleType",
@@ -550,32 +481,35 @@
                     "pluralName": "groups",
                     "relationshipType": "relationshipTypes/Member",
                     "linkType": "linkTypes/group",
-                    "label": "role 2 label"
+                    "labels": "a group"
                 }
             ],
             "links": [
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/member",
+                    "id": "linkTypes/is-member-of",
                     "relationshipType": "relationshipTypes/Member",
                     "source": "roleTypes/member",
                     "target": "roleTypes/group",
-                    "label": "link 1 label"
+                    "labels": "{source} belongs to {target}",
+                    "queryLabels": "People who belong to {target}, Groups to which {source} belongs"
                 },
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/group",
+                    "id": "linkTypes/includes",
+                    "inverse": "linkTypes/is-member-of",
                     "relationshipType": "relationshipTypes/Member",
                     "source": "roleTypes/group",
                     "target": "roleTypes/member",
-                    "label": "link 2 label"
+                    "labels": "{source} includes target",
+                    "queryLabels": "People in {source},Groups that include {target}"
                 }
             ]
         },
-        "Seller": {
+        "Sales": {
             "@type": "RelationshipType",
-            "name": "Seller",
-            "pluralName": "Sellers",
+            "name": "Sales",
+            "pluralName": "Sales",
             "description": "A seller exchanges products or services outside the network.",
             "roleTypes": [
                 {
@@ -584,8 +518,7 @@
                     "name": "seller",
                     "pluralName": "sellers",
                     "relationshipType": "relationshipTypes/Seller",
-                    "linkType": "linkTypes/seller-for",
-                    "label": "role 1 label"
+                    "labels": "a seller for {context}"
                 },
                 {
                     "@type": "RoleType",
@@ -593,27 +526,19 @@
                     "name": "consigner",
                     "pluralName": "consigners",
                     "relationshipType": "relationshipTypes/Seller",
-                    "linkType": "linkTypes/consigner-to",
-                    "label": "role 2 label"
+                    "labels": "a consigner of {relation}"
                 }
             ],
             "links": [
                 {
                     "@type": "LinkType",
-                    "id": "linkTypes/seller-for",
+                    "id": "linkTypes/sells",
                     "relationshipType": "relationshipTypes/Seller",
                     "source": "roleTypes/seller",
                     "target": "roleTypes/consigner",
-                    "label": "link 1 label"
+                    "label": "{source} sells to {target}",
+                    "queryLabels": "{agentType} who sell to {target}, {agentType} that {source} sells to"
                 },
-                {
-                    "@type": "LinkType",
-                    "id": "linkTypes/consigner-to",
-                    "relationshipType": "relationshipTypes/Seller",
-                    "source": "roleTypes/consigner",
-                    "target": "roleTypes/seller",
-                    "label": "link 2 label"
-                }
             ]
         }
     },

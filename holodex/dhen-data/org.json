@@ -1,900 +1,2053 @@
 {
-    "agentTypes": {
-        "Individual": {
-            "@type": "AgentType", 
-            "name": "Individual", 
-            "is_context": false
-        }, 
-        "Network": {
-            "@type": "AgentType", 
-            "name": "Network", 
-            "is_context": true
-        }, 
-        "Organization": {
-            "@type": "AgentType", 
-            "name": "Organization", 
-            "is_context": false
-        }
-    }, 
     "relationshipTypes": {
         "Child": {
-            "@type": "RelationshipType", 
-            "name": "Child", 
-            "plural_name": "Children", 
-            "label": "child of", 
-            "inverse_label": "parent of", 
-            "description": "", 
+            "@type": "RelationshipType",
+            "name": "Child",
+            "pluralName": "Children",
+            "description": "A group is child of a parent group.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/child", 
-                    "name": "child", 
-                    "pluralName": "childs", 
-                    "relationshipType": "relationshipTypes/Child", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/child",
+                    "name": "child",
+                    "pluralName": "childs",
+                    "relationshipType": "relationshipTypes/Child",
+                    "labels": "A child of {relation}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/child", 
-                    "name": "parent", 
-                    "pluralName": "parents", 
-                    "relationshipType": "relationshipTypes/Child", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/parent",
+                    "name": "parent",
+                    "pluralName": "parents",
+                    "relationshipType": "relationshipTypes/Child",
+                    "label": "a parent of {relation}"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/child-of",
+                    "relationshipType": "relationshipTypes/Child",
+                    "source": "roleTypes/child",
+                    "target": "roleTypes/parent",
+                    "labels": "{source} is a child of {target}"
+                },
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/parent-of",
+                    "relationshipType": "relationshipTypes/Child",
+                    "source": "roleTypes/parent",
+                    "target": "roleTypes/child",
+                    "labels": "{source} is a parent of {target}",
+                    "queryLabels": "Groups that incorporate {target},Groups incorporated by {source}"
                 }
             ]
-        }, 
+        },
         "Customer": {
-            "@type": "RelationshipType", 
-            "name": "Customer", 
-            "plural_name": "Customers", 
-            "label": "customer", 
-            "inverse_label": "vendor", 
-            "description": "", 
+            "@type": "RelationshipType",
+            "name": "Customer",
+            "pluralName": "Customers",
+            "description": "A customer of a seller for a network.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/customer", 
-                    "name": "customer", 
-                    "pluralName": "customers", 
-                    "relationshipType": "relationshipTypes/Customer", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/customer",
+                    "name": "customer",
+                    "pluralName": "customers",
+                    "relationshipType": "relationshipTypes/Customer",
+                    "linkType": "linkTypes/customer",
+                    "label": "a customer of {relation}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/customer", 
-                    "name": "vendor", 
-                    "pluralName": "vendors", 
-                    "relationshipType": "relationshipTypes/Customer", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/vendor",
+                    "name": "vendor",
+                    "pluralName": "vendors",
+                    "relationshipType": "relationshipTypes/Customer",
+                    "linkType": "linkTypes/vendor",
+                    "label": "a vendor to {relation}"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/purchases-from",
+                    "relationshipType": "relationshipTypes/Customer",
+                    "source": "roleTypes/customer",
+                    "target": "roleTypes/vendor",
+                    "labels": "{source} purchases from {target}",
+                    "queryLabels": "{agentType} that purchase from {target}, {agentType} that buy from {target}"
+                },
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/supply",
+                    "relationshipType": "relationshipTypes/Customer",
+                    "source": "roleTypes/vendor",
+                    "target": "roleTypes/customer",
+                    "label": "{source} supplies {target}",
+                    "queryLabels": "{agentType} that supply {target}, {agentType} who supply {target}, {agentType} supplied by {source}, {agentTypes} that supply in {context}"
                 }
             ]
-        }, 
+        },
         "Harvester": {
-            "@type": "RelationshipType", 
-            "name": "Harvester", 
-            "plural_name": "Harvesters", 
-            "label": "harvester for", 
-            "inverse_label": "harvested by", 
-            "description": "", 
+            "@type": "RelationshipType",
+            "name": "Harvester",
+            "pluralName": "Harvesters",
+            "description": "A harvester harvests herbs for a network.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/harvester", 
-                    "name": "harvester", 
-                    "pluralName": "harvesters", 
-                    "relationshipType": "relationshipTypes/Harvester", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/harvester",
+                    "name": "harvester",
+                    "pluralName": "harvesters",
+                    "relationshipType": "relationshipTypes/Harvester",
+                    "label": "a harvester of herbs for {relation}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/harvester", 
-                    "name": "harvested", 
-                    "pluralName": "harvesteds", 
-                    "relationshipType": "relationshipTypes/Harvester", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/harvested",
+                    "name": "harvested",
+                    "pluralName": "harvesteds",
+                    "relationshipType": "relationshipTypes/Harvester",
+                    "labels": "herbs harvested by {relation}"
                 }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/harvester-for",
+                    "relationshipType": "relationshipTypes/Harvester",
+                    "source": "roleTypes/harvester",
+                    "target": "roleTypes/harvested",
+                    "labels": "{source} harvests {target}",
+                    "queryLabels": "People who harvest for {target}"
+                },
             ]
-        }, 
+        },
         "Trainer": {
-            "@type": "RelationshipType", 
-            "name": "Trainer", 
-            "plural_name": "Trainers", 
-            "label": "trainer for", 
-            "inverse_label": "trainee of", 
-            "description": "", 
+            "@type": "RelationshipType",
+            "name": "Trainer",
+            "pluralName": "Trainers",
+            "description": "",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/trainer", 
-                    "name": "trainer", 
-                    "pluralName": "trainers", 
-                    "relationshipType": "relationshipTypes/Trainer", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/trainer",
+                    "name": "trainer",
+                    "pluralName": "trainers",
+                    "relationshipType": "relationshipTypes/Trainer",
+                    "labels": "a trainer of {relation}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/trainer", 
-                    "name": "trainee", 
-                    "pluralName": "trainees", 
-                    "relationshipType": "relationshipTypes/Trainer", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/trainee",
+                    "name": "trainee",
+                    "pluralName": "trainees",
+                    "relationshipType": "relationshipTypes/Trainer",
+                    "labels": " a trainee of {relation}"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/trains",
+                    "relationshipType": "relationshipTypes/Trainer",
+                    "source": "roleTypes/trainer",
+                    "target": "roleTypes/trainee",
+                    "labels": "{source} trains {target}",
+                    "queryLabels": "People who train {target}, People trained by {source}, People whom {source} trains, People who train others for {context}"
                 }
             ]
-        }, 
+        },
+        /* Question: Sites may be the context for relationships?*/
+
         "Harvesting Site": {
-            "@type": "RelationshipType", 
-            "name": "Harvesting Site", 
-            "plural_name": "Harvesting Sites", 
-            "label": "grower for", 
-            "inverse_label": "harvester at", 
-            "description": "", 
+            "@type": "RelationshipType",
+            "name": "Harvesting Site",
+            "pluralName": "Harvesting Sites",
+            "description": "A harvest site grows herbs for a network.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/grower", 
-                    "name": "grower", 
-                    "pluralName": "growers", 
-                    "relationshipType": "relationshipTypes/Harvesting Site", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/grower",
+                    "name": "grower",
+                    "pluralName": "growers",
+                    "relationshipType": "relationshipTypes/Harvesting Site",
+                    "labels": "a grower for {context}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/grower", 
-                    "name": "harvester", 
-                    "pluralName": "harvesters", 
-                    "relationshipType": "relationshipTypes/Harvesting Site", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/harvester",
+                    "name": "harvester",
+                    "pluralName": "harvesters",
+                    "relationshipType": "relationshipTypes/Harvesting Site",
+                    "label": "a harvesting site for {relation}"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/grows",
+                    "relationshipType": "relationshipTypes/Harvesting Site",
+                    "source": "roleTypes/grower",
+                    "target": "roleTypes/harvester",
+                    "labels": "{source} grows {target}",
+                    "queryLabels": "People who grow {target}"
                 }
             ]
-        }, 
+        },
         "Storage Site": {
-            "@type": "RelationshipType", 
-            "name": "Storage Site", 
-            "plural_name": "Storage Sites", 
-            "label": "stores for", 
-            "inverse_label": "storer at", 
-            "description": "", 
+            "@type": "RelationshipType",
+            "name": "Storage Site",
+            "pluralName": "Storage Sites",
+            "description": "A storage site stores herbs for a network.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/stores", 
-                    "name": "stores", 
-                    "pluralName": "storess", 
-                    "relationshipType": "relationshipTypes/Storage Site", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/stores",
+                    "name": "stores",
+                    "pluralName": "storess",
+                    "relationshipType": "relationshipTypes/Storage Site",
+                    "label": "role 1 label"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/stores", 
-                    "name": "storer", 
-                    "pluralName": "storers", 
-                    "relationshipType": "relationshipTypes/Storage Site", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/storer",
+                    "name": "storer",
+                    "pluralName": "storers",
+                    "relationshipType": "relationshipTypes/Storage Site",
+                    "linkType": "linkTypes/storer-at",
+                    "label": "role 2 label"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/stores-for",
+                    "relationshipType": "relationshipTypes/Storage Site",
+                    "source": "roleTypes/stores",
+                    "target": "roleTypes/storer",
+                    "label": "link 1 label"
+                },
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/storer-at",
+                    "relationshipType": "relationshipTypes/Storage Site",
+                    "source": "roleTypes/storer",
+                    "target": "roleTypes/stores",
+                    "label": "link 2 label"
                 }
             ]
-        }, 
+        },
         "Drying Site": {
-            "@type": "RelationshipType", 
-            "name": "Drying Site", 
-            "plural_name": "Drying Sites", 
-            "label": "dryer for", 
-            "inverse_label": "dries at", 
-            "description": "", 
+            "@type": "RelationshipType",
+            "name": "Drying Site",
+            "pluralName": "Drying Sites",
+            "description": "A drying site dries herbs for a network.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/dryer", 
-                    "name": "dryer", 
-                    "pluralName": "dryers", 
-                    "relationshipType": "relationshipTypes/Drying Site", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/dryer",
+                    "name": "dryer",
+                    "pluralName": "dryers",
+                    "relationshipType": "relationshipTypes/Drying Site",
+                    "linkType": "linkTypes/dryer-for",
+                    "label": "role 1 label"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/dryer", 
-                    "name": "dries", 
-                    "pluralName": "driess", 
-                    "relationshipType": "relationshipTypes/Drying Site", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/dries",
+                    "name": "dries",
+                    "pluralName": "driess",
+                    "relationshipType": "relationshipTypes/Drying Site",
+                    "linkType": "linkTypes/dries-at",
+                    "label": "role 2 label"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/dryer-for",
+                    "relationshipType": "relationshipTypes/Drying Site",
+                    "source": "roleTypes/dryer",
+                    "target": "roleTypes/dries",
+                    "label": "link 1 label"
+                },
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/dries-at",
+                    "relationshipType": "relationshipTypes/Drying Site",
+                    "source": "roleTypes/dries",
+                    "target": "roleTypes/dryer",
+                    "label": "link 2 label"
                 }
             ]
-        }, 
+        },
         "Supplier": {
-            "@type": "RelationshipType", 
-            "name": "Supplier", 
-            "plural_name": "Suppliers", 
-            "label": "supplier for", 
-            "inverse_label": "supplied by", 
-            "description": "", 
+            "@type": "RelationshipType",
+            "name": "Supplier",
+            "pluralName": "Suppliers",
+            "description": "A supplier for a network.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/supplier", 
-                    "name": "supplier", 
-                    "pluralName": "suppliers", 
-                    "relationshipType": "relationshipTypes/Supplier", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/supplier",
+                    "name": "supplier",
+                    "pluralName": "suppliers",
+                    "relationshipType": "relationshipTypes/Supplier",
+                    "label": "a supplier to {relation}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/supplier", 
-                    "name": "supplied", 
-                    "pluralName": "supplieds", 
-                    "relationshipType": "relationshipTypes/Supplier", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/supplied",
+                    "name": "supplied",
+                    "pluralName": "supplieds",
+                    "relationshipType": "relationshipTypes/Supplier",
+                    "labels": "a customer of {relation}"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/supply",
+                    "relationshipType": "relationshipTypes/Supplier",
+                    "source": "roleTypes/supplier",
+                    "target": "roleTypes/supplied",
+                    "labels": "{source} supplies {target}",
+                    "queryLabels": "{agentType} who supply {target}, {agentType} that supply {target}, {agentType} that are supplied by {source} "
                 }
             ]
-        }, 
+        },
         "Advisor": {
-            "@type": "RelationshipType", 
-            "name": "Advisor", 
-            "plural_name": "Advisors", 
-            "label": "advisor to", 
-            "inverse_label": "advisee of", 
-            "description": "", 
+            "@type": "RelationshipType",
+            "name": "Advisor",
+            "pluralName": "Advisors",
+            "description": "A person advises a network.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/advisor", 
-                    "name": "advisor", 
-                    "pluralName": "advisors", 
-                    "relationshipType": "relationshipTypes/Advisor", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/advisor",
+                    "name": "advisor",
+                    "pluralName": "advisors",
+                    "relationshipType": "relationshipTypes/Advisor",
+                    "labels": "an advisor of {relation}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/advisor", 
-                    "name": "advisee", 
-                    "pluralName": "advisees", 
-                    "relationshipType": "relationshipTypes/Advisor", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/advisee",
+                    "name": "advisee",
+                    "pluralName": "advisees",
+                    "relationshipType": "relationshipTypes/Advisor",
+                    "labels": "an advisee of {relation}"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/advises",
+                    "relationshipType": "relationshipTypes/Advisor",
+                    "source": "roleTypes/advisor",
+                    "target": "roleTypes/advisee",
+                    "labels": "{source} advises {target}",
+                    "queryLabels": "{agentType} who advise {target}, {agentType} who are advised by {source}"
                 }
             ]
-        }, 
-        "Admin": {
-            "@type": "RelationshipType", 
-            "name": "Admin", 
-            "plural_name": "Admins", 
-            "label": "administers", 
-            "inverse_label": "administered by", 
-            "description": "", 
+        },
+        "Admininstration": {
+            "@type": "RelationshipType",
+            "name": "Admin",
+            "pluralName": "Admins",
+            "description": "A person administers a network.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/administers", 
-                    "name": "administers", 
-                    "pluralName": "administerss", 
-                    "relationshipType": "relationshipTypes/Admin", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/administrator",
+                    "name": "administrator",
+                    "pluralName": "administrators",
+                    "relationshipType": "relationshipTypes/Administration",
+                    "labels": "an adminstrator for {context}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/administers", 
-                    "name": "administered", 
-                    "pluralName": "administereds", 
-                    "relationshipType": "relationshipTypes/Admin", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/administered",
+                    "name": "administered",
+                    "pluralName": "administereds",
+                    "relationshipType": "relationshipTypes/Administration",
+                    "label": "an administered group"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/administers",
+                    "relationshipType": "relationshipTypes/Admin",
+                    "source": "roleTypes/administers",
+                    "target": "roleTypes/administered",
+                    "labels": "{source} administers {target}",
+                    "queryLabels": "People who administer {target}, Organisations administered by {source}, People who adminster in {context}"
                 }
             ]
-        }, 
-        "Owner": {
-            "@type": "RelationshipType", 
-            "name": "Owner", 
-            "plural_name": "Owners", 
-            "label": "owner", 
-            "inverse_label": "owned by", 
-            "description": "", 
+        },
+        "Ownership": {
+            "@type": "RelationshipType",
+            "name": "Owner",
+            "pluralName": "Owners",
+            "description": "",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/owner", 
-                    "name": "owner", 
-                    "pluralName": "owners", 
-                    "relationshipType": "relationshipTypes/Owner", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/owner",
+                    "name": "owner",
+                    "pluralName": "owners",
+                    "relationshipType": "relationshipTypes/Owner",
+                    "labels": "an owner of {property}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/owner", 
-                    "name": "owned", 
-                    "pluralName": "owneds", 
-                    "relationshipType": "relationshipTypes/Owner", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/property",
+                    "name": "property",
+                    "pluralName": "property",
+                    "relationshipType": "relationshipTypes/Owner",
+                    "labels": "property of {relation}"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/owns",
+                    "relationshipType": "relationshipTypes/Ownership",
+                    "source": "roleTypes/owner",
+                    "target": "roleTypes/property",
+                    "labels": "{source} owns {target}",
+                    "queryLabels": "People who own {target}, Property owned by {source}"
                 }
             ]
-        }, 
+        },
         "Responsibility": {
-            "@type": "RelationshipType", 
-            "name": "Responsibility", 
-            "plural_name": "Responsibilities", 
-            "label": "responsible for", 
-            "inverse_label": "responsibility", 
-            "description": "", 
+            "@type": "RelationshipType",
+            "name": "Responsibility",
+            "pluralName": "Responsibilities",
+            "description": "A person is responsible for a grower.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/responsible", 
-                    "name": "responsible", 
-                    "pluralName": "responsibles", 
-                    "relationshipType": "relationshipTypes/Responsibility", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/responsible",
+                    "name": "responsible",
+                    "pluralName": "responsibles",
+                    "relationshipType": "relationshipTypes/Responsibility",
+                    "labels": ""
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/responsible", 
-                    "name": "responsibility", 
-                    "pluralName": "responsibilitys", 
-                    "relationshipType": "relationshipTypes/Responsibility", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/responsibility",
+                    "name": "responsibility",
+                    "pluralName": "responsibilitys",
+                    "relationshipType": "relationshipTypes/Responsibility",
+                    "linkType": "linkTypes/responsibility",
+                    "labels": "a responsibility of {relation}"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/take-responsibility-for",
+                    "relationshipType": "relationshipTypes/Responsibility",
+                    "source": "roleTypes/responsible",
+                    "target": "roleTypes/responsibility",
+                    "labels": "{source} takes responsibility for {target}",
+                    "queryLabels": "People who take responsibility for {target}"
                 }
             ]
-        }, 
-        "Member": {
-            "@type": "RelationshipType", 
-            "name": "Member", 
-            "plural_name": "Members", 
-            "label": "member", 
-            "inverse_label": "group", 
-            "description": "", 
+        },
+        "Membership": {
+            "@type": "RelationshipType",
+            "name": "Membership",
+            "pluralName": "Memberships",
+            "description": "An agent is a member of a group.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/member", 
-                    "name": "member", 
-                    "pluralName": "members", 
-                    "relationshipType": "relationshipTypes/Member", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/member",
+                    "name": "member",
+                    "pluralName": "members",
+                    "relationshipType": "relationshipTypes/Member",
+                    "linkType": "linkTypes/member",
+                    "labels": "a member of {relation}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/member", 
-                    "name": "group", 
-                    "pluralName": "groups", 
-                    "relationshipType": "relationshipTypes/Member", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/group",
+                    "name": "group",
+                    "pluralName": "groups",
+                    "relationshipType": "relationshipTypes/Member",
+                    "linkType": "linkTypes/group",
+                    "labels": "a group"
+                }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/is-member-of",
+                    "relationshipType": "relationshipTypes/Member",
+                    "source": "roleTypes/member",
+                    "target": "roleTypes/group",
+                    "labels": "{source} belongs to {target}",
+                    "queryLabels": "People who belong to {target}, Groups to which {source} belongs"
+                },
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/includes",
+                    "inverse": "linkTypes/is-member-of",
+                    "relationshipType": "relationshipTypes/Member",
+                    "source": "roleTypes/group",
+                    "target": "roleTypes/member",
+                    "labels": "{source} includes target",
+                    "queryLabels": "People in {source},Groups that include {target}"
                 }
             ]
-        }, 
-        "Seller": {
-            "@type": "RelationshipType", 
-            "name": "Seller", 
-            "plural_name": "Sellers", 
-            "label": "seller for", 
-            "inverse_label": "consigner to", 
-            "description": "", 
+        },
+        "Sales": {
+            "@type": "RelationshipType",
+            "name": "Sales",
+            "pluralName": "Sales",
+            "description": "A seller exchanges products or services outside the network.",
             "roleTypes": [
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/seller", 
-                    "name": "seller", 
-                    "pluralName": "sellers", 
-                    "relationshipType": "relationshipTypes/Seller", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
-                }, 
+                    "@type": "RoleType",
+                    "id": "roleTypes/seller",
+                    "name": "seller",
+                    "pluralName": "sellers",
+                    "relationshipType": "relationshipTypes/Seller",
+                    "labels": "a seller for {context}"
+                },
                 {
-                    "@type": "RoleType", 
-                    "id": "roleTypes/seller", 
-                    "name": "consigner", 
-                    "pluralName": "consigners", 
-                    "relationshipType": "relationshipTypes/Seller", 
-                    "linkType": "whatever", 
-                    "label": "whatever"
+                    "@type": "RoleType",
+                    "id": "roleTypes/consigner",
+                    "name": "consigner",
+                    "pluralName": "consigners",
+                    "relationshipType": "relationshipTypes/Seller",
+                    "labels": "a consigner of {relation}"
                 }
+            ],
+            "links": [
+                {
+                    "@type": "LinkType",
+                    "id": "linkTypes/sells",
+                    "relationshipType": "relationshipTypes/Seller",
+                    "source": "roleTypes/seller",
+                    "target": "roleTypes/consigner",
+                    "label": "{source} sells to {target}",
+                    "queryLabels": "{agentType} who sell to {target}, {agentType} that {source} sells to"
+                },
             ]
         }
-    }, 
+    },
     "agents": {
         "Lynn Foster": {
-            "@type": "Agent", 
-            "pk": 1, 
-            "id": "Lynn Foster", 
-            "name": "Lynn Foster", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Lynn Foster",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvester",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "people/Lynn-Foster"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvested",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Amy": {
-            "@type": "Agent", 
-            "pk": 131, 
-            "id": "Amy", 
-            "name": "Amy", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Amy",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "people/Amy"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "people/Angie-Bernstein"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvester",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "people/Adrian-White"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvested",
+                            "agent": "people/Amy"
+                        }
+                    ]
+                }
+            ]
+        },
         "Tea for the People": {
-            "@type": "Agent", 
-            "pk": 4, 
-            "id": "Tea for the People", 
-            "name": "Tea for the People", 
-            "type": "agentTypes/Network"
-        }, 
+            "@type": "Group",
+            "name": "Tea for the People",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Child",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/child",
+                            "agent": "groups/Tea-for-the-People"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/parent",
+                            "agent": "groups/WildFarmacy"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "groups/Tea-for-the-People"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Seller",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/seller",
+                            "agent": "groups/Tea-for-the-People"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/consigner",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Supplier",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplier",
+                            "agent": "groups/Tea-for-the-People"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplied",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Admin",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administers",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administered",
+                            "agent": "groups/Tea-for-the-People"
+                        }
+                    ]
+                }
+            ]
+        },
         "Johanna O'Tigham": {
-            "@type": "Agent", 
-            "pk": 5, 
-            "id": "Johanna O'Tigham", 
-            "name": "Johanna O'Tigham", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Johanna O'Tigham",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Admin",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administers",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administered",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Admin",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administers",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administered",
+                            "agent": "groups/Namaste-Lane-Gardens"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Admin",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administers",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administered",
+                            "agent": "groups/Tea-for-the-People"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Admin",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administers",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administered",
+                            "agent": "groups/WildFarmacy"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvester",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvested",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Trainer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/trainer",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/trainee",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Megan Pierce": {
-            "@type": "Agent", 
-            "pk": 6, 
-            "id": "Megan Pierce", 
-            "name": "Megan Pierce", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Megan Pierce",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvester",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "people/Megan-Pierce"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvested",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Owner",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owner",
+                            "agent": "people/Megan-Pierce"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owned",
+                            "agent": "groups/Dancing-Waters-Permaculture-Coop"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Responsibility",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/responsible",
+                            "agent": "people/Megan-Pierce"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/responsibility",
+                            "agent": "groups/Ella-Bella-Farm"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Trainer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/trainer",
+                            "agent": "people/Megan-Pierce"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/trainee",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "WildFarmacy": {
-            "@type": "Agent", 
-            "pk": 7, 
-            "id": "WildFarmacy", 
-            "name": "WildFarmacy", 
-            "type": "agentTypes/Network"
-        }, 
+            "@type": "Group",
+            "name": "WildFarmacy",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Admin",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administers",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administered",
+                            "agent": "groups/WildFarmacy"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Child",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/child",
+                            "agent": "groups/DHEN"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/parent",
+                            "agent": "groups/WildFarmacy"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Child",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/child",
+                            "agent": "groups/Tea-for-the-People"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/parent",
+                            "agent": "groups/WildFarmacy"
+                        }
+                    ]
+                }
+            ]
+        },
         "Namaste Lane Gardens": {
-            "@type": "Agent", 
-            "pk": 8, 
-            "id": "Namaste Lane Gardens", 
-            "name": "Namaste Lane Gardens", 
-            "type": "agentTypes/Organization"
-        }, 
+            "@type": "Group",
+            "name": "Namaste Lane Gardens",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Drying Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/dryer",
+                            "agent": "groups/Namaste-Lane-Gardens"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/dries",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "groups/Namaste-Lane-Gardens"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Storage Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/stores",
+                            "agent": "groups/Namaste-Lane-Gardens"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/storer",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Admin",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administers",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administered",
+                            "agent": "groups/Namaste-Lane-Gardens"
+                        }
+                    ]
+                }
+            ]
+        },
         "Nad Geraldson": {
-            "@type": "Agent", 
-            "pk": 9, 
-            "id": "Nad Geraldson", 
-            "name": "Nad Geraldson", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Nad Geraldson",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvester",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "people/Nad-Geraldson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvested",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "people/Nad-Geraldson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Owner",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owner",
+                            "agent": "people/Nad-Geraldson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owned",
+                            "agent": "groups/Whispering-Winds-PermaFarm"
+                        }
+                    ]
+                }
+            ]
+        },
         "Whispering Winds PermaFarm": {
-            "@type": "Agent", 
-            "pk": 10, 
-            "id": "Whispering Winds PermaFarm", 
-            "name": "Whispering Winds PermaFarm", 
-            "type": "agentTypes/Organization"
-        }, 
+            "@type": "Group",
+            "name": "Whispering Winds PermaFarm",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Drying Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/dryer",
+                            "agent": "groups/Whispering-Winds-PermaFarm"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/dries",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Owner",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owner",
+                            "agent": "people/Nad-Geraldson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owned",
+                            "agent": "groups/Whispering-Winds-PermaFarm"
+                        }
+                    ]
+                }
+            ]
+        },
         "Dancing Waters Permaculture Coop": {
-            "@type": "Agent", 
-            "pk": 11, 
-            "id": "Dancing Waters Permaculture Coop", 
-            "name": "Dancing Waters Permaculture Coop", 
-            "type": "agentTypes/Organization"
-        }, 
+            "@type": "Group",
+            "name": "Dancing Waters Permaculture Coop",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "groups/Dancing-Waters-Permaculture-Coop"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Owner",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owner",
+                            "agent": "people/Megan-Pierce"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owned",
+                            "agent": "groups/Dancing-Waters-Permaculture-Coop"
+                        }
+                    ]
+                }
+            ]
+        },
         "Fizz": {
-            "@type": "Agent", 
-            "pk": 12, 
-            "id": "Fizz", 
-            "name": "Fizzeology", 
-            "type": "agentTypes/Organization"
-        }, 
+            "@type": "Group",
+            "name": "Fizzeology",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Supplier",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplier",
+                            "agent": "groups/Fizz"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplied",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Mary Benson": {
-            "@type": "Agent", 
-            "pk": 13, 
-            "id": "Mary Benson", 
-            "name": "Mary Benson", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Mary Benson",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Owner",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owner",
+                            "agent": "people/Mary-Benson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owned",
+                            "agent": "groups/Ella-Bella-Farm"
+                        }
+                    ]
+                }
+            ]
+        },
         "Ella Bella Farm": {
-            "@type": "Agent", 
-            "pk": 14, 
-            "id": "Ella Bella Farm", 
-            "name": "Ella Bella Farm", 
-            "type": "agentTypes/Organization"
-        }, 
+            "@type": "Group",
+            "name": "Ella Bella Farm",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "groups/Ella-Bella-Farm"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Owner",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owner",
+                            "agent": "people/Mary-Benson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/owned",
+                            "agent": "groups/Ella-Bella-Farm"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Responsibility",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/responsible",
+                            "agent": "people/Megan-Pierce"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/responsibility",
+                            "agent": "groups/Ella-Bella-Farm"
+                        }
+                    ]
+                }
+            ]
+        },
         "KJ Jakobson": {
-            "@type": "Agent", 
-            "pk": 15, 
-            "id": "KJ Jakobson", 
-            "name": "KJ Jakobson", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "KJ Jakobson",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Advisor",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/advisor",
+                            "agent": "people/KJ-Jakobson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/advisee",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "people/KJ-Jakobson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Barb Bitondo": {
-            "@type": "Agent", 
-            "pk": 16, 
-            "id": "Barb Bitondo", 
-            "name": "Barb Bitondo", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Barb Bitondo",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "people/Barb-Bitondo"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Angie Bernstein": {
-            "@type": "Agent", 
-            "pk": 17, 
-            "id": "Angie Bernstein", 
-            "name": "Angie Bernstein", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Angie Bernstein",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "people/Amy"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "people/Angie-Bernstein"
+                        }
+                    ]
+                }
+            ]
+        },
         "DHEN": {
-            "@type": "Agent", 
-            "pk": 3, 
-            "id": "DHEN", 
-            "name": " Driftless Herbal Exchange Network", 
-            "type": "agentTypes/Network"
-        }, 
+            "@type": "Group",
+            "name": " Driftless Herbal Exchange Network",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Child",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/child",
+                            "agent": "groups/DHEN"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/parent",
+                            "agent": "groups/WildFarmacy"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Admin",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administers",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/administered",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Advisor",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/advisor",
+                            "agent": "people/KJ-Jakobson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/advisee",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "people/Barb-Bitondo"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "people/Community-Pharmacy"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "people/LSW"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "groups/Lusa"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "groups/Tea-for-the-People"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Drying Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/dryer",
+                            "agent": "groups/Namaste-Lane-Gardens"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/dries",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Drying Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/dryer",
+                            "agent": "groups/Whispering-Winds-PermaFarm"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/dries",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvester",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvested",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvester",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "people/Lynn-Foster"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvested",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvester",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "people/Megan-Pierce"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvested",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvester",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "people/Nad-Geraldson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvested",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "groups/CHC"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "groups/Dancing-Waters-Permaculture-Coop"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "groups/Ella-Bella-Farm"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "people/Jan-Kenyon-Echo-valley"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "people/KJ-Jakobson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "people/Mark--Heffernan"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "people/Nad-Geraldson"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "groups/Namaste-Lane-Gardens"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Seller",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/seller",
+                            "agent": "people/Fizzeology"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/consigner",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Seller",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/seller",
+                            "agent": "groups/Tea-for-the-People"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/consigner",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Storage Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/stores",
+                            "agent": "groups/Namaste-Lane-Gardens"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/storer",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Supplier",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplier",
+                            "agent": "groups/Fizz"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplied",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Supplier",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplier",
+                            "agent": "groups/Ocooch-Mtn-Elderberries"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplied",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Supplier",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplier",
+                            "agent": "people/Sweet-Springs-Farm"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplied",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Supplier",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplier",
+                            "agent": "groups/Tea-for-the-People"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplied",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Trainer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/trainer",
+                            "agent": "people/Johanna-O'Tigham"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/trainee",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                },
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Trainer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/trainer",
+                            "agent": "people/Megan-Pierce"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/trainee",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Ocooch Mtn Elderberries": {
-            "@type": "Agent", 
-            "pk": 21, 
-            "id": "Ocooch Mtn Elderberries", 
-            "name": "Ocooch Mtn Elderberries", 
-            "type": "agentTypes/Organization"
-        }, 
+            "@type": "Group",
+            "name": "Ocooch Mtn Elderberries",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Supplier",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplier",
+                            "agent": "groups/Ocooch-Mtn-Elderberries"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplied",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Mark  Heffernan": {
-            "@type": "Agent", 
-            "pk": 30, 
-            "id": "Mark  Heffernan", 
-            "name": "Mark  Heffernan", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Mark  Heffernan",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "people/Mark--Heffernan"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Sweet Springs Farm": {
-            "@type": "Agent", 
-            "pk": 42, 
-            "id": "Sweet Springs Farm", 
-            "name": "Sweet Springs Farm", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Sweet Springs Farm",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Supplier",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplier",
+                            "agent": "people/Sweet-Springs-Farm"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/supplied",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Lusa": {
-            "@type": "Agent", 
-            "pk": 45, 
-            "id": "Lusa", 
-            "name": "Lusa", 
-            "type": "agentTypes/Organization"
-        }, 
+            "@type": "Group",
+            "name": "Lusa",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "groups/Lusa"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "CHC": {
-            "@type": "Agent", 
-            "pk": 47, 
-            "id": "CHC", 
-            "name": "Canyon Homestead Cooperative", 
-            "type": "agentTypes/Organization"
-        }, 
+            "@type": "Group",
+            "name": "Canyon Homestead Cooperative",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "groups/CHC"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "LSW": {
-            "@type": "Agent", 
-            "pk": 49, 
-            "id": "LSW", 
-            "name": "Lady Slipper Wellness", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Lady Slipper Wellness",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "people/LSW"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Jan Kenyon Echo valley": {
-            "@type": "Agent", 
-            "pk": 58, 
-            "id": "Jan Kenyon Echo valley", 
-            "name": "Jan Kenyon Echo valley", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Jan Kenyon Echo valley",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvesting Site",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/grower",
+                            "agent": "people/Jan-Kenyon-Echo-valley"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Adrian White": {
-            "@type": "Agent", 
-            "pk": 88, 
-            "id": "Adrian White", 
-            "name": "Adrian White", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Adrian White",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Harvester",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvester",
+                            "agent": "people/Adrian-White"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/harvested",
+                            "agent": "people/Amy"
+                        }
+                    ]
+                }
+            ]
+        },
         "Community Pharmacy": {
-            "@type": "Agent", 
-            "pk": 116, 
-            "id": "Community Pharmacy", 
-            "name": "Community Pharmacy", 
-            "type": "agentTypes/Individual"
-        }, 
+            "@type": "Person",
+            "name": "Community Pharmacy",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Customer",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/customer",
+                            "agent": "people/Community-Pharmacy"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/vendor",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
+        },
         "Fizzeology": {
-            "@type": "Agent", 
-            "pk": 125, 
-            "id": "Fizzeology", 
-            "name": "Fizzeology", 
-            "type": "agentTypes/Individual"
-        }
-    }, 
-    "relationships": {
-        "49": {
-            "@type": "Relationship", 
-            "pk": 49, 
-            "source": "Adrian White", 
-            "target": "Amy", 
-            "type": "relationshipTypes/Harvester"
-        }, 
-        "50": {
-            "@type": "Relationship", 
-            "pk": 50, 
-            "source": "Amy", 
-            "target": "Angie Bernstein", 
-            "type": "relationshipTypes/Customer"
-        }, 
-        "31": {
-            "@type": "Relationship", 
-            "pk": 31, 
-            "source": "Barb Bitondo", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Customer"
-        }, 
-        "40": {
-            "@type": "Relationship", 
-            "pk": 40, 
-            "source": "CHC", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvesting Site"
-        }, 
-        "38": {
-            "@type": "Relationship", 
-            "pk": 38, 
-            "source": "Community Pharmacy", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Customer"
-        }, 
-        "7": {
-            "@type": "Relationship", 
-            "pk": 7, 
-            "source": "DHEN", 
-            "target": "WildFarmacy", 
-            "type": "relationshipTypes/Child"
-        }, 
-        "15": {
-            "@type": "Relationship", 
-            "pk": 15, 
-            "source": "Dancing Waters Permaculture Coop", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvesting Site"
-        }, 
-        "24": {
-            "@type": "Relationship", 
-            "pk": 24, 
-            "source": "Ella Bella Farm", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvesting Site"
-        }, 
-        "18": {
-            "@type": "Relationship", 
-            "pk": 18, 
-            "source": "Fizz", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Supplier"
-        }, 
-        "48": {
-            "@type": "Relationship", 
-            "pk": 48, 
-            "source": "Fizzeology", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Seller"
-        }, 
-        "42": {
-            "@type": "Relationship", 
-            "pk": 42, 
-            "source": "Jan Kenyon Echo valley", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvesting Site"
-        }, 
-        "1": {
-            "@type": "Relationship", 
-            "pk": 1, 
-            "source": "Johanna O'Tigham", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Trainer"
-        }, 
-        "20": {
-            "@type": "Relationship", 
-            "pk": 20, 
-            "source": "Johanna O'Tigham", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Admin"
-        }, 
-        "21": {
-            "@type": "Relationship", 
-            "pk": 21, 
-            "source": "Johanna O'Tigham", 
-            "target": "Tea for the People", 
-            "type": "relationshipTypes/Admin"
-        }, 
-        "22": {
-            "@type": "Relationship", 
-            "pk": 22, 
-            "source": "Johanna O'Tigham", 
-            "target": "WildFarmacy", 
-            "type": "relationshipTypes/Admin"
-        }, 
-        "23": {
-            "@type": "Relationship", 
-            "pk": 23, 
-            "source": "Johanna O'Tigham", 
-            "target": "Namaste Lane Gardens", 
-            "type": "relationshipTypes/Admin"
-        }, 
-        "43": {
-            "@type": "Relationship", 
-            "pk": 43, 
-            "source": "Johanna O'Tigham", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvesting Site"
-        }, 
-        "46": {
-            "@type": "Relationship", 
-            "pk": 46, 
-            "source": "Johanna O'Tigham", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvester"
-        }, 
-        "29": {
-            "@type": "Relationship", 
-            "pk": 29, 
-            "source": "KJ Jakobson", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvesting Site"
-        }, 
-        "30": {
-            "@type": "Relationship", 
-            "pk": 30, 
-            "source": "KJ Jakobson", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Advisor"
-        }, 
-        "35": {
-            "@type": "Relationship", 
-            "pk": 35, 
-            "source": "LSW", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Customer"
-        }, 
-        "32": {
-            "@type": "Relationship", 
-            "pk": 32, 
-            "source": "Lusa", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Customer"
-        }, 
-        "45": {
-            "@type": "Relationship", 
-            "pk": 45, 
-            "source": "Lynn Foster", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvester"
-        }, 
-        "44": {
-            "@type": "Relationship", 
-            "pk": 44, 
-            "source": "Mark  Heffernan", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvesting Site"
-        }, 
-        "25": {
-            "@type": "Relationship", 
-            "pk": 25, 
-            "source": "Mary Benson", 
-            "target": "Ella Bella Farm", 
-            "type": "relationshipTypes/Owner"
-        }, 
-        "16": {
-            "@type": "Relationship", 
-            "pk": 16, 
-            "source": "Megan Pierce", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Trainer"
-        }, 
-        "17": {
-            "@type": "Relationship", 
-            "pk": 17, 
-            "source": "Megan Pierce", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvester"
-        }, 
-        "26": {
-            "@type": "Relationship", 
-            "pk": 26, 
-            "source": "Megan Pierce", 
-            "target": "Dancing Waters Permaculture Coop", 
-            "type": "relationshipTypes/Owner"
-        }, 
-        "27": {
-            "@type": "Relationship", 
-            "pk": 27, 
-            "source": "Megan Pierce", 
-            "target": "Ella Bella Farm", 
-            "type": "relationshipTypes/Responsibility"
-        }, 
-        "9": {
-            "@type": "Relationship", 
-            "pk": 9, 
-            "source": "Nad Geraldson", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvester"
-        }, 
-        "10": {
-            "@type": "Relationship", 
-            "pk": 10, 
-            "source": "Nad Geraldson", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvesting Site"
-        }, 
-        "28": {
-            "@type": "Relationship", 
-            "pk": 28, 
-            "source": "Nad Geraldson", 
-            "target": "Whispering Winds PermaFarm", 
-            "type": "relationshipTypes/Owner"
-        }, 
-        "12": {
-            "@type": "Relationship", 
-            "pk": 12, 
-            "source": "Namaste Lane Gardens", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Harvesting Site"
-        }, 
-        "13": {
-            "@type": "Relationship", 
-            "pk": 13, 
-            "source": "Namaste Lane Gardens", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Storage Site"
-        }, 
-        "14": {
-            "@type": "Relationship", 
-            "pk": 14, 
-            "source": "Namaste Lane Gardens", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Drying Site"
-        }, 
-        "36": {
-            "@type": "Relationship", 
-            "pk": 36, 
-            "source": "Ocooch Mtn Elderberries", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Supplier"
-        }, 
-        "37": {
-            "@type": "Relationship", 
-            "pk": 37, 
-            "source": "Sweet Springs Farm", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Supplier"
-        }, 
-        "6": {
-            "@type": "Relationship", 
-            "pk": 6, 
-            "source": "Tea for the People", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Customer"
-        }, 
-        "8": {
-            "@type": "Relationship", 
-            "pk": 8, 
-            "source": "Tea for the People", 
-            "target": "WildFarmacy", 
-            "type": "relationshipTypes/Child"
-        }, 
-        "19": {
-            "@type": "Relationship", 
-            "pk": 19, 
-            "source": "Tea for the People", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Supplier"
-        }, 
-        "47": {
-            "@type": "Relationship", 
-            "pk": 47, 
-            "source": "Tea for the People", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Seller"
-        }, 
-        "34": {
-            "@type": "Relationship", 
-            "pk": 34, 
-            "source": "Whispering Winds PermaFarm", 
-            "target": "DHEN", 
-            "type": "relationshipTypes/Drying Site"
+            "@type": "Person",
+            "name": "Fizzeology",
+            "relationships": [
+                {
+                    "@type": "Relationship",
+                    "type": "relationshipTypes/Seller",
+                    "roles": [
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/seller",
+                            "agent": "people/Fizzeology"
+                        },
+                        {
+                            "@type": "Role",
+                            "type": "roleTypes/consigner",
+                            "agent": "groups/DHEN"
+                        }
+                    ]
+                }
+            ]
         }
     }
 }

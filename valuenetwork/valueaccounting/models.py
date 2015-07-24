@@ -476,8 +476,9 @@ class EconomicAgent(models.Model):
         return [ptrt.resource_type for ptrt in self.consumed_and_used_resource_type_relationships()]
         
     def orders(self):
+        #import pdb; pdb.set_trace()
         ps = self.processes.all()
-        oset = {p.independent_demand() for p in ps if p.commitments.all()}
+        oset = {p.independent_demand() for p in ps if p.independent_demand()}
         return list(oset)
         
     def active_orders(self):

@@ -9495,7 +9495,8 @@ class ValueEquationBucket(models.Model):
             for proc in processes:
                 order_item = None
                 qty = sum(pe.quantity for pe in proc.production_events())
-                #qty = Decimal("1.0")
+                if not qty:
+                    qty = Decimal("1.0")
                 proc_events = []
                 #visited = set()
                 proc.compute_income_shares(ve, order_item, qty, proc_events, visited)

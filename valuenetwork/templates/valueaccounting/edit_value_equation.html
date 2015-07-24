@@ -131,7 +131,7 @@ th
            <div class="span7 ve">
 
                 <span class="name">{{ value_equation }}</span>
-                {% if user = ve.created_by or user.is_superuser %}
+                {% if user == value_equation.created_by or user.is_superuser %}
                     <div style="display: inline;" >
                         <a href="#change-ve" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Change" %}</a>
                     </div>
@@ -185,7 +185,7 @@ th
                         <button style="display: inline;"  class="btn btn-info btn-mini" title="Test this value equation" >Value Equation Sandbox</button>
                     </form>
 {% endcomment %}
-                    {% if user = value_equation.created_by or user.is_superuser %}
+                    {% if user.is_superuser %}
                     <form
                         style="display: inline;" 
                         class="indent" 

@@ -1396,7 +1396,7 @@ class AgentSummary(object):
         self.percentage=percentage
         self.amount=amount
 
-
+#obsolete
 def value_equation(request, project_id):
     #import pdb; pdb.set_trace()
     project = get_object_or_404(EconomicAgent, pk=project_id)    

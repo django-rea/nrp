@@ -10093,7 +10093,7 @@ def edit_value_equation(request, value_equation_id=None):
     value_equation = None
     value_equation_bucket_form = None
     if value_equation_id:
-        value_equation = ValueEquation.objects.get(id=value_equation_id)
+        value_equation = get_object_or_404(ValueEquation, id=value_equation_id)
         value_equation_form = ValueEquationForm(instance=value_equation)
         value_equation_bucket_form = ValueEquationBucketForm()
     else:

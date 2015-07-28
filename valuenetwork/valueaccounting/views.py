@@ -9683,11 +9683,18 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             resource = data["resource"]
             crs = data["cash_receipts"]
             inds = data["input_distributions"]
+            partial = data["partial_distribution"]
             if crs:
                 resource = crs[0].resource
                 amount = 0
-                for cr in crs:
-                    amount += cr.quantity
+                if len(crs) == 1:
+                    if partial:
+                        amount= partial
+                    else:
+                        amount = crs[0].quantity
+                else:
+                    for cr in crs:
+                        amount += cr.quantity
             if inds:
                 resource = inds[0].resource
                 amount = 0
@@ -9730,10 +9737,15 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                 
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/exchange', exchange.id))
+            
     else:
         ves = context_agent.live_value_equations()
         init = { "start_date": datetime.date.today(), "value_equation": ve }
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=False, initial=init)
+        crs = context_agent.undistributed_cash_receipts()
+        cash_receipts = {}
+        for cr in crs:
+            cash_receipts[cr.id] = float(cr.undistributed_amount())
         if ves:
             if not ve:
                 ve = ves[0]
@@ -9743,7 +9755,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                     bucket.form = bucket.filter_entry_form()
       
     return render_to_response("valueaccounting/create_distribution_using_value_equation.html", {
-        #"cash_receipts": cash_receipts,
+        "cashReceipts": cash_receipts,
         "header_form": header_form,
         "buckets": buckets,
         "ve": ve,

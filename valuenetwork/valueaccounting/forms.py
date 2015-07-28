@@ -21,6 +21,11 @@ class AgentModelChoiceField(forms.ModelChoiceField):
         return obj.name
 
         
+class CashReceiptModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return obj.undistributed_description()
+
+        
 class WorkModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         if obj.description:
@@ -3119,7 +3124,8 @@ class DistributionValueEquationForm(forms.Form):
         empty_label=None, 
         widget=forms.Select(
             attrs={'class': 've-selector'}))
-    cash_receipts = forms.ModelMultipleChoiceField(
+    #todo: partial - needs a custom ModelMultipleChoiceField showing the undistributed_amount
+    cash_receipts = CashReceiptModelMultipleChoiceField(
         required=False,
         queryset=EconomicEvent.objects.all(),
         label=_("Select one or more Cash Receipts OR enter amount to distribute and account"),
@@ -3131,6 +3137,9 @@ class DistributionValueEquationForm(forms.Form):
         widget=forms.SelectMultiple(attrs={'class': 'cash chzn-select input-xxlarge'}))
     money_to_distribute = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money'}))
+    partial_distribution = forms.DecimalField(required=False,
+        help_text = _("if you selected only one cash receipt or distribution, you may distribute only part of it"),
+        widget=forms.TextInput(attrs={'value': '', 'class': 'partial'}))
     resource = forms.ModelChoiceField(
         queryset=EconomicResource.objects.all(), 
         label="Cash resource account",

@@ -8201,6 +8201,32 @@ class EconomicEvent(models.Model):
             resource_string,
         ])
         
+    def undistributed_description(self):
+        if self.unit_of_quantity:
+            quantity_string = " ".join([str(self.undistributed_amount()), self.unit_of_quantity.abbrev])
+        else:
+            quantity_string = str(self.undistributed_amount())
+        from_agt = 'Unassigned'
+        if self.from_agent:
+            from_agt = self.from_agent.name
+        to_agt = 'Unassigned'
+        if self.recipient():
+            to_agt = self.recipient().name
+        resource_string = self.resource_type.name
+        if self.resource:
+            resource_string = str(self.resource)
+        return ' '.join([
+            self.event_type.name,
+            self.event_date.strftime('%Y-%m-%d'),
+            'from',
+            from_agt,
+            'to',
+            to_agt,
+            quantity_string,
+            resource_string,
+        ])
+        
+        
     def save(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
         from_agt = 'Unassigned'
@@ -8627,17 +8653,32 @@ class EconomicEvent(models.Model):
         claim.claim_event = claim_event
         claim.new = True
         return claim  
-    
-    def is_undistributed(self):
-        #import pdb; pdb.set_trace()
+        
+    def undistributed_amount(self):
+        #todo: partial
         et_cr = EventType.objects.get(name="Cash Receipt")
         et_id = EventType.objects.get(name="Distribution")
         if self.event_type == et_cr or self.event_type == et_id:
-            crds = self.distributions.all()
-            if crds:
-                return False
-            else:
-                return True
+            crd_amounts = sum(d.quantity for d in self.distributions.all())
+            return self.quantity - crd_amounts
+        else:
+            return Decimal("0.0")
+    
+    def is_undistributed(self):
+        #import pdb; pdb.set_trace()
+        #todo: partial
+        #et_cr = EventType.objects.get(name="Cash Receipt")
+        #et_id = EventType.objects.get(name="Distribution")
+        #if self.event_type == et_cr or self.event_type == et_id:
+        #    crds = self.distributions.all()
+        #    if crds:
+        #        return False
+        #    else:
+        #        return True
+        #else:
+        #    return False
+        if self.undistributed_amount():
+            return True
         else:
             return False
             
@@ -9107,15 +9148,27 @@ class ValueEquation(models.Model):
         money_resource.quantity -= amount_to_distribute
         money_resource.save()
         if cash_receipts:
-            for cr in cash_receipts:
+            #import pdb; pdb.set_trace()
+            if len(cash_receipts) == 1:
+                cr = cash_receipts[0]
                 crd = IncomeEventDistribution(
                     distribution_date=exchange.start_date,
                     income_event=cr,
                     distribution=exchange,
-                    quantity=cr.quantity,
+                    quantity=amount_to_distribute,
                     unit_of_quantity=cr.unit_of_quantity,
                 )
                 crd.save()
+            else:
+                for cr in cash_receipts:
+                    crd = IncomeEventDistribution(
+                        distribution_date=exchange.start_date,
+                        income_event=cr,
+                        distribution=exchange,
+                        quantity=cr.quantity,
+                        unit_of_quantity=cr.unit_of_quantity,
+                    )
+                    crd.save()
         if input_distributions:
             for ind in input_distributions:
                 ied = IncomeEventDistribution(

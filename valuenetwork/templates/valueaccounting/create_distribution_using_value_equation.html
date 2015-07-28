@@ -396,8 +396,14 @@ td {
         if (count == 0)
         {
             $("#sourceDist").show();
+            $("#cashRcpt").show();
             $("#or1").show();
             count=$("#id_input_distributions :selected").length;
+            if (count)
+            {
+                $("#cashRcpt").hide();
+                $("#or1").hide();
+            }
         }
         if (count != 0) {
             $("#id_money_to_distribute").val('0.0');

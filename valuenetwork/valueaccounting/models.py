@@ -6167,6 +6167,7 @@ class Process(models.Model):
                             if br:
                                 #import pdb; pdb.set_trace()
                                 value = br.compute_claim_value(ip)
+                                ip.value = value
                             ip.share = value * distro_fraction
                             events.append(ip)
                             #print ip.id, ip, ip.share

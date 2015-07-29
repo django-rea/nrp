@@ -4228,6 +4228,7 @@ class EconomicResource(models.Model):
                                 if br:
                                     #import pdb; pdb.set_trace()
                                     value = br.compute_claim_value(ip)
+                                    ip.value = value
                                 ip.share = value * distro_fraction
                                 events.append(ip)
                                 #print ip.id, ip, ip.share
@@ -4361,6 +4362,7 @@ class EconomicResource(models.Model):
                                 br = ip.bucket_rule(value_equation)
                                 if br:
                                     value = br.compute_claim_value(ip)
+                                    ip.value = value
                                 #todo 3d: changed
                                 #import pdb; pdb.set_trace()
                                 fraction = ip.value / resource_value

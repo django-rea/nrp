@@ -10039,8 +10039,10 @@ def value_equation_sandbox(request, value_equation_id=None):
                 try:
                     sub.distr_amt += d.distr_amt
                 except AttributeError:
-                    #import pdb; pdb.set_trace()
                     continue
+                sub.rate = 0
+                if sub.distr_amt and sub.quantity:
+                    sub.rate = (sub.distr_amt / sub.quantity).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
             #import pdb; pdb.set_trace()
             agent_subtotals = agent_subtotals.values()
             agent_subtotals = sorted(agent_subtotals, key=methodcaller('key'))

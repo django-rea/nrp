@@ -186,16 +186,18 @@ img {
                             <th>{% trans "Filter" %}</th>
                             <th style="text-align: right;">{% trans "Qty" %}</th>
                             <th style="text-align: right;">{% trans "Value Added" %}</th>
-                            <th style="text-align: right;">{% trans "Distribution Amount" %}</th>
+                            <th style="text-align: right;">{% trans "Distr Amount" %}</th>
+                            <th style="text-align: right;">{% trans "Rate" %}</th>
                         </thead>
                         <tbody> 
                             {% for sub in agent_subtotals %}
                                 <tr class="{% cycle 'odd' 'even' %}">
-                                    <td>{{ sub.agent.name }}</td>
+                                    <td>{{ sub.agent.nick }}</td>
                                     <td>{{ sub.bucket_rule.filter }}</td>
                                     <td style="text-align: right;" >{{ sub.quantity }}</td>
                                     <td style="text-align: right;" >{{ sub.value }}</td>
                                     <td style="text-align: right;" >{{ sub.distr_amt }}</td>
+                                    <td style="text-align: right;" >{{ sub.rate }}</td>
                                 </tr>
                             {% endfor %}
                         <tbody> 

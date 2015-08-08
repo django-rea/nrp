@@ -3154,7 +3154,8 @@ class Order(models.Model):
         cts = Commitment.objects.filter(independent_demand=self)
         processes = set()
         for ct in cts:
-            processes.add(ct.process)
+            if ct.process:
+                processes.add(ct.process)
         return processes
         
     def all_dependent_commitments(self):
@@ -3177,6 +3178,7 @@ class Order(models.Model):
             return None
             
     def first_process_in_order(self):
+        #import pdb; pdb.set_trace()
         processes = list(self.unordered_processes())
         if processes:
             first = processes[0]

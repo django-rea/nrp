@@ -1642,7 +1642,7 @@ class EconomicResourceType(models.Model):
         return ProcessType.objects.filter(id__in=ids)
         
     def staged_commitment_type_sequence(self):
-        #import pdb; pdb.set_trace()
+        #ximport pdb; pdb.set_trace()
         #pr changed
         staged_commitments = self.process_types.filter(stage__isnull=False)
         parent = None
@@ -1730,6 +1730,7 @@ class EconomicResourceType(models.Model):
         return chain, inheritance
         
     def staged_process_type_sequence(self):
+        #ximport pdb; pdb.set_trace()
         #pr changed
         pts = []
         stages, inheritance = self.staged_commitment_type_sequence()
@@ -3484,6 +3485,7 @@ class ProcessType(models.Model):
         return ProcessTypeInputForm(process_type=self, prefix=self.xbill_input_prefix())
 
     def xbill_consumable_form(self):
+        #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import ProcessTypeConsumableForm
         return ProcessTypeConsumableForm(process_type=self, prefix=self.xbill_consumable_prefix())
 
@@ -5052,20 +5054,22 @@ class ProcessTypeResourceType(models.Model):
         return self.event_type.is_change_related()
         
     def follow_stage_chain(self, chain):
+        #import pdb; pdb.set_trace()
         if self.event_type.is_change_related():
-            chain.append(self)
-            if self.event_type.relationship == "out":
-                next_in_chain = ProcessTypeResourceType.objects.filter(
-                    resource_type=self.resource_type,
-                    stage=self.stage,
-                    event_type__resource_effect=">~")
-            if self.event_type.relationship == "in":
-                next_in_chain = ProcessTypeResourceType.objects.filter(
-                    resource_type=self.resource_type,
-                    stage=self.process_type,
-                    event_type__resource_effect="~>")
-            if next_in_chain:
-                next_in_chain[0].follow_stage_chain(chain)
+            if self not in chain:
+                chain.append(self)
+                if self.event_type.relationship == "out":
+                    next_in_chain = ProcessTypeResourceType.objects.filter(
+                        resource_type=self.resource_type,
+                        stage=self.stage,
+                        event_type__resource_effect=">~")
+                if self.event_type.relationship == "in":
+                    next_in_chain = ProcessTypeResourceType.objects.filter(
+                        resource_type=self.resource_type,
+                        stage=self.process_type,
+                        event_type__resource_effect="~>")
+                if next_in_chain:
+                    next_in_chain[0].follow_stage_chain(chain)
                 
     def follow_stage_chain_beyond_workflow(self, chain):
         #import pdb; pdb.set_trace()

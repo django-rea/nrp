@@ -2289,6 +2289,7 @@ def create_process_type_for_streaming(request, resource_type_id, process_type_id
         else:
             prefix = rt.process_create_prefix()
         form = RecipeProcessTypeForm(request.POST, prefix=prefix)
+        #import pdb; pdb.set_trace()
         if form.is_valid():
             data = form.cleaned_data
             pt = form.save(commit=False)

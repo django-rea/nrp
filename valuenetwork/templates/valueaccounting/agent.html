@@ -184,7 +184,7 @@
 	                {% if agent.description %}
 	                    <tr>
 	                        <th style="text-align: right;">{% trans "Description" %}</th>
-	                        <td>{{ agent.description }}</td>
+	                        <td>{{ agent.description|urlize|linebreaks }}</td>
                         </tr>
                     {% endif %}
                     {% if user_agent %}

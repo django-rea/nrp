@@ -6314,10 +6314,17 @@ class ExchangeManager(models.Manager):
         both.sort(lambda x, y: cmp(y.start_date, x.start_date))
         return both
         
+    #obsolete
     def sales_and_distributions(self):
         return Exchange.objects.filter(
             Q(use_case__identifier="sale")|
             Q(use_case__identifier="distribution"))
+              
+    def demand_exchanges(self):
+        return Exchange.objects.filter(use_case__identifier="demand_xfer")
+              
+    def distributions(self):
+        return Exchange.objects.filter(use_case__identifier="distribution")
             
     def material_contributions(self):
         return Exchange.objects.filter(use_case__identifier="res_contr")

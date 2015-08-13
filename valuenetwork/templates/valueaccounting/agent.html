@@ -89,16 +89,17 @@
                 <a href="#createUserForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create User" %}</a>
             {% endif %}
 	        
-	        {% if agent.is_individual %}
+	    {% if agent.is_individual %}
                 <a class="indent" href="{% url contribution_history agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
             {% else %}
                 <a class="indent" href="{% url contributions project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
-	        {% endif %}
+	    {% endif %}
             {% if agent.is_context_agent %}
+		<a class="indent" href="{% url distributions agent_id=agent.id %}">{% trans "Distributions" %}</a>
                 <a class="indent" href="{% url orders agent_id=agent.id %}">{% trans "Active Orders" %} </a>
                 <a class="indent" href="{% url value_equation project_id=agent.id %}">{% trans "Value Equation" %} </a>
             {% endif %}
-	        <a class="indent" href="{% url radial_graph agent_id=agent.id %}">{% trans "Association Graph" %}</a>
+	    <a class="indent" href="{% url radial_graph agent_id=agent.id %}">{% trans "Association Graph" %}</a>
             <a class="indent" href="{% url agent_associations agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
             <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>
 

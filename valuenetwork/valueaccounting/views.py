@@ -5422,6 +5422,9 @@ def delete_exchange(request, exchange_id):
         if next == "material_contributions":
             return HttpResponseRedirect('/%s/'
                 % ('accounting/material-contributions'))
+        if next == "distributions":
+            return HttpResponseRedirect('/%s/'
+                % ('accounting/distributions'))
 
 
 @login_required
@@ -9140,9 +9143,8 @@ def sales_and_distributions(request, agent_id=None):
     start = datetime.date(today.year, 1, 1)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
-    et_cash_receipt = EventType.objects.get(name="Cash Receipt")
-    et_shipment = EventType.objects.get(name="Shipment")   
-    et_distribution = EventType.objects.get(name="Distribution")   
+    et_transfer = EventType.objects.get(name="Transfer")
+    et_rec_transfer = EventType.objects.get(name="Reciprocal Transfer")  
     references = AccountingReference.objects.all()
     event_ids = ""
     select_all = True
@@ -9153,9 +9155,9 @@ def sales_and_distributions(request, agent_id=None):
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
-            exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end])
+            exchanges = Exchange.objects.demand_exchanges().filter(start_date__range=[start, end])
         else:
-            exchanges = Exchange.objects.sales_and_distributions()
+            exchanges = Exchange.objects.demand_exchanges()
         if agent_id:
             exchanges = exchanges.filter(context_agent=agent)
         selected_values = request.POST["categories"]
@@ -9182,13 +9184,12 @@ def sales_and_distributions(request, agent_id=None):
                 exchanges = exchanges_included
     else:
         if agent_id:
-            exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end]).filter(context_agent=agent)
+            exchanges = Exchange.objects.demand_exchanges().filter(start_date__range=[start, end]).filter(context_agent=agent)
         else:
-            exchanges = Exchange.objects.sales_and_distributions().filter(start_date__range=[start, end])
+            exchanges = Exchange.objects.demand_exchanges().filter(start_date__range=[start, end])
 
     total_cash_receipts = 0
     total_shipments = 0
-    total_distributions = 0
     comma = ""
     #import pdb; pdb.set_trace()
     for x in exchanges:
@@ -9197,12 +9198,10 @@ def sales_and_distributions(request, agent_id=None):
         except AttributeError:
             x.event_list = x.events.all()
         for event in x.event_list:
-            if event.event_type == et_cash_receipt:
+            if event.event_type == et_rec_transfer:
                 total_cash_receipts = total_cash_receipts + event.quantity
-            elif event.event_type == et_shipment:
+            elif event.event_type == et_transfer:
                 total_shipments = total_shipments + event.value
-            elif event.event_type == et_distribution:
-                total_distributions = total_distributions + event.quantity
             event_ids = event_ids + comma + str(event.id)
             comma = ","
     #import pdb; pdb.set_trace()
@@ -9212,7 +9211,6 @@ def sales_and_distributions(request, agent_id=None):
         "dt_selection_form": dt_selection_form,
         "total_cash_receipts": total_cash_receipts,
         "total_shipments": total_shipments,
-        "total_distributions": total_distributions,
         "select_all": select_all,
         "selected_values": selected_values,
         "references": references,
@@ -9220,6 +9218,55 @@ def sales_and_distributions(request, agent_id=None):
         "agent": agent,
     }, context_instance=RequestContext(request))
 
+def distributions(request, agent_id=None):
+    #import pdb; pdb.set_trace()
+    agent = None
+    if agent_id:
+        agent = get_object_or_404(EconomicAgent, id=agent_id)
+    today = datetime.date.today()
+    end =  today + datetime.timedelta(days=5)
+    start = datetime.date(today.year, 1, 1)
+    init = {"start_date": start, "end_date": end}
+    dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
+    et_distribution = EventType.objects.get(name="Distribution")
+    event_ids = ""
+    exchanges = Exchange.objects.distributions().filter(start_date__range=[start, end]) 
+    if agent_id:
+	exchanges = exchanges.filter(context_agent=agent)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        dt_selection_form = DateSelectionForm(data=request.POST)
+        if dt_selection_form.is_valid():
+            start = dt_selection_form.cleaned_data["start_date"]
+            end = dt_selection_form.cleaned_data["end_date"]
+            exchanges = Exchange.objects.distributions().filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.distributions()
+        if agent_id:
+            exchanges = exchanges.filter(context_agent=agent)
+
+    total_distributions = 0
+    comma = ""
+    #import pdb; pdb.set_trace()
+    for x in exchanges:
+        try:
+            xx = x.event_list
+        except AttributeError:
+            x.event_list = x.events.all()
+        for event in x.event_list:
+            total_distributions = total_distributions + event.quantity
+            event_ids = event_ids + comma + str(event.id)
+            comma = ","
+    #import pdb; pdb.set_trace()
+
+    return render_to_response("valueaccounting/distributions.html", {
+        "exchanges": exchanges,
+        "dt_selection_form": dt_selection_form,
+        "total_distributions": total_distributions,
+        "event_ids": event_ids,
+        "agent": agent,
+    }, context_instance=RequestContext(request))
+  
 @login_required    
 def exchange_events_csv(request):
     #import pdb; pdb.set_trace()

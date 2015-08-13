@@ -2723,6 +2723,9 @@ def create_use_cases(app, **kwargs):
     UseCase.create('payout', _('Payout'), True)
     UseCase.create('transfer', _('Transfer'))
     UseCase.create('available', _('Make Available'), True)
+    UseCase.create('intrnl_xfer', _('Internal Transfer'))
+    UseCase.create('supply_xfer', _('Supply Transfer'))
+    UseCase.create('demand_xfer', _('Demand Transfer'))
     print "created use cases"
 
 post_migrate.connect(create_use_cases)
@@ -2849,6 +2852,15 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('transfer', 'Transfer')
     UseCaseEventType.create('transfer', 'Reciprocal Transfer')
     UseCaseEventType.create('available', 'Make Available')
+    UseCaseEventType.create('intrnl_xfer', 'Transfer')
+    UseCaseEventType.create('intrnl_xfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('intrnl_xfer', 'Time Contribution')
+    UseCaseEventType.create('supply_xfer', 'Transfer')
+    UseCaseEventType.create('supply_xfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('supply_xfer', 'Time Contribution')
+    UseCaseEventType.create('demand_xfer', 'Transfer')
+    UseCaseEventType.create('demand_xfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('demand_xfer', 'Time Contribution')
 
     print "created use case event type associations"
 
@@ -6224,8 +6236,16 @@ class ExchangeTypeManager(models.Manager):
     
     def sale_exchange_types(self):
         return ExchangeType.objects.filter(use_case__identifier='sale')
-
-# fiscal sponsorship - sponsor (temp note)
+      
+    def internal_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='intrnl_xfer')
+      
+    def supply_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='supply_xfer')
+      
+    def demand_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
+      
 class ExchangeType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     use_case = models.ForeignKey(UseCase,
@@ -6258,6 +6278,21 @@ class ExchangeType(models.Model):
     def save(self, *args, **kwargs):
         unique_slugify(self, self.name)
         super(ExchangeType, self).save(*args, **kwargs)   
+        
+class ExchangeTypeEventType(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    exchange_type = models.ForeignKey(ExchangeType,
+        verbose_name=_('exchange type'), related_name='exchange_type_event_types')
+    event_type = models.ForeignKey(EventType,
+        verbose_name=_('event type'), related_name='exchange_type_event_types')
+    description = models.TextField(_('description'), blank=True, null=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='exchange_type_event_types_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='exchange_type_event_types_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+        
 
 class ExchangeManager(models.Manager):
 

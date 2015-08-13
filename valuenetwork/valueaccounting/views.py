@@ -9731,10 +9731,8 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                 money_resource=resource, 
                 amount_to_distribute=amount, 
                 serialized_filters=serialized_filters)
-            #for event in exchange.distribution_events():
-            #    send_distribution_notification(event)
-            #todo: turned off for testing in valdev
-            
+            for event in exchange.distribution_events():
+                send_distribution_notification(event)
                 
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/exchange', exchange.id))

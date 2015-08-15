@@ -6,7 +6,8 @@
 {% block head_title %}{% trans "Locations" %}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+<link href='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
 <style>
 
 </style>
@@ -53,8 +54,9 @@
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-	<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
-    <script src="http://www.mapquestapi.com/sdk/leaflet/v1.0/mq-map.js?key=Fmjtd%7Cluur2lut2d%2Crl%3Do5-9a72uu"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+   
+    <script src='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
 
 {% endblock %}
 
@@ -72,12 +74,19 @@
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
-/*
-	    map = L.map('map', {
-            layers: MQ.mapLayer(),
-            center: [ {{ latitude }},{{ longitude }} ],
-            zoom: {{ zoom }}
-        });
+        
+        L.mapbox.accessToken = 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg';
+
+        var map = L.map('map')
+            .setView([{{ latitude }},{{ longitude }}], {{ zoom }})
+            .addControl(L.mapbox.geocoderControl('mapbox.places'));
+        
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+            maxZoom: 18,
+            id: 'bhaugen.3f30d361',
+            accessToken: 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg'
+        }).addTo(map);
 
 
         {% for loc in locations %}
@@ -97,11 +106,11 @@
             {% endif %}
         {% endfor %}
 
-*/
+
 
 	}); // end document.ready
 
      
     </script>
-
+/*
 {% endblock %}

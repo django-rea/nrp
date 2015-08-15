@@ -97,7 +97,9 @@
             {% if agent.is_context_agent %}
 		<a class="indent" href="{% url distributions agent_id=agent.id %}">{% trans "Distributions" %}</a>
                 <a class="indent" href="{% url orders agent_id=agent.id %}">{% trans "Active Orders" %} </a>
+{% comment %}
                 <a class="indent" href="{% url value_equation project_id=agent.id %}">{% trans "Value Equation" %} </a>
+{% endcomment %}
             {% endif %}
 	    <a class="indent" href="{% url radial_graph agent_id=agent.id %}">{% trans "Association Graph" %}</a>
             <a class="indent" href="{% url agent_associations agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>

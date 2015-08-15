@@ -605,8 +605,11 @@ class EconomicAgent(models.Model):
                 answer.append(aa)
         return answer
         
-    def sales_and_distributions_count(self):
-        return Exchange.objects.sales_and_distributions().filter(context_agent=self).count()
+    def distributions_count(self):
+        return Exchange.objects.distributions().filter(context_agent=self).count()
+              
+    def demand_exchange_count(self):
+        return Exchange.objects.demand_exchanges().filter(context_agent=self).count()
                
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
@@ -1131,7 +1134,7 @@ DIRECTION_CHOICES = (
     ('shipment', _('shipment')),
     ('distribute', _('distribution')),
     ('adjust', _('adjust')),
-    ('payexpense', _('expense payment')),
+    #('payexpense', _('expense payment')),
     ('disburse', _('disburses cash')),
 )
 
@@ -1139,6 +1142,7 @@ RELATED_CHOICES = (
     ('process', _('process')),
     ('agent', _('agent')), #not used logically as an event type, rather for agent - resource type relationships
     ('exchange', _('exchange')),
+    ('distribution', _('distribution')),
 )
 
 RESOURCE_EFFECT_CHOICES = (
@@ -2757,16 +2761,16 @@ def create_event_types(app, **kwargs):
     EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
     EventType.create('Adjust Quantity', _('adjusts'), 'adjusted', 'adjust', 'agent', '+-', 'quantity')
     EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
-    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '+', 'value')
-    EventType.create('Cash Disbursement', _('disburses cash'), _('disbursed by'), 'disburse', 'exchange', '-', 'value')
+    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'distribution', '+', 'value')
+    EventType.create('Cash Disbursement', _('disburses cash'), _('disbursed by'), 'disburse', 'distribution', '-', 'value')
     EventType.create('Payout', _('pays out'), _('paid by'), 'payout', 'agent', '-', 'value')
     EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
     #the following is for fees, taxes, other extraneous charges not involved in a value equation
     EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
     #the following is for xfers within the network for now; may become more universal later
-    EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '+-', 'quantity')
-    EventType.create('Reciprocal Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '+-', 'quantity')
-    EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'exchange', '+', 'quantity')
+    EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', 'x', 'quantity')
+    EventType.create('Reciprocal Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', 'x', 'quantity')
+    EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'agent', '+', 'quantity')
     #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
 
     print "created event types"
@@ -2855,12 +2859,15 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('intrnl_xfer', 'Transfer')
     UseCaseEventType.create('intrnl_xfer', 'Reciprocal Transfer')
     UseCaseEventType.create('intrnl_xfer', 'Time Contribution')
+    UseCaseEventType.create('intrnl_xfer', 'Fee')
     UseCaseEventType.create('supply_xfer', 'Transfer')
     UseCaseEventType.create('supply_xfer', 'Reciprocal Transfer')
     UseCaseEventType.create('supply_xfer', 'Time Contribution')
+    UseCaseEventType.create('supply_xfer', 'Fee')
     UseCaseEventType.create('demand_xfer', 'Transfer')
     UseCaseEventType.create('demand_xfer', 'Reciprocal Transfer')
     UseCaseEventType.create('demand_xfer', 'Time Contribution')
+    UseCaseEventType.create('demand_xfer', 'Fee')
 
     print "created use case event type associations"
 
@@ -6323,9 +6330,16 @@ class ExchangeManager(models.Manager):
     def demand_exchanges(self):
         return Exchange.objects.filter(use_case__identifier="demand_xfer")
               
+    def supply_exchanges(self):
+        return Exchange.objects.filter(use_case__identifier="supply_xfer")
+              
+    def internal_exchanges(self):
+        return Exchange.objects.filter(use_case__identifier="intrnl_xfer")
+    
     def distributions(self):
         return Exchange.objects.filter(use_case__identifier="distribution")
-            
+
+    #obsolete
     def material_contributions(self):
         return Exchange.objects.filter(use_case__identifier="res_contr")
 

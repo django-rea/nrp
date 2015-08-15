@@ -5416,7 +5416,7 @@ def delete_exchange(request, exchange_id):
         if next == "exchanges":
             return HttpResponseRedirect('/%s/'
                 % ('accounting/exchanges'))
-        if next == "sales_and_distributions":
+        if next == "demand_transfers":
             return HttpResponseRedirect('/%s/'
                 % ('accounting/sales-and-distributions'))
         if next == "material_contributions":
@@ -9133,7 +9133,7 @@ def material_contributions(request):
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
-def sales_and_distributions(request, agent_id=None):
+def demand_exchanges(request, agent_id=None):
     #import pdb; pdb.set_trace()
     agent = None
     if agent_id:
@@ -9206,7 +9206,7 @@ def sales_and_distributions(request, agent_id=None):
             comma = ","
     #import pdb; pdb.set_trace()
 
-    return render_to_response("valueaccounting/sales_and_distributions.html", {
+    return render_to_response("valueaccounting/demand_exchanges.html", {
         "exchanges": exchanges,
         "dt_selection_form": dt_selection_form,
         "total_cash_receipts": total_cash_receipts,

@@ -74,7 +74,7 @@
             <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>
             <a class="indent" href="{% url all_contributions %}">{% trans "All contributions" %}</a>
 {% comment %}
-            <a class="indent" href="{% url sales_and_distributions %}">{% trans "All sales and distributions" %}</a>
+            <a class="indent" href="{% url demand_exchanges %}">{% trans "All demand exchanges" %}</a>
 {% endcomment %}
             <a class="indent" href="{% url project_network %}">{% trans "Network diagram" %}</a>
             <a class="indent" href="{% url cash_report %}">{% trans "Cash Flow Report" %}</a>
@@ -100,7 +100,8 @@
                     {% if node.wip %}
                         <a class="indent" href="{% url project_wip project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
                     {% endif %}
-                    <a class="indent" href="{% url sales_and_distributions agent_id=node.id %}">{% trans "Sales and Distributions" %}: {{ node.sales_and_distributions_count }}</a>
+                    <a class="indent" href="{% url demand_exchanges agent_id=node.id %}">{% trans "Demand Side Exchanges" %}: {{ node.demand_exchange_count }}</a>
+                    <a class="indent" href="{% url distributions agent_id=node.id %}">{% trans "Distributions" %}: {{ node.distributions_count }}</a>
 {% comment %}
                     <a class="indent" href="{% url value_equation project_id=node.id %}"><b>{% trans "Value Equation" %}</b></a>
 {% endcomment %}

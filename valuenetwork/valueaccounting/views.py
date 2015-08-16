@@ -314,7 +314,6 @@ def create_location(request, agent_id=None):
             else:
                 return HttpResponseRedirect("/accounting/locations/")
     return render_to_response("valueaccounting/create_location.html", {
-        "method": "Create",
         "agent": agent,
         "location_form": location_form,
         "latitude": latitude,
@@ -345,7 +344,6 @@ def change_location(request, location_id, agent_id=None):
             else:
                 return HttpResponseRedirect("/accounting/locations/")
     return render_to_response("valueaccounting/change_location.html", {
-        "method": "Change",
         "agent": agent,
         "location_form": location_form,
         "latitude": latitude,

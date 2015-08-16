@@ -30,13 +30,16 @@
         <div class="span8">
             <div id="map" style="width: 98%; height: 600px"></div>
         </div>
-        {% if nolocs %}
+        
         <div class="span4">
             <div id="resources">
                 <h3>{% trans "Resources at" %} 
                     <span id="resourceLocation"></span>
                 </h3>
+                <div id="resourceList">
+                </div>
             </div>
+            {% if nolocs %}
             <h3>{% trans "Locations without map coordinates" %}</h3>
             <ul>
                 {% for loc in nolocs %}
@@ -50,8 +53,9 @@
                     </li>
                 {% endfor %}
             </ul>
+            {% endif %}
         </div>
-        {% endif %}
+        
     
 	</div>
     </div>
@@ -94,13 +98,16 @@
             accessToken: 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg'
         }).addTo(map);
 
+        $("#resources").hide();
 
         {% for loc in locations %}
             {% if loc.latitude and loc.longitude %}
-                var locName = "{{ loc.name }}";
+                var locName = "{{ loc.name|safe }}";
                 var locAddress = "{{ loc.address }}";
                 var latlong = [ {{ loc.latitude }}, {{ loc.longitude }}];
-                var content = "<h2>" + "{{ loc.name }}" + "</h2><p>" + "{{ loc.address }}" + "</p>";
+                
+                var content = "<h2>" + locName+ "</h2><p>" + locAddress + "</p>";
+                /*
                 {% if loc.resources %}
                     content += "<h4>Resources:</h4><ul>";
                     {% for res in loc.resources %}
@@ -108,26 +115,40 @@
                     {% endfor %}
                     content += "</ul>";
                 {% endif %}
-                L.marker(latlong, {title: locName }).addTo(map).bindPopup(content).on('click', showResources);;
+                */
+                var marker = L.marker(latlong, {title: locName })
+                    .addTo(map).bindPopup(content)
+                    .on('popupopen', showResources)
+                    .on('popupclose', hideResources);
+                marker.name = locName;
+                marker.resources = [];
+                {% for res in loc.resources %}
+                    marker.resources.push("{{ res }}");
+                {% endfor %}
             {% endif %}
         {% endfor %}
         
-        //$("#map").popupopen(showResources);
-        
-        
         function showResources(event) {
             var target = event.target;
-        }
-
-        /*
-        showResources()
-        {
-            $("#resources").show();
-            $("#resourceLocation").text(location.name);
+            var resources = target.resources;
+            if (resources)
+            {  
+                $("#resourceLocation").text(target.name);
+                $("#resourceList").empty();
+                $("#resourceList").append("<ul>");
+                for (var i = 0; i < resources.length; i++) 
+                {
+                    var resourceItem = "<li>" + resources[i] + "</li>";
+                    $("#resourceList").append(resourceItem);
+                }
+                $("#resourceList").append("</ul>");
+                $("#resources").show();
+            }
         }
         
-        */
-
+        function hideResources(event) {
+            $("#resources").hide();
+        }
 
 	}); // end document.ready
 

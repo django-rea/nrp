@@ -107,15 +107,7 @@
                 var latlong = [ {{ loc.latitude }}, {{ loc.longitude }}];
                 
                 var content = "<h2>" + locName+ "</h2><p>" + locAddress + "</p>";
-                /*
-                {% if loc.resources %}
-                    content += "<h4>Resources:</h4><ul>";
-                    {% for res in loc.resources %}
-                        content += "<li>" + "{{ res }}" + "</li>";
-                    {% endfor %}
-                    content += "</ul>";
-                {% endif %}
-                */
+
                 var marker = L.marker(latlong, {title: locName })
                     .addTo(map).bindPopup(content)
                     .on('popupopen', showResources)

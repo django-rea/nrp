@@ -41,7 +41,7 @@
            </form>
         </div>
         <div class="span6">
-            <div id="map" style="width: 600px; height: 400px" ></div>
+            <div id="map" style="width: 98%; height: 600px" ></div>
 
         </div>
     </div>
@@ -78,20 +78,35 @@
         }).addTo(map);
         
         // Initialize the geocoder control and add it to the map.
+        /*
         var geocoderControl = L.mapbox.geocoderControl('mapbox.places');
         geocoderControl.addTo(map);
+        */
+        
+        var geocoder = L.mapbox.geocoder('mapbox.places');
 
         $("#id_address").blur(geocodeAddress);
 
         function geocodeAddress(event) {
             var address = event.target.value;
-            /*
-            geocoderControl.geocodeForward(address, function(err, results) {
-                t.ifError(err);
-                t.deepEqual(geojsonhint.hint(results), [], 'results are valid');
-                t.end();
-            })
-            */
+            
+            geocoder.query(address, showMap);
+        }
+        
+        function showMap(err, data) {
+            // The geocoder can return an area, like a city, or a
+            // point, like an address. Here we handle both cases,
+            // by fitting the map bounds to an area or zooming to a point.
+            if (data.lbounds) {
+                map.fitBounds(data.lbounds);
+            } else if (data.latlng) {
+                map.setView([data.latlng[0], data.latlng[1]], 13);
+            }
+            L.marker(data.latlng).addTo(map);
+            $("#id_latitude").val(data.latlng[0]);
+            $("#id_longitude").val(data.latlng[1]);
+            //var lat = $("#id_latitude").val();
+            //var lng = $("#id_longitude").val();
         }
 
 

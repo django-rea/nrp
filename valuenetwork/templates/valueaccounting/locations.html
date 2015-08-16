@@ -32,6 +32,11 @@
         </div>
         {% if nolocs %}
         <div class="span4">
+            <div id="resources">
+                <h3>{% trans "Resources at" %} 
+                    <span id="resourceLocation"></span>
+                </h3>
+            </div>
             <h3>{% trans "Locations without map coordinates" %}</h3>
             <ul>
                 {% for loc in nolocs %}
@@ -79,7 +84,8 @@
 
         var map = L.map('map')
             .setView([{{ latitude }},{{ longitude }}], {{ zoom }})
-            .addControl(L.mapbox.geocoderControl('mapbox.places'));
+            //.addControl(L.mapbox.geocoderControl('mapbox.places'))
+            ;
         
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
             attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
@@ -102,10 +108,25 @@
                     {% endfor %}
                     content += "</ul>";
                 {% endif %}
-                L.marker(latlong, {title: locName }).addTo(map).bindPopup(content);
+                L.marker(latlong, {title: locName }).addTo(map).bindPopup(content).on('click', showResources);;
             {% endif %}
         {% endfor %}
+        
+        //$("#map").popupopen(showResources);
+        
+        
+        function showResources(event) {
+            var target = event.target;
+        }
 
+        /*
+        showResources()
+        {
+            $("#resources").show();
+            $("#resourceLocation").text(location.name);
+        }
+        
+        */
 
 
 	}); // end document.ready

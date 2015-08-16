@@ -276,6 +276,9 @@ class Location(models.Model):
 
     def resources(self):
         return self.resources_at_location.all()
+        
+    def agents(self):
+        return self.agents_at_location.all()
 
         
 class AgentTypeManager(models.Manager):

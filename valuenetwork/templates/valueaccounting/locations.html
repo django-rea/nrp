@@ -32,6 +32,13 @@
         </div>
         
         <div class="span4">
+            <div id="agents">
+                <h3>{% trans "Agents at" %} 
+                    <span id="agentLocation"></span>
+                </h3>
+                <div id="agentList">
+                </div>
+            </div>
             <div id="resources">
                 <h3>{% trans "Resources at" %} 
                     <span id="resourceLocation"></span>
@@ -98,6 +105,7 @@
             accessToken: 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg'
         }).addTo(map);
 
+        $("#agents").hide();
         $("#resources").hide();
 
         {% for loc in locations %}
@@ -113,6 +121,10 @@
                     .on('popupopen', showResources)
                     .on('popupclose', hideResources);
                 marker.name = locName;
+                marker.agents = [];
+                {% for agnt in loc.agents %}
+                    marker.agents.push("{{ agnt.name }}");
+                {% endfor %}
                 marker.resources = [];
                 {% for res in loc.resources %}
                     marker.resources.push("{{ res }}");
@@ -122,11 +134,28 @@
         
         function showResources(event) {
             var target = event.target;
+            var agents = target.agents;
             var resources = target.resources;
-            if (resources)
+            
+            $("#agentList").empty();
+            $("#resourceList").empty();
+            
+            if (agents.length)
+            {  
+                $("#agentLocation").text(target.name);
+                $("#agentList").append("<ul>");
+                for (var i = 0; i < agents.length; i++) 
+                {
+                    var resourceItem = "<li>" + agents[i] + "</li>";
+                    $("#agentList").append(resourceItem);
+                }
+                $("#agentList").append("</ul>");
+                $("#agents").show();
+            }
+            
+            if (resources.length)
             {  
                 $("#resourceLocation").text(target.name);
-                $("#resourceList").empty();
                 $("#resourceList").append("<ul>");
                 for (var i = 0; i < resources.length; i++) 
                 {
@@ -139,6 +168,7 @@
         }
         
         function hideResources(event) {
+            $("#agents").hide();
             $("#resources").hide();
         }
 

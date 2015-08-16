@@ -26,7 +26,7 @@
     {% include "_messages.html" %}
 
     <legend>
-        {% trans "Create Location" %} 
+        {{ method }} {% trans "Location" %} 
     </legend>
 
     <div class="row-fluid">
@@ -35,7 +35,12 @@
                  {% csrf_token %}
 
                 {{ location_form|as_bootstrap }}
-
+                
+                {% if agent %}
+                    <input type="hidden" id="agentId" name="agentId" value="{{ agent.id }}" />
+                {% else %}
+                    <input type="hidden" id="agentId" name="agentId" value="" />
+                {% endif %}
                 <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
 
            </form>
@@ -86,6 +91,12 @@
         var geocoder = L.mapbox.geocoder('mapbox.places');
 
         $("#id_address").blur(geocodeAddress);
+        
+        var agentAddress = "{{ agent.address }}";
+        if (agentAddress) 
+        {
+            geocoder.query(agentAddress, showMap);
+        }
 
         function geocodeAddress(event) {
             var address = event.target.value;

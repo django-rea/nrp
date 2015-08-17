@@ -2771,7 +2771,13 @@ def create_event_types(app, **kwargs):
     EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', 'x', 'quantity')
     EventType.create('Reciprocal Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', 'x', 'quantity')
     EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'agent', '+', 'quantity')
-    #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
+    #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')
+    EventType.create('Internal Transfer', _('transfers internally'), _('transferred by internally'), 'transfer', 'exchange', 'x', 'quantity')
+    EventType.create('Internal Reciprocal Transfer', _('transfers internally'), _('transferred internally by'), 'transfer', 'exchange', 'x', 'quantity')
+    EventType.create('Supply Transfer', _('transfers in'), _('transferred in by'), 'transfer in', 'exchange', 'x', 'quantity')
+    EventType.create('Supply Reciprocal Transfer', _('transfers out'), _('transferred out by'), 'transfer out', 'exchange', 'x', 'quantity')
+    EventType.create('Demand Transfer', _('transfers out'), _('transferred out by'), 'transfer out', 'exchange', 'x', 'quantity')
+    EventType.create('Demand Reciprocal Transfer', _('transfers in'), _('transferred in by'), 'transfer in', 'exchange', 'x', 'quantity')
 
     print "created event types"
 
@@ -2856,18 +2862,15 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('transfer', 'Transfer')
     UseCaseEventType.create('transfer', 'Reciprocal Transfer')
     UseCaseEventType.create('available', 'Make Available')
-    UseCaseEventType.create('intrnl_xfer', 'Transfer')
-    UseCaseEventType.create('intrnl_xfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('intrnl_xfer', 'Internal Transfer')
+    UseCaseEventType.create('intrnl_xfer', 'Internal Reciprocal Transfer')
     UseCaseEventType.create('intrnl_xfer', 'Time Contribution')
-    UseCaseEventType.create('intrnl_xfer', 'Fee')
-    UseCaseEventType.create('supply_xfer', 'Transfer')
-    UseCaseEventType.create('supply_xfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('supply_xfer', 'Supply Transfer')
+    UseCaseEventType.create('supply_xfer', 'Supply Reciprocal Transfer')
     UseCaseEventType.create('supply_xfer', 'Time Contribution')
-    UseCaseEventType.create('supply_xfer', 'Fee')
-    UseCaseEventType.create('demand_xfer', 'Transfer')
-    UseCaseEventType.create('demand_xfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('demand_xfer', 'Demand Transfer')
+    UseCaseEventType.create('demand_xfer', 'Demand Reciprocal Transfer')
     UseCaseEventType.create('demand_xfer', 'Time Contribution')
-    UseCaseEventType.create('demand_xfer', 'Fee')
 
     print "created use case event type associations"
 
@@ -6266,6 +6269,12 @@ class ExchangeType(models.Model):
         limit_choices_to={"agent_type__is_context": True,},
         verbose_name=_('context agent'), related_name='exchange_types')
     description = models.TextField(_('description'), blank=True, null=True)
+    transfer_from_agent_association_type = models.ForeignKey(AgentAssociationType,
+        blank=True, null=True,
+        verbose_name=_('from agent association type'), related_name='exchange_types_from')
+    transfer_to_agent_association_type = models.ForeignKey(AgentAssociationType,
+        blank=True, null=True,
+        verbose_name=_('to agent association type'), related_name='exchange_types_to')
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='exchange_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
@@ -6293,6 +6302,7 @@ class ExchangeTypeEventType(models.Model):
     event_type = models.ForeignKey(EventType,
         verbose_name=_('event type'), related_name='exchange_type_event_types')
     description = models.TextField(_('description'), blank=True, null=True)
+    is_contribution = models.BooleanField(_('is contribution'), default=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='exchange_type_event_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

@@ -32,6 +32,8 @@
         </div>
         
         <div class="span4">
+            <div id="changeLocation">
+            </div>
             <div id="agents">
                 <h3>{% trans "Agents at" %} 
                     <span id="agentLocation"></span>
@@ -120,6 +122,7 @@
                     .addTo(map).bindPopup(content)
                     .on('popupopen', showResources)
                     .on('popupclose', hideResources);
+                marker.locationUrl = "{% url change_location location_id=loc.id %}";
                 marker.name = locName;
                 marker.agents = [];
                 {% for agnt in loc.agents %}
@@ -134,8 +137,15 @@
         
         function showResources(event) {
             var target = event.target;
+            var location_id = target.location_id
             var agents = target.agents;
             var resources = target.resources;
+            
+            var changeAnchor = '<a href="' + target.locationUrl + '" >Change this Location</a>';
+            
+            $("#changeLocation").empty();
+            $("#changeLocation").append(changeAnchor);
+            $("#changeLocation").show();
             
             $("#agentList").empty();
             $("#resourceList").empty();
@@ -168,6 +178,7 @@
         }
         
         function hideResources(event) {
+            $("#changeLocation").hide();
             $("#agents").hide();
             $("#resources").hide();
         }

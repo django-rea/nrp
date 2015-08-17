@@ -14,6 +14,10 @@
 <link href='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
 <style>
 
+#location_agents {
+    font-size: 60%;
+}
+
 </style>
 
 {% endblock %}
@@ -26,6 +30,11 @@
 
     <legend>
         {% trans "Change Location" %} 
+            {% if location_agents %}
+                <div id="location_agents">
+                    <strong>{% trans "Agents at this Location" %}:</strong> {{ location_agents }} 
+                </div>
+            {% endif %}
     </legend>
 
     <div class="row-fluid">
@@ -85,10 +94,10 @@
 
         $("#id_address").blur(geocodeAddress);
         
-        var agentAddress = "{{ agent.address }}";
-        if (agentAddress) 
+        var locationAddress = "{{ locationAddress }}";
+        if (locationAddress) 
         {
-            geocoder.query(agentAddress, showMap);
+            geocoder.query(locationAddress, showMap);
         }
 
         function geocodeAddress(event) {

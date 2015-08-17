@@ -194,14 +194,15 @@
                                 <td>{{ agent.email }}</td>
                             </tr>
                         {% endif %}
-                        {% if agent.address %}
+                        {% if agent.address or agent.primary_location %}
                             <tr>
                                 <th style="text-align: right; vertical-align: top; ">{% trans "Address" %}</th>
                                 <td>
-                                    {{ agent.address }}</br>
                                     {% if agent.primary_location %}
+                                        {{ agent.primary_location.address }}</br>
                                         <a href="{% url change_location location_id=agent.primary_location.id agent_id=agent.id %}">{% trans "Change on Map" %} </a>
                                     {% else %}
+                                        {{ agent.address }}</br>
                                         <a href="{% url create_location agent_id=agent.id %}">{% trans "Add to Map" %} </a>
                                     {% endif %}
                                 </td>

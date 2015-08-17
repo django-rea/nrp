@@ -324,20 +324,29 @@ def create_location(request, agent_id=None):
 @login_required
 def change_location(request, location_id, agent_id=None):
     agent = None
-    if agent_id:
-        agent = get_object_or_404(EconomicAgent, id=agent_id)
     location = get_object_or_404(Location, id=location_id)
+    locationAddress = location.address
+    #import pdb; pdb.set_trace()
+    location_agents = None
+    if location.agents():
+        location_agents = ", ".join([agt.name for agt in location.agents()])
     user_agent = get_agent(request)
     if not user_agent:
         return render_to_response('valueaccounting/no_permission.html')
-    location_form = LocationForm(instance=location, data=request.POST or None)
+    location_form = ChangeLocationForm(instance=location, data=request.POST or None)
     latitude = settings.MAP_LATITUDE
     longitude = settings.MAP_LONGITUDE
     zoom = settings.MAP_ZOOM
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if location_form.is_valid():
+            data = location_form.cleaned_data
+            agents = data["agents"]
             location = location_form.save()
+            for agt in agents:
+                if not agt.primary_location:
+                    agt.primary_location = location
+                    agt.save()
             if agent_id:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/agent', agent.id))
@@ -345,6 +354,8 @@ def change_location(request, location_id, agent_id=None):
                 return HttpResponseRedirect("/accounting/locations/")
     return render_to_response("valueaccounting/change_location.html", {
         "agent": agent,
+        "locationAddress": locationAddress,
+        "location_agents": location_agents,
         "location_form": location_form,
         "latitude": latitude,
         "longitude": longitude,

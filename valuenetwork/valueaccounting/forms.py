@@ -132,7 +132,26 @@ class LocationForm(forms.ModelForm):
     class Meta:
         model = Location
         fields = ('address', 'name', 'description', 'latitude', 'longitude')
+        
+class ChangeLocationForm(forms.ModelForm):
+    address = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    agents = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.filter(primary_location__isnull=True),
+        label=_("Add Agents to this Location"),
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select input-xxlarge'}))
+    latitude = forms.FloatField(required=False, widget=forms.HiddenInput)
+    longitude = forms.FloatField(required=False, widget=forms.HiddenInput)
 
+    class Meta:
+        model = Location
+        fields = ('address', 'name', 'description', 'latitude', 'longitude')
+        
 
 class SelectResourceForm(forms.Form):
     resource = ResourceModelChoiceField(

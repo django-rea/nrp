@@ -347,7 +347,7 @@ def change_location(request, location_id, agent_id=None):
                 if not agt.primary_location:
                     agt.primary_location = location
                     agt.save()
-            if agent_id:
+            if agent:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/agent', agent.id))
             else:

@@ -1135,7 +1135,8 @@ def agent_value_accounting(request, agent_id):
     event_value = Decimal("0.0")
     claim_value = Decimal("0.0")
     outstanding_claims = Decimal("0.0")
-    distributions = Decimal("0.0")
+    claim_distributions = Decimal("0.0")
+    claim_distro_events = []
     for event in event_list:
         if event.bucket_rule_for_context_agent():
             with_bucket += 1
@@ -1145,9 +1146,14 @@ def agent_value_accounting(request, agent_id):
             claim_value += claim.original_value
             outstanding_claims += claim.value
             for de in claim.distribution_events():
-                distributions += de.value
+                claim_distributions += de.value
+                claim_distro_events.append(de.event)
+    et = EventType.objects.get(name="Distribution")
+    all_distro_evts = EconomicEvent.objects.filter(to_agent=agent, event_type=et)
+    other_distro_evts = [d for d in all_distro_evts if d not in claim_distro_events]
+    other_distributions = sum(de.quantity for de in other_distro_evts)
+    
     paginator = Paginator(event_list, 25)
-
     page = request.GET.get('page')
     try:
         events = paginator.page(page)
@@ -1163,9 +1169,10 @@ def agent_value_accounting(request, agent_id):
         "events": events,
         "no_bucket": no_bucket,
         "with_bucket": with_bucket,
-        "claim_value": claim_value.quantize(Decimal('0'), rounding=ROUND_HALF_UP),
-        "outstanding_claims": outstanding_claims.quantize(Decimal('0'), rounding=ROUND_HALF_UP),
-        "distributions": distributions.quantize(Decimal('0'), rounding=ROUND_HALF_UP),
+        "claim_value": format(claim_value, ",.2f"),
+        "outstanding_claims": format(outstanding_claims, ",.2f"),
+        "claim_distributions": format(claim_distributions, ",.2f"),
+        "other_distributions": format(other_distributions, ",.2f"),
     }, context_instance=RequestContext(request))
 
 @login_required

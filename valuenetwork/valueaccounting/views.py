@@ -4754,6 +4754,11 @@ def add_cash_contribution(request, exchange_id):
                 if resource:
                     resource.quantity = resource.quantity + value
                     resource.save()
+                #import pdb; pdb.set_trace()
+                if cash_data["from_virtual_account"] == True:
+                    va = event.from_agent.virtual_accounts()[0]
+                    va.quantity = va.quantity - value
+                    va.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 

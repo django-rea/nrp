@@ -2048,11 +2048,21 @@ class ProcessExpenseEventForm(forms.ModelForm):
             
 class CashContributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.all(),
+        label="Contributor",
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    from_virtual_account = forms.BooleanField(
+        required=False,
+        help_text=_('Check if the cash contribution comes from your virtual account'),
+        widget=forms.CheckboxInput())
     value = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
-        label="Cash resource type",
+        label="Cash target resource type",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-for-resource chzn-select'}))
@@ -2061,12 +2071,6 @@ class CashContributionEventForm(forms.ModelForm):
         label="Cash resource account or earmark to increase",
         required=False,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))  
-    from_agent = forms.ModelChoiceField(
-        required=False,
-        queryset=EconomicAgent.objects.all(),
-        label="Contributor",
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))

@@ -4733,6 +4733,9 @@ def add_cash_contribution(request, exchange_id):
             if value:
                 event = form.save(commit=False)
                 rt = cash_data["resource_type"]
+                is_contr = False
+                if event.event_type.name == "Cash Contribution":
+                    is_contr = True
                 #event_type = pattern.event_type_for_resource_type("cash", rt)
                 #event.event_type = event_type
                 event.exchange = exchange
@@ -4741,6 +4744,7 @@ def add_cash_contribution(request, exchange_id):
                 event.quantity = value
                 event.unit_of_quantity = rt.unit
                 event.unit_of_value = rt.unit
+                event.is_contribution = is_contr
                 event.created_by = request.user
                 event.save()
                 resource = event.resource

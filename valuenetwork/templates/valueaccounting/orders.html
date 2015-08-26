@@ -132,10 +132,12 @@ textarea {
                                         {% endfor %}
                                             <td>
                                                 {% trans "Deliverable" %}: {{ item.resource_type }}
-                                                </br>
-                                                <span class="description">
-                                                    {{ item.description|urlize|linebreaks }}
-                                                </span>
+                                                {% if item.description %}
+                                                    </br>
+                                                    <span class="description">
+                                                        {{ item.description|urlize|linebreaks }}
+                                                    </span>
+                                                {% endif %}
                                             </td>
                                     </tr>
                                 </tbody>

@@ -2900,7 +2900,12 @@ def schedule_commitment(
 def orders(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     orders = agent.active_orders()
-    
+    for order in orders:
+        order_items = order.order_items()
+        order.items = order_items
+        visited = set()
+        for order_item in order_items:
+            order_item.processes = order_item.unique_processes_for_order_item(visited)
     return render_to_response("valueaccounting/orders.html", {
         "agent": agent,
         "orders": orders,

@@ -112,10 +112,10 @@ textarea {
                             <a href="{% url order_schedule order_id=order.id %}" target="_blank" >{% trans "Detailed schedule" %}</a>
                         </span>
                     </h3>
-                    {% for item in order.order_items %}
+                    {% for item in order.items %}
                         <div>
                             <table class="table table-bordered" >
-                                {% with item.all_processes_in_my_order_item as processes %}
+                                {% with item.processes as processes %}
                                 <tbody>
                                     <tr>
                                         {% for process in processes  %}

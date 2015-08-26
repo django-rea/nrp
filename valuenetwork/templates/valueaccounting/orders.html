@@ -123,9 +123,20 @@ textarea {
                                                 <a href="{{ process.get_absolute_url }}" target="_blank" >
                                                     {{ process.name }}
                                                 </a>
+                                                
+                                                <span class="info"> <a href="#" class="process-info" data-toggle="popover" data-trigger='hover' title="Process" 
+                                                    data-content="{{ process.notes|linebreaks }}">
+                                                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                                                </span>
                                             </td>
                                         {% endfor %}
-                                            <td>{% trans "Deliverable" %}: {{ item.resource_type }}</td>
+                                            <td>
+                                                {% trans "Deliverable" %}: {{ item.resource_type }}
+                                                </br>
+                                                <span class="description">
+                                                    {{ item.description|urlize|linebreaks }}
+                                                </span>
+                                            </td>
                                     </tr>
                                 </tbody>
                                 {% endwith %}
@@ -162,6 +173,8 @@ textarea {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
+        
+        $('.process-info').popover();
         
     }); // end document.ready
     

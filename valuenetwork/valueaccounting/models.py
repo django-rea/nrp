@@ -7772,6 +7772,15 @@ class Commitment(models.Model):
                     return ois[0]
                 else:
                     return ois
+                    
+    def unique_processes_for_order_item(self, visited):
+        unique_processes = []
+        all_processes = self.all_processes_in_my_order_item()
+        for process in all_processes:
+            if process not in visited:
+                visited.add(process)
+                unique_processes.append(process)
+        return unique_processes
        
     def all_processes_in_my_order_item(self):
         ordered_processes = []

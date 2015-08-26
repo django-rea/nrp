@@ -257,7 +257,7 @@ textarea {
                                 {% trans 'Onhand' %}: <a href="{{ oh.get_absolute_url }}"> {{ oh }} {{ oh.formatted_quantity }}</a>
                             </div>
                       {% endfor %}
-                      {% for process in item.all_processes_in_my_order_item %}
+                      {% for process in item.processes %}
 					
 					    {% if agent %}
                           {% if process.to_be_changed_requirements %}

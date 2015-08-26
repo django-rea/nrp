@@ -2927,7 +2927,10 @@ def order_schedule(request, order_id):
             rts = ProcessPattern.objects.all_production_resource_types()
         if rts:
             add_order_item_form = AddOrderItemForm(resource_types=rts)
+        #import pdb; pdb.set_trace()
+        visited = set()
         for order_item in order_items:
+            order_item.processes = order_item.unique_processes_for_order_item(visited)
             if order_item.is_workflow_order_item():
                 #import pdb; pdb.set_trace()
                 init = {'quantity': order_item.quantity,}

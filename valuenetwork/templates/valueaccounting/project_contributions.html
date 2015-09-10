@@ -38,10 +38,10 @@
 		<legend>{% trans "Contributions for" %} {{ project.agent_type }} {{ project }}</legend>
 		
 		<div>
-            <form id="filterForm" action="." method="POST" style="display: inline; vertical-align: middle;" >
+            <form id="filterForm" action="." method="POST" style="display: inline;" >
                 {% csrf_token %}
                 <div id="div_id_start_date" class="control-group" style="display: inline;" >     
-                    <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
+                    <label for="id_start_date" class="control-label required-field" style="display: inline;" >
                         {% trans "Show contributions from " %}
                     </label>
                     <div class="controls" style="display: inline;" >
@@ -49,7 +49,7 @@
                     </div>
                 </div>
                 <div id="div_id_end_date" class="control-group" style="display: inline;" >     
-                    <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
+                    <label for="id_end_date" class="control-label required-field" style="display: inline;" >
                         {% trans " through " %}
                     </label>
                     <div class="controls" style="display: inline;" >
@@ -57,25 +57,25 @@
                     </div>
                 </div>
                 <div id="div_id_from_agent" class="control-group" style="display: inline;" >
-                    <label for="id_from_agent" class="control-label" style="display: inline;  vertical-align: text-bottom; " >
+                    <label for="id_from_agent" class="control-label" style="display: inline;" >
                         {% trans "from" %}
                     </label>
-                    <div class="controls" style="display: inline;" >
+                    <div class="controls" style="display: inline; vertical-align: bottom;" >
                         {{ filter_form.from_agents }}
                     </div>                    
                 </div>&nbsp;
-                <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Filter' %}" />
+                <input type="submit" name="submit" class="btn btn-info" style="display: inline;" value="{% trans 'Filter' %}" />
             </form>
-            {% if event_ids and agent %}
-                <a 
-                    href=" {% url contribution_events_csv %}?event-ids={{ event_ids }}" 
-                    id="btn-export" 
-                    class="btn btn-primary" 
-                    title="Export filtered list to csv (comma separated value) format" 
-                    style="display: inline; vertical-align: top;"
-                    >{% trans "Export CSV File" %}
-                </a>
-            {% endif %}
+                {% if event_ids and agent %}
+                    <a 
+                        href=" {% url contribution_events_csv %}?event-ids={{ event_ids }}" 
+                        id="btn-export" 
+                        class="btn btn-primary" 
+                        title="Export filtered list to csv (comma separated value) format" 
+                        style="display: inline; vertical-align: middle;"
+                        >{% trans "Export CSV File" %}
+                    </a>
+                {% endif %}
 		</div>
 		
 		<table style="width: 100%;" class="table table-bordered table-hover table-condensed" >

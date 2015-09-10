@@ -9353,6 +9353,7 @@ def exchange_events_csv(request):
         )
     return response
     
+   
 @login_required    
 def contribution_events_csv(request):
     #import pdb; pdb.set_trace()
@@ -9360,33 +9361,23 @@ def contribution_events_csv(request):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=contributions.csv'
     writer = csv.writer(response)
-    writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
+    #writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
     event_ids_split = event_ids.split(",")
-    for event_id in event_ids_split:
-        event = EconomicEvent.objects.get(pk=event_id)
-        if event.from_agent == None:
-            from_agent = ""
-        else:
-            from_agent = event.from_agent.nick
-        if event.to_agent == None:
-            to_agent = ""
-        else:
-            to_agent = event.to_agent.nick   
-        writer.writerow(
-            [event.event_date,
-             event.event_type.name,
-             event.resource_type.name,
-             event.quantity,
-             event.unit_of_quantity,
-             event.value or "",
-             event.unit_of_value or "",
-             from_agent,
-             to_agent,
-             event.context_agent.name,
-             event.description or "",
-             event.url or "",
-            ]
-        )
+    queryset = EconomicEvent.objects.filter(id__in=event_ids_split)
+    opts = EconomicEvent._meta
+    field_names = [field.name for field in opts.fields]
+    writer.writerow(field_names)
+    for obj in queryset:
+        row = []
+        for field in field_names:
+            x = getattr(obj, field)
+            try:
+                x = x.encode('latin-1', 'replace')
+            except AttributeError:
+                pass
+            row.append(x)
+        writer.writerow(row)
+
     return response
 
 def exchange_logging(request, exchange_id):

@@ -9378,13 +9378,13 @@ def contribution_events_csv(request):
              event.resource_type.name,
              event.quantity,
              event.unit_of_quantity,
-             event.value,
-             event.unit_of_value,
+             event.value or "",
+             event.unit_of_value or "",
              from_agent,
              to_agent,
              event.context_agent.name,
-             event.description,
-             event.url,
+             event.description or "",
+             event.url or "",
             ]
         )
     return response

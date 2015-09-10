@@ -9385,7 +9385,6 @@ def contribution_events_csv(request):
              event.context_agent.name,
              event.description,
              event.url,
-             str(event.id),
             ]
         )
     return response

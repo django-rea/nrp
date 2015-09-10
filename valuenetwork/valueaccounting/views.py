@@ -1022,9 +1022,25 @@ def all_contributions(request):
 def contributions(request, project_id):
     #import pdb; pdb.set_trace()
     project = get_object_or_404(EconomicAgent, pk=project_id)
+    agent = get_agent(request)
     event_list = project.contribution_events()
+    filter_form = ProjectContributionsFilterForm(data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if filter_form.is_valid():
+            data = filter_form.cleaned_data
+            #event_type = data["event_type"]
+            from_agents = data["from_agents"]
+            start = data["start_date"]
+            end = data["end_date"]
+            if from_agents:
+                event_list = event_list.filter(from_agent__in=from_agents)
+            if start:
+                event_list = event_list.filter(event_date__gte=start)
+            if end:
+                event_list = event_list.filter(event_date__lte=end)
+    event_ids = ",".join([str(event.id) for event in event_list])            
     paginator = Paginator(event_list, 25)
-
     page = request.GET.get('page')
     try:
         events = paginator.page(page)
@@ -1038,6 +1054,9 @@ def contributions(request, project_id):
     return render_to_response("valueaccounting/project_contributions.html", {
         "project": project,
         "events": events,
+        "filter_form": filter_form,
+        "agent": agent,
+        "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
 def project_wip(request, project_id):
@@ -9330,6 +9349,43 @@ def exchange_events_csv(request):
              event.exchange.use_case,
              event.id,
              event.exchange.id   
+            ]
+        )
+    return response
+    
+@login_required    
+def contribution_events_csv(request):
+    #import pdb; pdb.set_trace()
+    event_ids = request.GET.get("event-ids")
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=contributions.csv'
+    writer = csv.writer(response)
+    writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
+    event_ids_split = event_ids.split(",")
+    for event_id in event_ids_split:
+        event = EconomicEvent.objects.get(pk=event_id)
+        if event.from_agent == None:
+            from_agent = ""
+        else:
+            from_agent = event.from_agent.nick
+        if event.to_agent == None:
+            to_agent = ""
+        else:
+            to_agent = event.to_agent.nick   
+        writer.writerow(
+            [event.event_date,
+             event.event_type.name,
+             event.resource_type.name,
+             event.quantity,
+             event.unit_of_quantity,
+             event.value,
+             event.unit_of_value,
+             from_agent,
+             to_agent,
+             event.context_agent.name,
+             event.description,
+             event.url,
+             event.id,
             ]
         )
     return response

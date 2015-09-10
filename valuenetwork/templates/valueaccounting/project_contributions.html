@@ -1,10 +1,17 @@
 {% extends "site_base.html" %}
 
 {% load i18n %}
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
 
 {% block head_title %}{% trans "Project Contributions for " %} {{ project }}{% endblock %}
 
 {% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
 <style>
 
 	tr.even td 
@@ -29,6 +36,48 @@
         {% include "_messages.html" %}
 	<div>
 		<legend>{% trans "Contributions for" %} {{ project.agent_type }} {{ project }}</legend>
+		
+		<div>
+            <form id="filterForm" action="." method="POST" style="display: inline; vertical-align: middle;" >
+                {% csrf_token %}
+                <div id="div_id_start_date" class="control-group" style="display: inline;" >     
+                    <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
+                        {% trans "Show contributions from " %}
+                    </label>
+                    <div class="controls" style="display: inline;" >
+                        {{ filter_form.start_date }}
+                    </div>
+                </div>
+                <div id="div_id_end_date" class="control-group" style="display: inline;" >     
+                    <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
+                        {% trans " through " %}
+                    </label>
+                    <div class="controls" style="display: inline;" >
+                        {{ filter_form.end_date }}
+                    </div>
+                </div>
+                <div id="div_id_from_agent" class="control-group" style="display: inline;" >
+                    <label for="id_from_agent" class="control-label" style="display: inline;  vertical-align: text-bottom; " >
+                        {% trans "from" %}
+                    </label>
+                    <div class="controls" style="display: inline;" >
+                        {{ filter_form.from_agents }}
+                    </div>                    
+                </div>&nbsp;
+                <input type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Filter' %}" />
+            </form>
+            {% if event_ids and agent %}
+                <a 
+                    href=" {% url contribution_events_csv %}?event-ids={{ event_ids }}" 
+                    id="btn-export" 
+                    class="btn btn-primary" 
+                    title="Export filtered list to csv (comma separated value) format" 
+                    style="display: inline; vertical-align: top;"
+                    >{% trans "Export CSV File" %}
+                </a>
+            {% endif %}
+		</div>
+		
 		<table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
 			<thead>
 				<th>{% trans "Date" %}</th>
@@ -91,6 +140,12 @@
 	</div>
     </div>
 {% endblock %}
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
 {% block extra_body %}
 	{{ block.super }}
     <script type="text/javascript">
@@ -98,6 +153,9 @@
 	$(document).ready(function(){
 
 		$('#projects').addClass('active');
+		
+		$(".chzn-select").chosen();
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
 	}); // end document.ready
 

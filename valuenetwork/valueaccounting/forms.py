@@ -3275,6 +3275,45 @@ class ResourceFlowForm(forms.ModelForm):
             self.pattern = pattern
             et = EventType.objects.get(name="Change")
             self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
+            
+class AllContributionsFilterForm(forms.Form):
+    context = forms.ModelMultipleChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select',}))
+    event_type = forms.ModelMultipleChoiceField(
+        queryset=EventType.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select',}))
+    from_agent = forms.ModelMultipleChoiceField(
+        queryset=EconomicAgent.objects.all(), 
+        required=False, 
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select'}))
+    start_date = forms.DateField(
+        required=False, 
+        label="Start date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+    end_date = forms.DateField(
+        required=False, 
+        label="End date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+        
+class ProjectContributionsFilterForm(forms.Form):
+    event_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EventType.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select',}))
+    from_agents = forms.ModelMultipleChoiceField(
+        queryset=EconomicAgent.objects.all(), 
+        required=False, 
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select'}))
+    start_date = forms.DateField(
+        required=False, 
+        label="Start date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+    end_date = forms.DateField(
+        required=False, 
+        label="End date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
 
 
 class FilterSetHeaderForm(forms.Form):

@@ -1022,9 +1022,25 @@ def all_contributions(request):
 def contributions(request, project_id):
     #import pdb; pdb.set_trace()
     project = get_object_or_404(EconomicAgent, pk=project_id)
+    agent = get_agent(request)
     event_list = project.contribution_events()
+    filter_form = ProjectContributionsFilterForm(data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if filter_form.is_valid():
+            data = filter_form.cleaned_data
+            #event_type = data["event_type"]
+            from_agents = data["from_agents"]
+            start = data["start_date"]
+            end = data["end_date"]
+            if from_agents:
+                event_list = event_list.filter(from_agent__in=from_agents)
+            if start:
+                event_list = event_list.filter(event_date__gte=start)
+            if end:
+                event_list = event_list.filter(event_date__lte=end)
+    event_ids = ",".join([str(event.id) for event in event_list])            
     paginator = Paginator(event_list, 25)
-
     page = request.GET.get('page')
     try:
         events = paginator.page(page)
@@ -1038,6 +1054,9 @@ def contributions(request, project_id):
     return render_to_response("valueaccounting/project_contributions.html", {
         "project": project,
         "events": events,
+        "filter_form": filter_form,
+        "agent": agent,
+        "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
 def project_wip(request, project_id):
@@ -2900,7 +2919,12 @@ def schedule_commitment(
 def orders(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     orders = agent.active_orders()
-    
+    for order in orders:
+        order_items = order.order_items()
+        order.items = order_items
+        visited = set()
+        for order_item in order_items:
+            order_item.processes = order_item.unique_processes_for_order_item(visited)
     return render_to_response("valueaccounting/orders.html", {
         "agent": agent,
         "orders": orders,
@@ -2927,7 +2951,10 @@ def order_schedule(request, order_id):
             rts = ProcessPattern.objects.all_production_resource_types()
         if rts:
             add_order_item_form = AddOrderItemForm(resource_types=rts)
+        #import pdb; pdb.set_trace()
+        visited = set()
         for order_item in order_items:
+            order_item.processes = order_item.unique_processes_for_order_item(visited)
             if order_item.is_workflow_order_item():
                 #import pdb; pdb.set_trace()
                 init = {'quantity': order_item.quantity,}
@@ -9324,6 +9351,33 @@ def exchange_events_csv(request):
              event.exchange.id   
             ]
         )
+    return response
+    
+   
+@login_required    
+def contribution_events_csv(request):
+    #import pdb; pdb.set_trace()
+    event_ids = request.GET.get("event-ids")
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=contributions.csv'
+    writer = csv.writer(response)
+    #writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
+    event_ids_split = event_ids.split(",")
+    queryset = EconomicEvent.objects.filter(id__in=event_ids_split)
+    opts = EconomicEvent._meta
+    field_names = [field.name for field in opts.fields]
+    writer.writerow(field_names)
+    for obj in queryset:
+        row = []
+        for field in field_names:
+            x = getattr(obj, field)
+            try:
+                x = x.encode('latin-1', 'replace')
+            except AttributeError:
+                pass
+            row.append(x)
+        writer.writerow(row)
+
     return response
 
 def exchange_logging(request, exchange_id):

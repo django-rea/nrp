@@ -1024,7 +1024,7 @@ def contributions(request, project_id):
     project = get_object_or_404(EconomicAgent, pk=project_id)
     agent = get_agent(request)
     event_list = project.contribution_events()
-    agent_ids = {event.from_agent.id for event in event_list}
+    agent_ids = {event.from_agent.id for event in event_list if event.from_agent}
     agents = EconomicAgent.objects.filter(id__in=agent_ids)
     filter_form = ProjectContributionsFilterForm(agents=agents, data=request.POST or None)
     if request.method == "POST":

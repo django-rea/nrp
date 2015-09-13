@@ -3314,6 +3314,10 @@ class ProjectContributionsFilterForm(forms.Form):
         required=False, 
         label="End date",
         widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+        
+    def __init__(self, agents, *args, **kwargs):
+        super(ProjectContributionsFilterForm, self).__init__(*args, **kwargs)
+        self.fields["from_agents"].queryset = agents
 
 
 class FilterSetHeaderForm(forms.Form):

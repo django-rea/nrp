@@ -10563,3 +10563,127 @@ def payout_from_virtual_account(request, account_id):
     
     return HttpResponseRedirect('/%s/'
         % ('accounting/virtual-accounts'))
+
+
+def agent_type(request, agent_type_id):
+    agent_type = get_object_or_404(AgentType, id=agent_type_id)
+    
+    return render_to_response("valueaccounting/agent_type.html", {
+        "agent_type": agent_type,
+    }, context_instance=RequestContext(request))    
+
+def agent_assoc_type(request, agent_assoc_type_id):
+    agent_assoc_type = get_object_or_404(AgentAssociationType, id=agent_assoc_type_id)
+    
+    return render_to_response("valueaccounting/agent_assoc_type.html", {
+        "agent_assoc_type": agent_assoc_type,
+    }, context_instance=RequestContext(request)) 
+
+def agent_jsonld(request):
+    #import os, sys
+    #os.environ.setdefault("DJANGO_SETTINGS_MODULE", "valuenetwork.settings")
+    #from collections import OrderedDict
+    #from django.utils import simplejson
+
+    #import pdb; pdb.set_trace()
+    agent_types = AgentType.objects.all()
+
+    for at in agent_types:
+        id = "http://dhen.webfactional.com/admin/valueaccounting/agenttype/" + str(at.id) + "/"        
+        name = at.name
+        description = at.description
+        #is_context = at.is_context
+        w.writerow([id, name, description])
+    
+    aa_types = AgentAssociationType.objects.all()
+    with open(aat_file_path, 'wb') as csvfile:
+        w = csv.writer(csvfile, delimiter=',', quotechar="'", quoting=csv.QUOTE_ALL)
+        for aat in aa_types:
+            id = "http://dhen.webfactional.com/admin/valueaccounting/relationshiptype/" + str(aat.id) + "/" 
+            
+            label = aat.label.split(" ")[0]
+            inverse = aat.inverse_label.split(" ")[0]
+            id_r1 = "/".join(["roleTypes", label])
+            id_r2 = "/".join(["roleTypes", inverse])
+            id_l1 = "/".join(["linkTypes", aat.label.replace(' ', '-')])
+            id_l2 = "/".join(["linkTypes", aat.inverse_label.replace(' ', '-')])
+            id_rel_type = "/".join(["relationshipTypes", aat.name])
+
+            name = aat.name
+            pluralName = aat.plural_name
+            #("label", aat.label),
+            #("inverse_label", aat.inverse_label),
+            description = aat.description
+
+            w.writerow([id, name, pluraName, description])
+        
+    associations = AgentAssociation.objects.all()
+    #assoc_dict = OrderedDict()
+    #for a in associations:
+    #    rel_type = "/".join(["relationshipTypes", a.association_type.name])
+    #    fields = (
+    #        ("@type", "Relationship"),
+    #        ("pk", a.pk),
+    #        ("source", a.is_associate.nick),
+    #        ("target", a.has_associate.nick),
+    #        ("type", rel_type),
+    #    )
+    #    fields = OrderedDict(fields)
+    #    assoc_dict[a.pk] = fields
+        
+    agents = [assn.is_associate for assn in associations]
+    agents.extend([assn.has_associate for assn in associations])
+    agents = list(set(agents))
+    '''
+    with open(a_file_path, 'wb') as csvfile:
+        w = csv.writer(csvfile, delimiter=',', quotechar="'", quoting=csv.QUOTE_ALL)
+        for agent in agents:
+            if agent.agent_type.party_type == "individual":
+                at_sub = "Person"
+            else:
+                at_sub = "Group"
+            #agt_type = "/".join(["agentTypes", at_sub])
+            relationships = []  
+            agent_associations = list(agent.all_is_associates())
+            agent_associations.extend(list(agent.all_has_associates()))
+            for aa in agent_associations:
+                rel_type = "relationshipTypes/" + aa.association_type.name
+                if aa.is_associate.agent_type.party_type == "individual":
+                    dir = "people/"
+                else:
+                    dir = "groups/"
+                role1 = (
+                    ("@type", "Role"),
+                    ("type", "roleTypes/" + aa.association_type.label.split(" ")[0]),
+                    ("agent", dir + aa.is_associate.nick.replace(' ', '-')),
+                )
+                role1 = OrderedDict(role1)
+                if aa.has_associate.agent_type.party_type == "individual":
+                    dir = "people/"
+                else:
+                    dir = "groups/"
+                role2 = (
+                    ("@type", "Role"),
+                    ("type", "roleTypes/" + aa.association_type.inverse_label.split(" ")[0]),
+                    ("agent", dir + aa.has_associate.nick.replace(' ', '-')),
+                )
+                role2 = OrderedDict(role2)
+                roles = [role1, role2]
+                rel = (
+                    ("@type", "Relationship"),
+                    ("type", rel_type),
+                    ("roles", roles),
+                )
+                rel = OrderedDict(rel)
+                relationships.append(rel)
+                
+                
+            
+            #("pk", agent.pk),
+            #("id", agent.nick),
+            name = agent.name
+            type = agt_type.
+            ("relationships", relationships),
+
+            w.writerow([id, name, ])
+    '''

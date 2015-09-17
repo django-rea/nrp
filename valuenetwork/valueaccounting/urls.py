@@ -479,5 +479,8 @@ urlpatterns += patterns("",
     url(r"^create-location/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.create_location', name="create_location"),
     url(r"^change-location/(?P<location_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_location', name="change_location"),
     url(r"^change-location/(?P<location_id>\d+)/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_location', name="change_location"),
+    url(r"^agent-jsonld/$", 'valuenetwork.valueaccounting.views.agent_jsonld', name="agent_jsonld"),
+    url(r"^agent-type/(?P<agent_type_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent_type', name="agent_type"),
+    url(r"^agent-assoc-type/(?P<agent_assoc_type_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent_assoc_type', name="agent_assoc_type"),
 )
 

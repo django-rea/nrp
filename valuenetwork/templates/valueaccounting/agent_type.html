@@ -1,0 +1,167 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "Agent type" %}: {{ agent_type.name }}{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+.hdg {
+    color: firebrick;
+}
+.btn {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+#id_notes, #id_access_rules {
+  width: 500px;
+  height: 100px;    
+}
+.text-center {
+    text-align: center;
+}
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}x{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+
+		<legend>
+			{% trans "Agent Type" %}: {{ agent_type.name }}
+{% comment %}
+			{% if user_agent and change_form %}
+		        <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
+	        {% endif %}
+	        
+	        {% if user.is_staff and agent.is_deletable %}
+                <form
+                    style="display: inline;" 
+                    class="delete-agent-form" 
+                    id="deleteAgentForm" 
+                    action="{% url delete_agent agent_id=agent.id %}" 
+                    method="POST" >
+                    {% csrf_token %}
+                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete Agent" >Delete</button>
+                </form>
+	        {% endif %}
+{% endcomment %}
+
+		</legend>
+{% comment %}
+        {% if user_agent and change_form %}
+		    <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
+			    <div class="modal-header">
+				    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				    <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
+			    </div>
+			    <div class="modal-body">
+				    <form enctype="multipart/form-data" action="{% url change_agent agent_id=agent.id %}" method="POST" >
+					    {% csrf_token %}
+					    {{ change_form|as_bootstrap }}
+
+				        <div class="modal-footer">
+					      <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+					      <button class="btn btn-primary">{% trans "Save changes" %}</button>
+				        </div>
+				    </form>
+		      </div>
+
+		    </div>
+	    {% endif %}
+	    
+{% endcomment %}
+
+		<div class="row-fluid">
+		
+		    <div class="span6">
+		
+	            <table class="table table-bordered" >
+	                <tr>
+                        <th style="text-align: right;">{% trans "Name" %}</th>
+                        <td>{{ agent_type.name }}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right;">{% trans "Party Type" %}</th>
+                        <td>{{ agent_type.party_type }}</td>
+                    </tr>
+	                {% if agent.description %}
+	                    <tr>
+	                        <th style="text-align: right;">{% trans "Description" %}</th>
+	                        <td>{{ agent_type.description|urlize|linebreaks }}</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <th style="text-align: right; vertical-align: top; ">{% trans "Is Context" %}</th>
+                        <td>{{ agent_type.is_context }}</td>
+                    </tr>
+	            </table>
+	        
+	        </div>
+
+    </div>
+
+{% endblock %}
+
+{% comment %}
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+{% endblock %}
+{% endcomment %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+/*
+    $(document).ready(function(){
+
+		$('#projects').addClass('active');
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        $('td.td-role > select').addClass('select-role');   
+        $('td.td-agent > select').addClass('select-agent');  
+
+        $.validator.addMethod("agentRequired", function (value, element) {
+            alert("value " + value + " element " + element);
+            //agent = element.closest(".select-agent");
+            //alert("agent " + agent);
+
+            return true;
+        }, "Both role and agent must be entered.");
+
+        $.validator.addClassRules("select-role", { agentRequired: true });
+        
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+                label
+                    .text('').addClass('valid')
+                    .closest('.control-group').addClass('success');
+            }
+        });
+       
+
+    }); // end document.ready
+
+*/
+
+    </script>
+    
+{% endblock %}

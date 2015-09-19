@@ -10581,111 +10581,157 @@ def agent_assoc_type(request, agent_assoc_type_id):
         "agent_assoc_type": agent_assoc_type,
     }, context_instance=RequestContext(request)) 
 
+def agent_association(request, agent_assoc_id):
+    agent_association = get_object_or_404(AgentAssociation, id=agent_assoc_id)
+    
+    return render_to_response("valueaccounting/agent_association.html", {
+        "agent_association": agent_association,
+    }, context_instance=RequestContext(request)) 
+
+#def context(request):
+    
+    
 def agent_jsonld(request):
-    #import os, sys
-    #os.environ.setdefault("DJANGO_SETTINGS_MODULE", "valuenetwork.settings")
-    #from collections import OrderedDict
-    #from django.utils import simplejson
+    from rdflib import Graph, Literal, BNode
+    from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
+    from rdflib.serializer import Serializer
+    from rdflib import Namespace, URIRef
 
     #import pdb; pdb.set_trace()
-    agent_types = AgentType.objects.all()
-
-    for at in agent_types:
-        id = "http://dhen.webfactional.com/admin/valueaccounting/agenttype/" + str(at.id) + "/"        
-        name = at.name
-        description = at.description
-        #is_context = at.is_context
-        w.writerow([id, name, description])
+    path = get_url_starter() + "/"
+    #ns = Namespace(path)
     
+    context = {
+        #"open": "http://openvocab.is/#",
+        "open": path,
+        "schema": "http://schema.org/",
+        "as": "http://www.w3.org/ns/activitystreams#",
+        "foaf": "http://xmlns.com/foaf/0.1/",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "owl": "http://www.w3.org/2002/07/owl#",
+        "rdfs:label": { "@container": "@language" },
+        "open:labelTemplate": { "@container": "@language" },
+        #"as:Relationship": "http://www.w3.org/ns/activitystreams#Relationship"
+    }
+    
+    store = Graph()
+    store.bind("foaf", FOAF)
+    store.bind("rdf", RDF)
+    store.bind("rdfs", RDFS)
+    store.bind("owl", OWL)
+    as_ns = Namespace("http://www.w3.org/ns/activitystreams#")
+    store.bind("as", as_ns)
+    store.bind("schema", Namespace("http://schema.org/"))
+
+    
+    agent_types = AgentType.objects.all()
+    #import pdb; pdb.set_trace()
+    for at in agent_types:
+        if at.name != "Person" and at.name != "Organization":
+            class_name = at.name #todo: get rid of spaces, make camel case...
+            ref = URIRef(path + "/agent-type/" + str(at.id) + "/")
+            store.add((ref, RDF.type, RDFS.Class))
+            store.add((ref, RDFS.label, Literal(class_name))) #todo: pretty sure this is wrong, how to name classes?
+            if class_name == "Individual":
+                store.add((ref, OWL.equivalentClass, FOAF.Person))
+            elif at.party_type == "individual":
+                store.add((ref, RDFS.subClassOf, FOAF.Person))
+            else: 
+                store.add((ref, RDFS.subClassOf, FOAF.Organization))
+           
     aa_types = AgentAssociationType.objects.all()
-    with open(aat_file_path, 'wb') as csvfile:
-        w = csv.writer(csvfile, delimiter=',', quotechar="'", quoting=csv.QUOTE_ALL)
-        for aat in aa_types:
-            id = "http://dhen.webfactional.com/admin/valueaccounting/relationshiptype/" + str(aat.id) + "/" 
-            
-            label = aat.label.split(" ")[0]
-            inverse = aat.inverse_label.split(" ")[0]
-            id_r1 = "/".join(["roleTypes", label])
-            id_r2 = "/".join(["roleTypes", inverse])
-            id_l1 = "/".join(["linkTypes", aat.label.replace(' ', '-')])
-            id_l2 = "/".join(["linkTypes", aat.inverse_label.replace(' ', '-')])
-            id_rel_type = "/".join(["relationshipTypes", aat.name])
+    #import pdb; pdb.set_trace()
+    for aat in aa_types:
+        '''
+        "@id": "open:mentor",
+        "@type": "rdf:Property",
+        "rdfs:label": {
+            "en": "mentors",
+        },
+        "owl:inverseOf": {
+            "rdfs:label": {
+                "en": "is mentored by",
+        },
+        }
+        '''
+        ref = ref = URIRef(path + "/agent-assoc-type/" + str(aat.id) + "/")
+        store.add((ref, RDF.type, RDF.Property))
+        store.add((ref, RDFS.label, Literal(aat.label, lang="en")))
+        store.add((ref, RDFS.label, Literal(aat.inverse_label, lang="en"))) #todo: not working
+        store.add((ref, OWL.inverse, Literal(aat.inverse_label)))
 
-            name = aat.name
-            pluralName = aat.plural_name
-            #("label", aat.label),
-            #("inverse_label", aat.inverse_label),
-            description = aat.description
-
-            w.writerow([id, name, pluraName, description])
-        
-    associations = AgentAssociation.objects.all()
-    #assoc_dict = OrderedDict()
-    #for a in associations:
-    #    rel_type = "/".join(["relationshipTypes", a.association_type.name])
-    #    fields = (
-    #        ("@type", "Relationship"),
-    #        ("pk", a.pk),
-    #        ("source", a.is_associate.nick),
-    #        ("target", a.has_associate.nick),
-    #        ("type", rel_type),
-    #    )
-    #    fields = OrderedDict(fields)
-    #    assoc_dict[a.pk] = fields
-        
+    #import pdb; pdb.set_trace()
+    associations = AgentAssociation.objects.filter(state="active")
     agents = [assn.is_associate for assn in associations]
     agents.extend([assn.has_associate for assn in associations])
     agents = list(set(agents))
-    '''
-    with open(a_file_path, 'wb') as csvfile:
-        w = csv.writer(csvfile, delimiter=',', quotechar="'", quoting=csv.QUOTE_ALL)
-        for agent in agents:
-            if agent.agent_type.party_type == "individual":
-                at_sub = "Person"
-            else:
-                at_sub = "Group"
-            #agt_type = "/".join(["agentTypes", at_sub])
-            relationships = []  
-            agent_associations = list(agent.all_is_associates())
-            agent_associations.extend(list(agent.all_has_associates()))
-            for aa in agent_associations:
-                rel_type = "relationshipTypes/" + aa.association_type.name
-                if aa.is_associate.agent_type.party_type == "individual":
-                    dir = "people/"
-                else:
-                    dir = "groups/"
-                role1 = (
-                    ("@type", "Role"),
-                    ("type", "roleTypes/" + aa.association_type.label.split(" ")[0]),
-                    ("agent", dir + aa.is_associate.nick.replace(' ', '-')),
-                )
-                role1 = OrderedDict(role1)
-                if aa.has_associate.agent_type.party_type == "individual":
-                    dir = "people/"
-                else:
-                    dir = "groups/"
-                role2 = (
-                    ("@type", "Role"),
-                    ("type", "roleTypes/" + aa.association_type.inverse_label.split(" ")[0]),
-                    ("agent", dir + aa.has_associate.nick.replace(' ', '-')),
-                )
-                role2 = OrderedDict(role2)
-                roles = [role1, role2]
-                rel = (
-                    ("@type", "Relationship"),
-                    ("type", rel_type),
-                    ("roles", roles),
-                )
-                rel = OrderedDict(rel)
-                relationships.append(rel)
-                
-                
-            
-            #("pk", agent.pk),
-            #("id", agent.nick),
-            name = agent.name
-            type = agt_type.
-            ("relationships", relationships),
+    
+    for agent in agents:
+        ref = URIRef(path + "/agent/" + str(agent.id) + "/")
+        store.add((ref, RDF.type, FOAF.Agent))
+        if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
+            store.add((ref, RDF.type, FOAF.Person))
+        #elif agent.agent_type.name == "Organization":
+        else:
+            store.add((ref, RDF.type, FOAF.Organization))
+        #else:
+        #    store.add((ref, RDF.type, ))  #need to do at's as vocab?
+        store.add((ref, FOAF.name, Literal(agent.name, lang="en"))) #schema.name doesn't work
+        
+        '''
+        "@id": "ex:agents/lynn",
+        "@type": ["foaf:Person", "foaf:Agent"],
+        "schema:name": "Lynn"
+    
+        name = models.CharField(_('name'), max_length=255)
+        nick = models.CharField(_('ID'), max_length=32, unique=True,
+            help_text=_("Must be unique, and no more than 32 characters"))
+        url = models.CharField(_('url'), max_length=255, blank=True)
+        agent_type = models.ForeignKey(AgentType,
+            verbose_name=_('agent type'), related_name='agents')
+        description = models.TextField(_('description'), blank=True, null=True)
+        address = models.CharField(_('address'), max_length=255, blank=True)
+        email = models.EmailField(_('email address'), max_length=96, blank=True, null=True)
+        phone_primary = models.CharField(_('primary phone'), max_length=32, blank=True, null=True)
+        phone_secondary = models.CharField(_('secondary phone'), max_length=32, blank=True, null=True)
+        latitude = models.FloatField(_('latitude'), default=0.0, blank=True, null=True)
+        longitude = models.FloatField(_('longitude'), default=0.0, blank=True, null=True)
+        primary_location = models.ForeignKey(Location, 
+            verbose_name=_('current location'), related_name='agents_at_location', 
+            blank=True, null=True)
+        reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2, 
+            default=Decimal("0.00"))
+        photo = ThumbnailerImageField(_("photo"),
+            upload_to='photos', blank=True, null=True)
+        photo_url = models.
+        '''
+    
+    for a in associations:
+        ref = URIRef(path + "/agent-association/" + str(a.id) + "/")
+        ref_subject = URIRef(path + "/agent/" + str(a.is_associate.id) + "/")
+        ref_object = URIRef(path + "/agent/" + str(a.has_associate.id) + "/")
+        ref_relationship = URIRef(path + "/agent-assoc-type/" + str(a.association_type.id) + "/")
+        store.add((ref, RDF.type, as_ns["Relationship"]))
+        store.add((ref, as_ns["subject"], ref_subject)) 
+        store.add((ref, as_ns["object"], ref_object))
+        store.add((ref, as_ns["relationship"], ref_relationship))
+        '''
+        {
+        "@context": "http://www.w3.org/ns/activitystreams",
+        "@type": "Relationship",
+        "subject": {
+            "@type": "Person",
+            "displayName": "Sally"
+        },
+        "relationship": "http://purl.org/vocab/relationship/closeFriendOf",
+        "object": {
+            "@type": "Person",
+            "displayName": "John"
+        }
+        }
+        '''
+          
+    ser = store.serialize(format='json-ld', context=context, indent=4)
+    return HttpResponse(ser, mimetype='application/json') 
 
-            w.writerow([id, name, ])
-    '''

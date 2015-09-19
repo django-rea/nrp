@@ -594,6 +594,24 @@ class EconomicAgent(models.Model):
         id_list = [id[0] for id in ids]
         return EconomicAgent.objects.filter(id__in=id_list)
         
+    def total_financial_contributions(self):
+        #this is wrong
+        events = self.events.filter(
+            Q(event_type__name='Cash Contribution')|
+            Q(event_type__name='Purchase Contribution')|
+            Q(event_type__name='Expense Contribution')
+            )
+        return sum(event.quantity for event in events)
+        
+    def total_financial_income(self):
+        #this is really wrong
+        events = self.events.filter(
+            Q(event_type__name='Cash Contribution')|
+            Q(event_type__name='Purchase Contribution')|
+            Q(event_type__name='Expense Contribution')
+            )
+        return sum(event.quantity for event in events)
+        
     def events_by_event_type(self):
         agent_events = EconomicEvent.objects.filter(
             Q(from_agent=self)|Q(to_agent=self))
@@ -5657,6 +5675,12 @@ class Process(models.Model):
             finished=False,
             event_type__relationship='work',
         )
+        
+    def finished_work_requirements(self):
+        return self.commitments.filter(
+            finished=True,
+            event_type__relationship='work',
+        )
 
     def non_work_requirements(self):
         return self.commitments.exclude(
@@ -5691,6 +5715,9 @@ class Process(models.Model):
     def work_events(self):
         return self.events.filter(
             event_type__relationship='work')
+            
+    def unplanned_work_events(self):
+        return self.work_events().filter(commitment__isnull=True)
 
     def outputs(self):
         return self.events.filter(

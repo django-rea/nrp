@@ -180,10 +180,10 @@ th, td {
 			            {% trans "Work in process today" %}
 		            </h3>
 		            
-                    {% if projects %}
+                    {% if context_agents %}
                         <ul>
-			                {% for project, processes in projects.items %}
-			                    <li class="project-line"> {% trans "Project" %}: {% if project %} {{ project.name }} {% else %} No project {% endif %}</li>
+			                {% for project, processes in context_agents.items %}
+			                    <li class="project-line"> {% trans "Context" %}: {% if project %} {{ project.name }} {% else %} No project {% endif %}</li>
 			                    <ul>
 			                        {% for process in processes %}
 			                            <li class="process" >{% include  "valueaccounting/_process_for_sked.html" %}</li>

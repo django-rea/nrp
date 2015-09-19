@@ -3486,6 +3486,36 @@ def today(request):
         "todos": todos,
         "events": events,
     }, context_instance=RequestContext(request))
+    
+def this_week(request):
+    agent = get_agent(request)
+    end = datetime.date.today()
+    start = end - datetime.timedelta(days=7)
+    #start = end - datetime.timedelta(days=40)
+    #import pdb; pdb.set_trace()
+    todos = Commitment.objects.todos().filter(due_date__range=(start, end))
+    processes, context_agents = assemble_schedule(start, end)
+    cas = context_agents.keys()
+    cas_ids = [ca.id for ca in cas]
+    active = len(cas)
+    non_active = EconomicAgent.objects.context_agents().exclude(id__in=cas_ids).count()
+    work_events = EconomicEvent.objects.filter(
+        event_type__relationship="work",
+        event_date__range=(start, end))
+    participants = [e.from_agent for e in work_events if e.from_agent]
+    total_participants = len(list(set(participants)))
+    total_hours = sum(event.quantity for event in work_events)
+    return render_to_response("valueaccounting/this_week.html", {
+        "agent": agent,
+        "start": start,
+        "end": end,
+        "active": active,
+        "non_active": non_active,
+        "total_hours": total_hours,
+        "total_participants": total_participants,
+        "context_agents": context_agents,
+        "todos": todos,
+    }, context_instance=RequestContext(request))
 
 @login_required
 def add_todo(request):

@@ -3490,8 +3490,8 @@ def today(request):
 def this_week(request):
     agent = get_agent(request)
     end = datetime.date.today()
-    #start = end - datetime.timedelta(days=7)
-    start = end - datetime.timedelta(days=40)
+    start = end - datetime.timedelta(days=7)
+    #start = end - datetime.timedelta(days=40)
     #import pdb; pdb.set_trace()
     todos = Commitment.objects.todos().filter(due_date__range=(start, end))
     processes, context_agents = assemble_schedule(start, end)

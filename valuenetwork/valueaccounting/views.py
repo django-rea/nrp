@@ -10148,6 +10148,7 @@ def value_equation_sandbox(request, value_equation_id=None):
     total = None
     hours = None
     agent_subtotals = None
+    event_count = 0
     if ves:
         if not ve:
             ve = ves[0]

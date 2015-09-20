@@ -209,7 +209,8 @@ img {
 
         {% if details %}
             <div class="row-fluid" id="detail-section">
-                <span class="hdg">Details:*</span> * Does not include buckets with a distribution directly to one agent.
+                <span class="hdg">Details:*</span> * Does not include buckets with a distribution directly to one agent.</br>
+                <span class="hdg">Event count:</span> {{ event_count }}
                 <table class="table table-bordered table-condensed" >
                     <thead>
                         <th>{% trans "Bucket" %}</th>

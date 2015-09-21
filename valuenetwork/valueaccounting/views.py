@@ -3516,10 +3516,10 @@ def condense_events(event_list):
         for event in event_list:
             try:
                 key = "-".join([
-                    str(event.from_agent.id), 
-                    str(event.context_agent.id), 
-                    str(event.resource_type.id), 
-                    str(event.process.id)
+                    str(event.from_agent.id) or "", 
+                    str(event.context_agent.id) or "", 
+                    str(event.resource_type.id) or "", 
+                    str(event.process.id) or ""
                     ])
                 if not key in summaries:
                     summaries[key] = EventProcessSummary(

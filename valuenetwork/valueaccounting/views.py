@@ -3514,24 +3514,32 @@ def condense_events(event_list):
     if event_list:
         summaries = {}
         for event in event_list:
-            try:
-                key = "-".join([
-                    str(event.from_agent.id) or "", 
-                    str(event.context_agent.id) or "", 
-                    str(event.resource_type.id) or "", 
-                    str(event.process.id) or ""
-                    ])
-                if not key in summaries:
-                    summaries[key] = EventProcessSummary(
-                        event.from_agent, 
-                        event.context_agent, 
-                        event.resource_type, 
-                        event.process, 
-                        Decimal('0.0'))
-                summaries[key].quantity += event.quantity
-            except AttributeError:
-                msg = " ".join(["invalid summary key:", key])
-                assert False, msg
+            from_agent = event.from_agent or 0
+            if from_agent:
+                from_agent = from_agent.id
+            context_agent = event.context_agent or 0
+            if context_agent:
+                context_agent = context_agent.id
+            resource_type = event.resource_type or 0
+            if resource_type:
+                resource_type = resource_type.id
+            process = event.process or 0
+            if process:
+                process = process.id
+            key = "-".join([
+                str(from_agent), 
+                str(context_agent), 
+                str(resource_type), 
+                str(process)
+                ])
+            if not key in summaries:
+                summaries[key] = EventProcessSummary(
+                    event.from_agent, 
+                    event.context_agent, 
+                    event.resource_type, 
+                    event.process, 
+                    Decimal('0.0'))
+            summaries[key].quantity += event.quantity
         condensed_events = summaries.values()
     return condensed_events
     

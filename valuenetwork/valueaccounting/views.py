@@ -3513,6 +3513,7 @@ def condense_events(event_list):
     condensed_events = []
     if event_list:
         summaries = {}
+        #import pdb; pdb.set_trace()
         for event in event_list:
             from_agent = event.from_agent or 0
             if from_agent:

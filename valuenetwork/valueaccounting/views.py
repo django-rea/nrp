@@ -10618,7 +10618,53 @@ def agent_association(request, agent_assoc_id):
         "agent_association": agent_association,
     }, context_instance=RequestContext(request)) 
 
-#def context(request):
+def context_jsonld(request):
+    from rdflib import Graph, Literal, BNode
+    from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
+    from rdflib.serializer import Serializer
+    from rdflib import Namespace, URIRef
+
+    #import pdb; pdb.set_trace()
+    path = get_url_starter() + "/"
+    
+    context = {
+        #"open": "http://openvocab.is/#",
+        "open": path,
+        "schema": "http://schema.org/",
+        "as": "http://www.w3.org/ns/activitystreams#",
+        "foaf": "http://xmlns.com/foaf/0.1/",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "owl": "http://www.w3.org/2002/07/owl#",
+        "rdfs:label": { "@container": "@language" },
+        "open:labelTemplate": { "@container": "@language" },
+        #"as:Relationship": "http://www.w3.org/ns/activitystreams#Relationship"
+    }
+    
+    store = Graph()
+    store.bind("foaf", FOAF)
+    store.bind("rdf", RDF)
+    store.bind("rdfs", RDFS)
+    store.bind("owl", OWL)
+    as_ns = Namespace("http://www.w3.org/ns/activitystreams#")
+    store.bind("as", as_ns)
+    schema_ns = Namespace("http://schema.org/")
+    store.bind("schema", schema_ns)
+    
+    ref = URIRef("openvocab.is/#Network")
+    store.add((ref, RDFS.subClassOf, FOAF.Group))
+    store.add((ref, RDF.type, RDFS.Class))
+    store.add((ref, RDFS.label, Literal("Network", lang="en")))
+    store.add((ref, RDFS.comment, Literal("A Network is a ....", lang="en")))
+    
+    ref = URIRef("openvocab.is/#SomethingElse")
+    store.add((ref, RDFS.subClassOf, FOAF.Group))
+    store.add((ref, RDF.type, RDFS.Class))
+    store.add((ref, RDFS.label, Literal("xxx", lang="en")))
+    store.add((ref, RDFS.comment, Literal("A Network is a ....", lang="en")))
+    
+    ser = store.serialize(format='json-ld', context=context, indent=4)
+    return HttpResponse(ser, mimetype='application/json')
     
     
 def agent_jsonld(request):
@@ -10629,6 +10675,7 @@ def agent_jsonld(request):
 
     #import pdb; pdb.set_trace()
     path = get_url_starter() + "/"
+    
     #ns = Namespace(path)
     
     context = {
@@ -10652,7 +10699,8 @@ def agent_jsonld(request):
     store.bind("owl", OWL)
     as_ns = Namespace("http://www.w3.org/ns/activitystreams#")
     store.bind("as", as_ns)
-    store.bind("schema", Namespace("http://schema.org/"))
+    schema_ns = Namespace("http://schema.org/")
+    store.bind("schema", schema_ns)
 
     
     agent_types = AgentType.objects.all()
@@ -10660,7 +10708,7 @@ def agent_jsonld(request):
     for at in agent_types:
         if at.name != "Person" and at.name != "Organization":
             class_name = at.name #todo: get rid of spaces, make camel case...
-            ref = URIRef(path + "/agent-type/" + str(at.id) + "/")
+            ref = URIRef(path + "agent-type/" + str(at.id) + "/")
             store.add((ref, RDF.type, RDFS.Class))
             store.add((ref, RDFS.label, Literal(class_name))) #todo: pretty sure this is wrong, how to name classes?
             if class_name == "Individual":
@@ -10685,7 +10733,7 @@ def agent_jsonld(request):
         },
         }
         '''
-        ref = ref = URIRef(path + "/agent-assoc-type/" + str(aat.id) + "/")
+        ref = ref = URIRef(path + "agent-assoc-type/" + str(aat.id) + "/")
         store.add((ref, RDF.type, RDF.Property))
         store.add((ref, RDFS.label, Literal(aat.label, lang="en")))
         store.add((ref, RDFS.label, Literal(aat.inverse_label, lang="en"))) #todo: not working
@@ -10698,7 +10746,7 @@ def agent_jsonld(request):
     agents = list(set(agents))
     
     for agent in agents:
-        ref = URIRef(path + "/agent/" + str(agent.id) + "/")
+        ref = URIRef(path + "agent/" + str(agent.id) + "/")
         store.add((ref, RDF.type, FOAF.Agent))
         if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
             store.add((ref, RDF.type, FOAF.Person))
@@ -10738,7 +10786,7 @@ def agent_jsonld(request):
         '''
     
     for a in associations:
-        ref = URIRef(path + "/agent-association/" + str(a.id) + "/")
+        ref = URIRef(path + "agent-association/" + str(a.id) + "/")
         ref_subject = URIRef(path + "/agent/" + str(a.is_associate.id) + "/")
         ref_object = URIRef(path + "/agent/" + str(a.has_associate.id) + "/")
         ref_relationship = URIRef(path + "/agent-assoc-type/" + str(a.association_type.id) + "/")

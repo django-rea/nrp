@@ -4892,6 +4892,22 @@ def add_cash_contribution(request, exchange_id):
                     va = event.from_agent.virtual_accounts()[0]
                     va.quantity = va.quantity - value
                     va.save()
+                    from_event = EconomicEvent(
+                        event_type = EventType.objects.get(name="Cash Disbursement"),
+                        event_date = event.event_date,
+                        resource = va,
+                        resource_type = va.resource_type,
+                        exchange = exchange,
+                        from_agent = event.from_agent,
+                        to_agent = event.from_agent,
+                        context_agent = context_agent,
+                        quantity = event.quantity,
+                        unit_of_quantity = rt.unit,
+                        value = value,
+                        unit_of_value = rt.unit,
+                        created_by = request.user,                       
+                    )
+                    from_event.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 

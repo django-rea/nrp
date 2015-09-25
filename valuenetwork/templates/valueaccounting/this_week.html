@@ -206,83 +206,38 @@ th, td {
                             {% for project, processes in context_agents.items %}
                                 <li class="project-line"> {% if project %} {{ project.agent_type.name }}: {{ project.name }} {% else %} No project {% endif %}</li>
                                 <ul>
-                                    {% for process in processes %}
-                                        <li class="process" > 
-                                            <a href="{{ process.get_absolute_url }}">
-                                            {{ process.name }} {% trans "starting" %} <span id="start-dt{{ process.id }}">{{ process.start_date|date:"Y-m-d" }}</span> 
-                                            {% trans "ending" %} <span id="end-dt{{ process.id }}"> {{ process.end_date|date:"Y-m-d" }}
-                                            </a> 
-                                            {% if process.finished %}
-                                                {% trans "Complete" %}
-                                            {% else %}
-                                                {% trans "Incomplete" %}
-                                            {% endif %}
-                                        </li>
-                                        {% if process.unfinished_work_requirements %}
-                                            <h4>{% trans "Incomplete tasks" %}:</h4>
-                                            <ul>
-                                                {% for task in process.unfinished_work_requirements %}
-                                                    <li class="task" >{{ task }}</li>
-                                                    {% if task.from_agent %}
-                                                        <li>{% trans "Committed to by" %}: {{ task.from_agent.nick }}</li>
-                                                    {% endif %}
-                                                    {% if task.fulfilling_events %}
-                                                        <h4>{% trans "Logged time contributions" %}:</h4>
-                                                        <ul>
-                                                            {% for event in task.fulfilling_events %}
-                                                                <li>
-                                                                    {{ event.from_agent.nick }} 
-                                                                    {{ event.resource_type.name }} 
-                                                                    {{ event.quantity }}
-                                                                    {{ event.unit_of_quantity.abbrev }}
-                                                                    {{ event.event_date }}
-                                                                </li>
-                                                            {% endfor %}
-                                                        </ul>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </ul>
+                                    {% for process, events in processes.items %}
+                                        {% if process %}
+                                            <li class="process" > 
+                                                <a href="{{ process.get_absolute_url }}">
+                                                {% if process.name %}
+                                                    {{ process.name }}
+                                                {% elif process.process_type %}
+                                                    {{ process.process_type.name }}
+                                                {% else %}
+                                                    {{ process }}
+                                                {% endif %}
+                                                {% trans "starting" %} <span id="start-dt{{ process.id }}">{{ process.start_date|date:"Y-m-d" }}</span> 
+                                                {% trans "ending" %} <span id="end-dt{{ process.id }}"> {{ process.end_date|date:"Y-m-d" }}
+                                                </a> 
+                                                {% if process.finished %}
+                                                    {% trans "Complete" %}
+                                                {% else %}
+                                                    {% trans "Incomplete" %}
+                                                {% endif %}
+                                            </li>
                                         {% endif %}
-                                        {% if process.finished_work_requirements %}
-                                            <h4>{% trans "Completed tasks" %}:</h4>
-                                            <ul>
-                                                {% for task in process.finished_work_requirements %}
-                                                    <li class="task" >{{ task }}</li>
-                                                    {% if task.fulfilling_events %}
-                                                        <h4>{% trans "Logged time contributions" %}:</h4>
-                                                        <ul>
-                                                            {% for event in task.fulfilling_events %}
-                                                                <li>{{ event }}</li>
-                                                            {% endfor %}
-                                                        </ul>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </ul>
-                                        {% endif %}
-                                        {% if process.unplanned_work_events %}
-                                            <h4>{% trans "Unplanned work" %}:</h4>
-                                            <ul>
-                                            {% for event in process.unplanned_work_events %}
+                                        <ul>
+                                            {% for event in events %}
                                                 <li>
-                                                    {{ event.from_agent.nick }} 
+                                                    {{ event.agent.nick }} 
                                                     {{ event.resource_type.name }} 
                                                     {{ event.quantity }}
                                                     {{ event.unit_of_quantity.abbrev }}
-                                                    {{ event.event_date }}
                                                 </li>
                                             {% endfor %}
-                                            </ul>
-                                        {% endif %}
-                                        
+                                        </ul>
                                     {% endfor %}
-                                    {% comment %}
-                                    <li>
-                                        {% trans "Financial income" %}: {{ project.total_financial_income }}
-                                    </li>
-                                    <li>
-                                        {% trans "Financial contributions" %}: {{ project.total_financial_contributions }}
-                                    </li>
-                                    {% endcomment %}
                                 </ul>
                                 
                             {% endfor %}

@@ -3486,25 +3486,96 @@ def today(request):
         "todos": todos,
         "events": events,
     }, context_instance=RequestContext(request))
+
     
+class EventProcessSummary(object):
+    def __init__(self, 
+        agent, context_agent, resource_type, process, quantity):
+        self.agent = agent
+        self.context_agent = context_agent
+        self.resource_type = resource_type
+        self.process = process
+        self.quantity = quantity
+
+    def key(self):
+        return "-".join([
+            str(self.agent.id), 
+            str(self.resource_type.id),
+            str(self.project.id),
+            str(self.process.id),
+            ])
+
+    def quantity_formatted(self):
+        return self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+        
+        
+def condense_events(event_list):
+    condensed_events = []
+    if event_list:
+        summaries = {}
+        #import pdb; pdb.set_trace()
+        for event in event_list:
+            from_agent = event.from_agent or 0
+            if from_agent:
+                from_agent = from_agent.id
+            context_agent = event.context_agent or 0
+            if context_agent:
+                context_agent = context_agent.id
+            resource_type = event.resource_type or 0
+            if resource_type:
+                resource_type = resource_type.id
+            process = event.process or 0
+            if process:
+                process = process.id
+            key = "-".join([
+                str(from_agent), 
+                str(context_agent), 
+                str(resource_type), 
+                str(process)
+                ])
+            if not key in summaries:
+                summaries[key] = EventProcessSummary(
+                    event.from_agent, 
+                    event.context_agent, 
+                    event.resource_type, 
+                    event.process, 
+                    Decimal('0.0'))
+            summaries[key].quantity += event.quantity
+        condensed_events = summaries.values()
+    return condensed_events
+    
+
+def assemble_weekly_activity(event_list):
+    event_summaries = condense_events(event_list)
+    context_agents = {}
+    for es in event_summaries:
+        if es.context_agent not in context_agents:
+            context_agents[es.context_agent] = {}
+        processes = context_agents[es.context_agent]
+        if es.process not in processes:
+            processes[es.process] = []
+        processes[es.process].append(es)
+    return context_agents
+
 def this_week(request):
     agent = get_agent(request)
     end = datetime.date.today()
     start = end - datetime.timedelta(days=7)
     #start = end - datetime.timedelta(days=40)
     #import pdb; pdb.set_trace()
-    todos = Commitment.objects.todos().filter(due_date__range=(start, end))
-    processes, context_agents = assemble_schedule(start, end)
-    cas = context_agents.keys()
-    cas_ids = [ca.id for ca in cas]
-    active = len(cas)
-    non_active = EconomicAgent.objects.context_agents().exclude(id__in=cas_ids).count()
+    
     work_events = EconomicEvent.objects.filter(
         event_type__relationship="work",
         event_date__range=(start, end))
     participants = [e.from_agent for e in work_events if e.from_agent]
     total_participants = len(list(set(participants)))
     total_hours = sum(event.quantity for event in work_events)
+    context_agents = assemble_weekly_activity(work_events)
+    #import pdb; pdb.set_trace()
+    cas = context_agents.keys()
+    cas_ids = [ca.id for ca in cas]
+    active = len(cas)
+    non_active = EconomicAgent.objects.context_agents().exclude(id__in=cas_ids).count()
     return render_to_response("valueaccounting/this_week.html", {
         "agent": agent,
         "start": start,
@@ -3514,7 +3585,6 @@ def this_week(request):
         "total_hours": total_hours,
         "total_participants": total_participants,
         "context_agents": context_agents,
-        "todos": todos,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -10148,6 +10218,7 @@ def value_equation_sandbox(request, value_equation_id=None):
     total = None
     hours = None
     agent_subtotals = None
+    event_count = 0
     if ves:
         if not ve:
             ve = ves[0]
@@ -10190,12 +10261,9 @@ def value_equation_sandbox(request, value_equation_id=None):
             #import pdb; pdb.set_trace()
             agent_subtotals = agent_subtotals.values()
             agent_subtotals = sorted(agent_subtotals, key=methodcaller('key'))
-            #agent_subtotals.sort(lambda x, y: cmp(x.agent, y.agent))
+
             details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))
-            #details = sorted(details, key=attrgetter('vebr', 'from_agent'))
-            #details = sorted(details, key=attrgetter('vebr'), reverse = True)
-            #details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))
-            #details.sort(lambda x, y: cmp(x.vebr, y.vebr))
+            event_count = len(details)
 
     else:
         for bucket in buckets:
@@ -10209,6 +10277,7 @@ def value_equation_sandbox(request, value_equation_id=None):
         "details": details,
         "agent_subtotals": agent_subtotals,
         "total": total,
+        "event_count": event_count,
         "hours": hours,
         "ve": ve,
     }, context_instance=RequestContext(request))

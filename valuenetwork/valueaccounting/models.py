@@ -7407,6 +7407,35 @@ class Commitment(models.Model):
         
     def fulfilling_events(self):
         return self.fulfillment_events.all()    
+    
+    def fulfilling_events_condensed(self):
+        #import pdb; pdb.set_trace()
+        event_list = self.fulfillment_events.all()
+        condensed_events = []
+        if event_list:
+            summaries = {}
+            for event in event_list:
+                try:
+                    key = "-".join([
+                        str(event.from_agent.id), 
+                        str(event.context_agent.id), 
+                        str(event.resource_type.id), 
+                        str(event.event_type.id)
+                        ])
+                    if not key in summaries:
+                        summaries[key] = EventSummary(
+                            event.from_agent, 
+                            event.context_agent, 
+                            event.resource_type, 
+                            event.event_type, 
+                            Decimal('0.0'))
+                    summaries[key].quantity += event.quantity
+                except AttributeError:
+                    msg = " ".join(["invalid summary key:", key])
+                    assert False, msg
+            condensed_events = summaries.values()
+        return condensed_events
+        
         
     #def fulfilling_shipment_events(self):
     #    return self.fulfillment_events.filter(event_type__name="Shipment")
@@ -10173,18 +10202,6 @@ class CachedEventSummary(models.Model):
                         event.resource_type, 
                         event.event_type, 
                         Decimal('0.0'))
-                #key = "-".join([
-                #    str(event.from_agent.id), 
-                #    str(event.project.id), 
-                #    str(event.resource_type.id), 
-                #    str(event.event_type.id)])
-                #if not key in summaries:
-                #    summaries[key] = EventSummary(
-                #        agent=event.from_agent, 
-                #        #project=event.project, 
-                #        resource_type=event.resource_type, 
-                #        event_type=event.event_type,
-                #        quantity=Decimal('0.0'))
                 summaries[key].quantity += event.quantity
             except AttributeError:
                 msg = " ".join(["invalid summary key:", key])
@@ -10197,7 +10214,6 @@ class CachedEventSummary(models.Model):
                 resource_type=summary.resource_type,
                 event_type=summary.event_type,
                 resource_type_rate=summary.resource_type.value_per_unit,
-                #importance=summary.project.importance,
                 quantity=summary.quantity,
             )
             ces.save()

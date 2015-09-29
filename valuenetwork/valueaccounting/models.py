@@ -7222,7 +7222,7 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import ChangeCommitmentForm
         prefix=self.form_prefix()
         return ChangeCommitmentForm(instance=self, prefix=prefix)
-        
+   
     def process_form(self):
         from valuenetwork.valueaccounting.forms import ProcessForm
         start_date = self.start_date

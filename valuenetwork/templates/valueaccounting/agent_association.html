@@ -4,7 +4,7 @@
 {% load bootstrap_tags %}
 {% load thumbnail %}
 
-{% block head_title %}{% trans "Agent association" %}: {{ agent_association.name }}{% endblock %}
+{% block head_title %}{% trans "Agent relationship" %}: {{ agent_association.name }}{% endblock %}
 
 {% block extra_head %}
 
@@ -36,7 +36,7 @@
         {% include "_messages.html" %}
 
 		<legend>
-			{% trans "Agent Association" %}
+			{% trans "Agent Relationship" %}
 {% comment %}
 			{% if user_agent and change_form %}
 		        <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
@@ -89,7 +89,7 @@
                         <td>{{ agent_association.is_associate }}</td>
                     </tr>
                     <tr>
-                        <th style="text-align: right;">{% trans "Association" %}</th>
+                        <th style="text-align: right;">{% trans "Relationship" %}</th>
                         <td>{{ agent_association.association_type.label }}</td>
                     </tr>
 	                <tr>

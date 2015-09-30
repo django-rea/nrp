@@ -20,6 +20,7 @@ from django.conf import settings
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.board.forms import *
 from valuenetwork.valueaccounting.views import get_agent
+from valuenetwork.valueaccounting.forms import ChangeCommitmentForm
 
 #todo: a lot of this can be configured instead of hard-coded
 def dhen_board(request, context_agent_id=None):
@@ -63,7 +64,7 @@ def dhen_board(request, context_agent_id=None):
             com.transfer_form = ExchangeFlowForm(initial=init, qty_help=qty_help, assoc_type_identifier="DryingSite", context_agent=context_agent, prefix=prefix)
             com.zero_form = ZeroOutForm(prefix=prefix)
             com.lot_form = NewResourceForm(prefix=prefix)
-            com.multiple_formset = create_exchange_formset(context_agent=context_agent, assoc_type_identifier="Harvester", prefix=prefix)
+            com.multiple_formset = create_exchange_formset(context_agent=context_agent, assoc_type_identifier="Harvester", prefix=prefix)            
         rt.dryer_resources = rt.onhand_for_exchange_stage(stage=dryer_stage)
         init = {"event_date": e_date, "paid": "later"}
         for res in rt.dryer_resources:
@@ -685,5 +686,36 @@ def combine_resources(request, context_agent_id, assoc_type_identifier, resource
                 )
                 prod_event.save()
             
+    return HttpResponseRedirect('/%s/%s/'
+        % ('board/dhen-board', context_agent_id))
+    
+@login_required
+def change_available(request, commitment_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    context_agent_id = commitment.context_agent.id 
+    if request.method == "POST":
+        prefix = commitment.form_prefix()
+        form = ChangeCommitmentForm(instance=commitment, data=request.POST, prefix=prefix)
+        if form.is_valid():
+            data = form.cleaned_data
+            form.save()
+        zero_form = ZeroOutForm(prefix=prefix, data=request.POST)
+        if zero_form.is_valid():
+            zero_data = zero_form.cleaned_data
+            zero_out = zero_data["zero_out"]
+            if zero_out == True:
+                commitment.finished = True
+                commitment.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('board/dhen-board', context_agent_id))
+    
+@login_required
+def delete_farm_commitment(request, commitment_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    context_agent_id = commitment.context_agent.id
+    if commitment.is_deletable():
+        commitment.delete()
+                
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))

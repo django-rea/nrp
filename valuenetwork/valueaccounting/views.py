@@ -4892,6 +4892,22 @@ def add_cash_contribution(request, exchange_id):
                     va = event.from_agent.virtual_accounts()[0]
                     va.quantity = va.quantity - value
                     va.save()
+                    from_event = EconomicEvent(
+                        event_type = EventType.objects.get(name="Cash Disbursement"),
+                        event_date = event.event_date,
+                        resource = va,
+                        resource_type = va.resource_type,
+                        exchange = exchange,
+                        from_agent = event.from_agent,
+                        to_agent = event.from_agent,
+                        context_agent = context_agent,
+                        quantity = event.quantity,
+                        unit_of_quantity = rt.unit,
+                        value = value,
+                        unit_of_value = rt.unit,
+                        created_by = request.user,                       
+                    )
+                    from_event.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
@@ -10666,28 +10682,35 @@ def payout_from_virtual_account(request, account_id):
         % ('accounting/virtual-accounts'))
 
 
-def agent_type(request, agent_type_id):
-    agent_type = get_object_or_404(AgentType, id=agent_type_id)
+def agent_type(request, agent_type_name):
+    ats = AgentType.objects.all()
+    agent_type = None
+    #import pdb; pdb.set_trace()
+    for at in ats:
+        if camelcase(at.name) == agent_type_name:
+            agent_type = at
     
     return render_to_response("valueaccounting/agent_type.html", {
         "agent_type": agent_type,
     }, context_instance=RequestContext(request))    
 
-def agent_assoc_type(request, agent_assoc_type_id):
-    agent_assoc_type = get_object_or_404(AgentAssociationType, id=agent_assoc_type_id)
+def agent_relationship_type(request, agent_assoc_type_name):
+    aats = AgentAssociationType.objects.all()
+    agent_assoc_type = None
+    for aat in aats:
+        if camelcase_lower(aat.name) == agent_assoc_type_name:
+            agent_assoc_type = aat        
     
     return render_to_response("valueaccounting/agent_assoc_type.html", {
         "agent_assoc_type": agent_assoc_type,
     }, context_instance=RequestContext(request)) 
 
-def agent_association(request, agent_assoc_id):
+def agent_relationship(request, agent_assoc_id):
     agent_association = get_object_or_404(AgentAssociation, id=agent_assoc_id)
     
     return render_to_response("valueaccounting/agent_association.html", {
         "agent_association": agent_association,
-    }, context_instance=RequestContext(request)) 
-
-#def context(request):
+    }, context_instance=RequestContext(request))    
     
     
 def agent_jsonld(request):
@@ -10698,20 +10721,32 @@ def agent_jsonld(request):
 
     #import pdb; pdb.set_trace()
     path = get_url_starter() + "/"
-    #ns = Namespace(path)
-    
+
     context = {
-        #"open": "http://openvocab.is/#",
-        "open": path,
-        "schema": "http://schema.org/",
-        "as": "http://www.w3.org/ns/activitystreams#",
-        "foaf": "http://xmlns.com/foaf/0.1/",
         "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
         "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
         "owl": "http://www.w3.org/2002/07/owl#",
-        "rdfs:label": { "@container": "@language" },
-        "open:labelTemplate": { "@container": "@language" },
-        #"as:Relationship": "http://www.w3.org/ns/activitystreams#Relationship"
+        "schema": "http://schema.org/",
+        "as": "http://www.w3.org/ns/activitystreams#",
+        "foaf": "http://xmlns.com/foaf/0.1/",
+        "Agent": "foaf:Agent",
+        "Person": "foaf:Person",
+        "Group": "foaf:Group",
+        "Organization": "foaf:Organization",
+        "Relationship": "as:Relationship",
+        "name": "schema:name",
+        "nick": "foaf:nick",
+        "description": "schema:description",
+        "image": "schema:image",
+        "subject": "as:subject",
+        "object": "as:object",
+        "context": "as:context",
+        "relationship": "as:relationship",
+        "startTime": "as:startTime",
+        "endTime": "as:endTime",
+        "vf": "http://example.org/def/vf#",
+        "at": path + "agent-type/",
+        "aat": path + "agent-relationship-type/"
     }
     
     store = Graph()
@@ -10721,24 +10756,29 @@ def agent_jsonld(request):
     store.bind("owl", OWL)
     as_ns = Namespace("http://www.w3.org/ns/activitystreams#")
     store.bind("as", as_ns)
-    store.bind("schema", Namespace("http://schema.org/"))
-
+    schema_ns = Namespace("http://schema.org/")
+    store.bind("schema", schema_ns)
+    vf_ns = Namespace("http://example.org/def/vf#")
+    store.bind("vf", vf_ns)
+    at_ns = Namespace(path + "agent-type/")
+    store.bind("at", at_ns)
+    aat_ns = Namespace(path + "agent-relationship-type/")
+    store.bind("aat", aat_ns)
     
     agent_types = AgentType.objects.all()
     #import pdb; pdb.set_trace()
     for at in agent_types:
-        if at.name != "Person" and at.name != "Organization":
-            class_name = at.name #todo: get rid of spaces, make camel case...
-            ref = URIRef(path + "/agent-type/" + str(at.id) + "/")
-            store.add((ref, RDF.type, RDFS.Class))
-            store.add((ref, RDFS.label, Literal(class_name))) #todo: pretty sure this is wrong, how to name classes?
+        if at.name != "Person" and at.name != "Organization" and at.name != "Group":
+            class_name = camelcase(at.name)
+            ref = URIRef(at_ns[class_name])
+            store.add((ref, RDF.type, OWL.Class))
             if class_name == "Individual":
                 store.add((ref, OWL.equivalentClass, FOAF.Person))
             elif at.party_type == "individual":
                 store.add((ref, RDFS.subClassOf, FOAF.Person))
             else: 
-                store.add((ref, RDFS.subClassOf, FOAF.Organization))
-           
+                store.add((ref, RDFS.subClassOf, FOAF.Group))
+
     aa_types = AgentAssociationType.objects.all()
     #import pdb; pdb.set_trace()
     for aat in aa_types:
@@ -10754,7 +10794,8 @@ def agent_jsonld(request):
         },
         }
         '''
-        ref = ref = URIRef(path + "/agent-assoc-type/" + str(aat.id) + "/")
+        property_name = camelcase_lower(aat.name)
+        ref = URIRef(aat_ns[property_name])
         store.add((ref, RDF.type, RDF.Property))
         store.add((ref, RDFS.label, Literal(aat.label, lang="en")))
         store.add((ref, RDFS.label, Literal(aat.inverse_label, lang="en"))) #todo: not working
@@ -10767,16 +10808,20 @@ def agent_jsonld(request):
     agents = list(set(agents))
     
     for agent in agents:
-        ref = URIRef(path + "/agent/" + str(agent.id) + "/")
-        store.add((ref, RDF.type, FOAF.Agent))
+        ref = URIRef(path + "agent/" + str(agent.id) + "/")
         if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
             store.add((ref, RDF.type, FOAF.Person))
-        #elif agent.agent_type.name == "Organization":
-        else:
+        elif agent.agent_type.name == "Organization":
             store.add((ref, RDF.type, FOAF.Organization))
-        #else:
-        #    store.add((ref, RDF.type, ))  #need to do at's as vocab?
-        store.add((ref, FOAF.name, Literal(agent.name, lang="en"))) #schema.name doesn't work
+        else:
+            at_class_name = camelcase(agent.agent_type.name)
+            ref_class = URIRef(at_ns[at_class_name])
+            store.add((ref, RDF.type, ref_class))
+        store.add((ref, schema_ns["name"], Literal(agent.name, lang="en")))
+        if agent.name != agent.nick:
+            store.add((ref, FOAF.nick, Literal(agent.nick, lang="en")))
+        if agent.photo_url:
+            store.add((ref, schema_ns["image"], agent.photo_url))
         
         '''
         "@id": "ex:agents/lynn",
@@ -10807,7 +10852,7 @@ def agent_jsonld(request):
         '''
     
     for a in associations:
-        ref = URIRef(path + "/agent-association/" + str(a.id) + "/")
+        ref = URIRef(path + "agent-association/" + str(a.id) + "/")
         ref_subject = URIRef(path + "/agent/" + str(a.is_associate.id) + "/")
         ref_object = URIRef(path + "/agent/" + str(a.has_associate.id) + "/")
         ref_relationship = URIRef(path + "/agent-assoc-type/" + str(a.association_type.id) + "/")

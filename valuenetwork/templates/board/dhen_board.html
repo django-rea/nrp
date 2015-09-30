@@ -79,6 +79,9 @@ h3 {
 .fltr-label {
     vertical-align: 7px;
 }
+.delete-form {
+    margin-bottom: 0;
+}
 
 </style>
 {% endblock %}
@@ -150,10 +153,51 @@ h3 {
                                 </li>
                               {% else %}
                                 <li>{{ com.from_agent }} ~ {{ com.remaining_formatted_quantity }} ~ {{ com.commitment_date }}
-                                    {% if agent %}<a href="#farmModal{{ com.id }}" role="button" data-toggle="modal">
-                                    <img src="{% static 'img/stock_next.png' %}" height="20" width="20" title="Transfer to harvester" class="arrow" /></a>
-                                    {% endif %}
+                                  {% if agent %} 
+                                    <a href="#farmModal{{ com.id }}" role="button" data-toggle="modal">
+                                    <img src="{% static 'img/stock_next.png' %}" height="20" width="20" title="Transfer to harvester" class="arrow" />
+                                    </a>
+                                    <div>
+                                        <a href="#changeFarmModal{{ com.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                                        <i class="icon-edit"></i>
+                                        </a>
+                                        {% if com.is_deletable %}
+                                        <form
+                                            style="display: inline;" 
+                                            class="delete-form" 
+                                            id="deleteCommitForm{{ com.id }}" 
+                                            action="{% url delete_farm_commitment commitment_id=com.id %}" 
+                                            method="POST" >
+                                            {% csrf_token %}
+                                            <input type="hidden" id="next" name="next" value="exchange" />
+                                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Zero out the available, there is no more to be harvested" >X</button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                  {% endif %}
                                 </li>
+                                <div class="modal hide fade" id="changeFarmModal{{ com.id }}" tabindex="-1" role="dialog" aria-labelledby="change-farm-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="change-farm-label">{% trans "Change Farm Availability" %}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="validateMe" enctype="multipart/form-data" action="{% url change_available commitment_id=com.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ com.zero_form|as_bootstrap }}
+                                            Due Date <br />
+                                            {{ com.change_form.due_date }}<br />
+                                            Original quantity (not current quantity)<br />
+                                            {{ com.change_form.quantity }}<br />
+                                            Description<br />
+                                            {{ com.change_form.description }}
+                                            <div class="modal-footer">
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                                 <div class="modal hide fade xfer" id="farmModal{{ com.id }}" tabindex="-1" role="dialog" aria-labelledby="farm" aria-hidden="true">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>

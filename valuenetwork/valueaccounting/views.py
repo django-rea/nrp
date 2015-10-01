@@ -10735,7 +10735,7 @@ def agent_jsonld(request):
         "Organization": "foaf:Organization",
         "Relationship": "as:Relationship",
         "name": "schema:name",
-        "nick": "foaf:nick",
+        #"nick": "foaf:nick",
         "description": "schema:description",
         "image": "schema:image",
         "subject": "as:subject",
@@ -10818,8 +10818,8 @@ def agent_jsonld(request):
             ref_class = URIRef(at_ns[at_class_name])
             store.add((ref, RDF.type, ref_class))
         store.add((ref, schema_ns["name"], Literal(agent.name, lang="en")))
-        if agent.name != agent.nick:
-            store.add((ref, FOAF.nick, Literal(agent.nick, lang="en")))
+        #if agent.name != agent.nick:
+        #    store.add((ref, FOAF.nick, Literal(agent.nick, lang="en")))
         if agent.photo_url:
             store.add((ref, schema_ns["image"], agent.photo_url))
         

@@ -44,16 +44,16 @@ class TransferFlowForm(forms.Form):
     quantity = forms.DecimalField(required=True,
         label="Quantity",
         widget=forms.TextInput(attrs={'value': '1', 'class': 'quantity  input-small'}))
-    value = forms.DecimalField(
-        help_text="Total value of the transfer, not value for each unit.",
-        widget=forms.TextInput(attrs={'class': 'value input-small',}))
-    unit_of_value = forms.ModelChoiceField(
-        empty_label=None,
-        queryset=Unit.objects.filter(unit_type='value'))
     notes = forms.CharField(required=False,
         widget=forms.Textarea(attrs={'class': 'item-description',}))
     paid = forms.ChoiceField(required=True,
         widget=forms.Select, choices=PAID_CHOICES)
+    value = forms.DecimalField(
+        help_text="If paid for: total value of the transfer, not value for each unit.",
+        widget=forms.TextInput(attrs={'value': '0.00','class': 'value input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
         
     def __init__(self, assoc_type_identifier=None, context_agent=None, qty_help=None, *args, **kwargs):
         super(TransferFlowForm, self).__init__(*args, **kwargs)
@@ -133,7 +133,7 @@ class PlanProcessForm(forms.ModelForm):
         fields = ('name', 'start_date', 'end_date')
         
 class AvailableForm(forms.ModelForm):
-    commitment_date = forms.DateField(
+    start_date = forms.DateField(
         required=True, 
         label="Available on",
         widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
@@ -159,7 +159,7 @@ class AvailableForm(forms.ModelForm):
         
     class Meta:
         model = Commitment
-        fields = ('from_agent', 'resource_type', 'commitment_date', 'quantity', 'description')
+        fields = ('from_agent', 'resource_type', 'start_date', 'quantity', 'description')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         super(AvailableForm, self).__init__(*args, **kwargs)
@@ -170,6 +170,18 @@ class AvailableForm(forms.ModelForm):
             self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
         if context_agent:
             self.fields["from_agent"].queryset = context_agent.all_has_associates_by_type(assoc_type_identifier="HarvestSite")
+
+class CommitmentForm(forms.ModelForm):
+    start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(
+        label="Original quantity (not current quantity)",
+        required=False, 
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = Commitment
+        fields = ('start_date', 'quantity', 'description')
 
 class CombineResourcesForm(forms.Form):
     event_date = forms.DateField(required=True, 

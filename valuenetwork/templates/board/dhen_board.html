@@ -146,36 +146,42 @@ h3 {
                         <ul> 
                           {% for com in rt.farm_commits %}
                               {% if com.future %}
-                                <li class="gray">{{ com.from_agent }} ~ {{ com.remaining_formatted_quantity }} ~ {{ com.commitment_date }}
+                                <li class="gray">{{ com.from_agent }} ~ {{ com.remaining_formatted_quantity }} ~ {{ com.start_date }}
                                 {% if com.description %}
                                   <div class="notes gray"> {{ com.description|urlize|linebreaks }} </div>
                                 {% endif %}
-                                </li>
                               {% else %}
-                                <li>{{ com.from_agent }} ~ {{ com.remaining_formatted_quantity }} ~ {{ com.commitment_date }}
+                                <li>{{ com.from_agent }} ~ {{ com.remaining_formatted_quantity }} ~ {{ com.start_date }}
                                   {% if agent %} 
                                     <a href="#farmModal{{ com.id }}" role="button" data-toggle="modal">
                                     <img src="{% static 'img/stock_next.png' %}" height="20" width="20" title="Transfer to harvester" class="arrow" />
                                     </a>
-                                    <div>
-                                        <a href="#changeFarmModal{{ com.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-                                        <i class="icon-edit"></i>
-                                        </a>
-                                        {% if com.is_deletable %}
-                                        <form
-                                            style="display: inline;" 
-                                            class="delete-form" 
-                                            id="deleteCommitForm{{ com.id }}" 
-                                            action="{% url delete_farm_commitment commitment_id=com.id %}" 
-                                            method="POST" >
-                                            {% csrf_token %}
-                                            <input type="hidden" id="next" name="next" value="exchange" />
-                                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Zero out the available, there is no more to be harvested" >X</button>
-                                        </form>
-                                        {% endif %}
-                                    </div>
                                   {% endif %}
-                                </li>
+                                {% if com.description %}
+                                  <div class="notes"> {{ com.description|urlize|linebreaks }} </div>
+                                {% endif %}
+                              {% endif %}
+                              {% if agent %}
+                                <div>
+                                    <a href="#changeFarmModal{{ com.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                                    Change
+                                    </a>
+                                    {% if com.is_deletable %}
+                                    <form
+                                        style="display: inline;" 
+                                        class="delete-form" 
+                                        id="deleteCommitForm{{ com.id }}" 
+                                        action="{% url delete_farm_commitment commitment_id=com.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" id="next" name="next" value="exchange" />
+                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this available resource" >Delete</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                              {% endif %}
+                              </li>
+                              {% if agent %}
                                 <div class="modal hide fade" id="changeFarmModal{{ com.id }}" tabindex="-1" role="dialog" aria-labelledby="change-farm-label" aria-hidden="true">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -185,12 +191,7 @@ h3 {
                                         <form class="validateMe" enctype="multipart/form-data" action="{% url change_available commitment_id=com.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ com.zero_form|as_bootstrap }}
-                                            Due Date <br />
-                                            {{ com.change_form.due_date }}<br />
-                                            Original quantity (not current quantity)<br />
-                                            {{ com.change_form.quantity }}<br />
-                                            Description<br />
-                                            {{ com.change_form.description }}
+                                            {{ com.commitment_form|as_bootstrap }}
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -241,9 +242,6 @@ h3 {
                                         </form>
                                     </div>
                                 </div>
-                                {% if com.description %}
-                                  <div class="notes"> {{ com.description|urlize|linebreaks }} </div>
-                                {% endif %}
                               {% endif %} 
                           {% endfor %}
                         </ul>
@@ -283,6 +281,17 @@ h3 {
                                             </div>
                                         </form>
                                     </div>
+                                  </div>
+                                  <div>
+                                    <form
+                                        style="display: inline;" 
+                                        class="undo-form" 
+                                        id="undoHarvestForm{{ res.id }}" 
+                                        action="{% url undo_col2 resource_id=res.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <button style="display: inline;"  class="btn btn-info btn-mini" title="Undo and make available again" >Undo</button>
+                                    </form>                             
                                   </div>
                                 {% endif %}
                                 {% if res.notes %}

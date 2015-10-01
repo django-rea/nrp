@@ -20,7 +20,9 @@ from django.conf import settings
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.board.forms import *
 from valuenetwork.valueaccounting.views import get_agent
-from valuenetwork.valueaccounting.forms import ChangeCommitmentForm
+
+def default_context_agent():
+    return EconomicAgent.objects.get(id=3) #todo:  BIG hack alert!!!!
 
 #todo: a lot of this can be configured instead of hard-coded
 def dhen_board(request, context_agent_id=None):
@@ -29,22 +31,13 @@ def dhen_board(request, context_agent_id=None):
     pattern = ProcessPattern.objects.get(name="Transfer")
     selected_resource_type = None
     filter_form = FilterForm(pattern=pattern, data=request.POST or None,)
-    #if request.method == "POST":
-    #    if filter_form.is_valid():
-    #        data = filter_form.cleaned_data
-    #        context_agent = data["context_agent"]
-    #        selected_resource_type = data["resource_type"]
-    #elif context_agent_id:
-    #    context_agent = EconomicAgent.objects.get(id=context_agent_id)
-    #else:
-    #    context_agent = filter_form.fields["context_agent"].queryset[0] #todo: hack, this happens to be DHEN
     if context_agent_id:
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
     else:
-        context_agent = EconomicAgent.objects.get(id=3) #todo:  BIG hack alert!!!!
+        context_agent = default_context_agent()
     rec_pattern = ProcessPattern.objects.get(name="Purchase Contribution")
     e_date = datetime.date.today()
-    init = {"commitment_date": e_date }
+    init = {"start_date": e_date }
     available_form = AvailableForm(initial=init, pattern=pattern, context_agent=context_agent, prefix="AVL")
     init = {"event_date": e_date, "paid": "later", }
     receive_form = ReceiveForm(initial=init, pattern=rec_pattern, context_agent=context_agent, prefix="REC")
@@ -57,7 +50,7 @@ def dhen_board(request, context_agent_id=None):
         init = {"event_date": e_date,}
         rt.farm_commits = rt.commits_for_exchange_stage(stage=farm_stage)
         for com in rt.farm_commits:
-            if com.commitment_date > e_date:
+            if com.start_date > e_date:
                 com.future = True
             prefix = com.form_prefix()
             qty_help = " ".join([com.unit_of_quantity.abbrev, ", up to 2 decimal places"])
@@ -96,7 +89,8 @@ def add_available(request, context_agent_id, assoc_type_identifier):
             commit.event_type = EventType.objects.get(name="Receipt")
             commit.to_agent = context_agent
             commit.context_agent = context_agent
-            commit.due_date = commit.commitment_date
+            commit.due_date = commit.start_date
+            commit.commitment_date = commit.start_date
             commit.unit_of_quantity = commit.resource_type.unit
             commit.exchange_stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
             commit.created_by = request.user
@@ -695,10 +689,12 @@ def change_available(request, commitment_id):
     context_agent_id = commitment.context_agent.id 
     if request.method == "POST":
         prefix = commitment.form_prefix()
-        form = ChangeCommitmentForm(instance=commitment, data=request.POST, prefix=prefix)
+        form = CommitmentForm(instance=commitment, data=request.POST, prefix=prefix)
         if form.is_valid():
             data = form.cleaned_data
             form.save()
+            commitment.unit_of_quantity = commitment.resource_type.unit
+            commitment.save()
         zero_form = ZeroOutForm(prefix=prefix, data=request.POST)
         if zero_form.is_valid():
             zero_data = zero_form.cleaned_data
@@ -716,6 +712,19 @@ def delete_farm_commitment(request, commitment_id):
     context_agent_id = commitment.context_agent.id
     if commitment.is_deletable():
         commitment.delete()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('board/dhen-board', context_agent_id))
+    
+@login_required
+def undo_col2(request, resource_id):
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    context_agent_id = default_context_agent().id
+    import pdb; pdb.set_trace()
+    flows = resource.incoming_value_flows()
+    if flows:
+        context_agent_id = flows[0].context_agent.id
+
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))

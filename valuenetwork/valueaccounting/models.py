@@ -3883,8 +3883,10 @@ class EconomicResource(models.Model):
             #todo br: use
             #br = evt.bucket_rule(value_equation)
         #Purchase contributions use event.value.
-        #todo 3d:
-        buys = self.purchase_events()
+        #todo dhen_bug: only buys for the same exchange_stage count
+        # also, need to get transfers for the same exchange_stage
+        # probably also need to chase historical_stage
+        buys = self.purchase_events_for_exchange_stage()
         for evt in buys:
             #import pdb; pdb.set_trace()
             depth += 1
@@ -3905,6 +3907,28 @@ class EconomicResource(models.Model):
                 #print padding, "--- evt_vpu: ", evt_vpu
                 #print padding, "--- values:", values
             depth -= 1
+        xfers = self.transfer_events_for_exchange_stage()
+        for evt in xfers:
+            #import pdb; pdb.set_trace()
+            depth += 1
+            evt.depth = depth
+            path.append(evt)
+            value = evt.value
+            if evt.exchange:
+                #print "value b4:", value
+                value = evt.exchange.roll_up_value(evt, path, depth, visited, value_equation)
+                #print "value after:", value
+            evt_vpu = value / evt.quantity
+            if evt_vpu:
+                values.append([evt_vpu, evt.quantity])
+                #padding = ""
+                #for x in range(0,depth):
+                #    padding += "."
+                #print padding, depth, evt.id, evt
+                #print padding, "--- evt_vpu: ", evt_vpu
+                #print padding, "--- values:", values
+            depth -= 1
+        
         citations = []
         production_value = Decimal("0.0")
         #rollup stage change
@@ -3972,6 +3996,7 @@ class EconomicResource(models.Model):
                             ip.depth = depth
                             path.append(ip)
                             #rollup stage change
+                            #this is where it starts (I think)
                             value_per_unit = ip.roll_up_value(path, depth, visited, value_equation)
                             ip.value = ip.quantity * value_per_unit
                             ip.save()
@@ -4559,9 +4584,23 @@ class EconomicResource(models.Model):
         rct_et = EventType.objects.get(relationship="receive")
         return self.events.filter(event_type=rct_et)
         
+    def purchase_events_for_exchange_stage(self):
+        #todo dhen_bug:
+        if self.exchange_stage:
+            return self.purchase_events().filter(exchange_stage=self.exchange_stage)
+        else:
+            return self.purchase_events()
+        
     def transfer_events(self):
         tx_et = EventType.objects.get(name="Transfer")
         return self.events.filter(event_type=tx_et)
+        
+    def transfer_events_for_exchange_stage(self):
+        #todo dhen_bug:
+        if self.exchange_stage:
+            return self.transfer_events().filter(exchange_stage=self.exchange_stage)
+        else:
+            return self.transfer_events()
         
     def available_events(self):
         av_et = EventType.objects.get(name="Make Available")
@@ -4619,8 +4658,9 @@ class EconomicResource(models.Model):
         for flow in flows:
             if type(flow) is EconomicEvent:
                 resource = flow.resource
-                if not resource == self:
-                    lots.append(resource)
+                if resource:
+                    if not resource == self:
+                        lots.append(resource)
         lots = list(set(lots))
         lots.append(self)
         return lots
@@ -4631,11 +4671,13 @@ class EconomicResource(models.Model):
         return flows
 
     def incoming_value_flows(self):
+        #todo dhen_bug:
         flows = []
         visited = []
         depth = 0
         self.depth = depth
         flows.append(self)
+        #import pdb; pdb.set_trace()
         self.incoming_value_flows_dfs(flows, visited, depth)
         return flows
 
@@ -4644,7 +4686,8 @@ class EconomicResource(models.Model):
             visited.append(self)
             depth += 1
             resources = []
-            #this needs to include purchases and contributions
+            #todo dhen_bug:
+            #need to follow transfers to the previous exchange_stage
             for event in self.producing_events():
                 event.depth = depth
                 flows.append(event)
@@ -4666,13 +4709,31 @@ class EconomicResource(models.Model):
             for event in self.resource_contribution_events():
                 event.depth = depth
                 flows.append(event)
-            for event in self.purchase_events():
+            for event in self.transfer_events_for_exchange_stage():
+                #import pdb; pdb.set_trace()
+                event.depth = depth
+                flows.append(event)
+                if event.exchange:
+                    for pmt in event.exchange.reciprocal_transfer_events():
+                        pmt.depth = depth + 1
+                        flows.append(pmt)
+            for event in self.purchase_events_for_exchange_stage():
                 event.depth = depth
                 flows.append(event)
                 if event.exchange:
                     for pmt in event.exchange.payment_events():
                         pmt.depth = depth + 1
                         flows.append(pmt)
+            if self.exchange_stage:
+                for event in self.purchase_events():
+                    if event.exchange_stage != self.exchange_stage:
+                        event.depth = depth + 1
+                        flows.append(event)
+                        if event.exchange:
+                            for pmt in event.exchange.payment_events():
+                                pmt.depth = depth + 2
+                                flows.append(pmt)
+            
             for resource in resources:
                 resource.incoming_value_flows_dfs(flows, visited, depth)
                 
@@ -6475,8 +6536,14 @@ class Exchange(models.Model):
             event_type__relationship='shipment')
                 
     def transfer_events(self):
+        #exchange method
         return self.events.filter(
-            event_type__relationship='transfer')
+            event_type__name='Transfer')
+            
+    def reciprocal_transfer_events(self):
+        #exchange method
+        return self.events.filter(
+            event_type__name='Reciprocal Transfer')  
             
     def shipment_events_no_commitment(self):
         return self.events.filter(event_type__relationship='shipment').filter(commitment=None)
@@ -6527,6 +6594,8 @@ class Exchange(models.Model):
             values = Decimal("0.0")
             
             receipts = self.receipt_events()
+            #todo dhen_bug: need to deal with transfers
+            #and then might be a flow between exchanges
             trigger_fraction = 1
             if receipts.count() > 1:
                 rsum = sum(r.value for r in receipts)

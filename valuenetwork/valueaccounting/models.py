@@ -6501,6 +6501,18 @@ class Exchange(models.Model):
     def payment_events(self):
         return self.events.filter(
             event_type__relationship='pay')
+            
+    def cash_contributions(self):
+        payments = self.payment_events()
+        resources = {p.resource for p in payments if p.resource}
+        ccs = []
+        for r in resources:
+            ccs.extend(r.cash_contribution_events())
+        return ccs
+        
+    def payment_sources_with_contributions(self):
+        resources = {p.resource for p in self.payment_events() if p.resource}
+        return [r for r in resources if r.cash_contribution_events()]
 
     def uncommitted_payment_events(self):
         return self.events.filter(

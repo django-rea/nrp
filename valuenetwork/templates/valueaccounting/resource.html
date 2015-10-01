@@ -227,9 +227,22 @@
                             {% if event.exchange %}
                                 <ul>
                                     <li><b>{% trans "Exchange" %}:</b> <a href="{% url exchange_logging exchange_id=event.exchange.id %}">{{ event.exchange }}</a>
-
                                     </li>
-
+                                        {% if event.exchange.payment_sources_with_contributions %}
+                                            <li><b>{% trans "Contributions to payment for " %} {{ resource.identifier }}:</b></li>
+                                            <ul>
+                                                {% for source in event.exchange.payment_sources_with_contributions %}
+                                                    {% for contribution in source.cash_contribution_events %}
+                                                        <li>
+                                                            <b>{{ contribution.event_type }}:</b> 
+                                                            {{ contribution.event_date }} 
+                                                            {{ contribution.distribution_quantity_formatted }}
+                                                            {% trans "from" %}: {{ contribution.from_agent }}
+                                                        </li>
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
                                 </ul>
                             {% endif %}
                         {% endfor %}

@@ -4714,15 +4714,21 @@ class EconomicResource(models.Model):
                 event.depth = depth
                 flows.append(event)
                 if event.exchange:
+                    exchange = event.exchange
+                    exchange.depth = depth + 1
+                    flows.append(exchange)
                     for pmt in event.exchange.reciprocal_transfer_events():
-                        pmt.depth = depth + 1
+                        pmt.depth = depth + 2
                         flows.append(pmt)
             for event in self.purchase_events_for_exchange_stage():
                 event.depth = depth
                 flows.append(event)
                 if event.exchange:
+                    exchange = event.exchange
+                    exchange.depth = depth + 1
+                    flows.append(exchange)
                     for pmt in event.exchange.payment_events():
-                        pmt.depth = depth + 1
+                        pmt.depth = depth + 2
                         flows.append(pmt)
             if self.exchange_stage:
                 for event in self.purchase_events():
@@ -4730,11 +4736,16 @@ class EconomicResource(models.Model):
                         event.depth = depth + 1
                         flows.append(event)
                         if event.exchange:
+                            exchange = event.exchange
+                            exchange.depth = depth + 2
+                            flows.append(exchange)
                             for pmt in event.exchange.payment_events():
-                                pmt.depth = depth + 2
+                                pmt.depth = depth + 3
                                 flows.append(pmt)
             
             for resource in resources:
+                resource.depth = depth + 1
+                flows.append(resource)
                 resource.incoming_value_flows_dfs(flows, visited, depth)
                 
     def incoming_events(self):

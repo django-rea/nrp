@@ -3727,6 +3727,9 @@ class EconomicResource(models.Model):
 
     def flow_class(self):
         return "resource"
+            
+    def class_label(self):
+        return "Economic Resource"
 
     def flow_description(self):
         #rollup stage change

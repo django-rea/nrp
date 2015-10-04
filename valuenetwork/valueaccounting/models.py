@@ -4528,11 +4528,12 @@ class EconomicResource(models.Model):
         #rollup stage change
         pes = self.producing_events()
         processes = [pe.process for pe in pes if pe.process]
-        try:
-            processes = [p for p in processes if p.process_type==self.historical_stage]
-        except AttributeError:
-            pass
         processes = list(set(processes))
+        if self.stage:
+            try:
+                processes = [p for p in processes if p.process_type==self.historical_stage]
+            except AttributeError:
+                processes = [p for p in processes if p.process_type==self.stage]
         return processes
         
     def where_from_events(self):
@@ -4672,7 +4673,7 @@ class EconomicResource(models.Model):
         flows = self.incoming_value_flows()
         flows.reverse()
         return flows
-
+       
     def incoming_value_flows(self):
         #todo dhen_bug:
         flows = []
@@ -4683,35 +4684,37 @@ class EconomicResource(models.Model):
         #import pdb; pdb.set_trace()
         self.incoming_value_flows_dfs(flows, visited, depth)
         return flows
-
+                
     def incoming_value_flows_dfs(self, flows, visited, depth):
+        #Resource method
         if not self in visited:
             visited.append(self)
             depth += 1
             resources = []
             #todo dhen_bug:
-            #need to follow transfers to the previous exchange_stage
-            for event in self.producing_events():
-                event.depth = depth
-                flows.append(event)
-                p = event.process
-                if p:
-                    if p not in visited:
-                        visited.append(p)
+            for process in self.producing_processes_for_historical_stage():
+                if not process in visited:
+                    visited.append(process)
+                    events = [e for e in process.production_events() if e.resource==self]
+                    for event in events:
+                        event.depth = depth
+                        flows.append(event)
                         depth += 1
-                        p.depth = depth
-                        flows.append(p)
+                        process.depth = depth
+                        flows.append(process)
                         depth += 1
-                        #process.incoming_events shd include p&c
-                        for evt in p.incoming_events():
+                        #process.incoming_events shd include p&c???
+                        for evt in process.incoming_events():
                             evt.depth = depth
                             flows.append(evt)
                             if evt.resource:
-                                if evt.resource not in resources:
+                                if evt.resource == self:
+                                    if self.stage and evt.stage:
+                                        self.historical_stage = evt.stage
+                                        self.incoming_value_flows_dfs(flows, visited, depth)
+                                elif evt.resource not in resources:
                                     resources.append(evt.resource)
-            for event in self.resource_contribution_events():
-                event.depth = depth
-                flows.append(event)
+                                        
             for event in self.transfer_events_for_exchange_stage():
                 #import pdb; pdb.set_trace()
                 event.depth = depth
@@ -4723,28 +4726,24 @@ class EconomicResource(models.Model):
                     for pmt in event.exchange.reciprocal_transfer_events():
                         pmt.depth = depth + 2
                         flows.append(pmt)
+                #import pdb; pdb.set_trace()
+                event.incoming_value_flows_dfs(flows, visited, depth)
+                
             for event in self.purchase_events_for_exchange_stage():
+                if event not in flows:
+                    event.depth = depth
+                    flows.append(event)
+                    if event.exchange:
+                        exchange = event.exchange
+                        exchange.depth = depth + 1
+                        flows.append(exchange)
+                        for pmt in event.exchange.payment_events():
+                            pmt.depth = depth + 2
+                            flows.append(pmt)
+
+            for event in self.resource_contribution_events():
                 event.depth = depth
                 flows.append(event)
-                if event.exchange:
-                    exchange = event.exchange
-                    exchange.depth = depth + 1
-                    flows.append(exchange)
-                    for pmt in event.exchange.payment_events():
-                        pmt.depth = depth + 2
-                        flows.append(pmt)
-            if self.exchange_stage:
-                for event in self.purchase_events():
-                    if event.exchange_stage != self.exchange_stage:
-                        event.depth = depth + 1
-                        flows.append(event)
-                        if event.exchange:
-                            exchange = event.exchange
-                            exchange.depth = depth + 2
-                            flows.append(exchange)
-                            for pmt in event.exchange.payment_events():
-                                pmt.depth = depth + 3
-                                flows.append(pmt)
             
             for resource in resources:
                 resource.depth = depth + 1
@@ -8596,6 +8595,25 @@ class EconomicEvent(models.Model):
         elif self.event_type.relationship == "out":
             return "Value per unit is composed of the value of the inputs on the next level:"
         return ""
+        
+    def incoming_value_flows_dfs(self, flows, visited, depth):
+        # EconomicEvent method
+        #todo dhen_bug:
+        if self.event_type.relationship=="receive":
+            if self.exchange:
+                exchange = self.exchange
+                exchange.depth = depth + 1
+                flows.append(exchange)
+                for pmt in exchange.payment_events():
+                    pmt.depth = depth + 2
+                    flows.append(pmt)
+        if self.resource:
+            depth = depth + 1
+            prevs = self.resource.events.filter(to_agent=self.from_agent)
+            for prev in prevs:
+                prev.depth = depth
+                flows.append(prev)
+                prev.incoming_value_flows_dfs(flows, visited, depth)
         
     def roll_up_value(self, path, depth, visited, value_equation):
         # EconomicEvent method

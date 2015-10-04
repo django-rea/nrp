@@ -722,12 +722,14 @@ def undo_col2(request, resource_id):
     context_agent_id = default_context_agent().id
     import pdb; pdb.set_trace()
     flows = resource.incoming_value_flows()
-    resources = []
     for item in flows:
-        #if item.class_label == "EconomicResource":
-        #    resources.append(item)
-        #else:
-        item.delete()    
+        if item.class_label() == "Economic Event":
+            if item.commitment:
+                commit = item.commitment
+                commit.finished = False
+                commit.save()
+        item.delete()
+    
              
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))

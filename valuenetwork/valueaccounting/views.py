@@ -10712,7 +10712,7 @@ def agent_relationship(request, agent_assoc_id):
         "agent_association": agent_association,
     }, context_instance=RequestContext(request))    
 
-#following method supplied by rdflib support to get the desired output for nested rdf inputs for rdflib
+#following method supplied by Niklas at rdflib-jsonld support to get the desired output for nested rdf inputs for rdflib
 def simplyframe(data):
     #import pdb; pdb.set_trace()
     items, refs = {}, {}
@@ -10755,7 +10755,6 @@ def agent_jsonld(request):
         "Organization": "foaf:Organization",
         "Relationship": "as:Relationship",
         "name": "schema:name",
-        #"nick": "foaf:nick",
         "description": "schema:description",
         "image": "schema:image",
         "subject": "as:subject",
@@ -10800,30 +10799,6 @@ def agent_jsonld(request):
     aa_types = AgentAssociationType.objects.all()
     #import pdb; pdb.set_trace()
     for aat in aa_types:
-        '''
-        "@id": "open:mentor",
-        "@type": "rdf:Property",
-        "rdfs:label": {
-            "en": "mentors",
-        },
-        "owl:inverseOf": {
-            "rdfs:label": {
-                "en": "is mentored by",
-        },
-        }
-        
-        ref = URIRef(some_namespace["mentor"])
-        graph.add((ref, RDFS.label, Literal("mentors", lang="en")))
-        inverse = BNode()
-        graph.add((ref, OWL.inverseOf, inverse))
-        graph.add((inverse, RDFS.label, Literal("is mentored by", lang="en")))
-
-        output = graph.serialize(format='json-ld', context={
-                'rdfs': unicode(RDFS),
-                'owl': unicode(OWL),
-                'rdfs:label': {'@container': '@language'}
-            })
-        '''
         property_name = camelcase_lower(aat.name)
         ref = URIRef(aat_ns[property_name])
         store.add((ref, RDF.type, RDF.Property))
@@ -10866,93 +10841,8 @@ def agent_jsonld(request):
         store.add((ref, as_ns["relationship"], ref_relationship))
           
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    #import json
-    #data = json.loads(ser)
-    #simplyframe(data)
     #import pdb; pdb.set_trace()
-    #ser = simplyframe(ser)
-    return HttpResponse(ser, mimetype='application/json') 
-
-'''
-- - - 8< - - -
-
-from rdflib import *
-
-some_namespace = Namespace("http://example.org/ns/")
-
-graph = Graph()
-
-ref = URIRef(some_namespace["mentor"])
-graph.add((ref, RDFS.label, Literal("mentors", lang="en")))
-inverse = BNode()
-graph.add((ref, OWL.inverseOf, inverse))
-graph.add((inverse, RDFS.label, Literal("is mentored by", lang="en")))
-
-output = graph.serialize(format='json-ld', context={
-        'rdfs': unicode(RDFS),
-        'owl': unicode(OWL),
-        'rdfs:label': {'@container': '@language'}
-    })
-print(output)
-
-- - - >8 - - -
-
-Notice that I supply an explicit context, where rdfs:label is defined as using the @container: @language construct. This tells the compaction algorithm to build dictionaries for labels using their @language as keys.
-
-The compacted output will be like:
-
-- - - 8< - - -
-
-
-{
-  "@context": {
-    "owl": "http://www.w3.org/2002/07/owl#",
-    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-    "rdfs:label": {"@container": "@language"}
-  },
-  "@graph": [
-    {
-      "@id": "http://example.org/ns/mentor",
-      "owl:inverseOf": {"@id": "_:b1"},
-      "rdfs:label": {"en": "mentors"}
-    },
-    {
-      "@id": "_:b1",
-      "rdfs:label": {"en": "is mentored by"}
-    }
-  ]
-}
-
-- - - >8 - - -
-
-The remaining thing to do to reach your desired form is to frame this by some means, to inline the bnode (_:b1) where it is referenced.
-
-For basic forms you can do this manually by manipulating the resulting JSON. For this case, the following should do the trick:
-
-- - - 8< - - -
-
-def simplyframe(data):
-    items, refs = {}, {}
-    for item in data['@graph']:
-        itemid = item.get('@id')
-        if itemid:
-            items[itemid] = item
-        for vs in item.values():
-            for v in [vs] if not isinstance(vs, list) else vs:
-                if isinstance(v, dict):
-                    refid = v.get('@id')
-                    if refid and refid.startswith('_:'):
-                        refs.setdefault(refid, (v, []))[1].append(item)
-    for ref, subjects in refs.values():
-        if len(subjects) == 1:
-            ref.update(items.pop(ref['@id']))
-            del ref['@id']
-    data['@graph'] = items.values()
-
-import json
-data = json.loads(output)
-simplyframe(data)
-print json.dumps(data, indent=2)
-
-- - - >8 - - -
-'''
+    import json
+    data = json.loads(ser)
+    simplyframe(data)
+    return HttpResponse(json.dumps(data, indent=2), mimetype='application/json') 

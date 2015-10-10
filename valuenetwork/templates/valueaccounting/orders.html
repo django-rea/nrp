@@ -36,6 +36,9 @@ textarea {
     border: 1px solid gainsboro;
     padding: 1em;
 }
+.process-box {
+    background-color: #FFFFB2;
+}
 .resource-type {
     font-weight: bold;
     font-size: 1.1em;
@@ -119,7 +122,7 @@ textarea {
                                 <tbody>
                                     <tr>
                                         {% for process in processes  %}
-                                            <td>
+                                            <td class="process-box">
                                                 <a href="{{ process.get_absolute_url }}" target="_blank" >
                                                     {{ process.name }}
                                                 </a>

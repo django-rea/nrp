@@ -10718,7 +10718,27 @@ def agent_relationship(request, agent_assoc_id):
     return render_to_response("valueaccounting/agent_association.html", {
         "agent_association": agent_association,
     }, context_instance=RequestContext(request))    
-    
+
+#following method supplied by Niklas at rdflib-jsonld support to get the desired output for nested rdf inputs for rdflib
+def simplyframe(data):
+    #import pdb; pdb.set_trace()
+    items, refs = {}, {}
+    for item in data['@graph']:
+        itemid = item.get('@id')
+        if itemid:
+            items[itemid] = item
+        for vs in item.values():
+            for v in [vs] if not isinstance(vs, list) else vs:
+                if isinstance(v, dict):
+                    refid = v.get('@id')
+                    if refid and refid.startswith('_:'):
+                        #import pdb; pdb.set_trace()
+                        refs.setdefault(refid, (v, []))[1].append(item)
+    for ref, subjects in refs.values():
+        if len(subjects) == 1:
+            ref.update(items.pop(ref['@id']))
+            del ref['@id']
+    data['@graph'] = items.values()
     
 def agent_jsonld(request):
     from rdflib import Graph, Literal, BNode
@@ -10727,7 +10747,7 @@ def agent_jsonld(request):
     from rdflib import Namespace, URIRef
 
     #import pdb; pdb.set_trace()
-    path = get_url_starter() + "/"
+    path = get_url_starter() + "/accounting/"
 
     context = {
         "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
@@ -10742,7 +10762,6 @@ def agent_jsonld(request):
         "Organization": "foaf:Organization",
         "Relationship": "as:Relationship",
         "name": "schema:name",
-        #"nick": "foaf:nick",
         "description": "schema:description",
         "image": "schema:image",
         "subject": "as:subject",
@@ -10751,9 +10770,8 @@ def agent_jsonld(request):
         "relationship": "as:relationship",
         "startTime": "as:startTime",
         "endTime": "as:endTime",
-        "vf": "http://example.org/def/vf#",
-        "at": path + "agent-type/",
-        "aat": path + "agent-relationship-type/"
+        "rdfs:label": {"@container": "@language"},
+        "schema:name": {"@container": "@language"}
     }
     
     store = Graph()
@@ -10765,8 +10783,6 @@ def agent_jsonld(request):
     store.bind("as", as_ns)
     schema_ns = Namespace("http://schema.org/")
     store.bind("schema", schema_ns)
-    vf_ns = Namespace("http://example.org/def/vf#")
-    store.bind("vf", vf_ns)
     at_ns = Namespace(path + "agent-type/")
     store.bind("at", at_ns)
     aat_ns = Namespace(path + "agent-relationship-type/")
@@ -10775,13 +10791,14 @@ def agent_jsonld(request):
     agent_types = AgentType.objects.all()
     #import pdb; pdb.set_trace()
     for at in agent_types:
-        if at.name != "Person" and at.name != "Organization" and at.name != "Group":
+        if at.name != "Person" and at.name != "Organization" and at.name != "Group" and at.name != "Individual":
             class_name = camelcase(at.name)
             ref = URIRef(at_ns[class_name])
             store.add((ref, RDF.type, OWL.Class))
-            if class_name == "Individual":
-                store.add((ref, OWL.equivalentClass, FOAF.Person))
-            elif at.party_type == "individual":
+            store.add((ref, RDFS.label, Literal(class_name, lang="en")))
+            #if class_name == "Individual":
+                #store.add((ref, OWL.equivalentClass, FOAF.Person))
+            if at.party_type == "individual":
                 store.add((ref, RDFS.subClassOf, FOAF.Person))
             else: 
                 store.add((ref, RDFS.subClassOf, FOAF.Group))
@@ -10789,24 +10806,13 @@ def agent_jsonld(request):
     aa_types = AgentAssociationType.objects.all()
     #import pdb; pdb.set_trace()
     for aat in aa_types:
-        '''
-        "@id": "open:mentor",
-        "@type": "rdf:Property",
-        "rdfs:label": {
-            "en": "mentors",
-        },
-        "owl:inverseOf": {
-            "rdfs:label": {
-                "en": "is mentored by",
-        },
-        }
-        '''
         property_name = camelcase_lower(aat.name)
         ref = URIRef(aat_ns[property_name])
         store.add((ref, RDF.type, RDF.Property))
         store.add((ref, RDFS.label, Literal(aat.label, lang="en")))
-        store.add((ref, RDFS.label, Literal(aat.inverse_label, lang="en"))) #todo: not working
-        store.add((ref, OWL.inverse, Literal(aat.inverse_label)))
+        inverse = BNode()
+        store.add((ref, OWL.inverseOf, inverse))
+        store.add((inverse, RDFS.label, Literal(aat.inverse_label, lang="en")))
 
     #import pdb; pdb.set_trace()
     associations = AgentAssociation.objects.filter(state="active")
@@ -10815,7 +10821,7 @@ def agent_jsonld(request):
     agents = list(set(agents))
     
     for agent in agents:
-        ref = URIRef(path + "agent/" + str(agent.id) + "/")
+        ref = URIRef(path + "agent/" + str(agent.id))
         if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
             store.add((ref, RDF.type, FOAF.Person))
         elif agent.agent_type.name == "Organization":
@@ -10829,60 +10835,21 @@ def agent_jsonld(request):
         #    store.add((ref, FOAF.nick, Literal(agent.nick, lang="en")))
         if agent.photo_url:
             store.add((ref, schema_ns["image"], agent.photo_url))
-        
-        '''
-        "@id": "ex:agents/lynn",
-        "@type": ["foaf:Person", "foaf:Agent"],
-        "schema:name": "Lynn"
-    
-        name = models.CharField(_('name'), max_length=255)
-        nick = models.CharField(_('ID'), max_length=32, unique=True,
-            help_text=_("Must be unique, and no more than 32 characters"))
-        url = models.CharField(_('url'), max_length=255, blank=True)
-        agent_type = models.ForeignKey(AgentType,
-            verbose_name=_('agent type'), related_name='agents')
-        description = models.TextField(_('description'), blank=True, null=True)
-        address = models.CharField(_('address'), max_length=255, blank=True)
-        email = models.EmailField(_('email address'), max_length=96, blank=True, null=True)
-        phone_primary = models.CharField(_('primary phone'), max_length=32, blank=True, null=True)
-        phone_secondary = models.CharField(_('secondary phone'), max_length=32, blank=True, null=True)
-        latitude = models.FloatField(_('latitude'), default=0.0, blank=True, null=True)
-        longitude = models.FloatField(_('longitude'), default=0.0, blank=True, null=True)
-        primary_location = models.ForeignKey(Location, 
-            verbose_name=_('current location'), related_name='agents_at_location', 
-            blank=True, null=True)
-        reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2, 
-            default=Decimal("0.00"))
-        photo = ThumbnailerImageField(_("photo"),
-            upload_to='photos', blank=True, null=True)
-        photo_url = models.
-        '''
     
     for a in associations:
-        ref = URIRef(path + "agent-association/" + str(a.id) + "/")
-        ref_subject = URIRef(path + "/agent/" + str(a.is_associate.id) + "/")
-        ref_object = URIRef(path + "/agent/" + str(a.has_associate.id) + "/")
-        ref_relationship = URIRef(path + "/agent-assoc-type/" + str(a.association_type.id) + "/")
+        ref = URIRef(path + "agent-relationship/" + str(a.id) + "/")
+        ref_subject = URIRef(path + "agent/" + str(a.is_associate.id) + "/")
+        ref_object = URIRef(path + "agent/" + str(a.has_associate.id) + "/")
+        property_name = camelcase_lower(a.association_type.name)
+        ref_relationship = URIRef(aat_ns[property_name])
         store.add((ref, RDF.type, as_ns["Relationship"]))
         store.add((ref, as_ns["subject"], ref_subject)) 
         store.add((ref, as_ns["object"], ref_object))
         store.add((ref, as_ns["relationship"], ref_relationship))
-        '''
-        {
-        "@context": "http://www.w3.org/ns/activitystreams",
-        "@type": "Relationship",
-        "subject": {
-            "@type": "Person",
-            "displayName": "Sally"
-        },
-        "relationship": "http://purl.org/vocab/relationship/closeFriendOf",
-        "object": {
-            "@type": "Person",
-            "displayName": "John"
-        }
-        }
-        '''
           
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json') 
-
+    #import pdb; pdb.set_trace()
+    import json
+    data = json.loads(ser)
+    simplyframe(data)
+    return HttpResponse(json.dumps(data, indent=2), mimetype='application/json') 

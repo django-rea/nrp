@@ -4678,7 +4678,7 @@ class EconomicResource(models.Model):
     def incoming_value_flows(self):
         #todo dhen_bug:
         flows = []
-        visited = []
+        visited = set()
         depth = 0
         self.depth = depth
         flows.append(self)
@@ -4688,14 +4688,15 @@ class EconomicResource(models.Model):
                 
     def incoming_value_flows_dfs(self, flows, visited, depth):
         #Resource method
+        #import pdb; pdb.set_trace()
         if not self in visited:
-            visited.append(self)
+            visited.add(self)
             depth += 1
             resources = []
             #todo dhen_bug:
             for process in self.producing_processes_for_historical_stage():
                 if not process in visited:
-                    visited.append(process)
+                    visited.add(process)
                     events = [e for e in process.production_events() if e.resource==self]
                     for event in events:
                         event.depth = depth
@@ -4720,18 +4721,21 @@ class EconomicResource(models.Model):
                 #import pdb; pdb.set_trace()
                 event.depth = depth
                 flows.append(event)
-                if event.exchange:
-                    exchange = event.exchange
-                    exchange.depth = depth + 1
-                    flows.append(exchange)
-                    for pmt in event.exchange.reciprocal_transfer_events():
-                        pmt.depth = depth + 2
-                        flows.append(pmt)
+                exchange = event.exchange
+                if exchange:
+                    if exchange not in visited:
+                        visited.add(exchange)
+                        exchange.depth = depth + 1
+                        flows.append(exchange)
+                        for pmt in event.exchange.reciprocal_transfer_events():
+                            pmt.depth = depth + 2
+                            flows.append(pmt)
                 #import pdb; pdb.set_trace()
                 event.incoming_value_flows_dfs(flows, visited, depth)
                 
             for event in self.purchase_events_for_exchange_stage():
-                if event not in flows:
+                if event not in visited:
+                    visited.add(event)
                     event.depth = depth
                     flows.append(event)
                     if event.exchange:
@@ -8601,20 +8605,24 @@ class EconomicEvent(models.Model):
         # EconomicEvent method
         #todo dhen_bug:
         if self.event_type.relationship=="receive":
-            if self.exchange:
-                exchange = self.exchange
-                exchange.depth = depth + 1
-                flows.append(exchange)
-                for pmt in exchange.payment_events():
-                    pmt.depth = depth + 2
-                    flows.append(pmt)
+            exchange = self.exchange
+            if exchange:
+                if exchange not in visited:
+                    visited.add(exchange)
+                    exchange.depth = depth + 1
+                    flows.append(exchange)
+                    for pmt in exchange.payment_events():
+                        pmt.depth = depth + 2
+                        flows.append(pmt)
         if self.resource:
             depth = depth + 1
             prevs = self.resource.events.filter(to_agent=self.from_agent)
             for prev in prevs:
-                prev.depth = depth
-                flows.append(prev)
-                prev.incoming_value_flows_dfs(flows, visited, depth)
+                if prev not in visited:
+                    visited.add(prev)
+                    prev.depth = depth
+                    flows.append(prev)
+                    prev.incoming_value_flows_dfs(flows, visited, depth)
         
     def roll_up_value(self, path, depth, visited, value_equation):
         # EconomicEvent method

@@ -2591,6 +2591,7 @@ class ProcessPattern(models.Model):
         #import pdb; pdb.set_trace()
         fv_intersect = set(rt_fvs) & set(pat_fvs)
         event_type = None
+        #todo bug: this method can find more than one pfv
         if fv_intersect:
             fv = list(fv_intersect)[0]
             pfv = pfvs.get(facet_value=fv)

@@ -7077,17 +7077,24 @@ def change_resource(request, resource_id):
             raise ValidationError(form.errors)
 
 def get_labnote_context(commitment, request_agent):
+    #import pdb; pdb.set_trace()
     author = False
     agent = commitment.from_agent
     process = commitment.process
     if request_agent == agent:
         author = True
     work_events = commitment.fulfilling_events()
-    outputs = process.outputs_from_agent(agent)
-    failures = process.failures_from_agent(agent)
-    consumed = process.inputs_consumed_by_agent(agent)
-    used = process.inputs_used_by_agent(agent)
-    citations = process.citations_by_agent(agent)
+    outputs = []
+    failures = []
+    consumed = []
+    used = []
+    citations = []
+    if agent and process:
+        outputs = process.outputs_from_agent(agent)
+        failures = process.failures_from_agent(agent)
+        consumed = process.inputs_consumed_by_agent(agent)
+        used = process.inputs_used_by_agent(agent)
+        citations = process.citations_by_agent(agent)
     return {
         "commitment": commitment,
         "author": author,

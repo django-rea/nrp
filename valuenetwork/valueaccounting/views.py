@@ -10712,6 +10712,9 @@ def agent_relationship(request, agent_assoc_id):
         "agent_association": agent_association,
     }, context_instance=RequestContext(request))    
 
+
+#following methods use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.
+
 #following method supplied by Niklas at rdflib-jsonld support to get the desired output for nested rdf inputs for rdflib
 def simplyframe(data):
     #import pdb; pdb.set_trace()
@@ -10743,28 +10746,24 @@ def agent_jsonld(request):
     path = get_url_starter() + "/accounting/"
 
     context = {
+        "vf": "https://w3id.org/valueflows/",
+        "owl": "http://www.w3.org/2002/07/owl#",
         "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
         "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-        "owl": "http://www.w3.org/2002/07/owl#",
-        "schema": "http://schema.org/",
-        "as": "http://www.w3.org/ns/activitystreams#",
-        "foaf": "http://xmlns.com/foaf/0.1/",
-        "Agent": "foaf:Agent",
-        "Person": "foaf:Person",
-        "Group": "foaf:Group",
-        "Organization": "foaf:Organization",
-        "Relationship": "as:Relationship",
-        "name": "schema:name",
-        "description": "schema:description",
-        "image": "schema:image",
-        "subject": "as:subject",
-        "object": "as:object",
-        "context": "as:context",
-        "relationship": "as:relationship",
-        "startTime": "as:startTime",
-        "endTime": "as:endTime",
-        "rdfs:label": {"@container": "@language"},
-        "schema:name": {"@container": "@language"}
+        "rdfs:label": { "@container": "@language" },
+        "Agent": "vf:Agent",
+        "Person": "vf:Person",
+        "Group": "vf:Group",
+        "Organization": "vf:Organization",
+        "url":  { "@id": "vf:url", "@type": "@id" },
+        "image": { "@id": "vf:image", "@type": "@id" },
+        "displayName": "vf:displayName",
+        "displayNameMap": { "@id": "displayName", "@container": "@language" },
+        "Relationship": "vf:Relationship",
+        "subject": { "@id": "vf:subject", "@type": "@id" },
+        "object": { "@id": "vf:object", "@type": "@id" },
+        "relationship": { "@id": "vf:relationship", "@type": "@id" },
+        "member": { "@id": "vf:member", "@type": "@id" }
     }
     
     store = Graph()
@@ -10845,4 +10844,111 @@ def agent_jsonld(request):
     import json
     data = json.loads(ser)
     simplyframe(data)
-    return HttpResponse(json.dumps(data, indent=2), mimetype='application/json') 
+    return HttpResponse(json.dumps(data, indent=4), mimetype='application/json') 
+
+def agent_jsonld_query(request):
+    from rdflib import Graph
+    from rdflib.serializer import Serializer
+    from rdflib import Namespace, URIRef
+
+    import pdb; pdb.set_trace()
+    g = Graph()
+    g.parse('http://nrp.webfactional.com/accounting/agent-jsonld/', format='json-ld')
+    #print(g.serialize(format='n3', indent=4))
+    result = []
+    for s,p,o in g.triples( (None, None, None) ):
+        prt = s + " " + p + " " + o
+        result.append(prt)
+    return HttpResponse(result, mimetype='text/plain')    
+    
+    '''
+    from rdflib import Graph, plugin
+    from rdflib.serializer import Serializer
+
+    #import pdb; pdb.set_trace()
+    #agent_data = '''
+    #... @prefix dc: <http://purl.org/dc/terms/> .
+    #... <http://example.org/about>
+    #...     dc:title "Someone's Homepage"@en .
+    #... '''
+
+    #g = Graph().parse(data=agent_data, format='json-ld')
+
+    #print(g.serialize(format='n3', indent=4))
+    
+    #context = {"@vocab": "http://purl.org/dc/terms/", "@language": "en"}
+    #print(g.serialize(format='n3', context=context, indent=4))
+    '''
+    =====
+    
+    g = Graph()
+    g.load("foaf.rdf")
+
+    tim = URIRef("http://www.w3.org/People/Berners-Lee/card#i")
+
+    print "Timbl knows:"
+
+    for o in g.objects(tim, FOAF.knows / FOAF.name):
+        print o
+        
+    ======
+    
+    from rdflib import *
+    from rdflib.compare import to_isomorphic
+    import sys, csv
+    from urllib import *
+    from io import StringIO
+    from collections import defaultdict
+    from urllib2 import urlopen
+
+    metadata = Namespace("http://data.bioontology.org/metadata/")
+    url = 'http://data.bioontology.org/ontologies?apikey=%s' % apikey
+    ontology_graph = Graph()
+    print url
+    ontology_list_json = urlopen(url).read()
+    ontology_graph.parse(StringIO(unicode(ontology_list_json)), format="json-ld")
+    ontologies = ontology_graph.query(bioportal_query)
+    
+    ======
+    
+    import rdflib
+    from rdflib.plugins.sparql import prepareQuery
+    from rdflib.namespace import FOAF
+
+    if __name__=='__main__':
+
+        q = prepareQuery(
+            'SELECT ?s WHERE { ?person foaf:knows ?s .}', 
+            initNs = { "foaf": FOAF })
+
+        g = rdflib.Graph()
+        g.load("foaf.rdf")
+
+        tim = rdflib.URIRef("http://www.w3.org/People/Berners-Lee/card#i")
+
+        for row in g.query(q, initBindings={'person': tim}):
+            print row
+        
+    ======
+    
+    
+    from rdflib import Graph
+
+    if __name__ == '__main__':
+        g = Graph()
+
+        g.parse('http://www.worldcat.org/title/library-of-babel/oclc/44089369', format='rdfa')
+
+        print "Books found:"
+
+        for row in g.query("""SELECT ?title ?author WHERE { 
+        [ a schema:Book ; 
+            schema:author [ rdfs:label ?author ] ;
+            schema:name ?title ]
+        FILTER (LANG(?title) = 'en') } """):
+
+            print "%s by %s"%(row.title, row.author)
+        
+    =========
+    '''
+    

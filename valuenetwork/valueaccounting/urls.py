@@ -484,5 +484,6 @@ urlpatterns += patterns("",
     url(r"^agent-type/(?P<agent_type_name>\w+)/$", 'valuenetwork.valueaccounting.views.agent_type', name="agent_type"),
     url(r"^agent-relationship-type/(?P<agent_assoc_type_name>\w+)/$", 'valuenetwork.valueaccounting.views.agent_relationship_type', name="agent_relationship_type"),
     url(r"^agent-relationship/(?P<agent_assoc_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent_relationship', name="agent_relationship"),
+    url(r"^agent-jsonld-query/$", 'valuenetwork.valueaccounting.views.agent_jsonld_query', name="agent_jsonld_query"),
 )
 

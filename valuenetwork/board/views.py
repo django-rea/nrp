@@ -720,7 +720,7 @@ def delete_farm_commitment(request, commitment_id):
 def undo_col2(request, resource_id):
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     context_agent_id = default_context_agent().id
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     flows = resource.incoming_value_flows()
     for item in flows:
         if item.class_label() == "Economic Event":
@@ -731,5 +731,18 @@ def undo_col2(request, resource_id):
         item.delete()
     
              
+    return HttpResponseRedirect('/%s/%s/'
+        % ('board/dhen-board', context_agent_id))
+    
+@login_required
+def undo_col3(request, resource_id):
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    context_agent_id = default_context_agent().id
+    import pdb; pdb.set_trace()
+    flows = resource.incoming_value_flows()
+    #for item in flows:
+    #    if item.
+    #        item.delete()
+    
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))

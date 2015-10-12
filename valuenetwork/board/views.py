@@ -738,10 +738,11 @@ def undo_col2(request, resource_id):
 def undo_col3(request, resource_id):
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     context_agent_id = default_context_agent().id
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     flows = resource.incoming_value_flows()
+    #todo: I'm not sure how to delete the right rows without going too far back in the chain......
     #for item in flows:
-    #    if item.
+    #    if item.class_label() == "Economic Event":
     #        item.delete()
     
     return HttpResponseRedirect('/%s/%s/'

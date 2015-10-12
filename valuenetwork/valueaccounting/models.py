@@ -4676,7 +4676,7 @@ class EconomicResource(models.Model):
         return flows
        
     def incoming_value_flows(self):
-        #todo dhen_bug:
+        #todo dhen_bug: fixed
         flows = []
         visited = set()
         depth = 0

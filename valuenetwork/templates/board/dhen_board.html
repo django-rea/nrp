@@ -337,6 +337,17 @@ h3 {
                             {% for res in rt.seller_resources %}
                                 <li>{{ res.owner_based_on_exchange.nick }} ~ <a href="{% url resource resource_id=res.id %}">{{ res.identifier }}</a> ~ {{ res.formatted_quantity }} 
                                 </li>
+{% comment %}
+                                    <form
+                                        style="display: inline;" 
+                                        class="undo-form" 
+                                        id="undoDryForm{{ res.id }}" 
+                                        action="{% url undo_col3 resource_id=res.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <button style="display: inline;"  class="btn btn-info btn-mini" title="Undo and put back to the drying site" >Undo</button>
+                                    </form>
+{% endcomment %}
                                 {% if res.notes %}
                                   <div class="notes"> {{ res.notes|urlize|linebreaks }} </div>
                                 {% endif %}

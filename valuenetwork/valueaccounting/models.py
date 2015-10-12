@@ -4689,49 +4689,55 @@ class EconomicResource(models.Model):
     def incoming_value_flows_dfs(self, flows, visited, depth):
         #Resource method
         #import pdb; pdb.set_trace()
-        if not self in visited:
+        if self not in visited:
             visited.add(self)
             depth += 1
             resources = []
             #todo dhen_bug:
             for process in self.producing_processes_for_historical_stage():
-                if not process in visited:
+                if process not in visited:
                     visited.add(process)
                     events = [e for e in process.production_events() if e.resource==self]
                     for event in events:
-                        event.depth = depth
-                        flows.append(event)
-                        depth += 1
-                        process.depth = depth
-                        flows.append(process)
-                        depth += 1
-                        #process.incoming_events shd include p&c???
-                        for evt in process.incoming_events():
-                            evt.depth = depth
-                            flows.append(evt)
-                            if evt.resource:
-                                if evt.resource == self:
-                                    if self.stage and evt.stage:
-                                        self.historical_stage = evt.stage
-                                        self.incoming_value_flows_dfs(flows, visited, depth)
-                                elif evt.resource not in resources:
-                                    resources.append(evt.resource)
+                        if event not in visited:
+                            visited.add(event)
+                            event.depth = depth
+                            flows.append(event)
+                            depth += 1
+                            process.depth = depth
+                            flows.append(process)
+                            depth += 1
+                            #process.incoming_events shd include p&c???
+                            for evt in process.incoming_events():
+                                if evt not in visited:
+                                    visited.add(evt)
+                                    evt.depth = depth
+                                    flows.append(evt)
+                                    if evt.resource:
+                                        if evt.resource == self:
+                                            if self.stage and evt.stage:
+                                                self.historical_stage = evt.stage
+                                                self.incoming_value_flows_dfs(flows, visited, depth)
+                                        elif evt.resource not in resources:
+                                            resources.append(evt.resource)
                                         
             for event in self.transfer_events_for_exchange_stage():
                 #import pdb; pdb.set_trace()
-                event.depth = depth
-                flows.append(event)
-                exchange = event.exchange
-                if exchange:
-                    if exchange not in visited:
-                        visited.add(exchange)
-                        exchange.depth = depth + 1
-                        flows.append(exchange)
-                        for pmt in event.exchange.reciprocal_transfer_events():
-                            pmt.depth = depth + 2
-                            flows.append(pmt)
-                #import pdb; pdb.set_trace()
-                event.incoming_value_flows_dfs(flows, visited, depth)
+                if event not in visited:
+                    visited.add(event)
+                    event.depth = depth
+                    flows.append(event)
+                    exchange = event.exchange
+                    if exchange:
+                        if exchange not in visited:
+                            visited.add(exchange)
+                            exchange.depth = depth + 1
+                            flows.append(exchange)
+                            for pmt in event.exchange.reciprocal_transfer_events():
+                                pmt.depth = depth + 2
+                                flows.append(pmt)
+                    #import pdb; pdb.set_trace()
+                    event.incoming_value_flows_dfs(flows, visited, depth)
                 
             for event in self.purchase_events_for_exchange_stage():
                 if event not in visited:
@@ -4747,8 +4753,10 @@ class EconomicResource(models.Model):
                             flows.append(pmt)
 
             for event in self.resource_contribution_events():
-                event.depth = depth
-                flows.append(event)
+                if event not in visited:
+                    visited.add(event)
+                    event.depth = depth
+                    flows.append(event)
             
             for resource in resources:
                 resource.depth = depth + 1
@@ -8617,6 +8625,9 @@ class EconomicEvent(models.Model):
         if self.resource:
             depth = depth + 1
             prevs = self.resource.events.filter(to_agent=self.from_agent)
+            #probly shd filter for event_types
+            #infinite loop here?
+            #import pdb; pdb.set_trace()
             for prev in prevs:
                 if prev not in visited:
                     visited.add(prev)

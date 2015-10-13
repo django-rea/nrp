@@ -8624,10 +8624,8 @@ class EconomicEvent(models.Model):
                         flows.append(pmt)
         if self.resource:
             depth = depth + 1
-            prevs = self.resource.events.filter(to_agent=self.from_agent)
-            #probly shd filter for event_types
-            #infinite loop here?
-            #import pdb; pdb.set_trace()
+            #the exclude clause tries to head off infinite loops
+            prevs = self.resource.events.filter(to_agent=self.from_agent).exclude(from_agent=self.from_agent)
             for prev in prevs:
                 if prev not in visited:
                     visited.add(prev)

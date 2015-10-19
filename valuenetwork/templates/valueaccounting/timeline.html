@@ -91,6 +91,8 @@
 <script>
 var tl;
 $(document).ready(function() {
+
+    SimileAjax.History.enabled = false;
    var eventSource = new Timeline.DefaultEventSource();
    var bandInfos = [
      Timeline.createBandInfo({

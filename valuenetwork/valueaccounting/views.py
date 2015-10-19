@@ -6778,7 +6778,6 @@ def add_consumption_event(request, commitment_id, resource_id):
         event = form.save(commit=False)
         event.commitment = ct
         event.event_type = ct.event_type
-        event.from_agent = agent
         event.resource_type = ct.resource_type
         event.resource = resource
         event.process = ct.process
@@ -10858,7 +10857,7 @@ def agent_jsonld_query(request):
     from rdflib.serializer import Serializer
     from rdflib import Namespace, URIRef
 
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     g = Graph()
     g.parse('http://nrp.webfactional.com/accounting/agent-jsonld/', format='json-ld')
     #print(g.serialize(format='n3', indent=4))

@@ -4537,6 +4537,15 @@ class EconomicResource(models.Model):
                 processes = [p for p in processes if p.process_type==self.stage]
         return processes
         
+    def producing_events_for_historical_stage(self):
+        pes = self.producing_events()
+        if self.stage:
+            try:
+                pes = [pe for pe in pes if pe.process and pe.process.process_type==self.historical_stage]
+            except AttributeError:
+                pes = [pe for pe in pes if pe.process and pe.process.process_type==self.stage]
+        return pes
+        
     def where_from_events(self):
         return self.events.filter(
             Q(event_type__relationship='out')|Q(event_type__relationship='receive')|Q(event_type__relationship='receivecash')
@@ -4694,6 +4703,17 @@ class EconomicResource(models.Model):
             depth += 1
             resources = []
             #todo dhen_bug:
+            """
+            pes = self.producing_events_for_historical_stage()
+            if pes:
+                xes.extend(self.transfer_events_for_exchange_stage)
+                pe = pes[0]
+                xe = xes[0]
+                if xe.from_agent == pe.to_agent:
+                    end = "X"
+                else:
+                    end = "P"
+            """   
             for process in self.producing_processes_for_historical_stage():
                 if process not in visited:
                     visited.add(process)
@@ -4780,7 +4800,7 @@ class EconomicResource(models.Model):
         #todo: needs rework, see next method
         #import pdb; pdb.set_trace()
         flows = []
-        visited = []
+        visited = set()
         depth = 0
         self.depth = depth
         flows.append(self)
@@ -4806,9 +4826,11 @@ class EconomicResource(models.Model):
     def value_flow_going_forward_dfs(self, flows, visited, depth):
         #import pdb; pdb.set_trace()
         if not self in visited:
-            visited.append(self)
+            visited.add(self)
             depth += 1
             #todo: this will break, depends on event creation order
+            #also, all_usage_events does not include transfers
+            #and, needs to consider stage and exchange_stage
             for event in self.all_usage_events().order_by("id"):
                 event.depth = depth
                 flows.append(event)
@@ -4816,7 +4838,7 @@ class EconomicResource(models.Model):
                 exch = event.exchange
                 if proc:
                     if not proc in visited:
-                        visited.append(proc)
+                        visited.add(proc)
                         depth += 1
                         proc.depth = depth
                         flows.append(proc)
@@ -4831,7 +4853,7 @@ class EconomicResource(models.Model):
                                     resource.value_flow_going_forward_dfs(flows, visited, depth)
                 if exch:
                     if not exch in visited:
-                        visited.append(exch)
+                        visited.add(exch)
                         depth += 1
                         exch.depth = depth
                         flows.append(exch)
@@ -4858,6 +4880,7 @@ class EconomicResource(models.Model):
         # but does not work yet because the converted data
         # has no commitments
         # Plus, it can't be tested and so probably won't work.
+        # also, needs to include exchanges
         processes = []
         if not self.stage:
             return processes

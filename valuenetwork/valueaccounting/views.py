@@ -2440,6 +2440,7 @@ def timeline(request, from_date, to_date, context_id):
     return render_to_response("valueaccounting/timeline.html", {
         "orderId": 0,
         "context_id": context_id,
+        "useContextId": 0,
         "from_date": from_date,
         "to_date": to_date,
         "timeline_date": timeline_date,
@@ -2469,6 +2470,34 @@ def json_timeline(request, from_date, to_date, context_id):
     #import pdb; pdb.set_trace()
     return HttpResponse(data, mimetype="text/json-comment-filtered")
     
+def context_timeline(request, context_id):
+    context_agent = get_object_or_404(EconomicAgent, pk=context_id)
+    timeline_date = datetime.date.today().strftime("%b %e %Y 00:00:00 GMT-0600")
+    
+    unassigned = Commitment.objects.unfinished().filter(
+        context_agent=context_agent,
+        from_agent=None,
+        event_type__relationship="work").order_by("due_date")
+    return render_to_response("valueaccounting/timeline.html", {
+        "orderId": 0,
+        "context_id": context_id,
+        "useContextId": 1,
+        "timeline_date": timeline_date,
+        "unassigned": unassigned,
+    }, context_instance=RequestContext(request))
+
+def json_context_timeline(request, context_id):
+    #import pdb; pdb.set_trace()
+    events = {'dateTimeFormat': 'Gregorian','events':[]}
+    context_agent = get_object_or_404(EconomicAgent, pk=context_id)
+    processes = Process.objects.unfinished().filter(context_agent=context_agent)
+    orders = [p.independent_demand() for p in processes if p.independent_demand()]
+    orders = list(set(orders))
+    create_events(orders, processes, events)
+    data = simplejson.dumps(events, ensure_ascii=False)
+    #import pdb; pdb.set_trace()
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+
 def order_timeline(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
     first_process = order.first_process_in_order()
@@ -2482,6 +2511,8 @@ def order_timeline(request, order_id):
         event_type__relationship="work").order_by("due_date")
     return render_to_response("valueaccounting/timeline.html", {
         "orderId": order.id,
+        "context_id": 0,
+        "useContextId": 0,
         "timeline_date": timeline_date,
         "unassigned": unassigned,
     }, context_instance=RequestContext(request))
@@ -2495,7 +2526,7 @@ def json_order_timeline(request, order_id):
     data = simplejson.dumps(events, ensure_ascii=False)
     #import pdb; pdb.set_trace()
     return HttpResponse(data, mimetype="text/json-comment-filtered")
-
+    
 
 def json_processes(request, order_id=None):
     #import pdb; pdb.set_trace()
@@ -6778,7 +6809,6 @@ def add_consumption_event(request, commitment_id, resource_id):
         event = form.save(commit=False)
         event.commitment = ct
         event.event_type = ct.event_type
-        event.from_agent = agent
         event.resource_type = ct.resource_type
         event.resource = resource
         event.process = ct.process
@@ -10938,7 +10968,7 @@ def agent_jsonld_query(request):
     from rdflib.serializer import Serializer
     from rdflib import Namespace, URIRef
 
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     g = Graph()
     g.parse("http://nrp.webfactional.com/accounting/agent-jsonld/", format="json-ld")
     #print(g.serialize(format='n3', indent=4))

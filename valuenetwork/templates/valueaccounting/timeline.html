@@ -33,7 +33,7 @@
     <div class="container">
         {% include "_messages.html" %}
 		<h1>{% trans "Timeline" %}</h1>
-		<p>{% trans "Double-click on date in bottom lane to slide to that day. Click on process in top lane to show details." %}</p>	
+		<p>{% trans "Double-click on date in bottom lane to slide to that date. Click on process in top lane to show details." %}</p>	
 		<div id="my-timeline" style="height: 600px; border: 1px solid #aaa"></div>
 
 {% comment %}
@@ -91,13 +91,15 @@
 <script>
 var tl;
 $(document).ready(function() {
+
+    SimileAjax.History.enabled = false;
    var eventSource = new Timeline.DefaultEventSource();
    var bandInfos = [
      Timeline.createBandInfo({
          eventSource:    eventSource,
          date:           "{{ timeline_date }}",
          width:          "85%", 
-         intervalUnit:   Timeline.DateTime.DAY, 
+         intervalUnit:   Timeline.DateTime.WEEK, 
          intervalPixels: 100
      }),
      Timeline.createBandInfo({
@@ -124,6 +126,7 @@ $(document).ready(function() {
 	var jsonUrl = encodeURI("/accounting/json-timeline/");
 
 	var orderId = {{ orderId }};
+	var useContextId = {{ useContextId }};
 	var fromDate = "{{ from_date }}" + "/";
 	var toDate = "{{ to_date }}" + "/";
 	var contextId = {{ context_id }} + "/";
@@ -131,6 +134,10 @@ $(document).ready(function() {
 	if (orderId)
 	{
         var jsonUrl = encodeURI("/accounting/json-order-timeline/" + orderId);
+    }
+    else if (useContextId)
+    {
+        var jsonUrl = encodeURI("/accounting/json-context-timeline/" + contextId);
     }
     else
     {

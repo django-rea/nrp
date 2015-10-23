@@ -10946,8 +10946,8 @@ def agent_lod(request, agent_id):
         ref_class = URIRef(instance_abbrv + ":agent-type-lod/" + at_class_name)
         store.add((ref, RDF.type, ref_class))
     store.add((ref, vf_ns["label"], Literal(agent.name, lang="en")))
-    if agent.photo_url:
-        store.add((ref, vf_ns["image"], agent.photo_url))
+    #if agent.photo_url:
+    #    store.add((ref, vf_ns["image"], agent.photo_url))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
     return HttpResponse(ser, mimetype='application/json')  
@@ -11037,8 +11037,8 @@ def agent_jsonld(request):
         store.add((ref, vf_ns["label"], Literal(agent.name, lang="en")))
         #if agent.name != agent.nick:
         #    store.add((ref, FOAF.nick, Literal(agent.nick, lang="en")))
-        if agent.photo_url:
-            store.add((ref, vf_ns["image"], agent.photo_url))
+        #if agent.photo_url:
+        #    store.add((ref, vf_ns["image"], agent.photo_url))
     
     for a in associations:
         ref = URIRef(instance_abbrv + ":agent-relationship-lod/" + str(a.id) + "/")

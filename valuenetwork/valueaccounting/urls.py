@@ -483,9 +483,10 @@ urlpatterns += patterns("",
     url(r"^change-location/(?P<location_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_location', name="change_location"),
     url(r"^change-location/(?P<location_id>\d+)/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_location', name="change_location"),
     url(r"^agent-jsonld/$", 'valuenetwork.valueaccounting.views.agent_jsonld', name="agent_jsonld"),
-    url(r"^agent-type/(?P<agent_type_name>\w+)/$", 'valuenetwork.valueaccounting.views.agent_type', name="agent_type"),
-    url(r"^agent-relationship-type/(?P<agent_assoc_type_name>\w+)/$", 'valuenetwork.valueaccounting.views.agent_relationship_type', name="agent_relationship_type"),
-    url(r"^agent-relationship/(?P<agent_assoc_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent_relationship', name="agent_relationship"),
+    url(r"^agent-lod/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent_lod', name="agent_lod"),
+    url(r"^agent-type-lod/(?P<agent_type_name>\w+)/$", 'valuenetwork.valueaccounting.views.agent_type_lod', name="agent_type_lod"),
+    url(r"^agent-relationship-type-lod/(?P<agent_assoc_type_name>\w+)/$", 'valuenetwork.valueaccounting.views.agent_relationship_type_lod', name="agent_relationship_type_lod"),
+    url(r"^agent-relationship-lod/(?P<agent_assoc_id>\d+)/$", 'valuenetwork.valueaccounting.views.agent_relationship_lod', name="agent_relationship_lod"),
     url(r"^agent-jsonld-query/$", 'valuenetwork.valueaccounting.views.agent_jsonld_query', name="agent_jsonld_query"),
 )
 

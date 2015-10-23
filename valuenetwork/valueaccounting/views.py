@@ -10719,7 +10719,9 @@ def payout_from_virtual_account(request, account_id):
         % ('accounting/virtual-accounts'))
 
 
-def agent_type(request, agent_type_name):
+#the following methods use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.
+
+def agent_type_lod(request, agent_type_name):
     ats = AgentType.objects.all()
     agent_type = None
     #import pdb; pdb.set_trace()
@@ -10785,7 +10787,7 @@ def agent_type(request, agent_type_name):
     #    "agent_type": agent_type,
     #}, context_instance=RequestContext(request))    
 
-def agent_relationship_type(request, agent_assoc_type_name):
+def agent_relationship_type_lod(request, agent_assoc_type_name):
     aats = AgentAssociationType.objects.all()
     agent_assoc_type = None
     for aat in aats:
@@ -10796,15 +10798,19 @@ def agent_relationship_type(request, agent_assoc_type_name):
         "agent_assoc_type": agent_assoc_type,
     }, context_instance=RequestContext(request)) 
 
-def agent_relationship(request, agent_assoc_id):
+def agent_relationship_lod(request, agent_assoc_id):
     agent_association = get_object_or_404(AgentAssociation, id=agent_assoc_id)
     
     return render_to_response("valueaccounting/agent_association.html", {
         "agent_association": agent_association,
     }, context_instance=RequestContext(request))    
 
-
-#following methods use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.
+def agent_lod(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    
+    return render_to_response("valueaccounting/agent_association.html", {
+        "agent_association": agent_association,
+    }, context_instance=RequestContext(request))  
 
 #following method supplied by Niklas at rdflib-jsonld support to get the desired output for nested rdf inputs for rdflib
 def simplyframe(data):
@@ -10838,9 +10844,10 @@ def agent_jsonld(request):
 
     #import pdb; pdb.set_trace()
     path = get_url_starter() + "/accounting/"
+    instance_abbrv = Site.objects.get_current().domain.split(".")[0]
 
     context = {
-        "vf": "https://w3id.org/valueflows/", #"https://rawgit.com/valueflows/agent/master/context.jsonld",
+        "vf": "https://valueflo.ws/ns/index.jsonld",
         "owl": "http://www.w3.org/2002/07/owl#",
         "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
         "skos": "http://www.w3.org/2004/02/skos/core#",
@@ -10864,6 +10871,7 @@ def agent_jsonld(request):
         "note": "skos:note",
         "noteMap": { "@id": "skos:note", "@container": "@language" },
         "inverseOf": "owl:inverseOf",
+        instance_abbrv: path,
     }
     
     store = Graph()
@@ -10882,6 +10890,8 @@ def agent_jsonld(request):
     store.bind("aat", aat_ns)
     vf_ns = Namespace("https://w3id.org/valueflows/")
     store.bind("vf", vf_ns)
+    instance_ns = Namespace(path)
+    store.bind("instance", instance_ns)
     
     agent_types = AgentType.objects.all()
     #import pdb; pdb.set_trace()
@@ -10889,7 +10899,8 @@ def agent_jsonld(request):
         #if at.name != "Person" and at.name != "Organization" and at.name != "Group" and at.name != "Individual":
         if at.name != "Person" and at.name != "Group" and at.name != "Individual":
             class_name = camelcase(at.name)
-            ref = URIRef(at_ns[class_name])
+            #ref = URIRef(at_ns[class_name])
+            ref = URIRef(instance_abbrv + ":agent-type/" +class_name)
             store.add((ref, RDF.type, OWL.Class))
             store.add((ref, SKOS.prefLabel, Literal(class_name, lang="en")))
             if at.party_type == "individual":
@@ -10902,14 +10913,14 @@ def agent_jsonld(request):
     for aat in aa_types:
         property_name = camelcase_lower(aat.label)
         inverse_property_name = camelcase_lower(aat.inverse_label)
-        ref = URIRef(aat_ns[property_name])
+        ref = URIRef(instance_abbrv + ":agent-association-type/" + property_name)
         store.add((ref, RDF.type, RDF.Property))
         store.add((ref, SKOS.prefLabel, Literal(aat.label, lang="en")))
         #inverse = BNode()
         #store.add((ref, OWL.inverseOf, inverse))
         #store.add((inverse, RDFS.label, Literal(aat.inverse_label, lang="en")))
         if property_name != inverse_property_name:
-            inv_ref = URIRef(aat_ns[inverse_property_name])
+            inv_ref = URIRef(instance_abbrv + ":agent-association-type/" + inverse_property_name)
             store.add((inv_ref, RDF.type, RDF.Property))
             store.add((inv_ref, SKOS.prefLabel, Literal(aat.inverse_label, lang="en")))
         store.add((ref, OWL.inverseOf, inv_ref))
@@ -10922,30 +10933,30 @@ def agent_jsonld(request):
     agents = list(set(agents))
     
     for agent in agents:
-        ref = URIRef(path + "agent/" + str(agent.id))
+        ref = URIRef(instance_abbrv + ":agent/" + str(agent.id))
         if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
             store.add((ref, RDF.type, vf_ns.Person))
         #elif agent.agent_type.name == "Organization":
         #    store.add((ref, RDF.type, vf_ns.Organization))
         else:
             at_class_name = camelcase(agent.agent_type.name)
-            ref_class = URIRef(at_ns[at_class_name])
+            ref_class = URIRef(instance_abbrv + ":agent-type/" + at_class_name)
             store.add((ref, RDF.type, ref_class))
         store.add((ref, vf_ns["label"], Literal(agent.name, lang="en")))
         #if agent.name != agent.nick:
         #    store.add((ref, FOAF.nick, Literal(agent.nick, lang="en")))
         if agent.photo_url:
-            store.add((ref, fv_ns["image"], agent.photo_url))
+            store.add((ref, vf_ns["image"], agent.photo_url))
     
     for a in associations:
-        ref = URIRef(path + "agent-relationship/" + str(a.id) + "/")
-        inv_ref = URIRef(path + "agent-relationship-inv/" + str(a.id) + "/")
-        ref_subject = URIRef(path + "agent/" + str(a.is_associate.id) + "/")
-        ref_object = URIRef(path + "agent/" + str(a.has_associate.id) + "/")
+        ref = URIRef(instance_abbrv + ":agent-relationship/" + str(a.id) + "/")
+        inv_ref = URIRef(instance_abbrv + ":agent-relationship-inv/" + str(a.id) + "/")
+        ref_subject = URIRef(instance_abbrv + ":agent/" + str(a.is_associate.id) + "/")
+        ref_object = URIRef(instance_abbrv + ":agent/" + str(a.has_associate.id) + "/")
         property_name = camelcase_lower(a.association_type.label)
         inv_property_name = camelcase_lower(a.association_type.inverse_label)
-        ref_relationship = URIRef(aat_ns[property_name])
-        inv_ref_relationship = URIRef(aat_ns[inv_property_name])
+        ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type/" + property_name)
+        inv_ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type/" + inv_property_name)
         store.add((ref, RDF.type, vf_ns["Relationship"]))
         store.add((ref, vf_ns["subject"], ref_subject)) 
         store.add((ref, vf_ns["object"], ref_object))

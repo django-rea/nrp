@@ -1,6 +1,7 @@
 import datetime
 import time
 import csv
+import copy
 from operator import itemgetter, attrgetter, methodcaller
 
 from django.db.models import Q
@@ -881,54 +882,75 @@ def resource_flow_report(request, resource_type_id):
     #todo: this report is dependent on DHEN's specific work flow, will need to be generalized
     #import pdb; pdb.set_trace() 
     rt = get_object_or_404(EconomicResourceType, id=resource_type_id)
-    pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+    #redo: need exchange_types as well as process_types
+    #this next stmt is obsolete until we get mixed process-exchange recipes
+    #pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
     if rt.direct_children():
-        lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
+        lot_list = EconomicResource.objects.onhand().filter(resource_type__parent=rt)
     else:
-        lot_list = rt.resources.all()
+        lot_list = rt.resources.filter(quantity__gt=0)
+    stages = []
     for lot in lot_list:
-        #if lot.identifier == "53014": #70314
+        #if lot.identifier == "51515": #70314
         #    import pdb; pdb.set_trace() 
-        lot_processes = lot.value_flow_going_forward_processes()
+        #redo: need exchanges as well as processes
+        lot_process_exchange_flow = lot.process_exchange_flow()
+        if lot_process_exchange_flow:
+            #import pdb; pdb.set_trace()
+            lot_process_exchange_flow.reverse()
         lot_receipt = lot.receipt()
         lot.lot_receipt = lot_receipt
-        lot_pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
-        for process in lot_processes:
-            if process.process_type:
-                if process.process_type not in pts:
-                    new_instance_pt_1 = ProcessType.objects.get(id=process.process_type.id)
-                    pts.append(new_instance_pt_1)
-                if process.process_type not in lot_pts:
-                    new_instance_pt_2 = ProcessType.objects.get(id=process.process_type.id)
-                    lot_pts.append(new_instance_pt_2)
-        for lpt in lot_pts:
-            lpt_processes = []
-            for process in lot_processes:
-                if process.process_type == lpt:
-                    lpt_processes.append(process)
-            lpt.lpt_processes = lpt_processes
-        lot.lot_pts = lot_pts
-        lot.lot_processes = lot_processes
+        #redo: need exchange_types as well as process_types
+        #lot_pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+        
+        #this next is obsolete, I think
+        #actually, it shd map lot_process_exchange_flow to stages
+        #51515 has lots of pex, which now caused lots of extra columns
+        #add lot stages to common stages
+        lot_pts = lot_process_exchange_flow
+        for pex in lot_process_exchange_flow:
+            if pex.stage:
+                if pex.stage not in stages:
+                    stages.append(pex.stage)
+                #this makes no sense to me
+                #if pex.stage not in lot_pts:
+                #    lot_pts.append(pex.stage)
+        #assign lot processes and exchanges to stages?
+        lot_stages = copy.deepcopy(stages)
+        for stage in lot_stages:
+            stage_pex = []
+            for pex in lot_process_exchange_flow:
+                if pex.stage == stage:
+                    stage_pex.append(pex)
+            stage.stage_pex = stage_pex
+        #if lot.identifier == "51515": #70314
+        #    import pdb; pdb.set_trace() 
+        lot.lot_stages = lot_stages
+        lot.lot_process_exchange_flow = lot_process_exchange_flow
         orders = []
-        last_pt = lot_pts[-1]
         order = None
-        for proc in last_pt.lpt_processes:
-            order = proc.independent_demand()
-            if order:
-                orders.append(order)
+        """
+        if lot_pts:
+            last_pt = lot_pts[-1]
+            if type(last_pt) is Process:
+                for proc in last_pt.lpt_pex:
+                    order = proc.independent_demand()
+                    if order:
+                        orders.append(order)
+        """
         if not order:
             shipped_orders = lot.shipped_on_orders()
             if shipped_orders:
                 orders.extend(shipped_orders)
         lot.orders = orders
     #import pdb; pdb.set_trace() 
+    # just commented out next section because I don't understand it yet
+    """
     for lot in lot_list:
-        #if lot.identifier == "53014": #70314
-        #    import pdb; pdb.set_trace() 
-        for ptype in pts:
+        for stage in stages:
             if ptype not in lot.lot_pts:
                 lot.lot_pts.append(ptype)
-        
+    """    
     paginator = Paginator(lot_list, 500)
     page = request.GET.get('page')
     try:
@@ -942,7 +964,7 @@ def resource_flow_report(request, resource_type_id):
     
     return render_to_response("valueaccounting/resource_flow_report.html", {
         "lots": lots,
-        "pts": pts,
+        "stages": stages,
         "rt": rt,
         #"sort_form": sort_form,
     }, context_instance=RequestContext(request))

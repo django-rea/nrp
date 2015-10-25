@@ -58,35 +58,41 @@ ul {
 				<th>{% trans "Resource" %}</th>
 				<th>{% trans "Type" %}</th>
 				<th>{% trans "Owners" %}</th>
-                {% for pt in pts %}
-                    <th>{{ pt.name }}</th>
+                {% for stage in stages %}
+                    <th>{{ stage.name }}</th>
 				{% endfor %}
                 <th>{% trans "Orders" %}</th>
             </thead>
 			<tbody>	
 				{% for lot in lots %}
-                  {% if lot.lot_processes or lot.lot_receipt %}
+                  {% if lot.lot_process_exchange_flow or lot.lot_receipt %}
 					<tr class="{% cycle 'odd' 'even' %}">
 						<td><a href="{{ lot.get_absolute_url }}">{{ lot.identifier }}</a></td>
 						<td>{{ lot.resource_type }}</td>
 						<td>{% for own in lot.all_owners %} {{ own }}, {% endfor %}</td>
-                        {% for pt in lot.lot_pts %}
-                            <td>{% if pt.lpt_processes %}
-                                {% for process in pt.lpt_processes %}
+                        {% for lot_stage in lot.lot_stages %}
+                            <td>{% if lot_stage.stage_pex %}
+                                {% for pex in lot_stage.stage_pex %}
                                     <ul>
-                                    {% for event in process.incoming_events %}
-                                        <li><span class="hdg">Input: </span>{{ event.shorter_label }}
-                                        {% if event.resource != lot %} ({{ event.resource.identifier }}) {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                    <li><span class="hdg">Process:</span>
-                                    <a href="{{ process.get_absolute_url }}">{{ process.shorter_label }}</a>
-                                    {% if process.notes %}<br /><span class="desc">{{ process.notes|urlize }}</span> {% endif%}</li>
-                                    {% for event in process.production_events %}
-                                        <li><span class="hdg">Output: </span>{{ event.shorter_label }}
-                                        {% if event.resource != lot %} ({{ event.resource.identifier }}) {% endif %}
-                                        </li>
-                                    {% endfor %}
+                                    {% if pex.type == "Process" %}
+                                        {% for event in pex.incoming_events %}
+                                            <li><span class="hdg">Input: </span>{{ event.shorter_label }}
+                                            {% if event.resource != lot %} ({{ event.resource.identifier }}) {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                        
+                                        <li><span class="hdg">Process:</span>
+                                        <a href="{{ pex.get_absolute_url }}">{{ pex.shorter_label }}</a>
+                                        {% if pex.notes %}<br /><span class="desc">{{ pex.notes|urlize }}</span> {% endif%}</li>
+                                        {% for event in pex.production_events %}
+                                            <li><span class="hdg">Output: </span>{{ event.shorter_label }}
+                                            {% if event.resource != lot %} ({{ event.resource.identifier }}) {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                    {% endif %}
+                                    {% if pex.type == "Exchange" %}
+                                        <li><span class="hdg">Exchange:</span>
+                                    {% endif %}
                                     </ul>
                                 {% endfor %}
                             {% endif %}</td>

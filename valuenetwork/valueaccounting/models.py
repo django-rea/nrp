@@ -2,6 +2,7 @@ import datetime
 import re
 from decimal import *
 from operator import attrgetter
+from toposort import toposort, toposort_flatten
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -3652,6 +3653,10 @@ class EconomicResourceManager(models.Manager):
                 if va.owner().is_context_agent():
                     cavas.append(va)
         return cavas
+        
+    def onhand(self):
+        return EconomicResource.objects.filter(quantity__gt=0)
+        
 
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
@@ -3834,6 +3839,23 @@ class EconomicResource(models.Model):
     #    from valuenetwork.valueaccounting.forms import ResourceRoleAgentForm
     #    return EconomicResourceForm(instance=self)
     
+    def event_sequence(self):
+        #import pdb; pdb.set_trace()
+        events = self.events.all()
+        data = {}
+        visited = set()
+        for e in events:
+            if e not in visited:
+                visited.add(e)
+                candidates = e.previous_events()
+                prevs = set()
+                for c in candidates:
+                    if c not in visited:
+                        visited.add(c)
+                        prevs.add(c)
+                data[e] = prevs
+        return toposort_flatten(data)
+
     def test_rollup(self, value_equation=None):
         #leave the following uncommented
         import pdb; pdb.set_trace()
@@ -4694,8 +4716,97 @@ class EconomicResource(models.Model):
         #import pdb; pdb.set_trace()
         self.incoming_value_flows_dfs(flows, visited, depth)
         return flows
+        
+    def process_exchange_flow(self):
+        flows = self.incoming_value_flows()
+        xnp = [f for f in flows if type(f) is Process or type(f) is Exchange]
+        for x in xnp:
+            if type(x) is Process:
+                x.type="Process"
+                x.stage=x.process_type
+            else:
+                x.type="Exchange"
+                x.stage=x.exchange_type
+        return xnp
                 
     def incoming_value_flows_dfs(self, flows, visited, depth):
+        #Resource method
+        #import pdb; pdb.set_trace()
+        if self not in visited:
+            visited.add(self)
+            #depth += 1
+            resources = []
+            events = self.event_sequence()
+            events.reverse()
+            pet = EventType.objects.get(name="Resource Production")
+            xet = EventType.objects.get(name="Transfer")
+            
+            for event in events:
+                if event not in visited:
+                    visited.add(event)
+                    depth += 1
+                    event.depth = depth
+                    flows.append(event)
+                    if event.event_type==xet:
+                        exchange = event.exchange
+                        if exchange:
+                            if exchange not in visited:
+                                visited.add(exchange)
+                                exchange.depth = depth + 1
+                                flows.append(exchange)
+                                for pmt in event.exchange.reciprocal_transfer_events():
+                                    pmt.depth = depth + 2
+                                    flows.append(pmt)
+                        #import pdb; pdb.set_trace()
+                        event.incoming_value_flows_dfs(flows, visited, depth)
+                    elif event.event_type==pet:
+                        process = event.process
+                        if process:
+                            if process not in visited:
+                                visited.add(process)
+                                process.depth = depth + 1
+                                flows.append(process)
+                                for evt in process.incoming_events():
+                                    if evt not in visited:
+                                        visited.add(evt)
+                                        evt.depth = depth + 2
+                                        flows.append(evt)
+                                        if evt.resource:
+                                            if evt.resource == self:
+                                                if self.stage and evt.stage:
+                                                    self.historical_stage = evt.stage
+                                                    self.incoming_value_flows_dfs(flows, visited, depth + 2)
+                                            elif evt.resource not in resources:
+                                                resources.append(evt.resource)
+                                        
+
+                
+            for event in self.purchase_events_for_exchange_stage():
+                if event not in visited:
+                    visited.add(event)
+                    event.depth = depth
+                    flows.append(event)
+                    if event.exchange:
+                        exchange = event.exchange
+                        exchange.depth = depth + 1
+                        flows.append(exchange)
+                        for pmt in event.exchange.payment_events():
+                            pmt.depth = depth + 2
+                            flows.append(pmt)
+
+            for event in self.resource_contribution_events():
+                if event not in visited:
+                    visited.add(event)
+                    event.depth = depth
+                    flows.append(event)
+            
+            for resource in resources:
+                #depth += 3
+                resource.depth = depth + 3
+                flows.append(resource)
+                resource.incoming_value_flows_dfs(flows, visited, depth + 3)
+                
+    def incoming_value_flows_dfs_old(self, flows, visited, depth):
         #Resource method
         #import pdb; pdb.set_trace()
         if self not in visited:
@@ -8521,6 +8632,22 @@ class EconomicEvent(models.Model):
                 except CachedEventSummary.DoesNotExist:
                     pass
         super(EconomicEvent, self).delete(*args, **kwargs)
+        
+    def previous_events(self):
+        prevs = []
+        resource = self.resource
+        if resource:
+            candidates = resource.events.all()
+            prevs = candidates.filter(to_agent=self.from_agent).exclude(id=self.id)
+        return prevs
+        
+    def next_events(self):
+        nexts = []
+        resource = self.resource
+        if resource:
+            candidates = resource.events.all()
+            nexts = candidates.filter(from_agent=self.to_agent).exclude(id=self.id)
+        return nexts
         
     def seniority(self):
         return (datetime.date.today() - self.event_date).days

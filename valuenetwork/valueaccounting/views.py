@@ -10926,9 +10926,11 @@ def agent_lod(request, agent_id):
     agents = EconomicAgent.objects.filter(id=agent_id)
     if not agents:
         return HttpResponse({}, mimetype='application/json')
-    else:
-        agent = agents[0]
-    
+
+    agent = agents[0]
+    subject_assocs = agent.all_is_associates()
+    object_assocs = agent.all_has_associates()
+
     from rdflib import Graph, Literal, BNode
     from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
     from rdflib.serializer import Serializer
@@ -10948,6 +10950,21 @@ def agent_lod(request, agent_id):
     store.add((ref, vf_ns["label"], Literal(agent.name, lang="en")))
     #if agent.photo_url:
     #    store.add((ref, vf_ns["image"], agent.photo_url))
+    
+    #if subject_assocs or object_assocs:
+    #    store.add((  ))
+    if subject_assocs:
+        for a in subject_assocs:
+            obj_ref = URIRef(instance_abbrv + ":agent-relationship-lod/" + str(a.id) + "/")
+            property_name = camelcase_lower(a.association_type.label)
+            ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + property_name)
+            store.add((ref, ref_relationship, obj_ref))
+    if object_assocs:
+        for a in object_assocs:
+            subj_ref = URIRef(instance_abbrv + ":agent-relationship-inv-lod/" + str(a.id) + "/")
+            inv_property_name = camelcase_lower(a.association_type.inverse_label)
+            inv_ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + inv_property_name)
+            store.add((ref, inv_ref_relationship, subj_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
     return HttpResponse(ser, mimetype='application/json')  
@@ -10975,6 +10992,7 @@ def simplyframe(data):
     
 def agent_jsonld(request):
     #test = "{'@context': 'http://json-ld.org/contexts/person.jsonld', '@id': 'http://dbpedia.org/resource/John_Lennon', 'name': 'John Lennon', 'born': '1940-10-09', 'spouse': 'http://dbpedia.org/resource/Cynthia_Lennon' }"
+    #test = '{ "@id": "http://nrp.webfactional.com/accounting/agent-lod/1", "@type": "Person", "vf:label": { "@language": "en", "@value": "Bob Haugen" } }'
     #return HttpResponse(test, mimetype='application/json')
 
     from rdflib import Graph, Literal, BNode
@@ -11070,104 +11088,20 @@ def agent_jsonld_query(request):
     from rdflib import Graph
     from rdflib.serializer import Serializer
     from rdflib import Namespace, URIRef
+    from urllib2 import urlopen
+    from io import StringIO
 
     #import pdb; pdb.set_trace()
     g = Graph()
-    g.parse("http://nrp.webfactional.com/accounting/agent-jsonld/", format="json-ld")
-    #print(g.serialize(format='n3', indent=4))
-    result = ""
+    url = "http://nrp.webfactional.com/accounting/agent-jsonld/"
+    remote_jsonld = urlopen(url).read()
+    dict_data = simplejson.loads(remote_jsonld)
+    context = dict_data["@context"]
+    graph = dict_data["@graph"]
+    local_graph = simplejson.dumps(graph)
+    g.parse(StringIO(unicode(local_graph)), context=context, format="json-ld")
+    
+    result = "Number of triples: " + str(len(g)) + "\n"
     for s,p,o in g.triples( (None, None, None) ):
         result += s + " " + p + " " + o + "\n"
     return HttpResponse(result, mimetype='text/plain')    
-    
-    '''
-    from rdflib import Graph, plugin
-    from rdflib.serializer import Serializer
-
-    #import pdb; pdb.set_trace()
-    #agent_data = '''
-    #... @prefix dc: <http://purl.org/dc/terms/> .
-    #... <http://example.org/about>
-    #...     dc:title "Someone's Homepage"@en .
-    #... '''
-
-    #g = Graph().parse(data=agent_data, format='json-ld')
-
-    #print(g.serialize(format='n3', indent=4))
-    
-    #context = {"@vocab": "http://purl.org/dc/terms/", "@language": "en"}
-    #print(g.serialize(format='n3', context=context, indent=4))
-    '''
-    =====
-    
-    g = Graph()
-    g.load("foaf.rdf")
-
-    tim = URIRef("http://www.w3.org/People/Berners-Lee/card#i")
-
-    print "Timbl knows:"
-
-    for o in g.objects(tim, FOAF.knows / FOAF.name):
-        print o
-        
-    ======
-    
-    from rdflib import *
-    from rdflib.compare import to_isomorphic
-    import sys, csv
-    from urllib import *
-    from io import StringIO
-    from collections import defaultdict
-    from urllib2 import urlopen
-
-    metadata = Namespace("http://data.bioontology.org/metadata/")
-    url = 'http://data.bioontology.org/ontologies?apikey=%s' % apikey
-    ontology_graph = Graph()
-    print url
-    ontology_list_json = urlopen(url).read()
-    ontology_graph.parse(StringIO(unicode(ontology_list_json)), format="json-ld")
-    ontologies = ontology_graph.query(bioportal_query)
-    
-    ======
-    
-    import rdflib
-    from rdflib.plugins.sparql import prepareQuery
-    from rdflib.namespace import FOAF
-
-    if __name__=='__main__':
-
-        q = prepareQuery(
-            'SELECT ?s WHERE { ?person foaf:knows ?s .}', 
-            initNs = { "foaf": FOAF })
-
-        g = rdflib.Graph()
-        g.load("foaf.rdf")
-
-        tim = rdflib.URIRef("http://www.w3.org/People/Berners-Lee/card#i")
-
-        for row in g.query(q, initBindings={'person': tim}):
-            print row
-        
-    ======
-    
-    
-    from rdflib import Graph
-
-    if __name__ == '__main__':
-        g = Graph()
-
-        g.parse('http://www.worldcat.org/title/library-of-babel/oclc/44089369', format='rdfa')
-
-        print "Books found:"
-
-        for row in g.query("""SELECT ?title ?author WHERE { 
-        [ a schema:Book ; 
-            schema:author [ rdfs:label ?author ] ;
-            schema:name ?title ]
-        FILTER (LANG(?title) = 'en') } """):
-
-            print "%s by %s"%(row.title, row.author)
-        
-    =========
-    '''
-    

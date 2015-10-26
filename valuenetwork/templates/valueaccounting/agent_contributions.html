@@ -244,6 +244,7 @@
         $("select").chosen();
         
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+        $('.filter-date').datepicker({ dateFormat: "yy-mm-dd" });
 
         $('.date-entry').change(saveDate);
         $('.quantity').change(saveQuantity);
@@ -310,21 +311,21 @@
         eventId = formId.split("-")[1];
         var formData = $(formId).serialize();
         var eventId = "&eventId=" + eventId;
-		formData += eventId;
+        formData += eventId;
         
         var url = "{%url change_event_date %}";
 
-		notifySaving();
+        notifySaving();
 
-		var jqxhr = $.post( url, formData,
-			function( data ) {
-				notifySaved();
-			})
-			.fail(function() 
-			{ 
-				notifyProblem(); 
-			}
-		);
+        var jqxhr = $.post( url, formData,
+            function( data ) {
+                notifySaved();
+            })
+            .fail(function() 
+            { 
+                notifyProblem(); 
+            }
+        );
     }
 
     function saveQuantity(event)

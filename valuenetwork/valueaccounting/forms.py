@@ -2251,7 +2251,15 @@ class WorkSelectionForm(forms.Form):
         
         
 class EventTypeFilterForm(forms.Form):
-    event_types = forms.MultipleChoiceField()
+    start_date = forms.DateField(
+        required=False, 
+        label="Start date",
+        widget=forms.TextInput(attrs={'class': 'input-small filter-date', }))
+    end_date = forms.DateField(
+        required=False, 
+        label="End date",
+        widget=forms.TextInput(attrs={'class': 'input-small filter-date', }))
+    event_types = forms.MultipleChoiceField(required=False)
 
     def __init__(self, event_types, *args, **kwargs):
         super(EventTypeFilterForm, self).__init__(*args, **kwargs)

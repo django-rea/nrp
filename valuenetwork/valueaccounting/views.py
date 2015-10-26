@@ -890,6 +890,12 @@ def resource_flow_report(request, resource_type_id):
     else:
         lot_list = rt.resources.filter(quantity__gt=0)
     stages = []
+    #hack to get a full set of stages upfront
+    #otherwise new ones incorrectly arrive at the end of the flow
+    #would be better to figure out how to insert in the correct place
+    r = EconomicResource.objects.get(id=461)
+    stages = [pex.stage for pex in r.process_exchange_flow()]
+    stages.reverse()
     for lot in lot_list:
         #if lot.identifier == "51515": #70314
         #    import pdb; pdb.set_trace() 

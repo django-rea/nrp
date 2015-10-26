@@ -92,6 +92,7 @@ ul {
                                     {% endif %}
                                     {% if pex.type == "Exchange" %}
                                         <li><span class="hdg">Exchange:</span>
+                                        <a href="{{ pex.get_absolute_url }}">{{ pex }}</a>
                                     {% endif %}
                                     </ul>
                                 {% endfor %}

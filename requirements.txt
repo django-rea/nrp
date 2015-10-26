@@ -14,3 +14,4 @@ pinax-utils==1.0b1.dev3
 webtest
 django-webtest
 django-notification
+toposort

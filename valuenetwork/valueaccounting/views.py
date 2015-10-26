@@ -10966,7 +10966,8 @@ def agent_lod(request, agent_id):
 
     path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
     
-    ref = URIRef(instance_abbrv + ":agent-lod/" + str(agent.id))
+    #Lynn: I made a change here for consistency. Please check and fix if needed.
+    ref = URIRef(instance_abbrv + ":agent-lod/" + str(agent.id) + "/")
     if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
         store.add((ref, RDF.type, vf_ns.Person))
     #elif agent.agent_type.name == "Organization":

@@ -73,7 +73,19 @@
                 </div>&nbsp;
                 <input type="submit" name="submit" class="btn btn-info" style="display: inline;" value="{% trans 'Filter' %}" />
             </form>
+            {% if event_ids and agent %}
+                <a 
+                    href=" {% url contribution_events_csv %}?event-ids={{ event_ids }}" 
+                    id="btn-export" 
+                    class="btn btn-primary" 
+                    title="Export filtered list to csv (comma separated value) format" 
+                    style="display: inline; vertical-align: middle;"
+                    >{% trans "Export CSV File" %}
+                </a>
+            {% endif %}
+        
         </div>
+        
 		
 		{% if user_is_agent %}
             <p>

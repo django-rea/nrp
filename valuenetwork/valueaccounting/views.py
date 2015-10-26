@@ -1159,7 +1159,7 @@ def contribution_history(request, agent_id):
             #belt and suspenders: if no et_ids, form is not valid
             if et_ids:
                 event_list = event_list.filter(event_type__id__in=et_ids)
-            
+    event_ids = ",".join([str(event.id) for event in event_list]) 
     paginator = Paginator(event_list, 25)
 
     page = request.GET.get('page')
@@ -1177,6 +1177,7 @@ def contribution_history(request, agent_id):
         "user_is_agent": user_is_agent,
         "events": events,
         "filter_form": filter_form,
+        "event_ids": event_ids,
     }, context_instance=RequestContext(request))
     
 @login_required

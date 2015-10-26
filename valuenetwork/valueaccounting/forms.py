@@ -2259,7 +2259,7 @@ class EventTypeFilterForm(forms.Form):
         required=False, 
         label="End date",
         widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
-    event_types = forms.MultipleChoiceField()
+    event_types = forms.MultipleChoiceField(required=False)
 
     def __init__(self, event_types, *args, **kwargs):
         super(EventTypeFilterForm, self).__init__(*args, **kwargs)

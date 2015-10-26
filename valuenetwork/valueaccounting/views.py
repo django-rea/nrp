@@ -11122,15 +11122,39 @@ def agent_jsonld_query(request):
 
     #import pdb; pdb.set_trace()
     g = Graph()
-    url = "http://dhen.webfactional.com/accounting/agent-jsonld/"
+    url = "http://nrp.webfactional.com/accounting/agent-jsonld/"
     remote_jsonld = urlopen(url).read()
     dict_data = simplejson.loads(remote_jsonld)
     context = dict_data["@context"]
     graph = dict_data["@graph"]
     local_graph = simplejson.dumps(graph)
     g.parse(StringIO(unicode(local_graph)), context=context, format="json-ld")
+    local_expanded_json = g.serialize(format="json-ld", indent=4)
+    result = ""
+    #for item in graph:
+    #    result += str(item) + "\n" + "========== \n" #right grain but doesn't have expanded url references
+
+    #for item in local_expanded_json:
+    #    result += str(item) + "\n" #wrong grain, 1 character at a time
     
-    result = "Number of triples: " + str(len(g)) + "\n"
-    for s,p,o in g.triples( (None, None, None) ):
-        result += s + " " + p + " " + o + "\n"
-    return HttpResponse(result, mimetype='text/plain')    
+    
+    
+    
+    #result = "Number of triples: " + str(len(g)) + "\n"
+    #for s,p,o in g.triples( (None, None, None) ):
+    #    result += s + " " + p + " " + o + "\n"
+    return HttpResponse(result, mimetype='text/plain')   
+
+'''
+g = Graph()
+url = "http://dhen.webfactional.com/accounting/agent-jsonld/"
+remote_jsonld = urlopen(url).read()
+dict_data = simplejson.loads(remote_jsonld)
+from django.utils import simplejson
+dict_data = simplejson.loads(remote_jsonld)
+context = dict_data["@context"]
+graph = dict_data["@graph"]
+peeps = [g for g in graph if g['@type']=='Person']
+rels = [g for g in graph if g['@type']=='Relationship']
+ids = [x['@id'].split('/')[1] for x in graph]
+'''

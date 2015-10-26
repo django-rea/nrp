@@ -11140,20 +11140,37 @@ def agent_jsonld_query(request):
     local_graph = simplejson.dumps(graph)
     g.parse(StringIO(unicode(local_graph)), context=context, format="json-ld")
     local_expanded_json = g.serialize(format="json-ld", indent=4)
+    local_expanded_dict = simplejson.loads(local_expanded_json)
+    
+    #import pdb; pdb.set_trace()
+    
     result = ""
     #for item in graph:
     #    result += str(item) + "\n" + "========== \n" #right grain but doesn't have expanded url references
 
     #for item in local_expanded_json:
     #    result += str(item) + "\n" #wrong grain, 1 character at a time
+    #for item in local_expanded_dict:
+    #    result += str(item) + "\n" + "========== \n"
     
-    
-    
+    for item in local_expanded_dict:
+        for key, value in item.iteritems():
+            if type(value) is list:
+                value = value[0]
+                if type(value) is dict:
+                    valist = []
+                    for key2, value2 in value.iteritems():
+                        valist.append(": ".join([key2, value2]))
+                    value = ", ".join(valist)
+            line = ": ".join([key, value])
+            result += line + "\n" 
+        result += "========== \n"
     
     #result = "Number of triples: " + str(len(g)) + "\n"
     #for s,p,o in g.triples( (None, None, None) ):
     #    result += s + " " + p + " " + o + "\n"
-    return HttpResponse(result, mimetype='text/plain')   
+    return HttpResponse(result, mimetype='text/plain')
+    #return HttpResponse(local_expanded_json, mimetype='application/json')
 
 '''
 g = Graph()
@@ -11164,7 +11181,7 @@ from django.utils import simplejson
 dict_data = simplejson.loads(remote_jsonld)
 context = dict_data["@context"]
 graph = dict_data["@graph"]
-peeps = [g for g in graph if g['@type']=='Person']
-rels = [g for g in graph if g['@type']=='Relationship']
+peeps = [x for x in graph if x['@type']=='Person']
+rels = [x for x in graph if x['@type']=='Relationship']
 ids = [x['@id'].split('/')[1] for x in graph]
 '''

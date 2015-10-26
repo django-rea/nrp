@@ -429,7 +429,10 @@ def agent(request, agent_id):
     member_hours_stats = []
     member_hours_roles = []
     
-    if agent.is_context_agent():
+    if agent.is_individual():
+        contributions = agent.given_events.filter(is_contribution=True)
+    
+    elif agent.is_context_agent():
     
         subs = agent.with_all_sub_agents()
         ces = CachedEventSummary.objects.filter(
@@ -1141,12 +1144,18 @@ def contribution_history(request, agent_id):
         user_is_agent = True
     event_list = agent.contributions()
     event_types = {e.event_type for e in event_list}
-    et_form = EventTypeFilterForm(event_types=event_types, data=request.POST or None)
+    filter_form = EventTypeFilterForm(event_types=event_types, data=request.POST or None)
     if request.method == "POST":
-        if et_form.is_valid():
+        if filter_form.is_valid():
             #import pdb; pdb.set_trace()
-            data = et_form.cleaned_data
+            data = filter_form.cleaned_data
             et_ids = data["event_types"]
+            start = data["start_date"]
+            end = data["end_date"]
+            if start:
+                event_list = event_list.filter(event_date__gte=start)
+            if end:
+                event_list = event_list.filter(event_date__lte=end)
             #belt and suspenders: if no et_ids, form is not valid
             if et_ids:
                 event_list = event_list.filter(event_type__id__in=et_ids)
@@ -1167,7 +1176,7 @@ def contribution_history(request, agent_id):
         "agent": agent,
         "user_is_agent": user_is_agent,
         "events": events,
-        "et_form": et_form,
+        "filter_form": filter_form,
     }, context_instance=RequestContext(request))
     
 @login_required

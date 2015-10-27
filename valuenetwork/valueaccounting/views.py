@@ -896,13 +896,14 @@ def resource_flow_report(request, resource_type_id):
     #hack to get a full set of stages upfront
     #otherwise new ones incorrectly arrive at the end of the flow
     #would be better to figure out how to insert in the correct place
-    r = EconomicResource.objects.get(id=461)
-    stages = [pex.stage for pex in r.process_exchange_flow()]
+    lot = EconomicResource.objects.get(id=461)
+    stages = [pex.stage for pex in lot.process_exchange_flow()]
     stages.reverse()
+    #if stages[0].id != 3:
+    #    import pdb; pdb.set_trace()
     for lot in lot_list:
-        #if lot.identifier == "51515": #70314
+        #if lot.identifier == "direct345345": #70314
         #    import pdb; pdb.set_trace() 
-        #redo: need exchanges as well as processes
         lot_process_exchange_flow = lot.process_exchange_flow()
         if lot_process_exchange_flow:
             #import pdb; pdb.set_trace()
@@ -920,6 +921,7 @@ def resource_flow_report(request, resource_type_id):
         for pex in lot_process_exchange_flow:
             if pex.stage:
                 if pex.stage not in stages:
+                    #import pdb; pdb.set_trace()
                     stages.append(pex.stage)
                 #this makes no sense to me
                 #if pex.stage not in lot_pts:

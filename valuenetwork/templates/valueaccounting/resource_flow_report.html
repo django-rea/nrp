@@ -21,6 +21,10 @@
 .hdg {
     color:  #7D1818;
 }
+.pex {
+    color:  darkgreen;
+    font-weight: bold;
+}
 .event {
     margin-left: 1em;
 }
@@ -77,22 +81,31 @@ ul {
                                     {% if pex.type == "Process" %}
                                         {% for event in pex.incoming_events %}
                                             <li><span class="hdg">Input: </span>{{ event.shorter_label }}
-                                            {% if event.resource != lot %} ({{ event.resource.identifier }}) {% endif %}
+                                            {% if event.resource != lot %} 
+                                                <a href="{{ event.resource.get_absolute_url }}">({{ event.resource.identifier }})</a>
+                                            {% endif %}
                                             </li>
                                         {% endfor %}
                                         
-                                        <li><span class="hdg">Process:</span>
+                                        <li><span class="pex">Process:</span>
                                         <a href="{{ pex.get_absolute_url }}">{{ pex.shorter_label }}</a>
                                         {% if pex.notes %}<br /><span class="desc">{{ pex.notes|urlize }}</span> {% endif%}</li>
                                         {% for event in pex.production_events %}
                                             <li><span class="hdg">Output: </span>{{ event.shorter_label }}
-                                            {% if event.resource != lot %} ({{ event.resource.identifier }}) {% endif %}
+                                                <a href="{{ event.resource.get_absolute_url }}">({{ event.resource.identifier }})</a>
                                             </li>
                                         {% endfor %}
                                     {% endif %}
                                     {% if pex.type == "Exchange" %}
-                                        <li><span class="hdg">Exchange:</span>
+                                        <li><span class="pex">Exchange:</span>
                                         <a href="{{ pex.get_absolute_url }}">{{ pex }}</a>
+                                        {% for event in pex.events.all %}
+                                            <li><span class="hdg"> {{ event.event_type }}: </span>{{ event.shorter_label }}
+                                            {% if event.resource != lot %} 
+                                                <a href="{{ event.resource.get_absolute_url }}">({{ event.resource.identifier }})</a>
+                                            {% endif %}
+                                            </li>
+                                        {% endfor %}
                                     {% endif %}
                                     </ul>
                                 {% endfor %}

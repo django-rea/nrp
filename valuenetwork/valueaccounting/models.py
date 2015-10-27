@@ -3852,7 +3852,7 @@ class EconomicResource(models.Model):
                 for c in candidates:
                     if c not in visited:
                         visited.add(c)
-                        prevs.add(c)
+                    prevs.add(c)
                 data[e] = prevs
         return toposort_flatten(data)
 
@@ -4718,6 +4718,7 @@ class EconomicResource(models.Model):
         return flows
         
     def process_exchange_flow(self):
+        #import pdb; pdb.set_trace()
         flows = self.incoming_value_flows()
         xnp = [f for f in flows if type(f) is Process or type(f) is Exchange]
         for x in xnp:
@@ -4740,6 +4741,7 @@ class EconomicResource(models.Model):
             events.reverse()
             pet = EventType.objects.get(name="Resource Production")
             xet = EventType.objects.get(name="Transfer")
+            rcpt = EventType.objects.get(name="Receipt")
             
             for event in events:
                 if event not in visited:
@@ -4747,7 +4749,7 @@ class EconomicResource(models.Model):
                     depth += 1
                     event.depth = depth
                     flows.append(event)
-                    if event.event_type==xet:
+                    if event.event_type==xet or event.event_type==rcpt:
                         exchange = event.exchange
                         if exchange:
                             if exchange not in visited:
@@ -9045,17 +9047,18 @@ class EconomicEvent(models.Model):
             quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
         else:
             quantity_string = str(self.quantity)
-        from_agt = 'Unassigned'
-        if self.from_agent:
-            from_agt = self.from_agent.nick
-        to_agt = 'Unassigned'
-        if self.recipient():
-            to_agt = self.recipient().nick
+        agt_string = ""
+        if self.from_agent != self.to_agent:
+            from_agt = 'Unassigned'
+            if self.from_agent:
+                from_agt = self.from_agent.nick
+            to_agt = 'Unassigned'
+            if self.recipient():
+                to_agt = self.recipient().nick
+            agt_string = ' to '.join([from_agt, to_agt])
         return ' '.join([
-            'from',
-            from_agt,
-            'to',
-            to_agt,
+            agt_string,
+            self.resource_type.name,
             quantity_string,
         ])
         

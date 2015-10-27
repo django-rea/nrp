@@ -88,7 +88,7 @@ ul {
                                     {% if pex.type == "Process" %}
                                         {% for event in pex.incoming_events %}
                                             <li><span class="hdg">Input: </span>{{ event.shorter_label }}
-                                            {% if event.resource != lot %} 
+                                            {% if event.resource %} 
                                                 <a href="{{ event.resource.get_absolute_url }}">({{ event.resource.identifier }})</a>
                                             {% endif %}
                                             </li>
@@ -108,7 +108,7 @@ ul {
                                         <a href="{{ pex.get_absolute_url }}">{{ pex }}</a>
                                         {% for event in pex.events.all %}
                                             <li><span class="hdg"> {{ event.event_type }}: </span>{{ event.shorter_label }}
-                                            {% if event.resource != lot %} 
+                                            {% if event.resource %} 
                                                 <a href="{{ event.resource.get_absolute_url }}">({{ event.resource.identifier }})</a>
                                             {% endif %}
                                             </li>

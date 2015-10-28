@@ -11096,7 +11096,7 @@ def agent_jsonld(request):
     agents = list(set(agents))
     
     for agent in agents:
-        ref = URIRef(instance_abbrv + ":agent-lod/" + str(agent.id))
+        ref = URIRef(instance_abbrv + ":agent-lod/" + str(agent.id) + "/")
         if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
             store.add((ref, RDF.type, vf_ns.Person))
         #elif agent.agent_type.name == "Organization":

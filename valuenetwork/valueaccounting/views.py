@@ -11177,9 +11177,9 @@ def agent_jsonld_query(request):
     agent_rels = []
     for r in rels:
         d = {}
-        d["subject"] = agent_dict[str(r["subject"])]
-        d["object"] = agent_dict[str(r["object"])]
-        d["relationship"] = str(r["relationship"])
+        d["subject"] = agent_dict[r["subject"]]
+        d["object"] = agent_dict[r["object"]]
+        d["relationship"] = r["relationship"]
         agent_rels.append(d)
     
     for ar in agent_rels:

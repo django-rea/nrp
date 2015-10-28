@@ -11167,6 +11167,42 @@ def agent_jsonld_query(request):
     #for item in local_expanded_dict:
     #    result += str(item) + "\n" + "========== \n"
     
+    agents = [x for x in graph if x['@id'].find('agent-lod') > -1]
+    agent_dict = {}
+    for a in agents:
+        agent_dict[str(a['@id'])] = a
+    
+    rels = [x for x in graph if x['@type']=='Relationship']
+    
+    agent_rels = []
+    for r in rels:
+        d = {}
+        d["subject"] = agent_dict[str(r["subject"])]
+        d["object"] = agent_dict[str(r["object"])]
+        d["relationship"] = str(r["relationship"])
+        agent_rels.append(d)
+    
+    for ar in agent_rels:
+        object = ar['object']
+        object_type = object['@type']
+        if object_type.find('/') > -1:
+            object_type = object_type.split('/')[1]
+        object_label = object['vf:label']['@value']
+        subject = ar['subject']
+        subject_type = subject['@type']
+        if subject_type.find('/') > -1:
+            subject_type = subject_type.split('/')[1]
+        subject_label = subject['vf:label']['@value']
+        relationship = ar['relationship']
+        if relationship.find('/') > -1:
+            relationship = relationship.split('/')[1]
+        ostr = ", a ".join([object_label, object_type])
+        sstr = ", a ".join([subject_label, subject_type])
+        line = " ".join([ sstr, relationship, ostr])
+        result += line + "\n"
+    result += "\n"
+    result += "========== Gory details from http://nrp.webfactional.com/accounting/agent-jsonld/ ==========\n"
+    
     for item in local_expanded_dict:
         for key, value in item.iteritems():
             if type(value) is list:

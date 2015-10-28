@@ -427,10 +427,19 @@ def agent(request, agent_id):
     
     headings = []
     member_hours_stats = []
+    individual_stats = []
     member_hours_roles = []
+    roles_height = 400
     
     if agent.is_individual():
         contributions = agent.given_events.filter(is_contribution=True)
+        agents_stats = {}
+        for ce in contributions:
+            agents_stats.setdefault(ce.resource_type, Decimal("0"))
+            agents_stats[ce.resource_type] += ce.quantity
+        for key, value in agents_stats.items():
+            individual_stats.append((key, value))
+        individual_stats.sort(lambda x, y: cmp(y[1], x[1]))
     
     elif agent.is_context_agent():
     
@@ -466,6 +475,7 @@ def agent(request, agent_id):
             for row in agents_roles.values():                
                 member_hours_roles.append(row)
             member_hours_roles.sort(lambda x, y: cmp(x[0], y[0]))
+            roles_height = len(member_hours_roles) * 20
           
     return render_to_response("valueaccounting/agent.html", {
         "agent": agent,
@@ -478,6 +488,8 @@ def agent(request, agent_id):
         "headings": headings,
         "member_hours_stats": member_hours_stats,   
         "member_hours_roles": member_hours_roles,
+        "individual_stats": individual_stats,
+        "roles_height": roles_height,
         "help": get_help("agent"),
     }, context_instance=RequestContext(request))
     

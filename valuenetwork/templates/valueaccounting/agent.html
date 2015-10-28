@@ -41,12 +41,15 @@
 .indent {
     margin-left: .9em;
     }
+#chart_div0 {
+    margin-top: 25px;
+}
 #chart_div1 {
     margin-bottom: 25px;
 }
 #chart_div2 {
     margin-bottom: 25px;
-    height: 400px;
+    height: {{ roles_height }}px;
 }
 #balance {
     font-weight: bold;
@@ -252,19 +255,22 @@
                     </li>
                 {% endfor %}
                 </ul>
-                <h4 class="hdg">{{ agent.name }} {% trans "has these associates " %}: </h4>             
-                <ul>
-                {% for assoc in has_associations %}
-                    {% ifchanged assoc.association_type %} 
-                        <h4>{{ assoc.association_type.inverse_label }}: </h4>
-                    {% endifchanged %}   
-                    <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate.name }}</a></li>
-                {% endfor %}
-                </ul>
+                {% if has_associations %}
+                    <h4 class="hdg">{{ agent.name }} {% trans "has these associates " %}: </h4>             
+                    <ul>
+                    {% for assoc in has_associations %}
+                        {% ifchanged assoc.association_type %} 
+                            <h4>{{ assoc.association_type.inverse_label }}: </h4>
+                        {% endifchanged %}   
+                        <li><a href="{{ assoc.is_associate.get_absolute_url }}">{{ assoc.is_associate.name }}</a></li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
 	        
 	        </div>
 	        
 	        <div class="span4">
+	        
 {% comment %}
                 <h3 class="hdg">Virtual Account for {{ agent.name }}:</h3>
                 <span id="balance">Current balance: 1750.63</span> 
@@ -272,6 +278,13 @@
                 <button class="btn btn-primary down" title="Request a payout from your virtual account" >Request a Payout</button>
 {% endcomment %}
             </div>
+            
+            {% if agent.is_individual %}
+                <div class="span8">
+                    <h4 class="hdg"> Cumulative Contributions</h4>
+                    <div id="chart_div0"></div>
+                </div>
+            {% endif %}
 
 		</div>
 
@@ -420,60 +433,79 @@
 
         
         google.load("visualization", "1", {packages:["corechart"]});
+        {% if agent.is_individual %}
+            google.setOnLoadCallback(drawChartIndividualStats);
+            function drawChartIndividualStats() {
+                var data = google.visualization.arrayToDataTable([
+                ['Resource Type', 'Quantity'],
+                {% for rtype, qty in individual_stats %}
+                    ['{{ rtype.name }}',  {{ qty }} ],
+                {% endfor %}
+                ]);
 
-        google.setOnLoadCallback(drawChart_stats);
-        function drawChart_stats() {
-            var data = google.visualization.arrayToDataTable([
-            ['Member', 'Hours'],
-            {% for member, hours in member_hours_stats %}
-                ['{{ member.nick }}',  {{ hours }} ],
-            {% endfor %}
-            ]);
+                var options = {
+                vAxis: {title: 'Resource Type',  titleTextStyle: {color: 'red'}},
+                chartArea:{width:"80%",height:"80%"}
+                };
 
-            var options = {
-            vAxis: {title: 'Member',  titleTextStyle: {color: 'red'}},
-            chartArea:{width:"80%",height:"80%"}
-            };
+                var chart = new google.visualization.PieChart(document.getElementById('chart_div0'));
+                chart.draw(data, options);
+            }
+        {% else %}
+            google.setOnLoadCallback(drawChart_stats);
+            function drawChart_stats() {
+                var data = google.visualization.arrayToDataTable([
+                ['Member', 'Hours'],
+                {% for member, hours in member_hours_stats %}
+                    ['{{ member.nick }}',  {{ hours }} ],
+                {% endfor %}
+                ]);
 
-            var chart = new google.visualization.PieChart(document.getElementById('chart_div1'));
-            chart.draw(data, options);
-        }
-        
-        google.setOnLoadCallback(drawChart_roles);
-        function drawChart_roles() {
-            var data = new google.visualization.DataTable();
-            {% for head in headings %}
-                {% if forloop.first %}
-                    data.addColumn('string','{{ head }}');
-                {% else %}
-                    data.addColumn('number','{{ head|safe }}');
-                {% endif %}
-            {% endfor %}
-            var rows = [];
-            {% for row in member_hours_roles %}
-                var thisRow = [];
-                {% for cell in row %}
+                var options = {
+                vAxis: {title: 'Member',  titleTextStyle: {color: 'red'}},
+                chartArea:{width:"80%",height:"80%"}
+                };
+
+                var chart = new google.visualization.PieChart(document.getElementById('chart_div1'));
+                chart.draw(data, options);
+            }
+            
+            google.setOnLoadCallback(drawChart_roles);
+            function drawChart_roles() {
+                var data = new google.visualization.DataTable();
+                {% for head in headings %}
                     {% if forloop.first %}
-                        thisRow.push('{{ cell|safe }}');
+                        data.addColumn('string','{{ head }}');
                     {% else %}
-                        thisRow.push({{ cell }});
+                        data.addColumn('number','{{ head|safe }}');
                     {% endif %}
                 {% endfor %}
-                rows.push(thisRow);
-            {% endfor %}
-            data.addRows(rows);
+                var rows = [];
+                {% for row in member_hours_roles %}
+                    var thisRow = [];
+                    {% for cell in row %}
+                        {% if forloop.first %}
+                            thisRow.push('{{ cell|safe }}');
+                        {% else %}
+                            thisRow.push({{ cell }});
+                        {% endif %}
+                    {% endfor %}
+                    rows.push(thisRow);
+                {% endfor %}
+                data.addRows(rows);
 
-            var chart = new google.visualization.BarChart(
-                document.getElementById('chart_div2'));
-            chart.draw(data, 
-                {
-                    'isStacked': true, 
-                    'legend': 'top',
-                    'hAxis': {'title': 'Hours'},
-                    'chartArea':{'width': '80%', 'height':'80%'}
-                }
-            );
-        }
+                var chart = new google.visualization.BarChart(
+                    document.getElementById('chart_div2'));
+                chart.draw(data, 
+                    {
+                        'isStacked': true, 
+                        'legend': 'top',
+                        'hAxis': {'title': 'Hours'},
+                        'chartArea':{'width': '80%', 'height':'100%'}
+                    }
+                );
+            }
+            {% endif %}
 
     </script>
     

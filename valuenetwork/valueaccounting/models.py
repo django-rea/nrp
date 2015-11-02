@@ -8541,11 +8541,27 @@ class EconomicEvent(models.Model):
         super(EconomicEvent, self).delete(*args, **kwargs)
         
     def previous_events(self):
+        """ Experimental method:
+        Trying to use properties of events to determine event sequence.
+        Can't count on dates or event ids.
+        This is currently for the DHen resource_flow_report
+        and takes advantage of DHen data shape.
+        For example, Receipts will have no predecessors,
+        while Consumption events will have no successors.
+        Will most likely not work (yet) more generally.
+        And Receipts are going away...
+        """
+        #import pdb; pdb.set_trace()
         prevs = []
+        ret = EventType.objects.get(name="Receipt")
+        cet = EventType.objects.get(name="Resource Consumption")
+        if self.event_type == ret:
+            return prevs
         resource = self.resource
         if resource:
             candidates = resource.events.all()
             prevs = candidates.filter(to_agent=self.from_agent).exclude(id=self.id)
+            prevs = prevs.exclude(event_type=cet)
         return prevs
         
     def next_events(self):

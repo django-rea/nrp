@@ -908,9 +908,13 @@ def resource_flow_report(request, resource_type_id):
     #hack to get a full set of stages upfront
     #otherwise new ones incorrectly arrive at the end of the flow
     #would be better to figure out how to insert in the correct place
-    lot = EconomicResource.objects.get(id=461)
-    stages = [pex.stage for pex in lot.process_exchange_flow()]
-    stages.reverse()
+    stages = []
+    try:
+        lot = EconomicResource.objects.get(id=461)
+        stages = [pex.stage for pex in lot.process_exchange_flow()]
+        stages.reverse()
+    except EconomicResource.DoesNotExist:
+        pass
     #if stages[0].id != 3:
     #    import pdb; pdb.set_trace()
     for lot in lot_list:

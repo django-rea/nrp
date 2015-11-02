@@ -3840,6 +3840,7 @@ class EconomicResource(models.Model):
     #    return EconomicResourceForm(instance=self)
     
     def event_sequence(self):
+        #import pdb; pdb.set_trace()
         events = self.events.all()
         data = {}
         visited = set()

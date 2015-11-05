@@ -4795,33 +4795,7 @@ def add_contribution_to_resource(request, exchange_id):
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
-        
 
-@login_required
-def add_unplanned_payment(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        pattern = exchange.process_pattern
-        context_agent = exchange.context_agent
-        form = PaymentEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='pay')
-        if form.is_valid():
-            payment_data = form.cleaned_data
-            qty = payment_data["quantity"] 
-            if qty:
-                event = form.save(commit=False)
-                rt = payment_data["resource_type"]
-                event_type = pattern.event_type_for_resource_type("pay", rt)
-                event.event_type = event_type
-                event.exchange = exchange
-                event.context_agent = exchange.context_agent
-                event.unit_of_quantity = rt.unit
-                event.is_contribution = True
-                event.created_by = request.user
-                event.save()
-                
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
 
 @login_required
 def add_expense(request, exchange_id):

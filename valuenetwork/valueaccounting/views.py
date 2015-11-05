@@ -6097,6 +6097,7 @@ def pastwork_reload(
         template_params,
         context_instance=RequestContext(request))
 
+#obsolete?
 @login_required
 def log_past_work(
         request, 

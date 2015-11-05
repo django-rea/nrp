@@ -7488,7 +7488,7 @@ class Commitment(models.Model):
         prefix=self.form_prefix()
         return TodoForm(instance=self, prefix=prefix)
 
-    #obsolete
+    #obsolete?
     def work_event_form(self, data=None):   
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
@@ -7521,6 +7521,7 @@ class Commitment(models.Model):
         qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, prefix=prefix)
 
+    #obsolete
     def old_use_event_form(self):        
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
@@ -8337,6 +8338,10 @@ class EconomicEventManager(models.Manager):
             events = EconomicEvent.objects.filter(resource__resource_type__behavior="account")
         return events
         
+    def contributions(self):
+        return EconomicEvent.objects.filter(is_contribution=True)
+        
+        
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="events", verbose_name=_('event type'))
@@ -9117,6 +9122,7 @@ class EconomicEvent(models.Model):
     def form_prefix(self):
         return "-".join(["EVT", str(self.id)])
 
+    #obsolete?
     def work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import WorkEventChangeForm
         return WorkEventChangeForm(instance=self)

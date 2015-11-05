@@ -21,6 +21,10 @@
 .hdg {
     color:  #7D1818;
 }
+.pex {
+    color:  darkgreen;
+    font-weight: bold;
+}
 .event {
     margin-left: 1em;
 }
@@ -55,9 +59,11 @@ ul {
 {% endcomment %}
 		<table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
 			<thead>
-				<th>{% trans "Resource" %}</th>
+				<th>{% trans "Onhand or Sold" %}</th>
 				<th>{% trans "Type" %}</th>
+				{% comment %}
 				<th>{% trans "Owners" %}</th>
+				{% endcomment %}
                 {% for stage in stages %}
                     <th>{{ stage.name }}</th>
 				{% endfor %}
@@ -67,9 +73,14 @@ ul {
 				{% for lot in lots %}
                   {% if lot.lot_process_exchange_flow or lot.lot_receipt %}
 					<tr class="{% cycle 'odd' 'even' %}">
-						<td><a href="{{ lot.get_absolute_url }}">{{ lot.identifier }}</a></td>
+						<td>
+                            {% trans "Lot" %} 
+                            <a href="{{ lot.get_absolute_url }}">{{ lot.identifier }}</a>
+                        </td>
 						<td>{{ lot.resource_type }}</td>
+						{% comment %}
 						<td>{% for own in lot.all_owners %} {{ own }}, {% endfor %}</td>
+						{% endcomment %}
                         {% for lot_stage in lot.lot_stages %}
                             <td>{% if lot_stage.stage_pex %}
                                 {% for pex in lot_stage.stage_pex %}
@@ -77,22 +88,31 @@ ul {
                                     {% if pex.type == "Process" %}
                                         {% for event in pex.incoming_events %}
                                             <li><span class="hdg">Input: </span>{{ event.shorter_label }}
-                                            {% if event.resource != lot %} ({{ event.resource.identifier }}) {% endif %}
+                                            {% if event.resource %} 
+                                                <a href="{{ event.resource.get_absolute_url }}">({{ event.resource.identifier }})</a>
+                                            {% endif %}
                                             </li>
                                         {% endfor %}
                                         
-                                        <li><span class="hdg">Process:</span>
+                                        <li><span class="pex">Process:</span>
                                         <a href="{{ pex.get_absolute_url }}">{{ pex.shorter_label }}</a>
                                         {% if pex.notes %}<br /><span class="desc">{{ pex.notes|urlize }}</span> {% endif%}</li>
                                         {% for event in pex.production_events %}
                                             <li><span class="hdg">Output: </span>{{ event.shorter_label }}
-                                            {% if event.resource != lot %} ({{ event.resource.identifier }}) {% endif %}
+                                                <a href="{{ event.resource.get_absolute_url }}">({{ event.resource.identifier }})</a>
                                             </li>
                                         {% endfor %}
                                     {% endif %}
                                     {% if pex.type == "Exchange" %}
-                                        <li><span class="hdg">Exchange:</span>
+                                        <li><span class="pex">Exchange:</span>
                                         <a href="{{ pex.get_absolute_url }}">{{ pex }}</a>
+                                        {% for event in pex.events.all %}
+                                            <li><span class="hdg"> {{ event.event_type }}: </span>{{ event.shorter_label }}
+                                            {% if event.resource %} 
+                                                <a href="{{ event.resource.get_absolute_url }}">({{ event.resource.identifier }})</a>
+                                            {% endif %}
+                                            </li>
+                                        {% endfor %}
                                     {% endif %}
                                     </ul>
                                 {% endfor %}

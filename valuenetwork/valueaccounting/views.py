@@ -427,10 +427,19 @@ def agent(request, agent_id):
     
     headings = []
     member_hours_stats = []
+    individual_stats = []
     member_hours_roles = []
+    roles_height = 400
     
     if agent.is_individual():
         contributions = agent.given_events.filter(is_contribution=True)
+        agents_stats = {}
+        for ce in contributions:
+            agents_stats.setdefault(ce.resource_type, Decimal("0"))
+            agents_stats[ce.resource_type] += ce.quantity
+        for key, value in agents_stats.items():
+            individual_stats.append((key, value))
+        individual_stats.sort(lambda x, y: cmp(y[1], x[1]))
     
     elif agent.is_context_agent():
     
@@ -466,6 +475,7 @@ def agent(request, agent_id):
             for row in agents_roles.values():                
                 member_hours_roles.append(row)
             member_hours_roles.sort(lambda x, y: cmp(x[0], y[0]))
+            roles_height = len(member_hours_roles) * 20
           
     return render_to_response("valueaccounting/agent.html", {
         "agent": agent,
@@ -478,6 +488,8 @@ def agent(request, agent_id):
         "headings": headings,
         "member_hours_stats": member_hours_stats,   
         "member_hours_roles": member_hours_roles,
+        "individual_stats": individual_stats,
+        "roles_height": roles_height,
         "help": get_help("agent"),
     }, context_instance=RequestContext(request))
     
@@ -896,13 +908,18 @@ def resource_flow_report(request, resource_type_id):
     #hack to get a full set of stages upfront
     #otherwise new ones incorrectly arrive at the end of the flow
     #would be better to figure out how to insert in the correct place
-    r = EconomicResource.objects.get(id=461)
-    stages = [pex.stage for pex in r.process_exchange_flow()]
-    stages.reverse()
+    stages = []
+    try:
+        lot = EconomicResource.objects.get(id=461)
+        stages = [pex.stage for pex in lot.process_exchange_flow()]
+        stages.reverse()
+    except EconomicResource.DoesNotExist:
+        pass
+    #if stages[0].id != 3:
+    #    import pdb; pdb.set_trace()
     for lot in lot_list:
-        #if lot.identifier == "51515": #70314
+        #if lot.identifier == "direct345345": #70314
         #    import pdb; pdb.set_trace() 
-        #redo: need exchanges as well as processes
         lot_process_exchange_flow = lot.process_exchange_flow()
         if lot_process_exchange_flow:
             #import pdb; pdb.set_trace()
@@ -920,6 +937,7 @@ def resource_flow_report(request, resource_type_id):
         for pex in lot_process_exchange_flow:
             if pex.stage:
                 if pex.stage not in stages:
+                    #import pdb; pdb.set_trace()
                     stages.append(pex.stage)
                 #this makes no sense to me
                 #if pex.stage not in lot_pts:
@@ -11082,7 +11100,7 @@ def agent_jsonld(request):
     agents = list(set(agents))
     
     for agent in agents:
-        ref = URIRef(instance_abbrv + ":agent-lod/" + str(agent.id))
+        ref = URIRef(instance_abbrv + ":agent-lod/" + str(agent.id) + "/")
         if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
             store.add((ref, RDF.type, vf_ns.Person))
         #elif agent.agent_type.name == "Organization":
@@ -11144,7 +11162,43 @@ def agent_jsonld_query(request):
     
     #import pdb; pdb.set_trace()
     
-    result = ""   
+    result = ""  
+    agents = [x for x in graph if x['@id'].find('agent-lod') > -1]
+    agent_dict = {}
+    for a in agents:
+        agent_dict[str(a['@id'])] = a
+    
+    rels = [x for x in graph if x['@type']=='Relationship']
+    
+    agent_rels = []
+    for r in rels:
+        d = {}
+        d["subject"] = agent_dict[r["subject"]]
+        d["object"] = agent_dict[r["object"]]
+        d["relationship"] = r["relationship"]
+        agent_rels.append(d)
+    
+    for ar in agent_rels:
+        object = ar['object']
+        object_type = object['@type']
+        if object_type.find('/') > -1:
+            object_type = object_type.split('/')[1]
+        object_label = object['vf:label']['@value']
+        subject = ar['subject']
+        subject_type = subject['@type']
+        if subject_type.find('/') > -1:
+            subject_type = subject_type.split('/')[1]
+        subject_label = subject['vf:label']['@value']
+        relationship = ar['relationship']
+        if relationship.find('/') > -1:
+            relationship = relationship.split('/')[1]
+        ostr = ", a ".join([object_label, object_type])
+        sstr = ", a ".join([subject_label, subject_type])
+        line = " ".join([ sstr, relationship, ostr])
+        result += line + "\n"
+    result += "\n"
+    result += "========== Gory details from http://nrp.webfactional.com/accounting/agent-jsonld/ ==========\n"
+    
     for item in local_expanded_dict:
         for key, value in item.iteritems():
             if type(value) is list:

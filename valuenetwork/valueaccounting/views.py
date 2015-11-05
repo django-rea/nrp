@@ -11144,15 +11144,7 @@ def agent_jsonld_query(request):
     
     #import pdb; pdb.set_trace()
     
-    result = ""
-    #for item in graph:
-    #    result += str(item) + "\n" + "========== \n" #right grain but doesn't have expanded url references
-
-    #for item in local_expanded_json:
-    #    result += str(item) + "\n" #wrong grain, 1 character at a time
-    #for item in local_expanded_dict:
-    #    result += str(item) + "\n" + "========== \n"
-    
+    result = ""   
     for item in local_expanded_dict:
         for key, value in item.iteritems():
             if type(value) is list:

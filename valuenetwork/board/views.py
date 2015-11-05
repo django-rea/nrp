@@ -103,7 +103,7 @@ def receive_directly(request, context_agent_id, assoc_type_identifier):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
-        stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
+        stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)  #todo: this will change to exchange type
         form = ReceiveForm(data=request.POST, prefix="REC")
         if form.is_valid():        
             data = form.cleaned_data
@@ -126,6 +126,7 @@ def receive_directly(request, context_agent_id, assoc_type_identifier):
                 process_pattern=ProcessPattern.objects.get(name="Purchase Contribution"),
                 start_date=event_date,
                 context_agent=context_agent,
+                exchange_type=ExchangeType.objects.get(name="Harvester to Drying Site"), #todo: big hack hard-code!
                 created_by=request.user,                
             )
             exchange.save()
@@ -133,7 +134,7 @@ def receive_directly(request, context_agent_id, assoc_type_identifier):
                 identifier=identifier,
                 resource_type=resource_type,
                 quantity=quantity,
-                exchange_stage=stage,
+                exchange_stage=stage, 
                 notes=description,
                 created_by=request.user
             )
@@ -296,11 +297,12 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                         paid_stage_2 = data_ee["paid_stage_2"]
                         
                         exchange = Exchange(
-                            name="Purchase " + commitment.resource_type.name,
+                            name="Transfer " + commitment.resource_type.name + " from farm",
                             use_case=purch_use_case,
                             process_pattern=purch_pattern,
                             start_date=event_date,
                             context_agent=context_agent,
+                            exchange_type=ExchangeType.objects.get(name="Farm to Harvester"),
                             created_by=request.user,                
                         )
                         exchange.save()
@@ -374,6 +376,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                             process_pattern=xfer_pattern,
                             start_date=event_date,
                             context_agent=context_agent,
+                            exchange_type=ExchangeType.objects.get(name="Harvester to Drying Site"),
                             created_by=request.user,                
                         )
                         xfer_exchange.save()
@@ -456,6 +459,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                 started=event_date,
                 context_agent=context_agent,
                 finished=True,
+                process_type=ProcessType.objects.get(name="Into Drying Room"),
                 created_by=request.user,
             )
             process.save()
@@ -532,6 +536,7 @@ def transfer_resource(request, context_agent_id, assoc_type_identifier, resource
                 process_pattern=xfer_pattern,
                 start_date=event_date,
                 context_agent=context_agent,
+                exchange_type=ExchangeType.objects.get(name="Drying Site to Seller"),
                 created_by=request.user,                
             )
             xfer_exchange.save()
@@ -630,6 +635,7 @@ def combine_resources(request, context_agent_id, assoc_type_identifier, resource
                     started=event_date,
                     context_agent=context_agent,
                     finished=True,
+                    process_type=ProcessType.objects.get(name="Combine Lots"),
                     created_by=request.user,
                 )
                 process.save()

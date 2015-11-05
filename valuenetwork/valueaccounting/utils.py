@@ -3,6 +3,13 @@ import datetime
 from django.utils.html import linebreaks
 from django.contrib.sites.models import Site
 
+def camelcase(name):
+     return ''.join(x.capitalize() or ' ' for x in name.split(' '))
+ 
+def camelcase_lower(name):
+    pname = camelcase(name)
+    return pname[0].lower() + pname[1:]
+
 def split_thousands(n, sep=','):
     s = str(n)
     if len(s) <= 3: return s  

@@ -10,7 +10,8 @@
 
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+<link href='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
 
 <style>
 
@@ -34,13 +35,18 @@
                  {% csrf_token %}
 
                 {{ location_form|as_bootstrap }}
-
+                
+                {% if agent %}
+                    <input type="hidden" id="agentId" name="agentId" value="{{ agent.id }}" />
+                {% else %}
+                    <input type="hidden" id="agentId" name="agentId" value="" />
+                {% endif %}
                 <input type="submit" name="save" value="{% trans 'Save' %}" class="btn btn-primary" /> 
 
            </form>
         </div>
         <div class="span6">
-            <div id="map" style="width: 600px; height: 400px" ></div>
+            <div id="map" style="width: 98%; height: 600px" ></div>
 
         </div>
     </div>
@@ -53,9 +59,9 @@
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 	
-	<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
-    <script src="http://www.mapquestapi.com/sdk/leaflet/v1.0/mq-map.js?key=Fmjtd%7Cluur2lut2d%2Crl%3Do5-9a72uu"></script>
-    <script src="http://www.mapquestapi.com/sdk/leaflet/v1.0/mq-geocoding.js?key=Fmjtd%7Cluur2lut2d%2Crl%3Do5-9a72uu"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+    <script src='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
+    
 {% endblock %}
 
 {% block extra_body %}
@@ -64,28 +70,54 @@
     <script type="text/javascript">
 
     $(document).ready(function(){
+    
+        L.mapbox.accessToken = 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg';
 
-        var map = L.map('map', {
-            layers: MQ.mapLayer(),
-            center: [ {{ latitude }},{{ longitude }} ],
-            zoom: {{ zoom }}
-        });
+        var map = L.map('map').setView([{{ latitude }},{{ longitude }}], {{ zoom }});
+        
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+            maxZoom: 18,
+            id: 'bhaugen.3f30d361',
+            accessToken: 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg'
+        }).addTo(map);
+        
+        // Initialize the geocoder control and add it to the map.
+        /*
+        var geocoderControl = L.mapbox.geocoderControl('mapbox.places');
+        geocoderControl.addTo(map);
+        */
+        
+        var geocoder = L.mapbox.geocoder('mapbox.places');
 
         $("#id_address").blur(geocodeAddress);
+        
+        var agentAddress = "{{ agent.address }}";
+        if (agentAddress) 
+        {
+            geocoder.query(agentAddress, showMap);
+        }
 
         function geocodeAddress(event) {
             var address = event.target.value;
-            MQ.geocode({ map: map })
-                .search(address)
-                .on('success', function(e) {
-                    var best = e.result.best,
-                    latlng = best.latlng;
-                    $("#id_latitude").val(latlng.lat);
-		            $("#id_longitude").val(latlng.lng);
-		            var lat = $("#id_latitude").val();
-		            var lng = $("#id_longitude").val();
-		            
-                });
+            
+            geocoder.query(address, showMap);
+        }
+        
+        function showMap(err, data) {
+            // The geocoder can return an area, like a city, or a
+            // point, like an address. Here we handle both cases,
+            // by fitting the map bounds to an area or zooming to a point.
+            if (data.lbounds) {
+                map.fitBounds(data.lbounds);
+            } else if (data.latlng) {
+                map.setView([data.latlng[0], data.latlng[1]], 13);
+            }
+            L.marker(data.latlng).addTo(map);
+            $("#id_latitude").val(data.latlng[0]);
+            $("#id_longitude").val(data.latlng[1]);
+            //var lat = $("#id_latitude").val();
+            //var lng = $("#id_longitude").val();
         }
 
 

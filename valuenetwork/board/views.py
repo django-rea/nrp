@@ -21,6 +21,9 @@ from valuenetwork.valueaccounting.models import *
 from valuenetwork.board.forms import *
 from valuenetwork.valueaccounting.views import get_agent
 
+def default_context_agent():
+    return EconomicAgent.objects.get(id=3) #todo:  BIG hack alert!!!!
+
 #todo: a lot of this can be configured instead of hard-coded
 def dhen_board(request, context_agent_id=None):
     #import pdb; pdb.set_trace()
@@ -28,22 +31,13 @@ def dhen_board(request, context_agent_id=None):
     pattern = ProcessPattern.objects.get(name="Transfer")
     selected_resource_type = None
     filter_form = FilterForm(pattern=pattern, data=request.POST or None,)
-    #if request.method == "POST":
-    #    if filter_form.is_valid():
-    #        data = filter_form.cleaned_data
-    #        context_agent = data["context_agent"]
-    #        selected_resource_type = data["resource_type"]
-    #elif context_agent_id:
-    #    context_agent = EconomicAgent.objects.get(id=context_agent_id)
-    #else:
-    #    context_agent = filter_form.fields["context_agent"].queryset[0] #todo: hack, this happens to be DHEN
     if context_agent_id:
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
     else:
-        context_agent = EconomicAgent.objects.get(id=3) #todo:  BIG hack alert!!!!
+        context_agent = default_context_agent()
     rec_pattern = ProcessPattern.objects.get(name="Purchase Contribution")
     e_date = datetime.date.today()
-    init = {"commitment_date": e_date }
+    init = {"start_date": e_date }
     available_form = AvailableForm(initial=init, pattern=pattern, context_agent=context_agent, prefix="AVL")
     init = {"event_date": e_date, "paid": "later", }
     receive_form = ReceiveForm(initial=init, pattern=rec_pattern, context_agent=context_agent, prefix="REC")
@@ -56,14 +50,14 @@ def dhen_board(request, context_agent_id=None):
         init = {"event_date": e_date,}
         rt.farm_commits = rt.commits_for_exchange_stage(stage=farm_stage)
         for com in rt.farm_commits:
-            if com.commitment_date > e_date:
+            if com.start_date > e_date:
                 com.future = True
             prefix = com.form_prefix()
             qty_help = " ".join([com.unit_of_quantity.abbrev, ", up to 2 decimal places"])
             com.transfer_form = ExchangeFlowForm(initial=init, qty_help=qty_help, assoc_type_identifier="DryingSite", context_agent=context_agent, prefix=prefix)
             com.zero_form = ZeroOutForm(prefix=prefix)
             com.lot_form = NewResourceForm(prefix=prefix)
-            com.multiple_formset = create_exchange_formset(context_agent=context_agent, assoc_type_identifier="Harvester", prefix=prefix)
+            com.multiple_formset = create_exchange_formset(context_agent=context_agent, assoc_type_identifier="Harvester", prefix=prefix)            
         rt.dryer_resources = rt.onhand_for_exchange_stage(stage=dryer_stage)
         init = {"event_date": e_date, "paid": "later"}
         for res in rt.dryer_resources:
@@ -95,7 +89,8 @@ def add_available(request, context_agent_id, assoc_type_identifier):
             commit.event_type = EventType.objects.get(name="Receipt")
             commit.to_agent = context_agent
             commit.context_agent = context_agent
-            commit.due_date = commit.commitment_date
+            commit.due_date = commit.start_date
+            commit.commitment_date = commit.start_date
             commit.unit_of_quantity = commit.resource_type.unit
             commit.exchange_stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
             commit.created_by = request.user
@@ -108,7 +103,7 @@ def receive_directly(request, context_agent_id, assoc_type_identifier):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
-        stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
+        stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)  #todo: this will change to exchange type
         form = ReceiveForm(data=request.POST, prefix="REC")
         if form.is_valid():        
             data = form.cleaned_data
@@ -131,6 +126,7 @@ def receive_directly(request, context_agent_id, assoc_type_identifier):
                 process_pattern=ProcessPattern.objects.get(name="Purchase Contribution"),
                 start_date=event_date,
                 context_agent=context_agent,
+                exchange_type=ExchangeType.objects.get(name="Harvester to Drying Site"), #todo: big hack hard-code!
                 created_by=request.user,                
             )
             exchange.save()
@@ -138,7 +134,7 @@ def receive_directly(request, context_agent_id, assoc_type_identifier):
                 identifier=identifier,
                 resource_type=resource_type,
                 quantity=quantity,
-                exchange_stage=stage,
+                exchange_stage=stage, 
                 notes=description,
                 created_by=request.user
             )
@@ -301,11 +297,12 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                         paid_stage_2 = data_ee["paid_stage_2"]
                         
                         exchange = Exchange(
-                            name="Purchase " + commitment.resource_type.name,
+                            name="Transfer " + commitment.resource_type.name + " from farm",
                             use_case=purch_use_case,
                             process_pattern=purch_pattern,
                             start_date=event_date,
                             context_agent=context_agent,
+                            exchange_type=ExchangeType.objects.get(name="Farm to Harvester"),
                             created_by=request.user,                
                         )
                         exchange.save()
@@ -379,6 +376,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                             process_pattern=xfer_pattern,
                             start_date=event_date,
                             context_agent=context_agent,
+                            exchange_type=ExchangeType.objects.get(name="Harvester to Drying Site"),
                             created_by=request.user,                
                         )
                         xfer_exchange.save()
@@ -461,6 +459,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
                 started=event_date,
                 context_agent=context_agent,
                 finished=True,
+                process_type=ProcessType.objects.get(name="Into Drying Room"),
                 created_by=request.user,
             )
             process.save()
@@ -537,6 +536,7 @@ def transfer_resource(request, context_agent_id, assoc_type_identifier, resource
                 process_pattern=xfer_pattern,
                 start_date=event_date,
                 context_agent=context_agent,
+                exchange_type=ExchangeType.objects.get(name="Drying Site to Seller"),
                 created_by=request.user,                
             )
             xfer_exchange.save()
@@ -635,6 +635,7 @@ def combine_resources(request, context_agent_id, assoc_type_identifier, resource
                     started=event_date,
                     context_agent=context_agent,
                     finished=True,
+                    process_type=ProcessType.objects.get(name="Combine Lots"),
                     created_by=request.user,
                 )
                 process.save()
@@ -685,5 +686,70 @@ def combine_resources(request, context_agent_id, assoc_type_identifier, resource
                 )
                 prod_event.save()
             
+    return HttpResponseRedirect('/%s/%s/'
+        % ('board/dhen-board', context_agent_id))
+    
+@login_required
+def change_available(request, commitment_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    context_agent_id = commitment.context_agent.id 
+    if request.method == "POST":
+        prefix = commitment.form_prefix()
+        form = CommitmentForm(instance=commitment, data=request.POST, prefix=prefix)
+        if form.is_valid():
+            data = form.cleaned_data
+            form.save()
+            commitment.unit_of_quantity = commitment.resource_type.unit
+            commitment.save()
+        zero_form = ZeroOutForm(prefix=prefix, data=request.POST)
+        if zero_form.is_valid():
+            zero_data = zero_form.cleaned_data
+            zero_out = zero_data["zero_out"]
+            if zero_out == True:
+                commitment.finished = True
+                commitment.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('board/dhen-board', context_agent_id))
+    
+@login_required
+def delete_farm_commitment(request, commitment_id):
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    context_agent_id = commitment.context_agent.id
+    if commitment.is_deletable():
+        commitment.delete()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('board/dhen-board', context_agent_id))
+    
+@login_required
+def undo_col2(request, resource_id):
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    context_agent_id = default_context_agent().id
+    #import pdb; pdb.set_trace()
+    flows = resource.incoming_value_flows()
+    for item in flows:
+        if item.class_label() == "Economic Event":
+            if item.commitment:
+                commit = item.commitment
+                commit.finished = False
+                commit.save()
+        item.delete()
+    
+             
+    return HttpResponseRedirect('/%s/%s/'
+        % ('board/dhen-board', context_agent_id))
+    
+@login_required
+def undo_col3(request, resource_id):
+    resource = get_object_or_404(EconomicResource, pk=resource_id)
+    context_agent_id = default_context_agent().id
+    #import pdb; pdb.set_trace()
+    flows = resource.incoming_value_flows()
+    #todo: I'm not sure how to delete the right rows without going too far back in the chain......
+    #for item in flows:
+    #    if item.class_label() == "Economic Event":
+    #        item.delete()
+    
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))

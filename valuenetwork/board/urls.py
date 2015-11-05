@@ -14,4 +14,9 @@ urlpatterns = patterns("",
         'valuenetwork.board.views.purchase_resource', name="purchase_resource"),
     url(r'^combine-resources/(?P<context_agent_id>\d+)/(?P<assoc_type_identifier>\w+)/(?P<resource_type_id>\d+)/$', 
         'valuenetwork.board.views.combine_resources', name="combine_resources"),
+    url(r'^change-available/(?P<commitment_id>\d+)/$', 'valuenetwork.board.views.change_available', name="change_available"),
+    url(r'^undo-col2/(?P<resource_id>\d+)/$', 'valuenetwork.board.views.undo_col2', name="undo_col2"),
+    url(r'^undo-col3/(?P<resource_id>\d+)/$', 'valuenetwork.board.views.undo_col3', name="undo_col3"),
+    url(r'^delete-farm-commitment/(?P<commitment_id>\d+)/$', 'valuenetwork.board.views.delete_farm_commitment', name="delete_farm_commitment"),
+    
 )

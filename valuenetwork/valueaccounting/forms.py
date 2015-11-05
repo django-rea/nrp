@@ -132,7 +132,26 @@ class LocationForm(forms.ModelForm):
     class Meta:
         model = Location
         fields = ('address', 'name', 'description', 'latitude', 'longitude')
+        
+class ChangeLocationForm(forms.ModelForm):
+    address = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    agents = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.filter(primary_location__isnull=True),
+        label=_("Add Agents to this Location"),
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select input-xxlarge'}))
+    latitude = forms.FloatField(required=False, widget=forms.HiddenInput)
+    longitude = forms.FloatField(required=False, widget=forms.HiddenInput)
 
+    class Meta:
+        model = Location
+        fields = ('address', 'name', 'description', 'latitude', 'longitude')
+        
 
 class SelectResourceForm(forms.Form):
     resource = ResourceModelChoiceField(
@@ -2029,11 +2048,21 @@ class ProcessExpenseEventForm(forms.ModelForm):
             
 class CashContributionEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    from_agent = forms.ModelChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.all(),
+        label="Contributor",
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    from_virtual_account = forms.BooleanField(
+        required=False,
+        help_text=_('Check if the cash contribution comes from your virtual account'),
+        widget=forms.CheckboxInput())
     value = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
-        label="Cash resource type",
+        label="Cash target resource type",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-for-resource chzn-select'}))
@@ -2042,12 +2071,6 @@ class CashContributionEventForm(forms.ModelForm):
         label="Cash resource account or earmark to increase",
         required=False,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))  
-    from_agent = forms.ModelChoiceField(
-        required=False,
-        queryset=EconomicAgent.objects.all(),
-        label="Contributor",
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
     description = forms.CharField(
         required=False, 
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
@@ -2228,7 +2251,15 @@ class WorkSelectionForm(forms.Form):
         
         
 class EventTypeFilterForm(forms.Form):
-    event_types = forms.MultipleChoiceField()
+    start_date = forms.DateField(
+        required=False, 
+        label="Start date",
+        widget=forms.TextInput(attrs={'class': 'input-small filter-date', }))
+    end_date = forms.DateField(
+        required=False, 
+        label="End date",
+        widget=forms.TextInput(attrs={'class': 'input-small filter-date', }))
+    event_types = forms.MultipleChoiceField(required=False)
 
     def __init__(self, event_types, *args, **kwargs):
         super(EventTypeFilterForm, self).__init__(*args, **kwargs)
@@ -3252,6 +3283,49 @@ class ResourceFlowForm(forms.ModelForm):
             self.pattern = pattern
             et = EventType.objects.get(name="Change")
             self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
+            
+class AllContributionsFilterForm(forms.Form):
+    context = forms.ModelMultipleChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select',}))
+    event_type = forms.ModelMultipleChoiceField(
+        queryset=EventType.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select',}))
+    from_agent = forms.ModelMultipleChoiceField(
+        queryset=EconomicAgent.objects.all(), 
+        required=False, 
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select'}))
+    start_date = forms.DateField(
+        required=False, 
+        label="Start date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+    end_date = forms.DateField(
+        required=False, 
+        label="End date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+        
+class ProjectContributionsFilterForm(forms.Form):
+    event_types = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EventType.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select',}))
+    from_agents = forms.ModelMultipleChoiceField(
+        queryset=EconomicAgent.objects.all(), 
+        required=False, 
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select'}))
+    start_date = forms.DateField(
+        required=False, 
+        label="Start date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+    end_date = forms.DateField(
+        required=False, 
+        label="End date",
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry', }))
+        
+    def __init__(self, agents, *args, **kwargs):
+        super(ProjectContributionsFilterForm, self).__init__(*args, **kwargs)
+        self.fields["from_agents"].queryset = agents
 
 
 class FilterSetHeaderForm(forms.Form):

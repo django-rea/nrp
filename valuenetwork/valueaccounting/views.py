@@ -1,6 +1,7 @@
 import datetime
 import time
 import csv
+import copy
 from operator import itemgetter, attrgetter, methodcaller
 
 from django.db.models import Q
@@ -283,11 +284,21 @@ def locations(request):
     }, context_instance=RequestContext(request))
 
 @login_required
-def create_location(request):
-    agent = get_agent(request)
-    if not agent:
+def create_location(request, agent_id=None):
+    agent = None
+    if agent_id:
+        agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    if not user_agent:
         return render_to_response('valueaccounting/no_permission.html')
-    location_form = LocationForm(data=request.POST or None)
+    if agent:
+        init= {
+            "name": agent.name,
+            "address": agent.address,
+        }
+        location_form = LocationForm(initial=init, data=request.POST or None)
+    else:
+        location_form = LocationForm(data=request.POST or None)
     latitude = settings.MAP_LATITUDE
     longitude = settings.MAP_LONGITUDE
     zoom = settings.MAP_ZOOM
@@ -295,8 +306,16 @@ def create_location(request):
         #import pdb; pdb.set_trace()
         if location_form.is_valid():
             location = location_form.save()
-            return HttpResponseRedirect("/accounting/locations/")
+            agent_id = request.POST.get("agentId")
+            if agent_id:
+                agent.primary_location = location
+                agent.save()
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/agent', agent.id))
+            else:
+                return HttpResponseRedirect("/accounting/locations/")
     return render_to_response("valueaccounting/create_location.html", {
+        "agent": agent,
         "location_form": location_form,
         "latitude": latitude,
         "longitude": longitude,
@@ -304,19 +323,44 @@ def create_location(request):
     }, context_instance=RequestContext(request))
 
 @login_required
-def change_location(request, location_id):
+def change_location(request, location_id, agent_id=None):
+    agent = None
     location = get_object_or_404(Location, id=location_id)
-    agent = get_agent(request)
-    if not agent:
+    locationAddress = location.address
+    #import pdb; pdb.set_trace()
+    location_agents = None
+    if location.agents():
+        location_agents = ", ".join([agt.name for agt in location.agents()])
+    user_agent = get_agent(request)
+    if not user_agent:
         return render_to_response('valueaccounting/no_permission.html')
-    location_form = LocationForm(instance=location, data=request.POST or None)
+    location_form = ChangeLocationForm(instance=location, data=request.POST or None)
+    latitude = settings.MAP_LATITUDE
+    longitude = settings.MAP_LONGITUDE
+    zoom = settings.MAP_ZOOM
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if location_form.is_valid():
+            data = location_form.cleaned_data
+            agents = data["agents"]
             location = location_form.save()
-            return HttpResponseRedirect("/accounting/locations/")
+            for agt in agents:
+                if not agt.primary_location:
+                    agt.primary_location = location
+                    agt.save()
+            if agent:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/agent', agent.id))
+            else:
+                return HttpResponseRedirect("/accounting/locations/")
     return render_to_response("valueaccounting/change_location.html", {
+        "agent": agent,
+        "locationAddress": locationAddress,
+        "location_agents": location_agents,
         "location_form": location_form,
+        "latitude": latitude,
+        "longitude": longitude,
+        "zoom": zoom,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -383,9 +427,21 @@ def agent(request, agent_id):
     
     headings = []
     member_hours_stats = []
+    individual_stats = []
     member_hours_roles = []
+    roles_height = 400
     
-    if agent.is_context_agent():
+    if agent.is_individual():
+        contributions = agent.given_events.filter(is_contribution=True)
+        agents_stats = {}
+        for ce in contributions:
+            agents_stats.setdefault(ce.resource_type, Decimal("0"))
+            agents_stats[ce.resource_type] += ce.quantity
+        for key, value in agents_stats.items():
+            individual_stats.append((key, value))
+        individual_stats.sort(lambda x, y: cmp(y[1], x[1]))
+    
+    elif agent.is_context_agent():
     
         subs = agent.with_all_sub_agents()
         ces = CachedEventSummary.objects.filter(
@@ -419,6 +475,7 @@ def agent(request, agent_id):
             for row in agents_roles.values():                
                 member_hours_roles.append(row)
             member_hours_roles.sort(lambda x, y: cmp(x[0], y[0]))
+            roles_height = len(member_hours_roles) * 20
           
     return render_to_response("valueaccounting/agent.html", {
         "agent": agent,
@@ -431,6 +488,8 @@ def agent(request, agent_id):
         "headings": headings,
         "member_hours_stats": member_hours_stats,   
         "member_hours_roles": member_hours_roles,
+        "individual_stats": individual_stats,
+        "roles_height": roles_height,
         "help": get_help("agent"),
     }, context_instance=RequestContext(request))
     
@@ -838,54 +897,87 @@ def resource_flow_report(request, resource_type_id):
     #todo: this report is dependent on DHEN's specific work flow, will need to be generalized
     #import pdb; pdb.set_trace() 
     rt = get_object_or_404(EconomicResourceType, id=resource_type_id)
-    pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+    #redo: need exchange_types as well as process_types
+    #this next stmt is obsolete until we get mixed process-exchange recipes
+    #pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
     if rt.direct_children():
-        lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
+        lot_list = EconomicResource.objects.onhand().filter(resource_type__parent=rt)
     else:
-        lot_list = rt.resources.all()
+        lot_list = rt.resources.filter(quantity__gt=0)
+    stages = []
+    #hack to get a full set of stages upfront
+    #otherwise new ones incorrectly arrive at the end of the flow
+    #would be better to figure out how to insert in the correct place
+    stages = []
+    try:
+        lot = EconomicResource.objects.get(id=461)
+        stages = [pex.stage for pex in lot.process_exchange_flow()]
+        stages.reverse()
+    except EconomicResource.DoesNotExist:
+        pass
+    #if stages[0].id != 3:
+    #    import pdb; pdb.set_trace()
     for lot in lot_list:
-        #if lot.identifier == "53014": #70314
+        #if lot.identifier == "direct345345": #70314
         #    import pdb; pdb.set_trace() 
-        lot_processes = lot.value_flow_going_forward_processes()
+        lot_process_exchange_flow = lot.process_exchange_flow()
+        if lot_process_exchange_flow:
+            #import pdb; pdb.set_trace()
+            lot_process_exchange_flow.reverse()
         lot_receipt = lot.receipt()
         lot.lot_receipt = lot_receipt
-        lot_pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
-        for process in lot_processes:
-            if process.process_type:
-                if process.process_type not in pts:
-                    new_instance_pt_1 = ProcessType.objects.get(id=process.process_type.id)
-                    pts.append(new_instance_pt_1)
-                if process.process_type not in lot_pts:
-                    new_instance_pt_2 = ProcessType.objects.get(id=process.process_type.id)
-                    lot_pts.append(new_instance_pt_2)
-        for lpt in lot_pts:
-            lpt_processes = []
-            for process in lot_processes:
-                if process.process_type == lpt:
-                    lpt_processes.append(process)
-            lpt.lpt_processes = lpt_processes
-        lot.lot_pts = lot_pts
-        lot.lot_processes = lot_processes
+        #redo: need exchange_types as well as process_types
+        #lot_pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+        
+        #this next is obsolete, I think
+        #actually, it shd map lot_process_exchange_flow to stages
+        #51515 has lots of pex, which now caused lots of extra columns
+        #add lot stages to common stages
+        lot_pts = lot_process_exchange_flow
+        for pex in lot_process_exchange_flow:
+            if pex.stage:
+                if pex.stage not in stages:
+                    #import pdb; pdb.set_trace()
+                    stages.append(pex.stage)
+                #this makes no sense to me
+                #if pex.stage not in lot_pts:
+                #    lot_pts.append(pex.stage)
+        #assign lot processes and exchanges to stages?
+        lot_stages = copy.deepcopy(stages)
+        for stage in lot_stages:
+            stage_pex = []
+            for pex in lot_process_exchange_flow:
+                if pex.stage == stage:
+                    stage_pex.append(pex)
+            stage.stage_pex = stage_pex
+        #if lot.identifier == "51515": #70314
+        #    import pdb; pdb.set_trace() 
+        lot.lot_stages = lot_stages
+        lot.lot_process_exchange_flow = lot_process_exchange_flow
         orders = []
-        last_pt = lot_pts[-1]
         order = None
-        for proc in last_pt.lpt_processes:
-            order = proc.independent_demand()
-            if order:
-                orders.append(order)
+        """
+        if lot_pts:
+            last_pt = lot_pts[-1]
+            if type(last_pt) is Process:
+                for proc in last_pt.lpt_pex:
+                    order = proc.independent_demand()
+                    if order:
+                        orders.append(order)
+        """
         if not order:
             shipped_orders = lot.shipped_on_orders()
             if shipped_orders:
                 orders.extend(shipped_orders)
         lot.orders = orders
     #import pdb; pdb.set_trace() 
+    # just commented out next section because I don't understand it yet
+    """
     for lot in lot_list:
-        #if lot.identifier == "53014": #70314
-        #    import pdb; pdb.set_trace() 
-        for ptype in pts:
+        for stage in stages:
             if ptype not in lot.lot_pts:
                 lot.lot_pts.append(ptype)
-        
+    """    
     paginator = Paginator(lot_list, 500)
     page = request.GET.get('page')
     try:
@@ -899,7 +991,7 @@ def resource_flow_report(request, resource_type_id):
     
     return render_to_response("valueaccounting/resource_flow_report.html", {
         "lots": lots,
-        "pts": pts,
+        "stages": stages,
         "rt": rt,
         #"sort_form": sort_form,
     }, context_instance=RequestContext(request))
@@ -979,9 +1071,27 @@ def all_contributions(request):
 def contributions(request, project_id):
     #import pdb; pdb.set_trace()
     project = get_object_or_404(EconomicAgent, pk=project_id)
+    agent = get_agent(request)
     event_list = project.contribution_events()
+    agent_ids = {event.from_agent.id for event in event_list if event.from_agent}
+    agents = EconomicAgent.objects.filter(id__in=agent_ids)
+    filter_form = ProjectContributionsFilterForm(agents=agents, data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if filter_form.is_valid():
+            data = filter_form.cleaned_data
+            #event_type = data["event_type"]
+            from_agents = data["from_agents"]
+            start = data["start_date"]
+            end = data["end_date"]
+            if from_agents:
+                event_list = event_list.filter(from_agent__in=from_agents)
+            if start:
+                event_list = event_list.filter(event_date__gte=start)
+            if end:
+                event_list = event_list.filter(event_date__lte=end)
+    event_ids = ",".join([str(event.id) for event in event_list])            
     paginator = Paginator(event_list, 25)
-
     page = request.GET.get('page')
     try:
         events = paginator.page(page)
@@ -995,6 +1105,9 @@ def contributions(request, project_id):
     return render_to_response("valueaccounting/project_contributions.html", {
         "project": project,
         "events": events,
+        "filter_form": filter_form,
+        "agent": agent,
+        "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
 def project_wip(request, project_id):
@@ -1049,16 +1162,22 @@ def contribution_history(request, agent_id):
         user_is_agent = True
     event_list = agent.contributions()
     event_types = {e.event_type for e in event_list}
-    et_form = EventTypeFilterForm(event_types=event_types, data=request.POST or None)
+    filter_form = EventTypeFilterForm(event_types=event_types, data=request.POST or None)
     if request.method == "POST":
-        if et_form.is_valid():
+        if filter_form.is_valid():
             #import pdb; pdb.set_trace()
-            data = et_form.cleaned_data
+            data = filter_form.cleaned_data
             et_ids = data["event_types"]
+            start = data["start_date"]
+            end = data["end_date"]
+            if start:
+                event_list = event_list.filter(event_date__gte=start)
+            if end:
+                event_list = event_list.filter(event_date__lte=end)
             #belt and suspenders: if no et_ids, form is not valid
             if et_ids:
                 event_list = event_list.filter(event_type__id__in=et_ids)
-            
+    event_ids = ",".join([str(event.id) for event in event_list]) 
     paginator = Paginator(event_list, 25)
 
     page = request.GET.get('page')
@@ -1075,7 +1194,8 @@ def contribution_history(request, agent_id):
         "agent": agent,
         "user_is_agent": user_is_agent,
         "events": events,
-        "et_form": et_form,
+        "filter_form": filter_form,
+        "event_ids": event_ids,
     }, context_instance=RequestContext(request))
     
 @login_required
@@ -1092,7 +1212,8 @@ def agent_value_accounting(request, agent_id):
     event_value = Decimal("0.0")
     claim_value = Decimal("0.0")
     outstanding_claims = Decimal("0.0")
-    distributions = Decimal("0.0")
+    claim_distributions = Decimal("0.0")
+    claim_distro_events = []
     for event in event_list:
         if event.bucket_rule_for_context_agent():
             with_bucket += 1
@@ -1102,9 +1223,14 @@ def agent_value_accounting(request, agent_id):
             claim_value += claim.original_value
             outstanding_claims += claim.value
             for de in claim.distribution_events():
-                distributions += de.value
+                claim_distributions += de.value
+                claim_distro_events.append(de.event)
+    et = EventType.objects.get(name="Distribution")
+    all_distro_evts = EconomicEvent.objects.filter(to_agent=agent, event_type=et)
+    other_distro_evts = [d for d in all_distro_evts if d not in claim_distro_events]
+    other_distributions = sum(de.quantity for de in other_distro_evts)
+    
     paginator = Paginator(event_list, 25)
-
     page = request.GET.get('page')
     try:
         events = paginator.page(page)
@@ -1120,9 +1246,10 @@ def agent_value_accounting(request, agent_id):
         "events": events,
         "no_bucket": no_bucket,
         "with_bucket": with_bucket,
-        "claim_value": claim_value.quantize(Decimal('0'), rounding=ROUND_HALF_UP),
-        "outstanding_claims": outstanding_claims.quantize(Decimal('0'), rounding=ROUND_HALF_UP),
-        "distributions": distributions.quantize(Decimal('0'), rounding=ROUND_HALF_UP),
+        "claim_value": format(claim_value, ",.2f"),
+        "outstanding_claims": format(outstanding_claims, ",.2f"),
+        "claim_distributions": format(claim_distributions, ",.2f"),
+        "other_distributions": format(other_distributions, ",.2f"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -2289,6 +2416,7 @@ def create_process_type_for_streaming(request, resource_type_id, process_type_id
         else:
             prefix = rt.process_create_prefix()
         form = RecipeProcessTypeForm(request.POST, prefix=prefix)
+        #import pdb; pdb.set_trace()
         if form.is_valid():
             data = form.cleaned_data
             pt = form.save(commit=False)
@@ -2368,6 +2496,7 @@ def timeline(request, from_date, to_date, context_id):
     return render_to_response("valueaccounting/timeline.html", {
         "orderId": 0,
         "context_id": context_id,
+        "useContextId": 0,
         "from_date": from_date,
         "to_date": to_date,
         "timeline_date": timeline_date,
@@ -2397,6 +2526,34 @@ def json_timeline(request, from_date, to_date, context_id):
     #import pdb; pdb.set_trace()
     return HttpResponse(data, mimetype="text/json-comment-filtered")
     
+def context_timeline(request, context_id):
+    context_agent = get_object_or_404(EconomicAgent, pk=context_id)
+    timeline_date = datetime.date.today().strftime("%b %e %Y 00:00:00 GMT-0600")
+    
+    unassigned = Commitment.objects.unfinished().filter(
+        context_agent=context_agent,
+        from_agent=None,
+        event_type__relationship="work").order_by("due_date")
+    return render_to_response("valueaccounting/timeline.html", {
+        "orderId": 0,
+        "context_id": context_id,
+        "useContextId": 1,
+        "timeline_date": timeline_date,
+        "unassigned": unassigned,
+    }, context_instance=RequestContext(request))
+
+def json_context_timeline(request, context_id):
+    #import pdb; pdb.set_trace()
+    events = {'dateTimeFormat': 'Gregorian','events':[]}
+    context_agent = get_object_or_404(EconomicAgent, pk=context_id)
+    processes = Process.objects.unfinished().filter(context_agent=context_agent)
+    orders = [p.independent_demand() for p in processes if p.independent_demand()]
+    orders = list(set(orders))
+    create_events(orders, processes, events)
+    data = simplejson.dumps(events, ensure_ascii=False)
+    #import pdb; pdb.set_trace()
+    return HttpResponse(data, mimetype="text/json-comment-filtered")
+
 def order_timeline(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
     first_process = order.first_process_in_order()
@@ -2410,6 +2567,8 @@ def order_timeline(request, order_id):
         event_type__relationship="work").order_by("due_date")
     return render_to_response("valueaccounting/timeline.html", {
         "orderId": order.id,
+        "context_id": 0,
+        "useContextId": 0,
         "timeline_date": timeline_date,
         "unassigned": unassigned,
     }, context_instance=RequestContext(request))
@@ -2423,7 +2582,7 @@ def json_order_timeline(request, order_id):
     data = simplejson.dumps(events, ensure_ascii=False)
     #import pdb; pdb.set_trace()
     return HttpResponse(data, mimetype="text/json-comment-filtered")
-
+    
 
 def json_processes(request, order_id=None):
     #import pdb; pdb.set_trace()
@@ -2849,7 +3008,12 @@ def schedule_commitment(
 def orders(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     orders = agent.active_orders()
-    
+    for order in orders:
+        order_items = order.order_items()
+        order.items = order_items
+        visited = set()
+        for order_item in order_items:
+            order_item.processes = order_item.unique_processes_for_order_item(visited)
     return render_to_response("valueaccounting/orders.html", {
         "agent": agent,
         "orders": orders,
@@ -2876,7 +3040,10 @@ def order_schedule(request, order_id):
             rts = ProcessPattern.objects.all_production_resource_types()
         if rts:
             add_order_item_form = AddOrderItemForm(resource_types=rts)
+        #import pdb; pdb.set_trace()
+        visited = set()
         for order_item in order_items:
+            order_item.processes = order_item.unique_processes_for_order_item(visited)
             if order_item.is_workflow_order_item():
                 #import pdb; pdb.set_trace()
                 init = {'quantity': order_item.quantity,}
@@ -3405,6 +3572,106 @@ def today(request):
         "context_agents": context_agents,
         "todos": todos,
         "events": events,
+    }, context_instance=RequestContext(request))
+
+    
+class EventProcessSummary(object):
+    def __init__(self, 
+        agent, context_agent, resource_type, process, quantity):
+        self.agent = agent
+        self.context_agent = context_agent
+        self.resource_type = resource_type
+        self.process = process
+        self.quantity = quantity
+
+    def key(self):
+        return "-".join([
+            str(self.agent.id), 
+            str(self.resource_type.id),
+            str(self.project.id),
+            str(self.process.id),
+            ])
+
+    def quantity_formatted(self):
+        return self.quantity.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+        
+        
+def condense_events(event_list):
+    condensed_events = []
+    if event_list:
+        summaries = {}
+        #import pdb; pdb.set_trace()
+        for event in event_list:
+            from_agent = event.from_agent or 0
+            if from_agent:
+                from_agent = from_agent.id
+            context_agent = event.context_agent or 0
+            if context_agent:
+                context_agent = context_agent.id
+            resource_type = event.resource_type or 0
+            if resource_type:
+                resource_type = resource_type.id
+            process = event.process or 0
+            if process:
+                process = process.id
+            key = "-".join([
+                str(from_agent), 
+                str(context_agent), 
+                str(resource_type), 
+                str(process)
+                ])
+            if not key in summaries:
+                summaries[key] = EventProcessSummary(
+                    event.from_agent, 
+                    event.context_agent, 
+                    event.resource_type, 
+                    event.process, 
+                    Decimal('0.0'))
+            summaries[key].quantity += event.quantity
+        condensed_events = summaries.values()
+    return condensed_events
+    
+
+def assemble_weekly_activity(event_list):
+    event_summaries = condense_events(event_list)
+    context_agents = {}
+    for es in event_summaries:
+        if es.context_agent not in context_agents:
+            context_agents[es.context_agent] = {}
+        processes = context_agents[es.context_agent]
+        if es.process not in processes:
+            processes[es.process] = []
+        processes[es.process].append(es)
+    return context_agents
+
+def this_week(request):
+    agent = get_agent(request)
+    end = datetime.date.today()
+    start = end - datetime.timedelta(days=7)
+    #start = end - datetime.timedelta(days=40)
+    #import pdb; pdb.set_trace()
+    
+    work_events = EconomicEvent.objects.filter(
+        event_type__relationship="work",
+        event_date__range=(start, end))
+    participants = [e.from_agent for e in work_events if e.from_agent]
+    total_participants = len(list(set(participants)))
+    total_hours = sum(event.quantity for event in work_events)
+    context_agents = assemble_weekly_activity(work_events)
+    #import pdb; pdb.set_trace()
+    cas = context_agents.keys()
+    cas_ids = [ca.id for ca in cas]
+    active = len(cas)
+    non_active = EconomicAgent.objects.context_agents().exclude(id__in=cas_ids).count()
+    return render_to_response("valueaccounting/this_week.html", {
+        "agent": agent,
+        "start": start,
+        "end": end,
+        "active": active,
+        "non_active": non_active,
+        "total_hours": total_hours,
+        "total_participants": total_participants,
+        "context_agents": context_agents,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -4528,33 +4795,7 @@ def add_contribution_to_resource(request, exchange_id):
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
-        
 
-@login_required
-def add_unplanned_payment(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        pattern = exchange.process_pattern
-        context_agent = exchange.context_agent
-        form = PaymentEventForm(data=request.POST, pattern=pattern, context_agent=context_agent, prefix='pay')
-        if form.is_valid():
-            payment_data = form.cleaned_data
-            qty = payment_data["quantity"] 
-            if qty:
-                event = form.save(commit=False)
-                rt = payment_data["resource_type"]
-                event_type = pattern.event_type_for_resource_type("pay", rt)
-                event.event_type = event_type
-                event.exchange = exchange
-                event.context_agent = exchange.context_agent
-                event.unit_of_quantity = rt.unit
-                event.is_contribution = True
-                event.created_by = request.user
-                event.save()
-                
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
 
 @login_required
 def add_expense(request, exchange_id):
@@ -4689,6 +4930,9 @@ def add_cash_contribution(request, exchange_id):
             if value:
                 event = form.save(commit=False)
                 rt = cash_data["resource_type"]
+                is_contr = False
+                if event.event_type.name == "Cash Contribution":
+                    is_contr = True
                 #event_type = pattern.event_type_for_resource_type("cash", rt)
                 #event.event_type = event_type
                 event.exchange = exchange
@@ -4697,12 +4941,34 @@ def add_cash_contribution(request, exchange_id):
                 event.quantity = value
                 event.unit_of_quantity = rt.unit
                 event.unit_of_value = rt.unit
+                event.is_contribution = is_contr
                 event.created_by = request.user
                 event.save()
                 resource = event.resource
                 if resource:
                     resource.quantity = resource.quantity + value
                     resource.save()
+                #import pdb; pdb.set_trace()
+                if cash_data["from_virtual_account"] == True:
+                    va = event.from_agent.virtual_accounts()[0]
+                    va.quantity = va.quantity - value
+                    va.save()
+                    from_event = EconomicEvent(
+                        event_type = EventType.objects.get(name="Cash Disbursement"),
+                        event_date = event.event_date,
+                        resource = va,
+                        resource_type = va.resource_type,
+                        exchange = exchange,
+                        from_agent = event.from_agent,
+                        to_agent = event.from_agent,
+                        context_agent = context_agent,
+                        quantity = event.quantity,
+                        unit_of_quantity = rt.unit,
+                        value = value,
+                        unit_of_value = rt.unit,
+                        created_by = request.user,                       
+                    )
+                    from_event.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
@@ -6576,7 +6842,6 @@ def add_consumption_event(request, commitment_id, resource_id):
         event = form.save(commit=False)
         event.commitment = ct
         event.event_type = ct.event_type
-        event.from_agent = agent
         event.resource_type = ct.resource_type
         event.resource = resource
         event.process = ct.process
@@ -6875,17 +7140,24 @@ def change_resource(request, resource_id):
             raise ValidationError(form.errors)
 
 def get_labnote_context(commitment, request_agent):
+    #import pdb; pdb.set_trace()
     author = False
     agent = commitment.from_agent
     process = commitment.process
     if request_agent == agent:
         author = True
     work_events = commitment.fulfilling_events()
-    outputs = process.outputs_from_agent(agent)
-    failures = process.failures_from_agent(agent)
-    consumed = process.inputs_consumed_by_agent(agent)
-    used = process.inputs_used_by_agent(agent)
-    citations = process.citations_by_agent(agent)
+    outputs = []
+    failures = []
+    consumed = []
+    used = []
+    citations = []
+    if agent and process:
+        outputs = process.outputs_from_agent(agent)
+        failures = process.failures_from_agent(agent)
+        consumed = process.inputs_consumed_by_agent(agent)
+        used = process.inputs_used_by_agent(agent)
+        citations = process.citations_by_agent(agent)
     return {
         "commitment": commitment,
         "author": author,
@@ -9312,6 +9584,33 @@ def exchange_events_csv(request):
             ]
         )
     return response
+    
+   
+@login_required    
+def contribution_events_csv(request):
+    #import pdb; pdb.set_trace()
+    event_ids = request.GET.get("event-ids")
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=contributions.csv'
+    writer = csv.writer(response)
+    #writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
+    event_ids_split = event_ids.split(",")
+    queryset = EconomicEvent.objects.filter(id__in=event_ids_split)
+    opts = EconomicEvent._meta
+    field_names = [field.name for field in opts.fields]
+    writer.writerow(field_names)
+    for obj in queryset:
+        row = []
+        for field in field_names:
+            x = getattr(obj, field)
+            try:
+                x = x.encode('latin-1', 'replace')
+            except AttributeError:
+                pass
+            row.append(x)
+        writer.writerow(row)
+
+    return response
 
 def exchange_logging(request, exchange_id):
     #import pdb; pdb.set_trace()
@@ -9778,10 +10077,8 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                 money_resource=resource, 
                 amount_to_distribute=amount, 
                 serialized_filters=serialized_filters)
-            #for event in exchange.distribution_events():
-            #    send_distribution_notification(event)
-            #todo: turned off for testing in valdev
-            
+            for event in exchange.distribution_events():
+                send_distribution_notification(event)
                 
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/exchange', exchange.id))
@@ -10051,6 +10348,7 @@ def value_equation_sandbox(request, value_equation_id=None):
     total = None
     hours = None
     agent_subtotals = None
+    event_count = 0
     if ves:
         if not ve:
             ve = ves[0]
@@ -10086,17 +10384,16 @@ def value_equation_sandbox(request, value_equation_id=None):
                 try:
                     sub.distr_amt += d.distr_amt
                 except AttributeError:
-                    #import pdb; pdb.set_trace()
                     continue
+                sub.rate = 0
+                if sub.distr_amt and sub.quantity:
+                    sub.rate = (sub.distr_amt / sub.quantity).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
             #import pdb; pdb.set_trace()
             agent_subtotals = agent_subtotals.values()
             agent_subtotals = sorted(agent_subtotals, key=methodcaller('key'))
-            #agent_subtotals.sort(lambda x, y: cmp(x.agent, y.agent))
+
             details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))
-            #details = sorted(details, key=attrgetter('vebr', 'from_agent'))
-            #details = sorted(details, key=attrgetter('vebr'), reverse = True)
-            #details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))
-            #details.sort(lambda x, y: cmp(x.vebr, y.vebr))
+            event_count = len(details)
 
     else:
         for bucket in buckets:
@@ -10110,6 +10407,7 @@ def value_equation_sandbox(request, value_equation_id=None):
         "details": details,
         "agent_subtotals": agent_subtotals,
         "total": total,
+        "event_count": event_count,
         "hours": hours,
         "ve": ve,
     }, context_instance=RequestContext(request))
@@ -10496,3 +10794,461 @@ def payout_from_virtual_account(request, account_id):
     
     return HttpResponseRedirect('/%s/'
         % ('accounting/virtual-accounts'))
+
+
+#the following methods relate to providing linked open data from NRP instances, for the valueflows vocab project.
+#they use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.
+
+def get_lod_setup_items():
+    from rdflib import Graph
+    from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
+    from rdflib import Namespace
+    
+    path = get_url_starter() + "/accounting/"
+    instance_abbrv = Site.objects.get_current().domain.split(".")[0]
+    
+    context = {
+        "vf": "https://w3id.org/valueflows/",
+        "owl": "http://www.w3.org/2002/07/owl#",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        #"rdfs:label": { "@container": "@language" },
+        "Agent": "vf:Agent",
+        "Person": "vf:Person",
+        "Group": "vf:Group",
+        #"Organization": "vf:Organization",
+        "url":  { "@id": "vf:url", "@type": "@id" },
+        "image": { "@id": "vf:image", "@type": "@id" },
+        #"displayName": "vf:displayName",
+        #"displayNameMap": { "@id": "displayName", "@container": "@language" },
+        "Relationship": "vf:Relationship",
+        "subject": { "@id": "vf:subject", "@type": "@id" },
+        "object": { "@id": "vf:object", "@type": "@id" },
+        "relationship": { "@id": "vf:relationship", "@type": "@id" },
+        #"member": { "@id": "vf:member", "@type": "@id" }
+        "label": "skos:prefLabel",
+        "labelMap": { "@id": "skos:prefLabel", "@container": "@language" },
+        "note": "skos:note",
+        "noteMap": { "@id": "skos:note", "@container": "@language" },
+        "inverseOf": "owl:inverseOf",
+        instance_abbrv: path,
+    }
+    
+    store = Graph()
+    #store.bind("foaf", FOAF)
+    store.bind("rdf", RDF)
+    store.bind("rdfs", RDFS)
+    store.bind("owl", OWL)
+    store.bind("skos", SKOS)
+    #as_ns = Namespace("http://www.w3.org/ns/activitystreams#")
+    #store.bind("as", as_ns)
+    #schema_ns = Namespace("http://schema.org/")
+    #store.bind("schema", schema_ns)
+    #at_ns = Namespace(path + "agent-type/")
+    #store.bind("at", at_ns)
+    #aat_ns = Namespace(path + "agent-relationship-type/")
+    #store.bind("aat", aat_ns)
+    vf_ns = Namespace("https://w3id.org/valueflows/")
+    store.bind("vf", vf_ns)
+    instance_ns = Namespace(path)
+    store.bind("instance", instance_ns)
+    
+    return path, instance_abbrv, context, store, vf_ns
+
+
+def agent_type_lod(request, agent_type_name):
+    ats = AgentType.objects.all()
+    agent_type = None
+    
+    #import pdb; pdb.set_trace()
+    for at in ats:
+        if camelcase(at.name) == agent_type_name:
+            agent_type = at
+
+    if not agent_type:
+        return HttpResponse({}, mimetype='application/json') 
+        
+    from rdflib import Graph, Literal, BNode
+    from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
+    from rdflib.serializer import Serializer
+    from rdflib import Namespace, URIRef
+
+    path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
+      
+    if agent_type.name != "Person" and agent_type.name != "Group" and agent_type.name != "Individual":
+        class_name = camelcase(agent_type.name)
+        ref = URIRef(instance_abbrv + ":agent-type-lod/" +class_name)
+        store.add((ref, RDF.type, OWL.Class))
+        store.add((ref, SKOS.prefLabel, Literal(class_name, lang="en")))
+        if agent_type.party_type == "individual":
+            store.add((ref, RDFS.subClassOf, vf_ns.Person))
+        else: 
+            store.add((ref, RDFS.subClassOf, vf_ns.Group))
+    
+    ser = store.serialize(format='json-ld', context=context, indent=4)
+    return HttpResponse(ser, mimetype='application/json')    
+    #return render_to_response("valueaccounting/agent_type.html", {
+    #    "agent_type": agent_type,
+    #}, context_instance=RequestContext(request))    
+
+def agent_relationship_type_lod(request, agent_assoc_type_name):
+    #import pdb; pdb.set_trace()
+    aats = AgentAssociationType.objects.all()
+    agent_assoc_type = None
+    for aat in aats:
+        if camelcase_lower(aat.label) == agent_assoc_type_name:
+            agent_assoc_type = aat
+            inverse = False
+        elif camelcase_lower(aat.inverse_label) == agent_assoc_type_name:
+            agent_assoc_type = aat
+            inverse = True
+
+    if not agent_assoc_type:
+        return HttpResponse({}, mimetype='application/json') 
+    
+    from rdflib import Graph, Literal, BNode
+    from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
+    from rdflib.serializer import Serializer
+    from rdflib import Namespace, URIRef
+
+    path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
+    
+    if inverse:
+        property_name = camelcase_lower(agent_assoc_type.inverse_label)
+        inverse_property_name = camelcase_lower(agent_assoc_type.label)
+        label = agent_assoc_type.inverse_label
+    else:
+        property_name = camelcase_lower(agent_assoc_type.label)
+        inverse_property_name = camelcase_lower(agent_assoc_type.inverse_label)
+        label = agent_assoc_type.label
+    ref = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + property_name)
+    inv_ref = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + inverse_property_name)
+    store.add((ref, RDF.type, RDF.Property))
+    store.add((ref, SKOS.prefLabel, Literal(label, lang="en")))
+    store.add((ref, OWL.inverseOf, inv_ref))
+
+    ser = store.serialize(format='json-ld', context=context, indent=4)
+    return HttpResponse(ser, mimetype='application/json')      
+    #return render_to_response("valueaccounting/agent_assoc_type.html", {
+    #    "agent_assoc_type": agent_assoc_type,
+    #}, context_instance=RequestContext(request)) 
+
+def agent_relationship_lod(request, agent_assoc_id):
+    aa = AgentAssociation.objects.filter(id=agent_assoc_id)
+    if not aa:
+        return HttpResponse({}, mimetype='application/json')
+    else:
+        agent_association = aa[0]
+    
+    from rdflib import Graph, Literal, BNode
+    from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
+    from rdflib.serializer import Serializer
+    from rdflib import Namespace, URIRef
+
+    path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
+    
+    ref = URIRef(instance_abbrv + ":agent-relationship-lod/" + str(agent_association.id) + "/")
+    inv_ref = URIRef(instance_abbrv + ":agent-relationship-inv-lod/" + str(agent_association.id) + "/")
+    ref_subject = URIRef(instance_abbrv + ":agent-lod/" + str(agent_association.is_associate.id) + "/")
+    ref_object = URIRef(instance_abbrv + ":agent-lod/" + str(agent_association.has_associate.id) + "/")
+    property_name = camelcase_lower(agent_association.association_type.label)
+    ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type/" + property_name)
+    store.add((ref, RDF.type, vf_ns["Relationship"]))
+    store.add((ref, vf_ns["subject"], ref_subject)) 
+    store.add((ref, vf_ns["object"], ref_object))
+    store.add((ref, vf_ns["relationship"], ref_relationship))
+    store.add((ref, OWL.inverseOf, inv_ref))
+
+    ser = store.serialize(format='json-ld', context=context, indent=4)
+    return HttpResponse(ser, mimetype='application/json')         
+    #return render_to_response("valueaccounting/agent_association.html", {
+    #    "agent_association": agent_association,
+    #}, context_instance=RequestContext(request))    
+    
+
+def agent_relationship_inv_lod(request, agent_assoc_id):
+    aa = AgentAssociation.objects.filter(id=agent_assoc_id)
+    if not aa:
+        return HttpResponse({}, mimetype='application/json')
+    else:
+        agent_association = aa[0]
+    
+    from rdflib import Graph, Literal, BNode
+    from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
+    from rdflib.serializer import Serializer
+    from rdflib import Namespace, URIRef
+
+    path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
+    
+    ref = URIRef(instance_abbrv + ":agent-relationship-inv-lod/" + str(agent_association.id) + "/")
+    inv_ref = URIRef(instance_abbrv + ":agent-relationship-lod/" + str(agent_association.id) + "/")
+    ref_object = URIRef(instance_abbrv + ":agent-lod/" + str(agent_association.is_associate.id) + "/")
+    ref_subject = URIRef(instance_abbrv + ":agent-lod/" + str(agent_association.has_associate.id) + "/")
+    property_name = camelcase_lower(agent_association.association_type.inverse_label)
+    ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + property_name)
+    store.add((ref, RDF.type, vf_ns["Relationship"]))
+    store.add((ref, vf_ns["subject"], ref_subject)) 
+    store.add((ref, vf_ns["object"], ref_object))
+    store.add((ref, vf_ns["relationship"], ref_relationship))
+    store.add((ref, OWL.inverseOf, inv_ref))
+
+    ser = store.serialize(format='json-ld', context=context, indent=4)
+    return HttpResponse(ser, mimetype='application/json')         
+    #return render_to_response("valueaccounting/agent_association.html", {
+    #    "agent_association": agent_association,
+    #}, context_instance=RequestContext(request))    
+
+def agent_lod(request, agent_id):
+    agents = EconomicAgent.objects.filter(id=agent_id)
+    if not agents:
+        return HttpResponse({}, mimetype='application/json')
+
+    agent = agents[0]
+    subject_assocs = agent.all_is_associates()
+    object_assocs = agent.all_has_associates()
+
+    from rdflib import Graph, Literal, BNode
+    from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
+    from rdflib.serializer import Serializer
+    from rdflib import Namespace, URIRef
+
+    path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
+    
+    #Lynn: I made a change here for consistency. Please check and fix if needed.
+    ref = URIRef(instance_abbrv + ":agent-lod/" + str(agent.id) + "/")
+    if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
+        store.add((ref, RDF.type, vf_ns.Person))
+    #elif agent.agent_type.name == "Organization":
+    #    store.add((ref, RDF.type, vf_ns.Organization))
+    else:
+        at_class_name = camelcase(agent.agent_type.name)
+        ref_class = URIRef(instance_abbrv + ":agent-type-lod/" + at_class_name)
+        store.add((ref, RDF.type, ref_class))
+    store.add((ref, vf_ns["label"], Literal(agent.name, lang="en")))
+    #if agent.photo_url:
+    #    store.add((ref, vf_ns["image"], agent.photo_url))
+    
+    #if subject_assocs or object_assocs:
+    #    store.add((  ))
+    if subject_assocs:
+        for a in subject_assocs:
+            obj_ref = URIRef(instance_abbrv + ":agent-relationship-lod/" + str(a.id) + "/")
+            property_name = camelcase_lower(a.association_type.label)
+            ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + property_name)
+            store.add((ref, ref_relationship, obj_ref))
+    if object_assocs:
+        for a in object_assocs:
+            subj_ref = URIRef(instance_abbrv + ":agent-relationship-inv-lod/" + str(a.id) + "/")
+            inv_property_name = camelcase_lower(a.association_type.inverse_label)
+            inv_ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + inv_property_name)
+            store.add((ref, inv_ref_relationship, subj_ref))
+
+    ser = store.serialize(format='json-ld', context=context, indent=4)
+    return HttpResponse(ser, mimetype='application/json')  
+    
+#following method supplied by Niklas at rdflib-jsonld support to get the desired output for nested rdf inputs for rdflib
+def simplyframe(data):
+    #import pdb; pdb.set_trace()
+    items, refs = {}, {}
+    for item in data['@graph']:
+        itemid = item.get('@id')
+        if itemid:
+            items[itemid] = item
+        for vs in item.values():
+            for v in [vs] if not isinstance(vs, list) else vs:
+                if isinstance(v, dict):
+                    refid = v.get('@id')
+                    if refid and refid.startswith('_:'):
+                        #import pdb; pdb.set_trace()
+                        refs.setdefault(refid, (v, []))[1].append(item)
+    for ref, subjects in refs.values():
+        if len(subjects) == 1:
+            ref.update(items.pop(ref['@id']))
+            del ref['@id']
+    data['@graph'] = items.values()
+    
+def agent_jsonld(request):
+    #test = "{'@context': 'http://json-ld.org/contexts/person.jsonld', '@id': 'http://dbpedia.org/resource/John_Lennon', 'name': 'John Lennon', 'born': '1940-10-09', 'spouse': 'http://dbpedia.org/resource/Cynthia_Lennon' }"
+    #test = '{ "@id": "http://nrp.webfactional.com/accounting/agent-lod/1", "@type": "Person", "vf:label": { "@language": "en", "@value": "Bob Haugen" } }'
+    #return HttpResponse(test, mimetype='application/json')
+
+    from rdflib import Graph, Literal, BNode
+    from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
+    from rdflib.serializer import Serializer
+    from rdflib import Namespace, URIRef
+
+    #mport pdb; pdb.set_trace()
+    path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
+       
+    agent_types = AgentType.objects.all()
+    #import pdb; pdb.set_trace()
+    for at in agent_types:
+        #if at.name != "Person" and at.name != "Organization" and at.name != "Group" and at.name != "Individual":
+        if at.name != "Person" and at.name != "Group" and at.name != "Individual":
+            class_name = camelcase(at.name)
+            #ref = URIRef(at_ns[class_name])
+            ref = URIRef(instance_abbrv + ":agent-type-lod/" +class_name)
+            store.add((ref, RDF.type, OWL.Class))
+            store.add((ref, SKOS.prefLabel, Literal(class_name, lang="en")))
+            if at.party_type == "individual":
+                store.add((ref, RDFS.subClassOf, vf_ns.Person))
+            else: 
+                store.add((ref, RDFS.subClassOf, vf_ns.Group))
+                
+    aa_types = AgentAssociationType.objects.all()
+    #import pdb; pdb.set_trace()
+    for aat in aa_types:
+        property_name = camelcase_lower(aat.label)
+        inverse_property_name = camelcase_lower(aat.inverse_label)
+        ref = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + property_name)
+        store.add((ref, RDF.type, RDF.Property))
+        store.add((ref, SKOS.prefLabel, Literal(aat.label, lang="en")))
+        #inverse = BNode()
+        #store.add((ref, OWL.inverseOf, inverse))
+        #store.add((inverse, RDFS.label, Literal(aat.inverse_label, lang="en")))
+        if property_name != inverse_property_name:
+            inv_ref = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + inverse_property_name)
+            store.add((inv_ref, RDF.type, RDF.Property))
+            store.add((inv_ref, SKOS.prefLabel, Literal(aat.inverse_label, lang="en")))
+        store.add((ref, OWL.inverseOf, inv_ref))
+        store.add((inv_ref, OWL.inverseOf, ref))
+
+    #import pdb; pdb.set_trace()
+    associations = AgentAssociation.objects.filter(state="active")
+    agents = [assn.is_associate for assn in associations]
+    agents.extend([assn.has_associate for assn in associations])
+    agents = list(set(agents))
+    
+    for agent in agents:
+        ref = URIRef(instance_abbrv + ":agent-lod/" + str(agent.id) + "/")
+        if agent.agent_type.name == "Individual" or agent.agent_type.name == "Person":
+            store.add((ref, RDF.type, vf_ns.Person))
+        #elif agent.agent_type.name == "Organization":
+        #    store.add((ref, RDF.type, vf_ns.Organization))
+        else:
+            at_class_name = camelcase(agent.agent_type.name)
+            ref_class = URIRef(instance_abbrv + ":agent-type-lod/" + at_class_name)
+            store.add((ref, RDF.type, ref_class))
+        store.add((ref, vf_ns["label"], Literal(agent.name, lang="en")))
+        #if agent.name != agent.nick:
+        #    store.add((ref, FOAF.nick, Literal(agent.nick, lang="en")))
+        #if agent.photo_url:
+        #    store.add((ref, vf_ns["image"], agent.photo_url))
+    
+    for a in associations:
+        ref = URIRef(instance_abbrv + ":agent-relationship-lod/" + str(a.id) + "/")
+        inv_ref = URIRef(instance_abbrv + ":agent-relationship-inv-lod/" + str(a.id) + "/")
+        ref_subject = URIRef(instance_abbrv + ":agent-lod/" + str(a.is_associate.id) + "/")
+        ref_object = URIRef(instance_abbrv + ":agent-lod/" + str(a.has_associate.id) + "/")
+        property_name = camelcase_lower(a.association_type.label)
+        inv_property_name = camelcase_lower(a.association_type.inverse_label)
+        ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + property_name)
+        inv_ref_relationship = URIRef(instance_abbrv + ":agent-relationship-type-lod/" + inv_property_name)
+        store.add((ref, RDF.type, vf_ns["Relationship"]))
+        store.add((ref, vf_ns["subject"], ref_subject)) 
+        store.add((ref, vf_ns["object"], ref_object))
+        store.add((ref, vf_ns["relationship"], ref_relationship))
+        store.add((inv_ref, RDF.type, vf_ns["Relationship"]))
+        store.add((inv_ref, vf_ns["object"], ref_subject)) 
+        store.add((inv_ref, vf_ns["subject"], ref_object))
+        store.add((inv_ref, vf_ns["relationship"], inv_ref_relationship))
+          
+    ser = store.serialize(format='json-ld', context=context, indent=4)
+    #import pdb; pdb.set_trace()
+    #import json
+    #data = json.loads(ser)
+    #simplyframe(data)
+    #return HttpResponse(json.dumps(data, indent=4), mimetype='application/json') 
+    return HttpResponse(ser, mimetype='application/json')
+
+def agent_jsonld_query(request):
+    from rdflib import Graph
+    from rdflib.serializer import Serializer
+    from rdflib import Namespace, URIRef
+    from urllib2 import urlopen
+    from io import StringIO
+
+    #import pdb; pdb.set_trace()
+    g = Graph()
+    url = "http://nrp.webfactional.com/accounting/agent-jsonld/"
+    remote_jsonld = urlopen(url).read()
+    dict_data = simplejson.loads(remote_jsonld)
+    context = dict_data["@context"]
+    graph = dict_data["@graph"]
+    local_graph = simplejson.dumps(graph)
+    g.parse(StringIO(unicode(local_graph)), context=context, format="json-ld")
+    local_expanded_json = g.serialize(format="json-ld", indent=4)
+    local_expanded_dict = simplejson.loads(local_expanded_json)
+    
+    #import pdb; pdb.set_trace()
+    
+    result = ""  
+    agents = [x for x in graph if x['@id'].find('agent-lod') > -1]
+    agent_dict = {}
+    for a in agents:
+        agent_dict[str(a['@id'])] = a
+    
+    rels = [x for x in graph if x['@type']=='Relationship']
+    
+    agent_rels = []
+    for r in rels:
+        d = {}
+        d["subject"] = agent_dict[r["subject"]]
+        d["object"] = agent_dict[r["object"]]
+        d["relationship"] = r["relationship"]
+        agent_rels.append(d)
+    
+    for ar in agent_rels:
+        object = ar['object']
+        object_type = object['@type']
+        if object_type.find('/') > -1:
+            object_type = object_type.split('/')[1]
+        object_label = object['vf:label']['@value']
+        subject = ar['subject']
+        subject_type = subject['@type']
+        if subject_type.find('/') > -1:
+            subject_type = subject_type.split('/')[1]
+        subject_label = subject['vf:label']['@value']
+        relationship = ar['relationship']
+        if relationship.find('/') > -1:
+            relationship = relationship.split('/')[1]
+        ostr = ", a ".join([object_label, object_type])
+        sstr = ", a ".join([subject_label, subject_type])
+        line = " ".join([ sstr, relationship, ostr])
+        result += line + "\n"
+    result += "\n"
+    result += "========== Gory details from http://nrp.webfactional.com/accounting/agent-jsonld/ ==========\n"
+    
+    for item in local_expanded_dict:
+        for key, value in item.iteritems():
+            if type(value) is list:
+                value = value[0]
+                if type(value) is dict:
+                    valist = []
+                    for key2, value2 in value.iteritems():
+                        valist.append(": ".join([key2, value2]))
+                    value = ", ".join(valist)
+            line = ": ".join([key, value])
+            result += line + "\n" 
+        result += "========== \n"
+    
+    #result = "Number of triples: " + str(len(g)) + "\n"
+    #for s,p,o in g.triples( (None, None, None) ):
+    #    result += s + " " + p + " " + o + "\n"
+    return HttpResponse(result, mimetype='text/plain')
+    #return HttpResponse(local_expanded_json, mimetype='application/json')
+
+'''
+g = Graph()
+url = "http://dhen.webfactional.com/accounting/agent-jsonld/"
+remote_jsonld = urlopen(url).read()
+dict_data = simplejson.loads(remote_jsonld)
+from django.utils import simplejson
+dict_data = simplejson.loads(remote_jsonld)
+context = dict_data["@context"]
+graph = dict_data["@graph"]
+peeps = [x for x in graph if x['@type']=='Person']
+rels = [x for x in graph if x['@type']=='Relationship']
+ids = [x['@id'].split('/')[1] for x in graph]
+'''

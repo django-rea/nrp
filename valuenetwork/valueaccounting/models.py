@@ -2,6 +2,7 @@ import datetime
 import re
 from decimal import *
 from operator import attrgetter
+from toposort import toposort, toposort_flatten
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -276,6 +277,9 @@ class Location(models.Model):
 
     def resources(self):
         return self.resources_at_location.all()
+        
+    def agents(self):
+        return self.agents_at_location.all()
 
         
 class AgentTypeManager(models.Manager):
@@ -590,6 +594,24 @@ class EconomicAgent(models.Model):
         ids = self.events.filter(is_contribution=True).values_list('from_agent').order_by('from_agent').distinct()
         id_list = [id[0] for id in ids]
         return EconomicAgent.objects.filter(id__in=id_list)
+        
+    def total_financial_contributions(self):
+        #this is wrong
+        events = self.events.filter(
+            Q(event_type__name='Cash Contribution')|
+            Q(event_type__name='Purchase Contribution')|
+            Q(event_type__name='Expense Contribution')
+            )
+        return sum(event.quantity for event in events)
+        
+    def total_financial_income(self):
+        #this is really wrong
+        events = self.events.filter(
+            Q(event_type__name='Cash Contribution')|
+            Q(event_type__name='Purchase Contribution')|
+            Q(event_type__name='Expense Contribution')
+            )
+        return sum(event.quantity for event in events)
         
     def events_by_event_type(self):
         agent_events = EconomicEvent.objects.filter(
@@ -1646,7 +1668,7 @@ class EconomicResourceType(models.Model):
         return ProcessType.objects.filter(id__in=ids)
         
     def staged_commitment_type_sequence(self):
-        #import pdb; pdb.set_trace()
+        #ximport pdb; pdb.set_trace()
         #pr changed
         staged_commitments = self.process_types.filter(stage__isnull=False)
         parent = None
@@ -1734,6 +1756,7 @@ class EconomicResourceType(models.Model):
         return chain, inheritance
         
     def staged_process_type_sequence(self):
+        #ximport pdb; pdb.set_trace()
         #pr changed
         pts = []
         stages, inheritance = self.staged_commitment_type_sequence()
@@ -2573,6 +2596,7 @@ class ProcessPattern(models.Model):
         #import pdb; pdb.set_trace()
         fv_intersect = set(rt_fvs) & set(pat_fvs)
         event_type = None
+        #todo bug: this method can find more than one pfv
         if fv_intersect:
             fv = list(fv_intersect)[0]
             pfv = pfvs.get(facet_value=fv)
@@ -3176,7 +3200,8 @@ class Order(models.Model):
         cts = Commitment.objects.filter(independent_demand=self)
         processes = set()
         for ct in cts:
-            processes.add(ct.process)
+            if ct.process:
+                processes.add(ct.process)
         return processes
         
     def all_dependent_commitments(self):
@@ -3199,6 +3224,7 @@ class Order(models.Model):
             return None
             
     def first_process_in_order(self):
+        #import pdb; pdb.set_trace()
         processes = list(self.unordered_processes())
         if processes:
             first = processes[0]
@@ -3504,6 +3530,7 @@ class ProcessType(models.Model):
         return ProcessTypeInputForm(process_type=self, prefix=self.xbill_input_prefix())
 
     def xbill_consumable_form(self):
+        #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import ProcessTypeConsumableForm
         return ProcessTypeConsumableForm(process_type=self, prefix=self.xbill_consumable_prefix())
 
@@ -3648,6 +3675,10 @@ class EconomicResourceManager(models.Manager):
                 if va.owner().is_context_agent():
                     cavas.append(va)
         return cavas
+        
+    def onhand(self):
+        return EconomicResource.objects.filter(quantity__gt=0)
+        
 
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
@@ -3724,6 +3755,9 @@ class EconomicResource(models.Model):
 
     def flow_class(self):
         return "resource"
+            
+    def class_label(self):
+        return "Economic Resource"
 
     def flow_description(self):
         #rollup stage change
@@ -3827,8 +3861,25 @@ class EconomicResource(models.Model):
     #    from valuenetwork.valueaccounting.forms import ResourceRoleAgentForm
     #    return EconomicResourceForm(instance=self)
     
+    def event_sequence(self):
+        #import pdb; pdb.set_trace()
+        events = self.events.all()
+        data = {}
+        visited = set()
+        for e in events:
+            if e not in visited:
+                visited.add(e)
+                candidates = e.previous_events()
+                prevs = set()
+                for c in candidates:
+                    if c not in visited:
+                        visited.add(c)
+                    prevs.add(c)
+                data[e] = prevs
+        return toposort_flatten(data)
+
     def test_rollup(self, value_equation=None):
-        #leave the following uncommented
+        #leave the following line uncommented
         import pdb; pdb.set_trace()
         visited = set()
         path = []
@@ -3880,8 +3931,10 @@ class EconomicResource(models.Model):
             #todo br: use
             #br = evt.bucket_rule(value_equation)
         #Purchase contributions use event.value.
-        #todo 3d:
-        buys = self.purchase_events()
+        #todo dhen_bug: only buys for the same exchange_stage count
+        # also, need to get transfers for the same exchange_stage
+        # probably also need to chase historical_stage
+        buys = self.purchase_events_for_exchange_stage()
         for evt in buys:
             #import pdb; pdb.set_trace()
             depth += 1
@@ -3902,6 +3955,28 @@ class EconomicResource(models.Model):
                 #print padding, "--- evt_vpu: ", evt_vpu
                 #print padding, "--- values:", values
             depth -= 1
+        xfers = self.transfer_events_for_exchange_stage()
+        for evt in xfers:
+            #import pdb; pdb.set_trace()
+            depth += 1
+            evt.depth = depth
+            path.append(evt)
+            value = evt.value
+            if evt.exchange:
+                #print "value b4:", value
+                value = evt.exchange.roll_up_value(evt, path, depth, visited, value_equation)
+                #print "value after:", value
+            evt_vpu = value / evt.quantity
+            if evt_vpu:
+                values.append([evt_vpu, evt.quantity])
+                #padding = ""
+                #for x in range(0,depth):
+                #    padding += "."
+                #print padding, depth, evt.id, evt
+                #print padding, "--- evt_vpu: ", evt_vpu
+                #print padding, "--- values:", values
+            depth -= 1
+        
         citations = []
         production_value = Decimal("0.0")
         #rollup stage change
@@ -3969,6 +4044,7 @@ class EconomicResource(models.Model):
                             ip.depth = depth
                             path.append(ip)
                             #rollup stage change
+                            #this is where it starts (I think)
                             value_per_unit = ip.roll_up_value(path, depth, visited, value_equation)
                             ip.value = ip.quantity * value_per_unit
                             ip.save()
@@ -4250,6 +4326,7 @@ class EconomicResource(models.Model):
                                 if br:
                                     #import pdb; pdb.set_trace()
                                     value = br.compute_claim_value(ip)
+                                    ip.value = value
                                 ip.share = value * distro_fraction
                                 events.append(ip)
                                 #print ip.id, ip, ip.share
@@ -4383,6 +4460,7 @@ class EconomicResource(models.Model):
                                 br = ip.bucket_rule(value_equation)
                                 if br:
                                     value = br.compute_claim_value(ip)
+                                    ip.value = value
                                 #todo 3d: changed
                                 #import pdb; pdb.set_trace()
                                 fraction = ip.value / resource_value
@@ -4495,12 +4573,22 @@ class EconomicResource(models.Model):
         #rollup stage change
         pes = self.producing_events()
         processes = [pe.process for pe in pes if pe.process]
-        try:
-            processes = [p for p in processes if p.process_type==self.historical_stage]
-        except AttributeError:
-            pass
         processes = list(set(processes))
+        if self.stage:
+            try:
+                processes = [p for p in processes if p.process_type==self.historical_stage]
+            except AttributeError:
+                processes = [p for p in processes if p.process_type==self.stage]
         return processes
+        
+    def producing_events_for_historical_stage(self):
+        pes = self.producing_events()
+        if self.stage:
+            try:
+                pes = [pe for pe in pes if pe.process and pe.process.process_type==self.historical_stage]
+            except AttributeError:
+                pes = [pe for pe in pes if pe.process and pe.process.process_type==self.stage]
+        return pes
         
     def where_from_events(self):
         return self.events.filter(
@@ -4554,9 +4642,23 @@ class EconomicResource(models.Model):
         rct_et = EventType.objects.get(relationship="receive")
         return self.events.filter(event_type=rct_et)
         
+    def purchase_events_for_exchange_stage(self):
+        #todo dhen_bug:
+        if self.exchange_stage:
+            return self.purchase_events().filter(exchange_stage=self.exchange_stage)
+        else:
+            return self.purchase_events()
+        
     def transfer_events(self):
         tx_et = EventType.objects.get(name="Transfer")
         return self.events.filter(event_type=tx_et)
+        
+    def transfer_events_for_exchange_stage(self):
+        #todo dhen_bug:
+        if self.exchange_stage:
+            return self.transfer_events().filter(exchange_stage=self.exchange_stage)
+        else:
+            return self.transfer_events()
         
     def available_events(self):
         av_et = EventType.objects.get(name="Make Available")
@@ -4614,8 +4716,9 @@ class EconomicResource(models.Model):
         for flow in flows:
             if type(flow) is EconomicEvent:
                 resource = flow.resource
-                if not resource == self:
-                    lots.append(resource)
+                if resource:
+                    if not resource == self:
+                        lots.append(resource)
         lots = list(set(lots))
         lots.append(self)
         return lots
@@ -4624,53 +4727,102 @@ class EconomicResource(models.Model):
         flows = self.incoming_value_flows()
         flows.reverse()
         return flows
-
+       
     def incoming_value_flows(self):
         flows = []
-        visited = []
+        visited = set()
         depth = 0
         self.depth = depth
         flows.append(self)
         self.incoming_value_flows_dfs(flows, visited, depth)
         return flows
-
-    def incoming_value_flows_dfs(self, flows, visited, depth):
-        if not self in visited:
-            visited.append(self)
-            depth += 1
-            resources = []
-            #this needs to include purchases and contributions
-            for event in self.producing_events():
-                event.depth = depth
-                flows.append(event)
-                p = event.process
-                if p:
-                    if p not in visited:
-                        visited.append(p)
-                        depth += 1
-                        p.depth = depth
-                        flows.append(p)
-                        depth += 1
-                        #process.incoming_events shd include p&c
-                        for evt in p.incoming_events():
-                            evt.depth = depth
-                            flows.append(evt)
-                            if evt.resource:
-                                if evt.resource not in resources:
-                                    resources.append(evt.resource)
-            for event in self.resource_contribution_events():
-                event.depth = depth
-                flows.append(event)
-            for event in self.purchase_events():
-                event.depth = depth
-                flows.append(event)
-                if event.exchange:
-                    for pmt in event.exchange.payment_events():
-                        pmt.depth = depth + 1
-                        flows.append(pmt)
-            for resource in resources:
-                resource.incoming_value_flows_dfs(flows, visited, depth)
+        
+    def process_exchange_flow(self):
+        flows = self.incoming_value_flows()
+        xnp = [f for f in flows if type(f) is Process or type(f) is Exchange]
+        for x in xnp:
+            if type(x) is Process:
+                x.type="Process"
+                x.stage=x.process_type
+            else:
+                x.type="Exchange"
+                x.stage=x.exchange_type
+        return xnp
                 
+    def incoming_value_flows_dfs(self, flows, visited, depth):
+        #Resource method
+        if self not in visited:
+            visited.add(self)
+            resources = []
+            events = self.event_sequence()
+            events.reverse()
+            pet = EventType.objects.get(name="Resource Production")
+            xet = EventType.objects.get(name="Transfer")
+            rcpt = EventType.objects.get(name="Receipt")
+            
+            for event in events:
+                if event not in visited:
+                    visited.add(event)
+                    depth += 1
+                    event.depth = depth
+                    flows.append(event)
+                    if event.event_type==xet or event.event_type==rcpt:
+                        exchange = event.exchange
+                        if exchange:
+                            if exchange not in visited:
+                                visited.add(exchange)
+                                exchange.depth = depth + 1
+                                flows.append(exchange)
+                                for pmt in event.exchange.reciprocal_transfer_events():
+                                    pmt.depth = depth + 2
+                                    flows.append(pmt)
+                        event.incoming_value_flows_dfs(flows, visited, depth)
+                    elif event.event_type==pet:
+                        process = event.process
+                        if process:
+                            if process not in visited:
+                                visited.add(process)
+                                process.depth = depth + 1
+                                flows.append(process)
+                                for evt in process.incoming_events():
+                                    if evt not in visited:
+                                        visited.add(evt)
+                                        evt.depth = depth + 2
+                                        flows.append(evt)
+                                        if evt.resource:
+                                            if evt.resource == self:
+                                                if self.stage and evt.stage:
+                                                    self.historical_stage = evt.stage
+                                                    self.incoming_value_flows_dfs(flows, visited, depth + 2)
+                                            elif evt.resource not in resources:
+                                                resources.append(evt.resource)
+                                        
+
+                
+            for event in self.purchase_events_for_exchange_stage():
+                if event not in visited:
+                    visited.add(event)
+                    event.depth = depth
+                    flows.append(event)
+                    if event.exchange:
+                        exchange = event.exchange
+                        exchange.depth = depth + 1
+                        flows.append(exchange)
+                        for pmt in event.exchange.payment_events():
+                            pmt.depth = depth + 2
+                            flows.append(pmt)
+
+            for event in self.resource_contribution_events():
+                if event not in visited:
+                    visited.add(event)
+                    event.depth = depth
+                    flows.append(event)
+            
+            for resource in resources:
+                resource.depth = depth + 3
+                flows.append(resource)
+                resource.incoming_value_flows_dfs(flows, visited, depth + 3)
+                                
     def incoming_events(self):
         flows = self.incoming_value_flows()
         events = []
@@ -4688,7 +4840,7 @@ class EconomicResource(models.Model):
         #todo: needs rework, see next method
         #import pdb; pdb.set_trace()
         flows = []
-        visited = []
+        visited = set()
         depth = 0
         self.depth = depth
         flows.append(self)
@@ -4714,9 +4866,11 @@ class EconomicResource(models.Model):
     def value_flow_going_forward_dfs(self, flows, visited, depth):
         #import pdb; pdb.set_trace()
         if not self in visited:
-            visited.append(self)
+            visited.add(self)
             depth += 1
             #todo: this will break, depends on event creation order
+            #also, all_usage_events does not include transfers
+            #and, needs to consider stage and exchange_stage
             for event in self.all_usage_events().order_by("id"):
                 event.depth = depth
                 flows.append(event)
@@ -4724,7 +4878,7 @@ class EconomicResource(models.Model):
                 exch = event.exchange
                 if proc:
                     if not proc in visited:
-                        visited.append(proc)
+                        visited.add(proc)
                         depth += 1
                         proc.depth = depth
                         flows.append(proc)
@@ -4739,7 +4893,7 @@ class EconomicResource(models.Model):
                                     resource.value_flow_going_forward_dfs(flows, visited, depth)
                 if exch:
                     if not exch in visited:
-                        visited.append(exch)
+                        visited.add(exch)
                         depth += 1
                         exch.depth = depth
                         flows.append(exch)
@@ -4766,6 +4920,7 @@ class EconomicResource(models.Model):
         # but does not work yet because the converted data
         # has no commitments
         # Plus, it can't be tested and so probably won't work.
+        # also, needs to include exchanges
         processes = []
         if not self.stage:
             return processes
@@ -5070,20 +5225,22 @@ class ProcessTypeResourceType(models.Model):
         return self.event_type.is_change_related()
         
     def follow_stage_chain(self, chain):
+        #import pdb; pdb.set_trace()
         if self.event_type.is_change_related():
-            chain.append(self)
-            if self.event_type.relationship == "out":
-                next_in_chain = ProcessTypeResourceType.objects.filter(
-                    resource_type=self.resource_type,
-                    stage=self.stage,
-                    event_type__resource_effect=">~")
-            if self.event_type.relationship == "in":
-                next_in_chain = ProcessTypeResourceType.objects.filter(
-                    resource_type=self.resource_type,
-                    stage=self.process_type,
-                    event_type__resource_effect="~>")
-            if next_in_chain:
-                next_in_chain[0].follow_stage_chain(chain)
+            if self not in chain:
+                chain.append(self)
+                if self.event_type.relationship == "out":
+                    next_in_chain = ProcessTypeResourceType.objects.filter(
+                        resource_type=self.resource_type,
+                        stage=self.stage,
+                        event_type__resource_effect=">~")
+                if self.event_type.relationship == "in":
+                    next_in_chain = ProcessTypeResourceType.objects.filter(
+                        resource_type=self.resource_type,
+                        stage=self.process_type,
+                        event_type__resource_effect="~>")
+                if next_in_chain:
+                    next_in_chain[0].follow_stage_chain(chain)
                 
     def follow_stage_chain_beyond_workflow(self, chain):
         #import pdb; pdb.set_trace()
@@ -5668,6 +5825,12 @@ class Process(models.Model):
             finished=False,
             event_type__relationship='work',
         )
+        
+    def finished_work_requirements(self):
+        return self.commitments.filter(
+            finished=True,
+            event_type__relationship='work',
+        )
 
     def non_work_requirements(self):
         return self.commitments.exclude(
@@ -5702,6 +5865,9 @@ class Process(models.Model):
     def work_events(self):
         return self.events.filter(
             event_type__relationship='work')
+            
+    def unplanned_work_events(self):
+        return self.work_events().filter(commitment__isnull=True)
 
     def outputs(self):
         return self.events.filter(
@@ -6189,6 +6355,7 @@ class Process(models.Model):
                             if br:
                                 #import pdb; pdb.set_trace()
                                 value = br.compute_claim_value(ip)
+                                ip.value = value
                             ip.share = value * distro_fraction
                             events.append(ip)
                             #print ip.id, ip, ip.share
@@ -6467,6 +6634,18 @@ class Exchange(models.Model):
     def payment_events(self):
         return self.events.filter(
             event_type__relationship='pay')
+            
+    def cash_contributions(self):
+        payments = self.payment_events()
+        resources = {p.resource for p in payments if p.resource}
+        ccs = []
+        for r in resources:
+            ccs.extend(r.cash_contribution_events())
+        return ccs
+        
+    def payment_sources_with_contributions(self):
+        resources = {p.resource for p in self.payment_events() if p.resource}
+        return [r for r in resources if r.cash_contribution_events()]
 
     def uncommitted_payment_events(self):
         return self.events.filter(
@@ -6502,8 +6681,14 @@ class Exchange(models.Model):
             event_type__relationship='shipment')
                 
     def transfer_events(self):
+        #exchange method
         return self.events.filter(
-            event_type__relationship='transfer')
+            event_type__name='Transfer')
+            
+    def reciprocal_transfer_events(self):
+        #exchange method
+        return self.events.filter(
+            event_type__name='Reciprocal Transfer')  
             
     def shipment_events_no_commitment(self):
         return self.events.filter(event_type__relationship='shipment').filter(commitment=None)
@@ -6554,6 +6739,8 @@ class Exchange(models.Model):
             values = Decimal("0.0")
             
             receipts = self.receipt_events()
+            #todo dhen_bug: need to deal with transfers
+            #and then might be a flow between exchanges
             trigger_fraction = 1
             if receipts.count() > 1:
                 rsum = sum(r.value for r in receipts)
@@ -7249,7 +7436,7 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import ChangeCommitmentForm
         prefix=self.form_prefix()
         return ChangeCommitmentForm(instance=self, prefix=prefix)
-        
+   
     def process_form(self):
         from valuenetwork.valueaccounting.forms import ProcessForm
         start_date = self.start_date
@@ -7434,6 +7621,35 @@ class Commitment(models.Model):
         
     def fulfilling_events(self):
         return self.fulfillment_events.all()    
+    
+    def fulfilling_events_condensed(self):
+        #import pdb; pdb.set_trace()
+        event_list = self.fulfillment_events.all()
+        condensed_events = []
+        if event_list:
+            summaries = {}
+            for event in event_list:
+                try:
+                    key = "-".join([
+                        str(event.from_agent.id), 
+                        str(event.context_agent.id), 
+                        str(event.resource_type.id), 
+                        str(event.event_type.id)
+                        ])
+                    if not key in summaries:
+                        summaries[key] = EventSummary(
+                            event.from_agent, 
+                            event.context_agent, 
+                            event.resource_type, 
+                            event.event_type, 
+                            Decimal('0.0'))
+                    summaries[key].quantity += event.quantity
+                except AttributeError:
+                    msg = " ".join(["invalid summary key:", key])
+                    assert False, msg
+            condensed_events = summaries.values()
+        return condensed_events
+        
         
     #def fulfilling_shipment_events(self):
     #    return self.fulfillment_events.filter(event_type__name="Shipment")
@@ -7826,6 +8042,15 @@ class Commitment(models.Model):
                     return ois[0]
                 else:
                     return ois
+                    
+    def unique_processes_for_order_item(self, visited):
+        unique_processes = []
+        all_processes = self.all_processes_in_my_order_item()
+        for process in all_processes:
+            if process not in visited:
+                visited.add(process)
+                unique_processes.append(process)
+        return unique_processes
        
     def all_processes_in_my_order_item(self):
         ordered_processes = []
@@ -8381,6 +8606,38 @@ class EconomicEvent(models.Model):
                     pass
         super(EconomicEvent, self).delete(*args, **kwargs)
         
+    def previous_events(self):
+        """ Experimental method:
+        Trying to use properties of events to determine event sequence.
+        Can't count on dates or event ids.
+        This is currently for the DHen resource_flow_report
+        and takes advantage of DHen data shape.
+        For example, Receipts will have no predecessors,
+        while Consumption events will have no successors.
+        Will most likely not work (yet) more generally.
+        And Receipts are going away...
+        """
+        #import pdb; pdb.set_trace()
+        prevs = []
+        ret = EventType.objects.get(name="Receipt")
+        cet = EventType.objects.get(name="Resource Consumption")
+        if self.event_type == ret:
+            return prevs
+        resource = self.resource
+        if resource:
+            candidates = resource.events.all()
+            prevs = candidates.filter(to_agent=self.from_agent).exclude(id=self.id)
+            prevs = prevs.exclude(event_type=cet)
+        return prevs
+        
+    def next_events(self):
+        nexts = []
+        resource = self.resource
+        if resource:
+            candidates = resource.events.all()
+            nexts = candidates.filter(from_agent=self.to_agent).exclude(id=self.id)
+        return nexts
+        
     def seniority(self):
         return (datetime.date.today() - self.event_date).days
         
@@ -8490,6 +8747,30 @@ class EconomicEvent(models.Model):
         elif self.event_type.relationship == "out":
             return "Value per unit is composed of the value of the inputs on the next level:"
         return ""
+        
+    def incoming_value_flows_dfs(self, flows, visited, depth):
+        # EconomicEvent method
+        #todo dhen_bug:
+        if self.event_type.relationship=="receive":
+            exchange = self.exchange
+            if exchange:
+                if exchange not in visited:
+                    visited.add(exchange)
+                    exchange.depth = depth + 1
+                    flows.append(exchange)
+                    for pmt in exchange.payment_events():
+                        pmt.depth = depth + 2
+                        flows.append(pmt)
+        if self.resource:
+            depth = depth + 1
+            #the exclude clause tries to head off infinite loops
+            prevs = self.resource.events.filter(to_agent=self.from_agent).exclude(from_agent=self.from_agent)
+            for prev in prevs:
+                if prev not in visited:
+                    visited.add(prev)
+                    prev.depth = depth
+                    flows.append(prev)
+                    prev.incoming_value_flows_dfs(flows, visited, depth)
         
     def roll_up_value(self, path, depth, visited, value_equation):
         # EconomicEvent method
@@ -8753,17 +9034,18 @@ class EconomicEvent(models.Model):
             quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
         else:
             quantity_string = str(self.quantity)
-        from_agt = 'Unassigned'
-        if self.from_agent:
-            from_agt = self.from_agent.nick
-        to_agt = 'Unassigned'
-        if self.recipient():
-            to_agt = self.recipient().nick
+        agt_string = ""
+        if self.from_agent != self.to_agent:
+            from_agt = 'Unassigned'
+            if self.from_agent:
+                from_agt = self.from_agent.nick
+            to_agt = 'Unassigned'
+            if self.recipient():
+                to_agt = self.recipient().nick
+            agt_string = ' to '.join([from_agt, to_agt])
         return ' '.join([
-            'from',
-            from_agt,
-            'to',
-            to_agt,
+            agt_string,
+            self.resource_type.name,
             quantity_string,
         ])
         
@@ -10191,18 +10473,6 @@ class CachedEventSummary(models.Model):
                         event.resource_type, 
                         event.event_type, 
                         Decimal('0.0'))
-                #key = "-".join([
-                #    str(event.from_agent.id), 
-                #    str(event.project.id), 
-                #    str(event.resource_type.id), 
-                #    str(event.event_type.id)])
-                #if not key in summaries:
-                #    summaries[key] = EventSummary(
-                #        agent=event.from_agent, 
-                #        #project=event.project, 
-                #        resource_type=event.resource_type, 
-                #        event_type=event.event_type,
-                #        quantity=Decimal('0.0'))
                 summaries[key].quantity += event.quantity
             except AttributeError:
                 msg = " ".join(["invalid summary key:", key])
@@ -10215,7 +10485,6 @@ class CachedEventSummary(models.Model):
                 resource_type=summary.resource_type,
                 event_type=summary.event_type,
                 resource_type_rate=summary.resource_type.value_per_unit,
-                #importance=summary.project.importance,
                 quantity=summary.quantity,
             )
             ces.save()

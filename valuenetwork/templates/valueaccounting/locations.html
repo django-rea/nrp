@@ -6,7 +6,8 @@
 {% block head_title %}{% trans "Locations" %}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+<link href='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
 <style>
 
 </style>
@@ -29,8 +30,25 @@
         <div class="span8">
             <div id="map" style="width: 98%; height: 600px"></div>
         </div>
-        {% if nolocs %}
+        
         <div class="span4">
+            <div id="changeLocation">
+            </div>
+            <div id="agents">
+                <h3>{% trans "Agents at" %} 
+                    <span id="agentLocation"></span>
+                </h3>
+                <div id="agentList">
+                </div>
+            </div>
+            <div id="resources">
+                <h3>{% trans "Resources at" %} 
+                    <span id="resourceLocation"></span>
+                </h3>
+                <div id="resourceList">
+                </div>
+            </div>
+            {% if nolocs %}
             <h3>{% trans "Locations without map coordinates" %}</h3>
             <ul>
                 {% for loc in nolocs %}
@@ -44,8 +62,9 @@
                     </li>
                 {% endfor %}
             </ul>
+            {% endif %}
         </div>
-        {% endif %}
+        
     
 	</div>
     </div>
@@ -53,8 +72,9 @@
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-	<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
-    <script src="http://www.mapquestapi.com/sdk/leaflet/v1.0/mq-map.js?key=Fmjtd%7Cluur2lut2d%2Crl%3Do5-9a72uu"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+   
+    <script src='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
 
 {% endblock %}
 
@@ -72,36 +92,100 @@
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
-/*
-	    map = L.map('map', {
-            layers: MQ.mapLayer(),
-            center: [ {{ latitude }},{{ longitude }} ],
-            zoom: {{ zoom }}
-        });
+        
+        L.mapbox.accessToken = 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg';
 
+        var map = L.map('map')
+            .setView([{{ latitude }},{{ longitude }}], {{ zoom }})
+            //.addControl(L.mapbox.geocoderControl('mapbox.places'))
+            ;
+        
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+            maxZoom: 18,
+            id: 'bhaugen.3f30d361',
+            accessToken: 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg'
+        }).addTo(map);
+
+        $("#agents").hide();
+        $("#resources").hide();
 
         {% for loc in locations %}
             {% if loc.latitude and loc.longitude %}
-                var locName = "{{ loc.name }}";
+                var locName = "{{ loc.name|safe }}";
                 var locAddress = "{{ loc.address }}";
                 var latlong = [ {{ loc.latitude }}, {{ loc.longitude }}];
-                var content = "<h2>" + "{{ loc.name }}" + "</h2><p>" + "{{ loc.address }}" + "</p>";
-                {% if loc.resources %}
-                    content += "<h4>Resources:</h4><ul>";
-                    {% for res in loc.resources %}
-                        content += "<li>" + "{{ res }}" + "</li>";
-                    {% endfor %}
-                    content += "</ul>";
-                {% endif %}
-                L.marker(latlong, {title: locName }).addTo(map).bindPopup(content);
+                
+                var content = "<h2>" + locName+ "</h2><p>" + locAddress + "</p>";
+
+                var marker = L.marker(latlong, {title: locName })
+                    .addTo(map).bindPopup(content)
+                    .on('popupopen', showResources)
+                    .on('popupclose', hideResources);
+                marker.locationUrl = "{% url change_location location_id=loc.id %}";
+                marker.name = locName;
+                marker.agents = [];
+                {% for agnt in loc.agents %}
+                    marker.agents.push("{{ agnt.name }}");
+                {% endfor %}
+                marker.resources = [];
+                {% for res in loc.resources %}
+                    marker.resources.push("{{ res }}");
+                {% endfor %}
             {% endif %}
         {% endfor %}
-
-*/
+        
+        function showResources(event) {
+            var target = event.target;
+            var location_id = target.location_id
+            var agents = target.agents;
+            var resources = target.resources;
+            
+            var changeAnchor = '<a href="' + target.locationUrl + '" >Change this Location</a>';
+            
+            $("#changeLocation").empty();
+            $("#changeLocation").append(changeAnchor);
+            $("#changeLocation").show();
+            
+            $("#agentList").empty();
+            $("#resourceList").empty();
+            
+            if (agents.length)
+            {  
+                $("#agentLocation").text(target.name);
+                $("#agentList").append("<ul>");
+                for (var i = 0; i < agents.length; i++) 
+                {
+                    var resourceItem = "<li>" + agents[i] + "</li>";
+                    $("#agentList").append(resourceItem);
+                }
+                $("#agentList").append("</ul>");
+                $("#agents").show();
+            }
+            
+            if (resources.length)
+            {  
+                $("#resourceLocation").text(target.name);
+                $("#resourceList").append("<ul>");
+                for (var i = 0; i < resources.length; i++) 
+                {
+                    var resourceItem = "<li>" + resources[i] + "</li>";
+                    $("#resourceList").append(resourceItem);
+                }
+                $("#resourceList").append("</ul>");
+                $("#resources").show();
+            }
+        }
+        
+        function hideResources(event) {
+            $("#changeLocation").hide();
+            $("#agents").hide();
+            $("#resources").hide();
+        }
 
 	}); // end document.ready
 
      
     </script>
-
+/*
 {% endblock %}

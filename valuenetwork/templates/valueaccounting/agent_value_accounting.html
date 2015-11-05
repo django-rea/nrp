@@ -47,7 +47,7 @@ h4 {
     <div class="row-fluid">
 
         <div class="span7">
-            <h4>Detail Contributions and Distributions</h4>
+            <h4>Detailed Contributions and Distributions</h4>
             {% for event in events %}
                 <ul>
                     <li>
@@ -107,16 +107,20 @@ h4 {
                     <td>{{ with_bucket }}</td>
                 </tr>
                 <tr>
-                    <th>{% trans "Total Value of Claims" %}:</th>
-                    <td>${{ claim_value|intcomma }}</td>
+                    <th>{% trans "Total Value of Contribution Claims" %}:</th>
+                    <td>${{ claim_value }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Income Distributions to Claims" %}:</th>
+                    <td>${{ claim_distributions }}</td>
                 </tr>
                 <tr>
                     <th>{% trans "Outstanding Claims" %}:</th>
-                    <td>${{ outstanding_claims|intcomma }}</td>
+                    <td>${{ outstanding_claims }}</td>
                 </tr>
                 <tr>
-                    <th>{% trans "Income Distributions" %}:</th>
-                    <td>${{ distributions|intcomma }}</td>
+                    <th>{% trans "Other Distributions" %}:</th>
+                    <td>${{ other_distributions }}</td>
                 </tr>
 
             </table>

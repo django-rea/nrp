@@ -43,15 +43,50 @@
                 {% trans "Contributions from " %} {{ agent }} &nbsp;&nbsp;&nbsp;
                 <a href="{% url agent_value_accounting agent_id=agent.id %}" style="vertical-align: top;">{% trans "Value Accounting" %}</a>
             </span>
-            &nbsp;&nbsp;&nbsp;
-            <form id="filterForm" action="." method="POST" style="display: inline; "   >
+        </legend>
+        <div>
+            <form id="filterForm" action="." method="POST" style="display: inline;" >
                 {% csrf_token %}
-                {{ et_form.event_types }}
-                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Filter' %}" style="display: inline; vertical-align: top;" />
-
-                
+                <div id="div_id_start_date" class="control-group" style="display: inline;" >     
+                    <label for="id_start_date" class="control-label required-field" style="display: inline;" >
+                        {% trans "Show contributions from " %}
+                    </label>
+                    <div class="controls" style="display: inline;" >
+                        {{ filter_form.start_date }}
+                    </div>
+                </div>
+                <div id="div_id_end_date" class="control-group" style="display: inline;" >     
+                    <label for="id_end_date" class="control-label required-field" style="display: inline;" >
+                        {% trans " through " %}
+                    </label>
+                    <div class="controls" style="display: inline;" >
+                        {{ filter_form.end_date }}
+                    </div>
+                </div>
+                <div id="div_id_event_types" class="control-group" style="display: inline;" >
+                    <label for="id_event_types" class="control-label" style="display: inline;" >
+                        {% trans "Event Types" %}
+                    </label>
+                    <div class="controls" style="display: inline; vertical-align: bottom;" >
+                        {{ filter_form.event_types }}
+                    </div>                    
+                </div>&nbsp;
+                <input type="submit" name="submit" class="btn btn-info" style="display: inline;" value="{% trans 'Filter' %}" />
             </form>
-		</legend>
+            {% if event_ids and agent %}
+                <a 
+                    href=" {% url contribution_events_csv %}?event-ids={{ event_ids }}" 
+                    id="btn-export" 
+                    class="btn btn-primary" 
+                    title="Export filtered list to csv (comma separated value) format" 
+                    style="display: inline; vertical-align: middle;"
+                    >{% trans "Export CSV File" %}
+                </a>
+            {% endif %}
+        
+        </div>
+        
+		
 		{% if user_is_agent %}
             <p>
                 {% trans "You can change date or qty inline and it will be automatically saved." %} <span id="saving"></span>
@@ -209,6 +244,7 @@
         $("select").chosen();
         
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+        $('.filter-date').datepicker({ dateFormat: "yy-mm-dd" });
 
         $('.date-entry').change(saveDate);
         $('.quantity').change(saveQuantity);
@@ -275,21 +311,21 @@
         eventId = formId.split("-")[1];
         var formData = $(formId).serialize();
         var eventId = "&eventId=" + eventId;
-		formData += eventId;
+        formData += eventId;
         
         var url = "{%url change_event_date %}";
 
-		notifySaving();
+        notifySaving();
 
-		var jqxhr = $.post( url, formData,
-			function( data ) {
-				notifySaved();
-			})
-			.fail(function() 
-			{ 
-				notifyProblem(); 
-			}
-		);
+        var jqxhr = $.post( url, formData,
+            function( data ) {
+                notifySaved();
+            })
+            .fail(function() 
+            { 
+                notifyProblem(); 
+            }
+        );
     }
 
     function saveQuantity(event)

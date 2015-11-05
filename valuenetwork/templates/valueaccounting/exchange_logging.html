@@ -319,9 +319,9 @@ li {
                     </a>
                 {% endif %}
                 <span class="info"> <a href="#" id="disb-info" data-toggle="popover" data-trigger='hover' title="Cash Disbursement" 
-                    data-content="Disbursements are the resources (usually from cash receipts) used to distribute income.  Usually this is
-                    done by running the value equation.  You might have to create one manually here if the distribution
-                    was calculated outside the system.">
+                    data-content="Disbursements are the resources used to transfer cash to other accounts.  This could be
+                    for distributions or cash contributions from a virtual account.  The disbursement basically
+                    gets the cash out of the source account.">
                     <img src="{% static 'img/information-icon.png' %}" /></a>
                 </span>
                 <span class="total">Total: {{ disburse_total }}</span>
@@ -333,7 +333,7 @@ li {
                         <span ><span class="event-label">{% trans "Disbursement" %}: </span> 
                             <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> from <b>{{ event.resource.identifier }}</b> {{ event.event_date }}</span>
                         {% if agent == event.from_agent or logger  %}
-
+                            {% if exchange.use_case.identifier != "cash_contr" %}
                             <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                <i class="icon-edit"></i>
                             </a>
@@ -355,6 +355,7 @@ li {
                                     </form>
                                 </div>
                             </div>
+                            {% endif %}
                             <form
                                 style="display: inline;" 
                                 class="delete-form" 

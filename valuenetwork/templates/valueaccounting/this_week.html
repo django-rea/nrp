@@ -1,0 +1,255 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "This week" %}{% endblock %}
+{% block extra_head %}
+
+<style>
+li {
+    list-style-type: none;
+}
+
+.project-line {
+    font-size: 1.2em;
+    color: brown;
+    font-weight: bold;
+    margin-top: 1.5em;
+}
+.process {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: .8em;
+}
+.for, .req-description {
+    font-size: .8em;
+    font-style: italic;
+    font-weight: normal;
+}
+
+.section {
+    color:     #008A2E;
+    font-size: 1em;
+}
+.work, .deliverable, .material, .subline {
+    font-weight: normal;
+
+}
+.taken {
+    font-style: italic;
+    font-weight: bold;
+    color: #5C8A8A;
+}
+
+.btn {
+    margin-right: 2em;
+}
+
+.schedule, .todos, .events {
+    background-color: beige;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+}
+
+.events {
+    margin-top: 2em;
+    background-color: whitesmoke;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+}
+
+#todoModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
+.changeModal textarea {
+  width: 400px;
+  height: 200px;
+}
+
+
+.entry-label {
+    text-align: right;
+    vertical-align: middle;
+}
+
+.entry-buttons {
+    padding-top: 4px;
+    text-align: left;
+}
+.btn-mini {
+    margin-bottom: 3px;
+    margin-right: 0;
+}
+
+.todo-input {
+    vertical-align: bottom;
+}
+
+.todo-table {
+    margin-top: 1em;
+}
+
+th, td {
+    padding-left:10px;
+    padding-right:10px;
+}
+
+.did {
+    padding: 0;
+}
+
+.my-row {
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-color: lightgrey;
+    background-color: #F9F9F7;
+}
+
+.not-my-row {
+    border-top-style: solid;
+    border-top-width: thin;
+    border-top-color: lightgrey;
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: lightgrey;
+}
+
+.entry-row {
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: lightgrey;
+    background-color: #F9F9F7;
+}
+
+.who {
+    font-size: 90%;
+    white-space:nowrap;
+}
+.input-mini {
+    width: 2em;
+}
+
+.process {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: .8em;
+}
+
+.section {
+    color:     #008A2E;
+    font-size: 1em;
+}
+
+.deliverable {
+    font-weight: normal;
+    margin-left: 1em;
+
+}
+
+.labnote {
+    background-color: beige;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+    margin-left: 1em;
+}
+
+.name {
+    font-weight: bold;
+}
+
+.row-fluid {
+    margin-top: 1em;
+}
+
+.task {
+    color: green;
+}
+
+</style>
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+        <legend>
+            {% trans "This week" %} {{ start }} {% trans "through" %} {{ end }}
+        </legend>
+        
+        <div class="row-fluid">
+            <div class="span6 stats">
+                <h3>
+                    {% trans "Active projects" %}: {{ active }}</br>
+                    {% trans "Non-active projects" %}: {{ non_active }}</br>
+                    </br>
+                    {% trans "Total logged time" %}:  {{ total_hours }} {% trans "hours" %}</br>
+                    {% trans "Total active participants" %}:  {{ total_participants }}
+                </h3>
+            </div>
+        </div>
+
+         <div class="row-fluid">
+                <div class="span12 schedule">
+                    <h3>
+                        {% trans "Activity by project between" %} {{ start }} {% trans "and" %} {{ end }}
+                    </h3>
+                    
+                    {% if context_agents %}
+                        <ul>
+                            {% for project, processes in context_agents.items %}
+                                <li class="project-line"> {% if project %} {{ project.agent_type.name }}: {{ project.name }} {% else %} No project {% endif %}</li>
+                                <ul>
+                                    {% for process, events in processes.items %}
+                                        {% if process %}
+                                            <li class="process" > 
+                                                <a href="{{ process.get_absolute_url }}">
+                                                {% if process.name %}
+                                                    {{ process.name }}
+                                                {% elif process.process_type %}
+                                                    {{ process.process_type.name }}
+                                                {% else %}
+                                                    {{ process }}
+                                                {% endif %}
+                                                {% trans "starting" %} <span id="start-dt{{ process.id }}">{{ process.start_date|date:"Y-m-d" }}</span> 
+                                                {% trans "ending" %} <span id="end-dt{{ process.id }}"> {{ process.end_date|date:"Y-m-d" }}
+                                                </a> 
+                                                {% if process.finished %}
+                                                    {% trans "Complete" %}
+                                                {% else %}
+                                                    {% trans "Incomplete" %}
+                                                {% endif %}
+                                            </li>
+                                        {% endif %}
+                                        <ul>
+                                            {% for event in events %}
+                                                <li>
+                                                    {{ event.agent.nick }} 
+                                                    {{ event.resource_type.name }} 
+                                                    {{ event.quantity }}
+                                                    {{ event.unit_of_quantity.abbrev }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endfor %}
+                                </ul>
+                                
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        None
+                    {% endif %}
+                    
+                </div>
+
+                
+
+    </div>
+    </div>
+{% endblock %}

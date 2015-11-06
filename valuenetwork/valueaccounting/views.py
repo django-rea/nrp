@@ -451,8 +451,8 @@ def agent(request, agent_id):
         if ces.count():
             agents_stats = {}
             for ce in ces:
-                agents_stats.setdefault(ce.agent, Decimal("0"))
-                agents_stats[ce.agent] += ce.quantity
+                agents_stats.setdefault(ce.agent.name, Decimal("0"))
+                agents_stats[ce.agent.name] += ce.quantity
             for key, value in agents_stats.items():
                 member_hours_stats.append((key, value))
             member_hours_stats.sort(lambda x, y: cmp(y[1], x[1]))
@@ -462,8 +462,8 @@ def agent(request, agent_id):
             roles = list(set(roles))
             for ce in ces:
                 if ce.quantity:
-                    nick = ce.agent.nick.capitalize()
-                    row = [nick, ]
+                    name = ce.agent.name
+                    row = [name, ]
                     for i in range(0, len(roles)):
                         row.append(Decimal("0.0"))
                         key = ce.agent.name

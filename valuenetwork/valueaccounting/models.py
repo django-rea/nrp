@@ -9127,16 +9127,28 @@ class EconomicEvent(models.Model):
         from valuenetwork.valueaccounting.forms import WorkEventChangeForm
         return WorkEventChangeForm(instance=self)
         
-    def change_form(self, data=None):
+    def change_form_old(self, data=None):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
-        unit = self.resource_type.unit
+        unit = self.unit_of_quantity
+        if not unit:
+            unit = self.resource_type.unit
         prefix = self.form_prefix()
         if unit.unit_type == "time":
             return TimeEventForm(instance=self, prefix=prefix, data=data)
         else:
             qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
             return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
+            
+    def change_form(self, data=None):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import InputEventForm
+        unit = self.unit_of_quantity
+        if not unit:
+            unit = self.resource_type.unit
+        prefix = self.form_prefix()
+        qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+        return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
 
     def unplanned_work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm

@@ -460,7 +460,7 @@
                 var data = google.visualization.arrayToDataTable([
                 ['Member', 'Hours'],
                 {% for member, hours in member_hours_stats %}
-                    ['{{ member.nick }}',  {{ hours }} ],
+                    ['{{ member }}',  {{ hours }} ],
                 {% endfor %}
                 ]);
 

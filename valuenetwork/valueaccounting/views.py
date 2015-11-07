@@ -451,8 +451,8 @@ def agent(request, agent_id):
         if ces.count():
             agents_stats = {}
             for ce in ces:
-                agents_stats.setdefault(ce.agent, Decimal("0"))
-                agents_stats[ce.agent] += ce.quantity
+                agents_stats.setdefault(ce.agent.name, Decimal("0"))
+                agents_stats[ce.agent.name] += ce.quantity
             for key, value in agents_stats.items():
                 member_hours_stats.append((key, value))
             member_hours_stats.sort(lambda x, y: cmp(y[1], x[1]))
@@ -462,8 +462,8 @@ def agent(request, agent_id):
             roles = list(set(roles))
             for ce in ces:
                 if ce.quantity:
-                    nick = ce.agent.nick.capitalize()
-                    row = [nick, ]
+                    name = ce.agent.name
+                    row = [name, ]
                     for i in range(0, len(roles)):
                         row.append(Decimal("0.0"))
                         key = ce.agent.name
@@ -3500,6 +3500,9 @@ def change_process_sked_ajax(request):
         return HttpResponse(form.errors, mimetype="text/json-comment-filtered")
 
 def work(request):
+    next = settings.ALL_WORK_PAGE
+    if next != "/accounting/work/":
+        return HttpResponseRedirect(next)
     agent = get_agent(request)
     context_id = 0
     start = datetime.date.today()
@@ -6074,6 +6077,7 @@ def pastwork_reload(
         template_params,
         context_instance=RequestContext(request))
 
+#obsolete?
 @login_required
 def log_past_work(
         request, 
@@ -7669,7 +7673,7 @@ def change_work_event(request, event_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         prefix = event.form_prefix()
-        form = TimeEventForm(instance=event, prefix=prefix, data=request.POST)
+        form = InputEventForm(instance=event, prefix=prefix, data=request.POST)
         if form.is_valid():
             #import pdb; pdb.set_trace()
             data = form.cleaned_data

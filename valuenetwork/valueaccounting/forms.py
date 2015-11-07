@@ -1272,44 +1272,6 @@ class PastWorkForm(forms.ModelForm):
         fields = ('id', 'event_date', 'quantity', 'description')
 
 
-class OldUnplannedWorkEventForm(forms.ModelForm):
-    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
-    resource_type = WorkModelChoiceField(
-        queryset=EconomicResourceType.objects.all(),
-        label="Type of work done",
-        empty_label=None,
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
-    from_agent = forms.ModelChoiceField(
-        required=True,
-        queryset=EconomicAgent.objects.all(),
-        label="Work done by",  
-        empty_label=None,
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'}))   
-    quantity = forms.DecimalField(required=True,
-        widget=DecimalDurationWidget,
-        label="Time spent",
-        help_text="hours, minutes")
-    description = forms.CharField(
-        required=False, 
-        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
-   
-    class Meta:
-        model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'from_agent', 'quantity', 'description')
-
-    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
-        #import pdb; pdb.set_trace()
-        super(UnplannedWorkEventForm, self).__init__(*args, **kwargs)
-        if pattern:
-            self.pattern = pattern
-            self.fields["resource_type"].choices = [(rt.id, rt) for rt in pattern.work_resource_types()]
-        if context_agent:
-            self.context_agent = context_agent
-            self.fields["from_agent"].queryset = context_agent.all_members()
-
-
 class WorkEventAgentForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     resource_type = WorkModelChoiceField(
@@ -1448,6 +1410,7 @@ class WorkEventChangeForm(forms.ModelForm):
         fields = ('id', 'event_date', 'quantity', 'description')
 
 
+#obsolete?
 class WorkEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(required=False,

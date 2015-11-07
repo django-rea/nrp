@@ -132,6 +132,7 @@ urlpatterns = patterns("",
         name="uncommit"),
     url(r"^change-process-sked-ajax/$", 'valuenetwork.valueaccounting.views.change_process_sked_ajax', 
         name="change_process_sked_ajax"),
+    #obsolete?
     url(r"^past-work/(?P<commitment_id>\d+)/$", 'valuenetwork.valueaccounting.views.log_past_work', 
         name="log_past_work"),
     url(r"^pastwork-reload/(?P<commitment_id>\d+)/(?P<event_id>\d+)/(?P<was_running>\d+)/(?P<was_retrying>\d+)/$", 'valuenetwork.valueaccounting.views.pastwork_reload', 

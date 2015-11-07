@@ -3645,7 +3645,61 @@ class ResourceTypeSpecialPrice(models.Model):
         default=Decimal("0.00"))
     stage = models.ForeignKey(ProcessType, related_name="price_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
+
+
+class ExchangeTypeManager(models.Manager):
     
+    def sale_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='sale')
+      
+    def internal_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='intrnl_xfer')
+      
+    def supply_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='supply_xfer')
+      
+    def demand_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
+      
+class ExchangeType(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    use_case = models.ForeignKey(UseCase,
+        blank=True, null=True,
+        verbose_name=_('use case'), related_name='exchange_types')
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('pattern'), related_name='exchange_types')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"agent_type__is_context": True,},
+        verbose_name=_('context agent'), related_name='exchange_types')
+    description = models.TextField(_('description'), blank=True, null=True)
+    transfer_from_agent_association_type = models.ForeignKey(AgentAssociationType,
+        blank=True, null=True,
+        verbose_name=_('from agent association type'), related_name='exchange_types_from')
+    transfer_to_agent_association_type = models.ForeignKey(AgentAssociationType,
+        blank=True, null=True,
+        verbose_name=_('to agent association type'), related_name='exchange_types_to')
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='exchange_types_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='exchange_types_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = ExchangeTypeManager()
+    
+    class Meta:
+        ordering = ('name',)
+            
+    def __unicode__(self):
+        return self.name
+            
+    def save(self, *args, **kwargs):
+        unique_slugify(self, self.name)
+        super(ExchangeType, self).save(*args, **kwargs)   
+            
 
 class GoodResourceManager(models.Manager):
     def get_query_set(self):
@@ -3679,7 +3733,6 @@ class EconomicResourceManager(models.Manager):
     def onhand(self):
         return EconomicResource.objects.filter(quantity__gt=0)
         
-
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='resources')
@@ -3692,7 +3745,7 @@ class EconomicResource(models.Model):
         related_name="stream_resources", verbose_name=_('order item'))
     stage = models.ForeignKey(ProcessType, related_name="resources_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
-    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="resources_at_exchange_stage",
+    exchange_stage = models.ForeignKey(ExchangeType, related_name="resources_at_exchange_stage",
         verbose_name=_('exchange stage'), blank=True, null=True)
     state = models.ForeignKey(ResourceState, related_name="resources_at_state",
         verbose_name=_('state'), blank=True, null=True)
@@ -6409,59 +6462,6 @@ class Process(models.Model):
                                 ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
 
 
-class ExchangeTypeManager(models.Manager):
-    
-    def sale_exchange_types(self):
-        return ExchangeType.objects.filter(use_case__identifier='sale')
-      
-    def internal_exchange_types(self):
-        return ExchangeType.objects.filter(use_case__identifier='intrnl_xfer')
-      
-    def supply_exchange_types(self):
-        return ExchangeType.objects.filter(use_case__identifier='supply_xfer')
-      
-    def demand_exchange_types(self):
-        return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
-      
-class ExchangeType(models.Model):
-    name = models.CharField(_('name'), max_length=128)
-    use_case = models.ForeignKey(UseCase,
-        blank=True, null=True,
-        verbose_name=_('use case'), related_name='exchange_types')
-    process_pattern = models.ForeignKey(ProcessPattern,
-        blank=True, null=True,
-        verbose_name=_('pattern'), related_name='exchange_types')
-    context_agent = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
-        verbose_name=_('context agent'), related_name='exchange_types')
-    description = models.TextField(_('description'), blank=True, null=True)
-    transfer_from_agent_association_type = models.ForeignKey(AgentAssociationType,
-        blank=True, null=True,
-        verbose_name=_('from agent association type'), related_name='exchange_types_from')
-    transfer_to_agent_association_type = models.ForeignKey(AgentAssociationType,
-        blank=True, null=True,
-        verbose_name=_('to agent association type'), related_name='exchange_types_to')
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='exchange_types_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='exchange_types_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    slug = models.SlugField(_("Page name"), editable=False)
-
-    objects = ExchangeTypeManager()
-    
-    class Meta:
-        ordering = ('name',)
-            
-    def __unicode__(self):
-        return self.name
-            
-    def save(self, *args, **kwargs):
-        unique_slugify(self, self.name)
-        super(ExchangeType, self).save(*args, **kwargs)   
-        
 class ExchangeTypeEventType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     exchange_type = models.ForeignKey(ExchangeType,
@@ -7209,7 +7209,7 @@ class Commitment(models.Model):
         related_name="commitments", verbose_name=_('event type'))
     stage = models.ForeignKey(ProcessType, related_name="commitments_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
-    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="commitments_at_exchange_stage",
+    exchange_stage = models.ForeignKey(ExchangeType, related_name="commitments_at_exchange_stage",
         verbose_name=_('exchange stage'), blank=True, null=True)
     state = models.ForeignKey(ResourceState, related_name="commitments_at_state",
         verbose_name=_('state'), blank=True, null=True)
@@ -8418,7 +8418,7 @@ class EconomicEvent(models.Model):
     resource = models.ForeignKey(EconomicResource, 
         blank=True, null=True,
         verbose_name=_('resource'), related_name='events')
-    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="events_creating_exchange_stage",
+    exchange_stage = models.ForeignKey(ExchangeType, related_name="events_creating_exchange_stage",
         verbose_name=_('exchange stage'), blank=True, null=True)
     process = models.ForeignKey(Process,
         blank=True, null=True,

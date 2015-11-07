@@ -229,6 +229,8 @@ IGNORABLE_404_URLS = (
     re.compile(r'^/accounting/timeline/__history__.html$')
 )
 
+ALL_WORK_PAGE = "/accounting/work/"
+
 try:
     from local_settings import *
 except ImportError:

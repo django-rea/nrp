@@ -3500,6 +3500,9 @@ def change_process_sked_ajax(request):
         return HttpResponse(form.errors, mimetype="text/json-comment-filtered")
 
 def work(request):
+    next = settings.ALL_WORK_PAGE
+    if next != "/accounting/work/":
+        return HttpResponseRedirect(next)
     agent = get_agent(request)
     context_id = 0
     start = datetime.date.today()

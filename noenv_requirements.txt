@@ -1,3 +1,4 @@
+--trusted-host dist.pinaxproject.com
 --extra-index-url=http://dist.pinaxproject.com/dev/
 --extra-index-url=http://dist.pinaxproject.com/alpha/
 
@@ -14,3 +15,4 @@ webtest
 django-webtest
 django-notification
 toposort
+django-cors-headers

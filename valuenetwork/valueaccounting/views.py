@@ -10800,6 +10800,7 @@ def payout_from_virtual_account(request, account_id):
         % ('accounting/virtual-accounts'))
 
 
+#obsolete: everything below has been moved to the new api app and shd be deleted soon
 #the following methods relate to providing linked open data from NRP instances, for the valueflows vocab project.
 #they use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.
 

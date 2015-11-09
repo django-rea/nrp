@@ -103,6 +103,7 @@ TEMPLATE_CONTEXT_PROCESSORS = [
 
 
 MIDDLEWARE_CLASSES = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -144,6 +145,7 @@ INSTALLED_APPS = [
     'easy_thumbnails',
     #'report_builder',
     'notification',
+    'corsheaders',
     #'django_filters',
     
     # project
@@ -217,6 +219,10 @@ ACCOUNT_LOGIN_REDIRECT_URL = "/accounting/start/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "home"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 2
 LOGIN_URL = '/account/login/'
+
+CORS_URLS_REGEX = r'^/api/.*$'
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
 
 import re
 IGNORABLE_404_URLS = (

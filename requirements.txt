@@ -1,7 +1,8 @@
+--trusted-host dist.pinaxproject.com
 --extra-index-url=http://dist.pinaxproject.com/dev/
 --extra-index-url=http://dist.pinaxproject.com/alpha/
 
-Django==1.4.21
+Django==1.4.22
 South
 django_debug_toolbar
 django-extensions
@@ -15,3 +16,4 @@ webtest
 django-webtest
 django-notification
 toposort
+django-cors-headers

@@ -13,3 +13,5 @@ django-webtest
 django-notification
 toposort
 django-cors-headers
+rdflib
+rdflib-jsonld

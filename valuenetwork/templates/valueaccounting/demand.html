@@ -25,7 +25,7 @@
 	<div>
         <legend>{% trans "Demand" %}
             <a class="report" href="{% url closed_work_orders %}">{% trans "Closed Work Orders" %}</a>
-            <a class="report" href="{% url demand_exchanges %}">{% trans "Demand Side Exchanges" %}</a>
+            <a class="report" href="{% url demand_exchanges %}">{% trans "Exchange List" %}</a>
 		</legend>
         {% if agent %}
             <p>
@@ -56,7 +56,7 @@
                             id="sale{{ order.id }}" 
                             action="{% url exchange_logging exchange_id=order.sale.id %}" 
                             method="GET" >
-                            <button style="display: inline;"  class="btn btn-info" title="Sale for this order" >Exchange for this order</button>
+                            <button style="display: inline;"  class="btn btn-info" title="Sale for this order" >Fulfill this order</button>
                         </form>
                         {% if order.description %}
                             <p>{{ order.description|urlize|linebreaks }}</p>

@@ -116,21 +116,21 @@ class FacetAdmin(admin.ModelAdmin):
 admin.site.register(Facet, FacetAdmin)
 
 
-#class PatternFacetInline(admin.TabularInline):
-#    model = PatternFacetValue
-#    fields = ('event_type', 'facet_value')
+class PatternFacetInline(admin.TabularInline):
+    model = PatternFacetValue
+    fields = ('event_type', 'facet_value')
 
 
-#class PatternUseCaseInline(admin.TabularInline):
-#    model = PatternUseCase
-#    extra = 1
+class PatternUseCaseInline(admin.TabularInline):
+    model = PatternUseCase
+    extra = 1
     
 
-#class ProcessPatternAdmin(admin.ModelAdmin):
-#    list_display = ('name', 'use_case_list')
-#    inlines = [ PatternFacetInline, PatternUseCaseInline]
+class ProcessPatternAdmin(admin.ModelAdmin):
+    list_display = ('name', 'use_case_list')
+    inlines = [ PatternFacetInline, PatternUseCaseInline]
 
-#admin.site.register(ProcessPattern, ProcessPatternAdmin)
+admin.site.register(ProcessPattern, ProcessPatternAdmin)
 
 
 class AgentUserInline(admin.TabularInline):
@@ -192,15 +192,15 @@ class ProcessTypeAdmin(admin.ModelAdmin):
 admin.site.register(ProcessType, ProcessTypeAdmin)
 
 
-class ExchangeTypeEventTypeInline(admin.TabularInline):
-    model = ExchangeTypeEventType
+class ExchangeTypeItemTypeInline(admin.TabularInline):
+    model = ExchangeTypeItemType
     fk_name = "exchange_type"
 
 class ExchangeTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'use_case', 'context_agent', 'process_pattern' )
     list_filter = ['context_agent', 'use_case']
     search_fields = ['name',]
-    inlines = [ ExchangeTypeEventTypeInline, ]
+    inlines = [ ExchangeTypeItemTypeInline, ]
 
 admin.site.register(ExchangeType, ExchangeTypeAdmin)
 

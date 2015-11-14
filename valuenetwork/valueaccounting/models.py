@@ -632,6 +632,12 @@ class EconomicAgent(models.Model):
               
     def demand_exchange_count(self):
         return Exchange.objects.demand_exchanges().filter(context_agent=self).count()
+              
+    def supply_exchange_count(self):
+        return Exchange.objects.supply_exchanges().filter(context_agent=self).count()
+              
+    def internal_exchange_count(self):
+        return Exchange.objects.internal_exchanges().filter(context_agent=self).count()
                
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
@@ -2751,9 +2757,9 @@ def create_use_cases(app, **kwargs):
     UseCase.create('payout', _('Payout'), True)
     UseCase.create('transfer', _('Transfer'))
     UseCase.create('available', _('Make Available'), True)
-    UseCase.create('intrnl_xfer', _('Internal Transfer'))
-    UseCase.create('supply_xfer', _('Supply Transfer'))
-    UseCase.create('demand_xfer', _('Demand Transfer'))
+    UseCase.create('intrnl_xfer', _('Internal Exchange'))
+    UseCase.create('supply_xfer', _('Supply Exchange'))
+    UseCase.create('demand_xfer', _('Demand Exchange'))
     print "created use cases"
 
 post_migrate.connect(create_use_cases)
@@ -2791,18 +2797,10 @@ def create_event_types(app, **kwargs):
     EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
     #the following is for fees, taxes, other extraneous charges not involved in a value equation
     EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
-    #the following is for xfers within the network for now; may become more universal later
     EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', 'x', 'quantity')
     EventType.create('Reciprocal Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', 'x', 'quantity')
     EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'agent', '+', 'quantity')
-    #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')
-    EventType.create('Internal Transfer', _('transfers internally'), _('transferred by internally'), 'transfer', 'exchange', 'x', 'quantity')
-    EventType.create('Internal Reciprocal Transfer', _('transfers internally'), _('transferred internally by'), 'transfer', 'exchange', 'x', 'quantity')
-    EventType.create('Supply Transfer', _('transfers in'), _('transferred in by'), 'transfer in', 'exchange', 'x', 'quantity')
-    EventType.create('Supply Reciprocal Transfer', _('transfers out'), _('transferred out by'), 'transfer out', 'exchange', 'x', 'quantity')
-    EventType.create('Demand Transfer', _('transfers out'), _('transferred out by'), 'transfer out', 'exchange', 'x', 'quantity')
-    EventType.create('Demand Reciprocal Transfer', _('transfers in'), _('transferred in by'), 'transfer in', 'exchange', 'x', 'quantity')
-
+    
     print "created event types"
 
 post_migrate.connect(create_event_types)
@@ -2858,11 +2856,13 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('recipe', 'Create Changeable')
     #UseCaseEventType.create('recipe', 'Process Expense')
     UseCaseEventType.create('todo', 'Todo')
-    #UseCaseEventType.create('cust_orders', 'Damage')
-    #UseCaseEventType.create('cust_orders', 'Payment')
-    #UseCaseEventType.create('cust_orders', 'Receipt')
+    UseCaseEventType.create('cust_orders', 'Damage')
+    UseCaseEventType.create('cust_orders', 'Transfer')
+    UseCaseEventType.create('cust_orders', 'Reciprocal Transfer')
+    UseCaseEventType.create('cust_orders', 'Payment')
+    UseCaseEventType.create('cust_orders', 'Receipt')
     UseCaseEventType.create('cust_orders', 'Sale')
-    #UseCaseEventType.create('cust_orders', 'Shipment')
+    UseCaseEventType.create('cust_orders', 'Shipment')
     UseCaseEventType.create('purchasing', 'Payment') 
     UseCaseEventType.create('purchasing', 'Receipt') 
     UseCaseEventType.create('res_contr', 'Time Contribution')
@@ -2886,14 +2886,14 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('transfer', 'Transfer')
     UseCaseEventType.create('transfer', 'Reciprocal Transfer')
     UseCaseEventType.create('available', 'Make Available')
-    UseCaseEventType.create('intrnl_xfer', 'Internal Transfer')
-    UseCaseEventType.create('intrnl_xfer', 'Internal Reciprocal Transfer')
+    UseCaseEventType.create('intrnl_xfer', 'Transfer')
+    UseCaseEventType.create('intrnl_xfer', 'Reciprocal Transfer')
     UseCaseEventType.create('intrnl_xfer', 'Time Contribution')
-    UseCaseEventType.create('supply_xfer', 'Supply Transfer')
-    UseCaseEventType.create('supply_xfer', 'Supply Reciprocal Transfer')
+    UseCaseEventType.create('supply_xfer', 'Transfer')
+    UseCaseEventType.create('supply_xfer', 'Reciprocal Transfer')
     UseCaseEventType.create('supply_xfer', 'Time Contribution')
-    UseCaseEventType.create('demand_xfer', 'Demand Transfer')
-    UseCaseEventType.create('demand_xfer', 'Demand Reciprocal Transfer')
+    UseCaseEventType.create('demand_xfer', 'Transfer')
+    UseCaseEventType.create('demand_xfer', 'Reciprocal Transfer')
     UseCaseEventType.create('demand_xfer', 'Time Contribution')
 
     print "created use case event type associations"
@@ -3649,6 +3649,7 @@ class ResourceTypeSpecialPrice(models.Model):
 
 class ExchangeTypeManager(models.Manager):
     
+    #before deleting this, track down the connections
     def sale_exchange_types(self):
         return ExchangeType.objects.filter(use_case__identifier='sale')
       
@@ -3698,8 +3699,9 @@ class ExchangeType(models.Model):
             
     def save(self, *args, **kwargs):
         unique_slugify(self, self.name)
-        super(ExchangeType, self).save(*args, **kwargs)   
-            
+        super(ExchangeType, self).save(*args, **kwargs) 
+        
+
 
 class GoodResourceManager(models.Manager):
     def get_query_set(self):
@@ -6462,63 +6464,100 @@ class Process(models.Model):
                                 ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
 
 
-class ExchangeTypeEventType(models.Model):
+class ExchangeTypeItemType(models.Model):
     name = models.CharField(_('name'), max_length=128)
+    sequence = models.IntegerField(_('sequence'), default=0)
     exchange_type = models.ForeignKey(ExchangeType,
-        verbose_name=_('exchange type'), related_name='exchange_type_event_types')
+        verbose_name=_('exchange type'), related_name='exchange_type_item_types')
     event_type = models.ForeignKey(EventType,
-        verbose_name=_('event type'), related_name='exchange_type_event_types')
+        verbose_name=_('event type'), related_name='exchange_type_item_types')
     description = models.TextField(_('description'), blank=True, null=True)
     is_contribution = models.BooleanField(_('is contribution'), default=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='exchange_type_event_types_created', blank=True, null=True, editable=False)
+        related_name='exchange_type_item_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='exchange_type_event_types_changed', blank=True, null=True, editable=False)
+        related_name='exchange_type_item_types_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+
+    def __unicode__(self):
+        return self.name        
+
+    class Meta:
+        ordering = ('sequence',)
         
+    
 
 class ExchangeManager(models.Manager):
 
-    def financial_contributions(self, start=None, end=None):
+    #obsolete
+    #def financial_contributions(self, start=None, end=None):
         #import pdb; pdb.set_trace()
-        if start and end:
-             exchanges = Exchange.objects.filter(
-                Q(use_case__identifier="cash_contr")|
-                Q(use_case__identifier="purch_contr")|
-                Q(use_case__identifier="exp_contr")).filter(start_date__range=[start, end])
-        else:
-            exchanges = Exchange.objects.filter(
-                Q(use_case__identifier="cash_contr")|
-                Q(use_case__identifier="purch_contr")|
-                Q(use_case__identifier="exp_contr"))
+    #    if start and end:
+    #         exchanges = Exchange.objects.filter(
+    #            Q(use_case__identifier="cash_contr")|
+    #            Q(use_case__identifier="purch_contr")|
+    #            Q(use_case__identifier="exp_contr")).filter(start_date__range=[start, end])
+    #    else:
+    #        exchanges = Exchange.objects.filter(
+    #            Q(use_case__identifier="cash_contr")|
+    #            Q(use_case__identifier="purch_contr")|
+    #            Q(use_case__identifier="exp_contr"))
         #processes_with_expenses = Process.objects.processes_with_expenses(start, end)
-        both = list(exchanges)
+    #    both = list(exchanges)
         #both.extend(processes_with_expenses)
-        both.sort(lambda x, y: cmp(y.start_date, x.start_date))
-        return both
+    #    both.sort(lambda x, y: cmp(y.start_date, x.start_date))
+    #    return both
         
     #obsolete
-    def sales_and_distributions(self):
-        return Exchange.objects.filter(
-            Q(use_case__identifier="sale")|
-            Q(use_case__identifier="distribution"))
+    #def sales_and_distributions(self):
+    #    return Exchange.objects.filter(
+    #        Q(use_case__identifier="sale")|
+    #        Q(use_case__identifier="distribution"))
               
-    def demand_exchanges(self):
-        return Exchange.objects.filter(use_case__identifier="demand_xfer")
+    #def demand_exchanges(self):
+    #    return Exchange.objects.filter(use_case__identifier="demand_xfer")
               
-    def supply_exchanges(self):
-        return Exchange.objects.filter(use_case__identifier="supply_xfer")
+    #def supply_exchanges(self):
+    #    return Exchange.objects.filter(use_case__identifier="supply_xfer")
               
-    def internal_exchanges(self):
-        return Exchange.objects.filter(use_case__identifier="intrnl_xfer")
+    def demand_exchanges(self, start=None, end=None):
+        if start and end:
+            exchanges = Exchange.objects.filter(use_case__identifier="demand_xfer").filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.filter(use_case__identifier="demand_xfer")
+        #exchs = list(exchanges)
+        #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
+        #return exchs
+        return exchanges
+              
+    def supply_exchanges(self, start=None, end=None):
+        if start and end:
+            exchanges = Exchange.objects.filter(use_case__identifier="supply_xfer").filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.filter(use_case__identifier="supply_xfer")
+        #exchs = list(exchanges)
+        #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
+        #eturn exchs
+        return exchanges
     
-    def distributions(self):
-        return Exchange.objects.filter(use_case__identifier="distribution")
+    def internal_exchanges(self, start=None, end=None):
+        if start and end:
+            exchanges = Exchange.objects.filter(use_case__identifier="intrnl_xfer").filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.filter(use_case__identifier="intrnl_xfer")
+        return exchanges
+    
+    def distributions(self, start=None, end=None):
+        if start and end:
+            exchanges = Exchange.objects.filter(use_case__identifier="distribution").filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.filter(use_case__identifier="distribution")
+        return exchanges
 
     #obsolete
-    def material_contributions(self):
-        return Exchange.objects.filter(use_case__identifier="res_contr")
+    #def material_contributions(self):
+    #    return Exchange.objects.filter(use_case__identifier="res_contr")
 
 class Exchange(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
@@ -6563,8 +6602,6 @@ class Exchange(models.Model):
 
     def __unicode__(self):
         show_name = ""
-        if self.process_pattern:
-            show_name = self.process_pattern.name
         if self.exchange_type:
             show_name = self.exchange_type.name
         name = ""
@@ -6606,79 +6643,106 @@ class Exchange(models.Model):
         #    answer = False
         return answer
 
-    def receipt_commitments(self):
-        return self.commitments.filter(
-            event_type__relationship='receive')
+    def slots_with_detail(self):
+        #import pdb; pdb.set_trace()
+        slots = self.exchange_type.exchange_type_item_types.all()
+        events = self.events
+        commits = self.commitments
+        for slot in slots:
+            slot.events = []
+            slot.total = 0
+            for event in events:
+                if event.exchange_type_item_type == slot:
+                    slot.events.append(event)
+                    if event.value:
+                        slot.total += event.value
+                    else:
+                        slot.total += event.quantity                
+            for commit in commits:
+                if commit.exchange_type_item_type == slot:
+                    slot.commitments.append(commit)                
+    
+    #def receipt_commitments(self):
+    #    return self.commitments.filter(
+    #        event_type__relationship='receive')
 
-    def payment_commitments(self):
-        return self.commitments.filter(
-            event_type__relationship='pay')
+    #def payment_commitments(self):
+    #    return self.commitments.filter(
+    #        event_type__relationship='pay')
 
-    def shipment_commitments(self):
-        return self.commitments.filter(
-            event_type__relationship='shipment')
+    #def shipment_commitments(self):
+    #    return self.commitments.filter(
+    #        event_type__relationship='shipment')
             
-    def cash_receipt_commitments(self):
+    #def cash_receipt_commitments(self):
+    #    return self.commitments.filter(
+    #        event_type__name='Cash Receipt')
+    
+    def transfer_commitments(self):
         return self.commitments.filter(
-            event_type__name='Cash Receipt')
-            
-    def receipt_events(self):
-        return self.events.filter(
-            event_type__relationship='receive')
+            event_type__name='Transfer')        
+    
+    def rec_transfer_commitments(self):
+        return self.commitments.filter(
+            event_type__name='Reciprocal Transfer')  
+    
+    #def receipt_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='receive')
 
-    def uncommitted_receipt_events(self):
-        return self.events.filter(
-            event_type__relationship='receive',
-            commitment=None)
+    #def uncommitted_receipt_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='receive',
+    #        commitment=None)
 
-    def payment_events(self):
-        return self.events.filter(
-            event_type__relationship='pay')
+    #def payment_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='pay')
             
-    def cash_contributions(self):
-        payments = self.payment_events()
-        resources = {p.resource for p in payments if p.resource}
-        ccs = []
-        for r in resources:
-            ccs.extend(r.cash_contribution_events())
-        return ccs
+    #def cash_contributions(self):
+    #    payments = self.payment_events()
+    #    resources = {p.resource for p in payments if p.resource}
+    #    ccs = []
+    #    for r in resources:
+    #        ccs.extend(r.cash_contribution_events())
+    #    return ccs
         
-    def payment_sources_with_contributions(self):
-        resources = {p.resource for p in self.payment_events() if p.resource}
-        return [r for r in resources if r.cash_contribution_events()]
+    #def payment_sources_with_contributions(self):
+    #    resources = {p.resource for p in self.payment_events() if p.resource}
+    #    return [r for r in resources if r.cash_contribution_events()]
 
-    def uncommitted_payment_events(self):
-        return self.events.filter(
-            event_type__relationship='pay',
-            commitment=None)
+    #def uncommitted_payment_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='pay',
+    #        commitment=None)
 
     def work_events(self):
         return self.events.filter(
             event_type__relationship='work')
 
-    def expense_events(self):
-        return self.events.filter(
-            event_type__relationship='expense')
+    #def expense_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='expense')
 
-    def material_contribution_events(self):
-        return self.events.filter(
-            event_type__relationship='resource')
+    #def material_contribution_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='resource')
         
-    def cash_events(self): #includes cash contributions, donations and loans
-        return self.events.filter(
-            event_type__relationship='cash')
+    #def cash_events(self): #includes cash contributions, donations and loans
+    #    return self.events.filter(
+    #        event_type__relationship='cash')
     
-    def cash_receipt_events(self):
-        return self.events.filter(
-            event_type__relationship='receivecash')
+    #def cash_receipt_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='receivecash')
             
     def cash_disbursement_events(self):
         return self.events.filter(
             event_type__name='Cash Disbursement')
             
-    def shipment_events(self):
-        return self.events.filter(
-            event_type__relationship='shipment')
+    #def shipment_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='shipment')
                 
     def transfer_events(self):
         #exchange method
@@ -6689,9 +6753,19 @@ class Exchange(models.Model):
         #exchange method
         return self.events.filter(
             event_type__name='Reciprocal Transfer')  
-            
-    def shipment_events_no_commitment(self):
-        return self.events.filter(event_type__relationship='shipment').filter(commitment=None)
+    
+    def uncommitted_transfer_events(self):
+        return self.events.filter(
+            event_type__name='Transfer',
+            commitment=None)
+    
+    def uncommitted_rec_transfer_events(self):
+        return self.events.filter(
+            event_type__name='Reciprocal Transfer',
+            commitment=None)
+        
+    #def shipment_events_no_commitment(self):
+    #    return self.events.filter(event_type__relationship='shipment').filter(commitment=None)
             
     def distribution_events(self):
         return self.events.filter(
@@ -6701,9 +6775,9 @@ class Exchange(models.Model):
         return self.events.filter(
             event_type__relationship='disburse')
              
-    def fee_events(self):
-        return self.events.filter(
-            event_type__relationship='fee')
+    #def fee_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='fee')
     
     def sorted_events(self):
         events = self.events.all().order_by("event_type__name")
@@ -7238,6 +7312,9 @@ class Commitment(models.Model):
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='commitments')
+    exchange_type_item_type = models.ForeignKey(ExchangeTypeItemType,
+        blank=True, null=True, 
+        related_name="commitments")
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         limit_choices_to={"agent_type__is_context": True,},
@@ -8433,6 +8510,9 @@ class EconomicEvent(models.Model):
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
+    exchange_type_item_type = models.ForeignKey(ExchangeTypeItemType,
+        blank=True, null=True, 
+        related_name="events", verbose_name=_('exchange type item type'))
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         limit_choices_to={"agent_type__is_context": True,},
@@ -8486,8 +8566,11 @@ class EconomicEvent(models.Model):
         resource_string = self.resource_type.name
         if self.resource:
             resource_string = str(self.resource)
+        event_name = self.event_type.name
+        if self.exchange_type_item_type:
+            event_name = self.exchange_type_item_type.name
         return ' '.join([
-            self.event_type.name,
+            event_name,
             self.event_date.strftime('%Y-%m-%d'),
             'from',
             from_agt,

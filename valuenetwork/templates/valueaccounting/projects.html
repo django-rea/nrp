@@ -100,8 +100,18 @@
                     {% if node.wip %}
                         <a class="indent" href="{% url project_wip project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
                     {% endif %}
-                    <a class="indent" href="{% url demand_exchanges agent_id=node.id %}">{% trans "Demand Side Exchanges" %}: {{ node.demand_exchange_count }}</a>
-                    <a class="indent" href="{% url distributions agent_id=node.id %}">{% trans "Distributions" %}: {{ node.distributions_count }}</a>
+                    {% if node.supply_exchange_count > 0 %}
+                        <a class="indent" href="{% url exchanges agent_id=node.id %}">{% trans "Incoming Exchanges" %}: {{ node.supply_exchange_count }}</a>
+                    {% endif %}
+                    {% if node.demand_exchange_count > 0 %}
+                        <a class="indent" href="{% url demand_exchanges agent_id=node.id %}">{% trans "Outgoing Exchanges" %}: {{ node.demand_exchange_count }}</a>
+                    {% endif %}
+                    {% if node.internal_exchange_count > 0 %}
+                        <a class="indent" href="{% url internal_exchanges agent_id=node.id %}">{% trans "Internal Exchanges" %}: {{ node.internal_exchange_count }}</a>
+                    {% endif %}
+                    {% if node.distributions_count > 0 %}
+                        <a class="indent" href="{% url distributions agent_id=node.id %}">{% trans "Distributions" %}: {{ node.distributions_count }}</a>
+                    {% endif %}
 {% comment %}
                     <a class="indent" href="{% url value_equation project_id=node.id %}"><b>{% trans "Value Equation" %}</b></a>
 {% endcomment %}

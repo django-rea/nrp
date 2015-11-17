@@ -9727,13 +9727,9 @@ def exchange_logging(request, exchange_id):
     shipped_ids = [] #??
 
     #import pdb; pdb.set_trace()
-    transfer_commitments = exchange.transfer_commitments()
-    rec_transfer_commitments = exchange.rec_transfer_commitments()
     distribution_events = exchange.distribution_events()
     disbursement_events = exchange.disbursement_events()
-    #fee_events = exchange.fee_events()
-    transfer_events = exchange.transfer_events() 
-    rec_transfer_events = exchange.rec_transfer_events()
+    work_events = exchange.work_events()
 
     if agent:
         #import pdb; pdb.set_trace()
@@ -9741,62 +9737,13 @@ def exchange_logging(request, exchange_id):
         if request.user.is_superuser or request.user == exchange.created_by:
             logger = True
 
-            
-        for event in transfer_events:
-            total_out = total_out + event.quantity
-            payment_total = payment_total + event.quantity
-            event.changeform = PaymentEventForm(
-                pattern=pattern,
-                context_agent=context_agent,
-                instance=event, 
-                prefix=str(event.id))
-        for event in expense_events:
-            expense_total = expense_total + event.value
-            total_in = total_in + event.value
-            event.changeform = ExpenseEventForm(
-                pattern=pattern,
-                context_agent=context_agent,
-                instance=event, 
-                prefix=str(event.id))
         for event in work_events:
             event.changeform = WorkEventAgentForm(
                 pattern=pattern,
                 context_agent=context_agent,
                 instance=event, 
                 prefix=str(event.id))
-        for event in receipt_events:
-            receipt_total = receipt_total + event.value
-            total_in = total_in + event.value
-            event.changeform = UnorderedReceiptForm(
-                pattern=pattern,
-                context_agent=context_agent,
-                instance=event, 
-                prefix=str(event.id))
-        for event in cash_receipt_events:
-            total_in = total_in + event.quantity
-            cash_receipt_total = cash_receipt_total + event.quantity
-            #import pdb; pdb.set_trace()
-            event.changeform = CashReceiptForm(
-                pattern=pattern,
-                context_agent=context_agent,
-                instance=event, 
-                prefix=str(event.id))
-        for event in shipment_events:
-            total_out = total_out + event.value
-            shipment_total = shipment_total + event.value
-            #import pdb; pdb.set_trace()
-            if event.resource:
-                event.changeform = ShipmentForm(
-                    pattern=pattern,
-                    context_agent=context_agent,
-                    instance=event, 
-                    prefix=str(event.id))
-            else:
-                event.changeform = UninventoriedShipmentForm(
-                    pattern=pattern,
-                    context_agent=context_agent,
-                    instance=event, 
-                    prefix=str(event.id))                
+
         for event in distribution_events:
             total_out = total_out + event.quantity
             distribution_total = distribution_total + event.quantity
@@ -9811,19 +9758,7 @@ def exchange_logging(request, exchange_id):
                 pattern=pattern,
                 instance=event, 
                 prefix=str(event.id))
-        for event in cash_events:
-            total_in = total_in + event.value
-            cash_contr_total = cash_contr_total + event.value
-            #event.changeform = CashEventForm(
-            #    pattern=pattern,
-            #    instance=event, 
-            #    prefix=str(event.id))
-        for event in material_events:
-            total_in = total_in + event.value
-            matl_contr_total = matl_contr_total + event.value
-        for event in fee_events:
-            total_out = total_out + event.value
-            fee_total = fee_total + event.value
+
         for event in transfer_events:
             total_out = total_out + event.value
             shipment_total = shipment_total + event.value #todo: transfers will become their own slot

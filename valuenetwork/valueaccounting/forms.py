@@ -1524,6 +1524,73 @@ class EventChangeQuantityForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('id', 'quantity')
 
+class ExchangeEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    to_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Transferred to",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    from_agent = forms.ModelChoiceField(
+        required=True,
+        queryset=EconomicAgent.objects.all(),
+        label="Transferred from",  
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'})) 
+    quantity = forms.DecimalField(
+        label="Payment amount",
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.none(),
+        #label="Cash resource type payment from",
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'resource-type-for-resource chzn-select'}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        #label="Cash resource account or earmark to decrease",
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
+    value = forms.DecimalField(
+        label="Value (total, not per unit)",
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'to_agent', 'from_agent', 'quantity', 'resource_type', 'resource', 'description', 'accounting_reference', 'event_reference')
+
+    def __init__(self, pattern=None, context_agent=None, posting=False, *args, **kwargs):
+        super(PaymentEventForm, self).__init__(*args, **kwargs)
+        if pattern:
+            self.pattern = pattern
+            rts = pattern.payment_resource_types()
+            self.fields["resource_type"].queryset = rts
+            if posting:
+                self.fields["resource"].queryset = EconomicResource.objects.all()
+            else:
+                if rts:
+                    if self.instance.id:
+                        rt = self.instance.resource_type
+                        if rt:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
+                        else:
+                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                    else:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+        if context_agent:
+            self.context_agent = context_agent
+            self.fields["to_agent"].queryset = context_agent.all_suppliers()
+            self.fields["from_agent"].queryset = context_agent.all_ancestors_and_members()
+
 class PaymentEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     to_agent = forms.ModelChoiceField(

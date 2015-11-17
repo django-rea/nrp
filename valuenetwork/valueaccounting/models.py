@@ -1443,7 +1443,6 @@ class EconomicResourceType(models.Model):
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
 
-
     class Meta:
         ordering = ('name',)
         verbose_name = _('resource type')
@@ -9298,7 +9297,17 @@ class EconomicEvent(models.Model):
         prefix = self.form_prefix()
         qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
-
+            
+    def exchange_change_form(self, data=None):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import ExchangeEventForm
+        unit = self.unit_of_quantity
+        if not unit:
+            unit = self.resource_type.unit
+        prefix = self.form_prefix()
+        qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+        return ExchangeEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
+    
     def unplanned_work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm
         return UnplannedWorkEventForm(instance=self, prefix=str(self.id))

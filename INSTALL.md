@@ -71,7 +71,8 @@ sed -i "s/VALUE_NETWORK_USER/$USER/" cmd/create-user.sh
 ```
 
 ```
-docker build -t valuenetwork .
+# Build image as super-user
+sudo docker build -t valuenetwork .
 ```
 
 Please note than python dependencies are installed twice using separate `RUN` command 

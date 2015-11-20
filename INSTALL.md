@@ -30,11 +30,12 @@ Install a http proxy to access the Docker container from outside the vagrant box
 Within the box
 
 ```
-apt-get install apache2
+sudo apt-get install apache2
 sudo a2enmod proxy_http
-cp docs/configuration/etc/apache2/sites-available/valuenetwork.conf /etc/apache2/sites-available
+cd /vagrant
+sudo cp docs/configuration/etc/apache2/sites-available/valuenetwork.conf /etc/apache2/sites-available
 sudo a2ensite valuenetwork.conf
-
+sudo service apache2 reload
 ```
 
 From the host machine, figure the ip address of the guest machine before adding a new entry to your host file.

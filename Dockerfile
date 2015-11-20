@@ -12,6 +12,8 @@ RUN pip install virtualenv
 
 RUN pip install virtualenvwrapper
 
+RUN apt-get -yq install libjpeg-dev zlib1g-dev
+
 RUN pip install Pillow
 
 RUN pip install Django==1.4.20

@@ -1,4 +1,4 @@
-FROM ubuntu:14.10
+FROM ubuntu:14.04
 
 RUN apt-get update
 
@@ -11,6 +11,8 @@ RUN pip install --no-deps easy_thumbnails
 RUN pip install virtualenv
 
 RUN pip install virtualenvwrapper
+
+RUN apt-get -yq install libjpeg-dev zlib1g-dev
 
 RUN pip install Pillow
 

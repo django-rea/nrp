@@ -383,13 +383,13 @@ class AgentManager(models.Manager):
     #    return EconomicAgent.objects.filter(Q(agent_type__party_type="network") | Q(agent_type__party_type="team"))
         
     def context_agents(self):
-        return EconomicAgent.objects.filter(agent_type__is_context=True)
+        return EconomicAgent.objects.filter(is_context=True)
         
     def non_context_agents(self):
-        return EconomicAgent.objects.filter(agent_type__is_context=False)
+        return EconomicAgent.objects.filter(is_context=False)
         
     def resource_role_agents(self):
-        #return EconomicAgent.objects.filter(Q(agent_type__is_context=True)|Q(agent_type__party_type="individual"))
+        #return EconomicAgent.objects.filter(Q(is_context=True)|Q(agent_type__party_type="individual"))
         #todo: should there be some limits?  Ran into condition where we needed an organization, therefore change to below.
         return EconomicAgent.objects.all()
     
@@ -417,7 +417,8 @@ class EconomicAgent(models.Model):
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     unit_of_claim_value = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit used in claims'), related_name="agents",
-        help_text=_('For a context agent, the unit of all claims'))    
+        help_text=_('For a context agent, the unit of all claims'))
+    is_context = models.BooleanField(_('is context'), default=False)
     slug = models.SlugField(_("Page name"), editable=False)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
@@ -2236,7 +2237,7 @@ class ResourceTypeList(models.Model):
     description = models.TextField(_('description'), blank=True, null=True)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='lists')
         
     class Meta:
@@ -3299,7 +3300,7 @@ class ProcessType(models.Model):
         verbose_name=_('process pattern'), related_name='process_types')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='process_types')
     description = models.TextField(_('description'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
@@ -3660,7 +3661,7 @@ class ExchangeTypeManager(models.Manager):
       
     def demand_exchange_types(self):
         return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
-      
+
 class ExchangeType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     use_case = models.ForeignKey(UseCase,
@@ -3671,7 +3672,7 @@ class ExchangeType(models.Model):
         verbose_name=_('pattern'), related_name='exchange_types')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='exchange_types')
     description = models.TextField(_('description'), blank=True, null=True)
     transfer_from_agent_association_type = models.ForeignKey(AgentAssociationType,
@@ -5466,7 +5467,7 @@ class Process(models.Model):
         on_delete=models.SET_NULL)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='processes')
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
@@ -6463,13 +6464,11 @@ class Process(models.Model):
                                 ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
 
 
-class ExchangeTypeItemType(models.Model):
+class TransferType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     sequence = models.IntegerField(_('sequence'), default=0)
     exchange_type = models.ForeignKey(ExchangeType,
-        verbose_name=_('exchange type'), related_name='exchange_type_item_types')
-    event_type = models.ForeignKey(EventType,
-        verbose_name=_('event type'), related_name='exchange_type_item_types')
+        verbose_name=_('exchange type'), related_name='transfer_types')
     description = models.TextField(_('description'), blank=True, null=True)
     is_contribution = models.BooleanField(_('is contribution'), default=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
@@ -6485,6 +6484,51 @@ class ExchangeTypeItemType(models.Model):
     class Meta:
         ordering = ('sequence',)
         
+
+class Transfer(models.Model):
+    name = models.CharField(_('name'), blank=True, max_length=128)
+    transfer_type = models.ForeignKey(TransferType,
+        blank=True, null=True,
+        verbose_name=_('transfer type'), related_name='transfers')
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('pattern'), related_name='transfers')
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('exchange'), related_name='transfers')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='transfers')
+    transfer_date = models.DateField(_('transfer date'))
+    notes = models.TextField(_('notes'), blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='exchanges_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='exchanges_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = ExchangeManager()
+
+    class Meta:
+        ordering = ('-start_date',)
+        verbose_name_plural = _("transfers")
+
+    def __unicode__(self):
+        show_name = ""
+        if self.transfer_type:
+            show_name = self.transfer_type.name
+        name = ""
+        if self.name:
+            name = self.name + ","
+        return " ".join([
+            name,
+            show_name,
+            "starting",
+            self.start_date.strftime('%Y-%m-%d'),
+            ])
     
 
 class ExchangeManager(models.Manager):
@@ -6547,12 +6591,12 @@ class ExchangeManager(models.Manager):
             exchanges = Exchange.objects.filter(use_case__identifier="intrnl_xfer")
         return exchanges
     
-    def distributions(self, start=None, end=None):
-        if start and end:
-            exchanges = Exchange.objects.filter(use_case__identifier="distribution").filter(start_date__range=[start, end])
-        else:
-            exchanges = Exchange.objects.filter(use_case__identifier="distribution")
-        return exchanges
+    #def distributions(self, start=None, end=None):
+    #    if start and end:
+    #        exchanges = Exchange.objects.filter(use_case__identifier="distribution").filter(start_date__range=[start, end])
+    #    else:
+    #        exchanges = Exchange.objects.filter(use_case__identifier="distribution")
+    #    return exchanges
 
     #obsolete
     #def material_contributions(self):
@@ -6571,7 +6615,7 @@ class Exchange(models.Model):
         verbose_name=_('exchange type'), related_name='exchanges')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='exchanges')
     url = models.CharField(_('url'), max_length=255, blank=True, null=True)
     start_date = models.DateField(_('start date'))
@@ -7108,6 +7152,53 @@ class Exchange(models.Model):
         return None
 
 
+class DistributionManager(models.Manager):
+    
+    def distributions(self, start=None, end=None):
+        if start and end:
+            dists = Distribution.objects.filter(distribution_date__range=[start, end])
+        else:
+            dists = Distribution.objects.all()
+        return dists
+
+class Distribution(models.Model):
+    name = models.CharField(_('name'), blank=True, max_length=128)
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('pattern'), related_name='distributions')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='distributions')
+    url = models.CharField(_('url'), max_length=255, blank=True, null=True)
+    distribution_date = models.DateField(_('distribution date'))
+    notes = models.TextField(_('notes'), blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='distributions_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='distributions_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = DistributionManager()
+
+    class Meta:
+        ordering = ('-distribution_date',)
+        verbose_name_plural = _("distributions")
+
+    def __unicode__(self):
+        show_name = "Distribution"
+        name = ""
+        if self.name:
+            name = self.name + ","
+        return " ".join([
+            name,
+            show_name,
+            "starting",
+            self.distribution_date.strftime('%Y-%m-%d'),
+            ])
+
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
     #todo: replace with ___? something
@@ -7316,7 +7407,7 @@ class Commitment(models.Model):
         related_name="commitments")
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='commitments')
     description = models.TextField(_('description'), null=True, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
@@ -8514,7 +8605,7 @@ class EconomicEvent(models.Model):
         related_name="events", verbose_name=_('exchange type item type'))
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         related_name="events", verbose_name=_('context agent'),
         on_delete=models.SET_NULL)        
     url = models.CharField(_('url'), max_length=255, blank=True)
@@ -9502,7 +9593,7 @@ PERCENTAGE_BEHAVIOR_CHOICES = (
 class ValueEquation(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=True)
     context_agent = models.ForeignKey(EconomicAgent,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         related_name="value_equations", verbose_name=_('context agent'))  
     description = models.TextField(_('description'), null=True, blank=True)
     percentage_behavior = models.CharField(_('percentage behavior'), 
@@ -10333,7 +10424,7 @@ class Claim(models.Model):
         related_name="claims against", verbose_name=_('against'))
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         related_name="claims", verbose_name=_('context agent'),
         on_delete=models.SET_NULL)        
     value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 

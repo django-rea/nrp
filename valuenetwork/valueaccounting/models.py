@@ -6513,7 +6513,7 @@ class Transfer(models.Model):
     objects = ExchangeManager()
 
     class Meta:
-        ordering = ('-start_date',)
+        ordering = ('-transfer_date',)
         verbose_name_plural = _("transfers")
 
     def __unicode__(self):

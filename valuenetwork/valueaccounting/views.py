@@ -9592,37 +9592,37 @@ def distributions(request, agent_id=None):
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
     et_distribution = EventType.objects.get(name="Distribution")
     event_ids = ""
-    exchanges = Exchange.objects.distributions().filter(start_date__range=[start, end]) 
+    distributions = Distribution.objects.filter(start_date__range=[start, end]) 
     if agent_id:
-	exchanges = exchanges.filter(context_agent=agent)
+	distributions = distributions.filter(context_agent=agent)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         dt_selection_form = DateSelectionForm(data=request.POST)
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
-            exchanges = Exchange.objects.distributions().filter(start_date__range=[start, end])
+            distributions = Distribution.objects.filter(start_date__range=[start, end])
         else:
-            exchanges = Exchange.objects.distributions()
+            distributions = Distribution.objects.all()
         if agent_id:
-            exchanges = exchanges.filter(context_agent=agent)
+            distributions = distributions.filter(context_agent=agent)
 
     total_distributions = 0
     comma = ""
     #import pdb; pdb.set_trace()
-    for x in exchanges:
+    for dist in distributions:
         try:
-            xx = x.event_list
+            xx = dist.event_list
         except AttributeError:
-            x.event_list = x.events.all()
-        for event in x.event_list:
+            dist.event_list = dist.events.all()
+        for event in dist.event_list:
             total_distributions = total_distributions + event.quantity
             event_ids = event_ids + comma + str(event.id)
             comma = ","
     #import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/distributions.html", {
-        "exchanges": exchanges,
+        "distributions": distributions,
         "dt_selection_form": dt_selection_form,
         "total_distributions": total_distributions,
         "event_ids": event_ids,

@@ -82,7 +82,7 @@ and `requirements.txt` in order to leverage cache layers.
 
 ```
 cd /vagrant
-docker run --net=host -v `pwd`:/var/www/valuenetwork -d valuenetwork
+sudo docker run --net=host -v `pwd`:/var/www/valuenetwork -d valuenetwork
 ```
 
 ## Access pages served by the web server

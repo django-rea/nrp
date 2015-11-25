@@ -20,7 +20,7 @@ RUN pip install Django==1.4.20
 
 RUN pip install South
 
-RUN pip install django_debug_toolbar
+RUN pip install django_debug_toolbar==1.3.2
 
 RUN pip install django-extensions
 

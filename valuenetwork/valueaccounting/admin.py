@@ -126,11 +126,11 @@ class PatternUseCaseInline(admin.TabularInline):
     extra = 1
     
 
-class ProcessPatternAdmin(admin.ModelAdmin):
+class PatternAdmin(admin.ModelAdmin):
     list_display = ('name', 'use_case_list')
     inlines = [ PatternFacetInline, PatternUseCaseInline]
 
-admin.site.register(ProcessPattern, ProcessPatternAdmin)
+admin.site.register(Pattern, PatternAdmin)
 
 
 class AgentUserInline(admin.TabularInline):

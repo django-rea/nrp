@@ -538,7 +538,7 @@ def maintain_patterns(request, use_case_id=None):
         if use_case.allows_more_patterns():
             allowed_patterns = use_case.allowed_patterns()
             allowed_pattern_ids = [p.id for p in allowed_patterns]
-            qs = ProcessPattern.objects.filter(id__in=allowed_pattern_ids).exclude(id__in=pattern_ids)
+            qs = Pattern.objects.filter(id__in=allowed_pattern_ids).exclude(id__in=pattern_ids)
             pattern_form = PatternSelectionForm(queryset=qs)
     else:
         use_case=None
@@ -552,7 +552,7 @@ def maintain_patterns(request, use_case_id=None):
             if use_case.allows_more_patterns():
                 allowed_patterns = use_case.allowed_patterns()
                 allowed_pattern_ids = [p.id for p in allowed_patterns]
-                qs = ProcessPattern.objects.filter(id__in=allowed_pattern_ids).exclude(id__in=pattern_ids)
+                qs = Pattern.objects.filter(id__in=allowed_pattern_ids).exclude(id__in=pattern_ids)
                 pattern_form = PatternSelectionForm(queryset=qs)
                 
     return render_to_response("valueaccounting/maintain_patterns.html", {
@@ -577,7 +577,7 @@ class AddFacetValueFormFormSet(BaseModelFormSet):
 
 @login_required
 def change_pattern(request, pattern_id, use_case_id):
-    pattern = get_object_or_404(ProcessPattern, id=pattern_id)
+    pattern = get_object_or_404(Pattern, id=pattern_id)
     use_case = get_object_or_404(UseCase, id=use_case_id)
     slots = use_case.allowed_event_types() 
     #import pdb; pdb.set_trace()
@@ -639,8 +639,8 @@ def change_pattern_name(request):
     if request.method == "POST":
         pattern_id = request.POST.get("patternId")
         try:
-            pattern = ProcessPattern.objects.get(id=pattern_id)
-        except ProcessPattern.DoesNotExist:
+            pattern = Pattern.objects.get(id=pattern_id)
+        except Pattern.DoesNotExist:
             pattern = None
         if pattern:
             name = request.POST.get("name")
@@ -666,7 +666,7 @@ def add_pattern_to_use_case(request, use_case_id):
         if new_pattern:
             pattern_name = request.POST.get("pattern-name")
             if pattern_name:
-                pattern = ProcessPattern(name=pattern_name)
+                pattern = Pattern(name=pattern_name)
                 pattern.save()
                 puc = PatternUseCase(
                     pattern=pattern,
@@ -1280,7 +1280,7 @@ def unscheduled_time_contributions(request):
             if patterns:
                 pattern = patterns[0].pattern
             else:
-                raise ValidationError("no non-production ProcessPattern")
+                raise ValidationError("no non-production Pattern")
             if pattern:
                 unit = Unit.objects.filter(
                     unit_type="time",
@@ -2072,7 +2072,7 @@ def create_resource_type_simple_patterned_ajax(request):
         rt.save()
         slot = request.POST["slot"]
         pattern_id = request.POST["pattern"]
-        pattern = ProcessPattern.objects.get(id=pattern_id)
+        pattern = Pattern.objects.get(id=pattern_id)
         formset = create_patterned_facet_formset(pattern, slot, data=request.POST)
         for form_rtfv in formset.forms:
             if form_rtfv.is_valid():
@@ -2853,7 +2853,7 @@ def create_order(request):
     if patterns:
         pattern = patterns[0].pattern
     else:
-        raise ValidationError("no Customer Order ProcessPattern")
+        raise ValidationError("no Customer Order Pattern")
     rts = pattern.all_resource_types()
     item_forms = []
     data = request.POST or None
@@ -2876,7 +2876,7 @@ def create_order(request):
             order.save()
             sale = UseCase.objects.get(identifier="sale")
             sale_pattern = None
-            sale_patterns = ProcessPattern.objects.usecase_patterns(sale)
+            sale_patterns = Pattern.objects.usecase_patterns(sale)
             if sale_patterns:
                 sale_pattern = sale_patterns[0]
             exchange = Exchange(
@@ -3034,10 +3034,10 @@ def order_schedule(request, order_id):
             if patterns:
                 pattern = patterns[0].pattern
             else:
-                raise ValidationError("no Customer Order ProcessPattern")
+                raise ValidationError("no Customer Order Pattern")
             rts = pattern.all_resource_types()
         else:
-            rts = ProcessPattern.objects.all_production_resource_types()
+            rts = Pattern.objects.all_production_resource_types()
         if rts:
             add_order_item_form = AddOrderItemForm(resource_types=rts)
         #import pdb; pdb.set_trace()
@@ -8617,7 +8617,7 @@ def process_selections(request, rand=0):
         get_related = request.POST.get("get-related")
         if get_related:
             #import pdb; pdb.set_trace()
-            selected_pattern = ProcessPattern.objects.get(id=request.POST.get("pattern"))
+            selected_pattern = Pattern.objects.get(id=request.POST.get("pattern"))
             selected_context_agent = EconomicAgent.objects.get(id=request.POST.get("context_agent"))
             if selected_pattern:
                 slots = selected_pattern.event_types()
@@ -8654,7 +8654,7 @@ def process_selections(request, rand=0):
                     continue
                 if "selected-pattern" in key:
                     pattern_id = key.split("~")[1]
-                    selected_pattern = ProcessPattern.objects.get(id=pattern_id)
+                    selected_pattern = Pattern.objects.get(id=pattern_id)
                     continue
                 et = None
                 action = ""
@@ -10269,7 +10269,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
         ve = None
     buckets = []
     use_case = UseCase.objects.get(identifier="distribution")
-    pattern = ProcessPattern.objects.usecase_patterns(use_case)[0]
+    pattern = Pattern.objects.usecase_patterns(use_case)[0]
     if request.method == "POST":
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True, data=request.POST)
         #import pdb; pdb.set_trace()
@@ -10426,7 +10426,7 @@ def payment_event_for_commitment(request):
 #@login_required
 def resource_flow(request):
     #import pdb; pdb.set_trace()
-    pattern = ProcessPattern.objects.get(name="Change")
+    pattern = Pattern.objects.get(name="Change")
     resource_form = ResourceFlowForm(pattern=pattern)
     role_formset = resource_role_agent_formset(prefix='role')
     
@@ -10439,7 +10439,7 @@ def resource_flow(request):
 #@login_required
 def workflow_board_demo(request):
     #import pdb; pdb.set_trace()
-    pattern = ProcessPattern.objects.get(name="Change")
+    pattern = Pattern.objects.get(name="Change")
     resource_form = ResourceFlowForm(pattern=pattern)
     process_form = PlanProcessForm()
     
@@ -10452,7 +10452,7 @@ def workflow_board_demo(request):
 #@login_required
 def inventory_board_demo(request):
     #import pdb; pdb.set_trace()
-    pattern = ProcessPattern.objects.get(name="Change")
+    pattern = Pattern.objects.get(name="Change")
     resource_form = ResourceFlowForm(pattern=pattern)
     process_form = PlanProcessForm()
     move_harvester_form = ExchangeFlowForm()
@@ -10507,7 +10507,7 @@ def bucket_filter(request, agent_id, event_type_id, pattern_id, filter_set):
     count = 0
     pattern_id = int(pattern_id)
     if pattern_id:
-        pattern = get_object_or_404(ProcessPattern, pk=pattern_id)
+        pattern = get_object_or_404(Pattern, pk=pattern_id)
     if filter_set == "Order":
         filter_form = OrderFilterSetForm(project=agent, event_type=event_type, pattern=pattern, data=request.POST or None)
     elif filter_set == "Context":

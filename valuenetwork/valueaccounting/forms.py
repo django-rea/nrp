@@ -438,7 +438,7 @@ class OrderChangeForm(forms.ModelForm):
 class ProcessForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(),
+        queryset=Pattern.objects.none(),
         empty_label=None)
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
@@ -453,12 +453,12 @@ class ProcessForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProcessForm, self).__init__(*args, **kwargs)
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()  
+        self.fields["process_pattern"].queryset = Pattern.objects.production_patterns()  
         
 class WorkflowProcessForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge name',}))
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(),
+        queryset=Pattern.objects.none(),
         empty_label=None)
     process_type = forms.ModelChoiceField(
         required=False,
@@ -487,7 +487,7 @@ class WorkflowProcessForm(forms.ModelForm):
         if next_date:
             self.fields["start_date"] = next_date
             self.fields["end_date"] = next_date
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.recipe_patterns() 
+        self.fields["process_pattern"].queryset = Pattern.objects.recipe_patterns() 
         #import pdb; pdb.set_trace()
         self.fields["process_type"].queryset = order_item.available_workflow_process_types()
 
@@ -519,7 +519,7 @@ class AddProcessFromResourceForm(forms.ModelForm):
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(),
+        queryset=Pattern.objects.none(),
         required=False,
         empty_label=None)
     start_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
@@ -531,7 +531,7 @@ class AddProcessFromResourceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AddProcessFromResourceForm, self).__init__(*args, **kwargs)
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()
+        self.fields["process_pattern"].queryset = Pattern.objects.production_patterns()
 
 
 class ProcessInputForm(forms.ModelForm):
@@ -2315,7 +2315,7 @@ class ProjectSelectionFormOptional(forms.Form):
 
 class PatternSelectionForm(forms.Form):
     pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.all(),
+        queryset=Pattern.objects.all(),
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
 
@@ -2333,14 +2333,14 @@ class UseCaseSelectionForm(forms.Form):
 
 class PatternProdSelectionForm(forms.Form):
     pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(),
+        queryset=Pattern.objects.none(),
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
 
     def __init__(self, *args, **kwargs):
         super(PatternProdSelectionForm, self).__init__(*args, **kwargs)
-        self.fields["pattern"].queryset = ProcessPattern.objects.production_patterns()   
+        self.fields["pattern"].queryset = Pattern.objects.production_patterns()   
 
 
 class PatternFacetValueForm(forms.ModelForm):
@@ -2640,7 +2640,7 @@ class AgentResourceTypeForm(forms.ModelForm):
 class XbillProcessTypeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'name input-xlarge',}))
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(), 
+        queryset=Pattern.objects.none(), 
         empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
@@ -2665,13 +2665,13 @@ class XbillProcessTypeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(XbillProcessTypeForm, self).__init__(*args, **kwargs)
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.production_patterns()  
+        self.fields["process_pattern"].queryset = Pattern.objects.production_patterns()  
 
         
 class RecipeProcessTypeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'name input-xlarge',}))
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(), 
+        queryset=Pattern.objects.none(), 
         empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
@@ -2695,12 +2695,12 @@ class RecipeProcessTypeForm(forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super(RecipeProcessTypeForm, self).__init__(*args, **kwargs)
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.recipe_patterns() 
+        self.fields["process_pattern"].queryset = Pattern.objects.recipe_patterns() 
 
         
 class RecipeProcessTypeChangeForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(), 
+        queryset=Pattern.objects.none(), 
         empty_label=None, 
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
@@ -2721,11 +2721,11 @@ class RecipeProcessTypeChangeForm(forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super(RecipeProcessTypeChangeForm, self).__init__(*args, **kwargs)
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.recipe_patterns()
+        self.fields["process_pattern"].queryset = Pattern.objects.recipe_patterns()
         if self.instance:
             pat = self.instance.process_pattern
             if pat:
-                self.fields["process_pattern"].queryset = ProcessPattern.objects.filter(id=pat.id)
+                self.fields["process_pattern"].queryset = Pattern.objects.filter(id=pat.id)
              
 
 class ChangeProcessTypeForm(forms.ModelForm):
@@ -3052,7 +3052,7 @@ class EquationForm(forms.Form):
 
 class ExchangeForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(), 
+        queryset=Pattern.objects.none(), 
         label=_("Pattern"),
         empty_label=None, 
         widget=forms.Select(
@@ -3088,7 +3088,7 @@ class ExchangeForm(forms.ModelForm):
 
     def __init__(self, use_case, context_agent, *args, **kwargs):
         super(ExchangeForm, self).__init__(*args, **kwargs)
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
+        self.fields["process_pattern"].queryset = Pattern.objects.usecase_patterns(use_case) 
         if context_agent:
             self.fields["supplier"].queryset = context_agent.all_suppliers()
             
@@ -3117,7 +3117,7 @@ class SaleForm(forms.ModelForm):
         widget=forms.Select(
             attrs={'class': 'exchange-selector'}))
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(), 
+        queryset=Pattern.objects.none(), 
         label=_("Pattern"),
         widget=forms.Select(
             attrs={'class': 'pattern-selector'}))
@@ -3150,13 +3150,13 @@ class SaleForm(forms.ModelForm):
         #import pdb; pdb.set_trace()
         super(SaleForm, self).__init__(*args, **kwargs)
         use_case = UseCase.objects.get(identifier="sale")
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
+        self.fields["process_pattern"].queryset = Pattern.objects.usecase_patterns(use_case) 
         if context_agent:
             self.fields["customer"].queryset = context_agent.all_customers()
             
 class DistributionForm(forms.ModelForm):
     process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(), 
+        queryset=Pattern.objects.none(), 
         label=_("Pattern"),
         empty_label=None, 
         widget=forms.Select(
@@ -3176,7 +3176,7 @@ class DistributionForm(forms.ModelForm):
         #import pdb; pdb.set_trace()
         super(DistributionForm, self).__init__(*args, **kwargs)
         use_case = UseCase.objects.get(identifier="distribution")
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case)
+        self.fields["process_pattern"].queryset = Pattern.objects.usecase_patterns(use_case)
   
 class DistributionValueEquationForm(forms.Form):
     value_equation = forms.ModelChoiceField(
@@ -3367,7 +3367,7 @@ class FilterSetHeaderForm(forms.Form):
         queryset=EventType.objects.all(),
         widget=forms.Select(attrs={'class': 'chzn-select',}))
     pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.all(), 
+        queryset=Pattern.objects.all(), 
         required=False, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
     filter_set = forms.ChoiceField(

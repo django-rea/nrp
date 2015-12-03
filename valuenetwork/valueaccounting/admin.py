@@ -192,15 +192,15 @@ class ProcessTypeAdmin(admin.ModelAdmin):
 admin.site.register(ProcessType, ProcessTypeAdmin)
 
 
-class ExchangeTypeItemTypeInline(admin.TabularInline):
-    model = ExchangeTypeItemType
+class TransferTypeInline(admin.TabularInline):
+    model = TransferType
     fk_name = "exchange_type"
 
 class ExchangeTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'use_case', 'context_agent', 'process_pattern' )
     list_filter = ['context_agent', 'use_case']
     search_fields = ['name',]
-    inlines = [ ExchangeTypeItemTypeInline, ]
+    inlines = [ TransferTypeInline, ]
 
 admin.site.register(ExchangeType, ExchangeTypeAdmin)
 

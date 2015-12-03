@@ -6471,10 +6471,11 @@ class TransferType(models.Model):
         verbose_name=_('exchange type'), related_name='transfer_types')
     description = models.TextField(_('description'), blank=True, null=True)
     is_contribution = models.BooleanField(_('is contribution'), default=False)
+    is_reciprocal = models.BooleanField(_('is reciprocal'), default=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='exchange_type_item_types_created', blank=True, null=True, editable=False)
+        related_name='transfer_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='exchange_type_item_types_changed', blank=True, null=True, editable=False)
+        related_name='transfer_types_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
@@ -6484,52 +6485,6 @@ class TransferType(models.Model):
     class Meta:
         ordering = ('sequence',)
         
-
-class Transfer(models.Model):
-    name = models.CharField(_('name'), blank=True, max_length=128)
-    transfer_type = models.ForeignKey(TransferType,
-        blank=True, null=True,
-        verbose_name=_('transfer type'), related_name='transfers')
-    process_pattern = models.ForeignKey(ProcessPattern,
-        blank=True, null=True,
-        verbose_name=_('pattern'), related_name='transfers')
-    exchange = models.ForeignKey(Exchange,
-        blank=True, null=True,
-        verbose_name=_('exchange'), related_name='transfers')
-    context_agent = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        limit_choices_to={"is_context": True,},
-        verbose_name=_('context agent'), related_name='transfers')
-    transfer_date = models.DateField(_('transfer date'))
-    notes = models.TextField(_('notes'), blank=True)
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='exchanges_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='exchanges_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    slug = models.SlugField(_("Page name"), editable=False)
-
-    objects = ExchangeManager()
-
-    class Meta:
-        ordering = ('-start_date',)
-        verbose_name_plural = _("transfers")
-
-    def __unicode__(self):
-        show_name = ""
-        if self.transfer_type:
-            show_name = self.transfer_type.name
-        name = ""
-        if self.name:
-            name = self.name + ","
-        return " ".join([
-            name,
-            show_name,
-            "starting",
-            self.start_date.strftime('%Y-%m-%d'),
-            ])
-    
 
 class ExchangeManager(models.Manager):
 
@@ -7152,6 +7107,49 @@ class Exchange(models.Model):
         return None
 
 
+class Transfer(models.Model):
+    name = models.CharField(_('name'), blank=True, max_length=128)
+    transfer_type = models.ForeignKey(TransferType,
+        blank=True, null=True,
+        verbose_name=_('transfer type'), related_name='transfers')
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('exchange'), related_name='transfers')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='transfers')
+    transfer_date = models.DateField(_('transfer date'))
+    notes = models.TextField(_('notes'), blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='transfers_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='transfers_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = ExchangeManager()
+
+    class Meta:
+        ordering = ('-transfer_date',)
+        verbose_name_plural = _("transfers")
+
+    def __unicode__(self):
+        show_name = ""
+        if self.transfer_type:
+            show_name = self.transfer_type.name
+        name = ""
+        if self.name:
+            name = self.name + ","
+        return " ".join([
+            name,
+            show_name,
+            "starting",
+            self.start_date.strftime('%Y-%m-%d'),
+            ])
+    
+
 class DistributionManager(models.Manager):
     
     def distributions(self, start=None, end=None):
@@ -7402,7 +7400,7 @@ class Commitment(models.Model):
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='commitments')
-    exchange_type_item_type = models.ForeignKey(ExchangeTypeItemType,
+    transfer_type = models.ForeignKey(TransferType,
         blank=True, null=True, 
         related_name="commitments")
     context_agent = models.ForeignKey(EconomicAgent,
@@ -8600,7 +8598,7 @@ class EconomicEvent(models.Model):
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
-    exchange_type_item_type = models.ForeignKey(ExchangeTypeItemType,
+    transfer_type = models.ForeignKey(TransferType,
         blank=True, null=True, 
         related_name="events", verbose_name=_('exchange type item type'))
     context_agent = models.ForeignKey(EconomicAgent,

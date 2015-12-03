@@ -2299,7 +2299,7 @@ class ResourceTypeFacetValue(models.Model):
         
 def all_purchased_resource_types():
     uc = UseCase.objects.get(name="Purchasing")
-    pats = Pattern.objects.usecase_patterns(uc)
+    pats = ProcessPattern.objects.usecase_patterns(uc)
     et = EventType.objects.get(name="Receipt")
     rts = []
     for pat in pats:
@@ -2307,27 +2307,27 @@ def all_purchased_resource_types():
     return rts
 
 
-class PatternManager(models.Manager):
+class ProcessPatternManager(models.Manager):
 
     def production_patterns(self):
         #import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(
             Q(use_case__identifier='rand')|Q(use_case__identifier='design')|Q(use_case__identifier='recipe'))
         pattern_ids = [uc.pattern.id for uc in use_cases]
-        return Pattern.objects.filter(id__in=pattern_ids)
+        return ProcessPattern.objects.filter(id__in=pattern_ids)
         
     def recipe_patterns(self):
         #import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(use_case__identifier='recipe')
         pattern_ids = [uc.pattern.id for uc in use_cases]
-        return Pattern.objects.filter(id__in=pattern_ids)
+        return ProcessPattern.objects.filter(id__in=pattern_ids)
         
     def usecase_patterns(self, use_case):
         #import pdb; pdb.set_trace()
         use_cases = PatternUseCase.objects.filter(
             Q(use_case=use_case))
         pattern_ids = [uc.pattern.id for uc in use_cases]
-        return Pattern.objects.filter(id__in=pattern_ids)
+        return ProcessPattern.objects.filter(id__in=pattern_ids)
         
     def all_production_resource_types(self):
         patterns = self.production_patterns()
@@ -2338,9 +2338,9 @@ class PatternManager(models.Manager):
         return EconomicResourceType.objects.filter(id__in=rt_ids)
         
 
-class Pattern(models.Model):
+class ProcessPattern(models.Model):
     name = models.CharField(_('name'), max_length=32)
-    objects = PatternManager()
+    objects = ProcessPatternManager()
 
     class Meta:
         ordering = ('name',)
@@ -2648,7 +2648,7 @@ class Pattern(models.Model):
 
         
 class PatternFacetValue(models.Model):
-    pattern = models.ForeignKey(Pattern, 
+    pattern = models.ForeignKey(ProcessPattern, 
         verbose_name=_('pattern'), related_name='facets')
     facet_value = models.ForeignKey(FacetValue,
         verbose_name=_('facet value'), related_name='patterns')
@@ -2726,7 +2726,7 @@ class UseCase(models.Model):
     def allowed_patterns(self): #patterns must not have event types not assigned to the use case
         #import pdb; pdb.set_trace()
         allowed_ets = self.allowed_event_types()
-        all_ps = Pattern.objects.all()
+        all_ps = ProcessPattern.objects.all()
         allowed_ps = []
         for p in all_ps:
             allow_this_pattern = True
@@ -2902,7 +2902,7 @@ post_migrate.connect(create_usecase_eventtypes)
 
 
 class PatternUseCase(models.Model):
-    pattern = models.ForeignKey(Pattern, 
+    pattern = models.ForeignKey(ProcessPattern, 
         verbose_name=_('pattern'), related_name='use_cases')
     use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
@@ -3295,7 +3295,7 @@ class ProcessType(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='sub_process_types', editable=False)
-    pattern = models.ForeignKey(Pattern,
+    process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
         verbose_name=_('process pattern'), related_name='process_types')
     context_agent = models.ForeignKey(EconomicAgent,
@@ -3342,7 +3342,7 @@ class ProcessType(models.Model):
             name=self.name,
             notes=self.description or "",
             process_type=self,
-            pattern=self.pattern,
+            process_pattern=self.process_pattern,
             context_agent=self.context_agent,
             url=self.url,
             start_date=start_date,
@@ -3605,16 +3605,16 @@ class ProcessType(models.Model):
         #import pdb; pdb.set_trace()
         RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
         init = []
-        if self.pattern == None:
+        if self.process_pattern == None:
             facets = Facet.objects.all()
         else:
-            #facets = self.pattern.facets_by_relationship(slot)
+            #facets = self.process_pattern.facets_by_relationship(slot)
             if slot == "consume":
-                facets = self.pattern.consumable_facets()
+                facets = self.process_pattern.consumable_facets()
             elif slot == "use":
-                facets = self.pattern.usable_facets()
+                facets = self.process_pattern.usable_facets()
             elif slot == "cite":
-                facets = self.pattern.citable_facets()
+                facets = self.process_pattern.citable_facets()
         for facet in facets:
             d = {"facet_id": facet.id,}
             init.append(d)
@@ -3623,10 +3623,10 @@ class ProcessType(models.Model):
             id = int(form["facet_id"].value())
             facet = Facet.objects.get(id=id)
             form.facet_name = facet.name
-            if self.pattern == None:
+            if self.process_pattern == None:
                 fvs = facet.values.all()
             else:
-                fvs = self.pattern.facet_values_for_facet_and_relationship(facet, slot)
+                fvs = self.process_pattern.facet_values_for_facet_and_relationship(facet, slot)
             fvs = list(set(fvs))
             choices = [(fv.id, fv.value) for fv in fvs]
             form.fields["value"].choices = choices
@@ -3667,7 +3667,7 @@ class ExchangeType(models.Model):
     use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
         verbose_name=_('use case'), related_name='exchange_types')
-    pattern = models.ForeignKey(Pattern,
+    process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
         verbose_name=_('pattern'), related_name='exchange_types')
     context_agent = models.ForeignKey(EconomicAgent,
@@ -5449,8 +5449,8 @@ class ProcessManager(models.Manager):
         ids = []
         use_et = EventType.objects.get(name="Resource use")
         for process in processes:
-            if process.pattern:
-                if use_et in process.pattern.event_types():
+            if process.process_pattern:
+                if use_et in process.process_pattern.event_types():
                     ids.append(process.id)
         return Process.objects.filter(pk__in=ids)
 
@@ -5458,7 +5458,7 @@ class Process(models.Model):
     name = models.CharField(_('name'), max_length=128)
     parent = models.ForeignKey('self', blank=True, null=True, 
         verbose_name=_('parent'), related_name='sub_processes', editable=False)
-    pattern = models.ForeignKey(Pattern,
+    process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
         verbose_name=_('process pattern'), related_name='processes')
     process_type = models.ForeignKey(ProcessType,
@@ -6033,7 +6033,7 @@ class Process(models.Model):
         
     def add_stream_commitments(self, last_process, user): #for adding to the end of the order
         last_commitment = last_process.main_outgoing_commitment()
-        ets = self.pattern.change_event_types()
+        ets = self.process_pattern.change_event_types()
         for et in ets:
             if et.relationship == "out":
                 stage = self.process_type
@@ -6056,7 +6056,7 @@ class Process(models.Model):
             
     def insert_stream_commitments(self, last_process, user): #for inserting in order (not first and not last process in order)
         last_commitment = last_process.main_outgoing_commitment()
-        ets = self.pattern.change_event_types()
+        ets = self.process_pattern.change_event_types()
         for et in ets:
             if et.relationship == "out":
                 stage = self.process_type
@@ -6075,7 +6075,7 @@ class Process(models.Model):
             )
             
     def insert_first_stream_commitments(self, next_commitment, user): #for inserting as first process in order
-        ets = self.pattern.change_event_types()
+        ets = self.process_pattern.change_event_types()
         for et in ets:
             if et.relationship == "out":
                 stage = self.process_type
@@ -6190,7 +6190,7 @@ class Process(models.Model):
                             name=next_pt.name,
                             notes=next_pt.description or "",
                             process_type=next_pt,
-                            pattern=next_pt.pattern,
+                            process_pattern=next_pt.process_pattern,
                             #Todo: apply selected_context_agent here? Dnly if inheritance?
                             context_agent=next_pt.context_agent,
                             url=next_pt.url,
@@ -6471,11 +6471,10 @@ class TransferType(models.Model):
         verbose_name=_('exchange type'), related_name='transfer_types')
     description = models.TextField(_('description'), blank=True, null=True)
     is_contribution = models.BooleanField(_('is contribution'), default=False)
-    is_reciprocal = models.BooleanField(_('is reciprocal'), default=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='transfer_types_created', blank=True, null=True, editable=False)
+        related_name='exchange_type_item_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='transfer_types_changed', blank=True, null=True, editable=False)
+        related_name='exchange_type_item_types_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
@@ -6485,6 +6484,52 @@ class TransferType(models.Model):
     class Meta:
         ordering = ('sequence',)
         
+
+class Transfer(models.Model):
+    name = models.CharField(_('name'), blank=True, max_length=128)
+    transfer_type = models.ForeignKey(TransferType,
+        blank=True, null=True,
+        verbose_name=_('transfer type'), related_name='transfers')
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('pattern'), related_name='transfers')
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('exchange'), related_name='transfers')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='transfers')
+    transfer_date = models.DateField(_('transfer date'))
+    notes = models.TextField(_('notes'), blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='exchanges_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='exchanges_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = ExchangeManager()
+
+    class Meta:
+        ordering = ('-start_date',)
+        verbose_name_plural = _("transfers")
+
+    def __unicode__(self):
+        show_name = ""
+        if self.transfer_type:
+            show_name = self.transfer_type.name
+        name = ""
+        if self.name:
+            name = self.name + ","
+        return " ".join([
+            name,
+            show_name,
+            "starting",
+            self.start_date.strftime('%Y-%m-%d'),
+            ])
+    
 
 class ExchangeManager(models.Manager):
 
@@ -6559,7 +6604,7 @@ class ExchangeManager(models.Manager):
 
 class Exchange(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
-    pattern = models.ForeignKey(Pattern,
+    process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
         verbose_name=_('pattern'), related_name='exchanges')
     use_case = models.ForeignKey(UseCase,
@@ -7107,49 +7152,6 @@ class Exchange(models.Model):
         return None
 
 
-class Transfer(models.Model):
-    name = models.CharField(_('name'), blank=True, max_length=128)
-    transfer_type = models.ForeignKey(TransferType,
-        blank=True, null=True,
-        verbose_name=_('transfer type'), related_name='transfers')
-    exchange = models.ForeignKey(Exchange,
-        blank=True, null=True,
-        verbose_name=_('exchange'), related_name='transfers')
-    context_agent = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        limit_choices_to={"is_context": True,},
-        verbose_name=_('context agent'), related_name='transfers')
-    transfer_date = models.DateField(_('transfer date'))
-    notes = models.TextField(_('notes'), blank=True)
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='transfers_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='transfers_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    slug = models.SlugField(_("Page name"), editable=False)
-
-    objects = ExchangeManager()
-
-    class Meta:
-        ordering = ('-transfer_date',)
-        verbose_name_plural = _("transfers")
-
-    def __unicode__(self):
-        show_name = ""
-        if self.transfer_type:
-            show_name = self.transfer_type.name
-        name = ""
-        if self.name:
-            name = self.name + ","
-        return " ".join([
-            name,
-            show_name,
-            "starting",
-            self.start_date.strftime('%Y-%m-%d'),
-            ])
-    
-
 class DistributionManager(models.Manager):
     
     def distributions(self, start=None, end=None):
@@ -7161,7 +7163,7 @@ class DistributionManager(models.Manager):
 
 class Distribution(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
-    pattern = models.ForeignKey(Pattern,
+    process_pattern = models.ForeignKey(ProcessPattern,
         blank=True, null=True,
         verbose_name=_('pattern'), related_name='distributions')
     context_agent = models.ForeignKey(EconomicAgent,
@@ -7400,7 +7402,7 @@ class Commitment(models.Model):
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='commitments')
-    transfer_type = models.ForeignKey(TransferType,
+    exchange_type_item_type = models.ForeignKey(ExchangeTypeItemType,
         blank=True, null=True, 
         related_name="commitments")
     context_agent = models.ForeignKey(EconomicAgent,
@@ -7622,7 +7624,7 @@ class Commitment(models.Model):
         prefix=self.form_prefix()
         pattern = None
         if self.process:
-            pattern = self.process.pattern
+            pattern = self.process.process_pattern
         return WorkCommitmentForm(instance=self, pattern=pattern, prefix=prefix)
         
     def invite_collaborator_form(self):
@@ -8082,7 +8084,7 @@ class Commitment(models.Model):
                     name=pt.name,
                     notes=pt.description or "",
                     process_type=pt,
-                    pattern=pt.pattern,
+                    process_pattern=pt.process_pattern,
                     #Todo: apply selected_context_agent here?
                     #only if inheritance?
                     context_agent=pt.context_agent,
@@ -8598,7 +8600,7 @@ class EconomicEvent(models.Model):
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
-    transfer_type = models.ForeignKey(TransferType,
+    exchange_type_item_type = models.ForeignKey(ExchangeTypeItemType,
         blank=True, null=True, 
         related_name="events", verbose_name=_('exchange type item type'))
     context_agent = models.ForeignKey(EconomicAgent,
@@ -10206,7 +10208,7 @@ class ValueEquationBucket(models.Model):
         if self.value_equation.context_agent:
             ca = self.value_equation.context_agent
         uc = UseCase.objects.get(identifier='val_equation')
-        patterns = Pattern.objects.usecase_patterns(use_case=uc)
+        patterns = ProcessPattern.objects.usecase_patterns(use_case=uc)
         if patterns.count() > 0:
             pattern = patterns[0]
         return BucketRuleFilterSetForm(prefix=str(self.id), context_agent=ca, event_type=None, pattern=pattern)
@@ -10390,7 +10392,7 @@ class ValueEquationBucketRule(models.Model):
         if self.value_equation_bucket.value_equation.context_agent:
             ca = self.value_equation_bucket.value_equation.context_agent
         uc = UseCase.objects.get(identifier='val_equation')
-        patterns = Pattern.objects.usecase_patterns(use_case=uc)
+        patterns = ProcessPattern.objects.usecase_patterns(use_case=uc)
         if patterns.count() > 0:
             pattern = patterns[0]
         json = self.filter_rule_deserialized()

@@ -67,7 +67,9 @@ class AgentForm(forms.Form):
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
-
+    is_context = forms.BooleanField(
+        required=False, 
+        widget=forms.CheckboxInput())
 
 
 class AgentCreateForm(forms.ModelForm):
@@ -87,10 +89,14 @@ class AgentCreateForm(forms.ModelForm):
         empty_label=None,
         widget=forms.Select(
         attrs={'class': 'chzn-select'}))
+    is_context = forms.BooleanField(
+        required=False, 
+        label="Is a context agent", 
+        widget=forms.CheckboxInput())
 
     class Meta:
         model = EconomicAgent
-        fields = ('name', 'nick', 'agent_type', 'description', 'url', 'address', 'email')
+        fields = ('name', 'nick', 'agent_type', 'is_context', 'description', 'url', 'address', 'email')
 
 
 #todo: queryset methods cd be cached

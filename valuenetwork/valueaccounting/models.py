@@ -933,7 +933,7 @@ class EconomicAgent(models.Model):
             Q(has_associate=self ) | Q(is_associate=self))
             
     def is_context_agent(self):
-        return self.agent_type.is_context
+        return self.is_context
         
     def orders_queryset(self):
         #import pdb; pdb.set_trace()

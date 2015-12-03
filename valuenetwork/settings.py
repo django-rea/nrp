@@ -137,7 +137,7 @@ INSTALLED_APPS = [
     "django_forms_bootstrap",
     
     # external
-    "account",
+    #"account",
     "metron",
     #'debug_toolbar',
     'django_extensions',
@@ -152,6 +152,7 @@ INSTALLED_APPS = [
     'valuenetwork.valueaccounting',
     'valuenetwork.equipment',
     'valuenetwork.board',
+    'account',
 
 ]
 

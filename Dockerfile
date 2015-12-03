@@ -1,4 +1,4 @@
-FROM ubuntu:14.10
+FROM ubuntu:14.04
 
 RUN apt-get update
 
@@ -12,13 +12,15 @@ RUN pip install virtualenv
 
 RUN pip install virtualenvwrapper
 
+RUN apt-get -yq install libjpeg-dev zlib1g-dev
+
 RUN pip install Pillow
 
 RUN pip install Django==1.4.20
 
 RUN pip install South
 
-RUN pip install django_debug_toolbar
+RUN pip install django_debug_toolbar==1.3.2
 
 RUN pip install django-extensions
 

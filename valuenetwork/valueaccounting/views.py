@@ -6322,13 +6322,13 @@ def process_oriented_logging(request, process_id):
         if "work" in slots:
             if agent:
                 work_resource_types = pattern.work_resource_types()
-                work_unit = work_resource_types[0].unit
-                #work_init = {"unit_of_quantity": work_unit,}
-                work_init = {
-                    "from_agent": agent,
-                    "unit_of_quantity": work_unit,
-                } 
                 if work_resource_types:
+                    work_unit = work_resource_types[0].unit
+                    #work_init = {"unit_of_quantity": work_unit,}
+                    work_init = {
+                        "from_agent": agent,
+                        "unit_of_quantity": work_unit,
+                    } 
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
                     unplanned_work_form.fields["resource_type"].queryset = work_resource_types
                     #if logger:

@@ -44,6 +44,7 @@ Note: Apostolis Xekoukoulotakis reports that on Debian, Pillow requires
 libjpeg-dev and python2.7-dev.
 
 Here's PIL: https://pypi.python.org/pypi/PIL/
+http://askubuntu.com/questions/156484/how-do-i-install-python-imaging-library-pil
 
 6. create a virtualenv (assuming you installed virtualenvwrapper):
 mkvirtualenv vn --system-site-packages 

@@ -426,7 +426,7 @@ def agent(request, agent_id):
     is_associated_with = agent.all_is_associates()           
     
     headings = []
-    member_hours_2weeks = []
+    member_hours_recent = []
     member_hours_stats = []
     individual_stats = []
     member_hours_roles = []
@@ -447,7 +447,7 @@ def agent(request, agent_id):
         subs = agent.with_all_sub_agents()
         end = datetime.date.today()
         #end = end - datetime.timedelta(days=77)
-        start =  end - datetime.timedelta(days=14)
+        start =  end - datetime.timedelta(days=60)
         events = EconomicEvent.objects.filter(
             event_type__relationship="work",
             context_agent__in=subs,
@@ -459,8 +459,8 @@ def agent(request, agent_id):
                 agents_stats.setdefault(event.from_agent.name, Decimal("0"))
                 agents_stats[event.from_agent.name] += event.quantity
             for key, value in agents_stats.items():
-                member_hours_2weeks.append((key, value))
-            member_hours_2weeks.sort(lambda x, y: cmp(y[1], x[1]))
+                member_hours_recent.append((key, value))
+            member_hours_recent.sort(lambda x, y: cmp(y[1], x[1]))
         
         #import pdb; pdb.set_trace()
         
@@ -506,7 +506,7 @@ def agent(request, agent_id):
         "has_associations": has_associations,
         "is_associated_with": is_associated_with,
         "headings": headings,
-        "member_hours_2weeks": member_hours_2weeks,
+        "member_hours_recent": member_hours_recent,
         "member_hours_stats": member_hours_stats,   
         "member_hours_roles": member_hours_roles,
         "individual_stats": individual_stats,

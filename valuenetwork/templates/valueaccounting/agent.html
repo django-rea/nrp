@@ -165,7 +165,7 @@
                 <h3>Cumulative Time</h3>
                 <div class="row-fluid">
                     <div class="span6">
-                        <h4 class="chart-heading">Last 2 weeks</h4>
+                        <h4 class="chart-heading">Last 2 months</h4>
                         <div id="chart_div1"></div>
                     </div>
                     <div class="span6">
@@ -471,11 +471,11 @@
                 chart.draw(data, options);
             }
         {% else %}
-            google.setOnLoadCallback(drawChart_2weeks);
-            function drawChart_2weeks() {
+            google.setOnLoadCallback(drawChart_recent);
+            function drawChart_recent() {
                 var data = google.visualization.arrayToDataTable([
                 ['Member', 'Hours'],
-                {% for member, hours in member_hours_2weeks %}
+                {% for member, hours in member_hours_recent %}
                     ['{{ member }}',  {{ hours }} ],
                 {% endfor %}
                 ]);

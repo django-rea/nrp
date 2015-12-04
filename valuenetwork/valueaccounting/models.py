@@ -383,13 +383,13 @@ class AgentManager(models.Manager):
     #    return EconomicAgent.objects.filter(Q(agent_type__party_type="network") | Q(agent_type__party_type="team"))
         
     def context_agents(self):
-        return EconomicAgent.objects.filter(agent_type__is_context=True)
+        return EconomicAgent.objects.filter(is_context=True)
         
     def non_context_agents(self):
-        return EconomicAgent.objects.filter(agent_type__is_context=False)
+        return EconomicAgent.objects.filter(is_context=False)
         
     def resource_role_agents(self):
-        #return EconomicAgent.objects.filter(Q(agent_type__is_context=True)|Q(agent_type__party_type="individual"))
+        #return EconomicAgent.objects.filter(Q(is_context=True)|Q(agent_type__party_type="individual"))
         #todo: should there be some limits?  Ran into condition where we needed an organization, therefore change to below.
         return EconomicAgent.objects.all()
     
@@ -417,7 +417,8 @@ class EconomicAgent(models.Model):
     photo_url = models.CharField(_('photo url'), max_length=255, blank=True)
     unit_of_claim_value = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit used in claims'), related_name="agents",
-        help_text=_('For a context agent, the unit of all claims'))    
+        help_text=_('For a context agent, the unit of all claims'))
+    is_context = models.BooleanField(_('is context'), default=False)
     slug = models.SlugField(_("Page name"), editable=False)
     created_date = models.DateField(_('created date'), default=datetime.date.today)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
@@ -627,8 +628,17 @@ class EconomicAgent(models.Model):
                 answer.append(aa)
         return answer
         
-    def sales_and_distributions_count(self):
-        return Exchange.objects.sales_and_distributions().filter(context_agent=self).count()
+    def distributions_count(self):
+        return Exchange.objects.distributions().filter(context_agent=self).count()
+              
+    def demand_exchange_count(self):
+        return Exchange.objects.demand_exchanges().filter(context_agent=self).count()
+              
+    def supply_exchange_count(self):
+        return Exchange.objects.supply_exchanges().filter(context_agent=self).count()
+              
+    def internal_exchange_count(self):
+        return Exchange.objects.internal_exchanges().filter(context_agent=self).count()
                
     def with_all_sub_agents(self):
         from valuenetwork.valueaccounting.utils import flattened_children_by_association
@@ -923,7 +933,7 @@ class EconomicAgent(models.Model):
             Q(has_associate=self ) | Q(is_associate=self))
             
     def is_context_agent(self):
-        return self.agent_type.is_context
+        return self.is_context
         
     def orders_queryset(self):
         #import pdb; pdb.set_trace()
@@ -1153,7 +1163,7 @@ DIRECTION_CHOICES = (
     ('shipment', _('shipment')),
     ('distribute', _('distribution')),
     ('adjust', _('adjust')),
-    ('payexpense', _('expense payment')),
+    #('payexpense', _('expense payment')),
     ('disburse', _('disburses cash')),
 )
 
@@ -1161,6 +1171,7 @@ RELATED_CHOICES = (
     ('process', _('process')),
     ('agent', _('agent')), #not used logically as an event type, rather for agent - resource type relationships
     ('exchange', _('exchange')),
+    ('distribution', _('distribution')),
 )
 
 RESOURCE_EFFECT_CHOICES = (
@@ -1432,7 +1443,6 @@ class EconomicResourceType(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     slug = models.SlugField(_("Page name"), editable=False)
-
 
     class Meta:
         ordering = ('name',)
@@ -2227,7 +2237,7 @@ class ResourceTypeList(models.Model):
     description = models.TextField(_('description'), blank=True, null=True)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='lists')
         
     class Meta:
@@ -2747,6 +2757,9 @@ def create_use_cases(app, **kwargs):
     UseCase.create('payout', _('Payout'), True)
     UseCase.create('transfer', _('Transfer'))
     UseCase.create('available', _('Make Available'), True)
+    UseCase.create('intrnl_xfer', _('Internal Exchange'))
+    UseCase.create('supply_xfer', _('Supply Exchange'))
+    UseCase.create('demand_xfer', _('Demand Exchange'))
     print "created use cases"
 
 post_migrate.connect(create_use_cases)
@@ -2778,18 +2791,16 @@ def create_event_types(app, **kwargs):
     EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
     EventType.create('Adjust Quantity', _('adjusts'), 'adjusted', 'adjust', 'agent', '+-', 'quantity')
     EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
-    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'exchange', '+', 'value')
-    EventType.create('Cash Disbursement', _('disburses cash'), _('disbursed by'), 'disburse', 'exchange', '-', 'value')
+    EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'distribution', '+', 'value')
+    EventType.create('Cash Disbursement', _('disburses cash'), _('disbursed by'), 'disburse', 'distribution', '-', 'value')
     EventType.create('Payout', _('pays out'), _('paid by'), 'payout', 'agent', '-', 'value')
     EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
     #the following is for fees, taxes, other extraneous charges not involved in a value equation
     EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
-    #the following is for xfers within the network for now; may become more universal later
-    EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '+-', 'quantity')
-    EventType.create('Reciprocal Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', '+-', 'quantity')
-    EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'exchange', '+', 'quantity')
-    #EventType.create('Process Expense', _('pays expense'), _('paid by'), 'payexpense', 'process', '=', 'value')    
-
+    EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', 'x', 'quantity')
+    EventType.create('Reciprocal Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', 'x', 'quantity')
+    EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'agent', '+', 'quantity')
+    
     print "created event types"
 
 post_migrate.connect(create_event_types)
@@ -2845,11 +2856,13 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('recipe', 'Create Changeable')
     #UseCaseEventType.create('recipe', 'Process Expense')
     UseCaseEventType.create('todo', 'Todo')
-    #UseCaseEventType.create('cust_orders', 'Damage')
-    #UseCaseEventType.create('cust_orders', 'Payment')
-    #UseCaseEventType.create('cust_orders', 'Receipt')
+    UseCaseEventType.create('cust_orders', 'Damage')
+    UseCaseEventType.create('cust_orders', 'Transfer')
+    UseCaseEventType.create('cust_orders', 'Reciprocal Transfer')
+    UseCaseEventType.create('cust_orders', 'Payment')
+    UseCaseEventType.create('cust_orders', 'Receipt')
     UseCaseEventType.create('cust_orders', 'Sale')
-    #UseCaseEventType.create('cust_orders', 'Shipment')
+    UseCaseEventType.create('cust_orders', 'Shipment')
     UseCaseEventType.create('purchasing', 'Payment') 
     UseCaseEventType.create('purchasing', 'Receipt') 
     UseCaseEventType.create('res_contr', 'Time Contribution')
@@ -2873,6 +2886,15 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('transfer', 'Transfer')
     UseCaseEventType.create('transfer', 'Reciprocal Transfer')
     UseCaseEventType.create('available', 'Make Available')
+    UseCaseEventType.create('intrnl_xfer', 'Transfer')
+    UseCaseEventType.create('intrnl_xfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('intrnl_xfer', 'Time Contribution')
+    UseCaseEventType.create('supply_xfer', 'Transfer')
+    UseCaseEventType.create('supply_xfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('supply_xfer', 'Time Contribution')
+    UseCaseEventType.create('demand_xfer', 'Transfer')
+    UseCaseEventType.create('demand_xfer', 'Reciprocal Transfer')
+    UseCaseEventType.create('demand_xfer', 'Time Contribution')
 
     print "created use case event type associations"
 
@@ -3278,7 +3300,7 @@ class ProcessType(models.Model):
         verbose_name=_('process pattern'), related_name='process_types')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='process_types')
     description = models.TextField(_('description'), blank=True, null=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
@@ -3623,7 +3645,63 @@ class ResourceTypeSpecialPrice(models.Model):
         default=Decimal("0.00"))
     stage = models.ForeignKey(ProcessType, related_name="price_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
+
+
+class ExchangeTypeManager(models.Manager):
     
+    #before deleting this, track down the connections
+    def sale_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='sale')
+      
+    def internal_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='intrnl_xfer')
+      
+    def supply_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='supply_xfer')
+      
+    def demand_exchange_types(self):
+        return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
+
+class ExchangeType(models.Model):
+    name = models.CharField(_('name'), max_length=128)
+    use_case = models.ForeignKey(UseCase,
+        blank=True, null=True,
+        verbose_name=_('use case'), related_name='exchange_types')
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('pattern'), related_name='exchange_types')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='exchange_types')
+    description = models.TextField(_('description'), blank=True, null=True)
+    transfer_from_agent_association_type = models.ForeignKey(AgentAssociationType,
+        blank=True, null=True,
+        verbose_name=_('from agent association type'), related_name='exchange_types_from')
+    transfer_to_agent_association_type = models.ForeignKey(AgentAssociationType,
+        blank=True, null=True,
+        verbose_name=_('to agent association type'), related_name='exchange_types_to')
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='exchange_types_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='exchange_types_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = ExchangeTypeManager()
+    
+    class Meta:
+        ordering = ('name',)
+            
+    def __unicode__(self):
+        return self.name
+            
+    def save(self, *args, **kwargs):
+        unique_slugify(self, self.name)
+        super(ExchangeType, self).save(*args, **kwargs) 
+        
+
 
 class GoodResourceManager(models.Manager):
     def get_query_set(self):
@@ -3657,7 +3735,6 @@ class EconomicResourceManager(models.Manager):
     def onhand(self):
         return EconomicResource.objects.filter(quantity__gt=0)
         
-
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType, 
         verbose_name=_('resource type'), related_name='resources')
@@ -3670,7 +3747,7 @@ class EconomicResource(models.Model):
         related_name="stream_resources", verbose_name=_('order item'))
     stage = models.ForeignKey(ProcessType, related_name="resources_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
-    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="resources_at_exchange_stage",
+    exchange_stage = models.ForeignKey(ExchangeType, related_name="resources_at_exchange_stage",
         verbose_name=_('exchange stage'), blank=True, null=True)
     state = models.ForeignKey(ResourceState, related_name="resources_at_state",
         verbose_name=_('state'), blank=True, null=True)
@@ -5390,7 +5467,7 @@ class Process(models.Model):
         on_delete=models.SET_NULL)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='processes')
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
@@ -6387,47 +6464,31 @@ class Process(models.Model):
                                 ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
 
 
-class ExchangeTypeManager(models.Manager):
-    
-    def sale_exchange_types(self):
-        return ExchangeType.objects.filter(use_case__identifier='sale')
-
-# fiscal sponsorship - sponsor (temp note)
-class ExchangeType(models.Model):
+class TransferType(models.Model):
     name = models.CharField(_('name'), max_length=128)
-    use_case = models.ForeignKey(UseCase,
-        blank=True, null=True,
-        verbose_name=_('use case'), related_name='exchange_types')
-    process_pattern = models.ForeignKey(ProcessPattern,
-        blank=True, null=True,
-        verbose_name=_('pattern'), related_name='exchange_types')
-    context_agent = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
-        verbose_name=_('context agent'), related_name='exchange_types')
+    sequence = models.IntegerField(_('sequence'), default=0)
+    exchange_type = models.ForeignKey(ExchangeType,
+        verbose_name=_('exchange type'), related_name='transfer_types')
     description = models.TextField(_('description'), blank=True, null=True)
+    is_contribution = models.BooleanField(_('is contribution'), default=False)
+    is_reciprocal = models.BooleanField(_('is reciprocal'), default=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='exchange_types_created', blank=True, null=True, editable=False)
+        related_name='transfer_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='exchange_types_changed', blank=True, null=True, editable=False)
+        related_name='transfer_types_changed', blank=True, null=True, editable=False)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    slug = models.SlugField(_("Page name"), editable=False)
 
-    objects = ExchangeTypeManager()
-    
-    class Meta:
-        ordering = ('name',)
-            
     def __unicode__(self):
-        return self.name
-            
-    def save(self, *args, **kwargs):
-        unique_slugify(self, self.name)
-        super(ExchangeType, self).save(*args, **kwargs)   
+        return self.name        
+
+    class Meta:
+        ordering = ('sequence',)
+        
 
 class ExchangeManager(models.Manager):
 
+    #obsolete
     def financial_contributions(self, start=None, end=None):
         #import pdb; pdb.set_trace()
         if start and end:
@@ -6446,11 +6507,56 @@ class ExchangeManager(models.Manager):
         both.sort(lambda x, y: cmp(y.start_date, x.start_date))
         return both
         
+    #obsolete
     def sales_and_distributions(self):
         return Exchange.objects.filter(
             Q(use_case__identifier="sale")|
             Q(use_case__identifier="distribution"))
-            
+        
+    #obsolete              
+    def demand_exchanges(self):
+        return Exchange.objects.filter(use_case__identifier="demand_xfer")
+        
+    #obsolete              
+    def supply_exchanges(self):
+        return Exchange.objects.filter(use_case__identifier="supply_xfer")
+              
+    #def demand_exchanges(self, start=None, end=None):
+    #    if start and end:
+    #        exchanges = Exchange.objects.filter(use_case__identifier="demand_xfer").filter(start_date__range=[start, end])
+    #    else:
+    #        exchanges = Exchange.objects.filter(use_case__identifier="demand_xfer")
+    #    #exchs = list(exchanges)
+    #    #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
+    #    #return exchs
+    #    return exchanges
+              
+    #def supply_exchanges(self, start=None, end=None):
+    #    if start and end:
+    #        exchanges = Exchange.objects.filter(use_case__identifier="supply_xfer").filter(start_date__range=[start, end])
+    #    else:
+    #        exchanges = Exchange.objects.filter(use_case__identifier="supply_xfer")
+    #    #exchs = list(exchanges)
+    #    #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
+    #    #eturn exchs
+    #    return exchanges
+    
+    def internal_exchanges(self, start=None, end=None):
+        if start and end:
+            exchanges = Exchange.objects.filter(use_case__identifier="intrnl_xfer").filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.filter(use_case__identifier="intrnl_xfer")
+        return exchanges
+        
+    #obsolete    
+    def distributions(self, start=None, end=None):
+        if start and end:
+            exchanges = Exchange.objects.filter(use_case__identifier="distribution").filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.filter(use_case__identifier="distribution")
+        return exchanges
+
+    #obsolete
     def material_contributions(self):
         return Exchange.objects.filter(use_case__identifier="res_contr")
 
@@ -6467,7 +6573,7 @@ class Exchange(models.Model):
         verbose_name=_('exchange type'), related_name='exchanges')
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='exchanges')
     url = models.CharField(_('url'), max_length=255, blank=True, null=True)
     start_date = models.DateField(_('start date'))
@@ -6497,15 +6603,15 @@ class Exchange(models.Model):
 
     def __unicode__(self):
         show_name = ""
-        if self.process_pattern:
-            show_name = self.process_pattern.name
         if self.exchange_type:
             show_name = self.exchange_type.name
-        name = ""
-        if self.name:
-            name = self.name + ","
+        else:
+            show_name = self.use_case.name
+        #name = ""
+        #if self.name:
+        #    name = self.name + ","
         return " ".join([
-            name,
+            #name,
             show_name,
             "starting",
             self.start_date.strftime('%Y-%m-%d'),
@@ -6540,35 +6646,70 @@ class Exchange(models.Model):
         #    answer = False
         return answer
 
+    def slots_with_detail(self):
+        #import pdb; pdb.set_trace()
+        slots = self.exchange_type.exchange_type_item_types.all()
+        events = self.events
+        commits = self.commitments
+        for slot in slots:
+            slot.events = []
+            slot.total = 0
+            for event in events:
+                if event.exchange_type_item_type == slot:
+                    slot.events.append(event)
+                    if event.value:
+                        slot.total += event.value
+                    else:
+                        slot.total += event.quantity                
+            for commit in commits:
+                if commit.exchange_type_item_type == slot:
+                    slot.commitments.append(commit)                
+        
+    #obsolete    
     def receipt_commitments(self):
         return self.commitments.filter(
             event_type__relationship='receive')
-
+        
+    #obsolete
     def payment_commitments(self):
         return self.commitments.filter(
             event_type__relationship='pay')
-
+        
+    #obsolete
     def shipment_commitments(self):
         return self.commitments.filter(
             event_type__relationship='shipment')
-            
+         
+    #obsolete           
     def cash_receipt_commitments(self):
         return self.commitments.filter(
             event_type__name='Cash Receipt')
-            
+    
+    def transfer_commitments(self):
+        return self.commitments.filter(
+            event_type__name='Transfer')        
+    
+    def rec_transfer_commitments(self):
+        return self.commitments.filter(
+            event_type__name='Reciprocal Transfer')  
+        
+    #obsolete    
     def receipt_events(self):
         return self.events.filter(
             event_type__relationship='receive')
-
+        
+    #obsolete
     def uncommitted_receipt_events(self):
         return self.events.filter(
             event_type__relationship='receive',
             commitment=None)
-
+        
+    #obsolete
     def payment_events(self):
         return self.events.filter(
             event_type__relationship='pay')
-            
+        
+    #obsolete            
     def cash_contributions(self):
         payments = self.payment_events()
         resources = {p.resource for p in payments if p.resource}
@@ -6577,10 +6718,12 @@ class Exchange(models.Model):
             ccs.extend(r.cash_contribution_events())
         return ccs
         
+    #obsolete        
     def payment_sources_with_contributions(self):
         resources = {p.resource for p in self.payment_events() if p.resource}
         return [r for r in resources if r.cash_contribution_events()]
-
+        
+    #obsolete
     def uncommitted_payment_events(self):
         return self.events.filter(
             event_type__relationship='pay',
@@ -6589,19 +6732,23 @@ class Exchange(models.Model):
     def work_events(self):
         return self.events.filter(
             event_type__relationship='work')
-
+        
+    #obsolete
     def expense_events(self):
         return self.events.filter(
             event_type__relationship='expense')
-
+        
+    #obsolete
     def material_contribution_events(self):
         return self.events.filter(
             event_type__relationship='resource')
         
+    #obsolete        
     def cash_events(self): #includes cash contributions, donations and loans
         return self.events.filter(
             event_type__relationship='cash')
-    
+        
+    #obsolete    
     def cash_receipt_events(self):
         return self.events.filter(
             event_type__relationship='receivecash')
@@ -6609,7 +6756,8 @@ class Exchange(models.Model):
     def cash_disbursement_events(self):
         return self.events.filter(
             event_type__name='Cash Disbursement')
-            
+        
+    #obsolete            
     def shipment_events(self):
         return self.events.filter(
             event_type__relationship='shipment')
@@ -6623,7 +6771,18 @@ class Exchange(models.Model):
         #exchange method
         return self.events.filter(
             event_type__name='Reciprocal Transfer')  
-            
+    
+    def uncommitted_transfer_events(self):
+        return self.events.filter(
+            event_type__name='Transfer',
+            commitment=None)
+    
+    def uncommitted_rec_transfer_events(self):
+        return self.events.filter(
+            event_type__name='Reciprocal Transfer',
+            commitment=None)
+        
+    #obsolete        
     def shipment_events_no_commitment(self):
         return self.events.filter(event_type__relationship='shipment').filter(commitment=None)
             
@@ -6634,7 +6793,8 @@ class Exchange(models.Model):
     def disbursement_events(self):
         return self.events.filter(
             event_type__relationship='disburse')
-             
+        
+    #obsolete             
     def fee_events(self):
         return self.events.filter(
             event_type__relationship='fee')
@@ -6969,6 +7129,96 @@ class Exchange(models.Model):
         return None
 
 
+class Transfer(models.Model):
+    name = models.CharField(_('name'), blank=True, max_length=128)
+    transfer_type = models.ForeignKey(TransferType,
+        blank=True, null=True,
+        verbose_name=_('transfer type'), related_name='transfers')
+    exchange = models.ForeignKey(Exchange,
+        blank=True, null=True,
+        verbose_name=_('exchange'), related_name='transfers')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='transfers')
+    transfer_date = models.DateField(_('transfer date'))
+    notes = models.TextField(_('notes'), blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='transfers_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='transfers_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = ExchangeManager()
+
+    class Meta:
+        ordering = ('-transfer_date',)
+        verbose_name_plural = _("transfers")
+
+    def __unicode__(self):
+        show_name = ""
+        if self.transfer_type:
+            show_name = self.transfer_type.name
+        name = ""
+        if self.name:
+            name = self.name + ","
+        return " ".join([
+            name,
+            show_name,
+            "starting",
+            self.start_date.strftime('%Y-%m-%d'),
+            ])
+    
+
+class DistributionManager(models.Manager):
+    
+    def distributions(self, start=None, end=None):
+        if start and end:
+            dists = Distribution.objects.filter(distribution_date__range=[start, end])
+        else:
+            dists = Distribution.objects.all()
+        return dists
+
+class Distribution(models.Model):
+    name = models.CharField(_('name'), blank=True, max_length=128)
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('pattern'), related_name='distributions')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='distributions')
+    url = models.CharField(_('url'), max_length=255, blank=True, null=True)
+    distribution_date = models.DateField(_('distribution date'))
+    notes = models.TextField(_('notes'), blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='distributions_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='distributions_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False)
+
+    objects = DistributionManager()
+
+    class Meta:
+        ordering = ('-distribution_date',)
+        verbose_name_plural = _("distributions")
+
+    def __unicode__(self):
+        show_name = "Distribution"
+        name = ""
+        if self.name:
+            name = self.name + ","
+        return " ".join([
+            name,
+            show_name,
+            "starting",
+            self.distribution_date.strftime('%Y-%m-%d'),
+            ])
+
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
     #todo: replace with ___? something
@@ -7143,7 +7393,7 @@ class Commitment(models.Model):
         related_name="commitments", verbose_name=_('event type'))
     stage = models.ForeignKey(ProcessType, related_name="commitments_at_stage",
         verbose_name=_('stage'), blank=True, null=True)
-    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="commitments_at_exchange_stage",
+    exchange_stage = models.ForeignKey(ExchangeType, related_name="commitments_at_exchange_stage",
         verbose_name=_('exchange stage'), blank=True, null=True)
     state = models.ForeignKey(ResourceState, related_name="commitments_at_state",
         verbose_name=_('state'), blank=True, null=True)
@@ -7172,9 +7422,12 @@ class Commitment(models.Model):
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='commitments')
+    transfer_type = models.ForeignKey(TransferType,
+        blank=True, null=True, 
+        related_name="commitments")
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='commitments')
     description = models.TextField(_('description'), null=True, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
@@ -7586,8 +7839,9 @@ class Commitment(models.Model):
         return condensed_events
         
         
-    #def fulfilling_shipment_events(self):
-    #    return self.fulfillment_events.filter(event_type__name="Shipment")
+    #obsolete        
+    def fulfilling_shipment_events(self):
+        return self.fulfillment_events.filter(event_type__name="Shipment")
      
     def todo_event(self):
         events = self.fulfilling_events()
@@ -8357,7 +8611,7 @@ class EconomicEvent(models.Model):
     resource = models.ForeignKey(EconomicResource, 
         blank=True, null=True,
         verbose_name=_('resource'), related_name='events')
-    exchange_stage = models.ForeignKey(AgentAssociationType, related_name="events_creating_exchange_stage",
+    exchange_stage = models.ForeignKey(ExchangeType, related_name="events_creating_exchange_stage",
         verbose_name=_('exchange stage'), blank=True, null=True)
     process = models.ForeignKey(Process,
         blank=True, null=True,
@@ -8367,9 +8621,12 @@ class EconomicEvent(models.Model):
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
+    transfer_type = models.ForeignKey(TransferType,
+        blank=True, null=True, 
+        related_name="events", verbose_name=_('exchange type item type'))
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         related_name="events", verbose_name=_('context agent'),
         on_delete=models.SET_NULL)        
     url = models.CharField(_('url'), max_length=255, blank=True)
@@ -8420,8 +8677,11 @@ class EconomicEvent(models.Model):
         resource_string = self.resource_type.name
         if self.resource:
             resource_string = str(self.resource)
+        event_name = self.event_type.name
+        #if self.exchange_type_item_type:
+        #    event_name = self.exchange_type_item_type.name
         return ' '.join([
-            self.event_type.name,
+            event_name,
             self.event_date.strftime('%Y-%m-%d'),
             'from',
             from_agt,
@@ -9149,7 +9409,17 @@ class EconomicEvent(models.Model):
         prefix = self.form_prefix()
         qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
-
+            
+    def exchange_change_form(self, data=None):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import ExchangeEventForm
+        unit = self.unit_of_quantity
+        if not unit:
+            unit = self.resource_type.unit
+        prefix = self.form_prefix()
+        qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+        return ExchangeEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
+    
     def unplanned_work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm
         return UnplannedWorkEventForm(instance=self, prefix=str(self.id))
@@ -9344,7 +9614,7 @@ PERCENTAGE_BEHAVIOR_CHOICES = (
 class ValueEquation(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=True)
     context_agent = models.ForeignKey(EconomicAgent,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         related_name="value_equations", verbose_name=_('context agent'))  
     description = models.TextField(_('description'), null=True, blank=True)
     percentage_behavior = models.CharField(_('percentage behavior'), 
@@ -10175,7 +10445,7 @@ class Claim(models.Model):
         related_name="claims against", verbose_name=_('against'))
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        limit_choices_to={"agent_type__is_context": True,},
+        limit_choices_to={"is_context": True,},
         related_name="claims", verbose_name=_('context agent'),
         on_delete=models.SET_NULL)        
     value = models.DecimalField(_('value'), max_digits=8, decimal_places=2, 

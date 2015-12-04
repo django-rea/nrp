@@ -1,0 +1,190 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Internal Exchanges" %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+.totals {
+    border: solid 2px firebrick;
+    background-color: oldlace;
+    margin-bottom: 12px;
+    padding-left: 1em;
+}
+.total {
+    font-weight: bold;
+    padding-right: 2em;
+}
+#btn-export {
+    margin-bottom: 8px;
+}
+.title {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+</style>
+
+{% endblock %}
+
+{% block body_class %}exchange{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+		<legend>{% trans "Internal Exchanges" %}
+            {% if agent %} for {{ agent.agent_type }} {{ agent.name }} {% endif %}
+        </legend>
+
+        <div class="span8">
+          <div class="totals">
+            <span class="total">Transfer total: {{ total_transfers }} </span> 
+            <span class="total">Reciprocal transfer total: {{ total_rec_transfers }} </span>
+            <br />
+            * Note these totals are meaningful only if the events selected all use the same currency.
+          </div>  
+		  {% if exchanges %}
+			<ul>
+			    {% for x in exchanges %}
+					<li>
+                        <a href="{% url exchange_logging exchange_id=x.id %}">{{ x }}
+                        {% if x.order %} for {{ x.order }}{% endif %}</a>  {% trans "created by" %} {{ x.created_by }}
+						{% if user = x.created_by or user.is_superuser%}
+                        	<a class="btn btn-info btn-mini" href="{% url exchange_logging exchange_id=x.id %}">{% trans "Change" %}</a> 
+                        	{% if x.is_deletable %}
+	                            <form
+			                        style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ exchange.id }}" 
+                                    action="{% url delete_exchange exchange_id=x.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="sales_and_distributions" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete item" >Delete</button>
+                                </form>
+                    	    {% endif %}
+						{% endif %}
+                    </li>
+                    {% if x.event_list %}
+                        <ul>
+                            {% for event in x.event_list %}
+                                <li>{{ event }} {% if event.value %} {{ event.value }} {{ event.unit_of_value }} {% endif %}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+				{% endfor %}
+			</ul>
+		  {% endif %}
+        </div>
+        <div class="span3 filter">
+          {% if exchanges %}
+            <div>
+                <a href=" {% url exchange_events_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
+            </div>
+          {% endif %}
+            <h3>{% trans "Filter the List" %}</h3>
+            <form id="filter-form" action="." method="POST">
+	            {% csrf_token %}
+                <div id="div_id_start_date" class="control-group" style="display: inline;" > 
+                    <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
+                        {% trans "Start date " %}
+                    </label>    
+                    <div class="controls" style="display: inline;" >
+                        {{ dt_selection_form.start_date }}
+                    </div>
+                </div>
+                <div id="div_id_end_date" class="control-group" > 
+                    <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
+                        {% trans "End date  " %}
+                    </label>    
+                    <div class="controls" style="display: inline;" >
+                        {{ dt_selection_form.end_date }}
+                    </div>
+                </div>
+	            <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All in the date range" %}</p>
+                <p class="title"> {% trans "Exchange Type" %} </p> 
+                {% for et in ets %}
+                    <p><input type="checkbox" class="category" id="{{ et.id }}" name="{{ et.id }}" value="{{ et.id }}" /> {{ et.name }}</p>
+                {% endfor %}
+                {% if references %}
+	            <p class="title"> {% trans "Accounting Reference" %} </p>
+	            {% for ar in references %}
+	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
+	            {% endfor %}
+	            {% endif %}
+	            <input type='hidden' id='categories' name='categories' value=' {{ selected_values }} ' />
+	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
+            </form>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+		var selectedCats = "{{ selected_values }}";
+
+		$('.category').each(function()
+		{
+			var cat = $(this)[0];
+            if (selectedCats.indexOf(cat.name) > -1)
+			{
+				$(this).prop('checked', true);
+			}
+		});
+
+		$('.category').click(function() 
+		{
+			var checkedCats = [];
+			var checkedBox = $(this)[0];
+			var allBox = $('#all')[0];
+			if (checkedBox == allBox)
+			{
+				$('.category').each(function()
+				{
+		            $(this).prop('checked', false);
+				});
+				$('#all').prop('checked', true);
+				checkedCats.push('all');
+			}
+			else
+			{
+				$('#all').prop('checked', false);
+				$('.category').each(function()
+				{
+					var cat = $(this)[0];
+		            if (cat.checked)
+					{
+						checkedCats.push(cat.value);
+					}
+				});
+			}
+			$('#categories').prop('value', checkedCats);
+		});
+
+
+	}); // end document.ready
+    </script>
+
+{% endblock %}

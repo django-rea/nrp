@@ -83,7 +83,21 @@ td {
 #partialDist {
     display: none;
 }
-
+#distributions {
+    margin-top: 20px;
+}
+tr.even td 
+{
+    color:#000000;
+    background-color:#EAF2D3;
+}
+th
+{
+    background-color:#C8D6E8;
+}
+#test {
+    margin-bottom: 10px;
+}
 
 </style>
 {% endblock %}
@@ -167,11 +181,32 @@ td {
                 {% endfor %}
             </div>
             <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
-            <span class="warning"><b>WARNING</b>: This operation cannot be undone.  Go to the 
-            <a href="{% url value_equation_sandbox value_equation_id=ve.id %}"><b>Value Equation Sandbox</b></a> to test results first if you are not sure.</span>
+            <span class="warning"><b>WARNING</b>: This operation cannot be undone. Please test your data entry below first!</span>
             <span id="loading" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
-            </form>
-
+            
+            <div id="distributions">
+                <input id="test" type="submit" name="test-only" class="btn btn-warning" style="display: inline; vertical-align: top;" value="{% trans 'TEST Distribution Here First !' %}" />
+                <span id="loadingTest" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
+   
+                {% if agent_totals %} 
+                    <div class="hdg">TEST Agent Totals:</div>
+                    <table class="table table-bordered table-condensed" >
+                        <thead>
+                            <th>{% trans "Agent" %}</th>
+                            <th style="text-align: right;">{% trans "Distribution Amount" %}</th>
+                        </thead>
+                        <tbody> 
+                            {% for at in agent_totals %}
+                                <tr class="{% cycle 'odd' 'even' %}">
+                                    <td>{{ at.to_agent.name }}</td>
+                                    <td style="text-align: right;" >{{ at.quantity }}</td>
+                                </tr>
+                            {% endfor %}
+                        <tbody> 
+                    </table>
+                {% endif %}
+            </div>
+        </form>            
     {% else %}
         <h2>You need a {{ context_types }}.</h2>
         <p>
@@ -247,6 +282,7 @@ td {
         });
 
         $("#calculate").click(showLoading);
+        $("#test").click(showLoadingTest);
 		$("#id_value_equation").change(reloadPage);
 		$("#id_cash_receipts").change(adjustDist);
 		$("#id_input_distributions").change(inputDistributionChanged);
@@ -260,7 +296,12 @@ td {
         $("#loading").show();
         $(".warning").hide();
     } 
-        
+    
+    function showLoadingTest()
+    {
+        $("#loadingTest").show();
+    }
+    
     function reloadPage()
     {
         var selectedVE = document.getElementById('id_value_equation').value;

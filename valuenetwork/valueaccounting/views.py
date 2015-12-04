@@ -10489,6 +10489,8 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
     buckets = []
     use_case = UseCase.objects.get(identifier="distribution")
     pattern = ProcessPattern.objects.usecase_patterns(use_case)[0]
+    agent_totals = None
+    cash_receipts = {}
     if request.method == "POST":
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True, data=request.POST)
         #import pdb; pdb.set_trace()
@@ -10528,37 +10530,43 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                         ser_string = bucket_data = bucket_form.serialize()
                         serialized_filters[bucket.id] = ser_string
                         bucket.form = bucket_form
-                            
-            exchange = Exchange(                
-                name="Distribution for " + context_agent.nick,
-                process_pattern=pattern,
-                use_case=use_case,
-                start_date=dist_date,
-                notes=notes,
-                context_agent=context_agent,
-                created_by=request.user,
-            )
-            #exchange.save()
-            
-            exchange = ve.run_value_equation_and_save(
-                cash_receipts=crs,
-                input_distributions=inds,
-                exchange=exchange, 
-                money_resource=resource, 
-                amount_to_distribute=amount, 
-                serialized_filters=serialized_filters)
-            for event in exchange.distribution_events():
-                send_distribution_notification(event)
+
+            test_only = request.POST.get("test-only")
+            if test_only:
+                agent_totals, contribution_events = ve.run_value_equation(
+                    amount_to_distribute=amount,
+                    serialized_filters=serialized_filters)
                 
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/exchange', exchange.id))
+            else:                            
+                exchange = Exchange(                
+                    name="Distribution for " + context_agent.nick,
+                    process_pattern=pattern,
+                    use_case=use_case,
+                    start_date=dist_date,
+                    notes=notes,
+                    context_agent=context_agent,
+                    created_by=request.user,
+                )
+                #exchange.save()
+                
+                exchange = ve.run_value_equation_and_save(
+                    cash_receipts=crs,
+                    input_distributions=inds,
+                    exchange=exchange, 
+                    money_resource=resource, 
+                    amount_to_distribute=amount, 
+                    serialized_filters=serialized_filters)
+                for event in exchange.distribution_events():
+                    send_distribution_notification(event)
+                    
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/exchange', exchange.id))
             
     else:
         ves = context_agent.live_value_equations()
         init = { "start_date": datetime.date.today(), "value_equation": ve }
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=False, initial=init)
         crs = context_agent.undistributed_cash_receipts()
-        cash_receipts = {}
         for cr in crs:
             cash_receipts[cr.id] = float(cr.undistributed_amount())
         if ves:
@@ -10575,6 +10583,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
         "buckets": buckets,
         "ve": ve,
         "context_agent": context_agent,
+        "agent_totals": agent_totals,
         "help": get_help("create_distribution"),
     }, context_instance=RequestContext(request))
          

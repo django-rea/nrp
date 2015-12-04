@@ -44,10 +44,16 @@
 #chart_div0 {
     margin-top: 25px;
 }
+.chart-heading{
+    text-align: center;
+}
 #chart_div1 {
     margin-bottom: 25px;
 }
 #chart_div2 {
+    margin-bottom: 25px;
+}
+#chart_div3 {
     margin-bottom: 25px;
     height: {{ roles_height }}px;
 }
@@ -149,6 +155,26 @@
                         </div>
                     </form>
               </div>
+
+            </div>
+        {% endif %}
+        
+        {% if agent.is_context_agent %}
+            <div class="row-fluid" tyle="margin-bottom:2em;">
+                <hr />
+                <h3>Cumulative Time</h3>
+                <div class="row-fluid">
+                    <div class="span6">
+                        <h4 class="chart-heading">Last 2 weeks</h4>
+                        <div id="chart_div1"></div>
+                    </div>
+                    <div class="span6">
+                        <h4 class="chart-heading">Forever</h4>
+                        <div id="chart_div2"></div>
+                    </div>
+                </div>
+                <h3>Roles</h3>
+                <div id="chart_div3"></div>
 
             </div>
         {% endif %}
@@ -343,16 +369,6 @@
 
         </div>
 
-        <div class="row-fluid" tyle="margin-top:2em;">
-            {% if agent.is_context_agent %}
-                <hr />
-                <h3>Cumulative Time</h3>
-                <div id="chart_div1"></div>
-                <h3>Roles</h3>
-                <div id="chart_div2"></div>
-
-            {% endif %}
-        </div>
     </div>
 
 {% endblock %}
@@ -455,6 +471,24 @@
                 chart.draw(data, options);
             }
         {% else %}
+            google.setOnLoadCallback(drawChart_2weeks);
+            function drawChart_2weeks() {
+                var data = google.visualization.arrayToDataTable([
+                ['Member', 'Hours'],
+                {% for member, hours in member_hours_2weeks %}
+                    ['{{ member }}',  {{ hours }} ],
+                {% endfor %}
+                ]);
+
+                var options = {
+                vAxis: {title: 'Member',  titleTextStyle: {color: 'red'}},
+                chartArea:{width:"80%",height:"80%"}
+                };
+
+                var chart = new google.visualization.PieChart(document.getElementById('chart_div1'));
+                chart.draw(data, options);
+            }
+            
             google.setOnLoadCallback(drawChart_stats);
             function drawChart_stats() {
                 var data = google.visualization.arrayToDataTable([
@@ -469,7 +503,7 @@
                 chartArea:{width:"80%",height:"80%"}
                 };
 
-                var chart = new google.visualization.PieChart(document.getElementById('chart_div1'));
+                var chart = new google.visualization.PieChart(document.getElementById('chart_div2'));
                 chart.draw(data, options);
             }
             
@@ -498,7 +532,7 @@
                 data.addRows(rows);
 
                 var chart = new google.visualization.BarChart(
-                    document.getElementById('chart_div2'));
+                    document.getElementById('chart_div3'));
                 chart.draw(data, 
                     {
                         'isStacked': true, 

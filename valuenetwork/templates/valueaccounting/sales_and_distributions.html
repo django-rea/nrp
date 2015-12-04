@@ -2,7 +2,7 @@
 
 {% load i18n %}
 
-{% block head_title %}{% trans "Demand Side Exchanges" %}{% endblock %}
+{% block head_title %}{% trans "Sales and Distributions" %}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
@@ -34,16 +34,17 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-		<legend>{% trans "Demand Side Exchanges" %}
+		<legend>{% trans "External Exchanges and Distributions" %}
             {% if agent %} for {{ agent.agent_type }} {{ agent.name }} {% endif %}
         </legend>
 
         <div class="span8">
           <div class="totals">
-            <span class="total">Incoming total: {{ total_rec_transfers }} </span> 
-            <span class="total">Outgoing total: {{ total_transfers }} </span>
+            <span class="total">Cash Receipts total: {{ total_cash_receipts }} </span> 
+            <span class="total">Deliveries total: {{ total_shipments }} </span> 
+            <span class="total">Distributions total: {{ total_distributions }} </span> 
             <br />
-            * Note these totals are meaningful only if the events selected all use the same currency.
+            * Note these totals are valid only if the events selected all use the same currency.
           </div>  
 		  {% if exchanges %}
 			<ul>
@@ -104,11 +105,7 @@
                     </div>
                 </div>
 	            <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All in the date range" %}</p>
-                <p class="title"> {% trans "Exchange Type" %} </p> 
-                {% for et in ets %}
-                    <p><input type="checkbox" class="category" id="{{ et.id }}" name="{{ et.id }}" value="{{ et.id }}" /> {{ et.name }}</p>
-                {% endfor %}     
-	            <p class="title"> {% trans "Accounting Reference" %} </p>
+                <p class="title"> {% trans "Accounting Reference" %} </p>
 	            {% for ar in references %}
 	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
 	            {% endfor %}

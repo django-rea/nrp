@@ -487,6 +487,8 @@ urlpatterns += patterns("",
     url(r"^create-location/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.create_location', name="create_location"),
     url(r"^change-location/(?P<location_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_location', name="change_location"),
     url(r"^change-location/(?P<location_id>\d+)/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.change_location', name="change_location"),
-
+    url(r"^material-contributions/$", 'valuenetwork.valueaccounting.views.material_contributions', name="material_contributions"),
+    url(r"^sales-and-distributions/$", 'valuenetwork.valueaccounting.views.sales_and_distributions', name="sales_and_distributions"),
+    url(r"^sales-and-distributions/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.sales_and_distributions', name="sales_and_distributions"),
 )
 

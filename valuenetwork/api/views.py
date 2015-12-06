@@ -374,7 +374,7 @@ def agent_jsonld_query(request):
 
     #import pdb; pdb.set_trace()
     g = Graph()
-    url = "http://nrp.webfactional.com/accounting/agent-jsonld/"
+    url = "http://nrp.webfactional.com/api/agent-jsonld/"
     remote_jsonld = urlopen(url).read()
     dict_data = simplejson.loads(remote_jsonld)
     context = dict_data["@context"]

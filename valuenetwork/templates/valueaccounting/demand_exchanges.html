@@ -67,6 +67,13 @@
                     	    {% endif %}
 						{% endif %}
                     </li>
+                    {% if x.transfer_list %}
+                        <ul>
+                            {% for transfer in x.transfer_list %}
+                                <li>{{ transfer }} {% if transfer.value %} {{ transfer.value }} {{ transfer.unit_of_value }} {% endif %}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                     {% if x.event_list %}
                         <ul>
                             {% for event in x.event_list %}

@@ -9265,7 +9265,7 @@ def create_patterned_facet_formset(pattern, slot, data=None):
     return formset
 
 
-def exchanges_new(request, agent_id=None):
+def exchanges(request, agent_id=None):
     #import pdb; pdb.set_trace()
     agent = None
     if agent_id:
@@ -9280,8 +9280,8 @@ def exchanges_new(request, agent_id=None):
     #et_pay = EventType.objects.get(name="Payment")   
     #et_receive = EventType.objects.get(name="Receipt")
     #et_expense = EventType.objects.get(name="Expense")
-    et_transfer = EventType.objects.get(name="Transfer")
-    et_rec_transfer = EventType.objects.get(name="Reciprocal Transfer")
+    et_give = EventType.objects.get(name="Give")
+    et_receive = EventType.objects.get(name="Receive")
     references = AccountingReference.objects.all()
     ets = ExchangeType.objects.supply_exchange_types()
     event_ids = ""
@@ -9310,17 +9310,29 @@ def exchanges_new(request, agent_id=None):
                 select_all = True
             else:
                 select_all = False
-                events_included = []
+                transfers_included = []
                 exchanges_included = []
+                events_included = []
                 for ex in exchanges:
-                    for event in ex.events.all():
-                        if event.resource_type.accounting_reference:
-                            if event.resource_type.accounting_reference.code in vals:
-                                events_included.append(event)
-                    if events_included != []:   
-                        ex.event_list = events_included
+                    if ex in vals:
                         exchanges_included.append(ex)
-                        events_included = []
+                    #for transfer in ex.transfers.all():
+                    #    for event in transfer.events.all():
+                    #        if event.resource_type.accounting_reference:
+                    #           if event.resource_type.accounting_reference.code in vals:
+                    #                transfers_included.append(transfer)                                    
+                    #    if transfers_included != []:   
+                    #        ex.transfer_list = transfers_included
+                    #        exchanges_included.append(ex)
+                    #        transfers_included = []
+                    #for event in ex.events.all(): #work events not part of a transfer
+                    #    if event.resource_type.accounting_reference:
+                    #        if event.resource_type.accounting_reference.code in vals:
+                    #            events_included.append(event)                                    
+                    #    if events_included != []:   
+                    #        ex.event_list = events_included
+                    #        events_included = []
+                    #ex.event_list = events_included
                 exchanges = exchanges_included
     else:
         if agent_id:
@@ -9338,16 +9350,21 @@ def exchanges_new(request, agent_id=None):
     #import pdb; pdb.set_trace()
     for x in exchanges:
         try:
-            xx = x.event_list
+            xx = list(x.transfer_list)
         except AttributeError:
-            x.event_list = x.events.all()
-        for event in x.event_list:
-            if event.event_type == et_transfer:
-                total_transfers = total_transfers + event.quantity
-            elif event.event_type == et_rec_transfer:
-                total_rec_transfers = total_rec_transfers + event.quantity
-            event_ids = event_ids + comma + str(event.id)
-            comma = ","
+            x.transfer_list = list(x.transfers.all())
+        for transfer in x.transfer_list:
+            if not transfer.transfer_type.is_reciprocal:
+                total_transfers = total_transfers + transfer.quantity()
+            else:
+                total_rec_transfers = total_rec_transfers + transfer.quantity()
+            for event in transfer.events.all():
+                event_ids = event_ids + comma + str(event.id)
+                comma = ","
+        #x.transfer_list.sort(key=lambda transfer: str(transfer.transfer_type.sequence()))
+        #x.transfer_list = sorted(x.transfer_list, key=
+        #sorted(customlist, key=getKey)
+
     #import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/exchanges.html", {
@@ -9364,7 +9381,7 @@ def exchanges_new(request, agent_id=None):
     }, context_instance=RequestContext(request))
 
 #obsolete
-def exchanges(request):
+def exchanges_old(request):
     #import pdb; pdb.set_trace()
     end = datetime.date.today()
     start = datetime.date(end.year, 1, 1)

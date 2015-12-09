@@ -76,22 +76,48 @@ class ClaimEventAdmin(admin.ModelAdmin):
 
 admin.site.register(ClaimEvent, ClaimEventAdmin)
 
+class TransferEconomicEventInline(admin.TabularInline):
+    model = EconomicEvent
+    fk_name = 'transfer'
+    fields = ('event_type', 'event_date', 'resource_type', 'exchange_stage', 'quantity', 'unit_of_quantity', 'value', 'unit_of_value', 'from_agent', 'to_agent')
+ 
+class TransferAdmin(admin.ModelAdmin):
+    date_hierarchy = 'transfer_date'
+    list_display = ('id', 'transfer_date', 'transfer_type', 'name', 'context_agent')
+    list_filter = ['transfer_type']
+    inlines = [ TransferEconomicEventInline ]
+
+admin.site.register(Transfer, TransferAdmin)
+
+class TransferInline(admin.TabularInline):
+    model = Transfer
+    fk_name = 'exchange'
+    fields = ('name', 'transfer_type', 'transfer_date')
+    
 class EconomicEventInline(admin.TabularInline):
     model = EconomicEvent
     fk_name = 'exchange'
     fields = ('event_type', 'event_date', 'resource_type', 'exchange_stage', 'quantity', 'unit_of_quantity', 'value', 'unit_of_value', 'from_agent', 'to_agent')
- 
-class CommitInline(admin.TabularInline):
-    model = Commitment
-    fk_name = 'exchange'
-    fields = ('event_type', 'commitment_date', 'resource_type', 'exchange_stage', 'quantity', 'unit_of_quantity', 'from_agent', 'to_agent')
-    
+   
 class ExchangeAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
-    list_display = ('id', 'start_date', 'use_case', 'name', 'context_agent', 'supplier')
-    inlines = [ EconomicEventInline, CommitInline ]
+    list_display = ('id', 'start_date', 'use_case', 'name', 'context_agent', 'exchange_type')
+    list_filter = ['use_case', 'exchange_type']
+    inlines = [ TransferInline, EconomicEventInline ]
 
 admin.site.register(Exchange, ExchangeAdmin)
+
+class DistEconomicEventInline(admin.TabularInline):
+    model = EconomicEvent
+    fk_name = 'distribution'
+    fields = ('event_type', 'event_date', 'resource_type', 'exchange_stage', 'quantity', 'unit_of_quantity', 'value', 'unit_of_value', 'from_agent', 'to_agent')
+ 
+class DistributionAdmin(admin.ModelAdmin):
+    date_hierarchy = 'distribution_date'
+    list_display = ('id', 'distribution_date', 'name', 'context_agent', 'value_equation')
+    inlines = [ DistEconomicEventInline ]
+
+admin.site.register(Distribution, DistributionAdmin)
 
 class IncomeEventDistributionAdmin(admin.ModelAdmin):
     date_hierarchy = 'distribution_date'
@@ -288,10 +314,10 @@ class EconomicEventAdmin(admin.ModelAdmin):
 admin.site.register(EconomicEvent, EconomicEventAdmin)
 
 
-class CompensationAdmin(admin.ModelAdmin):
-    list_display = ('initiating_event', 'compensating_event', 'compensation_date', 'compensating_value')
-    search_fields = ['initiating_event__from_agent__name', 'initiating_event__to_agent__name']
+#class CompensationAdmin(admin.ModelAdmin):
+#    list_display = ('initiating_event', 'compensating_event', 'compensation_date', 'compensating_value')
+#    search_fields = ['initiating_event__from_agent__name', 'initiating_event__to_agent__name']
     
-admin.site.register(Compensation, CompensationAdmin)
+#admin.site.register(Compensation, CompensationAdmin)
 
 

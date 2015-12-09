@@ -2797,8 +2797,8 @@ def create_event_types(app, **kwargs):
     EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
     #the following is for fees, taxes, other extraneous charges not involved in a value equation
     EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
-    EventType.create('Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', 'x', 'quantity')
-    EventType.create('Reciprocal Transfer', _('transfers'), _('transferred by'), 'transfer', 'exchange', 'x', 'quantity')
+    EventType.create('Give', _('gives'), _('given by'), 'give', 'transfer', '-', 'quantity')
+    EventType.create('Receive', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity')
     EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'agent', '+', 'quantity')
     
     print "created event types"
@@ -6489,57 +6489,57 @@ class TransferType(models.Model):
 class ExchangeManager(models.Manager):
 
     #obsolete
-    def financial_contributions(self, start=None, end=None):
-        #import pdb; pdb.set_trace()
-        if start and end:
-             exchanges = Exchange.objects.filter(
-                Q(use_case__identifier="cash_contr")|
-                Q(use_case__identifier="purch_contr")|
-                Q(use_case__identifier="exp_contr")).filter(start_date__range=[start, end])
-        else:
-            exchanges = Exchange.objects.filter(
-                Q(use_case__identifier="cash_contr")|
-                Q(use_case__identifier="purch_contr")|
-                Q(use_case__identifier="exp_contr"))
-        #processes_with_expenses = Process.objects.processes_with_expenses(start, end)
-        both = list(exchanges)
-        #both.extend(processes_with_expenses)
-        both.sort(lambda x, y: cmp(y.start_date, x.start_date))
-        return both
+    #def financial_contributions(self, start=None, end=None):
+    #    #import pdb; pdb.set_trace()
+    #    if start and end:
+    #         exchanges = Exchange.objects.filter(
+    #            Q(use_case__identifier="cash_contr")|
+    #            Q(use_case__identifier="purch_contr")|
+    #            Q(use_case__identifier="exp_contr")).filter(start_date__range=[start, end])
+    #    else:
+    #        exchanges = Exchange.objects.filter(
+    #            Q(use_case__identifier="cash_contr")|
+    #            Q(use_case__identifier="purch_contr")|
+    #            Q(use_case__identifier="exp_contr"))
+    #    #processes_with_expenses = Process.objects.processes_with_expenses(start, end)
+    #    both = list(exchanges)
+    #    #both.extend(processes_with_expenses)
+    #    both.sort(lambda x, y: cmp(y.start_date, x.start_date))
+    #    return both
         
     #obsolete
-    def sales_and_distributions(self):
-        return Exchange.objects.filter(
-            Q(use_case__identifier="sale")|
-            Q(use_case__identifier="distribution"))
-        
+    #def sales_and_distributions(self):
+    #    return Exchange.objects.filter(
+    #        Q(use_case__identifier="sale")|
+    #        Q(use_case__identifier="distribution"))
+    #    
+    ##obsolete              
+    #def demand_exchanges(self):
+    #    return Exchange.objects.filter(use_case__identifier="demand_xfer")
+    #    
     #obsolete              
-    def demand_exchanges(self):
-        return Exchange.objects.filter(use_case__identifier="demand_xfer")
-        
-    #obsolete              
-    def supply_exchanges(self):
-        return Exchange.objects.filter(use_case__identifier="supply_xfer")
+    #def supply_exchanges(self):
+    #    return Exchange.objects.filter(use_case__identifier="supply_xfer")
               
-    #def demand_exchanges(self, start=None, end=None):
-    #    if start and end:
-    #        exchanges = Exchange.objects.filter(use_case__identifier="demand_xfer").filter(start_date__range=[start, end])
-    #    else:
-    #        exchanges = Exchange.objects.filter(use_case__identifier="demand_xfer")
-    #    #exchs = list(exchanges)
-    #    #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
-    #    #return exchs
-    #    return exchanges
+    def demand_exchanges(self, start=None, end=None):
+        if start and end:
+            exchanges = Exchange.objects.filter(use_case__identifier="demand_xfer").filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.filter(use_case__identifier="demand_xfer")
+        #exchs = list(exchanges)
+        #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
+        #return exchs
+        return exchanges
               
-    #def supply_exchanges(self, start=None, end=None):
-    #    if start and end:
-    #        exchanges = Exchange.objects.filter(use_case__identifier="supply_xfer").filter(start_date__range=[start, end])
-    #    else:
-    #        exchanges = Exchange.objects.filter(use_case__identifier="supply_xfer")
-    #    #exchs = list(exchanges)
-    #    #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
-    #    #eturn exchs
-    #    return exchanges
+    def supply_exchanges(self, start=None, end=None):
+        if start and end:
+            exchanges = Exchange.objects.filter(use_case__identifier="supply_xfer").filter(start_date__range=[start, end])
+        else:
+            exchanges = Exchange.objects.filter(use_case__identifier="supply_xfer")
+        #exchs = list(exchanges)
+        #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
+        #return exchs
+        return exchanges
     
     def internal_exchanges(self, start=None, end=None):
         if start and end:
@@ -6547,18 +6547,18 @@ class ExchangeManager(models.Manager):
         else:
             exchanges = Exchange.objects.filter(use_case__identifier="intrnl_xfer")
         return exchanges
-        
-    #obsolete    
-    def distributions(self, start=None, end=None):
-        if start and end:
-            exchanges = Exchange.objects.filter(use_case__identifier="distribution").filter(start_date__range=[start, end])
-        else:
-            exchanges = Exchange.objects.filter(use_case__identifier="distribution")
-        return exchanges
+     
+    #obsolete
+    #def distributions(self, start=None, end=None):
+    #    if start and end:
+    #        exchanges = Exchange.objects.filter(use_case__identifier="distribution").filter(start_date__range=[start, end])
+    #    else:
+    #        exchanges = Exchange.objects.filter(use_case__identifier="distribution")
+    #    return exchanges
 
     #obsolete
-    def material_contributions(self):
-        return Exchange.objects.filter(use_case__identifier="res_contr")
+    #def material_contributions(self):
+    #    return Exchange.objects.filter(use_case__identifier="res_contr")
 
 class Exchange(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
@@ -6607,11 +6607,11 @@ class Exchange(models.Model):
             show_name = self.exchange_type.name
         else:
             show_name = self.use_case.name
-        #name = ""
-        #if self.name:
-        #    name = self.name + ","
+        name = ""
+        if self.name:
+            name = self.name + ","
         return " ".join([
-            #name,
+            name,
             show_name,
             "starting",
             self.start_date.strftime('%Y-%m-%d'),
@@ -6640,167 +6640,183 @@ class Exchange(models.Model):
         answer = True
         if self.events.all():
             answer = False
+        if self.transfers.all():
+            answer = False
         #elif self.resources.all():
         #    answer = False
         #elif self.commitments.all():
         #    answer = False
         return answer
 
+    #todo: this needs work!!
     def slots_with_detail(self):
         #import pdb; pdb.set_trace()
-        slots = self.exchange_type.exchange_type_item_types.all()
+        slots = self.exchange_type.transfer_types.all()
+        transfers = self.transfers
         events = self.events
         commits = self.commitments
         for slot in slots:
             slot.events = []
             slot.total = 0
             for event in events:
-                if event.exchange_type_item_type == slot:
+                if event.transfer_type == slot:
                     slot.events.append(event)
                     if event.value:
                         slot.total += event.value
                     else:
                         slot.total += event.quantity                
             for commit in commits:
-                if commit.exchange_type_item_type == slot:
-                    slot.commitments.append(commit)                
+                if commit.transfer_type == slot:
+                    slot.commitments.append(commit)  
+            #for transfer in transfers:
+                
         
     #obsolete    
-    def receipt_commitments(self):
-        return self.commitments.filter(
-            event_type__relationship='receive')
+    #def receipt_commitments(self):
+    #    return self.commitments.filter(
+    #        event_type__relationship='receive')
         
     #obsolete
-    def payment_commitments(self):
-        return self.commitments.filter(
-            event_type__relationship='pay')
+    #def payment_commitments(self):
+    #    return self.commitments.filter(
+    #        event_type__relationship='pay')
         
     #obsolete
-    def shipment_commitments(self):
-        return self.commitments.filter(
-            event_type__relationship='shipment')
+    #def shipment_commitments(self):
+    #    return self.commitments.filter(
+    #        event_type__relationship='shipment')
          
     #obsolete           
-    def cash_receipt_commitments(self):
-        return self.commitments.filter(
-            event_type__name='Cash Receipt')
+    #def cash_receipt_commitments(self):
+    #    return self.commitments.filter(
+    #        event_type__name='Cash Receipt')
     
-    def transfer_commitments(self):
-        return self.commitments.filter(
-            event_type__name='Transfer')        
-    
-    def rec_transfer_commitments(self):
-        return self.commitments.filter(
-            event_type__name='Reciprocal Transfer')  
+    #todo: probably don't need these, but if do, re-write
+    #def transfer_commitments(self):
+    #    return self.commitments.filter(
+    #        event_type__name='Transfer')        
+
+    #todo: probably don't need these, but if do, re-write
+    #def rec_transfer_commitments(self):
+    #    return self.commitments.filter(
+    #        event_type__name='Reciprocal Transfer')  
         
     #obsolete    
-    def receipt_events(self):
-        return self.events.filter(
-            event_type__relationship='receive')
+    #def receipt_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='receive')
         
     #obsolete
-    def uncommitted_receipt_events(self):
-        return self.events.filter(
-            event_type__relationship='receive',
-            commitment=None)
+    #def uncommitted_receipt_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='receive',
+    #        commitment=None)
         
     #obsolete
-    def payment_events(self):
-        return self.events.filter(
-            event_type__relationship='pay')
+    #def payment_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='pay')
         
     #obsolete            
-    def cash_contributions(self):
-        payments = self.payment_events()
-        resources = {p.resource for p in payments if p.resource}
-        ccs = []
-        for r in resources:
-            ccs.extend(r.cash_contribution_events())
-        return ccs
+    #def cash_contributions(self):
+    #    payments = self.payment_events()
+    #    resources = {p.resource for p in payments if p.resource}
+    #    ccs = []
+    #    for r in resources:
+    #        ccs.extend(r.cash_contribution_events())
+    #    return ccs
         
     #obsolete        
-    def payment_sources_with_contributions(self):
-        resources = {p.resource for p in self.payment_events() if p.resource}
-        return [r for r in resources if r.cash_contribution_events()]
+    #def payment_sources_with_contributions(self):
+    #    resources = {p.resource for p in self.payment_events() if p.resource}
+    #    return [r for r in resources if r.cash_contribution_events()]
         
     #obsolete
-    def uncommitted_payment_events(self):
-        return self.events.filter(
-            event_type__relationship='pay',
-            commitment=None)
+    #def uncommitted_payment_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='pay',
+    #        commitment=None)
 
     def work_events(self):
         return self.events.filter(
             event_type__relationship='work')
         
     #obsolete
-    def expense_events(self):
-        return self.events.filter(
-            event_type__relationship='expense')
+    #def expense_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='expense')
         
     #obsolete
-    def material_contribution_events(self):
-        return self.events.filter(
-            event_type__relationship='resource')
+    #def material_contribution_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='resource')
         
     #obsolete        
-    def cash_events(self): #includes cash contributions, donations and loans
-        return self.events.filter(
-            event_type__relationship='cash')
+    #def cash_events(self): #includes cash contributions, donations and loans
+    #    return self.events.filter(
+    #        event_type__relationship='cash')
         
     #obsolete    
-    def cash_receipt_events(self):
-        return self.events.filter(
-            event_type__relationship='receivecash')
+    #def cash_receipt_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='receivecash')
             
     def cash_disbursement_events(self):
         return self.events.filter(
             event_type__name='Cash Disbursement')
         
     #obsolete            
-    def shipment_events(self):
-        return self.events.filter(
-            event_type__relationship='shipment')
-                
+    #def shipment_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='shipment')
+
+    def events(self):
+        events = []
+        for transfer in self.transfers.all():
+            for event in transfer.events.all():
+                events.append(event)
+        return events        
+                        
     def transfer_events(self):
         #exchange method
-        return self.events.filter(
-            event_type__name='Transfer')
+        events = []
+        for transfer in self.transfers.all():
+            if not transfer.is_reciprocal:
+                for event in transfer.events.all():
+                    events.append(event)
+        return events
             
     def reciprocal_transfer_events(self):
         #exchange method
-        return self.events.filter(
-            event_type__name='Reciprocal Transfer')  
+        events = []
+        for transfer in self.transfers.all():
+            if transfer.is_reciprocal:
+                for event in transfer.events.all():
+                    events.append(event)
+        return events 
+
+    #todo: do we need these?  if not, delete
+    #def uncommitted_transfer_events(self):
+    #    return self.events.filter(
+    #        event_type__name='Transfer',
+    #        commitment=None)
     
-    def uncommitted_transfer_events(self):
-        return self.events.filter(
-            event_type__name='Transfer',
-            commitment=None)
-    
-    def uncommitted_rec_transfer_events(self):
-        return self.events.filter(
-            event_type__name='Reciprocal Transfer',
-            commitment=None)
+    #def uncommitted_rec_transfer_events(self):
+    #    return self.events.filter(
+    #        event_type__name='Reciprocal Transfer',
+    #        commitment=None)
         
     #obsolete        
-    def shipment_events_no_commitment(self):
-        return self.events.filter(event_type__relationship='shipment').filter(commitment=None)
+    #def shipment_events_no_commitment(self):
+    #    return self.events.filter(event_type__relationship='shipment').filter(commitment=None)
             
-    def distribution_events(self):
-        return self.events.filter(
-            event_type__relationship='distribute')
-            
-    def disbursement_events(self):
-        return self.events.filter(
-            event_type__relationship='disburse')
-        
     #obsolete             
-    def fee_events(self):
-        return self.events.filter(
-            event_type__relationship='fee')
+    #def fee_events(self):
+    #    return self.events.filter(
+    #        event_type__relationship='fee')
     
     def sorted_events(self):
-        events = self.events.all().order_by("event_type__name")
+        events = self.events().order_by("event_type__name")
         return events
         
     def flow_type(self):
@@ -6870,7 +6886,7 @@ class Exchange(models.Model):
                         evt.share = evt.quantity * fraction * trigger_fraction
                         evt.depth = depth
                         path.append(evt)
-                        values += evt.share
+                        values += evt.shareexchange
                         #todo 3d: do multiple payments make sense for cash contributions?
                     else:
                         value = evt.quantity
@@ -7122,12 +7138,6 @@ class Exchange(models.Model):
             #local_total = sum(lo.share for lo in locals)
             #print "local_total:", local_total
             
-    def distribution_value_equation(self):
-        ves = self.value_equation.all()
-        if ves:
-            return ves[0]
-        return None
-
 
 class Transfer(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
@@ -7161,63 +7171,38 @@ class Transfer(models.Model):
         show_name = ""
         if self.transfer_type:
             show_name = self.transfer_type.name
-        name = ""
-        if self.name:
-            name = self.name + ","
+        #name = ""
+        #if self.name:
+        #    name = self.name + ","
         return " ".join([
-            name,
+        #    name,
             show_name,
             "starting",
-            self.start_date.strftime('%Y-%m-%d'),
+            self.transfer_date.strftime('%Y-%m-%d'),
             ])
     
-
-class DistributionManager(models.Manager):
+    def quantity(self):
+        return self.events.all()[0].quantity
     
-    def distributions(self, start=None, end=None):
-        if start and end:
-            dists = Distribution.objects.filter(distribution_date__range=[start, end])
-        else:
-            dists = Distribution.objects.all()
-        return dists
+    def unit_of_quantity(self):
+        return self.events.all()[0].unit_of_quantity
+        
+    def value(self):
+        return self.events.all()[0].value
+    
+    def unit_of_value(self):
+        return self.events.all()[0].unit_of_value
+    
+    def flow_type(self):
+        return "Transfer"
 
-class Distribution(models.Model):
-    name = models.CharField(_('name'), blank=True, max_length=128)
-    process_pattern = models.ForeignKey(ProcessPattern,
-        blank=True, null=True,
-        verbose_name=_('pattern'), related_name='distributions')
-    context_agent = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        limit_choices_to={"is_context": True,},
-        verbose_name=_('context agent'), related_name='distributions')
-    url = models.CharField(_('url'), max_length=255, blank=True, null=True)
-    distribution_date = models.DateField(_('distribution date'))
-    notes = models.TextField(_('notes'), blank=True)
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='distributions_created', blank=True, null=True, editable=False)
-    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
-        related_name='distributions_changed', blank=True, null=True, editable=False)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
-    slug = models.SlugField(_("Page name"), editable=False)
-
-    objects = DistributionManager()
-
-    class Meta:
-        ordering = ('-distribution_date',)
-        verbose_name_plural = _("distributions")
-
-    def __unicode__(self):
-        show_name = "Distribution"
-        name = ""
-        if self.name:
-            name = self.name + ","
-        return " ".join([
-            name,
-            show_name,
-            "starting",
-            self.distribution_date.strftime('%Y-%m-%d'),
-            ])
+    def flow_class(self):
+        return "transfer"
+        
+    def flow_description(self):
+        return self.__unicode__()
+        
+    
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -7750,7 +7735,7 @@ class Commitment(models.Model):
             return TimeEventForm(prefix=prefix, data=data)
         else:
             qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
-            return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
+            return InputEDistributionventForm(qty_help=qty_help, prefix=prefix, data=data)
             
     def input_event_form(self, data=None):
         from valuenetwork.valueaccounting.forms import InputEventForm
@@ -8579,6 +8564,429 @@ def update_summary(agent, context_agent, resource_type, event_type):
         summary.delete()
 
 
+#todo: not used
+#class Compensation(models.Model):
+    """One EconomicEvent compensating another.
+
+    The EconomicAgents in the exchanging events
+    must be opposites.  
+    That is, the from_agent of one event must be
+    the to-agent of the other event, and vice versa.
+    Both events must use the same unit of value.
+    Compensation events have a M:M relationship:
+    that is, one event can be compensated by many other events,
+    and the other events can compensate many initiating events.
+
+    Compensation is an REA Duality.
+
+    """
+#    initiating_event = models.ForeignKey(EconomicEvent, 
+#        related_name="initiated_compensations", verbose_name=_('initiating event'))
+#    compensating_event = models.ForeignKey(EconomicEvent, 
+#        related_name="compensations", verbose_name=_('compensating event'))
+#    compensation_date = models.DateField(_('compensation date'), default=datetime.date.today)
+#    compensating_value = models.DecimalField(_('compensating value'), max_digits=8, decimal_places=2)
+
+#    class Meta:
+#        ordering = ('compensation_date',)
+
+#    def __unicode__(self):
+#        value_string = '$' + str(self.compensating_value)
+#        return ' '.join([
+#            'inititating event:',
+#            self.initiating_event.__unicode__(),
+#            'compensating event:',
+#            self.compensating_event.__unicode__(),
+#            'value:',
+#            value_string,
+#        ])
+
+#    def clean(self):
+#        #import pdb; pdb.set_trace()
+#        if self.initiating_event.from_agent.id != self.compensating_event.to_agent.id:
+#            raise ValidationError('Initiating event from_agent must be the compensating event to_agent.')
+#        if self.initiating_event.to_agent.id != self.compensating_event.from_agent.id:
+#            raise ValidationError('Initiating event to_agent must be the compensating event from_agent.')
+#        #if self.initiating_event.unit_of_value.id != self.compensating_event.unit_of_value.id:
+#        #    raise ValidationError('Initiating event and compensating event must have the same units of value.')
+
+        
+PERCENTAGE_BEHAVIOR_CHOICES = (
+    ('remaining', _('Remaining percentage')),
+    ('straight', _('Straight percentage')),
+)
+
+class ValueEquation(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=True)
+    context_agent = models.ForeignKey(EconomicAgent,
+        limit_choices_to={"is_context": True,},
+        related_name="value_equations", verbose_name=_('context agent'))  
+    description = models.TextField(_('description'), null=True, blank=True)
+    percentage_behavior = models.CharField(_('percentage behavior'), 
+        max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight',
+        help_text=_('Remaining percentage uses the % of the remaining amount to be distributed.  Straight percentage uses the % of the total distribution amount.'))
+    live = models.BooleanField(_('live'), default=False,
+        help_text=_("Make this value equation available for use in real distributions."))
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='value_equations_created', blank=True, null=True)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    
+    def __unicode__(self):
+        return self.name
+        
+    @models.permalink
+    def get_absolute_url(self):
+        return ('edit_value_equation', (),
+            { 'value_equation_id': str(self.id),})
+            
+    def is_deletable(self):
+        if self.distributions.all():
+            return False
+        else:
+            return True
+    
+    #todo: distribution instead of exchange
+    def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute, serialized_filters, cash_receipts=None, input_distributions=None):
+        #import pdb; pdb.set_trace()
+        distribution_events, contribution_events = self.run_value_equation(
+            amount_to_distribute=amount_to_distribute,
+            serialized_filters=serialized_filters)
+        for dist_event in distribution_events:
+            va = None
+            vas = dist_event.to_agent.virtual_accounts()
+            if vas:
+                for vacct in vas:
+                    if vacct.resource_type.unit == money_resource.resource_type.unit:
+                        va = vacct
+                        break
+            if not va:
+                va = dist_event.to_agent.create_virtual_account(resource_type=money_resource.resource_type)
+            if va:
+                dist_event.resource = va
+                dist_event.resource_type = va.resource_type 
+                dist_event.unit_of_quantity = va.resource_type.unit
+            else:
+                raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
+        et = EventType.objects.get(name='Cash Disbursement')
+        exchange.save()
+        
+        buckets = {}
+        #import pdb; pdb.set_trace()
+        for bucket in self.buckets.all():
+            filter = serialized_filters.get(bucket.id) or "{}"
+            filter = simplejson.loads(filter)
+            bucket_rules = {}
+            for br in bucket.bucket_rules.all():
+                filter_rule = simplejson.loads(br.filter_rule)
+                br_dict = {
+                    "event_type": br.event_type.name,
+                    "filter_rule": filter_rule,
+                    "claim creation equation": br.claim_creation_equation,
+                }
+                bucket_rules[br.id] = br_dict
+            bucket_dict = {
+                "name": bucket.name,
+                "filter": filter,
+                "bucket_rules": bucket_rules,
+            }
+            buckets[bucket.id] = bucket_dict
+        #import pdb; pdb.set_trace()
+        content = {"buckets": buckets}
+        json = simplejson.dumps(content, ensure_ascii=False, indent=4)    
+        dist_ve = DistributionValueEquation(
+            distribution_date = exchange.start_date,
+            exchange = exchange,
+            value_equation_link = self,
+            value_equation_content = json, #todo
+        )
+        dist_ve.save() 
+        #import pdb; pdb.set_trace()
+        if money_resource.owner():
+            fa = money_resource.owner()
+        else:
+            fa = self.context_agent
+        disbursement_event = EconomicEvent(
+            event_type=et,
+            event_date=exchange.start_date,
+            from_agent=fa, 
+            to_agent=self.context_agent,
+            context_agent=self.context_agent,
+            exchange=exchange,
+            quantity=amount_to_distribute,
+            unit_of_quantity=money_resource.resource_type.unit,
+            value=amount_to_distribute,
+            unit_of_value=money_resource.resource_type.unit,
+            is_contribution=False,
+            resource_type=money_resource.resource_type,
+            resource=money_resource,
+        )
+        disbursement_event.save()
+        money_resource.quantity -= amount_to_distribute
+        money_resource.save()
+        if cash_receipts:
+            #import pdb; pdb.set_trace()
+            if len(cash_receipts) == 1:
+                cr = cash_receipts[0]
+                crd = IncomeEventDistribution(
+                    distribution_date=exchange.start_date,
+                    income_event=cr,
+                    distribution=exchange,
+                    quantity=amount_to_distribute,
+                    unit_of_quantity=cr.unit_of_quantity,
+                )
+                crd.save()
+            else:
+                for cr in cash_receipts:
+                    crd = IncomeEventDistribution(
+                        distribution_date=exchange.start_date,
+                        income_event=cr,
+                        distribution=exchange,
+                        quantity=cr.quantity,
+                        unit_of_quantity=cr.unit_of_quantity,
+                    )
+                    crd.save()
+        if input_distributions:
+            for ind in input_distributions:
+                ied = IncomeEventDistribution(
+                    distribution_date=exchange.start_date,
+                    income_event=ind,
+                    distribution=exchange,
+                    quantity=ind.quantity,
+                    unit_of_quantity=ind.unit_of_quantity,
+                )
+                ied.save()
+        #import pdb; pdb.set_trace()
+        for dist_event in distribution_events:
+            dist_event.exchange = exchange
+            dist_event.event_date = exchange.start_date
+            dist_event.save()
+            to_resource = dist_event.resource
+            to_resource.quantity += dist_event.quantity
+            to_resource.save()
+            for dist_claim_event in dist_event.dist_claim_events:
+                claim_from_contribution = dist_claim_event.claim
+                if claim_from_contribution.new == True:
+                    claim_from_contribution.unit_of_value = dist_event.unit_of_quantity
+                    claim_from_contribution.date = exchange.start_date
+                    claim_from_contribution.save()
+                    ce_for_contribution = dist_claim_event.claim.claim_event 
+                    ce_for_contribution.claim = claim_from_contribution
+                    ce_for_contribution.unit_of_value = dist_event.unit_of_quantity
+                    ce_for_contribution.claim_event_date = exchange.start_date
+                    ce_for_contribution.save() 
+                dist_claim_event.claim = claim_from_contribution
+                dist_claim_event.event = dist_event
+                dist_claim_event.unit_of_value = dist_event.unit_of_quantity
+                dist_claim_event.claim_event_date = exchange.start_date
+                dist_claim_event.save()
+
+        return exchange
+        
+    def run_value_equation(self, amount_to_distribute, serialized_filters):
+        #import pdb; pdb.set_trace()
+        atd = amount_to_distribute
+        detail_sums = []
+        claim_events = []
+        contribution_events = []
+        for bucket in self.buckets.all():
+            #import pdb; pdb.set_trace()
+            bucket_amount =  bucket.percentage * amount_to_distribute / 100
+            amount = amount_to_distribute - bucket_amount
+            if amount < 0:
+                bucket_amount = bucket_amount - amount
+            amount_distributed = 0
+            if bucket_amount > 0:
+                if bucket.distribution_agent:
+                    sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
+                    detail_sums.append(sum_a)
+                    amount_distributed = bucket_amount
+                else:
+                    serialized_filter = serialized_filters.get(bucket.id)
+                    if serialized_filter:
+                        #import pdb; pdb.set_trace()
+                        ces, contributions = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
+                        for ce in ces:
+                            detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
+                            amount_distributed += ce.value
+                        claim_events.extend(ces)
+                        contribution_events.extend(contributions)
+            if self.percentage_behavior == "remaining":
+                amount_to_distribute = amount_to_distribute - amount_distributed
+        agent_amounts = {}
+        #import pdb; pdb.set_trace()
+        for dtl in detail_sums:
+            detail = dtl.split("~")
+            if detail[0] in agent_amounts:
+                amt = agent_amounts[detail[0]]
+                agent_amounts[detail[0]] = amt + Decimal(detail[1])
+            else:
+                agent_amounts[detail[0]] = Decimal(detail[1])
+        #import pdb; pdb.set_trace()
+        et = EventType.objects.get(name='Distribution')
+        distribution_events = []
+        #import pdb; pdb.set_trace()
+        for agent_id in agent_amounts:   
+            distribution = EconomicEvent(
+                event_type = et,
+                event_date = datetime.date.today(),
+                from_agent = self.context_agent, 
+                to_agent = EconomicAgent.objects.get(id=int(agent_id)),
+                context_agent = self.context_agent,
+                quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
+                is_contribution = False,
+            )
+            agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
+            for ce in agent_claim_events:
+                ce.event = distribution
+            distribution.dist_claim_events = agent_claim_events
+            distribution_events.append(distribution)
+        #clean up rounding errors
+        distributed = sum(de.quantity for de in distribution_events)
+        delta = atd - distributed
+        #import pdb; pdb.set_trace()
+        if delta and distribution_events:
+            max_dist = distribution_events[0]
+            for de in distribution_events:
+                if de.quantity > max_dist.quantity:
+                    max_dist = de
+            #import pdb; pdb.set_trace()
+            max_dist.quantity = (max_dist.quantity + delta).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+            claim_events = max_dist.dist_claim_events
+            for ce in claim_events:
+                if ce.value > abs(delta):
+                    ce.value += delta
+                    claim = ce.claim
+                    if claim.value_equation_bucket_rule.claim_rule_type == "debt-like":
+                        claim.value += delta
+                        if claim.value < 0:
+                            claim.value = 0
+                    break
+
+        return distribution_events, contribution_events
+
+
+class DistributionManager(models.Manager):
+    
+    def distributions(self, start=None, end=None):
+        if start and end:
+            dists = Distribution.objects.filter(distribution_date__range=[start, end])
+        else:
+            dists = Distribution.objects.all()
+        return dists
+
+class Distribution(models.Model):
+    name = models.CharField(_('name'), blank=True, max_length=128)
+    process_pattern = models.ForeignKey(ProcessPattern,
+        blank=True, null=True,
+        verbose_name=_('pattern'), related_name='distributions')
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='distributions')
+    url = models.CharField(_('url'), max_length=255, blank=True, null=True)
+    distribution_date = models.DateField(_('distribution date'))
+    notes = models.TextField(_('notes'), blank=True)
+    value_equation = models.ForeignKey(ValueEquation,
+        blank=True, null=True,
+        verbose_name=_('value equation link'), related_name='distributions')
+    value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='distributions_created', blank=True, null=True, editable=False)
+    changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
+        related_name='distributions_changed', blank=True, null=True, editable=False)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    slug = models.SlugField(_("Page name"), editable=False) 
+
+    objects = DistributionManager()
+
+    class Meta:
+        ordering = ('-distribution_date',)
+        verbose_name_plural = _("distributions")
+
+    def __unicode__(self):
+        show_name = "Distribution"
+        name = ""
+        if self.name:
+            name = self.name + ","
+        return " ".join([
+            name,
+            show_name,
+            "starting",
+            self.distribution_date.strftime('%Y-%m-%d'),
+            ])
+    
+    def deserialize_value_equation_content(self):
+        return simplejson.loads(self.value_equation_content)
+        
+    def buckets(self):
+        dict = self.deserialize_value_equation_content()
+        bucket_dict = dict["buckets"]
+        buckets = []
+        for key, value in bucket_dict.iteritems():
+            bucket = ValueEquationBucket.objects.get(id=key)
+            bucket.value = value
+            buckets.append(bucket)
+        return buckets
+        
+    def bucket_rules(self):
+        buckets = self.buckets()
+        answer = []
+        for bucket in buckets:
+            rules = bucket.value.get("bucket_rules")
+            if rules:
+                for key, value in rules.iteritems():
+                    rule = ValueEquationBucketRule.objects.get(id=key)
+                    rule.value = value
+                    answer.append(rule)
+        return answer
+
+    def orders(self):
+        buckets = self.buckets()
+        orders = []
+        for b in buckets:
+            filter = b.value.get("filter")
+            if filter:
+                method = filter.get("method")
+                if method:
+                    if method == "Order":
+                        oids = filter["orders"]
+                        for oid in oids:
+                            orders.append(Order.objects.get(id=oid))
+        return orders
+        
+    def shipments(self):
+        buckets = self.buckets()
+        shipments = []
+        for b in buckets:
+            filter = b.value.get("filter")
+            if filter:
+                method = filter.get("method")
+                if method:
+                    if method == "Shipment":
+                        ship_ids = filter["shipments"]
+                        for sid in ship_ids:
+                            shipments.append(EconomicEvent.objects.get(id=sid))
+        return shipments
+    
+    def distribution_events(self):
+        return self.events.filter(
+            event_type__relationship='distribute')
+            
+    def disbursement_events(self):
+        return self.events.filter(
+            event_type__relationship='disburse')
+    
+    def flow_type(self):
+        return "Distribution"
+
+    def flow_class(self):
+        return "distribution"
+        
+    def flow_description(self):
+        return self.__unicode__()    
+
+
 class EconomicEventManager(models.Manager):
 
     def virtual_account_events(self, start_date=None, end_date=None):
@@ -8594,8 +9002,7 @@ class EconomicEventManager(models.Manager):
         
     def contributions(self):
         return EconomicEvent.objects.filter(is_contribution=True)
-        
-        
+               
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="events", verbose_name=_('event type'))
@@ -8621,9 +9028,14 @@ class EconomicEvent(models.Model):
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='events',
         on_delete=models.SET_NULL)
-    transfer_type = models.ForeignKey(TransferType,
+    transfer = models.ForeignKey(Transfer,
         blank=True, null=True, 
-        related_name="events", verbose_name=_('exchange type item type'))
+        related_name="events", verbose_name=_('transfer'),
+        on_delete=models.SET_NULL)
+    distribution = models.ForeignKey(Distribution,
+        blank=True, null=True, 
+        related_name="events", verbose_name=_('distribution'),
+        on_delete=models.SET_NULL)
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         limit_choices_to={"is_context": True,},
@@ -9557,307 +9969,9 @@ class EconomicEvent(models.Model):
             return self.commitment.order_item
         else:
             return self.process.order_item()
-        
-
-#todo: not used
-class Compensation(models.Model):
-    """One EconomicEvent compensating another.
-
-    The EconomicAgents in the exchanging events
-    must be opposites.  
-    That is, the from_agent of one event must be
-    the to-agent of the other event, and vice versa.
-    Both events must use the same unit of value.
-    Compensation events have a M:M relationship:
-    that is, one event can be compensated by many other events,
-    and the other events can compensate many initiating events.
-
-    Compensation is an REA Duality.
-
-    """
-    initiating_event = models.ForeignKey(EconomicEvent, 
-        related_name="initiated_compensations", verbose_name=_('initiating event'))
-    compensating_event = models.ForeignKey(EconomicEvent, 
-        related_name="compensations", verbose_name=_('compensating event'))
-    compensation_date = models.DateField(_('compensation date'), default=datetime.date.today)
-    compensating_value = models.DecimalField(_('compensating value'), max_digits=8, decimal_places=2)
-
-    class Meta:
-        ordering = ('compensation_date',)
-
-    def __unicode__(self):
-        value_string = '$' + str(self.compensating_value)
-        return ' '.join([
-            'inititating event:',
-            self.initiating_event.__unicode__(),
-            'compensating event:',
-            self.compensating_event.__unicode__(),
-            'value:',
-            value_string,
-        ])
-
-    def clean(self):
-        #import pdb; pdb.set_trace()
-        if self.initiating_event.from_agent.id != self.compensating_event.to_agent.id:
-            raise ValidationError('Initiating event from_agent must be the compensating event to_agent.')
-        if self.initiating_event.to_agent.id != self.compensating_event.from_agent.id:
-            raise ValidationError('Initiating event to_agent must be the compensating event from_agent.')
-        #if self.initiating_event.unit_of_value.id != self.compensating_event.unit_of_value.id:
-        #    raise ValidationError('Initiating event and compensating event must have the same units of value.')
 
         
-PERCENTAGE_BEHAVIOR_CHOICES = (
-    ('remaining', _('Remaining percentage')),
-    ('straight', _('Straight percentage')),
-)
-
-class ValueEquation(models.Model):
-    name = models.CharField(_('name'), max_length=255, blank=True)
-    context_agent = models.ForeignKey(EconomicAgent,
-        limit_choices_to={"is_context": True,},
-        related_name="value_equations", verbose_name=_('context agent'))  
-    description = models.TextField(_('description'), null=True, blank=True)
-    percentage_behavior = models.CharField(_('percentage behavior'), 
-        max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight',
-        help_text=_('Remaining percentage uses the % of the remaining amount to be distributed.  Straight percentage uses the % of the total distribution amount.'))
-    live = models.BooleanField(_('live'), default=False,
-        help_text=_("Make this value equation available for use in real distributions."))
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='value_equations_created', blank=True, null=True)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    
-    def __unicode__(self):
-        return self.name
-        
-    @models.permalink
-    def get_absolute_url(self):
-        return ('edit_value_equation', (),
-            { 'value_equation_id': str(self.id),})
-            
-    def is_deletable(self):
-        if self.distributions.all():
-            return False
-        else:
-            return True
-            
-    def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute, serialized_filters, cash_receipts=None, input_distributions=None):
-        #import pdb; pdb.set_trace()
-        distribution_events, contribution_events = self.run_value_equation(
-            amount_to_distribute=amount_to_distribute,
-            serialized_filters=serialized_filters)
-        for dist_event in distribution_events:
-            va = None
-            vas = dist_event.to_agent.virtual_accounts()
-            if vas:
-                for vacct in vas:
-                    if vacct.resource_type.unit == money_resource.resource_type.unit:
-                        va = vacct
-                        break
-            if not va:
-                va = dist_event.to_agent.create_virtual_account(resource_type=money_resource.resource_type)
-            if va:
-                dist_event.resource = va
-                dist_event.resource_type = va.resource_type 
-                dist_event.unit_of_quantity = va.resource_type.unit
-            else:
-                raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
-        et = EventType.objects.get(name='Cash Disbursement')
-        exchange.save()
-        
-        buckets = {}
-        #import pdb; pdb.set_trace()
-        for bucket in self.buckets.all():
-            filter = serialized_filters.get(bucket.id) or "{}"
-            filter = simplejson.loads(filter)
-            bucket_rules = {}
-            for br in bucket.bucket_rules.all():
-                filter_rule = simplejson.loads(br.filter_rule)
-                br_dict = {
-                    "event_type": br.event_type.name,
-                    "filter_rule": filter_rule,
-                    "claim creation equation": br.claim_creation_equation,
-                }
-                bucket_rules[br.id] = br_dict
-            bucket_dict = {
-                "name": bucket.name,
-                "filter": filter,
-                "bucket_rules": bucket_rules,
-            }
-            buckets[bucket.id] = bucket_dict
-        #import pdb; pdb.set_trace()
-        content = {"buckets": buckets}
-        json = simplejson.dumps(content, ensure_ascii=False, indent=4)    
-        dist_ve = DistributionValueEquation(
-            distribution_date = exchange.start_date,
-            exchange = exchange,
-            value_equation_link = self,
-            value_equation_content = json, #todo
-        )
-        dist_ve.save() 
-        #import pdb; pdb.set_trace()
-        if money_resource.owner():
-            fa = money_resource.owner()
-        else:
-            fa = self.context_agent
-        disbursement_event = EconomicEvent(
-            event_type=et,
-            event_date=exchange.start_date,
-            from_agent=fa, 
-            to_agent=self.context_agent,
-            context_agent=self.context_agent,
-            exchange=exchange,
-            quantity=amount_to_distribute,
-            unit_of_quantity=money_resource.resource_type.unit,
-            value=amount_to_distribute,
-            unit_of_value=money_resource.resource_type.unit,
-            is_contribution=False,
-            resource_type=money_resource.resource_type,
-            resource=money_resource,
-        )
-        disbursement_event.save()
-        money_resource.quantity -= amount_to_distribute
-        money_resource.save()
-        if cash_receipts:
-            #import pdb; pdb.set_trace()
-            if len(cash_receipts) == 1:
-                cr = cash_receipts[0]
-                crd = IncomeEventDistribution(
-                    distribution_date=exchange.start_date,
-                    income_event=cr,
-                    distribution=exchange,
-                    quantity=amount_to_distribute,
-                    unit_of_quantity=cr.unit_of_quantity,
-                )
-                crd.save()
-            else:
-                for cr in cash_receipts:
-                    crd = IncomeEventDistribution(
-                        distribution_date=exchange.start_date,
-                        income_event=cr,
-                        distribution=exchange,
-                        quantity=cr.quantity,
-                        unit_of_quantity=cr.unit_of_quantity,
-                    )
-                    crd.save()
-        if input_distributions:
-            for ind in input_distributions:
-                ied = IncomeEventDistribution(
-                    distribution_date=exchange.start_date,
-                    income_event=ind,
-                    distribution=exchange,
-                    quantity=ind.quantity,
-                    unit_of_quantity=ind.unit_of_quantity,
-                )
-                ied.save()
-        #import pdb; pdb.set_trace()
-        for dist_event in distribution_events:
-            dist_event.exchange = exchange
-            dist_event.event_date = exchange.start_date
-            dist_event.save()
-            to_resource = dist_event.resource
-            to_resource.quantity += dist_event.quantity
-            to_resource.save()
-            for dist_claim_event in dist_event.dist_claim_events:
-                claim_from_contribution = dist_claim_event.claim
-                if claim_from_contribution.new == True:
-                    claim_from_contribution.unit_of_value = dist_event.unit_of_quantity
-                    claim_from_contribution.date = exchange.start_date
-                    claim_from_contribution.save()
-                    ce_for_contribution = dist_claim_event.claim.claim_event 
-                    ce_for_contribution.claim = claim_from_contribution
-                    ce_for_contribution.unit_of_value = dist_event.unit_of_quantity
-                    ce_for_contribution.claim_event_date = exchange.start_date
-                    ce_for_contribution.save() 
-                dist_claim_event.claim = claim_from_contribution
-                dist_claim_event.event = dist_event
-                dist_claim_event.unit_of_value = dist_event.unit_of_quantity
-                dist_claim_event.claim_event_date = exchange.start_date
-                dist_claim_event.save()
-
-        return exchange
-        
-    def run_value_equation(self, amount_to_distribute, serialized_filters):
-        #import pdb; pdb.set_trace()
-        atd = amount_to_distribute
-        detail_sums = []
-        claim_events = []
-        contribution_events = []
-        for bucket in self.buckets.all():
-            #import pdb; pdb.set_trace()
-            bucket_amount =  bucket.percentage * amount_to_distribute / 100
-            amount = amount_to_distribute - bucket_amount
-            if amount < 0:
-                bucket_amount = bucket_amount - amount
-            amount_distributed = 0
-            if bucket_amount > 0:
-                if bucket.distribution_agent:
-                    sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
-                    detail_sums.append(sum_a)
-                    amount_distributed = bucket_amount
-                else:
-                    serialized_filter = serialized_filters.get(bucket.id)
-                    if serialized_filter:
-                        #import pdb; pdb.set_trace()
-                        ces, contributions = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
-                        for ce in ces:
-                            detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
-                            amount_distributed += ce.value
-                        claim_events.extend(ces)
-                        contribution_events.extend(contributions)
-            if self.percentage_behavior == "remaining":
-                amount_to_distribute = amount_to_distribute - amount_distributed
-        agent_amounts = {}
-        #import pdb; pdb.set_trace()
-        for dtl in detail_sums:
-            detail = dtl.split("~")
-            if detail[0] in agent_amounts:
-                amt = agent_amounts[detail[0]]
-                agent_amounts[detail[0]] = amt + Decimal(detail[1])
-            else:
-                agent_amounts[detail[0]] = Decimal(detail[1])
-        #import pdb; pdb.set_trace()
-        et = EventType.objects.get(name='Distribution')
-        distribution_events = []
-        #import pdb; pdb.set_trace()
-        for agent_id in agent_amounts:   
-            distribution = EconomicEvent(
-                event_type = et,
-                event_date = datetime.date.today(),
-                from_agent = self.context_agent, 
-                to_agent = EconomicAgent.objects.get(id=int(agent_id)),
-                context_agent = self.context_agent,
-                quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
-                is_contribution = False,
-            )
-            agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
-            for ce in agent_claim_events:
-                ce.event = distribution
-            distribution.dist_claim_events = agent_claim_events
-            distribution_events.append(distribution)
-        #clean up rounding errors
-        distributed = sum(de.quantity for de in distribution_events)
-        delta = atd - distributed
-        #import pdb; pdb.set_trace()
-        if delta and distribution_events:
-            max_dist = distribution_events[0]
-            for de in distribution_events:
-                if de.quantity > max_dist.quantity:
-                    max_dist = de
-            #import pdb; pdb.set_trace()
-            max_dist.quantity = (max_dist.quantity + delta).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-            claim_events = max_dist.dist_claim_events
-            for ce in claim_events:
-                if ce.value > abs(delta):
-                    ce.value += delta
-                    claim = ce.claim
-                    if claim.value_equation_bucket_rule.claim_rule_type == "debt-like":
-                        claim.value += delta
-                        if claim.value < 0:
-                            claim.value = 0
-                    break
-
-        return distribution_events, contribution_events
-        
+#obsolete        
 class DistributionValueEquation(models.Model):
     '''
     Distribution itself is currently implemented using Exchange.  This is not totally correct from an REA point
@@ -9869,10 +9983,10 @@ class DistributionValueEquation(models.Model):
     distribution_date = models.DateField(_('distribution date'))
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
-        verbose_name=_('distribution'), related_name='value_equation')    
+        verbose_name=_('exchange'), related_name='value_equation')    
     value_equation_link = models.ForeignKey(ValueEquation,
         blank=True, null=True,
-        verbose_name=_('value equation link'), related_name='distributions')
+        verbose_name=_('value equation link'), related_name='distributions_ve') 
     value_equation_content = models.TextField(_('value equation formulas used'), null=True, blank=True)
     
     def deserialize_value_equation_content(self):
@@ -10422,8 +10536,13 @@ class ValueEquationBucketRule(models.Model):
         
 class IncomeEventDistribution(models.Model):
     distribution_date = models.DateField(_('distribution date'))
+    #obsolete
     distribution = models.ForeignKey(Exchange,
-        verbose_name=_('distribution'), related_name='cash_receipts')
+        blank=True, null=True,
+        verbose_name=_('distribution'), related_name='cash_receipts', default=None)
+    distribution_ref = models.ForeignKey(Distribution,
+        blank=True, null=True, 
+        verbose_name=_('distribution'), related_name='income_events')
     income_event = models.ForeignKey(EconomicEvent,
         related_name="distributions", verbose_name=_('income event'))
     quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2, 

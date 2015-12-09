@@ -34,7 +34,9 @@
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-		<legend>{% trans "Incoming Exchanges" %}</legend>
+		<legend>{% trans "Incoming Exchanges" %}
+            {% if agent %} for {{ agent.agent_type }} {{ agent.name }} {% endif %}
+        </legend>
 
         <div class="span8">
           <div class="totals">
@@ -66,14 +68,14 @@
                     {% if x.transfers %}
                         <ul>
                             {% for transfer in x.transfers.all %}
-                                <li>{{ transfer }} {% if transfer.value %} {{ transfer.value }} {{ transfer.unit_of_value }} {% endif %}</li>
+                                <li>{{ transfer }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
                     {% if x.events %}
                         <ul>
                             {% for event in x.events.all %}
-                                <li>{{ event }} {% if event.value %} {{ event.value }} {{ event.unit_of_value }} {% endif %}</li>
+                                <li>{{ event }}</li>
                             {% endfor %}
                         </ul>
                     {% endif %}

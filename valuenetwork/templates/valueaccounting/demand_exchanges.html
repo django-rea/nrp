@@ -67,17 +67,17 @@
                     	    {% endif %}
 						{% endif %}
                     </li>
-                    {% if x.transfer_list %}
+                    {% if x.transfers %}
                         <ul>
                             {% for transfer in x.transfer_list %}
-                                <li>{{ transfer }} {% if transfer.value %} {{ transfer.value }} {{ transfer.unit_of_value }} {% endif %}</li>
+                                <li>{{ transfer }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
-                    {% if x.event_list %}
+                    {% if x.events %}
                         <ul>
                             {% for event in x.event_list %}
-                                <li>{{ event }} {% if event.value %} {{ event.value }} {{ event.unit_of_value }} {% endif %}</li>
+                                <li>{{ event }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
@@ -114,13 +114,15 @@
                 <p class="title"> {% trans "Exchange Type" %} </p> 
                 {% for et in ets %}
                     <p><input type="checkbox" class="category" id="{{ et.id }}" name="{{ et.id }}" value="{{ et.id }}" /> {{ et.name }}</p>
-                {% endfor %}     
+                {% endfor %}   
+{% comment %}
                 {% if references %}
 	            <p class="title"> {% trans "Accounting Reference" %} </p>
 	            {% for ar in references %}
 	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
 	            {% endfor %}
 	            {% endif %}
+{% endcomment %}
 	            <input type='hidden' id='categories' name='categories' value=' {{ selected_values }} ' />
 	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
             </form>

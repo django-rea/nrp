@@ -9271,8 +9271,8 @@ def exchanges(request, agent_id=None):
     if agent_id:
         agent = get_object_or_404(EconomicAgent, id=agent_id)
     today = datetime.date.today()
-    end =  today + datetime.timedelta(days=30)
-    start = datetime.date(2010, 1, 1)
+    end =  today
+    start = today - datetime.timedelta(days=365)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
     #et_donation = EventType.objects.get(name="Donation")
@@ -9282,7 +9282,7 @@ def exchanges(request, agent_id=None):
     #et_expense = EventType.objects.get(name="Expense")
     et_give = EventType.objects.get(name="Give")
     et_receive = EventType.objects.get(name="Receive")
-    references = AccountingReference.objects.all()
+    #references = AccountingReference.objects.all()
     ets = ExchangeType.objects.supply_exchange_types()
     event_ids = ""
     select_all = True
@@ -9314,8 +9314,9 @@ def exchanges(request, agent_id=None):
                 exchanges_included = []
                 events_included = []
                 for ex in exchanges:
-                    if ex in vals:
+                    if str(ex.exchange_type.id) in vals:
                         exchanges_included.append(ex)
+                    #the following a start at filtering by accounting ref, doesn't work
                     #for transfer in ex.transfers.all():
                     #    for event in transfer.events.all():
                     #        if event.resource_type.accounting_reference:
@@ -9361,9 +9362,11 @@ def exchanges(request, agent_id=None):
             for event in transfer.events.all():
                 event_ids = event_ids + comma + str(event.id)
                 comma = ","
-        #x.transfer_list.sort(key=lambda transfer: str(transfer.transfer_type.sequence()))
-        #x.transfer_list = sorted(x.transfer_list, key=
-        #sorted(customlist, key=getKey)
+        #import pdb; pdb.set_trace()
+        for event in x.events.all():
+            event_ids = event_ids + comma + str(event.id)
+            comma = ","
+        #todo: get sort to work
 
     #import pdb; pdb.set_trace()
 
@@ -9374,7 +9377,7 @@ def exchanges(request, agent_id=None):
         "total_rec_transfers": total_rec_transfers,
         "select_all": select_all,
         "selected_values": selected_values,
-        "references": references,
+        #"references": references,
         "ets": ets,
         "event_ids": event_ids,
         "agent": agent,
@@ -9486,20 +9489,19 @@ def exchanges_old(request):
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
-
 def internal_exchanges(request, agent_id=None):
     #import pdb; pdb.set_trace()
     agent = None
     if agent_id:
         agent = get_object_or_404(EconomicAgent, id=agent_id)
     today = datetime.date.today()
-    end =  today + datetime.timedelta(days=30)
-    start = datetime.date(2010, 1, 1)
+    end =  today
+    start = today - datetime.timedelta(days=365)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
-    et_transfer = EventType.objects.get(name="Transfer")
-    et_rec_transfer = EventType.objects.get(name="Reciprocal Transfer")  
-    references = AccountingReference.objects.all()
+    et_give = EventType.objects.get(name="Give")
+    et_receive = EventType.objects.get(name="Receive")
+    #references = AccountingReference.objects.all()
     ets = ExchangeType.objects.internal_exchange_types()
     event_ids = ""
     select_all = True
@@ -9510,7 +9512,7 @@ def internal_exchanges(request, agent_id=None):
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
-            exchanges = Exchange.objects.internal_exchanges().filter(start_date__range=[start, end])
+            exchanges = Exchange.objects.internal_exchanges(start, end)
         else:
             exchanges = Exchange.objects.internal_exchanges()
         if agent_id:
@@ -9525,52 +9527,52 @@ def internal_exchanges(request, agent_id=None):
                 select_all = True
             else:
                 select_all = False
-                events_included = []
+                transfers_included = []
                 exchanges_included = []
+                events_included = []
                 for ex in exchanges:
-                    for event in ex.events.all():
-                        if event.resource_type.accounting_reference:
-                            if event.resource_type.accounting_reference.code in vals:
-                                events_included.append(event)
-                    if events_included != []:   
-                        ex.event_list = events_included
+                    if str(ex.exchange_type.id) in vals:
                         exchanges_included.append(ex)
-                        events_included = []
                 exchanges = exchanges_included
     else:
         if agent_id:
-            #exchanges = Exchange.objects.demand_exchanges().filter(start_date__range=[start, end]).filter(context_agent=agent)
             exchanges = Exchange.objects.internal_exchanges(start, end).filter(context_agent=agent)
         else:
-            #exchanges = Exchange.objects.demand_exchanges().filter(start_date__range=[start, end])
             exchanges = Exchange.objects.internal_exchanges(start, end)
 
-    total_rec_transfers = 0
     total_transfers = 0
+    total_rec_transfers = 0
     comma = ""
     #import pdb; pdb.set_trace()
     for x in exchanges:
         try:
-            xx = x.event_list
+            xx = list(x.transfer_list)
         except AttributeError:
-            x.event_list = x.events.all()
-        for event in x.event_list:
-            if event.event_type == et_rec_transfer:
-                total_rec_transfers = total_rec_transfers + event.quantity
-            elif event.event_type == et_transfer:
-                total_transfers = total_transfers + event.value
+            x.transfer_list = list(x.transfers.all())
+        for transfer in x.transfer_list:
+            if not transfer.transfer_type.is_reciprocal:
+                total_transfers = total_transfers + transfer.quantity()
+            else:
+                total_rec_transfers = total_rec_transfers + transfer.quantity()
+            for event in transfer.events.all():
+                event_ids = event_ids + comma + str(event.id)
+                comma = ","
+        #import pdb; pdb.set_trace()
+        for event in x.events.all():
             event_ids = event_ids + comma + str(event.id)
             comma = ","
+        #todo: get sort to work
+
     #import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/internal_exchanges.html", {
-        "exchanges": exchanges,
+        "exchanges": exchanges, 
         "dt_selection_form": dt_selection_form,
-        "total_rec_transfers": total_rec_transfers,
         "total_transfers": total_transfers,
+        "total_rec_transfers": total_rec_transfers,
         "select_all": select_all,
         "selected_values": selected_values,
-        "references": references,
+        #"references": references,
         "ets": ets,
         "event_ids": event_ids,
         "agent": agent,
@@ -9621,13 +9623,13 @@ def demand_exchanges(request, agent_id=None):
     if agent_id:
         agent = get_object_or_404(EconomicAgent, id=agent_id)
     today = datetime.date.today()
-    end =  today + datetime.timedelta(days=30)
-    start = datetime.date(2010, 1, 1)
+    end =  today
+    start = today - datetime.timedelta(days=365)
     init = {"start_date": start, "end_date": end}
     dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
-    et_transfer = EventType.objects.get(name="Transfer")
-    et_rec_transfer = EventType.objects.get(name="Reciprocal Transfer")  
-    references = AccountingReference.objects.all()
+    et_give = EventType.objects.get(name="Give")
+    et_receive = EventType.objects.get(name="Receive")
+    #references = AccountingReference.objects.all()
     ets = ExchangeType.objects.demand_exchange_types()
     event_ids = ""
     select_all = True
@@ -9638,7 +9640,7 @@ def demand_exchanges(request, agent_id=None):
         if dt_selection_form.is_valid():
             start = dt_selection_form.cleaned_data["start_date"]
             end = dt_selection_form.cleaned_data["end_date"]
-            exchanges = Exchange.objects.demand_exchanges().filter(start_date__range=[start, end])
+            exchanges = Exchange.objects.demand_exchanges(start, end)
         else:
             exchanges = Exchange.objects.demand_exchanges()
         if agent_id:
@@ -9653,52 +9655,51 @@ def demand_exchanges(request, agent_id=None):
                 select_all = True
             else:
                 select_all = False
-                events_included = []
+                transfers_included = []
                 exchanges_included = []
+                events_included = []
                 for ex in exchanges:
-                    for event in ex.events.all():
-                        if event.resource_type.accounting_reference:
-                            if event.resource_type.accounting_reference.code in vals:
-                                events_included.append(event)
-                    if events_included != []:   
-                        ex.event_list = events_included
+                    if str(ex.exchange_type.id) in vals:
                         exchanges_included.append(ex)
-                        events_included = []
                 exchanges = exchanges_included
     else:
         if agent_id:
-            #exchanges = Exchange.objects.demand_exchanges().filter(start_date__range=[start, end]).filter(context_agent=agent)
             exchanges = Exchange.objects.demand_exchanges(start, end).filter(context_agent=agent)
         else:
-            #exchanges = Exchange.objects.demand_exchanges().filter(start_date__range=[start, end])
             exchanges = Exchange.objects.demand_exchanges(start, end)
 
-    total_rec_transfers = 0
     total_transfers = 0
+    total_rec_transfers = 0
     comma = ""
     #import pdb; pdb.set_trace()
     for x in exchanges:
         try:
-            xx = x.event_list
+            xx = list(x.transfer_list)
         except AttributeError:
-            x.event_list = x.events.all()
-        for event in x.event_list:
-            if event.event_type == et_rec_transfer:
-                total_rec_transfers = total_rec_transfers + event.quantity
-            elif event.event_type == et_transfer:
-                total_transfers = total_transfers + event.value
+            x.transfer_list = list(x.transfers.all())
+        for transfer in x.transfer_list:
+            if not transfer.transfer_type.is_reciprocal:
+                total_transfers = total_transfers + transfer.quantity()
+            else:
+                total_rec_transfers = total_rec_transfers + transfer.quantity()
+            for event in transfer.events.all():
+                event_ids = event_ids + comma + str(event.id)
+                comma = ","
+        for event in x.events.all():
             event_ids = event_ids + comma + str(event.id)
             comma = ","
+        #todo: get sort to work
+
     #import pdb; pdb.set_trace()
 
     return render_to_response("valueaccounting/demand_exchanges.html", {
-        "exchanges": exchanges,
+        "exchanges": exchanges, 
         "dt_selection_form": dt_selection_form,
-        "total_rec_transfers": total_rec_transfers,
         "total_transfers": total_transfers,
+        "total_rec_transfers": total_rec_transfers,
         "select_all": select_all,
         "selected_values": selected_values,
-        "references": references,
+        #"references": references,
         "ets": ets,
         "event_ids": event_ids,
         "agent": agent,
@@ -9851,7 +9852,7 @@ def exchange_events_csv(request):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=contributions.csv'
     writer = csv.writer(response)
-    writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
+    writer.writerow(["Exchange Type", "Exchange ID", "Transfer Type", "Transfer ID", "Event ID", "Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL"])
     event_ids_split = event_ids.split(",")
     for event_id in event_ids_split:
         event = EconomicEvent.objects.get(pk=event_id)
@@ -9864,14 +9865,39 @@ def exchange_events_csv(request):
         else:
             to_agent = event.to_agent.nick  
         if event.url == "":
-            if event.exchange.url == "":
-                url = "" 
+            if event.transfer:
+                if event.transfer.exchange.url == "":
+                    url = "" 
+                else:
+                    url = event.transfer.exchange.url
             else:
-                url = event.exchange.url
+                if event.exchange.url == "":
+                    url = "" 
+                else:
+                    url = event.exchange.url                
         else:
-            url = ""     
+            url = ""
+        if event.exchange:
+            exchange_name = event.exchange.exchange_type.name
+            exchange_id = event.exchange.id
+        else:
+            exchange_name = ""
+            exchange_id = ""
+        if event.transfer:
+            transfer_name = event.transfer.transfer_type.name
+            transfer_id = event.transfer.id
+            exchange_name = event.transfer.exchange.exchange_type.name
+            exchange_id = event.transfer.exchange.id
+        else:
+            transfer_name = ""
+            transfer_id = ""
         writer.writerow(
-            [event.event_date,
+            [exchange_name,
+             exchange_id,
+             transfer_name,
+             transfer_id,
+             event.id, 
+             event.event_date,
              event.event_type.name,
              event.resource_type.name,
              event.quantity,
@@ -9882,10 +9908,7 @@ def exchange_events_csv(request):
              to_agent,
              event.context_agent.name,
              event.description,
-             url,
-             event.exchange.use_case,
-             event.id,
-             event.exchange.id   
+             url,  
             ]
         )
     return response

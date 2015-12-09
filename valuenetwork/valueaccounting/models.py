@@ -3788,6 +3788,7 @@ class EconomicResource(models.Model):
         ordering = ('resource_type', 'identifier',)
     
     def __unicode__(self):
+        #import pdb; pdb.set_trace()
         id_str = self.identifier or str(self.id)
         rt_name = self.resource_type.name
         if self.stage:
@@ -7169,15 +7170,32 @@ class Transfer(models.Model):
 
     def __unicode__(self):
         show_name = ""
+        from_name = ""
+        to_name = ""
+        unit = ""
         if self.transfer_type:
             show_name = self.transfer_type.name
-        #name = ""
-        #if self.name:
-        #    name = self.name + ","
+        give_event = self.events.filter(event_type=EventType.objects.get(name="Give"))[0]
+        if give_event:
+            if give_event.from_agent:
+                from_name = " from " + give_event.from_agent.name
+            if give_event.to_agent:
+                to_name = " to " + give_event.to_agent.name
+        resource_string = give_event.resource_type.name
+        if give_event.resource:
+            resource_string = str(give_event.resource)
+        qty = str(give_event.quantity)
+        if give_event.unit_of_quantity:
+            unit = give_event.unit_of_quantity.name
         return " ".join([
         #    name,
             show_name,
-            "starting",
+            from_name,
+            to_name,
+            qty,
+            unit,
+            resource_string,
+            "on",
             self.transfer_date.strftime('%Y-%m-%d'),
             ])
     

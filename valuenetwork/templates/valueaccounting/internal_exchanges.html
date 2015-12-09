@@ -74,6 +74,13 @@
                             {% endfor %}
                         </ul>
                     {% endif %}
+                    {% if x.events %}
+                        <ul>
+                            {% for event in x.events.all %}
+                                <li>{{ event }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
 				{% endfor %}
 			</ul>
 		  {% endif %}
@@ -108,12 +115,14 @@
                 {% for et in ets %}
                     <p><input type="checkbox" class="category" id="{{ et.id }}" name="{{ et.id }}" value="{{ et.id }}" /> {{ et.name }}</p>
                 {% endfor %}
+{% comment %}
                 {% if references %}
 	            <p class="title"> {% trans "Accounting Reference" %} </p>
 	            {% for ar in references %}
 	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
 	            {% endfor %}
 	            {% endif %}
+{% endcomment %}
 	            <input type='hidden' id='categories' name='categories' value=' {{ selected_values }} ' />
 	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
             </form>

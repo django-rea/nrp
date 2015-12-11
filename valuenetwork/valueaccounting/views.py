@@ -6312,7 +6312,9 @@ def process_oriented_logging(request, process_id):
             if agent == req.from_agent:
                 logger = True
                 worker = True  
-            init = {"from_agent": agent, "event_date": todays_date}
+            init = {"from_agent": agent, 
+                "event_date": todays_date,
+                "is_contribution": True,}
             req.input_work_form_init = req.input_event_form_init(init=init)
         for req in consume_reqs:
             req.changeform = req.change_form()
@@ -6345,6 +6347,10 @@ def process_oriented_logging(request, process_id):
                     add_output_form.fields["resource_type"].queryset = output_resource_types
         if "work" in slots:
             if agent:
+                work_init = {
+                    "from_agent": agent,
+                    "is_contribution": True,
+                } 
                 work_resource_types = pattern.work_resource_types()
                 if work_resource_types:
                     work_unit = work_resource_types[0].unit
@@ -6352,6 +6358,7 @@ def process_oriented_logging(request, process_id):
                     work_init = {
                         "from_agent": agent,
                         "unit_of_quantity": work_unit,
+                        "is_contribution": True,
                     } 
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
                     unplanned_work_form.fields["resource_type"].queryset = work_resource_types
@@ -6736,7 +6743,6 @@ def add_work_event(request, commitment_id):
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
-        event.is_contribution=True
         event.save()
         ct.process.set_started(event.event_date, request.user)
         
@@ -6764,7 +6770,6 @@ def add_unplanned_work_event(request, process_id):
             event.unit_of_quantity = rt.unit
             event.created_by = request.user
             event.changed_by = request.user
-            event.is_contribution=True
             event.save()
             process.set_started(event.event_date, request.user)
             
@@ -7694,7 +7699,7 @@ def change_work_event(request, event_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         prefix = event.form_prefix()
-        form = InputEventForm(instance=event, prefix=prefix, data=request.POST)
+        form = WorkEventChangeForm(instance=event, prefix=prefix, data=request.POST)
         if form.is_valid():
             #import pdb; pdb.set_trace()
             data = form.cleaned_data

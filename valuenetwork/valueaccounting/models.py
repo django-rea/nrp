@@ -8646,7 +8646,7 @@ class EconomicEvent(models.Model):
     commitment = models.ForeignKey(Commitment, blank=True, null=True,
         verbose_name=_('fulfills commitment'), related_name="fulfillment_events",
         on_delete=models.SET_NULL)
-    is_contribution = models.BooleanField(_('is contribution'), default=False)
+    is_contribution = models.BooleanField(_('credit for Value Equations'), default=False)
     accounting_reference = models.ForeignKey(AccountingReference, blank=True, null=True,
         verbose_name=_('accounting reference'), related_name="events",
         help_text=_('optional reference to an accounting grouping'))
@@ -9382,10 +9382,10 @@ class EconomicEvent(models.Model):
     def form_prefix(self):
         return "-".join(["EVT", str(self.id)])
 
-    #obsolete?
     def work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import WorkEventChangeForm
-        return WorkEventChangeForm(instance=self)
+        prefix = self.form_prefix()
+        return WorkEventChangeForm(instance=self, prefix=prefix, )
         
     def change_form_old(self, data=None):
         #import pdb; pdb.set_trace()

@@ -672,7 +672,7 @@ hr {
 								                <div class="modal-body">
 									                <form class="eventForm{{ event.id }} validateMe" name="efc{{ event.id }}" enctype="multipart/form-data" action="{% url change_work_event event_id=event.id %}" method="POST" >
 										                {% csrf_token %}
-										                {{ event.change_form|as_bootstrap }}
+										                {{ event.work_event_change_form|as_bootstrap }}
 										                <input type="hidden" id="next" name="next" value="process" />
                                                         <div class="modal-footer">
                                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>

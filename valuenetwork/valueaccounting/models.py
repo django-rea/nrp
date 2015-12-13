@@ -4376,16 +4376,17 @@ class EconomicResource(models.Model):
                             #we assume here that work events are contributions
                             if ip.event_type.relationship == "work":
                                 #import pdb; pdb.set_trace()
-                                value = ip.value
-                                br = ip.bucket_rule(value_equation)
-                                if br:
-                                    #import pdb; pdb.set_trace()
-                                    value = br.compute_claim_value(ip)
-                                    ip.value = value
-                                ip.share = value * distro_fraction
-                                events.append(ip)
-                                #print ip.id, ip, ip.share
-                                #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                                if ip.is_contribution:
+                                    value = ip.value
+                                    br = ip.bucket_rule(value_equation)
+                                    if br:
+                                        #import pdb; pdb.set_trace()
+                                        value = br.compute_claim_value(ip)
+                                        ip.value = value
+                                    ip.share = value * distro_fraction
+                                    events.append(ip)
+                                    #print ip.id, ip, ip.share
+                                    #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
                             elif ip.event_type.relationship == "use":
                                 #use events are not contributions, but their resources may have contributions
                                 #equip logging changes
@@ -4511,17 +4512,18 @@ class EconomicResource(models.Model):
                         for ip in inputs:
                             #we assume here that work events are contributions
                             if ip.event_type.relationship == "work":
-                                value = ip.value
-                                br = ip.bucket_rule(value_equation)
-                                if br:
-                                    value = br.compute_claim_value(ip)
-                                    ip.value = value
-                                #todo 3d: changed
-                                #import pdb; pdb.set_trace()
-                                fraction = ip.value / resource_value
-                                ip.share = use_value * fraction
-                                #ip.share = value * distro_fraction
-                                events.append(ip)
+                                if ip.is_contribution:
+                                    value = ip.value
+                                    br = ip.bucket_rule(value_equation)
+                                    if br:
+                                        value = br.compute_claim_value(ip)
+                                        ip.value = value
+                                    #todo 3d: changed
+                                    #import pdb; pdb.set_trace()
+                                    fraction = ip.value / resource_value
+                                    ip.share = use_value * fraction
+                                    #ip.share = value * distro_fraction
+                                    events.append(ip)
                             elif ip.event_type.relationship == "use":
                                 #use events are not contributions, but their resources may have contributions
                                 if ip.resource:
@@ -6403,18 +6405,19 @@ class Process(models.Model):
                     for ip in inputs:
                         #we assume here that work events are contributions
                         if ip.event_type.relationship == "work":
-                            #todo br
-                            #import pdb; pdb.set_trace()
-                            value = ip.value
-                            br = ip.bucket_rule(value_equation)
-                            if br:
+                            if ip.is_contribution:
+                                #todo br
                                 #import pdb; pdb.set_trace()
-                                value = br.compute_claim_value(ip)
-                                ip.value = value
-                            ip.share = value * distro_fraction
-                            events.append(ip)
-                            #print ip.id, ip, ip.share
-                            #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                                value = ip.value
+                                br = ip.bucket_rule(value_equation)
+                                if br:
+                                    #import pdb; pdb.set_trace()
+                                    value = br.compute_claim_value(ip)
+                                    ip.value = value
+                                ip.share = value * distro_fraction
+                                events.append(ip)
+                                #print ip.id, ip, ip.share
+                                #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
                         elif ip.event_type.relationship == "use":
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
@@ -7003,17 +7006,18 @@ class Exchange(models.Model):
 
             for evt in self.work_events():
                 #import pdb; pdb.set_trace()
-                value = evt.quantity
-                br = evt.bucket_rule(value_equation)
-                if br:
-                    #import pdb; pdb.set_trace()
-                    value = br.compute_claim_value(evt)
-                #evt.share = value * share * trigger_fraction
-                evt.value = value
-                evt.save()
-                evt.share = value * share * trigger_fraction
-                #evt.share = value * trigger_fraction
-                events.append(evt)
+                if evt.is_contribution:
+                    value = evt.quantity
+                    br = evt.bucket_rule(value_equation)
+                    if br:
+                        #import pdb; pdb.set_trace()
+                        value = br.compute_claim_value(evt)
+                    #evt.share = value * share * trigger_fraction
+                    evt.value = value
+                    evt.save()
+                    evt.share = value * share * trigger_fraction
+                    #evt.share = value * trigger_fraction
+                    events.append(evt)
                 
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #exchange method

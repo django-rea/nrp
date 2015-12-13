@@ -10864,7 +10864,10 @@ def value_equation_sandbox(request, value_equation_id=None):
                     agent_subtotals[key] = AgentSubtotal(d.from_agent, d.vebr)
                 sub = agent_subtotals[key]
                 sub.quantity += d.quantity
-                sub.value += d.share
+                try:
+                    sub.value += d.share
+                except AttributeError:
+                    continue
                 try:
                     sub.distr_amt += d.distr_amt
                 except AttributeError:

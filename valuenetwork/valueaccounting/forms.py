@@ -3057,12 +3057,12 @@ class EquationForm(forms.Form):
 
 
 class ExchangeForm(forms.ModelForm):
-    process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(), 
-        label=_("Pattern"),
-        empty_label=None, 
-        widget=forms.Select(
-            attrs={'class': 'pattern-selector'}))
+    #process_pattern = forms.ModelChoiceField(
+    #    queryset=ProcessPattern.objects.none(), 
+    #    label=_("Pattern"),
+    #    empty_label=None, 
+    #    widget=forms.Select(
+    #        attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
         label=_("Context"),
@@ -3071,16 +3071,10 @@ class ExchangeForm(forms.ModelForm):
     start_date = forms.DateField(required=True, 
         label=_("Date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
-    supplier = forms.ModelChoiceField(required=False,
-        queryset=EconomicAgent.objects.none(),
-        label="Supplier",  
-        help_text="This is a supplier external to the network.  It is used as a default for individual events in this contribution.",
-        widget=forms.Select(
-            attrs={'class': 'chzn-select'})) 
-    order = forms.ModelChoiceField(
-        required=False,
-        queryset=Order.objects.all(),
-        widget=forms.Select(attrs={'class': 'resource chzn-select input-xxlarge',}))
+    #order = forms.ModelChoiceField(
+    #    required=False,
+    #    queryset=Order.objects.all(),
+    #    widget=forms.Select(attrs={'class': 'resource chzn-select input-xxlarge',}))
     notes = forms.CharField(required=False, 
         label=_("Comments"),
         widget=forms.Textarea(attrs={'class': 'item-description',}))
@@ -3090,13 +3084,12 @@ class ExchangeForm(forms.ModelForm):
 
     class Meta:
         model = Exchange
-        fields = ('process_pattern', 'context_agent', 'supplier', 'order', 'start_date', 'url', 'notes')
+        fields = ('context_agent', 'start_date', 'url', 'notes')
 
     def __init__(self, use_case, context_agent, *args, **kwargs):
         super(ExchangeForm, self).__init__(*args, **kwargs)
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
-        if context_agent:
-            self.fields["supplier"].queryset = context_agent.all_suppliers()
+    #    self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
+
             
 class ExchangeFlowForm(forms.Form):
     start_date = forms.DateField(required=True, 

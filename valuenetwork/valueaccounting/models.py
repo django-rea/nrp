@@ -6649,28 +6649,25 @@ class Exchange(models.Model):
         #    answer = False
         return answer
 
-    #todo: this needs work!!
     def slots_with_detail(self):
         #import pdb; pdb.set_trace()
         slots = self.exchange_type.transfer_types.all()
-        transfers = self.transfers
-        events = self.events
-        commits = self.commitments
+        slots = list(slots)
+        transfers = self.transfers.all()
+        for transfer in transfers:
+            if transfer.transfer_type not in slots:
+                slots.append(transfer.transfer_type)
         for slot in slots:
-            slot.events = []
+            slot.xfers = []
             slot.total = 0
-            for event in events:
-                if event.transfer_type == slot:
-                    slot.events.append(event)
-                    if event.value:
-                        slot.total += event.value
+            for transfer in transfers:
+                if transfer.transfer_type == slot:
+                    slot.xfers.append(transfer)
+                    if transfer.value():
+                        slot.total += transfer.value()
                     else:
-                        slot.total += event.quantity                
-            for commit in commits:
-                if commit.transfer_type == slot:
-                    slot.commitments.append(commit)  
-            #for transfer in transfers:
-                
+                        slot.total += transfer.quantity()
+        return slots
         
     #obsolete    
     #def receipt_commitments(self):
@@ -7199,6 +7196,17 @@ class Transfer(models.Model):
             self.transfer_date.strftime('%Y-%m-%d'),
             ])
     
+    def save(self, *args, **kwargs):
+        #if self.id:
+        #    if not self.transfer_type:
+        #        msg = " ".join(["No transfer type on transfer: ", str(self.id)])
+        #        assert False, msg
+        if self.transfer_type:
+            super(Transfer, self).save(*args, **kwargs)
+    
+    def is_reciprocal(self):
+        return self.transfer_type.is_reciprocal  
+    
     def quantity(self):
         return self.events.all()[0].quantity
     
@@ -7210,7 +7218,22 @@ class Transfer(models.Model):
     
     def unit_of_value(self):
         return self.events.all()[0].unit_of_value
+
+    def from_agent(self):
+        give_event = self.events.filter(event_type=EventType.objects.get(name="Give"))[0]
+        return give_event.from_agent
     
+    def to_agent(self):
+        receive_event = self.events.filter(event_type=EventType.objects.get(name="Receive"))[0]
+        return receive_event.to_agent
+
+    def resource_name(self):
+        event = self.events.all()[0]
+        resource_string = event.resource_type.name
+        if event.resource:
+            resource_string = str(give_event.resource)
+        return resource_string
+        
     def flow_type(self):
         return "Transfer"
 

@@ -3992,7 +3992,7 @@ def recent_stats(request, context_agent_slug):
     if project:
         subs = project.with_all_sub_agents()
         end = datetime.date.today()
-        end = end - datetime.timedelta(days=77)
+        #end = end - datetime.timedelta(days=77)
         start =  end - datetime.timedelta(days=60)
         events = EconomicEvent.objects.filter(
             event_type__relationship="work",

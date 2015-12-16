@@ -3980,7 +3980,36 @@ def project_stats(request, context_agent_slug):
             member_hours.sort(lambda x, y: cmp(y[1], x[1]))
     return render_to_response("valueaccounting/project_stats.html", {
         "member_hours": member_hours,
+        "page_title": "All-time project stats",
     }, context_instance=RequestContext(request))
+    
+def recent_stats(request, context_agent_slug):
+    project = None
+    member_hours = []
+    #import pdb; pdb.set_trace()
+    if context_agent_slug:
+        project = get_object_or_404(EconomicAgent, slug=context_agent_slug)
+    if project:
+        subs = project.with_all_sub_agents()
+        end = datetime.date.today()
+        end = end - datetime.timedelta(days=77)
+        start =  end - datetime.timedelta(days=60)
+        events = EconomicEvent.objects.filter(
+            event_type__relationship="work",
+            context_agent__in=subs,
+            event_date__range=(start, end))
+        agents_stats = {}
+        for event in events:
+            agents_stats.setdefault(event.from_agent, Decimal("0"))
+            agents_stats[event.from_agent] += event.quantity
+        for key, value in agents_stats.items():
+            member_hours.append((key, value))
+        member_hours.sort(lambda x, y: cmp(y[1], x[1]))
+    return render_to_response("valueaccounting/project_stats.html", {
+        "member_hours": member_hours,
+        "page_title": "Last 2 months project stats",
+    }, context_instance=RequestContext(request))
+
 
 def project_roles(request, context_agent_slug):
     project = None

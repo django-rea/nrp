@@ -2404,10 +2404,6 @@ class CasualTimeContributionForm(forms.ModelForm):
         label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
-    #project = forms.ModelChoiceField(
-    #    queryset=Project.objects.all(), 
-    #    empty_label=None, 
-    #    widget=forms.Select(attrs={'class': 'chzn-select'}))
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
@@ -2417,7 +2413,7 @@ class CasualTimeContributionForm(forms.ModelForm):
 	
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'context_agent', 'quantity', 'url', 'description')
+        fields = ('event_date', 'resource_type', 'context_agent', 'quantity', 'is_contribution', 'url', 'description')
 
     def __init__(self, *args, **kwargs):
         super(CasualTimeContributionForm, self).__init__(*args, **kwargs)
@@ -2429,6 +2425,7 @@ class CasualTimeContributionForm(forms.ModelForm):
         if pattern:
             self.fields["resource_type"].queryset = pattern.work_resource_types().order_by("name")
 
+            
 class HasAssociateChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.inverse_label

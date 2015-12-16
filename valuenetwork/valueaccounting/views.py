@@ -1287,8 +1287,12 @@ def unscheduled_time_contributions(request):
         extra=8,
         max_num=8,
         )
+    init = []
+    for i in range(0, 8):
+        init.append({"is_contribution": True,})
     time_formset = TimeFormSet(
         queryset=EconomicEvent.objects.none(),
+        initial = init,
         data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -1310,7 +1314,7 @@ def unscheduled_time_contributions(request):
                     if event.event_date and event.quantity:
                         event.from_agent=member
                         event.to_agent = event.context_agent.default_agent()
-                        event.is_contribution=True
+                        #event.is_contribution=True
                         rt = event.resource_type
                         event_type = pattern.event_type_for_resource_type("work", rt)
                         event.event_type=event_type

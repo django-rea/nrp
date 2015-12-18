@@ -32,7 +32,11 @@
                 <a class="btn btn-primary" href="{% url create_order %}">{% trans "Create Customer Order" %}</a>
                 <a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Work" %}</a>
                 <a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan Work Using Recipe" %}</a>
-                <a class="btn btn-info" href="{% url create_sale %}">{% trans "Exchange Without Order" %}</a>
+                <form id="exchangeForm" style="display: inline;" method="POST" action="">
+                    {% csrf_token %}
+                    Choose a type to create a new exchange: {{ nav_form.exchange_type }}
+                    <input style="display: inline; vertical-align: top;" type="submit" name="submit" value="{% trans 'Exchange Without Order' %}" class="btn btn-primary" /> 
+                </form>
             </p>
         {% endif %}
         {% if orders %}
@@ -56,7 +60,7 @@
                             id="sale{{ order.id }}" 
                             action="{% url exchange_logging exchange_id=order.sale.id %}" 
                             method="GET" >
-                            <button style="display: inline;"  class="btn btn-info" title="Sale for this order" >Fulfill this order</button>
+                            <button style="display: inline;"  class="btn btn-info" title="Outgoing exchange for this order" >Fulfill this order</button>
                         </form>
                         {% if order.description %}
                             <p>{{ order.description|urlize|linebreaks }}</p>

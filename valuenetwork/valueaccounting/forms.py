@@ -3109,7 +3109,20 @@ class ExchangeFlowForm(forms.Form):
     notes = forms.CharField(required=False,
         widget=forms.Textarea(attrs={'class': 'item-description',}))
 
-                        
+class DemandExchangeNavForm(forms.Form):
+    exchange_type = forms.ModelChoiceField(
+        queryset=ExchangeType.objects.demand_exchange_types(),
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'exchange-selector'}))
+
+class SupplyExchangeNavForm(forms.Form):
+    exchange_type = forms.ModelChoiceField(
+        queryset=ExchangeType.objects.supply_exchange_types(),
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'exchange-selector'}))
+                
 class SaleForm(forms.ModelForm):
     exchange_type = forms.ModelChoiceField(
         queryset=ExchangeType.objects.sale_exchange_types(),

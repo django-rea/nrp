@@ -3194,16 +3194,28 @@ def delete_workflow_process(request, order_item_id, process_id):
             process.delete()
     next = request.POST.get("next")
     return HttpResponseRedirect(next)
+
                 
 def demand(request):
     agent = get_agent(request)
     orders = Order.objects.customer_orders()
     rands = Order.objects.open_rand_orders()
     help = get_help("demand")
+    if agent:
+        nav_form = DemandExchangeNavForm(data=request.POST or None)
+        if request.method == "POST":
+            #import pdb; pdb.set_trace()
+            if nav_form.is_valid():
+                data = nav_form.cleaned_data
+                ext = data["exchange_type"]
+            return HttpResponseRedirect('/%s/%s/%s/'
+                % ('accounting/exchange', ext.id, 0))
+    
     return render_to_response("valueaccounting/demand.html", {
         "orders": orders,
         "rands": rands,
         "agent": agent,
+        "nav_form": nav_form,
         "help": help,
     }, context_instance=RequestContext(request))     
         
@@ -3440,11 +3452,22 @@ def supply(request):
             suppliers[agent][source].append(commitment)
     #todo: separate tool reqs from material reqs
     treqs = []
+    nav_form = SupplyExchangeNavForm(data=request.POST or None)
+    
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if nav_form.is_valid():
+            data = nav_form.cleaned_data
+            ext = data["exchange_type"]
+        return HttpResponseRedirect('/%s/%s/%s/'
+            % ('accounting/exchange', ext.id, 0))
+    
     return render_to_response("valueaccounting/supply.html", {
         "mreqs": mreqs,
         "treqs": treqs,
         "suppliers": suppliers,
         "agent": agent,
+        "nav_form": nav_form,
         "help": get_help("supply"),
     }, context_instance=RequestContext(request))
 
@@ -10059,7 +10082,7 @@ def contribution_events_csv(request):
     return response
 
 
-def exchange_logging(request, use_case_identifier=None, exchange_id=None): 
+def exchange_logging(request, exchange_type_id=None, exchange_id=None): 
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
     logger = False
@@ -10067,19 +10090,34 @@ def exchange_logging(request, use_case_identifier=None, exchange_id=None):
         if request.user.is_superuser:
             logger = True
     
-    if use_case_identifier: #new exchange
+    if exchange_type_id > 0: #new exchange
         if agent:
-            use_case = get_object_or_404(UseCase, identifier=use_case_identifier)
+            exchange_type = get_object_or_404(ExchangeType, id=exchange_type_id)
+            use_case = exchange_type.use_case
             context_agent = None
             context_types = AgentType.objects.context_types_string()
             context_agents = EconomicAgent.objects.context_agents() or None
             if context_agents:
                 context_agent = context_agents[0]
             exchange_form = ExchangeForm(use_case, context_agent)
+            slots = exchange_type.slots()
+            return render_to_response("valueaccounting/exchange_logging.html", {
+                "use_case": use_case,
+                "exchange_type": exchange_type,
+                "exchange_form": exchange_form,
+                "agent": agent,
+                "context_agent": context_agent,
+                "user": request.user,
+                "logger": logger,
+                "slots": slots,
+                "total_t": 0,
+                "total_rect": 0,
+                "help": get_help("exchange"),
+            }, context_instance=RequestContext(request))
         else:
             raise ValidationError("System Error: No agent, not allowed to create exchange.")
 
-    elif exchange_id: #existing exchange
+    elif exchange_id > 0: #existing exchange
         exchange = get_object_or_404(Exchange, id=exchange_id)
         context_agent = exchange.context_agent
         pattern = exchange.process_pattern
@@ -10216,6 +10254,7 @@ def exchange_logging(request, use_case_identifier=None, exchange_id=None):
     return render_to_response("valueaccounting/exchange_logging.html", {
         "use_case": use_case,
         "exchange": exchange,
+        "exchange_type": exchange_type,
         "exchange_form": exchange_form,
         "agent": agent,
         "context_agent": context_agent,
@@ -10224,7 +10263,7 @@ def exchange_logging(request, use_case_identifier=None, exchange_id=None):
         "logger": logger,
         "slots": slots,
         "work_events": work_events,
-        "add_work_form": add_work_form,
+        #"add_work_form": add_work_form,
         #"create_material_role_formset": create_material_role_formset,
         #"create_receipt_role_formset": create_receipt_role_formset,
         "total_t": total_t,

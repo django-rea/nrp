@@ -77,10 +77,15 @@ h3 {
 {% endcomment %}
             <a class="report" href="{% url exchanges %}">{% trans "Exchange List" %}</a>
         </legend>
+
         {% if agent %}
-            <div> 
-                <a class="btn btn-info" href="{% url create_exchange use_case_identifier='purch_contr' %}">{% trans "Create Exchange" %}</a>
-            </div>
+          <div>
+            <form id="exchangeForm" method="POST" action="">
+                {% csrf_token %}
+                Choose which type to create a new exchange: {{ nav_form.exchange_type }}
+                <input style="display: inline; vertical-align: top;" type="submit" name="submit" value="{% trans 'Create Exchange' %}" class="btn btn-primary" /> 
+            </form>
+          </div>
         {% endif %}
         
         <div class="row-fluid">

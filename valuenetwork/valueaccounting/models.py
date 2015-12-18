@@ -3701,6 +3701,8 @@ class ExchangeType(models.Model):
         unique_slugify(self, self.name)
         super(ExchangeType, self).save(*args, **kwargs) 
         
+    def slots(self):
+        return self.transfer_types.all()
 
 
 class GoodResourceManager(models.Manager):

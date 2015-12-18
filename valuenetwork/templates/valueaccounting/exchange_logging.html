@@ -123,7 +123,10 @@ li {
         {% include "_messages.html" %}
 	<div>
 	<legend>
-		<span>{{ exchange }}</span>
+        {% if exchange %}
+            {{ exchange }}
+        {% else %}
+            New {{ exchange_type.name }}
         {% if exchange.order %}
             <form 
                 style="display: inline;" 
@@ -161,7 +164,7 @@ li {
                 {% if not slot.is_reciprocal %}
                     <div class="log-section">
                         <h3>
-                            {{ slot.name }}  
+                            {{ slot.name }} 
 {% comment %}
                             {% if agent %}
                                 <a href="#addCommitModal{{ slot.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a new commitment or plan for a transfer" >
@@ -386,8 +389,8 @@ li {
                 {% endfor %}
             {% endif %}
           </div>
-        {% endif %}
 {% endcomment %}
+        {% endif %}
 
        
             <div class="log-section">

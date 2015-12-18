@@ -5356,7 +5356,7 @@ def add_disbursement(request, exchange_id):
         % ('accounting/exchange', exchange.id))
 
 @login_required
-def add_transfer(request, exchange_id):
+def add_transfer(request, exchange_id, transfer_type_id):
     exchange = get_object_or_404(Exchange, pk=exchange_id)   
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -5829,7 +5829,7 @@ def commitment_finished(request, commitment_id):
             % ('accounting/start'))
 
 @login_required
-def add_transfer_commitment(request, transfer_type_id):
+def add_transfer_commitment(request, exchange_id, transfer_type_id):
     transfer_type = get_object_or_404(TransferType, pk=transfer_type_id)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -10090,7 +10090,7 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
         if request.user.is_superuser:
             logger = True
     
-    if exchange_type_id > 0: #new exchange
+    if exchange_type_id != "0": #new exchange
         if agent:
             exchange_type = get_object_or_404(ExchangeType, id=exchange_type_id)
             use_case = exchange_type.use_case
@@ -10117,7 +10117,7 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
         else:
             raise ValidationError("System Error: No agent, not allowed to create exchange.")
 
-    elif exchange_id > 0: #existing exchange
+    elif exchange_id != "0": #existing exchange
         exchange = get_object_or_404(Exchange, id=exchange_id)
         context_agent = exchange.context_agent
         pattern = exchange.process_pattern

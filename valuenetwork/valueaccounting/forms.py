@@ -3086,7 +3086,7 @@ class ExchangeForm(forms.ModelForm):
         model = Exchange
         fields = ('context_agent', 'start_date', 'url', 'notes')
 
-    def __init__(self, use_case, context_agent, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(ExchangeForm, self).__init__(*args, **kwargs)
     #    self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
 

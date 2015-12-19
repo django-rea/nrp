@@ -10094,19 +10094,26 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
         if agent:
             exchange_type = get_object_or_404(ExchangeType, id=exchange_type_id)
             use_case = exchange_type.use_case
-            context_agent = None
-            context_types = AgentType.objects.context_types_string()
-            context_agents = EconomicAgent.objects.context_agents() or None
-            if context_agents:
-                context_agent = context_agents[0]
-            exchange_form = ExchangeForm(use_case, context_agent)
+            
+            if request.method == "POST":
+                exchange_form = ExchangeForm(data=request.POST)
+                if exchange_form.is_valid():
+                    exchange = exchange_form.save(commit=False)
+                    exchange.use_case = use_case
+                    exchange.exchange_type = exchange_type
+                    exchange.created_by = request.user
+                    exchange.save()
+
+                    return HttpResponseRedirect('/%s/%s/%s/'
+                        % ('accounting/exchange', 0, exchange.id)) 
+            
+            exchange_form = ExchangeForm()
             slots = exchange_type.slots()
             return render_to_response("valueaccounting/exchange_logging.html", {
                 "use_case": use_case,
                 "exchange_type": exchange_type,
                 "exchange_form": exchange_form,
                 "agent": agent,
-                "context_agent": context_agent,
                 "user": request.user,
                 "logger": logger,
                 "slots": slots,
@@ -10119,11 +10126,21 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
 
     elif exchange_id != "0": #existing exchange
         exchange = get_object_or_404(Exchange, id=exchange_id)
+        
+        if request.method == "POST":
+            #import pdb; pdb.set_trace()
+            exchange_form = ExchangeForm(instance=exchange, data=request.POST)
+            if exchange_form.is_valid():
+                exchange = exchange_form.save()
+                return HttpResponseRedirect('/%s/%s/%s/'
+                    % ('accounting/exchange', 0, exchange.id))   
+            
         context_agent = exchange.context_agent
         pattern = exchange.process_pattern
         exchange_type = exchange.exchange_type
         use_case = exchange_type.use_case
-        exchange_form = ExchangeForm(use_case, context_agent, instance=exchange, data=request.POST or None)
+        exchange_form = ExchangeForm(instance=exchange)
+        
         add_transfer_form = None
         add_rec_transfer_form = None
         create_material_role_formset = None #todo: need to configure this??? or refactor for creating a resource
@@ -10231,25 +10248,6 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
                 
     else:
         raise ValidationError("System Error: No exchange or use case.")
-
-    #if request.method == "POST":
-    #    #import pdb; pdb.set_trace()
-    #    if exchange_form.is_valid():
-    #       exchange = exchange_form.save()
-    #        return HttpResponseRedirect('/%s/%s/'
-    #            % ('accounting/exchange', exchange.id))
-        
-    #if request.method == "POST":
-    #    ca_id = request.POST.get("context_agent")
-    #    context_agent = EconomicAgent.objects.get(id=ca_id)
-    #    exchange_form = ExchangeForm(use_case, context_agent, data=request.POST)
-    #    if exchange_form.is_valid():
-    #        exchange = exchange_form.save(commit=False)
-    #        exchange.use_case = use_case
-    #        exchange.created_by = request.user
-    #        exchange.save()
-    #        return HttpResponseRedirect('/%s/%s/'
-    #            % ('accounting/exchange', exchange.id))
 
     return render_to_response("valueaccounting/exchange_logging.html", {
         "use_case": use_case,

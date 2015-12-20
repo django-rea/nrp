@@ -591,28 +591,27 @@ def change_exchange_type(request, exchange_type_id):
     change_ext_form = ExchangeTypeForm(instance=exchange_type, data=request.POST or None)
     add_tt_form = TransferTypeForm(data=request.POST or None)
     #import pdb; pdb.set_trace()
-    '''
-    for slot in slots:
-        slot.resource_types = pattern.get_resource_types(slot)
-        slot.facets = pattern.facets_for_event_type(slot)          
-        FacetValueFormSet = modelformset_factory(
-            PatternFacetValue,
-            form=PatternFacetValueForm,
-            can_delete=True,
-            extra=2,
-            )
-        facet_value_formset = FacetValueFormSet(
-            queryset=slot.facets,
-            data=request.POST or None,
-            prefix=slot.slug)
-        slot.formset = facet_value_formset
+    #for slot in slots:
+        #slot.resource_types = pattern.get_resource_types(slot)
+        #slot.facets = pattern.facets_for_event_type(slot)          
+        #FacetValueFormSet = modelformset_factory(
+        #    PatternFacetValue,
+        #    form=PatternFacetValueForm,
+        #    can_delete=True,
+        #    extra=2,
+        #    )
+        #facet_value_formset = FacetValueFormSet(
+        #    queryset=slot.facets,
+        #    data=request.POST or None,
+        #    prefix=slot.slug)
+        #slot.formset = facet_value_formset
         #todo: weird, this rts form does not do anything
-        slot.rts = ResourceTypeSelectionForm(
-            qs=slot.resource_types,
-            prefix=slot.slug)
+        #slot.rts = ResourceTypeSelectionForm(
+        #    qs=slot.resource_types,
+        #    prefix=slot.slug)
         #import pdb; pdb.set_trace()
-    slot_ids = [slot.id for slot in slots]
-    '''     
+        
+   
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         save_ext = request.POST.get("save_ext")
@@ -622,39 +621,10 @@ def change_exchange_type(request, exchange_type_id):
                 ext = change_ext_form.save(commit=False)
                 ext.changed_by = request.user
                 ext.save()
-        '''
-        elif add_tt:
-            if add_tt_form.is_valid():
-                tt = add_tt_form.save(commit=False)
-                tt.created_by = request.user
-                tt.exchange_type = exchange_type
-                tt.save()
-        for slot in slots:
-            for form in slot.formset:
-                if form.is_valid():
-                    data = form.cleaned_data
-                    old_value = data.get("id")
-                    new_value = data.get("facet_value")
-                    if old_value:
-                        if data["DELETE"]:
-                            old_value.delete()
-                        elif old_value.facet_value != new_value:
-                            if new_value:
-                                form.save()
-                    elif new_value:
-                        if not data["DELETE"]:
-                            fv = PatternFacetValue(
-                                pattern=pattern,
-                                event_type=slot,
-                                facet_value=new_value)
-                            fv.save()
-        '''
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/change-exchange-type', exchange_type.id))
                    
     return render_to_response("valueaccounting/change_exchange_type.html", {
-        "change_ext_form": change_ext_form,
         "exchange_type": exchange_type,
+        "change_ext_form": change_ext_form,
         "add_tt_form": add_tt_form,
         "slots": slots,
     }, context_instance=RequestContext(request))
@@ -676,40 +646,27 @@ def add_transfer_type(request, exchange_type_id):
     
 @login_required
 def change_transfer_type(request, transfer_type_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    tt = get_object_or_404(TransferType, pk=transfer_type_id)   
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        pattern = exchange.process_pattern
-        context_agent = exchange.context_agent
-        form = DisbursementEventForm(data=request.POST, pattern=pattern, posting=True, prefix='disb')
+        form = TransferTypeForm(instance=tt, data=request.POST, prefix=tt.form_prefix())
         if form.is_valid():
-            data = form.cleaned_data
-            qty = data["quantity"] 
-            if qty:
-                event = form.save(commit=False)
-                rt = data["resource_type"]
-                event_type = pattern.event_type_for_resource_type("disburse", rt)
-                fa = exchange.context_agent
-                if event.resource:
-                    if event.resource.owner():
-                        fa = event.resource.owner()
-                event.event_type = event_type
-                event.exchange = exchange
-                event.context_agent = exchange.context_agent
-                event.unit_of_quantity = rt.unit
-                event.from_agent = fa
-                event.to_agent = exchange.context_agent
-                event.is_contribution = False
-                event.created_by = request.user
-                event.save()
-                resource = event.resource
-                if resource:
-                    resource.quantity = resource.quantity - qty
-                    resource.save()
+            tt = form.save(commit=False)
+            tt.changed_by = request.user
+            tt.save()
                 
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
-    
+        % ('accounting/change-exchange-type', tt.exchange_type.id))
+
+@login_required          
+def delete_transfer_type(request, transfer_type_id):
+    tt = get_object_or_404(TransferType, id=transfer_type_id)
+    if request.method == "POST":
+        if tt.is_deletable():
+            tt.delete()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/change-exchange-type', tt.exchange_type.id))   
+
 
 class AddFacetValueFormFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):

@@ -6493,6 +6493,19 @@ class TransferType(models.Model):
     class Meta:
         ordering = ('sequence',)
         
+    def is_deletable(self):
+        if self.transfers.all():
+            return False
+        return True
+
+    def form_prefix(self):
+        return "-".join(["TT", str(self.id)])
+    
+    def change_form(self):
+        from valuenetwork.valueaccounting.forms import TransferTypeForm
+        prefix=self.form_prefix()
+        return TransferTypeForm(instance=self, prefix=prefix)
+        
 
 class ExchangeManager(models.Manager):
 

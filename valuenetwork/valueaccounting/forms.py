@@ -2397,11 +2397,13 @@ class TransferTypeForm(forms.ModelForm):
         widget=forms.CheckboxInput())
     give_agent_association_type = forms.ModelChoiceField(
         queryset=AgentAssociationType.objects.all(),
+        required=False,
         label=_("Transfer From (optional - this will limit the choices when creating a transfer)"),
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
     receive_agent_association_type = forms.ModelChoiceField(
         queryset=AgentAssociationType.objects.all(),
+        required=False,
         label=_("Transfer To (optional - this will limit the choices when creating a transfer)"),
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))

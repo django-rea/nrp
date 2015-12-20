@@ -562,6 +562,86 @@ def maintain_patterns(request, use_case_id=None):
         "pattern_form": pattern_form,
     }, context_instance=RequestContext(request))
 
+@login_required
+def exchange_types(request):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        new_form = NewExchangeTypeForm(data=request.POST)
+        if new_form.is_valid():
+            ext = new_form.save(commit=False)
+            ext.created_by = request.user
+            ext.save()
+            
+    supply_exchange_types = ExchangeType.objects.supply_exchange_types()
+    demand_exchange_types = ExchangeType.objects.demand_exchange_types()
+    internal_exchange_types = ExchangeType.objects.internal_exchange_types()
+    new_form = NewExchangeTypeForm()
+                
+    return render_to_response("valueaccounting/exchange_types.html", {
+        "supply_exchange_types": supply_exchange_types,
+        "demand_exchange_types": demand_exchange_types,
+        "internal_exchange_types": internal_exchange_types,
+        "new_form": new_form,
+    }, context_instance=RequestContext(request))
+
+@login_required
+def change_exchange_type(request, exchange_type_id):
+    pattern = get_object_or_404(ProcessPattern, id=pattern_id)
+    use_case = get_object_or_404(UseCase, id=use_case_id)
+    slots = use_case.allowed_event_types() 
+    #import pdb; pdb.set_trace()
+    for slot in slots:
+        slot.resource_types = pattern.get_resource_types(slot)
+        slot.facets = pattern.facets_for_event_type(slot)          
+        FacetValueFormSet = modelformset_factory(
+            PatternFacetValue,
+            form=PatternFacetValueForm,
+            can_delete=True,
+            extra=2,
+            )
+        facet_value_formset = FacetValueFormSet(
+            queryset=slot.facets,
+            data=request.POST or None,
+            prefix=slot.slug)
+        slot.formset = facet_value_formset
+        #todo: weird, this rts form does not do anything
+        slot.rts = ResourceTypeSelectionForm(
+            qs=slot.resource_types,
+            prefix=slot.slug)
+        #import pdb; pdb.set_trace()
+    slot_ids = [slot.id for slot in slots]
+
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        for slot in slots:
+            for form in slot.formset:
+                if form.is_valid():
+                    data = form.cleaned_data
+                    old_value = data.get("id")
+                    new_value = data.get("facet_value")
+                    if old_value:
+                        if data["DELETE"]:
+                            old_value.delete()
+                        elif old_value.facet_value != new_value:
+                            if new_value:
+                                form.save()
+                    elif new_value:
+                        if not data["DELETE"]:
+                            fv = PatternFacetValue(
+                                pattern=pattern,
+                                event_type=slot,
+                                facet_value=new_value)
+                            fv.save()
+
+        return HttpResponseRedirect('/%s/%s/%s/'
+            % ('accounting/change-pattern', pattern.id, use_case.id))
+                        
+    return render_to_response("valueaccounting/change_exchange_type.html", {
+        "pattern": pattern,
+        "slots": slots,
+        "use_case": use_case,
+    }, context_instance=RequestContext(request))
+    
 
 class AddFacetValueFormFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
@@ -683,7 +763,16 @@ def remove_pattern_from_use_case(request, use_case_id, pattern_id):
         puc.delete()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/maintain-patterns', use_case_id))
-        
+ 
+
+@login_required          
+def delete_exchange_type(request, exchange_type_id):
+    if request.method == "POST":
+        ext = get_object_or_404(ExchangeType, id=exchange_type_id)
+        if ext.is_deletable():
+            ext.delete()
+    return HttpResponseRedirect('/%s/'
+        % ('accounting/exchange-types'))
 
 @login_required
 def sessions(request):

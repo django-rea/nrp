@@ -110,6 +110,7 @@ li {
 .trtheading {
     color: #7D1818;
     font-style: italic;
+    font-size: 1.2em;
 }
 
 </style>
@@ -187,7 +188,7 @@ li {
                                         </div>
                                     </div>
                                     
-                                    <a href="#addTransferModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a new transfer" >
+                                    <a href="#addTransferModal{{ slot.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a new transfer" >
                                         {% trans "New Transfer" %}
                                     </a>
                                     <div class="modal hide fade" id="#addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">

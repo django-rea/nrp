@@ -499,5 +499,10 @@ urlpatterns += patterns("",
         name="add_transfer"), 
     url(r'^delete-transfer/(?P<transfer_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_transfer', 
         name="delete_transfer"),
+    url(r"^exchange-types/$", 'valuenetwork.valueaccounting.views.exchange_types', name="exchange_types"),
+    url(r'^change-exchange-type/(?P<exchange_type_id>\d+)/$', 'valuenetwork.valueaccounting.views.change_exchange_type', 
+        name="change_exchange_type"),
+    url(r'^delete-exchange-type/(?P<exchange_type_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_exchange_type', 
+        name="delete_exchange_type"),
 )
 

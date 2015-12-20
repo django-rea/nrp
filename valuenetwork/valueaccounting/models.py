@@ -2669,7 +2669,9 @@ class UseCaseManager(models.Manager):
     def get_by_natural_key(self, identifier):
         #import pdb; pdb.set_trace()
         return self.get(identifier=identifier)
-
+    
+    def exchange_use_cases(self):
+        return UseCase.objects.filter(Q(identifier="supply_xfer")|Q(identifier="demand_xfer")|Q(identifier="intrnl_xfer"))
 
 class UseCase(models.Model):
     identifier = models.CharField(_('identifier'), max_length=12)
@@ -3703,6 +3705,12 @@ class ExchangeType(models.Model):
         
     def slots(self):
         return self.transfer_types.all()
+    
+    def is_deletable(self):
+        answer = True
+        if self.exchanges.all():
+            answer = False
+        return answer
 
 
 class GoodResourceManager(models.Manager):

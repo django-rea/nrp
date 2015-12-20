@@ -2337,6 +2337,18 @@ class UseCaseSelectionForm(forms.Form):
         widget=forms.Select(
             attrs={'class': 'chzn-select'}))
 
+class NewExchangeTypeForm(forms.ModelForm):
+    use_case = forms.ModelChoiceField(
+        queryset=UseCase.objects.exchange_use_cases(),
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    name = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    
+    class Meta:
+        model = ExchangeType
+        fields = ('use_case', 'name')
+        
 class PatternProdSelectionForm(forms.Form):
     pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(),

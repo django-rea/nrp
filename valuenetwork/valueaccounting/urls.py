@@ -504,5 +504,9 @@ urlpatterns += patterns("",
         name="change_exchange_type"),
     url(r'^delete-exchange-type/(?P<exchange_type_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_exchange_type', 
         name="delete_exchange_type"),
+    url(r'^add-transfer-type/(?P<exchange_type_id>\d+)/$', 'valuenetwork.valueaccounting.views.add_transfer_type', 
+        name="add_transfer_type"), 
+    url(r'^change-transfer-type/(?P<transfer_type_id>\d+)/$', 'valuenetwork.valueaccounting.views.change_transfer_type', 
+        name="change_transfer_type"), 
 )
 

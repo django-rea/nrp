@@ -3669,20 +3669,7 @@ class ExchangeType(models.Model):
     use_case = models.ForeignKey(UseCase,
         blank=True, null=True,
         verbose_name=_('use case'), related_name='exchange_types')
-    process_pattern = models.ForeignKey(ProcessPattern,
-        blank=True, null=True,
-        verbose_name=_('pattern'), related_name='exchange_types')
-    context_agent = models.ForeignKey(EconomicAgent,
-        blank=True, null=True,
-        limit_choices_to={"is_context": True,},
-        verbose_name=_('context agent'), related_name='exchange_types')
     description = models.TextField(_('description'), blank=True, null=True)
-    transfer_from_agent_association_type = models.ForeignKey(AgentAssociationType,
-        blank=True, null=True,
-        verbose_name=_('from agent association type'), related_name='exchange_types_from')
-    transfer_to_agent_association_type = models.ForeignKey(AgentAssociationType,
-        blank=True, null=True,
-        verbose_name=_('to agent association type'), related_name='exchange_types_to')
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='exchange_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
@@ -6483,6 +6470,16 @@ class TransferType(models.Model):
     description = models.TextField(_('description'), blank=True, null=True)
     is_contribution = models.BooleanField(_('is contribution'), default=False)
     is_reciprocal = models.BooleanField(_('is reciprocal'), default=False)
+    can_create_resource = models.BooleanField(_('can create resource'), default=False)
+    is_currency = models.BooleanField(_('is currency'), default=False)
+    give_agent_is_context = models.BooleanField(_('give agent is context'), default=False)
+    receive_agent_is_context = models.BooleanField(_('receive agent is context'), default=False)
+    give_agent_association_type = models.ForeignKey(AgentAssociationType, 
+        blank=True, null=True,
+        verbose_name=_('give agent association type'), related_name='transfer_types_give')
+    receive_agent_association_type = models.ForeignKey(AgentAssociationType,
+        blank=True, null=True,
+        verbose_name=_('receive agent association type'), related_name='transfer_types_receive')
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='transfer_types_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

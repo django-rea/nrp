@@ -586,10 +586,12 @@ def exchange_types(request):
 
 @login_required
 def change_exchange_type(request, exchange_type_id):
-    pattern = get_object_or_404(ProcessPattern, id=pattern_id)
-    use_case = get_object_or_404(UseCase, id=use_case_id)
-    slots = use_case.allowed_event_types() 
+    exchange_type = get_object_or_404(ExchangeType, id=exchange_type_id)
+    slots = exchange_type.slots() 
+    change_ext_form = ExchangeTypeForm(instance=exchange_type, data=request.POST or None)
+    add_tt_form = TransferTypeForm(data=request.POST or None)
     #import pdb; pdb.set_trace()
+    '''
     for slot in slots:
         slot.resource_types = pattern.get_resource_types(slot)
         slot.facets = pattern.facets_for_event_type(slot)          
@@ -610,9 +612,23 @@ def change_exchange_type(request, exchange_type_id):
             prefix=slot.slug)
         #import pdb; pdb.set_trace()
     slot_ids = [slot.id for slot in slots]
-
+    '''     
     if request.method == "POST":
         #import pdb; pdb.set_trace()
+        save_ext = request.POST.get("save_ext")
+        add_tt = request.POST.get("add_tt")
+        if save_ext:
+            if change_ext_form.is_valid():
+                ext = change_ext_form.save(commit=False)
+                ext.changed_by = request.user
+                ext.save()
+        '''
+        elif add_tt:
+            if add_tt_form.is_valid():
+                tt = add_tt_form.save(commit=False)
+                tt.created_by = request.user
+                tt.exchange_type = exchange_type
+                tt.save()
         for slot in slots:
             for form in slot.formset:
                 if form.is_valid():
@@ -632,15 +648,67 @@ def change_exchange_type(request, exchange_type_id):
                                 event_type=slot,
                                 facet_value=new_value)
                             fv.save()
-
-        return HttpResponseRedirect('/%s/%s/%s/'
-            % ('accounting/change-pattern', pattern.id, use_case.id))
-                        
+        '''
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/change-exchange-type', exchange_type.id))
+                   
     return render_to_response("valueaccounting/change_exchange_type.html", {
-        "pattern": pattern,
+        "change_ext_form": change_ext_form,
+        "exchange_type": exchange_type,
+        "add_tt_form": add_tt_form,
         "slots": slots,
-        "use_case": use_case,
     }, context_instance=RequestContext(request))
+
+@login_required
+def add_transfer_type(request, exchange_type_id):
+    exchange_type = get_object_or_404(ExchangeType, pk=exchange_type_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        form = TransferTypeForm(data=request.POST or None)
+        if form.is_valid():
+            tt = form.save(commit=False)
+            tt.created_by = request.user
+            tt.exchange_type = exchange_type
+            tt.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/change-exchange-type', exchange_type.id))
+    
+@login_required
+def change_transfer_type(request, transfer_type_id):
+    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        pattern = exchange.process_pattern
+        context_agent = exchange.context_agent
+        form = DisbursementEventForm(data=request.POST, pattern=pattern, posting=True, prefix='disb')
+        if form.is_valid():
+            data = form.cleaned_data
+            qty = data["quantity"] 
+            if qty:
+                event = form.save(commit=False)
+                rt = data["resource_type"]
+                event_type = pattern.event_type_for_resource_type("disburse", rt)
+                fa = exchange.context_agent
+                if event.resource:
+                    if event.resource.owner():
+                        fa = event.resource.owner()
+                event.event_type = event_type
+                event.exchange = exchange
+                event.context_agent = exchange.context_agent
+                event.unit_of_quantity = rt.unit
+                event.from_agent = fa
+                event.to_agent = exchange.context_agent
+                event.is_contribution = False
+                event.created_by = request.user
+                event.save()
+                resource = event.resource
+                if resource:
+                    resource.quantity = resource.quantity - qty
+                    resource.save()
+                
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))
     
 
 class AddFacetValueFormFormSet(BaseModelFormSet):
@@ -5479,6 +5547,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
+
 @login_required
 def add_process_input(request, process_id, slot):
     process = get_object_or_404(Process, pk=process_id)

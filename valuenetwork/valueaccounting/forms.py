@@ -2349,6 +2349,70 @@ class NewExchangeTypeForm(forms.ModelForm):
         model = ExchangeType
         fields = ('use_case', 'name')
         
+class ExchangeTypeForm(forms.ModelForm):
+    name = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    use_case = forms.ModelChoiceField(
+        queryset=UseCase.objects.exchange_use_cases(),
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+        
+    class Meta:
+        model = ExchangeType
+        fields = ('name', 'use_case', 'description')
+
+class TransferTypeForm(forms.ModelForm):
+    name = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    sequence = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'input-small integer',}))
+    description = forms.CharField(
+        required=False,
+        label="Description, which will show as help for this transfer type",
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    is_contribution = forms.BooleanField(
+        required=False,
+        label="Can be used in a value equation",
+        widget=forms.CheckboxInput())
+    is_reciprocal = forms.BooleanField(
+        required=False,
+        label="Is a reciprocal transfer",
+        widget=forms.CheckboxInput())
+    can_create_resource = forms.BooleanField(
+        required=False,
+        label="Can create a new resource",
+        widget=forms.CheckboxInput())
+    is_currency = forms.BooleanField(
+        required=False,
+        label="Transfers a currency or money",
+        widget=forms.CheckboxInput())
+    give_agent_is_context = forms.BooleanField(
+        required=False,
+        label="Give agent is always the context agent",
+        widget=forms.CheckboxInput())
+    receive_agent_is_context = forms.BooleanField(
+        required=False,
+        label="Receive agent is always the context agent",
+        widget=forms.CheckboxInput())
+    give_agent_association_type = forms.ModelChoiceField(
+        queryset=AgentAssociationType.objects.all(),
+        label=_("Transfer From (optional - this will limit the choices when creating a transfer)"),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    receive_agent_association_type = forms.ModelChoiceField(
+        queryset=AgentAssociationType.objects.all(),
+        label=_("Transfer To (optional - this will limit the choices when creating a transfer)"),
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
+    
+    class Meta:
+        model = TransferType
+        fields = ('sequence', 'name', 'description', 'is_reciprocal', 'is_contribution', 
+                  'can_create_resource', 'is_currency', 'give_agent_is_context', 'give_agent_association_type', 
+                  'receive_agent_is_context', 'receive_agent_association_type')
+
+        
 class PatternProdSelectionForm(forms.Form):
     pattern = forms.ModelChoiceField(
         queryset=ProcessPattern.objects.none(),

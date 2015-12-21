@@ -56,9 +56,11 @@ git clone https://github.com/valnet/valuenetwork.git
  
 8. cd valuenetwork
 
-9. pip install -r requirements.txt
+9. pip install -r requirements.txt --trusted-host dist.pinaxproject.com
 
-Note: If you get errors saying the repository is not trusted, try adding: --trusted-host dist.pinaxproject.com to the above command.
+Note: if you get the pip error message, no such option: --trusted-host
+do 
+pip install -U pip
 
 10. pip install --no-deps easy_thumbnails
 

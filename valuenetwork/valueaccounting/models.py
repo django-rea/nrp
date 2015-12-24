@@ -1033,6 +1033,12 @@ class EconomicAgent(models.Model):
         if self.virtual_accounts():
             return False
         return True
+        
+    def contexts_participated_in(self):
+        events = self.given_events.exclude(context_agent__isnull=True)
+        cids = events.values_list('context_agent', flat=True)
+        cids = list(set(cids))
+        return EconomicAgent.objects.filter(id__in=cids)
                 
         
 class AgentUser(models.Model):

@@ -18,6 +18,11 @@ from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.contrib.auth.models import User, Group
+
+from rest_framework import viewsets
+
+from valuenetwork.api.serializers import *
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.utils import get_url_starter, camelcase, camelcase_lower
@@ -29,6 +34,43 @@ from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
  
 from urllib2 import urlopen
 from io import StringIO
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class PeopleViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows people to be viewed or edited.
+    """
+    queryset = EconomicAgent.objects.individuals()
+    serializer_class = PeopleSerializer
+
+class ContextViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows context agents to be viewed or edited.
+    """
+    queryset = EconomicAgent.objects.context_agents()
+    serializer_class = ContextSerializer
+    
+class AgentViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows all Economic Agents to be viewed or edited.
+    """
+    queryset = EconomicAgent.objects.all()
+    serializer_class = EconomicAgentSerializer
+    
+    
+class AgentTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Agent Types to be viewed or edited.
+    """
+    queryset = AgentType.objects.all()
+    serializer_class = AgentTypeSerializer
 
 #the following methods relate to providing linked open data from NRP instances, for the valueflows vocab project.
 #they use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.

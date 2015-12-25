@@ -147,6 +147,7 @@ INSTALLED_APPS = [
     'notification',
     'corsheaders',
     #'django_filters',
+    'rest_framework',
     
     # project
     'valuenetwork.valueaccounting',
@@ -155,6 +156,12 @@ INSTALLED_APPS = [
     'account',
 
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
+    'PAGINATE_BY': 10,
+    'URL_FIELD_NAME': 'api_url',
+}
 
 # valueaccounting settings
 USE_WORK_NOW = True

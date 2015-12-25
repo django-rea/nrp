@@ -15,3 +15,4 @@ toposort
 django-cors-headers
 rdflib
 rdflib-jsonld
+djangorestframework==2.4.8

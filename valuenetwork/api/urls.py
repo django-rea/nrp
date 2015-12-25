@@ -1,7 +1,21 @@
 from django.conf.urls import patterns, url
 from django.views.generic.simple import direct_to_template
+from django.conf.urls import url, include
+
+from rest_framework import routers
+
+from valuenetwork.api import views
+
+router = routers.DefaultRouter()
+router.register(r'users', views.UserViewSet)
+router.register(r'people', views.PeopleViewSet, 'people')
+router.register(r'contexts', views.ContextViewSet, 'contexts')
+router.register(r'allagents', views.AgentViewSet, 'economicagent')
+router.register(r'agent-types', views.AgentTypeViewSet)
 
 urlpatterns = patterns("",
+    url(r'^', include(router.urls)),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r"^agent-jsonld/$", 'valuenetwork.api.views.agent_jsonld', name="agent_jsonld"),
     url(r"^agent-lod/(?P<agent_id>\d+)/$", 'valuenetwork.api.views.agent_lod', name="agent_lod"),
     url(r"^agent-type-lod/(?P<agent_type_name>\w+)/$", 'valuenetwork.api.views.agent_type_lod', name="agent_type_lod"),

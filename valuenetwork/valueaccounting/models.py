@@ -1035,10 +1035,13 @@ class EconomicAgent(models.Model):
         return True
         
     def contexts_participated_in(self):
-        events = self.given_events.exclude(context_agent__isnull=True)
-        cids = events.values_list('context_agent', flat=True)
-        cids = list(set(cids))
-        return EconomicAgent.objects.filter(id__in=cids)
+        answer = []
+        if self.agent_type.party_type == "individual":
+            events = self.given_events.exclude(context_agent__isnull=True)
+            cids = events.values_list('context_agent', flat=True)
+            cids = list(set(cids))
+            answer = EconomicAgent.objects.filter(id__in=cids)
+        return answer
                 
         
 class AgentUser(models.Model):

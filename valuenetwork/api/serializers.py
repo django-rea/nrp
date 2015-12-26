@@ -41,6 +41,7 @@ class PeopleSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('api_url', 'url', 'name', 'nick', 'agent_type', 'address', 'email', 'projects')
         
 class EconomicEventSerializer(serializers.HyperlinkedModelSerializer):
+    unit_of_quantity = serializers.RelatedField()
     class Meta:
         model = EconomicEvent
         fields = ('api_url', 
@@ -69,12 +70,13 @@ class ResourceTypeSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('api_url', 'name', )
         
 class EconomicResourceSerializer(serializers.HyperlinkedModelSerializer):
+    unit_of_quantity = serializers.Field(source='unit_of_quantity')
     class Meta:
         model = EconomicResource
         fields = ('api_url', 
             'resource_type', 
             'identifier',
-            'description',
+            'notes',
             'quantity',
             'unit_of_quantity',)
 

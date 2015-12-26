@@ -12,6 +12,11 @@ router.register(r'people', views.PeopleViewSet, 'people')
 router.register(r'contexts', views.ContextViewSet, 'contexts')
 router.register(r'allagents', views.AgentViewSet, 'economicagent')
 router.register(r'agent-types', views.AgentTypeViewSet)
+router.register(r'economic-events', views.EconomicEventViewSet, 'economicevent')
+router.register(r'event-types', views.EventTypeViewSet, 'eventtype')
+router.register(r'resource-types', views.ResourceTypeViewSet, 'economicresourcetype')
+router.register(r'resources', views.EconomicResourceViewSet, 'economicresource')
+router.register(r'units', views.UnitViewSet)
 
 urlpatterns = patterns("",
     url(r'^', include(router.urls)),

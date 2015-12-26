@@ -71,7 +71,58 @@ class AgentTypeViewSet(viewsets.ModelViewSet):
     """
     queryset = AgentType.objects.all()
     serializer_class = AgentTypeSerializer
+    
+class EconomicEventViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Economic Events to be viewed or edited.
+    You may use a query parameter, ?context={ context agent.slug },
+    for example, ?context=breathing-games
+    Slugs can be found on the API context list.
+    
+    More query parameters and filters to come, on request.
+    """
+    serializer_class = EconomicEventSerializer
+    
+    def get_queryset(self):
+        """
+        Optionally restricts the returned purchases to a given user,
+        by filtering against a `username` query parameter in the URL.
+        """
+        queryset = EconomicEvent.objects.all()
+        context_slug = self.request.QUERY_PARAMS.get('context', None)
+        if context_slug is not None:
+            queryset = queryset.filter(context_agent__slug=context_slug)
+        return queryset
+    
+class EventTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Agent Types to be viewed or edited.
+    """
+    queryset = EventType.objects.all()
+    serializer_class = EventTypeSerializer
 
+class ResourceTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Agent Types to be viewed or edited.
+    """
+    queryset = EconomicResourceType.objects.all()
+    serializer_class = ResourceTypeSerializer
+    
+class EconomicResourceViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Agent Types to be viewed or edited.
+    """
+    queryset = EconomicResource.objects.all()
+    serializer_class = EconomicResourceSerializer
+
+class UnitViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Agent Types to be viewed or edited.
+    """
+    queryset = Unit.objects.all()
+    serializer_class = UnitSerializer
+    
+    
 #the following methods relate to providing linked open data from NRP instances, for the valueflows vocab project.
 #they use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.
 

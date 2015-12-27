@@ -20,7 +20,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
 
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 
 from valuenetwork.api.serializers import *
 
@@ -41,6 +41,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 
 class PeopleViewSet(viewsets.ModelViewSet):
@@ -49,6 +50,7 @@ class PeopleViewSet(viewsets.ModelViewSet):
     """
     queryset = EconomicAgent.objects.individuals()
     serializer_class = PeopleSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 class ContextViewSet(viewsets.ModelViewSet):
     """
@@ -56,6 +58,7 @@ class ContextViewSet(viewsets.ModelViewSet):
     """
     queryset = EconomicAgent.objects.context_agents()
     serializer_class = ContextSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     
 class AgentViewSet(viewsets.ModelViewSet):
     """
@@ -63,6 +66,7 @@ class AgentViewSet(viewsets.ModelViewSet):
     """
     queryset = EconomicAgent.objects.all()
     serializer_class = EconomicAgentSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     
     
 class AgentTypeViewSet(viewsets.ModelViewSet):
@@ -71,6 +75,7 @@ class AgentTypeViewSet(viewsets.ModelViewSet):
     """
     queryset = AgentType.objects.all()
     serializer_class = AgentTypeSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     
 class EconomicEventViewSet(viewsets.ModelViewSet):
     """
@@ -82,6 +87,7 @@ class EconomicEventViewSet(viewsets.ModelViewSet):
     More query parameters and filters to come, on request.
     """
     serializer_class = EconomicEventSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     
     def get_queryset(self):
         """
@@ -100,6 +106,7 @@ class EventTypeViewSet(viewsets.ModelViewSet):
     """
     queryset = EventType.objects.all()
     serializer_class = EventTypeSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 class ResourceTypeViewSet(viewsets.ModelViewSet):
     """
@@ -107,6 +114,7 @@ class ResourceTypeViewSet(viewsets.ModelViewSet):
     """
     queryset = EconomicResourceType.objects.all()
     serializer_class = ResourceTypeSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     
 class EconomicResourceViewSet(viewsets.ModelViewSet):
     """
@@ -114,6 +122,7 @@ class EconomicResourceViewSet(viewsets.ModelViewSet):
     """
     queryset = EconomicResource.objects.all()
     serializer_class = EconomicResourceSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 class UnitViewSet(viewsets.ModelViewSet):
     """
@@ -121,7 +130,7 @@ class UnitViewSet(viewsets.ModelViewSet):
     """
     queryset = Unit.objects.all()
     serializer_class = UnitSerializer
-    
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     
 #the following methods relate to providing linked open data from NRP instances, for the valueflows vocab project.
 #they use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.

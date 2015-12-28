@@ -591,36 +591,56 @@ def change_exchange_type(request, exchange_type_id):
     change_ext_form = ExchangeTypeForm(instance=exchange_type, data=request.POST or None)
     add_tt_form = TransferTypeForm(data=request.POST or None)
     #import pdb; pdb.set_trace()
-    #for slot in slots:
-        #slot.resource_types = pattern.get_resource_types(slot)
-        #slot.facets = pattern.facets_for_event_type(slot)          
-        #FacetValueFormSet = modelformset_factory(
-        #    PatternFacetValue,
-        #    form=PatternFacetValueForm,
-        #    can_delete=True,
-        #    extra=2,
-        #    )
-        #facet_value_formset = FacetValueFormSet(
-        #    queryset=slot.facets,
-        #    data=request.POST or None,
-        #    prefix=slot.slug)
-        #slot.formset = facet_value_formset
-        #todo: weird, this rts form does not do anything
-        #slot.rts = ResourceTypeSelectionForm(
-        #    qs=slot.resource_types,
-        #    prefix=slot.slug)
-        #import pdb; pdb.set_trace()
+    for slot in slots:
+        #slot.resource_types = slot.get_resource_types()
+        #slot.facets = slot.facets()          
+        FacetValueFormSet = modelformset_factory(
+            TransferTypeFacetValue,
+            form=TransferTypeFacetValueForm,
+            can_delete=True,
+            extra=2,
+            )
+        facet_value_formset = FacetValueFormSet(
+            queryset=slot.facet_values.all(),
+            data=request.POST or None,
+            prefix=str(slot.id))
+        slot.formset = facet_value_formset
+        slot.rts = ResourceTypeSelectionForm(
+            qs=slot.get_resource_types(),
+            prefix=str(slot.id))
         
-   
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         save_ext = request.POST.get("save_ext")
-        add_tt = request.POST.get("add_tt")
+        #add_tt = request.POST.get("add_tt")
         if save_ext:
             if change_ext_form.is_valid():
                 ext = change_ext_form.save(commit=False)
                 ext.changed_by = request.user
                 ext.save()
+                
+        else: #save transfer type facet values
+            for slot in slots:
+                for form in slot.formset:
+                    if form.is_valid():
+                        data = form.cleaned_data
+                        old_value = data.get("id")
+                        new_value = data.get("facet_value")
+                        if old_value:
+                            if data["DELETE"]:
+                                old_value.delete()
+                            elif old_value.facet_value != new_value:
+                                if new_value:
+                                    form.save()
+                        elif new_value:
+                            if not data["DELETE"]:
+                                fv = TransferTypeFacetValue(
+                                    transfer_type=slot,
+                                    facet_value=new_value)
+                                fv.save()
+
+            return HttpResponseRedirect('/%s/%s/'
+                % ('accounting/change-exchange-type', exchange_type.id))
                    
     return render_to_response("valueaccounting/change_exchange_type.html", {
         "exchange_type": exchange_type,
@@ -700,7 +720,6 @@ def change_pattern(request, pattern_id, use_case_id):
             data=request.POST or None,
             prefix=slot.slug)
         slot.formset = facet_value_formset
-        #todo: weird, this rts form does not do anything
         slot.rts = ResourceTypeSelectionForm(
             qs=slot.resource_types,
             prefix=slot.slug)

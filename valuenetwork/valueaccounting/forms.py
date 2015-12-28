@@ -2458,6 +2458,17 @@ class PatternAddFacetValueForm(forms.ModelForm):
             self.fields["event_type"].queryset = qs
 
 
+class TransferTypeFacetValueForm(forms.ModelForm):
+    facet_value = forms.ModelChoiceField(
+        queryset=FacetValue.objects.all(), 
+        label="",
+        widget=forms.Select(attrs={'class': 'chzn-select input-xlarge'}))
+
+    class Meta:
+        model = TransferTypeFacetValue
+        fields = ('facet_value',)
+
+
 class ResourceTypeSelectionForm(forms.Form):
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.none(), 

@@ -2487,59 +2487,59 @@ class ProcessPattern(models.Model):
     def output_resource_types(self):
         return self.resource_types_for_relationship("out")
 
-    def payment_resource_types(self):
-        return self.resource_types_for_relationship("pay")
+    #def payment_resource_types(self):
+    #    return self.resource_types_for_relationship("pay")
 
-    def receipt_resource_types(self):
-        return self.resource_types_for_relationship("receive")
+    #def receipt_resource_types(self):
+    #    return self.resource_types_for_relationship("receive")
         
-    def receipt_resource_types_with_resources(self):
-        #import pdb; pdb.set_trace()
-        rts = [rt for rt in self.resource_types_for_relationship("receive") if rt.all_resources()] # if rt.onhand()]
-        rt_ids = [rt.id for rt in rts]
-        return EconomicResourceType.objects.filter(id__in=rt_ids)
+    #def receipt_resource_types_with_resources(self):
+    #    #import pdb; pdb.set_trace()
+    #    rts = [rt for rt in self.resource_types_for_relationship("receive") if rt.all_resources()] # if rt.onhand()]
+    #    rt_ids = [rt.id for rt in rts]
+    #    return EconomicResourceType.objects.filter(id__in=rt_ids)
         
-    def matl_contr_resource_types_with_resources(self):
-        #import pdb; pdb.set_trace()
-        rts = [rt for rt in self.resource_types_for_relationship("resource") if rt.onhand()]
-        rt_ids = [rt.id for rt in rts]
-        return EconomicResourceType.objects.filter(id__in=rt_ids)
+    #def matl_contr_resource_types_with_resources(self):
+    #    #import pdb; pdb.set_trace()
+    #    rts = [rt for rt in self.resource_types_for_relationship("resource") if rt.onhand()]
+    #    rt_ids = [rt.id for rt in rts]
+    #    return EconomicResourceType.objects.filter(id__in=rt_ids)
         
-    def expense_resource_types(self):
-        #import pdb; pdb.set_trace()
-        return self.resource_types_for_relationship("expense")
+    #def expense_resource_types(self):
+    #    #import pdb; pdb.set_trace()
+    #    return self.resource_types_for_relationship("expense")
 
-    def process_expense_resource_types(self):
-        return self.resource_types_for_relationship("payexpense")
+    #def process_expense_resource_types(self):
+    #    return self.resource_types_for_relationship("payexpense")
         
-    def cash_contr_resource_types(self): #now includes cash contributions and donations
-        return self.resource_types_for_relationship("cash")
+    #def cash_contr_resource_types(self): #now includes cash contributions and donations
+    #    return self.resource_types_for_relationship("cash")
     
-    def shipment_resource_types(self):
-        return self.resource_types_for_relationship("shipment")
+    #def shipment_resource_types(self):
+    #    return self.resource_types_for_relationship("shipment")
         
-    def shipment_uninventoried_resource_types(self):
-        rts = [rt for rt in self.resource_types_for_relationship("shipment") if rt.uninventoried()]
-        rt_ids = [rt.id for rt in rts]
-        return EconomicResourceType.objects.filter(id__in=rt_ids)
+    #def shipment_uninventoried_resource_types(self):
+    #    rts = [rt for rt in self.resource_types_for_relationship("shipment") if rt.uninventoried()]
+    #    rt_ids = [rt.id for rt in rts]
+    #    return EconomicResourceType.objects.filter(id__in=rt_ids)
             
         
-    def shipment_resources(self):
-        #import pdb; pdb.set_trace()
-        rts = self.shipment_resource_types()
-        resources = []
-        for rt in rts:
-            rt_resources = rt.all_resources()
-            for res in rt_resources:
-                resources.append(res)
-        resource_ids = [res.id for res in resources]
-        return EconomicResource.objects.filter(id__in=resource_ids).order_by("-created_date")
+    #def shipment_resources(self):
+    #    #import pdb; pdb.set_trace()
+    #    rts = self.shipment_resource_types()
+    #    resources = []
+    #    for rt in rts:
+    #        rt_resources = rt.all_resources()
+    #        for res in rt_resources:
+    #            resources.append(res)
+    #    resource_ids = [res.id for res in resources]
+    #    return EconomicResource.objects.filter(id__in=resource_ids).order_by("-created_date")
                 
-    def material_contr_resource_types(self):
-        return self.resource_types_for_relationship("resource")
+    #def material_contr_resource_types(self):
+    #    return self.resource_types_for_relationship("resource")
         
-    def cash_receipt_resource_types(self):
-        return self.resource_types_for_relationship("receivecash")
+    #def cash_receipt_resource_types(self):
+    #    return self.resource_types_for_relationship("receivecash")
             
     def distribution_resource_types(self):
         return self.resource_types_for_relationship("distribute")
@@ -6498,6 +6498,50 @@ class TransferType(models.Model):
             return False
         return True
 
+    def facets(self):
+        facets = [ttfv.facet_value.facet for ttfv in self.facet_values.all()]
+        return list(set(facets))        
+        
+    def get_resource_types(self):       
+        #import pdb; pdb.set_trace()
+        tt_facet_values = self.facet_values.all()
+        facet_values = [ttfv.facet_value for ttfv in tt_facet_values]
+        facets = {}
+        for fv in facet_values:
+            if fv.facet not in facets:
+                facets[fv.facet] = []
+            facets[fv.facet].append(fv.value)  
+           
+        fv_ids = [fv.id for fv in facet_values]
+        rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
+
+        rts = {}
+        for rtfv in rt_facet_values:
+            rt = rtfv.resource_type
+            if rt not in rts:
+                rts[rt] = []
+            rts[rt].append(rtfv.facet_value)
+            
+        #import pdb; pdb.set_trace()
+        matches = []
+        
+        for rt, facet_values in rts.iteritems():
+            match = True
+            for facet, values in facets.iteritems():
+                rt_fv = [fv for fv in facet_values if fv.facet == facet]
+                if rt_fv:
+                    rt_fv = rt_fv[0]
+                    if rt_fv.value not in values:
+                        match = False
+                else:
+                    match = False
+            if match:
+                matches.append(rt)
+                
+        answer_ids = [a.id for a in matches]        
+        answer = EconomicResourceType.objects.filter(id__in=answer_ids)       
+        return answer
+
     def form_prefix(self):
         return "-".join(["TT", str(self.id)])
     
@@ -6505,7 +6549,21 @@ class TransferType(models.Model):
         from valuenetwork.valueaccounting.forms import TransferTypeForm
         prefix=self.form_prefix()
         return TransferTypeForm(instance=self, prefix=prefix)
-        
+
+
+class TransferTypeFacetValue(models.Model):
+    transfer_type = models.ForeignKey(TransferType, 
+        verbose_name=_('transfer type'), related_name='facet_values')
+    facet_value = models.ForeignKey(FacetValue,
+        verbose_name=_('facet value'), related_name='transfer_types')
+
+    class Meta:
+        unique_together = ('transfer_type', 'facet_value')
+        ordering = ('transfer_type', 'facet_value')
+
+    def __unicode__(self):
+        return ": ".join([self.transfer_type.name, self.facet_value.facet.name, self.facet_value.value])
+    
 
 class ExchangeManager(models.Manager):
 

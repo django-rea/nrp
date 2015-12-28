@@ -3007,15 +3007,16 @@ def create_order(request):
             order.created_by=request.user
             order.order_type = "customer"
             order.save()
-            sale = UseCase.objects.get(identifier="sale")
-            sale_pattern = None
-            sale_patterns = ProcessPattern.objects.usecase_patterns(sale)
-            if sale_patterns:
-                sale_pattern = sale_patterns[0]
+            uc = UseCase.objects.get(identifier="intrnl_xfer")
+            #sale_pattern = None
+            #sale_patterns = ProcessPattern.objects.usecase_patterns(sale)
+            #if sale_patterns:
+            #    sale_pattern = sale_patterns[0]
+            
             exchange = Exchange(
                 name="Sale for customer order " + str(order.id),
                 process_pattern=sale_pattern,
-                use_case=sale,
+                use_case=uc,
                 context_agent=order.provider, 
                 start_date=order.due_date,
                 customer=order.receiver,

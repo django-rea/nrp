@@ -10455,7 +10455,7 @@ class Claim(models.Model):
         related_name="has_claims", verbose_name=_('has'))
     against_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        related_name="claims against", verbose_name=_('against'))
+        related_name="claims_against", verbose_name=_('against'))
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         limit_choices_to={"is_context": True,},

@@ -95,8 +95,8 @@ textarea {
         {% include "_messages.html" %}
 	<div>
 		<legend>{% trans "Schedule for " %}{{ order }}
-            {% if order.sale %}
-                <a href="{% url exchange_logging exchange_id=order.sale.id %}" style="display: inline;"  class="btn btn-info indent" title="Sale for this order" >Go to Sale</a>
+            {% if order.exchange %}
+                <a href="{% url exchange_logging exchange_type_id=0 exchange_id=order.exchange.id %}" style="display: inline;"  class="btn btn-info indent" title="Exchange for this order" >Go to Exchange</a>
             {% endif %}
         </legend>
 		

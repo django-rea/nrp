@@ -58,7 +58,7 @@
                         <form 
                             style="display: inline;" 
                             id="sale{{ order.id }}" 
-                            action="{% url exchange_logging exchange_id=order.sale.id %}" 
+                            action="{% url exchange_logging exchange_type_id=0 exchange_id=order.exchange.id %}" 
                             method="GET" >
                             <button style="display: inline;"  class="btn btn-info" title="Outgoing exchange for this order" >Fulfill this order</button>
                         </form>

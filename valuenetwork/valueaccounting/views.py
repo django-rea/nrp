@@ -2982,6 +2982,7 @@ def cleanup_unvalued_resources(request):
     
 @login_required
 def create_order(request):
+    #import pdb; pdb.set_trace()
     patterns = PatternUseCase.objects.filter(use_case__identifier='cust_orders')
     if patterns:
         pattern = patterns[0].pattern
@@ -3008,18 +3009,14 @@ def create_order(request):
             order.order_type = "customer"
             order.save()
             uc = UseCase.objects.get(identifier="intrnl_xfer")
-            #sale_pattern = None
-            #sale_patterns = ProcessPattern.objects.usecase_patterns(sale)
-            #if sale_patterns:
-            #    sale_pattern = sale_patterns[0]
-            
+            ext_id = request.POST["exchange_type"]
+            exchange_type = ExchangeType.objects.get(id=ext_id)         
             exchange = Exchange(
-                name="Sale for customer order " + str(order.id),
-                process_pattern=sale_pattern,
+                name=exchange_type.name + " exchange for customer order " + str(order.id),
+                exchange_type=exchange_type,
                 use_case=uc,
                 context_agent=order.provider, 
                 start_date=order.due_date,
-                customer=order.receiver,
                 order=order,
                 created_by= request.user,
             )
@@ -3074,8 +3071,9 @@ def create_order(request):
                 commit.save()
             #todo: this should be able to figure out $ owed, including tax, etc.
             cr_commit = Commitment(
-                event_type=EventType.objects.get(name="Cash Receipt"),
+                event_type=EventType.objects.get(name="Receive"),
                 exchange=exchange,
+                transfer=xfer,
                 due_date=exchange.start_date,
                 from_agent=order.receiver,
                 to_agent=order.provider,

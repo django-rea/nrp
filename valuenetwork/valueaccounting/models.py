@@ -2989,11 +2989,11 @@ class Order(models.Model):
         if self.name:
             process_name = " ".join(["for", self.name])
         if self.provider:
-            provider_name = self.provider.name
+            provider_name = self.provider.nick
             provider_label = ", provider:"
         receiver_name = ""
         if self.receiver:
-            receiver_name = self.receiver.name
+            receiver_name = self.receiver.nick
             receiver_label = ", receiver:"
         if self.order_type == "customer":
             provider_label = ", Seller:"
@@ -3033,6 +3033,13 @@ class Order(models.Model):
         return ('order_schedule', (),
             { 'order_id': str(self.id),})
 
+    def exchange(self):
+        #import pdb; pdb.set_trace()
+        exs = Exchange.objects.filter(order=self)
+        if exs:
+            return exs[0]
+        return None
+        
     def node_id(self):
         return "-".join(["Order", str(self.id)])
 
@@ -3149,7 +3156,7 @@ class Order(models.Model):
         #import pdb; pdb.set_trace()
         if not due:
             due=self.due_date
-        event_type = EventType.objects.get(relationship="shipment")
+        event_type = EventType.objects.get(name="Give")  #(relationship="shipment")
         ct = Commitment(
             order=self,
             independent_demand=self,

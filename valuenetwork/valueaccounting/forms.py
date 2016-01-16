@@ -369,6 +369,10 @@ class OrderForm(forms.ModelForm):
     receiver = forms.ModelChoiceField(
         required=False,
         queryset=EconomicAgent.objects.all())
+    exchange_type = forms.ModelChoiceField(
+        required=False,
+        empty_label=None,
+        queryset=ExchangeType.objects.demand_exchange_types())
 
     class Meta:
         model = Order

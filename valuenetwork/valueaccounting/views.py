@@ -3008,11 +3008,11 @@ def create_order(request):
             order.created_by=request.user
             order.order_type = "customer"
             order.save()
-            uc = UseCase.objects.get(identifier="intrnl_xfer")
+            uc = UseCase.objects.get(identifier="demand_xfer")
             ext_id = request.POST["exchange_type"]
             exchange_type = ExchangeType.objects.get(id=ext_id)         
             exchange = Exchange(
-                name=exchange_type.name + " exchange for customer order " + str(order.id),
+                name=exchange_type.name + " for customer order " + str(order.id),
                 exchange_type=exchange_type,
                 use_case=uc,
                 context_agent=order.provider, 
@@ -3047,6 +3047,7 @@ def create_order(request):
                                 feature = ftr.feature
                                 #todo:
                                 #see comment above about hack
+                                #didn't add transfer creation to this because feature is not being used right now (01/2016)
                                 commitment = Commitment(
                                     order=order,
                                     independent_demand=order,
@@ -3066,20 +3067,48 @@ def create_order(request):
                                 commitment.generate_producing_process(request.user, [], explode=True) 
                                 
             oi_commitments = Commitment.objects.filter(order=order)
+            tts = exchange.exchange_type.transfer_types_non_reciprocal()
+            tt = None
+            if tts:
+                tt = tts[0]
             for commit in oi_commitments:
+                xfer = Transfer(
+                    exchange=exchange,
+                    name=tt.name + " of " + commit.resource_type.name,
+                    transfer_type=tt,
+                    context_agent=exchange.context_agent,
+                    transfer_date=commit.commitment_date,
+                    created_by=request.user,                    
+                )
+                xfer.save()
                 commit.exchange = exchange
+                commit.transfer = xfer
                 commit.save()
+                
             #todo: this should be able to figure out $ owed, including tax, etc.
+            rec_tts = exchange.exchange_type.transfer_types_reciprocal()
+            rec_tt = None
+            if rec_tts:
+                rec_tt = rec_tts[0]
+            cr_xfer = Transfer(
+                exchange=exchange,
+                name=rec_tt.name + " from " + order.receiver.nick,
+                transfer_type=rec_tt,
+                context_agent=exchange.context_agent,
+                transfer_date=commit.commitment_date,
+                created_by=request.user,         
+            )
+            cr_xfer.save()
             cr_commit = Commitment(
                 event_type=EventType.objects.get(name="Receive"),
                 exchange=exchange,
-                transfer=xfer,
+                transfer=cr_xfer,
                 due_date=exchange.start_date,
                 from_agent=order.receiver,
                 to_agent=order.provider,
                 context_agent=exchange.context_agent,
                 quantity=1,
-                created_by=request.user,
+                created_by=request.user
             )
             cr_commit.save()
                         
@@ -3333,8 +3362,8 @@ def demand(request):
     orders = Order.objects.customer_orders()
     rands = Order.objects.open_rand_orders()
     help = get_help("demand")
+    nav_form = DemandExchangeNavForm(data=request.POST or None)
     if agent:
-        nav_form = DemandExchangeNavForm(data=request.POST or None)
         if request.method == "POST":
             #import pdb; pdb.set_trace()
             if nav_form.is_valid():
@@ -5740,6 +5769,12 @@ def delete_transfer_commitment(request, commitment_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
+@login_required
+def transfer_from_commitment(request, commitment_id):
+
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/exchange', exchange.id))    
+    
 @login_required
 def change_event_date(request):
     #import pdb; pdb.set_trace()
@@ -10285,7 +10320,24 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
         #import pdb; pdb.set_trace()
         work_events = exchange.work_events()
         slots = exchange.slots_with_detail()
-
+    
+        for slot in slots:
+            if slot.is_reciprocal:
+                total_rect = total_rect + slot.total
+            else:
+                total_t = total_t + slot.total
+            #for transfer in slot.transfers.all():
+                #if transfer.value():
+                #    amt = transfer.value()
+                #else:
+                #    amt = transfer.quantity()
+                #if transfer.is_reciprocal:
+                #    total_rect = total_rect + amt
+                #else:
+                #    total_t = total_t + amt
+                
+                
+        
         if agent:
             #import pdb; pdb.set_trace()
             if request.user == exchange.created_by:
@@ -10303,23 +10355,7 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
             }      
             add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern, context_agent=context_agent)
  
-            for slot in slots:
-                if slot.is_reciprocal:
-                    total_rect = total_rect + slot.total
-                else:
-                    total_t = total_t + slot.total
-                #for transfer in slot.transfers.all():
-                    #if transfer.value():
-                    #    amt = transfer.value()
-                    #else:
-                    #    amt = transfer.quantity()
-                    #if transfer.is_reciprocal:
-                    #    total_rect = total_rect + amt
-                    #else:
-                    #    total_t = total_t + amt
-                    
-                    
-                    
+        
 
             '''
             if "pay" in slots:

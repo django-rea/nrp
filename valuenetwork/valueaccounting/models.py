@@ -3705,6 +3705,12 @@ class ExchangeType(models.Model):
         if self.exchanges.all():
             answer = False
         return answer
+    
+    def transfer_types_non_reciprocal(self):
+        return self.transfer_types.filter(is_reciprocal=False)
+        
+    def transfer_types_reciprocal(self):
+        return self.transfer_types.filter(is_reciprocal=True)
 
 
 class GoodResourceManager(models.Manager):
@@ -6689,13 +6695,15 @@ class Exchange(models.Model):
 
     def __unicode__(self):
         show_name = ""
-        if self.exchange_type:
-            show_name = self.exchange_type.name
-        else:
-            show_name = self.use_case.name
         name = ""
         if self.name:
-            name = self.name + ","
+            name = self.name
+        else:
+            if self.exchange_type:
+                show_name = self.exchange_type.name
+            else:
+                if self.use_case:
+                    show_name = self.use_case.name
         return " ".join([
             name,
             show_name,
@@ -6750,7 +6758,7 @@ class Exchange(models.Model):
                     slot.xfers.append(transfer)
                     if transfer.value():
                         slot.total += transfer.value()
-                    else:
+                    elif transfer.quantity():
                         slot.total += transfer.quantity()
         return slots
         
@@ -7255,20 +7263,25 @@ class Transfer(models.Model):
         from_name = ""
         to_name = ""
         unit = ""
+        resource_string = ""
+        qty = ""
         if self.transfer_type:
             show_name = self.transfer_type.name
-        give_event = self.events.filter(event_type=EventType.objects.get(name="Give"))[0]
+        give_event = None
+        give_events = self.events.filter(event_type=EventType.objects.get(name="Give"))
+        if give_events:
+            give_event = give_events[0]
         if give_event:
             if give_event.from_agent:
-                from_name = " from " + give_event.from_agent.name
+                from_name = "from " + give_event.from_agent.name
             if give_event.to_agent:
-                to_name = " to " + give_event.to_agent.name
-        resource_string = give_event.resource_type.name
-        if give_event.resource:
-            resource_string = str(give_event.resource)
-        qty = str(give_event.quantity)
-        if give_event.unit_of_quantity:
-            unit = give_event.unit_of_quantity.name
+                to_name = "to " + give_event.to_agent.name
+            resource_string = give_event.resource_type.name
+            if give_event.resource:
+                resource_string = str(give_event.resource)
+            qty = str(give_event.quantity)
+            if give_event.unit_of_quantity:
+                unit = give_event.unit_of_quantity.name
         return " ".join([
         #    name,
             show_name,
@@ -7282,10 +7295,10 @@ class Transfer(models.Model):
             ])
     
     def save(self, *args, **kwargs):
-        #if self.id:
-        #    if not self.transfer_type:
-        #        msg = " ".join(["No transfer type on transfer: ", str(self.id)])
-        #        assert False, msg
+        if self.id:
+            if not self.transfer_type:
+                msg = " ".join(["No transfer type on transfer: ", str(self.id)])
+                assert False, msg
         if self.transfer_type:
             super(Transfer, self).save(*args, **kwargs)
     
@@ -7293,31 +7306,50 @@ class Transfer(models.Model):
         return self.transfer_type.is_reciprocal  
     
     def quantity(self):
-        return self.events.all()[0].quantity
+        events = self.events.all()
+        if events:
+            return events[0].quantity
+        return None
     
     def unit_of_quantity(self):
-        return self.events.all()[0].unit_of_quantity
+        events = self.events.all()
+        if events:
+            return events[0].unit_of_quantity
+        return None
         
     def value(self):
-        return self.events.all()[0].value
+        events = self.events.all()
+        if events:
+            return events[0].value
+        return None
     
     def unit_of_value(self):
-        return self.events.all()[0].unit_of_value
+        events = self.events.all()
+        if events:
+            return events[0].unit_of_value
+        return None
 
     def from_agent(self):
-        give_event = self.events.filter(event_type=EventType.objects.get(name="Give"))[0]
-        return give_event.from_agent
+        events = self.events.all()
+        if events:
+            return events.filter(event_type=EventType.objects.get(name="Give"))[0].from_agent
+        return None
     
     def to_agent(self):
-        receive_event = self.events.filter(event_type=EventType.objects.get(name="Receive"))[0]
-        return receive_event.to_agent
+        events = self.events.all()
+        if events:
+            return events.filter(event_type=EventType.objects.get(name="Receive"))[0].to_agent
+        return None
 
     def resource_name(self):
-        event = self.events.all()[0]
-        resource_string = event.resource_type.name
-        if event.resource:
-            resource_string = str(give_event.resource)
-        return resource_string
+        events = self.events.all()
+        if events:
+            event = events[0]
+            resource_string = event.resource_type.name
+            if event.resource:
+                resource_string = str(event.resource)
+            return resource_string
+        return None
         
     def flow_type(self):
         return "Transfer"
@@ -7533,7 +7565,7 @@ class Commitment(models.Model):
     exchange = models.ForeignKey(Exchange,
         blank=True, null=True,
         verbose_name=_('exchange'), related_name='commitments')
-    transfer_type = models.ForeignKey(TransferType,
+    transfer = models.ForeignKey(Transfer,
         blank=True, null=True, 
         related_name="commitments")
     context_agent = models.ForeignKey(EconomicAgent,
@@ -8194,7 +8226,7 @@ class Commitment(models.Model):
             ptrt, inheritance = rt.main_producing_process_type_relationship(stage=self.stage, state=self.state)
             if ptrt:
                 resource_type = self.resource_type
-                if self.event_type.relationship == "shipment":
+                if self.event_type.relationship == "shipment": #todo: Bob, this doesn't work any more because the event type is name="Give"
                     producing_commitment = Commitment(
                         resource_type=resource_type,
                         independent_demand=self.independent_demand,

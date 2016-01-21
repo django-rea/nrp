@@ -5771,9 +5771,60 @@ def delete_transfer_commitment(request, commitment_id):
 
 @login_required
 def transfer_from_commitment(request, commitment_id):
-
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))    
+    commitment = get_object_or_404(Commitment, pk=commitment_id)
+    if request.method == "POST":
+        exchange = commitment.exchange
+        transfer = commitment.transfer
+        et_give = EventType.objects.get(name="Give")
+        et_receive = EventType.objects.get(name="Receive")
+        #import pdb; pdb.set_trace()
+        form = TransferCommitmentEventForm(prefix=commitment.form_prefix(), data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            rt = data["resource_type"]
+            give = EconomicEvent(
+                event_type=et_give,
+                resource_type = rt,
+                resource = data["resource"],
+                from_agent = commitment.from_agent,
+                to_agent = commitment.to_agent,
+                exchange = exchange,
+                transfer=transfer,
+                context_agent = exchange.context_agent,
+                event_date = data["event_date"],
+                quantity=data["quantity"],
+                unit_of_quantity = rt.unit,
+                value=data["value"],
+                unit_of_value = data["unit_of_value"],
+                description=data["description"],
+                event_reference=data["event_reference"],
+                created_by = request.user,
+                changed_by = request.user,
+            )
+            give.save()
+            receive = EconomicEvent(
+                event_type=et_receive,
+                resource_type = rt,
+                resource = data["resource"],
+                from_agent = commitment.from_agent,
+                to_agent = commitment.to_agent,
+                exchange = exchange,
+                transfer=transfer,
+                context_agent = exchange.context_agent,
+                event_date = data["event_date"],
+                quantity=data["quantity"],
+                unit_of_quantity = rt.unit,
+                value=data["value"],
+                unit_of_value = data["unit_of_value"],
+                description=data["description"],
+                event_reference=data["event_reference"],
+                created_by = request.user,
+                changed_by = request.user,
+            )
+            receive.save()
+            
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('accounting/exchange', 0, exchange.id))    
     
 @login_required
 def change_event_date(request):

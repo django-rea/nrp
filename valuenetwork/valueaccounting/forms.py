@@ -1319,7 +1319,7 @@ class WorkEventAgentForm(forms.ModelForm):
             self.context_agent = context_agent
             self.fields["from_agent"].queryset = context_agent.all_members()
 
-
+ 
 class WorkCommitmentForm(forms.ModelForm):
     due_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     resource_type = WorkModelChoiceField(
@@ -1600,6 +1600,44 @@ class ExchangeEventForm(forms.ModelForm):
             self.context_agent = context_agent
             self.fields["to_agent"].queryset = context_agent.all_suppliers()
             self.fields["from_agent"].queryset = context_agent.all_ancestors_and_members()
+
+
+class TransferCommitmentEventForm(forms.ModelForm):
+    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    quantity = forms.DecimalField(
+        label="Quantity transferred",
+        widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
+    resource_type = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(),
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'resource-type-for-resource chzn-select'}))
+    resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.all(), 
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
+    value = forms.DecimalField(
+        label="Value (total, not per unit)",
+        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+    unit_of_value = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.filter(unit_type='value'))
+    description = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+
+    class Meta:
+        model = EconomicEvent
+        fields = ('event_date', 'quantity', 'resource_type', 'resource', 'value', 'unit_of_value', 'description', 'event_reference')
+        
+    def __init__(self, commitment=None, *args, **kwargs):
+        super(TransferCommitmentEventForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if commitment:
+            tt = commitment.transfer.transfer_type
+            self.fields["resource_type"].queryset = tt.get_resource_types()
+            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=commitment.resource_type)
+
 
 class PaymentEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

@@ -6513,7 +6513,7 @@ class TransferType(models.Model):
 
     def facets(self):
         facets = [ttfv.facet_value.facet for ttfv in self.facet_values.all()]
-        return list(set(facets))        
+        return list(set(facets))   
         
     def get_resource_types(self):       
         #import pdb; pdb.set_trace()
@@ -7282,6 +7282,19 @@ class Transfer(models.Model):
             qty = str(give_event.quantity)
             if give_event.unit_of_quantity:
                 unit = give_event.unit_of_quantity.name
+        else:
+            commits = self.commitments.all()
+            if commits:
+                commit = commits[0]
+                if commit.from_agent:
+                    from_name = "from " + commit.from_agent.name
+                if commit.to_agent:
+                    to_name = "to " + commit.to_agent.name
+                resource_string = commit.resource_type.name
+                qty = str(commit.quantity)
+                if commit.unit_of_quantity:
+                    unit = commit.unit_of_quantity.name
+                
         return " ".join([
         #    name,
             show_name,
@@ -7309,36 +7322,60 @@ class Transfer(models.Model):
         events = self.events.all()
         if events:
             return events[0].quantity
+        else:
+            commits = self.commitments.all()
+            if commits:
+                return commits[0].quantity
         return None
     
     def unit_of_quantity(self):
         events = self.events.all()
         if events:
             return events[0].unit_of_quantity
+        else:
+            commits = self.commitments.all()
+            if commits:
+                return commits[0].unit_of_quantity
         return None
         
     def value(self):
         events = self.events.all()
         if events:
             return events[0].value
+        else:
+            commits = self.commitments.all()
+            if commits:
+                return commits[0].value
         return None
     
     def unit_of_value(self):
         events = self.events.all()
         if events:
             return events[0].unit_of_value
+        else:
+            commits = self.commitments.all()
+            if commits:
+                return commits[0].unit_of_value
         return None
 
     def from_agent(self):
         events = self.events.all()
         if events:
             return events.filter(event_type=EventType.objects.get(name="Give"))[0].from_agent
+        else:
+            commits = self.commitments.all()
+            if commits:
+                return commits[0].from_agent
         return None
     
     def to_agent(self):
         events = self.events.all()
         if events:
             return events.filter(event_type=EventType.objects.get(name="Receive"))[0].to_agent
+        else:
+            commits = self.commitments.all()
+            if commits:
+                return commits[0].to_agent
         return None
 
     def resource_name(self):
@@ -7359,7 +7396,6 @@ class Transfer(models.Model):
         
     def flow_description(self):
         return self.__unicode__()
-        
     
 
 class Feature(models.Model):
@@ -7767,6 +7803,19 @@ class Commitment(models.Model):
         prefix=self.form_prefix()
         return ChangeCommitmentForm(instance=self, prefix=prefix)
    
+    def transfer_form(self):
+        from valuenetwork.valueaccounting.forms import TransferCommitmentEventForm
+        prefix=self.form_prefix()
+        #import pdb; pdb.set_trace()
+        init = {
+            "event_date": self.commitment_date,
+            "resource_type": self.resource_type,
+            "quantity": self.quantity,
+            "value": self.value,
+            "unit_of_value": self.unit_of_value,
+            }
+        return TransferCommitmentEventForm(initial=init, commitment=self, prefix=prefix)
+    
     def process_form(self):
         from valuenetwork.valueaccounting.forms import ProcessForm
         start_date = self.start_date

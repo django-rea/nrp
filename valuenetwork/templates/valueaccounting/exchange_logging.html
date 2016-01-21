@@ -253,15 +253,23 @@ li {
                                                         <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                                     </form>
                                                 {% endif %}
-                                                <form
-                                                    style="display: inline;" 
-                                                    class="do-form" 
-                                                    id="doForm{{ commit.id }}" 
-                                                    action="{% url transfer_from_commitment commitment_id=commit.id %}" 
-                                                    method="POST" >
-                                                    {% csrf_token %}
-                                                    <button style="display: inline;"  class="btn btn-info btn-mini" title="Make transfer based on commitment" >Transfer</button>
-                                                </form>                                               
+                                                <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" alt="Record transfer based on commitment">Transfer This</a>
+                                                <div class="modal hide fade" id="xferModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
+                                                    <div class="modal-header">
+                                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                        <h3 id="xfer-label">{% trans "Make Transfer from Commitment" %}</h3>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form class="validateMe" enctype="multipart/form-data" action="{% url transfer_from_commitment commitment_id=commit.id %}" method="POST" >
+                                                            {% csrf_token %}  
+                                                            {{ commit.transfer_form|as_bootstrap }}
+                                                            <div class="modal-footer">
+                                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>                                          
                                             {% endif %}
                                             {% if xfer.events.all %}
                                                 <br /> &nbsp;&nbsp;&nbsp;&nbsp;>&nbsp;
@@ -408,15 +416,23 @@ li {
                                                         <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                                     </form>
                                                 {% endif %}
-                                                <form
-                                                    style="display: inline;" 
-                                                    class="do-form" 
-                                                    id="doForm{{ commit.id }}" 
-                                                    action="{% url transfer_from_commitment commitment_id=commit.id %}" 
-                                                    method="POST" >
-                                                    {% csrf_token %}
-                                                    <button style="display: inline;"  class="btn btn-info btn-mini" title="Make transfer based on commitment" >Transfer</button>
-                                                </form>                                                    
+                                                <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" alt="Record transfer based on commitment">Transfer This</a>
+                                                <div class="modal hide fade" id="xferModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
+                                                    <div class="modal-header">
+                                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                        <h3 id="xfer-label">{% trans "Make Transfer from Commitment" %}</h3>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form class="validateMe" enctype="multipart/form-data" action="{% url transfer_from_commitment commitment_id=commit.id %}" method="POST" >
+                                                            {% csrf_token %}  
+                                                            {{ commit.transfer_form|as_bootstrap }}
+                                                            <div class="modal-footer">
+                                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>                                                        
                                             {% endif %}
 
                                         {% if xfer.events.all %}

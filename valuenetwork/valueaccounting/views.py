@@ -5782,14 +5782,15 @@ def transfer_from_commitment(request, commitment_id):
         if form.is_valid():
             data = form.cleaned_data
             rt = data["resource_type"]
-            give = EconomicEvent(
-                event_type=et_give,
+            event = EconomicEvent(
+                event_type=commitment.event_type,
                 resource_type = rt,
                 resource = data["resource"],
                 from_agent = commitment.from_agent,
                 to_agent = commitment.to_agent,
                 exchange = exchange,
                 transfer=transfer,
+                commitment=commitment,
                 context_agent = exchange.context_agent,
                 event_date = data["event_date"],
                 quantity=data["quantity"],
@@ -5801,28 +5802,7 @@ def transfer_from_commitment(request, commitment_id):
                 created_by = request.user,
                 changed_by = request.user,
             )
-            give.save()
-            receive = EconomicEvent(
-                event_type=et_receive,
-                resource_type = rt,
-                resource = data["resource"],
-                from_agent = commitment.from_agent,
-                to_agent = commitment.to_agent,
-                exchange = exchange,
-                transfer=transfer,
-                context_agent = exchange.context_agent,
-                event_date = data["event_date"],
-                quantity=data["quantity"],
-                unit_of_quantity = rt.unit,
-                value=data["value"],
-                unit_of_value = data["unit_of_value"],
-                description=data["description"],
-                event_reference=data["event_reference"],
-                created_by = request.user,
-                changed_by = request.user,
-            )
-            receive.save()
-            
+            event.save()
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('accounting/exchange', 0, exchange.id))    
     
@@ -5940,8 +5920,8 @@ def delete_event(request, event_id):
         return HttpResponseRedirect('/%s/'
             % ('accounting/cleanup-processes'))
     if next == "exchange":
-        return HttpResponseRedirect('/%s/%s/'
-            % ('accounting/exchange', exchange.id))
+        return HttpResponseRedirect('/%s/%s/%s/'
+            % ('accounting/exchange', 0, exchange.id))
     if next == "resource":
         resource_id = request.POST.get("resource_id")
         return HttpResponseRedirect('/%s/%s/'
@@ -7114,23 +7094,21 @@ def add_unplanned_work_event(request, process_id):
 def add_work_for_exchange(request, exchange_id):
     #import pdb; pdb.set_trace()
     exchange = get_object_or_404(Exchange, pk=exchange_id)
-    pattern = exchange.process_pattern
     context_agent = exchange.context_agent
-    if pattern:
-        form = WorkEventAgentForm(prefix="work", data=request.POST, pattern=pattern)
-        if form.is_valid():
-            event = form.save(commit=False)
-            rt = event.resource_type
-            event.event_type = pattern.event_type_for_resource_type("work", rt)
-            event.exchange = exchange
-            event.context_agent = context_agent
-            event.unit_of_quantity = rt.unit
-            event.created_by = request.user
-            event.changed_by = request.user
-            event.is_contribution=True
-            event.save()
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+    form = WorkEventAgentForm(data=request.POST)
+    if form.is_valid():
+        event = form.save(commit=False)
+        rt = event.resource_type
+        event.event_type = EventType.objects.get(name="Time Contribution")
+        event.exchange = exchange
+        event.context_agent = context_agent
+        event.to_agent = context_agent
+        event.unit_of_quantity = rt.unit
+        event.created_by = request.user
+        event.changed_by = request.user
+        event.save()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('accounting/exchange', 0, exchange.id))
 
 @login_required
 def add_use_event(request, commitment_id, resource_id):
@@ -8069,22 +8047,19 @@ def change_unplanned_work_event(request, event_id):
 def change_exchange_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     exchange = event.exchange
-    pattern = exchange.process_pattern
     context_agent=exchange.context_agent
-    if pattern:
-        #import pdb; pdb.set_trace()
-        if request.method == "POST":
-            form = WorkEventAgentForm(
-                pattern=pattern,
-                context_agent=context_agent,
-                instance=event, 
-                prefix=str(event.id), 
-                data=request.POST)
-            if form.is_valid():
-                data = form.cleaned_data
-                form.save()
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+    import pdb; pdb.set_trace()
+    if request.method == "POST":
+        form = WorkEventAgentForm(
+            context_agent=context_agent,
+            instance=event, 
+            data=request.POST,
+            prefix=str(event.id))
+        if form.is_valid():
+            data = form.cleaned_data
+            form.save()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('accounting/exchange', 0, exchange.id))
 
 @login_required
 def change_unplanned_payment_event(request, event_id):
@@ -10396,7 +10371,6 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
 
             for event in work_events:
                 event.changeform = WorkEventAgentForm(
-                    pattern=pattern,
                     context_agent=context_agent,
                     instance=event, 
                     prefix=str(event.id))
@@ -10404,7 +10378,7 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
                 "from_agent": agent,
                 "event_date": exchange.start_date
             }      
-            add_work_form = WorkEventAgentForm(prefix='work', initial=work_init, pattern=pattern, context_agent=context_agent)
+            add_work_form = WorkEventAgentForm(initial=work_init, context_agent=context_agent)
  
         
 
@@ -10481,7 +10455,7 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
         "logger": logger,
         "slots": slots,
         "work_events": work_events,
-        #"add_work_form": add_work_form,
+        "add_work_form": add_work_form,
         #"create_material_role_formset": create_material_role_formset,
         #"create_receipt_role_formset": create_receipt_role_formset,
         "total_t": total_t,

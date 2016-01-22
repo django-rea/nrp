@@ -82,7 +82,7 @@ li {
     margin-bottom: 1px;
 }
 .item-description {
-    height: 100px;
+    height: 40px;
     width: 480px;
 }
 .totals {
@@ -161,7 +161,12 @@ li {
         
         <div class="span7">
             <div class="trt">
-                <h3 class="trtheading">Transfers</h3>
+                <h3 class="trtheading">Transfers
+                <span class="info"> <a href="#" id="xfer-info" data-toggle="popover" data-trigger='hover' title="Transfers" data-placement="left" 
+                    data-content="Log the planned and actual transfers for this exchange.  The types of transfers are determined by the type of exchange,
+                    as defined by your network.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span></h3>
                 {% for slot in slots %}
                     {% if not slot.is_reciprocal %}
                         <div class="log-section">
@@ -174,7 +179,7 @@ li {
                                     <div class="modal hide fade" id="#addCommitModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h3 id="commit">{% trans "Log a Delivered Resource" %}</h3>
+                                            <h3 id="commit">{% trans "Log a New Commitment" %}</h3>
                                         </div>
                                         <div class="modal-body">
                                             <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer_commitment exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
@@ -194,7 +199,7 @@ li {
                                     <div class="modal hide fade" id="#addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h3 id="xfer{{ slot.id }}">{% trans "Log a Delivered Resource" %}</h3>
+                                            <h3 id="xfer{{ slot.id }}">{% trans "Log a New Transfer" %}</h3>
                                         </div>
                                         <div class="modal-body">
                                             <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
@@ -208,10 +213,6 @@ li {
                                         </div>
                                     </div>
                                 {% endif %}
-                                <span class="info"> <a href="#" id="cr-info" data-toggle="popover" data-trigger='hover' title="{{ slot.name }}"  
-                                    data-content="{{ slot.description }}">
-                                    <img src="{% static 'img/information-icon.png' %}" /></a>
-                                </span>
                                 <span class="total">Total: {{ slot.total }}</span>
                             </h3> 
                             {% for xfer in slot.xfers %}
@@ -271,13 +272,10 @@ li {
                                                     </div>
                                                 </div>                                          
                                             {% endif %}
-                                            {% if xfer.events.all %}
-                                                <br /> &nbsp;&nbsp;&nbsp;&nbsp;>&nbsp;
-                                            {% endif %}
                                         {% endfor %}
                                     {% endif %}
-                                    {% if xfer.events.all %}
-                                        <span ><span class="event-label">{% trans "Transferred" %}: </span>{{ xfer }}</span>
+                                    {% for event in xfer.events.all %}
+                                        <span ><br /> &nbsp;&nbsp;&nbsp;&nbsp;>&nbsp;<span class="event-label">{% trans "Transferred" %}: </span>{{ event.commit_label }}, on {{ event.event_date }}</span>
                                         {% if logger  %}
                                             
                                             <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
@@ -313,8 +311,8 @@ li {
                                         {% endif %}
                                         {% if event.description %}
                                             <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
-                                        {% endif %} 
-                                    {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
                             {% endfor %}
                             
@@ -323,7 +321,12 @@ li {
                 {% endfor %}
             </div>
             <div class="trt">    
-                <h3 CLASS="trtheading">Reciprocal Transfers</h3>
+                <h3 CLASS="trtheading">Reciprocal Transfers
+                <span class="info"> <a href="#" id="rxfer-info" data-toggle="popover" data-trigger='hover' title="Reciprocal Transfers" data-placement="left" 
+                    data-content="Log the planned and actual reciprocal transfers for this exchange.  The types of reciprocal transfers are determined by the type of exchange,
+                    as defined by your network.  They are in return for the primary transfers above.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span></h3>
                 {% for slot in slots %}
                     {% if slot.is_reciprocal %}
                         <div class="log-section">
@@ -336,7 +339,7 @@ li {
                                     <div class="modal hide fade" id="#addCommitModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h3 id="commit">{% trans "Log a Delivered Resource" %}</h3>
+                                            <h3 id="commit">{% trans "Log a New Commitment" %}</h3>
                                         </div>
                                         <div class="modal-body">
                                             <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer_commitment exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
@@ -356,7 +359,7 @@ li {
                                     <div class="modal hide fade" id="#addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h3 id="xfer{{ slot.id }}">{% trans "Log a Delivered Resource" %}</h3>
+                                            <h3 id="xfer{{ slot.id }}">{% trans "Log a New Transfer" %}</h3>
                                         </div>
                                         <div class="modal-body">
                                             <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
@@ -370,19 +373,15 @@ li {
                                         </div>
                                     </div>
                                 {% endif %}
-                                <span class="info"> <a href="#" id="cr-info" data-toggle="popover" data-trigger='hover' title="{{ slot.name }}"  
-                                    data-content="{{ slot.description }}">
-                                    <img src="{% static 'img/information-icon.png' %}" /></a>
-                                </span>
                                 <span class="total">Total: {{ slot.total }}</span>
                             </h3>  
                             
                             {% for xfer in slot.xfers %}
                                 <div class="event">
-                                {% if xfer.commitments %}
-                                    {% for commit in xfer.commitments.all %}
-                                        <span class="event-label">{% trans "Committed" %}: </span>
-                                        {{ commit.shorter_label }}, from {{ commit.from_agent }}
+                                    {% if xfer.commitments %}
+                                        {% for commit in xfer.commitments.all %}
+                                            <span class="event-label">{% trans "Committed" %}: </span>
+                                            {{ commit.shorter_label }}, from {{ commit.from_agent }}
                                             {% if logger  %}
                                                 <a href="#cmitModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                                 <i class="icon-edit"></i>
@@ -434,15 +433,11 @@ li {
                                                     </div>
                                                 </div>                                                        
                                             {% endif %}
-
-                                        {% if xfer.events.all %}
-                                            <br /> &nbsp;&nbsp;&nbsp;&nbsp;>&nbsp;
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-                                {% if xfer.events.all %}
-                                        <span ><span class="event-label">{% trans "Transferred" %}: </span> 
-                                        {{ xfer }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                    {% for event in xfer.events.all %}
+                                        <span ><br /> &nbsp;&nbsp;&nbsp;&nbsp;>&nbsp;<span class="event-label">{% trans "Transferred" %}: </span> 
+                                        {{ event.commit_label }}, on {{ event.event_date }}</span>
                                         {% if logger %}
                                             
                                             <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
@@ -478,8 +473,8 @@ li {
                                         {% endif %}
                                         {% if event.description %}
                                             <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
-                                        {% endif %}  
-                                    {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
                             {% endfor %}
                                                 
@@ -497,12 +492,30 @@ li {
                             {% trans "Log a work event" %}
                         </a>
                     {% endif %}
-                    <span class="info"> <a href="#" id="work-info" data-toggle="popover" data-trigger='hover' title="Work Event" 
+                    <span class="info"> <a href="#" id="work-info" data-toggle="popover" data-trigger='hover' title="Work Events" 
                         data-content="Enter the time you spent on this exchange. This might be preparing paperwork, 
-                        communicating, traveling, even logging the exchange.">
+                        communicating, traveling, even logging the exchange." data-placement="left">
                         <img src="{% static 'img/information-icon.png' %}" /></a>
                     </span>
-                </h3>
+                </h3> 
+                {% if logger %}
+                    <div class="modal hide fade" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="work-label">{% trans "Add Work Done for This Exchange" %}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form class="validateMe" id="workForm" enctype="multipart/form-data" action="{% url add_work_for_exchange exchange_id=exchange.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ add_work_form }}
+                            <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                            </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
 
                 {% for event in work_events %}
                     <div class="event" >
@@ -510,7 +523,7 @@ li {
                         {% if agent == event.from_agent or logger  %}
                             
                             <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-                            <i class="icon-edit"></i>
+                                <i class="icon-edit"></i>
                             </a>
         
                             <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
@@ -571,18 +584,8 @@ li {
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
         $('#work-info').popover()
-        $('#cr-info').popover()
-        $('#rec-info').popover()
-        $('#pay-info').popover()
-        $('#ship-info').popover()
-        $('#matl-info').popover()
-        $('#cash-info').popover()
-        $('#exp-info').popover()
-        $('#purch-info').popover()
-        $('#dist-info').popover()
-        $('#disb-info').popover()
-        $('#fee-info').popover()
         $('#xfer-info').popover()
+        $('#rxfer-info').popover()
 		
 		jQuery.validator.addMethod("quantity",
             function(value, element) {

@@ -6756,10 +6756,10 @@ class Exchange(models.Model):
             for transfer in transfers:
                 if transfer.transfer_type == slot:
                     slot.xfers.append(transfer)
-                    if transfer.value():
-                        slot.total += transfer.value()
-                    elif transfer.quantity():
-                        slot.total += transfer.quantity()
+                    if transfer.actual_value():
+                        slot.total += transfer.actual_value()
+                    elif transfer.actual_quantity():
+                        slot.total += transfer.actual_quantity()
         return slots
         
     #obsolete    
@@ -7267,21 +7267,21 @@ class Transfer(models.Model):
         qty = ""
         if self.transfer_type:
             show_name = self.transfer_type.name
-        give_event = None
-        give_events = self.events.filter(event_type=EventType.objects.get(name="Give"))
-        if give_events:
-            give_event = give_events[0]
-        if give_event:
-            if give_event.from_agent:
-                from_name = "from " + give_event.from_agent.name
-            if give_event.to_agent:
-                to_name = "to " + give_event.to_agent.name
-            resource_string = give_event.resource_type.name
-            if give_event.resource:
-                resource_string = str(give_event.resource)
-            qty = str(give_event.quantity)
-            if give_event.unit_of_quantity:
-                unit = give_event.unit_of_quantity.name
+        event = None
+        if self.events.all():
+            event = self.events.all()[0]
+        if event:
+            if event.from_agent:
+                from_name = "from " + event.from_agent.name
+            if event.to_agent:
+                to_name = "to " + event.to_agent.name
+            if event.resource_type:
+                resource_string = event.resource_type.name
+            if event.resource:
+                resource_string = str(event.resource)
+            qty = str(event.quantity)
+            if event.unit_of_quantity:
+                unit = event.unit_of_quantity.name
         else:
             commits = self.commitments.all()
             if commits:
@@ -7290,7 +7290,8 @@ class Transfer(models.Model):
                     from_name = "from " + commit.from_agent.name
                 if commit.to_agent:
                     to_name = "to " + commit.to_agent.name
-                resource_string = commit.resource_type.name
+                if commit.resource_type:
+                    resource_string = commit.resource_type.name
                 qty = str(commit.quantity)
                 if commit.unit_of_quantity:
                     unit = commit.unit_of_quantity.name
@@ -7328,6 +7329,12 @@ class Transfer(models.Model):
                 return commits[0].quantity
         return None
     
+    def actual_quantity(self):
+        events = self.events.all()
+        if events:
+            return events[0].quantity
+        return None
+    
     def unit_of_quantity(self):
         events = self.events.all()
         if events:
@@ -7347,7 +7354,13 @@ class Transfer(models.Model):
             if commits:
                 return commits[0].value
         return None
-    
+           
+    def actual_value(self):
+        events = self.events.all()
+        if events:
+            return events[0].value
+        return None
+     
     def unit_of_value(self):
         events = self.events.all()
         if events:
@@ -9309,7 +9322,21 @@ class EconomicEvent(models.Model):
             quantity_string,
             resource_string,
         ])
-        
+
+    def commit_label(self):
+        quantity_string = str(self.quantity)
+        resource_name = ""
+        abbrev = ""
+        if self.unit_of_quantity:
+           abbrev = self.unit_of_quantity.abbrev
+        if self.resource_type:
+            resource_name = self.resource_type.name
+        return ' '.join([
+            quantity_string,
+            abbrev,
+            resource_name,         
+        ])
+    
     def undistributed_description(self):
         if self.unit_of_quantity:
             quantity_string = " ".join([str(self.undistributed_amount()), self.unit_of_quantity.abbrev])

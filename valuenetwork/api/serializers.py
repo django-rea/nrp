@@ -23,9 +23,11 @@ class EconomicAgentSerializer(serializers.HyperlinkedModelSerializer):
         
 class ContextSerializer(serializers.HyperlinkedModelSerializer):
     agent_type = serializers.RelatedField()
+    affiliates = EconomicAgentSerializer(source='individual_members',
+        many=True, read_only=True)
     class Meta:
         model = EconomicAgent
-        fields = ('api_url', 'url', 'name', 'slug', 'agent_type', 'address',)
+        fields = ('api_url', 'url', 'name', 'slug', 'agent_type', 'address', 'affiliates')
         
         
 class AgentTypeSerializer(serializers.HyperlinkedModelSerializer):

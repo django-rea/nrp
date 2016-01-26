@@ -2542,7 +2542,8 @@ class ProcessPattern(models.Model):
             for res in rt_resources:
                 resources.append(res)
         resource_ids = [res.id for res in resources]
-        return EconomicResource.objects.filter(id__in=resource_ids).order_by("-created_date")
+        oh = EconomicResource.objects.onhand()
+        return oh.filter(id__in=resource_ids).order_by("-created_date")
                 
     def material_contr_resource_types(self):
         return self.resource_types_for_relationship("resource")

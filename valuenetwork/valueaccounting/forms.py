@@ -36,10 +36,10 @@ class WorkModelChoiceField(forms.ModelChoiceField):
         
 class ResourceModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        label = obj.identifier
+        label = obj.__unicode__()
         if obj.current_location:
             loc = obj.current_location.name
-            label = " ".join([obj.identifier, "at", loc])
+            label = " ".join([label, "at", loc])
         return label
 
         
@@ -1904,7 +1904,7 @@ class ShipmentForm(forms.ModelForm):
         label="Quantity shipped",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource = ResourceModelChoiceField(
-        queryset=EconomicResource.objects.all(), 
+        queryset=EconomicResource.objects.onhand(), 
         label="Resource shipped",
         empty_label=None,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))

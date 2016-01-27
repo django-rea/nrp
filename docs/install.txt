@@ -107,6 +107,8 @@ You will be the only user who will need to do this.
 All other Agents and Users can be created from 
 the Organization page.
 
+18.  To be able to run scripts in shell_plus:
 
+pip install ipython
 
 

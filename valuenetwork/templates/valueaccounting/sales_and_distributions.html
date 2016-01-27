@@ -62,7 +62,7 @@
                                     action="{% url delete_exchange exchange_id=x.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
-                                	<input type="hidden" id="next" name="next" value="sales_and_distributions" />
+                                    <input type="hidden" id="next" name="next" value="demand_transfers" />
                                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete item" >Delete</button>
                                 </form>
                     	    {% endif %}

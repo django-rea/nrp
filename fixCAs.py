@@ -1,9 +1,8 @@
+#import pdb; pdb.set_trace()
 import sys
 from valuenetwork.valueaccounting.models import *
 
 agents = EconomicAgent.objects.all()
-
-#import pdb; pdb.set_trace()
 
 count = 0
 for agent in agents:

@@ -63,6 +63,27 @@ class EconomicEventSerializer(serializers.HyperlinkedModelSerializer):
             'is_contribution',
             )
         
+class ContributionSerializer(serializers.HyperlinkedModelSerializer):
+    unit_of_quantity = serializers.RelatedField()
+    class Meta:
+        model = EconomicEvent
+        fields = ('api_url', 
+            'event_date', 
+            'event_type', 
+            'from_agent', 
+            'to_agent',
+            'context_agent',
+            'resource_type',
+            'resource',
+            # todo: add process serializer to add process field here
+            #'process',
+            'description',
+            'quantity',
+            'unit_of_quantity',
+            'is_contribution',
+            )
+
+        
 class EventTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = EventType

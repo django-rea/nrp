@@ -99,7 +99,40 @@ class EconomicEventViewSet(viewsets.ModelViewSet):
         if context_slug is not None:
             queryset = queryset.filter(context_agent__slug=context_slug)
         return queryset
+
+class ContributionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Economic Events that are contributions 
+    to be viewed or edited.
+    You may use query parameters:
     
+    ?context={ context_agent.slug },
+        for example, ?context=pv-characterization
+        Slugs can be found on the API context list.
+        
+    ?event-type={ event type.relationship },
+        for example, ?event-type=work
+        Relationships can be found on the API event-type list.
+        
+    To combine parameters, use &,
+        for example, ?context=pv-characterization&event-type=work
+    
+    More query parameters and filters to come, on request.
+    """
+    serializer_class = ContributionSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+    def get_queryset(self):
+        queryset = EconomicEvent.objects.filter(is_contribution=True)
+        #import pdb; pdb.set_trace()
+        context_slug = self.request.QUERY_PARAMS.get('context', None)
+        if context_slug is not None:
+            queryset = queryset.filter(context_agent__slug=context_slug)
+        event_type_relationship = self.request.QUERY_PARAMS.get('event-type', None)
+        if event_type_relationship is not None:
+            queryset = queryset.filter(event_type__relationship=event_type_relationship)
+        return queryset
+        
 class EventTypeViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows Agent Types to be viewed or edited.

@@ -4714,6 +4714,7 @@ class EconomicResource(models.Model):
         
     def purchase_events_for_exchange_stage(self):
         #todo dhen_bug:
+        #import pdb; pdb.set_trace()
         if self.exchange_stage:
             return self.purchase_events().filter(exchange_stage=self.exchange_stage)
         else:

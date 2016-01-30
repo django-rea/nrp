@@ -14,34 +14,63 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
         model = Group
         fields = ('api_url', 'name')
         
+class PlainContextSerializer(serializers.HyperlinkedModelSerializer):
+    api_url = serializers.HyperlinkedIdentityField(
+        view_name='context-detail',
+        lookup_field='pk'
+    )
+    agent_type = serializers.RelatedField()
+    class Meta:
+        model = EconomicAgent
+        fields = ('api_url', 'url', 'name', 'slug', 'agent_type', 'address',)
+        
 class EconomicAgentSerializer(serializers.HyperlinkedModelSerializer):
     agent_type = serializers.RelatedField()
-    projects = serializers.Field(source='contexts_participated_in')
+    projects = PlainContextSerializer(source='contexts_participated_in',
+        many=True, read_only=True)
     class Meta:
         model = EconomicAgent
         fields = ('api_url', 'url', 'name', 'nick', 'slug', 'agent_type', 'address', 'email', 'projects')
         
-class ContextSerializer(serializers.HyperlinkedModelSerializer):
-    agent_type = serializers.RelatedField()
-    affiliates = EconomicAgentSerializer(source='individual_members',
+class PeopleSerializer(serializers.HyperlinkedModelSerializer):
+    #agent_type = serializers.RelatedField()
+    api_url = serializers.HyperlinkedIdentityField(
+        view_name='people-detail',
+        lookup_field='pk'
+    )
+    projects = PlainContextSerializer(source='contexts_participated_in',
         many=True, read_only=True)
     class Meta:
         model = EconomicAgent
-        fields = ('api_url', 'url', 'name', 'slug', 'agent_type', 'address', 'affiliates')
+        fields = ('api_url', 'url', 'name', 'nick', 'agent_type', 'address', 'email', 'projects')
+        
+class PlainPeopleSerializer(serializers.HyperlinkedModelSerializer):
+    #agent_type = serializers.RelatedField()
+    api_url = serializers.HyperlinkedIdentityField(
+        view_name='people-detail',
+        lookup_field='pk'
+    )
+    class Meta:
+        model = EconomicAgent
+        fields = ('api_url', 'url', 'name', 'nick', 'agent_type', 'address', 'email',)
+        
+class ContextSerializer(serializers.HyperlinkedModelSerializer):
+    api_url = serializers.HyperlinkedIdentityField(
+        view_name='context-detail',
+        lookup_field='pk'
+    )
+    agent_type = serializers.RelatedField()
+    contributors = PlainPeopleSerializer(source='contributors',
+        many=True, read_only=True)
+    class Meta:
+        model = EconomicAgent
+        fields = ('api_url', 'url', 'name', 'slug', 'agent_type', 'address', 'contributors')
         
         
 class AgentTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = AgentType
         fields = ('api_url', 'name', 'party_type', )
-
-class PeopleSerializer(serializers.HyperlinkedModelSerializer):
-    #agent_type = serializers.RelatedField()
-    projects = ContextSerializer(source='contexts_participated_in',
-        many=True, read_only=True)
-    class Meta:
-        model = EconomicAgent
-        fields = ('api_url', 'url', 'name', 'nick', 'agent_type', 'address', 'email', 'projects')
         
 class EconomicEventSerializer(serializers.HyperlinkedModelSerializer):
     unit_of_quantity = serializers.RelatedField()

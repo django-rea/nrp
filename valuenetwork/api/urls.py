@@ -9,7 +9,7 @@ from valuenetwork.api import views
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'people', views.PeopleViewSet, 'people')
-router.register(r'contexts', views.ContextViewSet, 'contexts')
+router.register(r'contexts', views.ContextViewSet, 'context')
 router.register(r'allagents', views.AgentViewSet, 'economicagent')
 router.register(r'agent-types', views.AgentTypeViewSet)
 router.register(r'economic-events', views.EconomicEventViewSet, 'economicevent')

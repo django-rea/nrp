@@ -42,9 +42,10 @@ def dhen_board(request, context_agent_id=None):
     init = {"event_date": e_date, "paid": "later", }
     receive_form = ReceiveForm(initial=init, pattern=rec_pattern, context_agent=context_agent, prefix="REC")
     et = EventType.objects.get(name="Transfer")
-    farm_stage = AgentAssociationType.objects.get(identifier="HarvestSite")
-    dryer_stage = AgentAssociationType.objects.get(identifier="DryingSite")
-    seller_stage = AgentAssociationType.objects.get(identifier="Seller")
+    farm_stage = None  
+    #harvester_stage = ExchangeType.objects.get(name="Farm to Harvester")  
+    dryer_stage = ExchangeType.objects.get(name="Harvester to Drying Site")  
+    seller_stage = ExchangeType.objects.get(name="Drying Site to Seller")
     rts = pattern.get_resource_types(event_type=et)
     for rt in rts:
         init = {"event_date": e_date,}
@@ -79,7 +80,7 @@ def dhen_board(request, context_agent_id=None):
     }, context_instance=RequestContext(request))
 
 @login_required
-def add_available(request, context_agent_id, assoc_type_identifier):
+def add_available(request, context_agent_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
@@ -92,18 +93,18 @@ def add_available(request, context_agent_id, assoc_type_identifier):
             commit.due_date = commit.start_date
             commit.commitment_date = commit.start_date
             commit.unit_of_quantity = commit.resource_type.unit
-            commit.exchange_stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
+            commit.exchange_stage = None
             commit.created_by = request.user
             commit.save()
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))
 
 @login_required
-def receive_directly(request, context_agent_id, assoc_type_identifier):
+def receive_directly(request, context_agent_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
-        stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)  #todo: this will change to exchange type
+        stage = ExchangeType.objects.get(name="Harvester to Drying Site") 
         form = ReceiveForm(data=request.POST, prefix="REC")
         if form.is_valid():        
             data = form.cleaned_data
@@ -126,7 +127,7 @@ def receive_directly(request, context_agent_id, assoc_type_identifier):
                 process_pattern=ProcessPattern.objects.get(name="Purchase Contribution"),
                 start_date=event_date,
                 context_agent=context_agent,
-                exchange_type=ExchangeType.objects.get(name="Harvester to Drying Site"), #todo: big hack hard-code!
+                exchange_type=stage, #todo: big hack hard-code!
                 created_by=request.user,                
             )
             exchange.save()
@@ -211,26 +212,26 @@ def create_exchange_formset(context_agent, assoc_type_identifier, prefix, data=N
     return formset
 
 #todo: hardcoded recipe and exchange types
-def get_next_stage(assoc_type_identifier):
-    if assoc_type_identifier == "HarvestSite":
-        next_stage = AgentAssociationType.objects.get(identifier="Harvester")
-    elif assoc_type_identifier == "Harvester":
-        next_stage = AgentAssociationType.objects.get(identifier="DryingSite")
-    elif assoc_type_identifier == "DryingSite":
-        next_stage = AgentAssociationType.objects.get(identifier="Seller")
+def get_next_stage(exchange_type=None):
+    if not exchange_type:
+        next_stage = ExchangeType.objects.get(name="Farm to Harvester")
+    elif exchange_type.name == "Farm to Harvester":
+        next_stage = ExchangeType.objects.get(name="Harvester to Drying Site")
+    elif exchange_type.name == "Harvester to Drying Site":
+        next_stage = ExchangeType.objects.get(name="Drying Site to Seller")
     else:
         next_stage = None
     return next_stage
     
 @login_required
-def purchase_resource(request, context_agent_id, assoc_type_identifier, commitment_id):
+def purchase_resource(request, context_agent_id, commitment_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         commitment = get_object_or_404(Commitment, id=commitment_id)
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
-        stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
-        next_stage = get_next_stage(assoc_type_identifier)
-        next_next_stage = get_next_stage(next_stage.identifier)
+        stage = None #ExchangeType.objects.get(name="Farm to Harvester")
+        next_stage = get_next_stage(stage)
+        next_next_stage = get_next_stage(next_stage)
         prefix = commitment.form_prefix()
         form = ExchangeFlowForm(prefix=prefix, data=request.POST)
         lot_form = NewResourceForm(prefix=prefix, data=request.POST)
@@ -280,7 +281,7 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
             consume_et = EventType.objects.get(name="Resource Consumption")
             produce_et = EventType.objects.get(name="Resource Production")
             pay_rt = EconomicResourceType.objects.filter(unit__unit_type="value")[0]
-            formset = create_exchange_formset(prefix=prefix, data=request.POST, context_agent=context_agent, assoc_type_identifier=next_stage.identifier)
+            formset = create_exchange_formset(prefix=prefix, data=request.POST, context_agent=context_agent, assoc_type_identifier="Harvester")
             quantity = 0
             ces = []
             #import pdb; pdb.set_trace()
@@ -498,13 +499,13 @@ def purchase_resource(request, context_agent_id, assoc_type_identifier, commitme
         % ('board/dhen-board', context_agent_id))
 
 @login_required
-def transfer_resource(request, context_agent_id, assoc_type_identifier, resource_id):
+def transfer_resource(request, context_agent_id, resource_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         resource = get_object_or_404(EconomicResource, id=resource_id)
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
-        stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
-        next_stage = get_next_stage(assoc_type_identifier)
+        stage = ExchangeType.objects.get(name="Harvester to Drying Site")
+        next_stage = get_next_stage(stage)
         prefix = resource.form_prefix()
         form = TransferFlowForm(prefix=prefix, data=request.POST)
         
@@ -536,7 +537,7 @@ def transfer_resource(request, context_agent_id, assoc_type_identifier, resource
                 process_pattern=xfer_pattern,
                 start_date=event_date,
                 context_agent=context_agent,
-                exchange_type=ExchangeType.objects.get(name="Drying Site to Seller"),
+                exchange_type=ExchangeType.objects.get(name="Drying Site to Seller"), #should be next_stage, but not changing it
                 created_by=request.user,                
             )
             xfer_exchange.save()
@@ -605,12 +606,12 @@ def transfer_resource(request, context_agent_id, assoc_type_identifier, resource
     return HttpResponseRedirect('/%s/%s/'
         % ('board/dhen-board', context_agent_id))
 
-def combine_resources(request, context_agent_id, assoc_type_identifier, resource_type_id):
+def combine_resources(request, context_agent_id, resource_type_id):
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         resource_type = get_object_or_404(EconomicResourceType, id=resource_type_id)
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
-        stage = AgentAssociationType.objects.get(identifier=assoc_type_identifier)
+        stage = ExchangeType.objects.get(name="Drying Site to Seller") #actually the stage here should be the process stage, and the rest should handle that
         prefix = resource_type.form_prefix()
         form = CombineResourcesForm(prefix=prefix, data=request.POST)
         if form.is_valid():

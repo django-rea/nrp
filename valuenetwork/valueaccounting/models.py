@@ -3858,6 +3858,15 @@ class EconomicResource(models.Model):
             if ship.exchange.order:
                 orders.append(ship.exchange.order)
         return orders
+        
+    def sales(self):
+        sales = []
+        et = EventType.objects.get(relationship="shipment")
+        shipments = EconomicEvent.objects.filter(resource=self).filter(event_type=et)
+        for ship in shipments:
+            if ship.exchange:
+                sales.append(ship.exchange)
+        return sales
             
     def value_equations(self):
         ves = []
@@ -4811,6 +4820,7 @@ class EconomicResource(models.Model):
     def process_exchange_flow(self):
         flows = self.incoming_value_flows()
         xnp = [f for f in flows if type(f) is Process or type(f) is Exchange]
+        #import pdb; pdb.set_trace()
         for x in xnp:
             if type(x) is Process:
                 x.type="Process"

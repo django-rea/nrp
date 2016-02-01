@@ -921,23 +921,27 @@ def resource_flow_report(request, resource_type_id):
     #redo: need exchange_types as well as process_types
     #this next stmt is obsolete until we get mixed process-exchange recipes
     #pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+    # also, shd this be only onhand or all resources?
+    # or onhand + sold?
+    # if all, any other filters?
     if rt.direct_children():
-        lot_list = EconomicResource.objects.onhand().filter(resource_type__parent=rt)
+        #lot_list = EconomicResource.objects.onhand().filter(resource_type__parent=rt)
+        lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
+        lot_list = [lot for lot in lot_list if lot.quantity > 0 or lot.sales()]
     else:
-        lot_list = rt.resources.filter(quantity__gt=0)
-    stages = []
+        #lot_list = rt.resources.filter(quantity__gt=0)
+        lot_list = rt.resources.all()
+        lot_list = [lot for lot in lot_list if lot.quantity > 0 or lot.sales()]
     #hack to get a full set of stages upfront
     #otherwise new ones incorrectly arrive at the end of the flow
     #would be better to figure out how to insert in the correct place
     stages = []
-    try:
-        lot = EconomicResource.objects.get(id=461)
-        stages = [pex.stage for pex in lot.process_exchange_flow()]
-        stages.reverse()
-    except EconomicResource.DoesNotExist:
-        pass
-    #if stages[0].id != 3:
-    #    import pdb; pdb.set_trace()
+    stages.append(ExchangeType.objects.get(id=3))
+    stages.append(ExchangeType.objects.get(id=2))
+    stages.append(ProcessType.objects.get(id=4))
+    stages.append(ExchangeType.objects.get(id=1))
+    stages.append(ProcessType.objects.get(id=5))
+    sales = []
     for lot in lot_list:
         #if lot.identifier == "direct345345": #70314
         #    import pdb; pdb.set_trace() 
@@ -971,27 +975,17 @@ def resource_flow_report(request, resource_type_id):
                 if pex.stage == stage:
                     stage_pex.append(pex)
             stage.stage_pex = stage_pex
-        #if lot.identifier == "51515": #70314
+        #if lot.identifier == "92714": #70314 AHtest
         #    import pdb; pdb.set_trace() 
         lot.lot_stages = lot_stages
         lot.lot_process_exchange_flow = lot_process_exchange_flow
-        orders = []
-        order = None
-        """
-        if lot_pts:
-            last_pt = lot_pts[-1]
-            if type(last_pt) is Process:
-                for proc in last_pt.lpt_pex:
-                    order = proc.independent_demand()
-                    if order:
-                        orders.append(order)
-        """
-        if not order:
-            shipped_orders = lot.shipped_on_orders()
-            if shipped_orders:
-                orders.extend(shipped_orders)
-        lot.orders = orders
-    #import pdb; pdb.set_trace() 
+        lot_sales = []
+
+        lot_sales = lot.sales()
+        if lot_sales:
+            sales.extend(lot_sales)
+        lot.sales = lot_sales
+    
     # just commented out next section because I don't understand it yet
     """
     for lot in lot_list:
@@ -999,6 +993,8 @@ def resource_flow_report(request, resource_type_id):
             if ptype not in lot.lot_pts:
                 lot.lot_pts.append(ptype)
     """    
+    
+    #import pdb; pdb.set_trace() 
     paginator = Paginator(lot_list, 500)
     page = request.GET.get('page')
     try:

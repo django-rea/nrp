@@ -120,13 +120,13 @@ ul {
                            </td>
                         {% endfor %}
                         <td>
-                            {% for pex in lot.sales %} 
+                            {% for sale in lot.sales %} 
                             <li>
-                                <a href="{{ pex.get_absolute_url }}">{{ pex.exchange_type.name }} {{ pex.start_date }}</a>
-                                {% for event in pex.events.all %}
-                                    <li><span class="hdg"> {{ event.event_type }}: </span>{{ event.shorter_label }}
-                                    {% if event.resource %} 
-                                        <a href="{{ event.resource.get_absolute_url }}">({{ event.resource.identifier }})</a>
+                                <a href="{{ sale.get_absolute_url }}">{{ sale.exchange_type.name }} {{ sale.start_date }}</a>
+                                {% for evt in sale.events.all %}
+                                    <li><span class="hdg"> {{ evt.event_type }}: </span>{{ evt.shorter_label }}
+                                    {% if evt.resource %} 
+                                        <a href="{{ evt.resource.get_absolute_url }}">({{ evt.resource.identifier }})</a>
                                     {% endif %}
                                     </li>
                                 {% endfor %}

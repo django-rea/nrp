@@ -9270,9 +9270,12 @@ class EconomicEvent(models.Model):
             if self.recipient():
                 to_agt = self.recipient().nick
             agt_string = ' to '.join([from_agt, to_agt])
+        rname = self.resource_type.name
+        if self.resource:
+            rname = self.resource.resource_type.name
         return ' '.join([
             agt_string,
-            self.resource_type.name,
+            rname,
             quantity_string,
         ])
         

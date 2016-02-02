@@ -787,7 +787,20 @@ class EconomicAgent(models.Model):
             return True
         else:
             return False
-            
+
+    def has_associates_self_or_inherited(self, assoc_type_identifier):
+        #import pdb; pdb.set_trace()
+        assocs = self.all_has_associates_by_type(assoc_type_identifier)
+        if assocs:
+            return assocs
+        parent = self.parent()
+        while parent:
+            assocs = parent.all_has_associates_by_type(assoc_type_identifier)
+            if assocs:
+                return assocs
+            parent = parent.parent()
+        return []
+    
     def associate_count_of_type(self, assoc_type_identifier):
         return self.all_has_associates_by_type(assoc_type_identifier).count()
             
@@ -6555,6 +6568,19 @@ class TransferType(models.Model):
         answer = EconomicResourceType.objects.filter(id__in=answer_ids)       
         return answer
 
+    def to_agents(self, context_agent):            
+        #import pdb; pdb.set_trace()
+        if self.receive_agent_association_type:
+            return context_agent.has_associates_self_or_inherited(self.receive_agent_association_type.identifier)
+        else:
+            return EconomicAgent.objects.all()
+        
+    def from_agents(self, context_agent):
+        if self.give_agent_association_type:
+            return context_agent.has_associates_self_or_inherited(self.give_agent_association_type.identifier)
+        else:
+            return EconomicAgent.objects.all()
+        
     def form_prefix(self):
         return "-".join(["TT", str(self.id)])
     
@@ -7307,6 +7333,145 @@ class Transfer(models.Model):
             "on",
             self.transfer_date.strftime('%Y-%m-%d'),
             ])
+
+    def commit_text(self):
+        text = None
+        give = None
+        receive = None
+        unit = ""
+        resource = ""
+        from_to = ""
+        qty = ""
+        commits = self.commitments.all()
+        if commits:
+            et_give = EventType.objects.get(name="Give")
+            et_receive = EventType.objects.get(name="Receive")
+            for commit in commits:
+                if commit.event_type == et_give:
+                    give = commit
+                elif commit.event_type == et_receive:
+                    receive = commit
+            either = commits[0]
+            if either.resource_type:
+                resource = either.resource_type.name + ","
+            qty = str(either.quantity)
+            if either.unit_of_quantity:
+                unit = either.unit_of_quantity.abbrev
+            if give:
+                if give.to_agent:
+                    give_text = "GIVE to " + give.to_agent.nick
+            if receive:
+                if receive.from_agent:
+                    receive_text = "RECEIVE from " + receive.from_agent.nick
+            if give:
+                from_to = give_text
+                if receive:
+                    from_to += " "
+            if receive:
+                from_to = from_to + receive_text
+            text = " ".join([
+                qty,
+                unit,
+                resource,
+                from_to,
+                ])
+        return text
+
+    def commit_event_text(self):
+        #import pdb; pdb.set_trace()
+        text = None
+        give = None
+        receive = None
+        unit = ""
+        resource = ""
+        from_to = ""
+        qty = ""
+        events = self.events.all()
+        if events:
+            et_give = EventType.objects.get(name="Give")
+            et_receive = EventType.objects.get(name="Receive")
+            for event in events:
+                if event.event_type == et_give:
+                    give = event
+                elif event.event_type == et_receive:
+                    receive = event
+            either = events[0]
+            if either.resource_type:
+                resource = either.resource_type.name + ","
+            if either.resource:
+                resource = str(either.resource) + ","
+            qty = str(either.quantity)
+            if either.unit_of_quantity:
+                unit = either.unit_of_quantity.abbrev
+            if give:
+                if give.event_date:
+                    give_text = "GIVE on " + str(give.event_date)
+            if receive:
+                if receive.event_date:
+                    receive_text = "RECEIVE on " + str(receive.event_date)
+            if give:
+                from_to = give_text
+                if receive:
+                    from_to += ", "
+            if receive:
+                from_to = from_to + receive_text
+            text = " ".join([
+                qty,
+                unit,
+                resource,
+                from_to,
+                ])
+        return text
+
+    def event_text(self):
+        #import pdb; pdb.set_trace()
+        text = None
+        give = None
+        receive = None
+        unit = ""
+        resource = ""
+        from_to = ""
+        qty = ""
+        events = self.events.all()
+        if events:
+            et_give = EventType.objects.get(name="Give")
+            et_receive = EventType.objects.get(name="Receive")
+            for event in events:
+                if event.event_type == et_give:
+                    give = event
+                elif event.event_type == et_receive:
+                    receive = event
+            either = events[0]
+            if either.resource_type:
+                resource = either.resource_type.name + ","
+            if either.resource:
+                resource = str(either.resource) + ","
+            qty = str(either.quantity)
+            if either.unit_of_quantity:
+                unit = either.unit_of_quantity.abbrev
+            if give:
+                if give.to_agent:
+                    give_text = "GIVE to " + give.to_agent.nick
+                if give.event_date:
+                    give_text += " on " + str(give.event_date)
+            if receive:
+                if receive.from_agent:
+                    receive_text = "RECEIVE from " + receive.from_agent.nick
+                if receive.event_date:
+                    receive_text += " on " + str(receive.event_date)
+            if give:
+                from_to = give_text
+                if receive:
+                    from_to += ", "
+            if receive:
+                from_to = from_to + receive_text
+            text = " ".join([
+                qty,
+                unit,
+                resource,
+                from_to,
+                ])
+        return text
     
     def save(self, *args, **kwargs):
         if self.id:
@@ -9321,20 +9486,6 @@ class EconomicEvent(models.Model):
             to_agt,
             quantity_string,
             resource_string,
-        ])
-
-    def commit_label(self):
-        quantity_string = str(self.quantity)
-        resource_name = ""
-        abbrev = ""
-        if self.unit_of_quantity:
-           abbrev = self.unit_of_quantity.abbrev
-        if self.resource_type:
-            resource_name = self.resource_type.name
-        return ' '.join([
-            quantity_string,
-            abbrev,
-            resource_name,         
         ])
     
     def undistributed_description(self):

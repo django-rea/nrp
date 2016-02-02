@@ -112,6 +112,14 @@ li {
     font-style: italic;
     font-size: 1.2em;
 }
+.ce {
+    margin-left: 2em;
+}
+.modal-hdg {
+    font-weight: bold;
+    color: green;
+    font-size: 1.1em;
+}
 
 </style>
 
@@ -173,87 +181,125 @@ li {
                             <h3>
                                 {{ slot.name }}
                                 {% if agent and exchange %}
+{% comment %}
                                     <a href="#addCommitModal{{ slot.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Log a new commitment or plan for a transfer" >
                                         {% trans "New Commitment" %}
                                     </a>
-                                    <div class="modal hide fade" id="#addCommitModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h3 id="commit">{% trans "Log a New Commitment" %}</h3>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer_commitment exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
-                                                {% csrf_token %}
-                                                {{ add_commit_form|as_bootstrap }}
-                                            <div class="modal-footer">
-                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
-                                            </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                    
+{% endcomment %}
                                     <a href="#addTransferModal{{ slot.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a new transfer" >
                                         {% trans "New Transfer" %}
                                     </a>
-                                    <div class="modal hide fade" id="#addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h3 id="xfer{{ slot.id }}">{% trans "Log a New Transfer" %}</h3>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
-                                                {% csrf_token %}
-                                                {{ add_xfer_form|as_bootstrap }}
+                                {% endif %}
+                                <span class="total">Total: {{ slot.total }}</span>
+                            </h3>
+                            {% if agent and exchange %}
+                                <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="xfer{{ slot.id }}">{% trans "Log a New " %}{{ slot.name }}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="validateMe" id="xferForm{{ slot.id }}" enctype="multipart/form-data" action="{% url add_transfer exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            Event date:<br />{{ slot.add_xfer_form.event_date }}<br />
+                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ slot.add_xfer_form.from_agent }}<br />{% endif %}
+                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ slot.add_xfer_form.to_agent }}<br />{% endif %}
+                                            Quantity transferred:<br />{{ slot.add_xfer_form.quantity }}<br />
+                                            Resource type transferred:<br />{{ slot.add_xfer_form.resource_type }}<br />
+                                            {% if not slot.can_create_resource %}Resource transferred (no entry if not inventoried)<br />{{ slot.add_xfer_form.resource }}<br />{% endif %}
+                                            Description:<br />{{ slot.add_xfer_form.description }}<br />
+                                            {% if not slot.is_currency %}
+                                                Value (total, not per unit):<br />{{ slot.add_xfer_form.value }}<br />
+                                                Unit of value:<br />{{ slot.add_xfer_form.unit_of_value }}<br />
+                                            {% endif %}
+                                            {% if slot.is_contribution %}Can be used in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
+                                            {% if slot.is_currency %}Event reference:<br />{{ slot.add_xfer_form.event_reference }}<br />{% endif %}
+                                            {% if slot.can_create_resource %}
+                                                <br />
+                                                <span class="modal-hdg">Incoming resource:</span><br>
+                                                Add to an existing resource:<br />{{ slot.add_xfer_form.resource }}<br />
+                                                <br /><b>OR create a new resource:</b><br />
+                                                Identifier: (for example, lot number or serial number)<br />{{ slot.add_xfer_form.identifier }}<br />
+                                                URL:<br />{{ slot.add_xfer_form.url }}<br />
+                                                Photo URL:<br />{{ slot.add_xfer_form.photo_url }}<br />
+                                                Current Resource Location:<br />{{ slot.add_xfer_form.current_location }}<br />
+                                                Resource Notes:<br />{{ slot.add_xfer_form.notes }}<br />
+                                                Resource Access Rules:<br />{{ slot.add_xfer_form.access_rules }}<br />
+                                                {{ slot.create_role_formset.management_form }}
+                                                Resource access roles<br />
+                                                {% for form in slot.create_role_formset %}
+                                                    <tr>
+                                                        <td>{{ form.role }}</td>
+                                                        <td>{{ form.agent }}</td>
+                                                        <td>{{ form.is_contact }} Is contact</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            {% endif %}
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
                                             </div>
-                                            </form>
-                                        </div>
+                                        </form>
                                     </div>
-                                {% endif %}
-                                <span class="total">Total: {{ slot.total }}</span>
-                            </h3> 
+                                </div>
+{% comment %}
+                                <div class="modal hide fade" id="#addCommitModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="commit">{% trans "Log a New Commitment" %}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer_commitment exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ add_commit_form|as_bootstrap }}
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                                        </div>
+                                        </form>
+                                    </div>
+                                </div>
+{% endcomment %}
+                            {% endif %}
+                            
                             {% for xfer in slot.xfers %}
                                 <div class="event">
                                     {% if xfer.commitments %}
-                                        {% for commit in xfer.commitments.all %}
-                                            <span class="event-label">{% trans "Committed" %}: </span>
-                                            {{ commit.shorter_label }}, to {{ commit.to_agent }}
-                                            {% if logger  %}
-                                                <a href="#cmitModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-                                                <i class="icon-edit"></i>
-                                                </a>
-                        
-                                                <div class="modal hide fade" id="cmitModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="cmit-label" aria-hidden="true">
-                                                    <div class="modal-header">
-                                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                                        <h3 id="cmit-label">{% trans "Change Transfer Commitment" %}</h3>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <form class="validateMe" enctype="multipart/form-data" action="{% url change_commitment commitment_id=commit.id %}" method="POST" >
-                                                            {% csrf_token %}  
-                                                            {{ commit.changeform|as_bootstrap }}
-                                                            <div class="modal-footer">
-                                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
-                                                            </div>
-                                                        </form>
-                                                    </div>
+                                      {% for commit in xfer.commitments.all %} {% comment %} there should be only one commitment {% endcomment %}
+                                        <span class="event-label">{% trans "Commitment" %}: </span>
+                                        {{ xfer.commit_text }}
+                                        {% if logger  %}
+                                            <a href="#cmitModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                                            <i class="icon-edit"></i>
+                                            </a>
+                    
+                                            <div class="modal hide fade" id="cmitModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="cmit-label" aria-hidden="true">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                    <h3 id="cmit-label">{% trans "Change Transfer Commitment" %}</h3>
                                                 </div>
-                                                {% if not commit.fulfilling_events %}
-                                                    <form
-                                                        style="display: inline;" 
-                                                        class="delete-form" 
-                                                        id="deleteForm{{ commit.id }}" 
-                                                        action="{% url delete_transfer_commitment commitment_id=commit.id %}" 
-                                                        method="POST" >
-                                                        {% csrf_token %}
-                                                        <input type="hidden" id="next" name="next" value="exchange" />
-                                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
+                                                <div class="modal-body">
+                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_commitment commitment_id=commit.id %}" method="POST" >
+                                                        {% csrf_token %}  
+                                                        {{ commit.changeform|as_bootstrap }}
+                                                        <div class="modal-footer">
+                                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                        </div>
                                                     </form>
-                                                {% endif %}
+                                                </div>
+                                            </div>
+                                            {% if not commit.fulfilling_events %}
+                                                <form
+                                                    style="display: inline;" 
+                                                    class="delete-form" 
+                                                    id="deleteForm{{ commit.id }}" 
+                                                    action="{% url delete_transfer_commitment commitment_id=commit.id %}" 
+                                                    method="POST" >
+                                                    {% csrf_token %}
+                                                    <input type="hidden" id="next" name="next" value="exchange" />
+                                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
+                                                </form>
                                                 <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" alt="Record transfer based on commitment">Transfer This</a>
                                                 <div class="modal hide fade" id="xferModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
                                                     <div class="modal-header">
@@ -270,12 +316,51 @@ li {
                                                             </div>
                                                         </form>
                                                     </div>
-                                                </div>                                          
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% endif %}
-                                    {% for event in xfer.events.all %}
-                                        <span ><br /> &nbsp;&nbsp;&nbsp;&nbsp;>&nbsp;<span class="event-label">{% trans "Transferred" %}: </span>{{ event.commit_label }}, on {{ event.event_date }}</span>
+                                                </div>              
+                                            {% endif %}                            
+                                        {% endif %}
+                                        {% if commit.fulfilling_events %}
+                                            <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.commit_event_text }}
+                                                {% if logger  %}
+                                                    <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                                                    <i class="icon-edit"></i>
+                                                    </a>
+                            
+                                                    <div class="modal hide fade" id="xferModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                            <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer transfer_id=xfer.id %}" method="POST" >
+                                                                {% csrf_token %}  
+                                                                {{ xfer.changeform|as_bootstrap }}
+                                                                <div class="modal-footer">
+                                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <form
+                                                        style="display: inline;" 
+                                                        class="delete-form" 
+                                                        id="deleteForm{{ event.id }}" 
+                                                        action="{% url delete_transfer transfer_id=xfer.id %}" 
+                                                        method="POST" >
+                                                        {% csrf_token %}
+                                                        <input type="hidden" id="next" name="next" value="exchange" />
+                                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
+                                                    </form>
+                                                {% endif %}
+                                                {% if event.description %}
+                                                    <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                      {% endfor %}
+                                    {% else %}
+                                        <span ><span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.event_text }}</span>
                                         {% if logger  %}
                                             
                                             <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
@@ -312,7 +397,7 @@ li {
                                         {% if event.description %}
                                             <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
                                         {% endif %}
-                                    {% endfor %}
+                                    {% endif %}
                                 </div>
                             {% endfor %}
                             
@@ -333,88 +418,124 @@ li {
                             <h3>
                                 {{ slot.name }}
                                 {% if agent and exchange %}
+{% comment %}
                                     <a href="#addCommitModal{{ slot.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Log a new commitment or plan for a transfer" >
                                         {% trans "New Commitment" %}
                                     </a>
-                                    <div class="modal hide fade" id="#addCommitModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h3 id="commit">{% trans "Log a New Commitment" %}</h3>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer_commitment exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
-                                                {% csrf_token %}
-                                                {{ add_commit_form|as_bootstrap }}
-                                            <div class="modal-footer">
-                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
-                                            </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                    
-                                    <a href="#addTransferModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a new transfer" >
+{% endcomment %}
+                                    <a href="#addTransferModal{{ slot.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a new transfer" >
                                         {% trans "New Transfer" %}
                                     </a>
-                                    <div class="modal hide fade" id="#addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                            <h3 id="xfer{{ slot.id }}">{% trans "Log a New Transfer" %}</h3>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
-                                                {% csrf_token %}
-                                                {{ add_xfer_form|as_bootstrap }}
+                                {% endif %}
+                                <span class="total">Total: {{ slot.total }}</span>
+                            </h3>
+                            {% if agent and exchange %}
+                                <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="xfer{{ slot.id }}">{% trans "Log a New " %}{{ slot.name }}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="validateMe" id="xferForm{{ slot.id }}" enctype="multipart/form-data" action="{% url add_transfer exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            Event date:<br />{{ slot.add_xfer_form.event_date }}<br />
+                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ slot.add_xfer_form.from_agent }}<br />{% endif %}
+                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ slot.add_xfer_form.to_agent }}<br />{% endif %}
+                                            Quantity transferred:<br />{{ slot.add_xfer_form.quantity }}<br />
+                                            Resource type transferred:<br />{{ slot.add_xfer_form.resource_type }}<br />
+                                            {% if not slot.can_create_resource %}Resource transferred (no entry if not inventoried)<br />{{ slot.add_xfer_form.resource }}<br />{% endif %}
+                                            Description:<br />{{ slot.add_xfer_form.description }}<br />
+                                            {% if not slot.is_currency %}
+                                                Value (total, not per unit):<br />{{ slot.add_xfer_form.value }}<br />
+                                                Unit of value:<br />{{ slot.add_xfer_form.unit_of_value }}<br />
+                                            {% endif %}
+                                            {% if slot.is_contribution %}Can be used in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
+                                            {% if slot.is_currency %}Event reference:<br />{{ slot.add_xfer_form.event_reference }}<br />{% endif %}
+                                            {% if slot.can_create_resource %}
+                                                <br />
+                                                <span class="modal-hdg">Incoming resource:</span><br>
+                                                Add to an existing resource:<br />{{ slot.add_xfer_form.resource }}<br />
+                                                <br /><b>OR create a new resource:</b><br />
+                                                Identifier: (for example, lot number or serial number)<br />{{ slot.add_xfer_form.identifier }}<br />
+                                                URL:<br />{{ slot.add_xfer_form.url }}<br />
+                                                Photo URL:<br />{{ slot.add_xfer_form.photo_url }}<br />
+                                                Current Resource Location:<br />{{ slot.add_xfer_form.current_location }}<br />
+                                                Resource Notes:<br />{{ slot.add_xfer_form.notes }}<br />
+                                                Resource Access Rules:<br />{{ slot.add_xfer_form.access_rules }}<br />
+                                                {{ slot.create_role_formset.management_form }}
+                                                Resource access roles<br />
+                                                {% for form in slot.create_role_formset %}
+                                                    <tr>
+                                                        <td>{{ form.role }}</td>
+                                                        <td>{{ form.agent }}</td>
+                                                        <td>{{ form.is_contact }} Is contact</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            {% endif %}
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
                                             </div>
-                                            </form>
-                                        </div>
+                                        </form>
                                     </div>
-                                {% endif %}
-                                <span class="total">Total: {{ slot.total }}</span>
-                            </h3>  
-                            
+                                </div>
+{% comment %}
+                                <div class="modal hide fade" id="#addCommitModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="commit">{% trans "Log a New Commitment" %}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer_commitment exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ add_commit_form|as_bootstrap }}
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                                        </div>
+                                        </form>
+                                    </div>
+                                </div>
+{% endcomment %}
+                            {% endif %}
                             {% for xfer in slot.xfers %}
                                 <div class="event">
                                     {% if xfer.commitments %}
-                                        {% for commit in xfer.commitments.all %}
-                                            <span class="event-label">{% trans "Committed" %}: </span>
-                                            {{ commit.shorter_label }}, from {{ commit.from_agent }}
-                                            {% if logger  %}
-                                                <a href="#cmitModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-                                                <i class="icon-edit"></i>
-                                                </a>
-                        
-                                                <div class="modal hide fade" id="cmitModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="cmit-label" aria-hidden="true">
-                                                    <div class="modal-header">
-                                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                                        <h3 id="cmit-label">{% trans "Change Transfer Commitment" %}</h3>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <form class="validateMe" enctype="multipart/form-data" action="{% url change_commitment commitment_id=commit.id %}" method="POST" >
-                                                            {% csrf_token %}  
-                                                            {{ commit.changeform|as_bootstrap }}
-                                                            <div class="modal-footer">
-                                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
-                                                            </div>
-                                                        </form>
-                                                    </div>
+                                      {% for commit in xfer.commitments.all %}
+                                        <span class="event-label">{% trans "Commitment" %}: </span>
+                                        {{ xfer.commit_text }}
+                                        {% if logger  %}
+                                            <a href="#cmitModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                                            <i class="icon-edit"></i>
+                                            </a>
+                    
+                                            <div class="modal hide fade" id="cmitModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="cmit-label" aria-hidden="true">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                    <h3 id="cmit-label">{% trans "Change Transfer Commitment" %}</h3>
                                                 </div>
-                                                {% if not commit.fulfilling_events %}
-                                                    <form
-                                                        style="display: inline;" 
-                                                        class="delete-form" 
-                                                        id="deleteForm{{ commit.id }}" 
-                                                        action="{% url delete_transfer_commitment commitment_id=commit.id %}" 
-                                                        method="POST" >
-                                                        {% csrf_token %}
-                                                        <input type="hidden" id="next" name="next" value="exchange" />
-                                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
+                                                <div class="modal-body">
+                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_commitment commitment_id=commit.id %}" method="POST" >
+                                                        {% csrf_token %}  
+                                                        {{ commit.changeform|as_bootstrap }}
+                                                        <div class="modal-footer">
+                                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                        </div>
                                                     </form>
-                                                {% endif %}
+                                                </div>
+                                            </div>
+                                            {% if not commit.fulfilling_events %}
+                                                <form
+                                                    style="display: inline;" 
+                                                    class="delete-form" 
+                                                    id="deleteForm{{ commit.id }}" 
+                                                    action="{% url delete_transfer_commitment commitment_id=commit.id %}" 
+                                                    method="POST" >
+                                                    {% csrf_token %}
+                                                    <input type="hidden" id="next" name="next" value="exchange" />
+                                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
+                                                </form>
                                                 <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" alt="Record transfer based on commitment">Transfer This</a>
                                                 <div class="modal hide fade" id="xferModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
                                                     <div class="modal-header">
@@ -431,14 +552,52 @@ li {
                                                             </div>
                                                         </form>
                                                     </div>
-                                                </div>                                                        
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% endif %}
-                                    {% for event in xfer.events.all %}
-                                        <span ><br /> &nbsp;&nbsp;&nbsp;&nbsp;>&nbsp;<span class="event-label">{% trans "Transferred" %}: </span> 
-                                        {{ event.commit_label }}, on {{ event.event_date }}</span>
-                                        {% if logger %}
+                                                </div>              
+                                            {% endif %}                            
+                                        {% endif %}
+                                        {% if commit.fulfilling_events %}
+                                            <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.commit_event_text }}
+                                                {% if logger  %}
+                                                    <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                                                    <i class="icon-edit"></i>
+                                                    </a>
+                            
+                                                    <div class="modal hide fade" id="xferModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                            <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer transfer_id=xfer.id %}" method="POST" >
+                                                                {% csrf_token %}  
+                                                                {{ xfer.changeform|as_bootstrap }}
+                                                                <div class="modal-footer">
+                                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <form
+                                                        style="display: inline;" 
+                                                        class="delete-form" 
+                                                        id="deleteForm{{ event.id }}" 
+                                                        action="{% url delete_transfer transfer_id=xfer.id %}" 
+                                                        method="POST" >
+                                                        {% csrf_token %}
+                                                        <input type="hidden" id="next" name="next" value="exchange" />
+                                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
+                                                    </form>
+                                                {% endif %}
+                                                {% if event.description %}
+                                                    <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                      {% endfor %}
+                                    {% else %}
+                                        <span ><span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.event_text }}</span>
+                                        {% if logger  %}
                                             
                                             <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                             <i class="icon-edit"></i>
@@ -474,13 +633,13 @@ li {
                                         {% if event.description %}
                                             <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
                                         {% endif %}
-                                    {% endfor %}
+                                    {% endif %}
                                 </div>
                             {% endfor %}
-                                                
-                        </div>                    
-
+                            
+                        </div>
                     {% endif %}
+
                 {% endfor %}        
             </div>   
         

@@ -1535,72 +1535,105 @@ class EventChangeQuantityForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('id', 'quantity')
 
-class ExchangeEventForm(forms.ModelForm):
-    event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+class TransferForm(forms.Form):
+    event_date = forms.DateField(required=True, 
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     to_agent = forms.ModelChoiceField(
-        required=True,
+        required=False,
         queryset=EconomicAgent.objects.all(),
         label="Transferred to",  
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     from_agent = forms.ModelChoiceField(
-        required=True,
+        required=False,
         queryset=EconomicAgent.objects.all(),
         label="Transferred from",  
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     quantity = forms.DecimalField(
-        label="Payment amount",
+        label="Quantity transferred",
+        initial=1,
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
-        queryset=EconomicResourceType.objects.none(),
-        #label="Cash resource type payment from",
+        queryset=EconomicResourceType.objects.all(),
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-for-resource chzn-select'}))
     resource = ResourceModelChoiceField(
-        queryset=EconomicResource.objects.all(), 
-        #label="Cash resource account or earmark to decrease",
+        queryset=EconomicResource.objects.none(),
+        label="Resource transferred (optional if not inventoried)",
         required=False,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
     value = forms.DecimalField(
         label="Value (total, not per unit)",
+        initial=0,
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
+        required=False,
         queryset=Unit.objects.filter(unit_type='value'))
     description = forms.CharField(
         required=False, 
-        widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    is_contribution = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Can be used in a value equation",
+        widget=forms.CheckboxInput())
+    event_reference = forms.CharField(
+        required=False, 
+        label="Reference",
+        widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
+    identifier = forms.CharField(
+        required=False, 
+        label="<b>Create the resource:</b><br><br>Identifier",
+        help_text="For example, lot number or serial number.",
+        widget=forms.TextInput(attrs={'class': 'item-name',}))
+    url = forms.URLField(
+        required=False, 
+        label="URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    photo_url = forms.URLField(
+        required=False, 
+        label="Photo URL",
+        widget=forms.TextInput(attrs={'class': 'url input-xlarge',}))
+    current_location = forms.ModelChoiceField(
+        queryset=Location.objects.all(), 
+        required=False,
+        label=_("Current Resource Location"),
+        widget=forms.Select(attrs={'class': 'input-medium',}))
+    notes = forms.CharField(
+        required=False,
+        label="Resource Notes", 
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+    access_rules = forms.CharField(
+        required=False,
+        label="Resource Access Rules", 
+        widget=forms.Textarea(attrs={'class': 'item-description',})) 
 
-    class Meta:
-        model = EconomicEvent
-        fields = ('event_date', 'to_agent', 'from_agent', 'quantity', 'resource_type', 'resource', 'description', 'accounting_reference', 'event_reference')
-
-    def __init__(self, pattern=None, context_agent=None, posting=False, *args, **kwargs):
-        super(PaymentEventForm, self).__init__(*args, **kwargs)
-        if pattern:
-            self.pattern = pattern
-            rts = pattern.payment_resource_types()
+    def __init__(self, transfer_type=None, context_agent=None, posting=False, *args, **kwargs):
+        super(TransferForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if transfer_type:
+            rts = transfer_type.get_resource_types()
             self.fields["resource_type"].queryset = rts
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
-            else:
-                if rts:
-                    if self.instance.id:
-                        rt = self.instance.resource_type
-                        if rt:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
-                        else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
-                    else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
-        if context_agent:
-            self.context_agent = context_agent
-            self.fields["to_agent"].queryset = context_agent.all_suppliers()
-            self.fields["from_agent"].queryset = context_agent.all_ancestors_and_members()
+            #else:
+            #    if rts:
+            #        if self.instance.id:
+            #            rt = self.instance.resource_type
+            #            if rt:
+            #                self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
+            #            else:
+            #                self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+            #        else:
+            #            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+            if context_agent:
+                self.fields["to_agent"].queryset = transfer_type.to_agents(context_agent)
+                self.fields["from_agent"].queryset = transfer_type.from_agents(context_agent)
 
 
 class TransferCommitmentEventForm(forms.ModelForm):
@@ -2412,7 +2445,6 @@ class TransferTypeForm(forms.ModelForm):
     sequence = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'input-small integer',}))
     description = forms.CharField(
         required=False,
-        label="Description, which will show as help for this transfer type",
         widget=forms.Textarea(attrs={'class': 'item-description',}))
     is_contribution = forms.BooleanField(
         required=False,

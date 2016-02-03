@@ -1621,16 +1621,9 @@ class TransferForm(forms.Form):
             self.fields["resource_type"].queryset = rts
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
-            #else:
-            #    if rts:
-            #        if self.instance.id:
-            #            rt = self.instance.resource_type
-            #            if rt:
-            #                self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
-            #            else:
-            #                self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
-            #        else:
-            #            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+            else:
+                if rts:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
             if context_agent:
                 self.fields["to_agent"].queryset = transfer_type.to_agents(context_agent)
                 self.fields["from_agent"].queryset = transfer_type.from_agents(context_agent)

@@ -10487,9 +10487,17 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
             add_work_form = WorkEventAgentForm(initial=work_init, context_agent=context_agent)
  
             for slot in slots:
+                if slot.transfers:
+                    if slot.transfers.all()[0].from_agent():
+                        fa_init = slot.transfers.all()[0].from_agent()
+                    if slot.transfers.all()[0].to_agent():
+                        ta_init = slot.transfers.all()[0].to_agent()
+                else:
+                    ta_init = agent
+                    fa_init = agent
                 xfer_init = {
-                    "from_agent": agent,
-                    "to_agent": agent,
+                    "from_agent": fa_init,
+                    "to_agent": ta_init,
                     "event_date": exchange.start_date
                 }
                 slot.add_xfer_form = TransferForm(initial=xfer_init, prefix=str(slot.id), context_agent=context_agent, transfer_type=slot)

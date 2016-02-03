@@ -7539,7 +7539,7 @@ class Transfer(models.Model):
     def from_agent(self):
         events = self.events.all()
         if events:
-            return events.filter(event_type=EventType.objects.get(name="Give"))[0].from_agent
+            return events[0].from_agent
         else:
             commits = self.commitments.all()
             if commits:
@@ -7549,7 +7549,7 @@ class Transfer(models.Model):
     def to_agent(self):
         events = self.events.all()
         if events:
-            return events.filter(event_type=EventType.objects.get(name="Receive"))[0].to_agent
+            return events[0].to_agent
         else:
             commits = self.commitments.all()
             if commits:

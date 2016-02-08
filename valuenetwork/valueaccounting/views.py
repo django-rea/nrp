@@ -10486,14 +10486,13 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
             }
             add_work_form = WorkEventAgentForm(initial=work_init, context_agent=context_agent)
  
+            #import pdb; pdb.set_trace()
             for slot in slots:
-                if slot.transfers:
-                    if slot.transfers.all()[0].from_agent():
-                        fa_init = slot.transfers.all()[0].from_agent()
-                    if slot.transfers.all()[0].to_agent():
-                        ta_init = slot.transfers.all()[0].to_agent()
-                else:
+                ta_init = slot.default_to_agent
+                fa_init = slot.default_from_agent
+                if not ta_init:
                     ta_init = agent
+                if not fa_init:
                     fa_init = agent
                 xfer_init = {
                     "from_agent": fa_init,

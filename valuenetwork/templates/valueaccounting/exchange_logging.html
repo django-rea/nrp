@@ -264,7 +264,7 @@ li {
                             
                             {% for xfer in slot.xfers %}
                                 <div class="event">
-                                    {% if xfer.commitments %}
+                                    {% if xfer.commitments.all %}
                                       {% for commit in xfer.commitments.all %} {% comment %} there should be only one commitment {% endcomment %}
                                         <span class="event-label">{% trans "Commitment" %}: </span>
                                         {{ xfer.commit_text }}
@@ -360,13 +360,11 @@ li {
                                         {% endif %}
                                       {% endfor %}
                                     {% else %}
-                                        <span ><span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.event_text }}</span>
+                                        <span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.event_text }}
                                         {% if logger  %}
-                                            
                                             <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-                                            <i class="icon-edit"></i>
+                                                <i class="icon-edit"></i>
                                             </a>
-                    
                                             <div class="modal hide fade" id="xferModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
                                                 <div class="modal-header">
                                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -386,7 +384,7 @@ li {
                                             <form
                                                 style="display: inline;" 
                                                 class="delete-form" 
-                                                id="deleteForm{{ event.id }}" 
+                                                id="deleteForm{{ xfer.id }}" 
                                                 action="{% url delete_transfer transfer_id=xfer.id %}" 
                                                 method="POST" >
                                                 {% csrf_token %}
@@ -394,8 +392,8 @@ li {
                                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                             </form>
                                         {% endif %}
-                                        {% if event.description %}
-                                            <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+                                        {% if xfer.description %}
+                                            <div class="notes"> {{ xfer.description|urlize|linebreaks }} </div>
                                         {% endif %}
                                     {% endif %}
                                 </div>
@@ -500,7 +498,7 @@ li {
                             {% endif %}
                             {% for xfer in slot.xfers %}
                                 <div class="event">
-                                    {% if xfer.commitments %}
+                                    {% if xfer.commitments.all %}
                                       {% for commit in xfer.commitments.all %}
                                         <span class="event-label">{% trans "Commitment" %}: </span>
                                         {{ xfer.commit_text }}
@@ -596,7 +594,7 @@ li {
                                         {% endif %}
                                       {% endfor %}
                                     {% else %}
-                                        <span ><span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.event_text }}</span>
+                                        <span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.event_text }}
                                         {% if logger  %}
                                             
                                             <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">

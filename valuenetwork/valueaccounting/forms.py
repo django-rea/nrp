@@ -1569,6 +1569,7 @@ class TransferForm(forms.Form):
     value = forms.DecimalField(
         label="Value (total, not per unit)",
         initial=0,
+        required=False,
         widget=forms.TextInput(attrs={'class': 'value input-small',}))
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
@@ -1628,7 +1629,8 @@ class TransferForm(forms.Form):
                 self.fields["to_agent"].queryset = transfer_type.to_agents(context_agent)
                 self.fields["from_agent"].queryset = transfer_type.from_agents(context_agent)
 
-
+#todo: remove
+'''
 class TransferCommitmentEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     quantity = forms.DecimalField(
@@ -1664,7 +1666,7 @@ class TransferCommitmentEventForm(forms.ModelForm):
             tt = commitment.transfer.transfer_type
             self.fields["resource_type"].queryset = tt.get_resource_types()
             self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=commitment.resource_type)
-
+'''
 
 class PaymentEventForm(forms.ModelForm):
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))

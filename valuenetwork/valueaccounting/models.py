@@ -6773,9 +6773,21 @@ class Exchange(models.Model):
         slots = self.exchange_type.transfer_types.all()
         slots = list(slots)
         transfers = self.transfers.all()
+        default_to_agent = None
+        default_from_agent = None
         for transfer in transfers:
             if transfer.transfer_type not in slots:
                 slots.append(transfer.transfer_type)
+            if not default_to_agent:
+                if transfer.is_reciprocal():
+                    default_to_agent = transfer.from_agent()
+                else:
+                    default_to_agent = transfer.to_agent()
+            if not default_from_agent:
+                if transfer.is_reciprocal():
+                    default_from_agent = transfer.to_agent()
+                else:
+                    default_from_agent = transfer.from_agent()            
         for slot in slots:
             slot.xfers = []
             slot.total = 0
@@ -6786,6 +6798,17 @@ class Exchange(models.Model):
                         slot.total += transfer.actual_value()
                     elif transfer.actual_quantity():
                         slot.total += transfer.actual_quantity()
+            if slot.is_reciprocal:
+                slot.default_from_agent = default_to_agent
+                slot.default_to_agent = default_from_agent
+            else:
+                slot.default_from_agent = default_from_agent
+                slot.default_to_agent = default_to_agent
+            if slot.is_currency:
+                if not slot.give_agent_is_context:
+                    slot.default_from_agent = None #logged on agent
+                if not slot.receive_agent_is_context:
+                    slot.default_to_agent = None #logged on agent
         return slots
         
     #obsolete    
@@ -7281,7 +7304,7 @@ class Transfer(models.Model):
     objects = ExchangeManager()
 
     class Meta:
-        ordering = ('-transfer_date',)
+        ordering = ('transfer_date',)
         verbose_name_plural = _("transfers")
 
     def __unicode__(self):
@@ -7981,8 +8004,8 @@ class Commitment(models.Model):
         prefix=self.form_prefix()
         return ChangeCommitmentForm(instance=self, prefix=prefix)
    
-    def transfer_form(self):
-        from valuenetwork.valueaccounting.forms import TransferCommitmentEventForm
+    def transfer_form(self, transfer_type):
+        from valuenetwork.valueaccounting.forms import TransferForm
         prefix=self.form_prefix()
         #import pdb; pdb.set_trace()
         init = {
@@ -7992,7 +8015,7 @@ class Commitment(models.Model):
             "value": self.value,
             "unit_of_value": self.unit_of_value,
             }
-        return TransferCommitmentEventForm(initial=init, commitment=self, prefix=prefix)
+        return TransferForm(initial=init, transfer_type=transfer_type, context_agent=self.context_agent, posting=False, prefix=prefix)
     
     def process_form(self):
         from valuenetwork.valueaccounting.forms import ProcessForm

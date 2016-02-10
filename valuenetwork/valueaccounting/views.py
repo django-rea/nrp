@@ -5527,6 +5527,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
         form = TransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix=str(transfer_type.id))
         if form.is_valid():
             data = form.cleaned_data
+            
             qty = data["quantity"] 
             res = None
             et2 = None
@@ -5674,6 +5675,107 @@ def add_transfer(request, exchange_id, transfer_type_id):
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('accounting/exchange', 0, exchange.id))
 
+@login_required
+def transfer_from_commitment(request, transfer_id):
+    transfer = get_object_or_404(Transfer, pk=transfer_id)
+    transfer_type = transfer.transfer_type
+    exchange = transfer.exchange
+    context_agent = transfer.context_agent
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        form = TransferForm(data=request.POST, transfer_type=transfer.transfer_type, context_agent=transfer.context_agent, posting=True, prefix=transfer.form_prefix())
+        if form.is_valid():
+            data = form.cleaned_data
+            et_give = EventType.objects.get(name="Give")
+            et_receive = EventType.objects.get(name="Receive")
+            qty = data["quantity"]
+            event_date = data["event_date"]
+            if transfer_type.give_agent_is_context:
+                from_agent = context_agent
+            else:
+                from_agent = data["from_agent"]
+            if transfer_type.receive_agent_is_context:
+                to_agent = context_agent
+            else:
+                to_agent = data["to_agent"]  
+            rt = data["resource_type"]
+            if not transfer_type.can_create_resource:
+                res = data["resource"]
+            description = data["description"]
+            if transfer_type.is_currency:
+                value = qty
+                unit_of_value = rt.unit
+            else:
+                value = data["value"]
+                unit_of_value = data["unit_of_value"]
+            if transfer_type.is_contribution:
+                is_contribution = data["is_contribution"]
+            else:
+                is_contribution = False
+            event_ref = data["event_reference"]
+            res = None
+            if transfer_type.can_create_resource:
+                res = data["resource"]
+                if not res:
+                    res_identifier = data["identifier"]
+                    if res_identifier: #new resource
+                        res = EconomicResource(
+                            identifier=res_identifier,
+                            url=data["url"],
+                            photo_url=data["photo_url"],
+                            current_location=data["current_location"],
+                            notes=data["notes"],
+                            access_rules=data["access_rules"],
+                            resource_type=rt,
+                            exchange_stage=exchange_type,
+                            quantity=0,
+                            created_by=request.user,
+                            )
+                        res.save()
+                        create_role_formset = xfer.create_role_formset(prefix=transfer.form_prefix(), data=request.POST)
+                        for form_rra in create_role_formset.forms:
+                            if form_rra.is_valid():
+                                data_rra = form_rra.cleaned_data
+                                if data_rra:
+                                    if role and agent:
+                                        rra = AgentResourceRole()
+                                        rra.agent = data_rra["agent"]
+                                        rra.role = data_rra["role"]
+                                        rra.resource = res
+                                        rra.is_contact = data_rra["is_contact"]
+                                        rra.save()       
+            for commit in transfer.commitments.all():
+                event = EconomicEvent(
+                    event_type=commit.event_type,
+                    resource_type = rt,
+                    resource = res,
+                    from_agent = from_agent,
+                    to_agent = to_agent,
+                    exchange = transfer.exchange,
+                    exchange_stage=transfer.exchange.exchange_type,
+                    transfer=transfer,
+                    commitment=commit,
+                    context_agent = transfer.context_agent,
+                    event_date = event_date,
+                    quantity=qty,
+                    unit_of_quantity = rt.unit,
+                    value=value,
+                    unit_of_value = unit_of_value,
+                    description=description,
+                    event_reference=event_ref,
+                    created_by = request.user,
+                )
+                event.save()
+                if res:                
+                    if event.event_type == et_give:
+                        res.quantity -= res.quantity
+                    else:
+                        res.quantity += res.quantity
+                    res.save()
+            
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('accounting/exchange', 0, exchange.id))    
+    
 @login_required
 def add_process_input(request, process_id, slot):
     process = get_object_or_404(Process, pk=process_id)
@@ -5891,43 +5993,6 @@ def delete_transfer_commitment(request, commitment_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/exchange', exchange.id))
 
-@login_required
-def transfer_from_commitment(request, commitment_id):
-    commitment = get_object_or_404(Commitment, pk=commitment_id)
-    if request.method == "POST":
-        exchange = commitment.exchange
-        transfer = commitment.transfer
-        #et_give = EventType.objects.get(name="Give")
-        #et_receive = EventType.objects.get(name="Receive")
-        #import pdb; pdb.set_trace()
-        form = TransferCommitmentEventForm(prefix=commitment.form_prefix(), data=request.POST)
-        if form.is_valid():
-            data = form.cleaned_data
-            rt = data["resource_type"]
-            event = EconomicEvent(
-                event_type=commitment.event_type,
-                resource_type = rt,
-                resource = data["resource"],
-                from_agent = commitment.from_agent,
-                to_agent = commitment.to_agent,
-                exchange = exchange,
-                transfer=transfer,
-                commitment=commitment,
-                context_agent = exchange.context_agent,
-                event_date = data["event_date"],
-                quantity=data["quantity"],
-                unit_of_quantity = rt.unit,
-                value=data["value"],
-                unit_of_value = data["unit_of_value"],
-                description=data["description"],
-                event_reference=data["event_reference"],
-                created_by = request.user,
-                changed_by = request.user,
-            )
-            event.save()
-    return HttpResponseRedirect('/%s/%s/%s/'
-        % ('accounting/exchange', 0, exchange.id))    
-    
 @login_required
 def change_event_date(request):
     #import pdb; pdb.set_trace()

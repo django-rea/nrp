@@ -7579,6 +7579,17 @@ class Transfer(models.Model):
                 return commits[0].to_agent
         return None
 
+    def resource_type(self):
+        events = self.events.all()
+        if events:
+            event = events[0]
+            return event.resource_type
+        else:
+            commits = self.commitments.all()
+            if commits:
+                return commits[0].resource_type
+        return None
+    
     def resource_name(self):
         events = self.events.all()
         if events:
@@ -7597,6 +7608,33 @@ class Transfer(models.Model):
         
     def flow_description(self):
         return self.__unicode__()
+
+    def form_prefix(self):
+        return "TR" + str(self.id)
+        
+    def commit_transfer_form(self):
+        from valuenetwork.valueaccounting.forms import TransferForm
+        prefix=self.form_prefix()
+        #import pdb; pdb.set_trace()
+        init = {
+            "event_date": datetime.date.today(),
+            "resource_type": self.resource_type(),
+            "quantity": self.quantity(),
+            "value": self.value(),
+            "unit_of_value": self.unit_of_value(),
+            "from_agent": self.from_agent(),
+            "to_agent": self.to_agent(),
+            }
+        return TransferForm(initial=init, transfer_type=self.transfer_type, context_agent=self.context_agent, posting=False, prefix=prefix)
+
+    def create_role_formset(self, data=None):
+        #todo: not tested
+        #slot.create_role_formset = resource_role_agent_formset(prefix=str(slot.id))
+        #from django.forms.models import formset_factory
+        #from valuenetwork.valueaccounting.forms import ResourceTypeFacetValueForm
+        from valuenetwork.valueaccounting.views import resource_role_agent_formset
+        return resource_role_agent_formset(prefix=self.form_prefix())
+    
     
 
 class Feature(models.Model):
@@ -8003,20 +8041,7 @@ class Commitment(models.Model):
         from valuenetwork.valueaccounting.forms import ChangeCommitmentForm
         prefix=self.form_prefix()
         return ChangeCommitmentForm(instance=self, prefix=prefix)
-   
-    def transfer_form(self, transfer_type):
-        from valuenetwork.valueaccounting.forms import TransferForm
-        prefix=self.form_prefix()
-        #import pdb; pdb.set_trace()
-        init = {
-            "event_date": self.commitment_date,
-            "resource_type": self.resource_type,
-            "quantity": self.quantity,
-            "value": self.value,
-            "unit_of_value": self.unit_of_value,
-            }
-        return TransferForm(initial=init, transfer_type=transfer_type, context_agent=self.context_agent, posting=False, prefix=prefix)
-    
+
     def process_form(self):
         from valuenetwork.valueaccounting.forms import ProcessForm
         start_date = self.start_date

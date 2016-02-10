@@ -5524,7 +5524,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
     if request.method == "POST":
         exchange_type = exchange.exchange_type
         context_agent = exchange.context_agent
-        form = TransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix=str(transfer_type.id))
+        form = TransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix="ATR" + str(transfer_type.id))
         if form.is_valid():
             data = form.cleaned_data
             
@@ -5775,7 +5775,114 @@ def transfer_from_commitment(request, transfer_id):
             
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('accounting/exchange', 0, exchange.id))    
-    
+
+@login_required
+def add_transfer_commitment(request, exchange_id, transfer_type_id):
+    transfer_type = get_object_or_404(TransferType, pk=transfer_type_id)
+    exchange = get_object_or_404(Exchange, pk=exchange_id)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        exchange_type = exchange.exchange_type
+        context_agent = exchange.context_agent
+        form = TransferCommitmentForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix="ACM" + str(transfer_type.id))
+        if form.is_valid():
+            data = form.cleaned_data
+            qty = data["quantity"] 
+            ct2 = None
+            if qty:
+                commitment_date = data["commitment_date"]
+                due_date = data["due_date"]
+                if transfer_type.give_agent_is_context:
+                    from_agent = context_agent
+                else:
+                    from_agent = data["from_agent"]
+                if transfer_type.receive_agent_is_context:
+                    to_agent = context_agent
+                else:
+                    to_agent = data["to_agent"]  
+                rt = data["resource_type"]
+                description = data["description"]
+                if transfer_type.is_currency:
+                    value = qty
+                    unit_of_value = rt.unit
+                else:
+                    value = data["value"]
+                    unit_of_value = data["unit_of_value"]
+
+                xfer_name = transfer_type.name
+                if transfer_type.is_reciprocal:
+                    xfer_name = xfer_name + " from " + from_agent.nick
+                else:
+                    xfer_name = xfer_name + " of " + rt.name
+                xfer = Transfer(
+                    name=xfer_name,
+                    transfer_type = transfer_type,
+                    exchange = exchange,
+                    context_agent = context_agent,
+                    transfer_date = commitment_date,
+                    notes = description,
+                    created_by = request.user              
+                    )
+                xfer.save()
+                if exchange.exchange_type.use_case == UseCase.objects.get(identifier="supply_xfer"):
+                    if transfer_type.is_reciprocal:
+                        et = EventType.objects.get(name="Give")
+                    else:
+                        et = EventType.objects.get(name="Receive")
+                elif exchange.exchange_type.use_case == UseCase.objects.get(identifier="demand_xfer"):
+                    if transfer_type.is_reciprocal:
+                        et = EventType.objects.get(name="Receive")
+                    else:
+                        et = EventType.objects.get(name="Give")
+                else: #internal xfer use case
+                    if transfer_type.is_reciprocal:
+                        et = EventType.objects.get(name="Receive")
+                        et2 = EventType.objects.get(name="Give")
+                    else:
+                        et = EventType.objects.get(name="Give")
+                        et2 = EventType.objects.get(name="Receive")
+                commit = Commitment(
+                    event_type = et,
+                    commitment_date=commitment_date,
+                    due_date=due_date,
+                    resource_type=rt,
+                    exchange = exchange,
+                    transfer=xfer,
+                    exchange_stage=exchange.exchange_type,
+                    context_agent = context_agent,
+                    quantity=qty,
+                    unit_of_quantity = rt.unit,
+                    value=value,
+                    unit_of_value=unit_of_value,
+                    from_agent = from_agent,
+                    to_agent = to_agent,
+                    created_by = request.user,
+                    )
+                commit.save()
+                if ct2:
+                    commit2 = Commitment(
+                        event_type = et2,
+                        commitment_date=commitment_date,
+                        due_date=due_date,
+                        resource_type=rt,
+                        exchange = exchange,
+                        transfer=xfer,
+                        exchange_stage=exchange.exchange_type,
+                        context_agent = context_agent,
+                        quantity=qty,
+                        unit_of_quantity = rt.unit,
+                        value=value,
+                        unit_of_value=unit_of_value,
+                        from_agent = from_agent,
+                        to_agent = to_agent,
+                        created_by = request.user,
+                    )    
+                    event2.save()
+            
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('accounting/exchange', 0, exchange.id))
+
+   
 @login_required
 def add_process_input(request, process_id, slot):
     process = get_object_or_404(Process, pk=process_id)
@@ -6214,42 +6321,6 @@ def commitment_finished(request, commitment_id):
     return HttpResponseRedirect('/%s/'
             % ('accounting/start'))
 
-@login_required
-def add_transfer_commitment(request, exchange_id, transfer_type_id):
-    transfer_type = get_object_or_404(TransferType, pk=transfer_type_id)
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        form = ProcessCitationForm(data=request.POST, prefix='citation')
-        if form.is_valid():
-            input_data = form.cleaned_data
-            demand = process.independent_demand()
-            quantity = Decimal("1")
-            rt = input_data["resource_type"]
-            descrip = input_data["description"]
-            pattern = process.process_pattern
-            event_type = pattern.event_type_for_resource_type("cite", rt)
-            agent = get_agent(request)
-            #todo: sub process.add_commitment()
-            #flow todo: test for order_item
-            ct = Commitment(
-                process=process,
-                #from_agent=agent,
-                independent_demand=demand,
-                order_item = process.order_item(),
-                event_type=event_type,
-                due_date=process.start_date,
-                resource_type=rt,
-                #project=process.project,
-                context_agent=process.context_agent,
-                quantity=quantity,
-                description=descrip,
-                unit_of_quantity=rt.directional_unit("cite"),
-                created_by=request.user,
-            )
-            ct.save()
-                
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/process', process.id))
 
 @login_required
 def process_done(request):
@@ -10547,7 +10618,7 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
                     prefix=str(event.id))
             work_init = {
                 "from_agent": agent,
-                "event_date": exchange.start_date
+                "event_date": datetime.date.today()
             }
             add_work_form = WorkEventAgentForm(initial=work_init, context_agent=context_agent)
  
@@ -10562,10 +10633,17 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
                 xfer_init = {
                     "from_agent": fa_init,
                     "to_agent": ta_init,
-                    "event_date": exchange.start_date
+                    "event_date": datetime.date.today()
                 }
-                slot.add_xfer_form = TransferForm(initial=xfer_init, prefix=str(slot.id), context_agent=context_agent, transfer_type=slot)
+                slot.add_xfer_form = TransferForm(initial=xfer_init, prefix="ATR" + str(slot.id), context_agent=context_agent, transfer_type=slot)
                 slot.create_role_formset = resource_role_agent_formset(prefix=str(slot.id))
+                commit_init = {
+                    "from_agent": fa_init,
+                    "to_agent": ta_init,
+                    "commitment_date": datetime.date.today(), 
+                    "due_date": exchange.start_date,
+                }
+                slot.add_commit_form = TransferCommitmentForm(initial=commit_init, prefix="ACM" + str(slot.id), context_agent=context_agent, transfer_type=slot)
                 
     else:
         raise ValidationError("System Error: No exchange or use case.")
@@ -10577,7 +10655,6 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
         "exchange_form": exchange_form,
         "agent": agent,
         "context_agent": context_agent,
-        "user": request.user,
         "logger": logger,
         "slots": slots,
         "work_events": work_events,

@@ -2773,8 +2773,8 @@ def create_use_cases(app, **kwargs):
     UseCase.create('transfer', _('Transfer'))
     UseCase.create('available', _('Make Available'), True)
     UseCase.create('intrnl_xfer', _('Internal Exchange'))
-    UseCase.create('supply_xfer', _('Supply Exchange'))
-    UseCase.create('demand_xfer', _('Demand Exchange'))
+    UseCase.create('supply_xfer', _('Incoming Exchange'))
+    UseCase.create('demand_xfer', _('Outgoing Exchange'))
     print "created use cases"
 
 post_migrate.connect(create_use_cases)

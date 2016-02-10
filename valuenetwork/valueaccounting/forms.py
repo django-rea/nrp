@@ -1633,22 +1633,24 @@ class TransferForm(forms.Form):
 class TransferCommitmentForm(forms.Form):
     commitment_date = forms.DateField(required=True, 
         widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    due_date = forms.DateField(required=True, 
+        widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     to_agent = forms.ModelChoiceField(
         required=False,
         queryset=EconomicAgent.objects.all(),
-        label="Transferred to",  
+        label="Transfer to",  
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     from_agent = forms.ModelChoiceField(
         required=False,
         queryset=EconomicAgent.objects.all(),
-        label="Transferred from",  
+        label="Transfer from",  
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'chzn-select'})) 
     quantity = forms.DecimalField(
-        label="Quantity transferred",
+        label="Quantity",
         initial=1,
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(

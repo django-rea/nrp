@@ -7599,6 +7599,13 @@ class Transfer(models.Model):
                 resource_string = str(event.resource)
             return resource_string
         return None
+
+    def is_deletable(self):
+        if self.commitments.all():
+            return False
+        if self.events.all():
+            return False
+        return True
         
     def flow_type(self):
         return "Transfer"

@@ -6041,7 +6041,47 @@ def change_transfer_commitments(request, transfer_id):
                  
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('accounting/exchange', 0, exchange.id))   
-   
+
+@login_required
+def delete_transfer_commitments(request, transfer_id):
+    transfer = get_object_or_404(Transfer, pk=transfer_id)
+    exchange = transfer.exchange
+    if request.method == "POST":
+        for commit in transfer.commitments.all():
+            if commit.is_deletable():
+                commit.delete()
+        if transfer.is_deletable():
+             transfer.delete()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('accounting/exchange', 0, exchange.id)) 
+
+@login_required
+def delete_transfer_events(request, transfer_id):
+    transfer = get_object_or_404(Transfer, pk=transfer_id)
+    exchange = transfer.exchange
+    if request.method == "POST":
+        res = None
+        events = transfer.events.all()
+        if events:
+            res = events[0].resource
+        for event in events:
+            if res:
+                if event.consumes_resources():
+                    res.quantity += event.quantity
+                if event.creates_resources():
+                    res.quantity -= event.quantity
+            event.delete()
+        if res:
+            if res.is_deletable():
+                resource.delete()
+            else:
+                res.save()
+        if transfer.is_deletable():
+             transfer.delete()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('accounting/exchange', 0, exchange.id))   
+
+
 @login_required
 def add_process_input(request, process_id, slot):
     process = get_object_or_404(Process, pk=process_id)
@@ -6252,14 +6292,6 @@ def delete_process_commitment(request, commitment_id):
         % ('accounting/process', process.id))
 
 @login_required
-def delete_transfer_commitment(request, commitment_id):
-    commitment = get_object_or_404(Commitment, pk=commitment_id)
-    exchange = commitment.exchange
-    commitment.delete()
-    return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
-
-@login_required
 def change_event_date(request):
     #import pdb; pdb.set_trace()
     event_id = request.POST.get("eventId")
@@ -6405,27 +6437,6 @@ def delete_exchange(request, exchange_id):
             return HttpResponseRedirect('/%s/'
                 % ('accounting/distributions'))
 
-
-@login_required        
-def delete_transfer(request, transfer_id): 
-    #import pdb; pdb.set_trace()
-    if request.method == "POST":
-        exchange = get_object_or_404(Exchange, pk=exchange_id)
-        if exchange.is_deletable:
-            exchange.delete()           
-        next = request.POST.get("next")
-        if next == "exchanges":
-            return HttpResponseRedirect('/%s/'
-                % ('accounting/exchanges'))
-        if next == "demand_transfers":
-            return HttpResponseRedirect('/%s/'
-                % ('accounting/sales-and-distributions'))
-        if next == "material_contributions":
-            return HttpResponseRedirect('/%s/'
-                % ('accounting/material-contributions'))
-        if next == "distributions":
-            return HttpResponseRedirect('/%s/'
-                % ('accounting/distributions'))
 
 @login_required
 def work_done(request):

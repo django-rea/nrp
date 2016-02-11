@@ -308,7 +308,7 @@ li {
                                                     style="display: inline;" 
                                                     class="delete-form" 
                                                     id="deleteForm{{ xfer.id }}" 
-                                                    action="{% url delete_transfer_commitment transfer_id=xfer.id %}" 
+                                                    action="{% url delete_transfer_commitments transfer_id=xfer.id %}" 
                                                     method="POST" >
                                                     {% csrf_token %}
                                                     <input type="hidden" id="next" name="next" value="exchange" />
@@ -404,7 +404,7 @@ li {
                                                         style="display: inline;" 
                                                         class="delete-form" 
                                                         id="deleteForm{{ event.id }}" 
-                                                        action="{% url delete_transfer transfer_id=xfer.id %}" 
+                                                        action="{% url delete_transfer_events transfer_id=xfer.id %}" 
                                                         method="POST" >
                                                         {% csrf_token %}
                                                         <input type="hidden" id="next" name="next" value="exchange" />
@@ -453,7 +453,7 @@ li {
                                                 style="display: inline;" 
                                                 class="delete-form" 
                                                 id="deleteForm{{ xfer.id }}" 
-                                                action="{% url delete_transfer transfer_id=xfer.id %}" 
+                                                action="{% url delete_transfer_events transfer_id=xfer.id %}" 
                                                 method="POST" >
                                                 {% csrf_token %}
                                                 <input type="hidden" id="next" name="next" value="exchange" />

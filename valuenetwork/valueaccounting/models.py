@@ -7629,13 +7629,47 @@ class Transfer(models.Model):
 
     def create_role_formset(self, data=None):
         #todo: not tested
-        #slot.create_role_formset = resource_role_agent_formset(prefix=str(slot.id))
-        #from django.forms.models import formset_factory
-        #from valuenetwork.valueaccounting.forms import ResourceTypeFacetValueForm
         from valuenetwork.valueaccounting.views import resource_role_agent_formset
         return resource_role_agent_formset(prefix=self.form_prefix())
     
-    
+    def change_commitments_form(self):
+        from valuenetwork.valueaccounting.forms import TransferCommitmentForm
+        prefix = self.form_prefix() + "C"
+        commit = self.commitments.all()[0]
+        init = {
+            "commitment_date": commit.commitment_date,
+            "due_date": commit.due_date,
+            "description":commit.description,
+            "resource_type": commit.resource_type,
+            "quantity": commit.quantity,
+            "value": commit.value,
+            "unit_of_value": commit.unit_of_value,
+            "from_agent": commit.from_agent,
+            "to_agent": commit.to_agent,
+            }
+        return TransferCommitmentForm(initial=init, transfer_type=self.transfer_type, context_agent=self.context_agent, posting=False, prefix=prefix)
+        
+    def change_events_form(self):
+        from valuenetwork.valueaccounting.forms import TransferForm
+        prefix = self.form_prefix() + "E"
+        event = self.events.all()[0]
+        init = {
+            "resource": event.resource,
+            "description": event.description,
+            "is_contribution": event.is_contribution,
+            "event_reference": event.event_reference,
+            "event_date": event.event_date,
+            "description":event.description,
+            "resource_type": event.resource_type,
+            "quantity": event.quantity,
+            "value": event.value,
+            "unit_of_value": event.unit_of_value,
+            "from_agent": event.from_agent,
+            "to_agent": event.to_agent,
+            }
+        return TransferForm(initial=init, transfer_type=self.transfer_type, context_agent=self.context_agent, posting=False, prefix=prefix)
+         
+        
 
 class Feature(models.Model):
     name = models.CharField(_('name'), max_length=128)

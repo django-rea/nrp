@@ -275,9 +275,8 @@ li {
                                         {{ xfer.commit_text }}
                                         {% if logger  %}
                                             <a href="#cmitModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-                                            <i class="icon-edit"></i>
+                                                <i class="icon-edit"></i>
                                             </a>
-                    
                                             <div class="modal hide fade" id="cmitModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="cmit-label" aria-hidden="true">
                                                 <div class="modal-header">
                                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -285,8 +284,18 @@ li {
                                                 </div>
                                                 <div class="modal-body">
                                                     <form class="validateMe" enctype="multipart/form-data" action="{% url change_commitment transfer_id=xfer.id %}" method="POST" >
-                                                        {% csrf_token %}  
-                                                        {{ xfer.commit_changeform|as_bootstrap }}
+                                                        {% csrf_token %}
+                                                        Commitment date:<br />{{ xfer.change_commitments_form.commitment_date }}<br />
+                                                        Due date:<br />{{ xfer.change_commitments_form.due_date }}<br />
+                                                        {% if not slot.give_agent_is_context %}Transfer from:<br />{{ xfer.change_commitments_form.from_agent }}<br />{% endif %}
+                                                        {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ xfer.change_commitments_form.to_agent }}<br />{% endif %}
+                                                        Quantity:<br />{{ xfer.change_commitments_form.quantity }}<br />
+                                                        Resource type:<br />{{ xfer.change_commitments_form.resource_type }}<br />
+                                                        Description:<br />{{ xfer.change_commitments_form.description }}<br />
+                                                        {% if not slot.is_currency %}
+                                                            Value (total, not per unit):<br />{{ xfer.change_commitments_form.value }}<br />
+                                                            Unit of value:<br />{{ xfer.change_commitments_form.unit_of_value }}<br />
+                                                        {% endif %}
                                                         <div class="modal-footer">
                                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -361,7 +370,7 @@ li {
                                             <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.commit_event_text }}
                                                 {% if logger  %}
                                                     <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
-                                                    <i class="icon-edit"></i>
+                                                        <i class="icon-edit"></i>
                                                     </a>
                             
                                                     <div class="modal hide fade" id="xferModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
@@ -371,8 +380,19 @@ li {
                                                         </div>
                                                         <div class="modal-body">
                                                             <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer transfer_id=xfer.id %}" method="POST" >
-                                                                {% csrf_token %}  
-                                                                {{ xfer.changeform|as_bootstrap }}
+                                                                {% csrf_token %}
+                                                                Event date:<br />{{ xfer.change_events_form.event_date }}<br />
+                                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ xfer.change_events_form.from_agent }}<br />{% endif %}
+                                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ xfer.change_events_form.to_agent }}<br />{% endif %}
+                                                                Quantity transferred:<br />{{ xfer.change_events_form.quantity }}<br />
+                                                                Resource type transferred:<br />{{ xfer.change_events_form.resource_type }}<br />
+                                                                Resource transferred (only if inventoried):<br />{{ xfer.change_events_form.resource }}<br />Description:<br />{{ xfer.change_events_form.description }}<br />
+                                                                {% if not slot.is_currency %}
+                                                                    Value (total, not per unit):<br />{{ xfer.change_events_form.value }}<br />
+                                                                    Unit of value:<br />{{ xfer.change_events_form.unit_of_value }}<br />
+                                                                {% endif %}
+                                                                {% if slot.is_contribution %}Can be used in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
+                                                                {% if slot.is_currency %}Event reference:<br />{{ xfer.change_events_form.event_reference }}<br />{% endif %}                                                               
                                                                 <div class="modal-footer">
                                                                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                                     <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -409,8 +429,19 @@ li {
                                                 </div>
                                                 <div class="modal-body">
                                                     <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer transfer_id=xfer.id %}" method="POST" >
-                                                        {% csrf_token %}  
-                                                        {{ xfer.changeform|as_bootstrap }}
+                                                        {% csrf_token %}
+                                                        Event date:<br />{{ xfer.change_events_form.event_date }}<br />
+                                                        {% if not slot.give_agent_is_context %}Transferred from:<br />{{ xfer.change_events_form.from_agent }}<br />{% endif %}
+                                                        {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ xfer.change_events_form.to_agent }}<br />{% endif %}
+                                                        Quantity transferred:<br />{{ xfer.change_events_form.quantity }}<br />
+                                                        Resource type transferred:<br />{{ xfer.change_events_form.resource_type }}<br />
+                                                        Resource transferred (only if inventoried):<br />{{ xfer.change_events_form.resource }}<br />Description:<br />{{ xfer.change_events_form.description }}<br />
+                                                        {% if not slot.is_currency %}
+                                                            Value (total, not per unit):<br />{{ xfer.change_events_form.value }}<br />
+                                                            Unit of value:<br />{{ xfer.change_events_form.unit_of_value }}<br />
+                                                        {% endif %}
+                                                        {% if slot.is_contribution %}Can be used in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
+                                                        {% if slot.is_currency %}Event reference:<br />{{ xfer.change_events_form.event_reference }}<br />{% endif %} 
                                                         <div class="modal-footer">
                                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />

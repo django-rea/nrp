@@ -283,7 +283,7 @@ li {
                                                     <h3 id="cmit-label">{% trans "Change Transfer Commitment" %}</h3>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_commitment transfer_id=xfer.id %}" method="POST" >
+                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_commitments transfer_id=xfer.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         Commitment date:<br />{{ xfer.change_commitments_form.commitment_date }}<br />
                                                         Due date:<br />{{ xfer.change_commitments_form.due_date }}<br />
@@ -379,7 +379,7 @@ li {
                                                             <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer transfer_id=xfer.id %}" method="POST" >
+                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_events transfer_id=xfer.id %}" method="POST" >
                                                                 {% csrf_token %}
                                                                 Event date:<br />{{ xfer.change_events_form.event_date }}<br />
                                                                 {% if not slot.give_agent_is_context %}Transferred from:<br />{{ xfer.change_events_form.from_agent }}<br />{% endif %}
@@ -428,7 +428,7 @@ li {
                                                     <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer transfer_id=xfer.id %}" method="POST" >
+                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_events transfer_id=xfer.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         Event date:<br />{{ xfer.change_events_form.event_date }}<br />
                                                         {% if not slot.give_agent_is_context %}Transferred from:<br />{{ xfer.change_events_form.from_agent }}<br />{% endif %}

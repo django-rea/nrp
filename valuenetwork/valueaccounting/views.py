@@ -5551,7 +5551,10 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     unit_of_value = rt.unit
                 else:
                     value = data["value"]
-                    unit_of_value = data["unit_of_value"]
+                    if value:
+                        unit_of_value = data["unit_of_value"]
+                    else:
+                        unit_of_value = None
                 if transfer_type.is_contribution:
                     is_contribution = data["is_contribution"]
                 else:
@@ -5707,7 +5710,10 @@ def transfer_from_commitment(request, transfer_id):
                 unit_of_value = rt.unit
             else:
                 value = data["value"]
-                unit_of_value = data["unit_of_value"]
+                if value:
+                    unit_of_value = data["unit_of_value"]
+                else:
+                    unit_of_value = None
             if transfer_type.is_contribution:
                 is_contribution = data["is_contribution"]
             else:
@@ -5807,7 +5813,10 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
                     unit_of_value = rt.unit
                 else:
                     value = data["value"]
-                    unit_of_value = data["unit_of_value"]
+                    if value:
+                        unit_of_value = data["unit_of_value"]
+                    else:
+                        unit_of_value = None
 
                 xfer_name = transfer_type.name
                 if transfer_type.is_reciprocal:
@@ -5824,6 +5833,7 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
                     created_by = request.user              
                     )
                 xfer.save()
+                
                 if exchange.exchange_type.use_case == UseCase.objects.get(identifier="supply_xfer"):
                     if transfer_type.is_reciprocal:
                         et = EventType.objects.get(name="Give")
@@ -5882,6 +5892,155 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('accounting/exchange', 0, exchange.id))
 
+@login_required
+def change_transfer_events(request, transfer_id):
+    transfer = get_object_or_404(Transfer, pk=transfer_id)
+    if request.method == "POST":
+        events = transfer.events.all()
+        transfer_type = transfer.transfer_type
+        exchange = transfer.exchange
+        context_agent = transfer.context_agent
+        #import pdb; pdb.set_trace()
+        form = TransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix=transfer.form_prefix() + "E")
+        if form.is_valid():
+            data = form.cleaned_data
+            et_give = EventType.objects.get(name="Give")
+            et_receive = EventType.objects.get(name="Receive")
+            qty = data["quantity"]
+            if qty:
+                event_date = data["event_date"]
+                if transfer_type.give_agent_is_context:
+                    from_agent = context_agent
+                else:
+                    from_agent = data["from_agent"]
+                if transfer_type.receive_agent_is_context:
+                    to_agent = context_agent
+                else:
+                    to_agent = data["to_agent"]  
+                rt = data["resource_type"]
+                res = data["resource"]
+                description = data["description"]
+                if transfer_type.is_currency:
+                    value = qty
+                    unit_of_value = rt.unit
+                else:
+                    value = data["value"]
+                    if value:
+                        unit_of_value = data["unit_of_value"]
+                    else:
+                        unit_of_value = None
+                if transfer_type.is_contribution:
+                    is_contribution = data["is_contribution"]
+                else:
+                    is_contribution = False
+                event_ref = data["event_reference"]
+
+                old_res = None
+                if events[0].resource:
+                    old_res = events[0].resource
+                    old_qty = events[0].quantity
+                for event in events:
+                    event.resource_type = rt
+                    event.resource = res
+                    event.from_agent = from_agent
+                    event.to_agent = to_agent
+                    event.event_date = event_date
+                    event.quantity=qty
+                    event.unit_of_quantity = rt.unit
+                    event.value=value
+                    event.unit_of_value = unit_of_value
+                    event.description=description
+                    event.event_reference=event_ref
+                    event.changed_by = request.user
+                    event.save()
+                    if res:
+                        if old_res:
+                            if res == old_res:
+                                if event.event_type == et_give:
+                                    res.quantity = res.quantity + old_qty - qty
+                                else:
+                                    res.quantity = res.quantity - old_qty + qty
+                                res.save()
+                            else:
+                                if event.event_type == et_give:
+                                    res.quantity = res.quantity - qty
+                                    old_res.quantity = old_res.quantity + qty
+                                else:
+                                    res.quantity = res.quantity + qty
+                                    old_res.quantity = old_res.quantity - qty
+                                res.save()
+                                old_res.save()
+                        else:
+                            if event.event_type == et_give:
+                                res.quantity = res.quantity - qty
+                            else:
+                                res.quantity = res.quantity + qty
+                            res.save()
+                    else:
+                        if old_res:
+                            if event.event_type == et_give:
+                                old_res.quantity = old_res.quantity + qty
+                            else:
+                                old_res.quantity = old_res.quantity - qty
+                            old_res.save()
+                
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('accounting/exchange', 0, exchange.id))    
+
+@login_required
+def change_transfer_commitments(request, transfer_id):
+    transfer = get_object_or_404(Transfer, pk=transfer_id)
+    if request.method == "POST":
+        commits = transfer.commitments.all()
+        transfer_type = transfer.transfer_type
+        exchange = transfer.exchange
+        context_agent = transfer.context_agent
+        #import pdb; pdb.set_trace()
+        form = TransferCommitmentForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix=transfer.form_prefix() + "C")
+        if form.is_valid():
+            data = form.cleaned_data
+            et_give = EventType.objects.get(name="Give")
+            et_receive = EventType.objects.get(name="Receive")
+            qty = data["quantity"]
+            if qty:
+                commitment_date = data["commitment_date"]
+                due_date = data["due_date"]
+                if transfer_type.give_agent_is_context:
+                    from_agent = context_agent
+                else:
+                    from_agent = data["from_agent"]
+                if transfer_type.receive_agent_is_context:
+                    to_agent = context_agent
+                else:
+                    to_agent = data["to_agent"]  
+                rt = data["resource_type"]
+                description = data["description"]
+                if transfer_type.is_currency:
+                    value = qty
+                    unit_of_value = rt.unit
+                else:
+                    value = data["value"]
+                    if value:
+                        unit_of_value = data["unit_of_value"]
+                    else:
+                        unit_of_value = None
+
+                for commit in commits:
+                    commit.resource_type = rt
+                    commit.from_agent = from_agent
+                    commit.to_agent = to_agent
+                    commit.commitment_date = commitment_date
+                    commit.due_date = due_date
+                    commit.quantity=qty
+                    commit.unit_of_quantity = rt.unit
+                    commit.value=value
+                    commit.unit_of_value = unit_of_value
+                    commit.description=description
+                    commit.changed_by = request.user
+                    commit.save()
+                 
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('accounting/exchange', 0, exchange.id))   
    
 @login_required
 def add_process_input(request, process_id, slot):
@@ -6124,31 +6283,6 @@ def change_event_qty(request):
 
 @login_required
 def change_event(request, event_id):
-    event = get_object_or_404(EconomicEvent, pk=event_id)
-    page = request.GET.get("page")
-    #import pdb; pdb.set_trace()
-    event_form = event.change_form(data=request.POST or None)
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
-        page = request.POST.get("page")
-        if event_form.is_valid():
-            event = event_form.save(commit=False)
-            event.changed_by = request.user
-            event.save()
-        agent = event.from_agent
-        if page:
-            return HttpResponseRedirect('/%s/%s/?page=%s'
-                % ('accounting/contributionhistory', agent.id, page))
-        else:
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/contributionhistory', agent.id))
-    return render_to_response("valueaccounting/change_event.html", {
-        "event_form": event_form,
-        "page": page,
-    }, context_instance=RequestContext(request)) 
-
-@login_required
-def change_transfer(request, transfer_id):
     event = get_object_or_404(EconomicEvent, pk=event_id)
     page = request.GET.get("page")
     #import pdb; pdb.set_trace()

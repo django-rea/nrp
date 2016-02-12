@@ -2,7 +2,7 @@
 
 {% load i18n %}
 
-{% block head_title %}{% trans "Financial Contributions" %}{% endblock %}
+{% block head_title %}{% trans "Incoming Exchanges" %}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
@@ -65,17 +65,17 @@
                             {% endif %}
                         {% endif %}
                     </li>
-                    {% if x.transfers %}
+                    {% if x.transfers.all %}
                         <ul>
                             {% for transfer in x.transfers.all %}
                                 <li>{{ transfer }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
-                    {% if x.events %}
+                    {% if x.work_events %}
                         <ul>
-                            {% for event in x.events.all %}
-                                <li>{{ event }}</li>
+                            {% for event in x.work_events %}
+                                <li>{{ event }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}

@@ -59,6 +59,17 @@
 .down {
     margin-top: 10px;
 }
+.smaller {
+    font-size: .9em;
+}
+.button-row {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+legend {
+    margin-bottom: 5px;;
+}
+
 </style>
 
 {% endblock %}
@@ -71,88 +82,91 @@
 
 		<legend>
 			{{ agent.agent_type }}: {{ agent.name }}
+            {% if agent.is_individual %}
+                    <a class="indent smaller" href="{% url contribution_history agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+                {% else %}
+                    <a class="indent smaller" href="{% url contributions project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+            {% endif %}
+                {% if agent.is_context_agent %}
+                    <a class="indent smaller" href="{% url distributions agent_id=agent.id %}">{% trans "Distributions" %}</a>
+                    <a class="indent smaller" href="{% url orders agent_id=agent.id %}">{% trans "Active Orders" %} </a>
+                    <a class="indent smaller" href="{% url context_timeline context_id=agent.id %}">Timeline</a>
+                {% endif %}
+            <a class="indent smaller" href="{% url radial_graph agent_id=agent.id %}">{% trans "Association Graph" %}</a>
+            <a class="indent smaller" href="{% url agent_associations agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
+            <a class="indent smaller" href="{% url agents %}">{% trans "All Agents" %}</a>
 
-			{% if user_agent and change_form %}
-		        <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
-	        {% endif %}
-	        
-	        {% if user.is_staff and agent.is_deletable %}
+		</legend>
+		<div class="button-row">
+            {% if user_agent %}
+                <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+
+            {% endif %}
+            
+            {% if user.is_staff and agent.is_deletable %}
                 <form
                     style="display: inline;" 
-                    class="delete-agent-form" 
+                    class="delete-agent-form indent" 
                     id="deleteAgentForm" 
                     action="{% url delete_agent agent_id=agent.id %}" 
                     method="POST" >
                     {% csrf_token %}
                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete Agent" >Delete</button>
                 </form>
-	        {% endif %}
+            {% endif %}
 
-	        {% if user.is_staff and user_form %}
+            {% if user.is_staff and user_form %}
                 <a href="#createUserForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create User" %}</a>
             {% endif %}
-	        
-	    {% if agent.is_individual %}
-                <a class="indent" href="{% url contribution_history agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
-            {% else %}
-                <a class="indent" href="{% url contributions project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
-	    {% endif %}
-            {% if agent.is_context_agent %}
-		<a class="indent" href="{% url distributions agent_id=agent.id %}">{% trans "Distributions" %}</a>
-                <a class="indent" href="{% url orders agent_id=agent.id %}">{% trans "Active Orders" %} </a>
-                <a class="indent" href="{% url context_timeline context_id=agent.id %}">Timeline</a>
-{% comment %}
-                <a class="indent" href="{% url value_equation project_id=agent.id %}">{% trans "Value Equation" %} </a>
-{% endcomment %}
-            {% endif %}
-	    <a class="indent" href="{% url radial_graph agent_id=agent.id %}">{% trans "Association Graph" %}</a>
-            <a class="indent" href="{% url agent_associations agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
-            <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>
+            
+            {% if agent.is_context %}
+                <form style="display: inline;" class="indent" id="exchangeForm" method="POST" action="">
+                    {% csrf_token %}
+                    Create an internal exchange in this context: <span style="vertical-align: middle;">{{ nav_form.exchange_type }}</span>
+                    <input style="display: inline;" type="submit" name="submit" value="{% trans 'Create Exchange' %}" class="btn btn-primary" /> 
+                </form>
+            {% endif %}  
 
-		</legend>
-
-        {% if user_agent and change_form %}
-		    <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
-			    <div class="modal-header">
-				    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				    <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
-			    </div>
-			    <div class="modal-body">
-				    <form enctype="multipart/form-data" action="{% url change_agent agent_id=agent.id %}" method="POST" >
-					    {% csrf_token %}
-					    {{ change_form|as_bootstrap }}
-
-				        <div class="modal-footer">
-					      <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-					      <button class="btn btn-primary">{% trans "Save changes" %}</button>
-				        </div>
-				    </form>
-		      </div>
-
-		    </div>
-	    {% endif %}
-	    
-	    {% if user.is_superuser and user_form %}
-            <div class="modal hide fade" id="createUserForm" tabindex="-1" role="dialog" aria-labelledby="create-user-label" aria-hidden="true">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h3 id="create-user-label">{% trans "Create login user for" %} {{ agent.name }}</h3>
+            {% if user_agent %}
+                <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <form enctype="multipart/form-data" action="{% url change_agent agent_id=agent.id %}" method="POST" >
+                            {% csrf_token %}
+                            {{ change_form|as_bootstrap }}
+                            <div class="modal-footer">
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                            <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <form id="userForm" enctype="multipart/form-data" action="{% url create_user agent_id=agent.id %}" method="POST" >
-                        {% csrf_token %}
-                        {{ user_form|as_bootstrap }}
+            {% endif %}
+	    
+            {% if user.is_superuser and user_form %}
+                <div class="modal hide fade" id="createUserForm" tabindex="-1" role="dialog" aria-labelledby="create-user-label" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 id="create-user-label">{% trans "Create login user for" %} {{ agent.name }}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <form id="userForm" enctype="multipart/form-data" action="{% url create_user agent_id=agent.id %}" method="POST" >
+                            {% csrf_token %}
+                            {{ user_form|as_bootstrap }}
 
-                        <div class="modal-footer">
-                          <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                          <button class="btn btn-primary">{% trans "Save user" %}</button>
-                        </div>
-                    </form>
-              </div>
+                            <div class="modal-footer">
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                            <button class="btn btn-primary">{% trans "Save user" %}</button>
+                            </div>
+                        </form>
+                    </div>
 
-            </div>
-        {% endif %}
-
+                </div>
+            {% endif %}
+        </div>
 		<div class="row-fluid">
 		
 		    <div class="span4">

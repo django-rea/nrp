@@ -6798,13 +6798,14 @@ class Exchange(models.Model):
                         slot.total += transfer.actual_value()
                     elif transfer.actual_quantity():
                         slot.total += transfer.actual_quantity()
+            #import pdb; pdb.set_trace()
             if slot.is_reciprocal:
                 slot.default_from_agent = default_to_agent
                 slot.default_to_agent = default_from_agent
             else:
                 slot.default_from_agent = default_from_agent
                 slot.default_to_agent = default_to_agent
-            if slot.is_currency:
+            if slot.is_currency and self.exchange_type.use_case != UseCase.objects.get(identifier="intrnl_xfer"):
                 if not slot.give_agent_is_context:
                     slot.default_from_agent = None #logged on agent
                 if not slot.receive_agent_is_context:
@@ -7335,6 +7336,7 @@ class Transfer(models.Model):
             commits = self.commitments.all()
             if commits:
                 commit = commits[0]
+                show_name = "(Planned) " + show_name
                 if commit.from_agent:
                     from_name = "from " + commit.from_agent.name
                 if commit.to_agent:

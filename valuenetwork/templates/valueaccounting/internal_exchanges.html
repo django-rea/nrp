@@ -44,46 +44,45 @@
             <span class="total">Reciprocal transfer total: {{ total_rec_transfers }} </span>
             <br />
             * Note these totals are meaningful only if the events selected all use the same currency.
-          </div>  
-		  {% if exchanges %}
-			<ul>
-			    {% for x in exchanges %}
-					<li>
-                        <a href="{% url exchange_logging exchange_id=x.id %}">{{ x }}
-                        {% if x.order %} for {{ x.order }}{% endif %}</a>  {% trans "created by" %} {{ x.created_by }}
-						{% if user = x.created_by or user.is_superuser%}
-                        	<a class="btn btn-info btn-mini" href="{% url exchange_logging exchange_id=x.id %}">{% trans "Change" %}</a> 
-                        	{% if x.is_deletable %}
-	                            <form
-			                        style="display: inline;" 
+          </div> 
+          {% if exchanges %}
+            <ul>
+                {% for x in exchanges %}
+                    <li>
+                        <a href="{% url exchange_logging exchange_type_id=0 exchange_id=x.id %}">{{ x }}</a>  {% trans "created by" %} {{ x.created_by }}
+                        {% if user = x.created_by or user.is_superuser%}
+                            <a class="btn btn-info btn-mini" href="{% url exchange_logging exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a> 
+                            {% if x.is_deletable %}
+                                <form
+                                    style="display: inline;" 
                                     class="delete-form" 
                                     id="deleteForm{{ exchange.id }}" 
                                     action="{% url delete_exchange exchange_id=x.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
-                                	<input type="hidden" id="next" name="next" value="sales_and_distributions" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete item" >Delete</button>
+                                    <input type="hidden" id="next" name="next" value="exchanges" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >Delete</button>
                                 </form>
-                    	    {% endif %}
-						{% endif %}
+                            {% endif %}
+                        {% endif %}
                     </li>
-                    {% if x.event_list %}
+                    {% if x.transfers.all %}
                         <ul>
-                            {% for event in x.event_list %}
-                                <li>{{ event }} {% if event.value %} {{ event.value }} {{ event.unit_of_value }} {% endif %}</li>
+                            {% for transfer in x.transfers.all %}
+                                <li>{{ transfer }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
-                    {% if x.events %}
+                    {% if x.work_events %}
                         <ul>
-                            {% for event in x.events.all %}
-                                <li>{{ event }}</li>
+                            {% for event in x.work_events %}
+                                <li>{{ event }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
-				{% endfor %}
-			</ul>
-		  {% endif %}
+                {% endfor %}
+            </ul>
+          {% endif %}
         </div>
         <div class="span3 filter">
           {% if exchanges %}

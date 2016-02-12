@@ -3229,12 +3229,6 @@ class EquationForm(forms.Form):
 
 
 class ExchangeForm(forms.ModelForm):
-    #process_pattern = forms.ModelChoiceField(
-    #    queryset=ProcessPattern.objects.none(), 
-    #    label=_("Pattern"),
-    #    empty_label=None, 
-    #    widget=forms.Select(
-    #        attrs={'class': 'pattern-selector'}))
     context_agent = forms.ModelChoiceField(
         queryset=EconomicAgent.objects.context_agents(), 
         label=_("Context"),
@@ -3243,10 +3237,6 @@ class ExchangeForm(forms.ModelForm):
     start_date = forms.DateField(required=True, 
         label=_("Date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
-    #order = forms.ModelChoiceField(
-    #    required=False,
-    #    queryset=Order.objects.all(),
-    #    widget=forms.Select(attrs={'class': 'resource chzn-select input-xxlarge',}))
     notes = forms.CharField(required=False, 
         label=_("Comments"),
         widget=forms.Textarea(attrs={'class': 'item-description',}))
@@ -3258,9 +3248,8 @@ class ExchangeForm(forms.ModelForm):
         model = Exchange
         fields = ('context_agent', 'start_date', 'url', 'notes')
 
-    def __init__(self, *args, **kwargs):
-        super(ExchangeForm, self).__init__(*args, **kwargs)
-    #    self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case) 
+    #def __init__(self, *args, **kwargs):
+    #    super(ExchangeForm, self).__init__(*args, **kwargs)
 
             
 class ExchangeFlowForm(forms.Form):
@@ -3294,7 +3283,14 @@ class SupplyExchangeNavForm(forms.Form):
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'exchange-selector'}))
-                
+
+class InternalExchangeNavForm(forms.Form):
+    exchange_type = forms.ModelChoiceField(
+        queryset=ExchangeType.objects.internal_exchange_types(),
+        empty_label=None,
+        widget=forms.Select(
+            attrs={'class': 'exchange-selector'}))
+        
 class SaleForm(forms.ModelForm):
     exchange_type = forms.ModelChoiceField(
         queryset=ExchangeType.objects.sale_exchange_types(),

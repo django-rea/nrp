@@ -417,6 +417,15 @@ def agent(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
     change_form = AgentCreateForm(instance=agent)
+    nav_form = InternalExchangeNavForm(data=request.POST or None)
+    if agent:
+        if request.method == "POST":
+            #import pdb; pdb.set_trace()
+            if nav_form.is_valid():
+                data = nav_form.cleaned_data
+                ext = data["exchange_type"]
+            return HttpResponseRedirect('/%s/%s/%s/%s/'
+                % ('accounting/exchange', ext.id, 0, agent.id))
     user_form = None
     if agent.is_individual():
         if not agent.username():
@@ -482,6 +491,7 @@ def agent(request, agent_id):
         "photo_size": (128, 128),
         "change_form": change_form,
         "user_form": user_form,
+        "nav_form": nav_form,
         "user_agent": user_agent,
         "has_associations": has_associations,
         "is_associated_with": is_associated_with,
@@ -5794,7 +5804,7 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
         if form.is_valid():
             data = form.cleaned_data
             qty = data["quantity"] 
-            ct2 = None
+            et2 = None
             if qty:
                 commitment_date = data["commitment_date"]
                 due_date = data["due_date"]
@@ -5869,7 +5879,7 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
                     created_by = request.user,
                     )
                 commit.save()
-                if ct2:
+                if et2:
                     commit2 = Commitment(
                         event_type = et2,
                         commitment_date=commitment_date,
@@ -5887,7 +5897,7 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
                         to_agent = to_agent,
                         created_by = request.user,
                     )    
-                    event2.save()
+                    commit2.save()
             
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('accounting/exchange', 0, exchange.id))
@@ -10679,7 +10689,7 @@ def contribution_events_csv(request):
     return response
 
 
-def exchange_logging(request, exchange_type_id=None, exchange_id=None): 
+def exchange_logging(request, exchange_type_id=None, exchange_id=None, context_agent_id=None): 
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
     logger = False
@@ -10705,7 +10715,12 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None):
                     return HttpResponseRedirect('/%s/%s/%s/'
                         % ('accounting/exchange', 0, exchange.id)) 
             
-            exchange_form = ExchangeForm()
+            if context_agent_id:
+                context_agent = EconomicAgent.objects.get(id=context_agent_id)
+                init = { "context_agent": context_agent }
+                exchange_form = ExchangeForm(initial=init)
+            else:
+                exchange_form = ExchangeForm()
             slots = exchange_type.slots()
             return render_to_response("valueaccounting/exchange_logging.html", {
                 "use_case": use_case,

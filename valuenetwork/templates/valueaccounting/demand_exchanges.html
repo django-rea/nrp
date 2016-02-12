@@ -67,16 +67,16 @@
                     	    {% endif %}
 						{% endif %}
                     </li>
-                    {% if x.transfers %}
+                    {% if x.transfers.all %}
                         <ul>
-                            {% for transfer in x.transfer_list %}
+                            {% for transfer in x.transfers.all %}
                                 <li>{{ transfer }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
-                    {% if x.events %}
+                    {% if x.work_events %}
                         <ul>
-                            {% for event in x.event_list %}
+                            {% for event in x.work_events %}
                                 <li>{{ event }} </li>
                             {% endfor %}
                         </ul>

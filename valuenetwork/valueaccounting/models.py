@@ -629,7 +629,7 @@ class EconomicAgent(models.Model):
         return answer
         
     def distributions_count(self):
-        return Exchange.objects.distributions().filter(context_agent=self).count()
+        return Distribution.objects.filter(context_agent=self).count()
               
     def demand_exchange_count(self):
         return Exchange.objects.demand_exchanges().filter(context_agent=self).count()

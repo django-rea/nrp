@@ -25,6 +25,9 @@
     font-size: 1.1em;
     font-weight: bold;
 }
+.indent {
+    margin-left: 1em;
+}
 </style>
 
 {% endblock %}
@@ -35,7 +38,11 @@
     <div class="container">
         {% include "_messages.html" %}
 		<legend>{% trans "Distributions" %}
-            {% if agent %} for {{ agent.agent_type }} {{ agent.name }} {% endif %}
+            {% if agent %} 
+                for {{ agent.agent_type }} {{ agent.name }} 
+            {% else %}
+                <a class="btn btn-primary indent" href="{% url distribution_logging %}">{% trans "Create Distribution Manually" %}</a>
+            {% endif %}
         </legend>
 
         <div class="span8">

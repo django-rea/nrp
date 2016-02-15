@@ -4718,7 +4718,7 @@ class EconomicResource(models.Model):
             event_type__name='Cash Contribution')
         
     def purchase_events(self):
-        rct_et = EventType.objects.get(relationship="receive")
+        rct_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=rct_et)
         
     def purchase_events_for_exchange_stage(self):

@@ -226,7 +226,7 @@
                             {% endif %}
                             {% if event.exchange %}
                                 <ul>
-                                    <li><b>{% trans "Exchange" %}:</b> <a href="{% url exchange_logging exchange_id=event.exchange.id %}">{{ event.exchange }}</a>
+                                    <li><b>{% trans "Exchange" %}:</b> <a href="{% url exchange_logging exchange_type_id=0 exchange_id=event.exchange.id %}">{{ event.exchange }}</a>
                                     </li>
                                         {% if event.exchange.payment_sources_with_contributions %}
                                             <li><b>{% trans "Contributions to payment for " %} {{ resource.identifier }}:</b></li>

@@ -10823,6 +10823,7 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None, context_a
         "help": get_help("exchange"),
     }, context_instance=RequestContext(request))
 
+'''
 def exchange_logging_old(request, exchange_id):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
@@ -11167,7 +11168,8 @@ def create_exchange(request, use_case_identifier):
         "context_types": context_types,
         "help": get_help("create_exchange"),
     }, context_instance=RequestContext(request))
-    
+
+#obsolete    
 @login_required
 def create_sale(request):
     #import pdb; pdb.set_trace()
@@ -11194,7 +11196,8 @@ def create_sale(request):
         "context_types": context_types,
         "help": get_help("create_sale"),
     }, context_instance=RequestContext(request))
-    
+
+#obsolete
 @login_required
 def create_distribution(request, agent_id):
     #import pdb; pdb.set_trace()
@@ -11217,28 +11220,71 @@ def create_distribution(request, agent_id):
         "context_agent": context_agent,
         "help": get_help("create_distribution"),
     }, context_instance=RequestContext(request))
-
+'''
     
 @login_required
 def distribution_logging(request, distribution_id=None):
     #import pdb; pdb.set_trace()
-    if not request.user.is_staff:
-        return render_to_response('valueaccounting/no_permission.html')
-    exchange_form = DistributionForm()
-    if request.method == "POST":
-        exchange_form = DistributionForm(data=request.POST)
-        if exchange_form.is_valid():
-            exchange = exchange_form.save(commit=False)
-            exchange.use_case = UseCase.objects.get(identifier="distribution")
-            exchange.context_agent = context_agent
-            exchange.created_by = request.user
-            exchange.save()
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/exchange', exchange.id))
-    return render_to_response("valueaccounting/create_distribution.html", {
-        "exchange_form": exchange_form,
-        "context_agent": context_agent,
-        "help": get_help("create_distribution"),
+    agent = get_agent(request)
+    logger = False
+    if agent:
+        if request.user.is_superuser:
+            logger = True
+    pattern = None
+    use_case = UseCase.objects.get(identifier="distribution")
+    patterns = ProcessPattern.objects.usecase_patterns(use_case)
+    if patterns:
+        pattern = patterns[0]
+    dist = None
+    total_disb = 0
+    total_dist = 0
+    
+    if not distribution_id: #new distribution
+        if agent:
+            if request.method == "POST":
+                main_form = DistributionForm(data=request.POST)
+                if main_form.is_valid():
+                    dist = main_form.save(commit=False)
+                    dist.process_pattern = pattern
+                    dist.created_by = request.user
+                    dist.save()
+                    return HttpResponseRedirect('/%s/%s/'
+                        % ('accounting/distribution', dist.id)) 
+        
+            main_form = DistributionForm()
+        
+        else:
+            raise ValidationError("System Error: No agent, not allowed to create distribution.")
+
+    else: #existing distribution
+        dist = get_object_or_404(Distribution, id=distribution_id)
+        
+        if request.method == "POST":
+            #import pdb; pdb.set_trace()
+            main_form = DistributionForm(instance=dist, data=request.POST)
+            if main_form.is_valid():
+                dist = main_form.save()
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/distribution', dist.id))   
+         
+        main_form = DistributionForm(instance=dist)
+        dist_init = {
+            "event_date": dist.distribution_date,
+        }      
+        add_distribution_form = DistributionEventForm(prefix='dist', initial=dist_init, pattern=pattern)
+        disb_init = {
+            "event_date": dist.distribution_date,
+        }      
+        add_disbursement_form = DisbursementEventForm(prefix='disb', initial=disb_init, pattern=pattern)   
+
+    return render_to_response("valueaccounting/distribution_logging.html", {
+        "main_form": main_form,
+        "dist": dist,
+        "agent": agent,
+        "logger": logger,
+        "add_distribution_form": add_distribution_form,
+        "add_disbursement_form": add_disbursement_form,
+        "help": get_help("distribution_logging"),
     }, context_instance=RequestContext(request))
 
 @login_required

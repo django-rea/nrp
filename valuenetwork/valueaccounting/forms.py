@@ -3335,28 +3335,23 @@ class SaleForm(forms.ModelForm):
             self.fields["customer"].queryset = context_agent.all_customers()
             
 class DistributionForm(forms.ModelForm):
-    process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(), 
-        label=_("Pattern"),
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'name input-xlarge',}))
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Context"),
         empty_label=None, 
-        widget=forms.Select(
-            attrs={'class': 'pattern-selector'}))
-    start_date = forms.DateField(required=True, 
-        label=_("Date"),
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    distribution_date = forms.DateField(required=True, 
+        label=_("Distribution date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     notes = forms.CharField(required=False, 
         label=_("Comments"),
         widget=forms.Textarea(attrs={'class': 'item-description',}))
     
     class Meta:
-        model = Exchange
-        fields = ('process_pattern', 'start_date', 'notes')
-        
-    def __init__(self, *args, **kwargs):
-        #import pdb; pdb.set_trace()
-        super(DistributionForm, self).__init__(*args, **kwargs)
-        use_case = UseCase.objects.get(identifier="distribution")
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case)
+        model = Distribution
+        fields = ('name', 'distribution_date', 'context_agent', 'notes')
+
   
 class DistributionValueEquationForm(forms.Form):
     value_equation = forms.ModelChoiceField(

@@ -9453,6 +9453,20 @@ class Distribution(models.Model):
         return self.events.filter(
             event_type__relationship='disburse')
     
+    def distribution_total(self):
+        dists = self.distribution_events()
+        total = 0
+        for dist in dists:
+            total += dist.quantity
+        return total
+    
+    def disbursement_total(self):
+        disbs = self.disbursement_events()
+        total = 0
+        for disb in disbs:
+            total += disb.quantity
+        return total
+    
     def flow_type(self):
         return "Distribution"
 

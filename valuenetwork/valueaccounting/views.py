@@ -11226,7 +11226,6 @@ def create_distribution(request, agent_id):
     }, context_instance=RequestContext(request))
 '''
     
-@login_required
 def distribution_logging(request, distribution_id=None):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
@@ -11242,6 +11241,8 @@ def distribution_logging(request, distribution_id=None):
     dist = None
     total_disb = 0
     total_dist = 0
+    add_distribution_form = None
+    add_disbursement_form = None
     
     if not distribution_id: #new distribution
         if agent:

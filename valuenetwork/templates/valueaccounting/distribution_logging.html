@@ -189,17 +189,17 @@ li {
                                         </form>
                                     </div>
                                 </div>
+                                <form
+                                    style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="distribution" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete disbursement" >X</button>
+                                </form>
                             {% endif %}
-                            <form
-                                style="display: inline;" 
-                                class="delete-form" 
-                                id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                                <input type="hidden" id="next" name="next" value="distribution" />
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete disbursement" >X</button>
-                            </form>
                             {% if event.description %}
                             <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
                             {% endif %}                       

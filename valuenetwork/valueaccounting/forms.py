@@ -1883,13 +1883,13 @@ class DistributionEventForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
-        label="To cash resource type",
+        label="To resource type",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-for-resource chzn-select'}))
     resource = ResourceModelChoiceField(
         queryset=EconomicResource.objects.all(), 
-        label="Cash resource account or earmark to increase",
+        label="Resource account or earmark to increase",
         required=False,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
     description = forms.CharField(
@@ -1898,31 +1898,28 @@ class DistributionEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'resource', 'description', 'accounting_reference', 'event_reference')
+        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'resource', 'description')
 
     def __init__(self, pattern=None, posting=False, *args, **kwargs):
         super(DistributionEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             rts = pattern.distribution_resource_types()
-            rts_vas = []
-            for rt in rts:
-                if rt.is_virtual_account():
-                    rts_vas.append(rt)
-            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
-            #self.fields["resource_type"].queryset = rts
-            if posting:
-                self.fields["resource"].queryset = EconomicResource.objects.all()
-            else:
-                if rts_vas:
-                    if self.instance.id:
-                        rt = self.instance.resource_type
-                        if rt:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
-                        else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
+        else:
+            rts = EconomicResourceType.objects.filter(behavior="account")
+        self.fields["resource_type"].queryset = rts
+        if posting:
+            self.fields["resource"].queryset = EconomicResource.objects.all()
+        else:
+            if rts:
+                if self.instance.id:
+                    rt = self.instance.resource_type
+                    if rt:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
                     else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                else:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
             
 
 class DisbursementEventForm(forms.ModelForm):
@@ -1932,13 +1929,13 @@ class DisbursementEventForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
-        label="From cash resource type",
+        label="From resource type",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-for-resource chzn-select'}))
     resource = ResourceModelChoiceField(
         queryset=EconomicResource.objects.all(), 
-        label="Cash resource account or earmark to decrease",
+        label="Account or earmark to decrease",
         required=False,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
     description = forms.CharField(
@@ -1954,24 +1951,21 @@ class DisbursementEventForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             rts = pattern.disbursement_resource_types()
-            rts_vas = []
-            for rt in rts:
-                if rt.is_virtual_account():
-                    rts_vas.append(rt)
-            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
-            #self.fields["resource_type"].queryset = rts
-            if posting:
-                self.fields["resource"].queryset = EconomicResource.objects.all()
-            else:
-                if rts_vas:
-                    if self.instance.id:
-                        rt = self.instance.resource_type
-                        if rt:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
-                        else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
+        else:
+            rts = EconomicResourceType.objects.filter(behavior="account")
+        self.fields["resource_type"].queryset = rts
+        if posting:
+            self.fields["resource"].queryset = EconomicResource.objects.all()
+        else:
+            if rts:
+                if self.instance.id:
+                    rt = self.instance.resource_type
+                    if rt:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
                     else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                else:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
 
                         
 class ShipmentForm(forms.ModelForm):

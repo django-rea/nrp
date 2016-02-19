@@ -10312,15 +10312,17 @@ class EconomicEvent(models.Model):
         qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
             
-    def exchange_change_form(self, data=None):
+    def distribution_change_form(self, data=None):
         #import pdb; pdb.set_trace()
-        from valuenetwork.valueaccounting.forms import ExchangeEventForm
-        unit = self.unit_of_quantity
-        if not unit:
-            unit = self.resource_type.unit
+        from valuenetwork.valueaccounting.forms import DistributionEventForm
         prefix = self.form_prefix()
-        qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
-        return ExchangeEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
+        return DistributionEventForm(instance=self, prefix=prefix, data=data)
+            
+    def disbursement_change_form(self, data=None):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.forms import DisbursementEventForm
+        prefix = self.form_prefix()
+        return DisbursementEventForm(instance=self, prefix=prefix, data=data)
     
     def unplanned_work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm

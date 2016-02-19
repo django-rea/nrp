@@ -166,24 +166,22 @@ li {
                 {% if dist.disbursement_events %}
                     {% for event in dist.disbursement_events %}
                         <div class="event">
-                            <span ><span class="event-label">{% trans "Disbursement" %}: </span> 
-                                <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> from <b>{{ event.resource.identifier }}</b> {{ event.event_date }}</span>
+                            <span class="event-label">{% trans "Disbursed" %}: </span> 
+                            <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> from <a href="{{ event.resource.get_absolute_url }}"><b>{{ event.resource.identifier }}</b></a> {{ event.event_date }}
                             {% if agent == event.from_agent or logger  %}
-                                {% if exchange.use_case.identifier != "cash_contr" %}
                                 <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                 <i class="icon-edit"></i>
                                 </a>
         
-                                <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+                                <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label{{ event.id }}" aria-hidden="true">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                        <h3 id="event-label">{% trans "Change Disbursement Event" %}</h3>
+                                        <h3 id="event-label{{ event.id }}">{% trans "Change Disbursement Event" %}</h3>
                                     </div>
                                     <div class="modal-body">
                                         <form class="validateMe" enctype="multipart/form-data" action="{% url change_disbursement_event event_id=event.id %}" method="POST" >
                                             {% csrf_token %}
-                                            {{ event.changeform|as_bootstrap }}
-                                            <input type="hidden" id="next" name="next" value="exchange" />
+                                            {{ event.disbursement_change_form|as_bootstrap }}
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -191,18 +189,17 @@ li {
                                         </form>
                                     </div>
                                 </div>
-                                {% endif %}
-                                <form
-                                    style="display: inline;" 
-                                    class="delete-form" 
-                                    id="deleteForm{{ event.id }}" 
-                                    action="{% url delete_event event_id=event.id %}" 
-                                    method="POST" >
-                                    {% csrf_token %}
-                                    <input type="hidden" id="next" name="next" value="exchange" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete expense" >X</button>
-                                </form>
                             {% endif %}
+                            <form
+                                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" id="next" name="next" value="distribution" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete disbursement" >X</button>
+                            </form>
                             {% if event.description %}
                             <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
                             {% endif %}                       
@@ -247,26 +244,24 @@ li {
                 {% if dist.distribution_events %}
                     {% for event in dist.distribution_events %}
                         <div class="event">
-                            <span ><span class="event-label">{% trans "Distributed" %}: </span> 
-                                <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> into 
-                                <b><a href="{{ event.resource.get_absolute_url }}">{{ event.resource.identifier }}</a></b> 
-                                {{ event.event_date }}</span>
+                            <span class="event-label">{% trans "Distributed" %}: </span> 
+                            <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> into 
+                            <b><a href="{{ event.resource.get_absolute_url }}">{{ event.resource.identifier }}</a></b> 
+                            {{ event.event_date }}
                             {% if agent == event.to_agent or logger  %}
-
                                 <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                 <i class="icon-edit"></i>
                                 </a>
         
-                                <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+                                <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label{{ event.id }}" aria-hidden="true">
                                     <div class="modal-header">
                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                        <h3 id="event-label">{% trans "Change Distribution Event" %}</h3>
+                                        <h3 id="event-label{{ event.id }}">{% trans "Change Distribution Event" %}</h3>
                                     </div>
                                     <div class="modal-body">
                                         <form class="validateMe" enctype="multipart/form-data" action="{% url change_distribution_event event_id=event.id %}" method="POST" >
                                             {% csrf_token %}
-                                            {{ event.changeform|as_bootstrap }}
-                                            <input type="hidden" id="next" name="next" value="exchange" />
+                                            {{ event.distribution_change_form|as_bootstrap }}
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -281,8 +276,8 @@ li {
                                     action="{% url delete_event event_id=event.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
-                                    <input type="hidden" id="next" name="next" value="exchange" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete expense" >X</button>
+                                    <input type="hidden" id="next" name="next" value="distribution" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete distribution" >X</button>
                                 </form>
                             {% endif %}
                             {% if event.description %}
@@ -335,11 +330,11 @@ li {
 			}
         });
 
-        $( "#id_distribution_date" ).datepicker({ dateFormat: "yy-mm-dd" });
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
     	$( "#mainForm" ).validate({
 			rules: {
-				start_date: {
+				distribution_date: {
 					required: true,
 					date: true
 				},
@@ -347,8 +342,46 @@ li {
 			highlight: function(label) {
 				$(label).closest('.control-group').addClass('error');
 			},
-		});       
+		});
+		
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
 
+        $.validator.addClassRules("quantity", { required: true, quantity: true, });
+        
+        $(".resource-type-for-resource").change(getResources);
+        
+        function getResources(event)
+        {
+            var resourceTypeId = event.target.value;
+            if (resourceTypeId)
+            {
+                var targetId = event.target.id;
+                var prefix = targetId.split('-')[0];
+                var resourceFieldId = "#" + prefix + "-resource";
+                $(resourceFieldId).empty();
+                var jsonUrl = encodeURI("/accounting/json-resourcetype-resources-locations/" + resourceTypeId + "/");
+                $.get(jsonUrl,
+                    function(data){
+                    for(var i=0 ; i<data.length ; i++)
+                    {
+                        var id = data[i].fields['pk'];
+                        var name = data[i].fields['identifier']; 
+                        var loc = data[i].fields['location']; 
+                        if (loc){
+                            name = name + " at " + loc;
+                        }
+                        $(resourceFieldId).append('<option value="' + id + '">' + name + '</option>') 
+                    }
+                    $(".chzn-select").trigger("liszt:updated");
+                });
+            }
+        }
 	}); // end document.ready
 	
     </script>

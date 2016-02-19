@@ -8607,6 +8607,306 @@ def update_summary(agent, context_agent, resource_type, event_type):
         summary.delete()
 
 
+#todo: not used
+#class Compensation(models.Model):
+    """One EconomicEvent compensating another.
+
+    The EconomicAgents in the exchanging events
+    must be opposites.  
+    That is, the from_agent of one event must be
+    the to-agent of the other event, and vice versa.
+    Both events must use the same unit of value.
+    Compensation events have a M:M relationship:
+    that is, one event can be compensated by many other events,
+    and the other events can compensate many initiating events.
+
+    Compensation is an REA Duality.
+
+    """
+#    initiating_event = models.ForeignKey(EconomicEvent, 
+#        related_name="initiated_compensations", verbose_name=_('initiating event'))
+#    compensating_event = models.ForeignKey(EconomicEvent, 
+#        related_name="compensations", verbose_name=_('compensating event'))
+#    compensation_date = models.DateField(_('compensation date'), default=datetime.date.today)
+#    compensating_value = models.DecimalField(_('compensating value'), max_digits=8, decimal_places=2)
+
+#    class Meta:
+#        ordering = ('compensation_date',)
+
+#    def __unicode__(self):
+#        value_string = '$' + str(self.compensating_value)
+#        return ' '.join([
+#            'inititating event:',
+#            self.initiating_event.__unicode__(),
+#            'compensating event:',
+#            self.compensating_event.__unicode__(),
+#            'value:',
+#            value_string,
+#        ])
+
+#    def clean(self):
+#        #import pdb; pdb.set_trace()
+#        if self.initiating_event.from_agent.id != self.compensating_event.to_agent.id:
+#            raise ValidationError('Initiating event from_agent must be the compensating event to_agent.')
+#        if self.initiating_event.to_agent.id != self.compensating_event.from_agent.id:
+#            raise ValidationError('Initiating event to_agent must be the compensating event from_agent.')
+#        #if self.initiating_event.unit_of_value.id != self.compensating_event.unit_of_value.id:
+#        #    raise ValidationError('Initiating event and compensating event must have the same units of value.')
+
+        
+PERCENTAGE_BEHAVIOR_CHOICES = (
+    ('remaining', _('Remaining percentage')),
+    ('straight', _('Straight percentage')),
+)
+
+class ValueEquation(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=True)
+    context_agent = models.ForeignKey(EconomicAgent,
+        limit_choices_to={"is_context": True,},
+        related_name="value_equations", verbose_name=_('context agent'))  
+    description = models.TextField(_('description'), null=True, blank=True)
+    percentage_behavior = models.CharField(_('percentage behavior'), 
+        max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight',
+        help_text=_('Remaining percentage uses the % of the remaining amount to be distributed.  Straight percentage uses the % of the total distribution amount.'))
+    live = models.BooleanField(_('live'), default=False,
+        help_text=_("Make this value equation available for use in real distributions."))
+    created_by = models.ForeignKey(User, verbose_name=_('created by'),
+        related_name='value_equations_created', blank=True, null=True)
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    
+    def __unicode__(self):
+        return self.name
+        
+    @models.permalink
+    def get_absolute_url(self):
+        return ('edit_value_equation', (),
+            { 'value_equation_id': str(self.id),})
+            
+    def is_deletable(self):
+        if self.distributions.all():
+            return False
+        else:
+            return True
+            
+    def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute, serialized_filters, cash_receipts=None, input_distributions=None):
+        #import pdb; pdb.set_trace()
+        distribution_events, contribution_events = self.run_value_equation(
+            amount_to_distribute=amount_to_distribute,
+            serialized_filters=serialized_filters)
+        for dist_event in distribution_events:
+            va = None
+            vas = dist_event.to_agent.virtual_accounts()
+            if vas:
+                for vacct in vas:
+                    if vacct.resource_type.unit == money_resource.resource_type.unit:
+                        va = vacct
+                        break
+            if not va:
+                va = dist_event.to_agent.create_virtual_account(resource_type=money_resource.resource_type)
+            if va:
+                dist_event.resource = va
+                dist_event.resource_type = va.resource_type 
+                dist_event.unit_of_quantity = va.resource_type.unit
+            else:
+                raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
+        et = EventType.objects.get(name='Cash Disbursement')
+        exchange.save()
+        
+        buckets = {}
+        #import pdb; pdb.set_trace()
+        for bucket in self.buckets.all():
+            filter = serialized_filters.get(bucket.id) or "{}"
+            filter = simplejson.loads(filter)
+            bucket_rules = {}
+            for br in bucket.bucket_rules.all():
+                filter_rule = simplejson.loads(br.filter_rule)
+                br_dict = {
+                    "event_type": br.event_type.name,
+                    "filter_rule": filter_rule,
+                    "claim creation equation": br.claim_creation_equation,
+                }
+                bucket_rules[br.id] = br_dict
+            bucket_dict = {
+                "name": bucket.name,
+                "filter": filter,
+                "bucket_rules": bucket_rules,
+            }
+            buckets[bucket.id] = bucket_dict
+        #import pdb; pdb.set_trace()
+        content = {"buckets": buckets}
+        json = simplejson.dumps(content, ensure_ascii=False, indent=4)    
+        dist_ve = DistributionValueEquation(
+            distribution_date = exchange.start_date,
+            exchange = exchange,
+            value_equation_link = self,
+            value_equation_content = json, #todo
+        )
+        dist_ve.save() 
+        #import pdb; pdb.set_trace()
+        if money_resource.owner():
+            fa = money_resource.owner()
+        else:
+            fa = self.context_agent
+        disbursement_event = EconomicEvent(
+            event_type=et,
+            event_date=exchange.start_date,
+            from_agent=fa, 
+            to_agent=self.context_agent,
+            context_agent=self.context_agent,
+            exchange=exchange,
+            quantity=amount_to_distribute,
+            unit_of_quantity=money_resource.resource_type.unit,
+            value=amount_to_distribute,
+            unit_of_value=money_resource.resource_type.unit,
+            is_contribution=False,
+            resource_type=money_resource.resource_type,
+            resource=money_resource,
+        )
+        disbursement_event.save()
+        money_resource.quantity -= amount_to_distribute
+        money_resource.save()
+        if cash_receipts:
+            #import pdb; pdb.set_trace()
+            if len(cash_receipts) == 1:
+                cr = cash_receipts[0]
+                crd = IncomeEventDistribution(
+                    distribution_date=exchange.start_date,
+                    income_event=cr,
+                    distribution=exchange,
+                    quantity=amount_to_distribute,
+                    unit_of_quantity=cr.unit_of_quantity,
+                )
+                crd.save()
+            else:
+                for cr in cash_receipts:
+                    crd = IncomeEventDistribution(
+                        distribution_date=exchange.start_date,
+                        income_event=cr,
+                        distribution=exchange,
+                        quantity=cr.quantity,
+                        unit_of_quantity=cr.unit_of_quantity,
+                    )
+                    crd.save()
+        if input_distributions:
+            for ind in input_distributions:
+                ied = IncomeEventDistribution(
+                    distribution_date=exchange.start_date,
+                    income_event=ind,
+                    distribution=exchange,
+                    quantity=ind.quantity,
+                    unit_of_quantity=ind.unit_of_quantity,
+                )
+                ied.save()
+        #import pdb; pdb.set_trace()
+        for dist_event in distribution_events:
+            dist_event.exchange = exchange
+            dist_event.event_date = exchange.start_date
+            dist_event.save()
+            to_resource = dist_event.resource
+            to_resource.quantity += dist_event.quantity
+            to_resource.save()
+            for dist_claim_event in dist_event.dist_claim_events:
+                claim_from_contribution = dist_claim_event.claim
+                if claim_from_contribution.new == True:
+                    claim_from_contribution.unit_of_value = dist_event.unit_of_quantity
+                    claim_from_contribution.date = exchange.start_date
+                    claim_from_contribution.save()
+                    ce_for_contribution = dist_claim_event.claim.claim_event 
+                    ce_for_contribution.claim = claim_from_contribution
+                    ce_for_contribution.unit_of_value = dist_event.unit_of_quantity
+                    ce_for_contribution.claim_event_date = exchange.start_date
+                    ce_for_contribution.save() 
+                dist_claim_event.claim = claim_from_contribution
+                dist_claim_event.event = dist_event
+                dist_claim_event.unit_of_value = dist_event.unit_of_quantity
+                dist_claim_event.claim_event_date = exchange.start_date
+                dist_claim_event.save()
+
+        return exchange
+        
+    def run_value_equation(self, amount_to_distribute, serialized_filters):
+        #import pdb; pdb.set_trace()
+        atd = amount_to_distribute
+        detail_sums = []
+        claim_events = []
+        contribution_events = []
+        for bucket in self.buckets.all():
+            #import pdb; pdb.set_trace()
+            bucket_amount =  bucket.percentage * amount_to_distribute / 100
+            amount = amount_to_distribute - bucket_amount
+            if amount < 0:
+                bucket_amount = bucket_amount - amount
+            amount_distributed = 0
+            if bucket_amount > 0:
+                if bucket.distribution_agent:
+                    sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
+                    detail_sums.append(sum_a)
+                    amount_distributed = bucket_amount
+                else:
+                    serialized_filter = serialized_filters.get(bucket.id)
+                    if serialized_filter:
+                        #import pdb; pdb.set_trace()
+                        ces, contributions = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
+                        for ce in ces:
+                            detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
+                            amount_distributed += ce.value
+                        claim_events.extend(ces)
+                        contribution_events.extend(contributions)
+            if self.percentage_behavior == "remaining":
+                amount_to_distribute = amount_to_distribute - amount_distributed
+        agent_amounts = {}
+        #import pdb; pdb.set_trace()
+        for dtl in detail_sums:
+            detail = dtl.split("~")
+            if detail[0] in agent_amounts:
+                amt = agent_amounts[detail[0]]
+                agent_amounts[detail[0]] = amt + Decimal(detail[1])
+            else:
+                agent_amounts[detail[0]] = Decimal(detail[1])
+        #import pdb; pdb.set_trace()
+        et = EventType.objects.get(name='Distribution')
+        distribution_events = []
+        #import pdb; pdb.set_trace()
+        for agent_id in agent_amounts:   
+            distribution = EconomicEvent(
+                event_type = et,
+                event_date = datetime.date.today(),
+                from_agent = self.context_agent, 
+                to_agent = EconomicAgent.objects.get(id=int(agent_id)),
+                context_agent = self.context_agent,
+                quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
+                is_contribution = False,
+            )
+            agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
+            for ce in agent_claim_events:
+                ce.event = distribution
+            distribution.dist_claim_events = agent_claim_events
+            distribution_events.append(distribution)
+        #clean up rounding errors
+        distributed = sum(de.quantity for de in distribution_events)
+        delta = atd - distributed
+        #import pdb; pdb.set_trace()
+        if delta and distribution_events:
+            max_dist = distribution_events[0]
+            for de in distribution_events:
+                if de.quantity > max_dist.quantity:
+                    max_dist = de
+            #import pdb; pdb.set_trace()
+            max_dist.quantity = (max_dist.quantity + delta).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+            claim_events = max_dist.dist_claim_events
+            for ce in claim_events:
+                if ce.value > abs(delta):
+                    ce.value += delta
+                    claim = ce.claim
+                    if claim.value_equation_bucket_rule.claim_rule_type == "debt-like":
+                        claim.value += delta
+                        if claim.value < 0:
+                            claim.value = 0
+                    break
+
+        return distribution_events, contribution_events
+
+
 class EconomicEventManager(models.Manager):
 
     def virtual_account_events(self, start_date=None, end_date=None):
@@ -8621,8 +8921,7 @@ class EconomicEventManager(models.Manager):
         return events
         
     def contributions(self):
-        return EconomicEvent.objects.filter(is_contribution=True)
-        
+        return EconomicEvent.objects.filter(is_contribution=True)        
         
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
@@ -9589,305 +9888,6 @@ class EconomicEvent(models.Model):
         else:
             return self.process.order_item()
         
-
-#todo: not used
-class Compensation(models.Model):
-    """One EconomicEvent compensating another.
-
-    The EconomicAgents in the exchanging events
-    must be opposites.  
-    That is, the from_agent of one event must be
-    the to-agent of the other event, and vice versa.
-    Both events must use the same unit of value.
-    Compensation events have a M:M relationship:
-    that is, one event can be compensated by many other events,
-    and the other events can compensate many initiating events.
-
-    Compensation is an REA Duality.
-
-    """
-    initiating_event = models.ForeignKey(EconomicEvent, 
-        related_name="initiated_compensations", verbose_name=_('initiating event'))
-    compensating_event = models.ForeignKey(EconomicEvent, 
-        related_name="compensations", verbose_name=_('compensating event'))
-    compensation_date = models.DateField(_('compensation date'), default=datetime.date.today)
-    compensating_value = models.DecimalField(_('compensating value'), max_digits=8, decimal_places=2)
-
-    class Meta:
-        ordering = ('compensation_date',)
-
-    def __unicode__(self):
-        value_string = '$' + str(self.compensating_value)
-        return ' '.join([
-            'inititating event:',
-            self.initiating_event.__unicode__(),
-            'compensating event:',
-            self.compensating_event.__unicode__(),
-            'value:',
-            value_string,
-        ])
-
-    def clean(self):
-        #import pdb; pdb.set_trace()
-        if self.initiating_event.from_agent.id != self.compensating_event.to_agent.id:
-            raise ValidationError('Initiating event from_agent must be the compensating event to_agent.')
-        if self.initiating_event.to_agent.id != self.compensating_event.from_agent.id:
-            raise ValidationError('Initiating event to_agent must be the compensating event from_agent.')
-        #if self.initiating_event.unit_of_value.id != self.compensating_event.unit_of_value.id:
-        #    raise ValidationError('Initiating event and compensating event must have the same units of value.')
-
-        
-PERCENTAGE_BEHAVIOR_CHOICES = (
-    ('remaining', _('Remaining percentage')),
-    ('straight', _('Straight percentage')),
-)
-
-class ValueEquation(models.Model):
-    name = models.CharField(_('name'), max_length=255, blank=True)
-    context_agent = models.ForeignKey(EconomicAgent,
-        limit_choices_to={"is_context": True,},
-        related_name="value_equations", verbose_name=_('context agent'))  
-    description = models.TextField(_('description'), null=True, blank=True)
-    percentage_behavior = models.CharField(_('percentage behavior'), 
-        max_length=12, choices=PERCENTAGE_BEHAVIOR_CHOICES, default='straight',
-        help_text=_('Remaining percentage uses the % of the remaining amount to be distributed.  Straight percentage uses the % of the total distribution amount.'))
-    live = models.BooleanField(_('live'), default=False,
-        help_text=_("Make this value equation available for use in real distributions."))
-    created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='value_equations_created', blank=True, null=True)
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    
-    def __unicode__(self):
-        return self.name
-        
-    @models.permalink
-    def get_absolute_url(self):
-        return ('edit_value_equation', (),
-            { 'value_equation_id': str(self.id),})
-            
-    def is_deletable(self):
-        if self.distributions.all():
-            return False
-        else:
-            return True
-            
-    def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute, serialized_filters, cash_receipts=None, input_distributions=None):
-        #import pdb; pdb.set_trace()
-        distribution_events, contribution_events = self.run_value_equation(
-            amount_to_distribute=amount_to_distribute,
-            serialized_filters=serialized_filters)
-        for dist_event in distribution_events:
-            va = None
-            vas = dist_event.to_agent.virtual_accounts()
-            if vas:
-                for vacct in vas:
-                    if vacct.resource_type.unit == money_resource.resource_type.unit:
-                        va = vacct
-                        break
-            if not va:
-                va = dist_event.to_agent.create_virtual_account(resource_type=money_resource.resource_type)
-            if va:
-                dist_event.resource = va
-                dist_event.resource_type = va.resource_type 
-                dist_event.unit_of_quantity = va.resource_type.unit
-            else:
-                raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
-        et = EventType.objects.get(name='Cash Disbursement')
-        exchange.save()
-        
-        buckets = {}
-        #import pdb; pdb.set_trace()
-        for bucket in self.buckets.all():
-            filter = serialized_filters.get(bucket.id) or "{}"
-            filter = simplejson.loads(filter)
-            bucket_rules = {}
-            for br in bucket.bucket_rules.all():
-                filter_rule = simplejson.loads(br.filter_rule)
-                br_dict = {
-                    "event_type": br.event_type.name,
-                    "filter_rule": filter_rule,
-                    "claim creation equation": br.claim_creation_equation,
-                }
-                bucket_rules[br.id] = br_dict
-            bucket_dict = {
-                "name": bucket.name,
-                "filter": filter,
-                "bucket_rules": bucket_rules,
-            }
-            buckets[bucket.id] = bucket_dict
-        #import pdb; pdb.set_trace()
-        content = {"buckets": buckets}
-        json = simplejson.dumps(content, ensure_ascii=False, indent=4)    
-        dist_ve = DistributionValueEquation(
-            distribution_date = exchange.start_date,
-            exchange = exchange,
-            value_equation_link = self,
-            value_equation_content = json, #todo
-        )
-        dist_ve.save() 
-        #import pdb; pdb.set_trace()
-        if money_resource.owner():
-            fa = money_resource.owner()
-        else:
-            fa = self.context_agent
-        disbursement_event = EconomicEvent(
-            event_type=et,
-            event_date=exchange.start_date,
-            from_agent=fa, 
-            to_agent=self.context_agent,
-            context_agent=self.context_agent,
-            exchange=exchange,
-            quantity=amount_to_distribute,
-            unit_of_quantity=money_resource.resource_type.unit,
-            value=amount_to_distribute,
-            unit_of_value=money_resource.resource_type.unit,
-            is_contribution=False,
-            resource_type=money_resource.resource_type,
-            resource=money_resource,
-        )
-        disbursement_event.save()
-        money_resource.quantity -= amount_to_distribute
-        money_resource.save()
-        if cash_receipts:
-            #import pdb; pdb.set_trace()
-            if len(cash_receipts) == 1:
-                cr = cash_receipts[0]
-                crd = IncomeEventDistribution(
-                    distribution_date=exchange.start_date,
-                    income_event=cr,
-                    distribution=exchange,
-                    quantity=amount_to_distribute,
-                    unit_of_quantity=cr.unit_of_quantity,
-                )
-                crd.save()
-            else:
-                for cr in cash_receipts:
-                    crd = IncomeEventDistribution(
-                        distribution_date=exchange.start_date,
-                        income_event=cr,
-                        distribution=exchange,
-                        quantity=cr.quantity,
-                        unit_of_quantity=cr.unit_of_quantity,
-                    )
-                    crd.save()
-        if input_distributions:
-            for ind in input_distributions:
-                ied = IncomeEventDistribution(
-                    distribution_date=exchange.start_date,
-                    income_event=ind,
-                    distribution=exchange,
-                    quantity=ind.quantity,
-                    unit_of_quantity=ind.unit_of_quantity,
-                )
-                ied.save()
-        #import pdb; pdb.set_trace()
-        for dist_event in distribution_events:
-            dist_event.exchange = exchange
-            dist_event.event_date = exchange.start_date
-            dist_event.save()
-            to_resource = dist_event.resource
-            to_resource.quantity += dist_event.quantity
-            to_resource.save()
-            for dist_claim_event in dist_event.dist_claim_events:
-                claim_from_contribution = dist_claim_event.claim
-                if claim_from_contribution.new == True:
-                    claim_from_contribution.unit_of_value = dist_event.unit_of_quantity
-                    claim_from_contribution.date = exchange.start_date
-                    claim_from_contribution.save()
-                    ce_for_contribution = dist_claim_event.claim.claim_event 
-                    ce_for_contribution.claim = claim_from_contribution
-                    ce_for_contribution.unit_of_value = dist_event.unit_of_quantity
-                    ce_for_contribution.claim_event_date = exchange.start_date
-                    ce_for_contribution.save() 
-                dist_claim_event.claim = claim_from_contribution
-                dist_claim_event.event = dist_event
-                dist_claim_event.unit_of_value = dist_event.unit_of_quantity
-                dist_claim_event.claim_event_date = exchange.start_date
-                dist_claim_event.save()
-
-        return exchange
-        
-    def run_value_equation(self, amount_to_distribute, serialized_filters):
-        #import pdb; pdb.set_trace()
-        atd = amount_to_distribute
-        detail_sums = []
-        claim_events = []
-        contribution_events = []
-        for bucket in self.buckets.all():
-            #import pdb; pdb.set_trace()
-            bucket_amount =  bucket.percentage * amount_to_distribute / 100
-            amount = amount_to_distribute - bucket_amount
-            if amount < 0:
-                bucket_amount = bucket_amount - amount
-            amount_distributed = 0
-            if bucket_amount > 0:
-                if bucket.distribution_agent:
-                    sum_a = str(bucket.distribution_agent.id) + "~" + str(bucket_amount)
-                    detail_sums.append(sum_a)
-                    amount_distributed = bucket_amount
-                else:
-                    serialized_filter = serialized_filters.get(bucket.id)
-                    if serialized_filter:
-                        #import pdb; pdb.set_trace()
-                        ces, contributions = bucket.run_bucket_value_equation(amount_to_distribute=bucket_amount, context_agent=self.context_agent, serialized_filter=serialized_filter)
-                        for ce in ces:
-                            detail_sums.append(str(ce.claim.has_agent.id) + "~" + str(ce.value))
-                            amount_distributed += ce.value
-                        claim_events.extend(ces)
-                        contribution_events.extend(contributions)
-            if self.percentage_behavior == "remaining":
-                amount_to_distribute = amount_to_distribute - amount_distributed
-        agent_amounts = {}
-        #import pdb; pdb.set_trace()
-        for dtl in detail_sums:
-            detail = dtl.split("~")
-            if detail[0] in agent_amounts:
-                amt = agent_amounts[detail[0]]
-                agent_amounts[detail[0]] = amt + Decimal(detail[1])
-            else:
-                agent_amounts[detail[0]] = Decimal(detail[1])
-        #import pdb; pdb.set_trace()
-        et = EventType.objects.get(name='Distribution')
-        distribution_events = []
-        #import pdb; pdb.set_trace()
-        for agent_id in agent_amounts:   
-            distribution = EconomicEvent(
-                event_type = et,
-                event_date = datetime.date.today(),
-                from_agent = self.context_agent, 
-                to_agent = EconomicAgent.objects.get(id=int(agent_id)),
-                context_agent = self.context_agent,
-                quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
-                is_contribution = False,
-            )
-            agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
-            for ce in agent_claim_events:
-                ce.event = distribution
-            distribution.dist_claim_events = agent_claim_events
-            distribution_events.append(distribution)
-        #clean up rounding errors
-        distributed = sum(de.quantity for de in distribution_events)
-        delta = atd - distributed
-        #import pdb; pdb.set_trace()
-        if delta and distribution_events:
-            max_dist = distribution_events[0]
-            for de in distribution_events:
-                if de.quantity > max_dist.quantity:
-                    max_dist = de
-            #import pdb; pdb.set_trace()
-            max_dist.quantity = (max_dist.quantity + delta).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-            claim_events = max_dist.dist_claim_events
-            for ce in claim_events:
-                if ce.value > abs(delta):
-                    ce.value += delta
-                    claim = ce.claim
-                    if claim.value_equation_bucket_rule.claim_rule_type == "debt-like":
-                        claim.value += delta
-                        if claim.value < 0:
-                            claim.value = 0
-                    break
-
-        return distribution_events, contribution_events
         
 class DistributionValueEquation(models.Model):
     '''

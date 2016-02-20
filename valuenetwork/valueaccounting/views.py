@@ -435,6 +435,7 @@ def agent(request, agent_id):
     is_associated_with = agent.all_is_associates()           
     
     headings = []
+    member_hours_recent = []
     member_hours_stats = []
     individual_stats = []
     member_hours_roles = []
@@ -453,6 +454,25 @@ def agent(request, agent_id):
     elif agent.is_context_agent():
     
         subs = agent.with_all_sub_agents()
+        end = datetime.date.today()
+        #end = end - datetime.timedelta(days=77)
+        start =  end - datetime.timedelta(days=60)
+        events = EconomicEvent.objects.filter(
+            event_type__relationship="work",
+            context_agent__in=subs,
+            event_date__range=(start, end))
+            
+        if events:
+            agents_stats = {}
+            for event in events:
+                agents_stats.setdefault(event.from_agent.name, Decimal("0"))
+                agents_stats[event.from_agent.name] += event.quantity
+            for key, value in agents_stats.items():
+                member_hours_recent.append((key, value))
+            member_hours_recent.sort(lambda x, y: cmp(y[1], x[1]))
+        
+        #import pdb; pdb.set_trace()
+        
         ces = CachedEventSummary.objects.filter(
             event_type__relationship="work",
             context_agent__in=subs)
@@ -496,6 +516,7 @@ def agent(request, agent_id):
         "has_associations": has_associations,
         "is_associated_with": is_associated_with,
         "headings": headings,
+        "member_hours_recent": member_hours_recent,
         "member_hours_stats": member_hours_stats,   
         "member_hours_roles": member_hours_roles,
         "individual_stats": individual_stats,
@@ -1043,23 +1064,27 @@ def resource_flow_report(request, resource_type_id):
     #redo: need exchange_types as well as process_types
     #this next stmt is obsolete until we get mixed process-exchange recipes
     #pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+    # also, shd this be only onhand or all resources?
+    # or onhand + sold?
+    # if all, any other filters?
     if rt.direct_children():
-        lot_list = EconomicResource.objects.onhand().filter(resource_type__parent=rt)
+        #lot_list = EconomicResource.objects.onhand().filter(resource_type__parent=rt)
+        lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
+        lot_list = [lot for lot in lot_list if lot.quantity > 0 or lot.sales()]
     else:
-        lot_list = rt.resources.filter(quantity__gt=0)
-    stages = []
+        #lot_list = rt.resources.filter(quantity__gt=0)
+        lot_list = rt.resources.all()
+        lot_list = [lot for lot in lot_list if lot.quantity > 0 or lot.sales()]
     #hack to get a full set of stages upfront
     #otherwise new ones incorrectly arrive at the end of the flow
     #would be better to figure out how to insert in the correct place
     stages = []
-    try:
-        lot = EconomicResource.objects.get(id=461)
-        stages = [pex.stage for pex in lot.process_exchange_flow()]
-        stages.reverse()
-    except EconomicResource.DoesNotExist:
-        pass
-    #if stages[0].id != 3:
-    #    import pdb; pdb.set_trace()
+    stages.append(ExchangeType.objects.get(id=3))
+    stages.append(ExchangeType.objects.get(id=2))
+    stages.append(ProcessType.objects.get(id=4))
+    stages.append(ExchangeType.objects.get(id=1))
+    stages.append(ProcessType.objects.get(id=5))
+    sales = []
     for lot in lot_list:
         #if lot.identifier == "direct345345": #70314
         #    import pdb; pdb.set_trace() 
@@ -1093,27 +1118,17 @@ def resource_flow_report(request, resource_type_id):
                 if pex.stage == stage:
                     stage_pex.append(pex)
             stage.stage_pex = stage_pex
-        #if lot.identifier == "51515": #70314
+        #if lot.identifier == "92714": #70314 AHtest
         #    import pdb; pdb.set_trace() 
         lot.lot_stages = lot_stages
         lot.lot_process_exchange_flow = lot_process_exchange_flow
-        orders = []
-        order = None
-        """
-        if lot_pts:
-            last_pt = lot_pts[-1]
-            if type(last_pt) is Process:
-                for proc in last_pt.lpt_pex:
-                    order = proc.independent_demand()
-                    if order:
-                        orders.append(order)
-        """
-        if not order:
-            shipped_orders = lot.shipped_on_orders()
-            if shipped_orders:
-                orders.extend(shipped_orders)
-        lot.orders = orders
-    #import pdb; pdb.set_trace() 
+        lot_sales = []
+
+        lot_sales = lot.sales()
+        if lot_sales:
+            sales.extend(lot_sales)
+        lot.sales = lot_sales
+    
     # just commented out next section because I don't understand it yet
     """
     for lot in lot_list:
@@ -1121,6 +1136,8 @@ def resource_flow_report(request, resource_type_id):
             if ptype not in lot.lot_pts:
                 lot.lot_pts.append(ptype)
     """    
+    
+    #import pdb; pdb.set_trace() 
     paginator = Paginator(lot_list, 500)
     page = request.GET.get('page')
     try:
@@ -1409,8 +1426,12 @@ def unscheduled_time_contributions(request):
         extra=8,
         max_num=8,
         )
+    init = []
+    for i in range(0, 8):
+        init.append({"is_contribution": True,})
     time_formset = TimeFormSet(
         queryset=EconomicEvent.objects.none(),
+        initial = init,
         data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -1432,7 +1453,7 @@ def unscheduled_time_contributions(request):
                     if event.event_date and event.quantity:
                         event.from_agent=member
                         event.to_agent = event.context_agent.default_agent()
-                        event.is_contribution=True
+                        #event.is_contribution=True
                         rt = event.resource_type
                         event_type = pattern.event_type_for_resource_type("work", rt)
                         event.event_type=event_type
@@ -4153,7 +4174,36 @@ def project_stats(request, context_agent_slug):
             member_hours.sort(lambda x, y: cmp(y[1], x[1]))
     return render_to_response("valueaccounting/project_stats.html", {
         "member_hours": member_hours,
+        "page_title": "All-time project stats",
     }, context_instance=RequestContext(request))
+    
+def recent_stats(request, context_agent_slug):
+    project = None
+    member_hours = []
+    #import pdb; pdb.set_trace()
+    if context_agent_slug:
+        project = get_object_or_404(EconomicAgent, slug=context_agent_slug)
+    if project:
+        subs = project.with_all_sub_agents()
+        end = datetime.date.today()
+        #end = end - datetime.timedelta(days=77)
+        start =  end - datetime.timedelta(days=60)
+        events = EconomicEvent.objects.filter(
+            event_type__relationship="work",
+            context_agent__in=subs,
+            event_date__range=(start, end))
+        agents_stats = {}
+        for event in events:
+            agents_stats.setdefault(event.from_agent, Decimal("0"))
+            agents_stats[event.from_agent] += event.quantity
+        for key, value in agents_stats.items():
+            member_hours.append((key, value))
+        member_hours.sort(lambda x, y: cmp(y[1], x[1]))
+    return render_to_response("valueaccounting/project_stats.html", {
+        "member_hours": member_hours,
+        "page_title": "Last 2 months project stats",
+    }, context_instance=RequestContext(request))
+
 
 def project_roles(request, context_agent_slug):
     project = None
@@ -7048,7 +7098,9 @@ def process_oriented_logging(request, process_id):
             if agent == req.from_agent:
                 logger = True
                 worker = True  
-            init = {"from_agent": agent, "event_date": todays_date}
+            init = {"from_agent": agent, 
+                "event_date": todays_date,
+                "is_contribution": True,}
             req.input_work_form_init = req.input_event_form_init(init=init)
         for req in consume_reqs:
             req.changeform = req.change_form()
@@ -7081,14 +7133,19 @@ def process_oriented_logging(request, process_id):
                     add_output_form.fields["resource_type"].queryset = output_resource_types
         if "work" in slots:
             if agent:
-                work_resource_types = pattern.work_resource_types()
-                work_unit = work_resource_types[0].unit
-                #work_init = {"unit_of_quantity": work_unit,}
                 work_init = {
                     "from_agent": agent,
-                    "unit_of_quantity": work_unit,
+                    "is_contribution": True,
                 } 
+                work_resource_types = pattern.work_resource_types()
                 if work_resource_types:
+                    work_unit = work_resource_types[0].unit
+                    #work_init = {"unit_of_quantity": work_unit,}
+                    work_init = {
+                        "from_agent": agent,
+                        "unit_of_quantity": work_unit,
+                        "is_contribution": True,
+                    } 
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
                     unplanned_work_form.fields["resource_type"].queryset = work_resource_types
                     #if logger:
@@ -7472,7 +7529,6 @@ def add_work_event(request, commitment_id):
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
-        event.is_contribution=True
         event.save()
         ct.process.set_started(event.event_date, request.user)
         
@@ -7500,7 +7556,6 @@ def add_unplanned_work_event(request, process_id):
             event.unit_of_quantity = rt.unit
             event.created_by = request.user
             event.changed_by = request.user
-            event.is_contribution=True
             event.save()
             process.set_started(event.event_date, request.user)
             
@@ -8428,7 +8483,7 @@ def change_work_event(request, event_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         prefix = event.form_prefix()
-        form = InputEventForm(instance=event, prefix=prefix, data=request.POST)
+        form = WorkEventChangeForm(instance=event, prefix=prefix, data=request.POST)
         if form.is_valid():
             #import pdb; pdb.set_trace()
             data = form.cleaned_data
@@ -11675,7 +11730,10 @@ def value_equation_sandbox(request, value_equation_id=None):
                     agent_subtotals[key] = AgentSubtotal(d.from_agent, d.vebr)
                 sub = agent_subtotals[key]
                 sub.quantity += d.quantity
-                sub.value += d.share
+                try:
+                    sub.value += d.share
+                except AttributeError:
+                    continue
                 try:
                     sub.distr_amt += d.distr_amt
                 except AttributeError:

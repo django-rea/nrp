@@ -44,6 +44,7 @@ Note: Apostolis Xekoukoulotakis reports that on Debian, Pillow requires
 libjpeg-dev and python2.7-dev.
 
 Here's PIL: https://pypi.python.org/pypi/PIL/
+http://askubuntu.com/questions/156484/how-do-i-install-python-imaging-library-pil
 
 6. create a virtualenv (assuming you installed virtualenvwrapper):
 mkvirtualenv vn --system-site-packages 
@@ -55,9 +56,11 @@ git clone https://github.com/valnet/valuenetwork.git
  
 8. cd valuenetwork
 
-9. pip install -r requirements.txt
+9. pip install -r requirements.txt --trusted-host dist.pinaxproject.com
 
-Note: If you get errors saying the repository is not trusted, try adding: --trusted-host dist.pinaxproject.com to the above command.
+Note: if you get the pip error message, no such option: --trusted-host
+do 
+pip install -U pip
 
 10. pip install --no-deps easy_thumbnails
 
@@ -104,6 +107,8 @@ You will be the only user who will need to do this.
 All other Agents and Users can be created from 
 the Organization page.
 
+18.  To be able to run scripts in shell_plus:
 
+pip install ipython
 
 

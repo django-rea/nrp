@@ -36,10 +36,10 @@ class WorkModelChoiceField(forms.ModelChoiceField):
         
 class ResourceModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        label = obj.identifier
+        label = obj.__unicode__()
         if obj.current_location:
             loc = obj.current_location.name
-            label = " ".join([obj.identifier, "at", loc])
+            label = " ".join([label, "at", loc])
         return label
 
         
@@ -617,7 +617,7 @@ class UnplannedWorkEventForm(forms.ModelForm):
    
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'from_agent', 'quantity', 'unit_of_quantity', 'description')
+        fields = ('event_date', 'resource_type', 'from_agent', 'quantity', 'unit_of_quantity', 'is_contribution', 'description')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         #import pdb; pdb.set_trace()
@@ -1418,7 +1418,7 @@ class WorkEventChangeForm(forms.ModelForm):
 	
     class Meta:
         model = EconomicEvent
-        fields = ('id', 'event_date', 'quantity', 'description')
+        fields = ('id', 'event_date', 'quantity', 'is_contribution', 'description')
 
 
 #obsolete?
@@ -1467,6 +1467,7 @@ class InputEventForm(forms.ModelForm):
         if qty_help:
             self.fields["quantity"].help_text = qty_help
 
+# use in views.rocess_oriented_logging for work events, despite the name
 class InputEventAgentForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=True,
@@ -1483,7 +1484,7 @@ class InputEventAgentForm(forms.ModelForm):
     
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'quantity', 'description')
+        fields = ('event_date', 'from_agent', 'quantity', 'is_contribution', 'description', )
 
     def __init__(self, qty_help=None, *args, **kwargs):
         super(InputEventAgentForm, self).__init__(*args, **kwargs)
@@ -1981,7 +1982,7 @@ class ShipmentForm(forms.ModelForm):
         label="Quantity shipped",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource = ResourceModelChoiceField(
-        queryset=EconomicResource.objects.all(), 
+        queryset=EconomicResource.objects.onhand(), 
         label="Resource shipped",
         empty_label=None,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
@@ -2569,10 +2570,6 @@ class CasualTimeContributionForm(forms.ModelForm):
         label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
-    #project = forms.ModelChoiceField(
-    #    queryset=Project.objects.all(), 
-    #    empty_label=None, 
-    #    widget=forms.Select(attrs={'class': 'chzn-select'}))
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
@@ -2582,7 +2579,7 @@ class CasualTimeContributionForm(forms.ModelForm):
 	
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'context_agent', 'quantity', 'url', 'description')
+        fields = ('event_date', 'resource_type', 'context_agent', 'quantity', 'is_contribution', 'url', 'description')
 
     def __init__(self, *args, **kwargs):
         super(CasualTimeContributionForm, self).__init__(*args, **kwargs)
@@ -2594,6 +2591,7 @@ class CasualTimeContributionForm(forms.ModelForm):
         if pattern:
             self.fields["resource_type"].queryset = pattern.work_resource_types().order_by("name")
 
+            
 class HasAssociateChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.inverse_label

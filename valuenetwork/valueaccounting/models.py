@@ -761,6 +761,9 @@ class EconomicAgent(models.Model):
         agent_ids = self.has_associates.filter(association_type__association_behavior="member").filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
         
+    def individual_members(self):
+        return self.members().filter(agent_type__party_type="individual")
+        
     #def affiliates(self):
     #    #import pdb; pdb.set_trace()
     #    agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('is_associate')
@@ -1046,6 +1049,15 @@ class EconomicAgent(models.Model):
         if self.virtual_accounts():
             return False
         return True
+        
+    def contexts_participated_in(self):
+        answer = []
+        if self.agent_type.party_type == "individual":
+            events = self.given_events.exclude(context_agent__isnull=True)
+            cids = events.values_list('context_agent', flat=True)
+            cids = list(set(cids))
+            answer = EconomicAgent.objects.filter(id__in=cids)
+        return answer
                 
         
 class AgentUser(models.Model):
@@ -2536,7 +2548,6 @@ class ProcessPattern(models.Model):
     #    rt_ids = [rt.id for rt in rts]
     #    return EconomicResourceType.objects.filter(id__in=rt_ids)
             
-        
     #def shipment_resources(self):
     #    #import pdb; pdb.set_trace()
     #    rts = self.shipment_resource_types()
@@ -3869,6 +3880,15 @@ class EconomicResource(models.Model):
             if ship.exchange.order:
                 orders.append(ship.exchange.order)
         return orders
+        
+    def sales(self):
+        sales = []
+        et = EventType.objects.get(relationship="shipment")
+        shipments = EconomicEvent.objects.filter(resource=self).filter(event_type=et)
+        for ship in shipments:
+            if ship.exchange:
+                sales.append(ship.exchange)
+        return sales
             
     def value_equations(self):
         ves = []
@@ -4400,16 +4420,17 @@ class EconomicResource(models.Model):
                             #we assume here that work events are contributions
                             if ip.event_type.relationship == "work":
                                 #import pdb; pdb.set_trace()
-                                value = ip.value
-                                br = ip.bucket_rule(value_equation)
-                                if br:
-                                    #import pdb; pdb.set_trace()
-                                    value = br.compute_claim_value(ip)
-                                    ip.value = value
-                                ip.share = value * distro_fraction
-                                events.append(ip)
-                                #print ip.id, ip, ip.share
-                                #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                                if ip.is_contribution:
+                                    value = ip.value
+                                    br = ip.bucket_rule(value_equation)
+                                    if br:
+                                        #import pdb; pdb.set_trace()
+                                        value = br.compute_claim_value(ip)
+                                        ip.value = value
+                                    ip.share = value * distro_fraction
+                                    events.append(ip)
+                                    #print ip.id, ip, ip.share
+                                    #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
                             elif ip.event_type.relationship == "use":
                                 #use events are not contributions, but their resources may have contributions
                                 #equip logging changes
@@ -4535,17 +4556,18 @@ class EconomicResource(models.Model):
                         for ip in inputs:
                             #we assume here that work events are contributions
                             if ip.event_type.relationship == "work":
-                                value = ip.value
-                                br = ip.bucket_rule(value_equation)
-                                if br:
-                                    value = br.compute_claim_value(ip)
-                                    ip.value = value
-                                #todo 3d: changed
-                                #import pdb; pdb.set_trace()
-                                fraction = ip.value / resource_value
-                                ip.share = use_value * fraction
-                                #ip.share = value * distro_fraction
-                                events.append(ip)
+                                if ip.is_contribution:
+                                    value = ip.value
+                                    br = ip.bucket_rule(value_equation)
+                                    if br:
+                                        value = br.compute_claim_value(ip)
+                                        ip.value = value
+                                    #todo 3d: changed
+                                    #import pdb; pdb.set_trace()
+                                    fraction = ip.value / resource_value
+                                    ip.share = use_value * fraction
+                                    #ip.share = value * distro_fraction
+                                    events.append(ip)
                             elif ip.event_type.relationship == "use":
                                 #use events are not contributions, but their resources may have contributions
                                 if ip.resource:
@@ -4723,6 +4745,7 @@ class EconomicResource(models.Model):
         
     def purchase_events_for_exchange_stage(self):
         #todo dhen_bug:
+        #import pdb; pdb.set_trace()
         if self.exchange_stage:
             return self.purchase_events().filter(exchange_stage=self.exchange_stage)
         else:
@@ -4819,6 +4842,7 @@ class EconomicResource(models.Model):
     def process_exchange_flow(self):
         flows = self.incoming_value_flows()
         xnp = [f for f in flows if type(f) is Process or type(f) is Exchange]
+        #import pdb; pdb.set_trace()
         for x in xnp:
             if type(x) is Process:
                 x.type="Process"
@@ -6427,18 +6451,19 @@ class Process(models.Model):
                     for ip in inputs:
                         #we assume here that work events are contributions
                         if ip.event_type.relationship == "work":
-                            #todo br
-                            #import pdb; pdb.set_trace()
-                            value = ip.value
-                            br = ip.bucket_rule(value_equation)
-                            if br:
+                            if ip.is_contribution:
+                                #todo br
                                 #import pdb; pdb.set_trace()
-                                value = br.compute_claim_value(ip)
-                                ip.value = value
-                            ip.share = value * distro_fraction
-                            events.append(ip)
-                            #print ip.id, ip, ip.share
-                            #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                                value = ip.value
+                                br = ip.bucket_rule(value_equation)
+                                if br:
+                                    #import pdb; pdb.set_trace()
+                                    value = br.compute_claim_value(ip)
+                                    ip.value = value
+                                ip.share = value * distro_fraction
+                                events.append(ip)
+                                #print ip.id, ip, ip.share
+                                #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
                         elif ip.event_type.relationship == "use":
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
@@ -7160,17 +7185,18 @@ class Exchange(models.Model):
 
             for evt in self.work_events():
                 #import pdb; pdb.set_trace()
-                value = evt.quantity
-                br = evt.bucket_rule(value_equation)
-                if br:
-                    #import pdb; pdb.set_trace()
-                    value = br.compute_claim_value(evt)
-                #evt.share = value * share * trigger_fraction
-                evt.value = value
-                evt.save()
-                evt.share = value * share * trigger_fraction
-                #evt.share = value * trigger_fraction
-                events.append(evt)
+                if evt.is_contribution:
+                    value = evt.quantity
+                    br = evt.bucket_rule(value_equation)
+                    if br:
+                        #import pdb; pdb.set_trace()
+                        value = br.compute_claim_value(evt)
+                    #evt.share = value * share * trigger_fraction
+                    evt.value = value
+                    evt.save()
+                    evt.share = value * share * trigger_fraction
+                    #evt.share = value * trigger_fraction
+                    events.append(evt)
                 
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #exchange method
@@ -9019,7 +9045,6 @@ def check_events_for_summary(summary):
         return " ".join(["summary.quantity:", str(summary.quantity), "event total:", str(total)])
     return "ok"
     
-    
 def update_summary(agent, context_agent, resource_type, event_type):
     events = EconomicEvent.objects.filter(
         from_agent=agent,
@@ -9145,7 +9170,6 @@ class ValueEquation(models.Model):
                 raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
         et = EventType.objects.get(name='Cash Disbursement')
         exchange.save()
-        
         buckets = {}
         #import pdb; pdb.set_trace()
         for bucket in self.buckets.all():
@@ -9339,8 +9363,8 @@ class ValueEquation(models.Model):
                     break
 
         return distribution_events, contribution_events
-
-
+    
+    
 class DistributionManager(models.Manager):
     
     def distributions(self, start=None, end=None):
@@ -9391,7 +9415,7 @@ class Distribution(models.Model):
             "starting",
             self.distribution_date.strftime('%Y-%m-%d'),
             ])
-    
+   
     def deserialize_value_equation_content(self):
         return simplejson.loads(self.value_equation_content)
         
@@ -9444,7 +9468,7 @@ class Distribution(models.Model):
                         for sid in ship_ids:
                             shipments.append(EconomicEvent.objects.get(id=sid))
         return shipments
-    
+  
     def distribution_events(self):
         return self.events.filter(
             event_type__relationship='distribute')
@@ -9476,7 +9500,7 @@ class Distribution(models.Model):
     def flow_description(self):
         return self.__unicode__()    
 
-
+      
 class EconomicEventManager(models.Manager):
 
     def virtual_account_events(self, start_date=None, end_date=None):
@@ -9492,7 +9516,7 @@ class EconomicEventManager(models.Manager):
         
     def contributions(self):
         return EconomicEvent.objects.filter(is_contribution=True)
-               
+    
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
         related_name="events", verbose_name=_('event type'))
@@ -9592,7 +9616,7 @@ class EconomicEvent(models.Model):
             quantity_string,
             resource_string,
         ])
-    
+   
     def undistributed_description(self):
         if self.unit_of_quantity:
             quantity_string = " ".join([str(self.undistributed_amount()), self.unit_of_quantity.abbrev])
@@ -9617,8 +9641,7 @@ class EconomicEvent(models.Model):
             quantity_string,
             resource_string,
         ])
-        
-        
+
     def save(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
         from_agt = 'Unassigned'
@@ -10144,9 +10167,12 @@ class EconomicEvent(models.Model):
             if self.recipient():
                 to_agt = self.recipient().nick
             agt_string = ' to '.join([from_agt, to_agt])
+        rname = self.resource_type.name
+        if self.resource:
+            rname = self.resource.resource_type.name
         return ' '.join([
             agt_string,
-            self.resource_type.name,
+            rname,
             quantity_string,
         ])
         
@@ -10284,10 +10310,10 @@ class EconomicEvent(models.Model):
     def form_prefix(self):
         return "-".join(["EVT", str(self.id)])
 
-    #obsolete?
     def work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import WorkEventChangeForm
-        return WorkEventChangeForm(instance=self)
+        prefix = self.form_prefix()
+        return WorkEventChangeForm(instance=self, prefix=prefix, )
         
     def change_form_old(self, data=None):
         #import pdb; pdb.set_trace()
@@ -10323,6 +10349,16 @@ class EconomicEvent(models.Model):
         from valuenetwork.valueaccounting.forms import DisbursementEventForm
         prefix = self.form_prefix()
         return DisbursementEventForm(instance=self, prefix=prefix, data=data)
+    
+    #def exchange_change_form(self, data=None):
+    #    #import pdb; pdb.set_trace()
+    #    from valuenetwork.valueaccounting.forms import ExchangeEventForm
+    #    unit = self.unit_of_quantity
+    #    if not unit:
+    #        unit = self.resource_type.unit
+    #    prefix = self.form_prefix()
+    #    qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+    #    return ExchangeEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
     
     def unplanned_work_event_change_form(self):
         from valuenetwork.valueaccounting.forms import UnplannedWorkEventForm
@@ -10461,7 +10497,6 @@ class EconomicEvent(models.Model):
             return self.commitment.order_item
         else:
             return self.process.order_item()
-
         
 #obsolete        
 class DistributionValueEquation(models.Model):
@@ -11053,7 +11088,7 @@ class Claim(models.Model):
         related_name="has_claims", verbose_name=_('has'))
     against_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
-        related_name="claims against", verbose_name=_('against'))
+        related_name="claims_against", verbose_name=_('against'))
     context_agent = models.ForeignKey(EconomicAgent,
         blank=True, null=True,
         limit_choices_to={"is_context": True,},

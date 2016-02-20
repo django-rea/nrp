@@ -9141,13 +9141,12 @@ class ValueEquation(models.Model):
             { 'value_equation_id': str(self.id),})
             
     def is_deletable(self):
-        if self.distributions.all():
+        if self.distributions.all() or self.live:
             return False
         else:
             return True
     
-    #todo: distribution instead of exchange
-    def run_value_equation_and_save(self, exchange, money_resource, amount_to_distribute, serialized_filters, cash_receipts=None, input_distributions=None):
+    def run_value_equation_and_save(self, distribution, money_resource, amount_to_distribute, serialized_filters, events_to_distribute=None):
         #import pdb; pdb.set_trace()
         distribution_events, contribution_events = self.run_value_equation(
             amount_to_distribute=amount_to_distribute,
@@ -9169,7 +9168,7 @@ class ValueEquation(models.Model):
             else:
                 raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
         et = EventType.objects.get(name='Cash Disbursement')
-        exchange.save()
+        #distribution.save() #?? used to be exchange; was anything changed?
         buckets = {}
         #import pdb; pdb.set_trace()
         for bucket in self.buckets.all():
@@ -9193,13 +9192,16 @@ class ValueEquation(models.Model):
         #import pdb; pdb.set_trace()
         content = {"buckets": buckets}
         json = simplejson.dumps(content, ensure_ascii=False, indent=4)    
-        dist_ve = DistributionValueEquation(
-            distribution_date = exchange.start_date,
-            exchange = exchange,
-            value_equation_link = self,
-            value_equation_content = json, #todo
-        )
-        dist_ve.save() 
+        #dist_ve = DistributionValueEquation(
+        #    distribution_date = exchange.start_date,
+        #   exchange = exchange,
+        #    value_equation_link = self,
+        #    value_equation_content = json, #todo
+        #)
+        #dist_ve.save() 
+        distribution.value_equation_link = self
+        distribution.value_equation_content = json
+        distribution.save()
         #import pdb; pdb.set_trace()
         if money_resource.owner():
             fa = money_resource.owner()
@@ -9207,11 +9209,11 @@ class ValueEquation(models.Model):
             fa = self.context_agent
         disbursement_event = EconomicEvent(
             event_type=et,
-            event_date=exchange.start_date,
+            event_date=distribution.distribution_date,
             from_agent=fa, 
             to_agent=self.context_agent,
             context_agent=self.context_agent,
-            exchange=exchange,
+            distribution=distribution,
             quantity=amount_to_distribute,
             unit_of_quantity=money_resource.resource_type.unit,
             value=amount_to_distribute,
@@ -9223,42 +9225,42 @@ class ValueEquation(models.Model):
         disbursement_event.save()
         money_resource.quantity -= amount_to_distribute
         money_resource.save()
-        if cash_receipts:
+        if events_to_distribute:
             #import pdb; pdb.set_trace()
-            if len(cash_receipts) == 1:
-                cr = cash_receipts[0]
+            if len(events_to_distribute) == 1:
+                cr = events_to_distribute[0]
                 crd = IncomeEventDistribution(
-                    distribution_date=exchange.start_date,
+                    distribution_date=distribution.distribution_date,
                     income_event=cr,
-                    distribution=exchange,
+                    distribution=distribution,
                     quantity=amount_to_distribute,
                     unit_of_quantity=cr.unit_of_quantity,
                 )
                 crd.save()
             else:
-                for cr in cash_receipts:
+                for cr in events_to_distribute:
                     crd = IncomeEventDistribution(
-                        distribution_date=exchange.start_date,
+                        distribution_date=distribution.distribution_date,
                         income_event=cr,
-                        distribution=exchange,
+                        distribution=distribution,
                         quantity=cr.quantity,
                         unit_of_quantity=cr.unit_of_quantity,
                     )
                     crd.save()
-        if input_distributions:
-            for ind in input_distributions:
-                ied = IncomeEventDistribution(
-                    distribution_date=exchange.start_date,
-                    income_event=ind,
-                    distribution=exchange,
-                    quantity=ind.quantity,
-                    unit_of_quantity=ind.unit_of_quantity,
-                )
-                ied.save()
+        #if input_distributions:
+        #    for ind in input_distributions:
+        #        ied = IncomeEventDistribution(
+        #            distribution_date=distribution.distribution_date,
+        #            income_event=ind,
+        #            distribution=distribution,
+        #            quantity=ind.quantity,
+        #            unit_of_quantity=ind.unit_of_quantity,
+        #        )
+        #        ied.save()
         #import pdb; pdb.set_trace()
         for dist_event in distribution_events:
-            dist_event.exchange = exchange
-            dist_event.event_date = exchange.start_date
+            dist_event.distribution = distribution
+            dist_event.event_date = distribution.distribution_date
             dist_event.save()
             to_resource = dist_event.resource
             to_resource.quantity += dist_event.quantity
@@ -9267,17 +9269,17 @@ class ValueEquation(models.Model):
                 claim_from_contribution = dist_claim_event.claim
                 if claim_from_contribution.new == True:
                     claim_from_contribution.unit_of_value = dist_event.unit_of_quantity
-                    claim_from_contribution.date = exchange.start_date
+                    claim_from_contribution.date = distribution.distribution_date
                     claim_from_contribution.save()
                     ce_for_contribution = dist_claim_event.claim.claim_event 
                     ce_for_contribution.claim = claim_from_contribution
                     ce_for_contribution.unit_of_value = dist_event.unit_of_quantity
-                    ce_for_contribution.claim_event_date = exchange.start_date
+                    ce_for_contribution.claim_event_date = distribution.distribution_date
                     ce_for_contribution.save() 
                 dist_claim_event.claim = claim_from_contribution
                 dist_claim_event.event = dist_event
                 dist_claim_event.unit_of_value = dist_event.unit_of_quantity
-                dist_claim_event.claim_event_date = exchange.start_date
+                dist_claim_event.claim_event_date = distribution.distribution_date
                 dist_claim_event.save()
 
         return exchange
@@ -9326,7 +9328,7 @@ class ValueEquation(models.Model):
         distribution_events = []
         #import pdb; pdb.set_trace()
         for agent_id in agent_amounts:   
-            distribution = EconomicEvent(
+            distribution_event = EconomicEvent(
                 event_type = et,
                 event_date = datetime.date.today(),
                 from_agent = self.context_agent, 
@@ -9337,9 +9339,9 @@ class ValueEquation(models.Model):
             )
             agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
             for ce in agent_claim_events:
-                ce.event = distribution
-            distribution.dist_claim_events = agent_claim_events
-            distribution_events.append(distribution)
+                ce.event = distribution_event
+            distribution_event.dist_claim_events = agent_claim_events
+            distribution_events.append(distribution_event)
         #clean up rounding errors
         distributed = sum(de.quantity for de in distribution_events)
         delta = atd - distributed
@@ -10711,7 +10713,7 @@ class ValueEquationBucket(models.Model):
                 exchanges = Exchange.objects.filter(order=order)
                 #import pdb; pdb.set_trace()
                 for exchange in exchanges:
-                    for payment in exchange.payment_events():
+                    for payment in exchange.payment_events(): #todo: fix!
                         events.append(payment)
                     for work in exchange.work_events():
                         events.append(work)
@@ -10719,7 +10721,7 @@ class ValueEquationBucket(models.Model):
             from valuenetwork.valueaccounting.forms import ShipmentMultiSelectForm
             form = ShipmentMultiSelectForm(context_agent=context_agent)
             bucket_filter = form.deserialize(serialized_filter)
-            shipment_events = bucket_filter["shipments"]
+            shipment_events = bucket_filter["shipments"] #todo: fix!
             if shipment_events:
                 ship_string = ", ".join([str(s.id) for s in shipment_events])
                 filter = "".join([
@@ -10735,7 +10737,7 @@ class ValueEquationBucket(models.Model):
                 qty = ship.quantity
                 #todo 3d: two methods to chase
                 if resource:
-                    events.extend(resource.compute_shipment_income_shares(ve, qty))
+                    events.extend(resource.compute_shipment_income_shares(ve, qty)) #todo: fix
                 else:
                     events.extend(ship.compute_income_fractions_for_process(ve))
                 #hours = sum(e.quantity for e in events)
@@ -10885,7 +10887,7 @@ class ValueEquationBucket(models.Model):
             else:
                 form = OrderMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent, data=data)
         elif self.filter_method == "shipment":
-            from valuenetwork.valueaccounting.forms import ShipmentMultiSelectForm
+            from valuenetwork.valueaccounting.forms import ShipmentMultiSelectForm #todo: fix
             if data == None:
                 form = ShipmentMultiSelectForm(prefix=str(self.id), context_agent=self.value_equation.context_agent)
             else:

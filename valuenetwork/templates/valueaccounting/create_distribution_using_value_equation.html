@@ -119,15 +119,11 @@ th
             <p>Value Equation</p>
             <p>{{ header_form.value_equation }}</p>
             <table id="selection">
-              <tr><td>Select one or more source Cash Receipts</td><td class="or">OR</td><td>Enter amount to distribute</td></tr>
+              <tr><td>Select one or more sources to be distributed</td><td class="or">OR</td><td>Enter amount to distribute</td></tr>
               <tr>
                 <td class="top">
                     <span id="cashRcpt">
-                    {{ header_form.cash_receipts }}<br />
-                    </span>
-                    <span id="or1" class="or">OR</span>
-                    <span id="sourceDist">
-                    select one or more source Distributions<br />{{ header_form.input_distributions }}
+                    {{ header_form.events_to_distribute }}<br />
                     </span>
                 </td>
                 <td>&nbsp;</td>

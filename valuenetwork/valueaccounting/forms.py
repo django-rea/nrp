@@ -3353,15 +3353,10 @@ class DistributionValueEquationForm(forms.Form):
         widget=forms.Select(
             attrs={'class': 've-selector'}))
     #todo: partial - needs a custom ModelMultipleChoiceField showing the undistributed_amount
-    cash_receipts = CashReceiptModelMultipleChoiceField(
+    events_to_distribute = CashReceiptModelMultipleChoiceField(
         required=False,
         queryset=EconomicEvent.objects.all(),
         label=_("Select one or more Cash Receipts OR enter amount to distribute and account"),
-        widget=forms.SelectMultiple(attrs={'class': 'cash chzn-select input-xxlarge'}))
-    input_distributions = forms.ModelMultipleChoiceField(
-        required=False,
-        queryset=EconomicEvent.objects.all(),
-        label=_("OR select one or more Distributions"),
         widget=forms.SelectMultiple(attrs={'class': 'cash chzn-select input-xxlarge'}))
     money_to_distribute = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money'}))
@@ -3386,17 +3381,18 @@ class DistributionValueEquationForm(forms.Form):
         if post == False:
             if context_agent:
                 self.fields["value_equation"].queryset = context_agent.live_value_equations()
-                self.fields["cash_receipts"].queryset = context_agent.undistributed_cash_receipts()
-                self.fields["input_distributions"].queryset = context_agent.undistributed_distributions()
+                self.fields["events_to_distribute"].queryset = context_agent.undistributed_cash_receipts() #fix
+            resources = []
             if pattern:
-                resources = []
                 rts = pattern.distribution_resource_types()
-                if rts:
-                    for rt in rts:
-                        rss = rt.all_resources()
-                        for res in rss:
-                            resources.append(res)
-                self.fields["resource"].choices = [('', '----------')] + [(res.id, res.identifier) for res in resources]
+            else:
+                rts = EconomicResourceType.objects.all() #todo: may be a way to narrow further
+            if rts:
+                for rt in rts:
+                    rss = rt.all_resources()
+                    for res in rss:
+                        resources.append(res)
+            self.fields["resource"].choices = [('', '----------')] + [(res.id, res.identifier) for res in resources]
         #import pdb; pdb.set_trace()
         
 class ResourceFlowForm(forms.ModelForm):

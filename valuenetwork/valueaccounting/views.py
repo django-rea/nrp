@@ -11359,9 +11359,12 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
         ve = None
     buckets = []
     use_case = UseCase.objects.get(identifier="distribution")
-    pattern = ProcessPattern.objects.usecase_patterns(use_case)[0]
+    pattern = None
+    patts = ProcessPattern.objects.usecase_patterns(use_case)
+    if patts:
+        pattern = patts[0]
     agent_totals = None
-    cash_receipts = {}
+    events_to_distribute = {}
     if request.method == "POST":
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True, data=request.POST)
         #import pdb; pdb.set_trace()
@@ -11370,25 +11373,19 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             ve = data["value_equation"]
             amount = data["money_to_distribute"]
             resource = data["resource"]
-            crs = data["cash_receipts"]
-            inds = data["input_distributions"]
+            events_to_distribute = data["events_to_distribute"]
             partial = data["partial_distribution"]
-            if crs:
-                resource = crs[0].resource
+            if events_to_distribute:
+                resource = events_to_distribute[0].resource
                 amount = 0
-                if len(crs) == 1:
+                if len(events_to_distribute) == 1:
                     if partial:
                         amount= partial
                     else:
-                        amount = crs[0].quantity
+                        amount = events_to_distribute[0].quantity
                 else:
-                    for cr in crs:
+                    for cr in events_to_distribute:
                         amount += cr.quantity
-            if inds:
-                resource = inds[0].resource
-                amount = 0
-                for ind in inds:
-                    amount += ind.quantity
             dist_date = data["start_date"]
             notes = data["notes"]
             serialized_filters = {}
@@ -11409,21 +11406,19 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                     serialized_filters=serialized_filters)
                 
             else:                            
-                exchange = Exchange(                
+                distribution = Distribution(                
                     name="Distribution for " + context_agent.nick,
                     process_pattern=pattern,
-                    use_case=use_case,
-                    start_date=dist_date,
+                    distribution_date=dist_date,
                     notes=notes,
                     context_agent=context_agent,
                     created_by=request.user,
                 )
                 #exchange.save()
                 
-                exchange = ve.run_value_equation_and_save(
-                    cash_receipts=crs,
-                    input_distributions=inds,
-                    exchange=exchange, 
+                distribution = ve.run_value_equation_and_save(
+                    events_to_distribute=events_to_distribute,
+                    distribution=distribution, 
                     money_resource=resource, 
                     amount_to_distribute=amount, 
                     serialized_filters=serialized_filters)
@@ -11449,7 +11444,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                     bucket.form = bucket.filter_entry_form()
       
     return render_to_response("valueaccounting/create_distribution_using_value_equation.html", {
-        "cashReceipts": cash_receipts,
+        "events_to_distribute": events_to_distribute,
         "header_form": header_form,
         "buckets": buckets,
         "ve": ve,

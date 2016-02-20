@@ -1582,7 +1582,10 @@ class TransferForm(forms.Form):
     is_contribution = forms.BooleanField(
         required=False,
         initial=True,
-        label="Can be used in a value equation",
+        widget=forms.CheckboxInput())
+    is_to_distribute = forms.BooleanField(
+        required=False,
+        initial=True,
         widget=forms.CheckboxInput())
     event_reference = forms.CharField(
         required=False, 
@@ -2453,6 +2456,10 @@ class TransferTypeForm(forms.ModelForm):
         required=False,
         label="Can be used in a value equation",
         widget=forms.CheckboxInput())
+    is_to_distribute = forms.BooleanField(
+        required=False,
+        label="Can be used as a resource to distribute",
+        widget=forms.CheckboxInput())
     is_reciprocal = forms.BooleanField(
         required=False,
         label="Is a reciprocal transfer",
@@ -2488,7 +2495,7 @@ class TransferTypeForm(forms.ModelForm):
     
     class Meta:
         model = TransferType
-        fields = ('sequence', 'name', 'description', 'is_reciprocal', 'is_contribution', 
+        fields = ('sequence', 'name', 'description', 'is_reciprocal', 'is_contribution', 'is_to_distribute',  
                   'can_create_resource', 'is_currency', 'give_agent_is_context', 'give_agent_association_type', 
                   'receive_agent_is_context', 'receive_agent_association_type')
 

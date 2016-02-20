@@ -6520,6 +6520,7 @@ class TransferType(models.Model):
         verbose_name=_('exchange type'), related_name='transfer_types')
     description = models.TextField(_('description'), blank=True, null=True)
     is_contribution = models.BooleanField(_('is contribution'), default=False)
+    is_to_distribute = models.BooleanField(_('is to distribute'), default=False)
     is_reciprocal = models.BooleanField(_('is reciprocal'), default=False)
     can_create_resource = models.BooleanField(_('can create resource'), default=False)
     is_currency = models.BooleanField(_('is currency'), default=False)
@@ -9575,6 +9576,7 @@ class EconomicEvent(models.Model):
         verbose_name=_('fulfills commitment'), related_name="fulfillment_events",
         on_delete=models.SET_NULL)
     is_contribution = models.BooleanField(_('is contribution'), default=False)
+    is_to_distribute = models.BooleanField(_('is to distribute'), default=False)
     accounting_reference = models.ForeignKey(AccountingReference, blank=True, null=True,
         verbose_name=_('accounting reference'), related_name="events",
         help_text=_('optional reference to an accounting grouping'))

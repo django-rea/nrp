@@ -5593,6 +5593,8 @@ def add_transfer(request, exchange_id, transfer_type_id):
             et2 = None
             res_identifier = None
             if qty:
+                et_give = EventType.objects.get(name="Give")
+                et_receive = EventType.objects.get(name="Receive")
                 event_date = data["event_date"]
                 if transfer_type.give_agent_is_context:
                     from_agent = context_agent
@@ -5619,6 +5621,10 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     is_contribution = data["is_contribution"]
                 else:
                     is_contribution = False
+                if transfer_type.is_to_distribute:
+                    is_to_distribute = data["is_to_distribute"]
+                else:
+                    is_to_distribute = False
                 event_ref = data["event_reference"]
                 if transfer_type.can_create_resource:
                     res = data["resource"]
@@ -5641,27 +5647,27 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     if transfer_type.is_reciprocal:
                         if res:
                             res.quantity -= res.quantity
-                        et = EventType.objects.get(name="Give")
+                        et = et_give
                     else:
                         if res:
                             res.quantity += res.quantity
-                        et = EventType.objects.get(name="Receive")
+                        et = et_receive
                 elif exchange.exchange_type.use_case == UseCase.objects.get(identifier="demand_xfer"):
                     if transfer_type.is_reciprocal:
                         if res:
                             res.quantity += res.quantity
-                        et = EventType.objects.get(name="Receive")
+                        et = et_receive
                     else:
                         if res:
                             res.quantity -= res.quantity
-                        et = EventType.objects.get(name="Give")
+                        et = et_give
                 else: #internal xfer use case
                     if transfer_type.is_reciprocal:
-                        et = EventType.objects.get(name="Receive")
-                        et2 = EventType.objects.get(name="Give")
+                        et = et_receive
+                        et2 = et_give
                     else:
-                        et = EventType.objects.get(name="Give")
-                        et2 = EventType.objects.get(name="Receive")
+                        et = et_give
+                        et2 = et_receive
                 if res:
                     res.save()
                 if res_identifier: #new resource
@@ -5693,6 +5699,12 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     created_by = request.user              
                     )
                 xfer.save()
+                e_is_to_distribute = is_to_distribute
+                if et == et_give:
+                    e_is_to_distribute = False
+                e_is_contribution = is_contribution
+                if et == et_receive:
+                    e_is_contribution = False
                 event = EconomicEvent(
                     event_type = et,
                     event_date=event_date,
@@ -5708,12 +5720,19 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     unit_of_value=unit_of_value,
                     from_agent = from_agent,
                     to_agent = to_agent,
-                    is_contribution = is_contribution,
+                    is_contribution = e_is_contribution,
+                    is_to_distribute = e_is_to_distribute,
                     event_reference=event_ref,
                     created_by = request.user,
                     )
                 event.save()
                 if et2:
+                    e2_is_to_distribute = is_to_distribute
+                    if et == et_give:
+                        e2_is_to_distribute = False
+                    e2_is_contribution = is_contribution
+                    if et == et_receive:
+                        e2_is_contribution = False
                     event2 = EconomicEvent(
                         event_type = et2,
                         event_date=event_date,
@@ -5729,7 +5748,8 @@ def add_transfer(request, exchange_id, transfer_type_id):
                         unit_of_value=unit_of_value,
                         from_agent = from_agent,
                         to_agent = to_agent,
-                        is_contribution = is_contribution,
+                        is_contribution = e2_is_contribution,
+                        is_to_distribute = e2_is_to_distribute,
                         event_reference=event_ref,
                         created_by = request.user,
                     )    

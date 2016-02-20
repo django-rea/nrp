@@ -2313,6 +2313,7 @@ class ResourceTypeFacetValue(models.Model):
 def all_purchased_resource_types():
     uc = UseCase.objects.get(name="Purchasing")
     pats = ProcessPattern.objects.usecase_patterns(uc)
+    #todo exchange redesign fallout
     et = EventType.objects.get(name="Receipt")
     rts = []
     for pat in pats:
@@ -4729,6 +4730,7 @@ class EconomicResource(models.Model):
             return self.purchase_events()
         
     def transfer_events(self):
+        #todo exchange redesign fallout
         tx_et = EventType.objects.get(name="Transfer")
         return self.events.filter(event_type=tx_et)
         
@@ -4836,6 +4838,7 @@ class EconomicResource(models.Model):
             events = self.event_sequence()
             events.reverse()
             pet = EventType.objects.get(name="Resource Production")
+            #todo exchange redesign fallout
             xet = EventType.objects.get(name="Transfer")
             rcpt = EventType.objects.get(name="Receipt")
             
@@ -9706,6 +9709,7 @@ class EconomicEvent(models.Model):
         """
         #import pdb; pdb.set_trace()
         prevs = []
+        #todo exchange redesign fallout
         ret = EventType.objects.get(name="Receipt")
         cet = EventType.objects.get(name="Resource Consumption")
         if self.event_type == ret:

@@ -10482,9 +10482,12 @@ class EconomicEvent(models.Model):
                         
     def compute_income_fractions_for_process(self, value_equation):
         #EconomicEvent (shipment) method
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         shares = []
-        if self.event_type.name == "Shipment":
+        #todo transferBreakout: 
+        # shipment events are no longer event_type.name == "Shipment"
+        # they are et.name == "Give"
+        if self.event_type.name == "Give":
             commitment = self.commitment
             #problem: if the shipment event with no (an uninventoried) resource has no commitment,
             #we can't find the process it came from.

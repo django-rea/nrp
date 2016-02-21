@@ -11421,6 +11421,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
 
             test_only = request.POST.get("test-only")
             if test_only:
+                #import pdb; pdb.set_trace()
                 agent_totals, contribution_events = ve.run_value_equation(
                     amount_to_distribute=amount,
                     serialized_filters=serialized_filters)

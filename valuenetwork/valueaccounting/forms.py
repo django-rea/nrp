@@ -3363,16 +3363,15 @@ class DistributionValueEquationForm(forms.Form):
     events_to_distribute = CashReceiptModelMultipleChoiceField(
         required=False,
         queryset=EconomicEvent.objects.all(),
-        label=_("Select one or more Cash Receipts OR enter amount to distribute and account"),
         widget=forms.SelectMultiple(attrs={'class': 'cash chzn-select input-xxlarge'}))
     money_to_distribute = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money'}))
     partial_distribution = forms.DecimalField(required=False,
-        help_text = _("if you selected only one cash receipt or distribution, you may distribute only part of it"),
+        help_text = _("if you selected only one distribution source, you may distribute only part of it"),
         widget=forms.TextInput(attrs={'value': '', 'class': 'partial'}))
     resource = forms.ModelChoiceField(
         queryset=EconomicResource.objects.all(), 
-        label="Cash resource account",
+        label="Distribute from account",
         required=False,
         widget=forms.Select(attrs={'class': 'resource input-xlarge',}))
     start_date = forms.DateField(required=True, 
@@ -3388,7 +3387,7 @@ class DistributionValueEquationForm(forms.Form):
         if post == False:
             if context_agent:
                 self.fields["value_equation"].queryset = context_agent.live_value_equations()
-                self.fields["events_to_distribute"].queryset = context_agent.undistributed_cash_receipts() #fix
+                self.fields["events_to_distribute"].queryset = context_agent.undistributed_events() 
             resources = []
             if pattern:
                 rts = pattern.distribution_resource_types()
@@ -3919,8 +3918,11 @@ class OrderMultiSelectForm(forms.Form):
 class ShipmentMultiSelectForm(forms.Form):
     shipments = forms.ModelMultipleChoiceField(
         required=True,
+        #queryset=EconomicEvent.objects.filter(
+        #    event_type__relationship="shipment",
+        #    ),
         queryset=EconomicEvent.objects.filter(
-            event_type__relationship="shipment",
+            event_type__relationship="give",
             ),
         label=_("Select one or more Delivery Events"),
         #empty_label=None,

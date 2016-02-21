@@ -957,7 +957,7 @@ class EconomicAgent(models.Model):
         exf = self.exchange_firm()
         cr_orders = []
         if exf:
-            crs = self.undistributed_cash_receipts()
+            crs = self.undistributed_events()
             cr_orders = [cr.exchange.order for cr in crs if cr.exchange]
         for order in Order.objects.all():
             cas = order.context_agents()
@@ -975,9 +975,12 @@ class EconomicAgent(models.Model):
         #import pdb; pdb.set_trace()
         shipments = []
         exf = self.exchange_firm()
-        ship = EventType.objects.get(label="ships")
-        transfer = EventType.objects.get(name="Reciprocal Transfer")
-        qs = EconomicEvent.objects.filter(Q(event_type=ship)|Q(event_type=transfer))
+        #ship = EventType.objects.get(label="ships")
+        #transfer = EventType.objects.get(name="Reciprocal Transfer")
+        #qs = EconomicEvent.objects.filter(Q(event_type=ship)|Q(event_type=transfer))
+        et_give = EventType.objects.get(name="Give")
+        uc_demand = UseCase.objects.get(identifier="demand_xfer")
+        qs = EconomicEvent.objects.filter(event_type=et_give).filter(transfer__transfer_type__exchange_type__use_case=uc_demand)
         #todo: retest, may need production events for shipments to tell
         #if a shipment shd be excluded or not
         if exf:
@@ -1000,29 +1003,30 @@ class EconomicAgent(models.Model):
             qs = qs.filter(context_agent=self)
         return qs
         
-    def undistributed_cash_receipts(self):
+    def undistributed_events(self):
         #import pdb; pdb.set_trace()
-        cr_ids = []
-        et = EventType.objects.get(name="Cash Receipt")
-        crs = EconomicEvent.objects.filter(context_agent=self).filter(event_type=et)
-        for cr in crs:
-            if cr.is_undistributed():
-                cr_ids.append(cr.id)
+        event_ids = []
+        #et = EventType.objects.get(name="Cash Receipt")
+        events = EconomicEvent.objects.filter(context_agent=self).filter(is_to_distribute=True)
+        for event in events:
+            if event.is_undistributed():
+                event_ids.append(event.id)
         exf = self.exchange_firm()
         #todo: maybe use shipments in addition or instead of virtual accounts?
         #exchange firm might put cash receipt into a more general virtual account
         if exf:
-            crs = exf.undistributed_cash_receipts()
-            cr_ids.extend(cr.id for cr in crs)
-            #todo: analyze this.
+            events = exf.undistributed_events()
+            event_ids.extend(event.id for event in events)
+            #todo: analyze this. (note change from cash receipts to events marked is_to_distribute
             #is_undistributed is unnecessary: crs only includes undistributed
             #is_virtual_account_of is the restriction that needs analysis
             #for cr in crs:
             #    if cr.is_undistributed():
             #        if cr.resource.is_virtual_account_of(self):
             #            cr_ids.append(cr.id)
-        return EconomicEvent.objects.filter(id__in=cr_ids)
-        
+        return EconomicEvent.objects.filter(id__in=event_ids)
+
+    #obsolete
     def undistributed_distributions(self):
         #import pdb; pdb.set_trace()
         id_ids = []
@@ -6928,9 +6932,9 @@ class Exchange(models.Model):
     #    return self.events.filter(
     #        event_type__relationship='receivecash')
             
-    def cash_disbursement_events(self):
-        return self.events.filter(
-            event_type__name='Cash Disbursement')
+    #def cash_disbursement_events(self):
+    #    return self.events.filter(
+    #        event_type__name='Cash Disbursement')
         
     #obsolete            
     #def shipment_events(self):
@@ -6961,7 +6965,51 @@ class Exchange(models.Model):
                 for event in transfer.events.all():
                     events.append(event)
         return events 
-
+    
+    #todo:not tested
+    def transfer_give_events(self):
+        events = []
+        et_give = EventType.objects.get(name="Give")
+        for transfer in self.transfers.all():
+            if not transfer.is_reciprocal:
+                for event in transfer.events.all():
+                    if event.event_type == et_give:
+                        events.append(event)
+        return events
+     
+    #todo:not tested
+    def transfer_receive_events(self):
+        events = []
+        et_receive = EventType.objects.get(name="Receive")
+        for transfer in self.transfers.all():
+            if not transfer.is_reciprocal:
+                for event in transfer.events.all():
+                    if event.event_type == et_receive:
+                        events.append(event)
+        return events
+    
+    #todo:not tested
+    def reciprocal_transfer_give_events(self):
+        events = []
+        et_give = EventType.objects.get(name="Give")
+        for transfer in self.transfers.all():
+            if transfer.is_reciprocal:
+                for event in transfer.events.all():
+                    if event.event_type == et_give:
+                        events.append(event)
+        return events
+     
+    #todo:not tested
+    def reciprocao_transfer_receive_events(self):
+        events = []
+        et_receive = EventType.objects.get(name="Receive")
+        for transfer in self.transfers.all():
+            if transfer.is_reciprocal:
+                for event in transfer.events.all():
+                    if event.event_type == et_receive:
+                        events.append(event)
+        return events
+        
     #todo: do we need these?  if not, delete
     #def uncommitted_transfer_events(self):
     #    return self.events.filter(
@@ -9233,7 +9281,7 @@ class ValueEquation(models.Model):
                 crd = IncomeEventDistribution(
                     distribution_date=distribution.distribution_date,
                     income_event=cr,
-                    distribution=distribution,
+                    distribution_ref=distribution,
                     quantity=amount_to_distribute,
                     unit_of_quantity=cr.unit_of_quantity,
                 )
@@ -9243,7 +9291,7 @@ class ValueEquation(models.Model):
                     crd = IncomeEventDistribution(
                         distribution_date=distribution.distribution_date,
                         income_event=cr,
-                        distribution=distribution,
+                        distribution_ref=distribution,
                         quantity=cr.quantity,
                         unit_of_quantity=cr.unit_of_quantity,
                     )
@@ -9283,10 +9331,10 @@ class ValueEquation(models.Model):
                 dist_claim_event.claim_event_date = distribution.distribution_date
                 dist_claim_event.save()
 
-        return exchange
+        return distribution
         
     def run_value_equation(self, amount_to_distribute, serialized_filters):
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         atd = amount_to_distribute
         detail_sums = []
         claim_events = []
@@ -10131,9 +10179,9 @@ class EconomicEvent(models.Model):
         
     def undistributed_amount(self):
         #todo: partial
-        et_cr = EventType.objects.get(name="Cash Receipt")
-        et_id = EventType.objects.get(name="Distribution")
-        if self.event_type == et_cr or self.event_type == et_id:
+        #et_cr = EventType.objects.get(name="Cash Receipt")
+        #et_id = EventType.objects.get(name="Distribution")
+        if self.is_to_distribute:
             crd_amounts = sum(d.quantity for d in self.distributions.all())
             return self.quantity - crd_amounts
         else:
@@ -10723,7 +10771,7 @@ class ValueEquationBucket(models.Model):
             from valuenetwork.valueaccounting.forms import ShipmentMultiSelectForm
             form = ShipmentMultiSelectForm(context_agent=context_agent)
             bucket_filter = form.deserialize(serialized_filter)
-            shipment_events = bucket_filter["shipments"] #todo: fix!
+            shipment_events = bucket_filter["shipments"] 
             if shipment_events:
                 ship_string = ", ".join([str(s.id) for s in shipment_events])
                 filter = "".join([
@@ -11067,7 +11115,7 @@ class ValueEquationBucketRule(models.Model):
         
 class IncomeEventDistribution(models.Model):
     distribution_date = models.DateField(_('distribution date'))
-    #obsolete
+    #next field obsolete
     distribution = models.ForeignKey(Exchange,
         blank=True, null=True,
         verbose_name=_('distribution'), related_name='cash_receipts', default=None)

@@ -226,7 +226,7 @@ th
 
     <script type="text/javascript">
     
-    var cashReceipts = {{ cashReceipts }};
+    var cashReceipts = {{ events_to_distribute }};
     var crAmount = 0;
 
 	$(document).ready(function(){
@@ -280,8 +280,8 @@ th
         $("#calculate").click(showLoading);
         $("#test").click(showLoadingTest);
 		$("#id_value_equation").change(reloadPage);
-		$("#id_cash_receipts").change(adjustDist);
-		$("#id_input_distributions").change(inputDistributionChanged);
+		$("#id_events_to_distribute").change(adjustDist);
+		//$("#id_input_distributions").change(inputDistributionChanged);
 		//$("#id_20-shipments").change(shipmentsChanged);
  
 	}); // end document.ready
@@ -403,12 +403,12 @@ th
     
     function adjustDist()
     {
-        var selectedCrs = $("#id_cash_receipts :selected");
-        var count=$("#id_cash_receipts :selected").length;
+        var selectedCrs = $("#id_events_to_distribute :selected");
+        var count=$("#id_events_to_distribute :selected").length;
         if (count)
         {
             $("#sourceDist").hide();
-            $("#or1").hide();
+            //$("#or1").hide();
         }
         if (count == 1)
         {
@@ -433,14 +433,14 @@ th
         }
         if (count == 0)
         {
-            $("#sourceDist").show();
+            //$("#sourceDist").show();
             $("#cashRcpt").show();
-            $("#or1").show();
+            //$("#or1").show();
             count=$("#id_input_distributions :selected").length;
             if (count)
             {
                 $("#cashRcpt").hide();
-                $("#or1").hide();
+                //$("#or1").hide();
             }
         }
         if (count != 0) {

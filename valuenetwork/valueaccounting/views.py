@@ -11442,19 +11442,19 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                     money_resource=resource, 
                     amount_to_distribute=amount, 
                     serialized_filters=serialized_filters)
-                for event in exchange.distribution_events():
+                for event in distribution.distribution_events():
                     send_distribution_notification(event)
                     
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/exchange', exchange.id))
+                    % ('accounting/distribution', distribution.id))
             
     else:
         ves = context_agent.live_value_equations()
         init = { "start_date": datetime.date.today(), "value_equation": ve }
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=False, initial=init)
-        crs = context_agent.undistributed_cash_receipts()
-        for cr in crs:
-            cash_receipts[cr.id] = float(cr.undistributed_amount())
+        etd = context_agent.undistributed_events()
+        for ev in etd:
+            events_to_distribute[ev.id] = float(ev.undistributed_amount())
         if ves:
             if not ve:
                 ve = ves[0]

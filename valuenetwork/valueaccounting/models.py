@@ -9334,7 +9334,7 @@ class ValueEquation(models.Model):
         return distribution
         
     def run_value_equation(self, amount_to_distribute, serialized_filters):
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         atd = amount_to_distribute
         detail_sums = []
         claim_events = []

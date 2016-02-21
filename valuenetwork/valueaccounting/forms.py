@@ -36,10 +36,10 @@ class WorkModelChoiceField(forms.ModelChoiceField):
         
 class ResourceModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        label = obj.identifier
+        label = obj.__unicode__()
         if obj.current_location:
             loc = obj.current_location.name
-            label = " ".join([obj.identifier, "at", loc])
+            label = " ".join([label, "at", loc])
         return label
 
         
@@ -617,7 +617,7 @@ class UnplannedWorkEventForm(forms.ModelForm):
    
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'from_agent', 'quantity', 'unit_of_quantity', 'description')
+        fields = ('event_date', 'resource_type', 'from_agent', 'quantity', 'unit_of_quantity', 'is_contribution', 'description')
 
     def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
         #import pdb; pdb.set_trace()
@@ -1418,7 +1418,7 @@ class WorkEventChangeForm(forms.ModelForm):
 	
     class Meta:
         model = EconomicEvent
-        fields = ('id', 'event_date', 'quantity', 'description')
+        fields = ('id', 'event_date', 'quantity', 'is_contribution', 'description')
 
 
 #obsolete?
@@ -1467,6 +1467,7 @@ class InputEventForm(forms.ModelForm):
         if qty_help:
             self.fields["quantity"].help_text = qty_help
 
+# use in views.rocess_oriented_logging for work events, despite the name
 class InputEventAgentForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=True,
@@ -1483,7 +1484,7 @@ class InputEventAgentForm(forms.ModelForm):
     
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'from_agent', 'quantity', 'description')
+        fields = ('event_date', 'from_agent', 'quantity', 'is_contribution', 'description', )
 
     def __init__(self, qty_help=None, *args, **kwargs):
         super(InputEventAgentForm, self).__init__(*args, **kwargs)
@@ -1581,7 +1582,10 @@ class TransferForm(forms.Form):
     is_contribution = forms.BooleanField(
         required=False,
         initial=True,
-        label="Can be used in a value equation",
+        widget=forms.CheckboxInput())
+    is_to_distribute = forms.BooleanField(
+        required=False,
+        initial=True,
         widget=forms.CheckboxInput())
     event_reference = forms.CharField(
         required=False, 
@@ -1883,13 +1887,13 @@ class DistributionEventForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
-        label="To cash resource type",
+        label="To resource type",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-for-resource chzn-select'}))
     resource = ResourceModelChoiceField(
         queryset=EconomicResource.objects.all(), 
-        label="Cash resource account or earmark to increase",
+        label="Resource account or earmark to increase",
         required=False,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
     description = forms.CharField(
@@ -1898,31 +1902,28 @@ class DistributionEventForm(forms.ModelForm):
 
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'resource', 'description', 'accounting_reference', 'event_reference')
+        fields = ('event_date', 'to_agent', 'quantity', 'resource_type', 'resource', 'description')
 
     def __init__(self, pattern=None, posting=False, *args, **kwargs):
         super(DistributionEventForm, self).__init__(*args, **kwargs)
         if pattern:
             self.pattern = pattern
             rts = pattern.distribution_resource_types()
-            rts_vas = []
-            for rt in rts:
-                if rt.is_virtual_account():
-                    rts_vas.append(rt)
-            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
-            #self.fields["resource_type"].queryset = rts
-            if posting:
-                self.fields["resource"].queryset = EconomicResource.objects.all()
-            else:
-                if rts_vas:
-                    if self.instance.id:
-                        rt = self.instance.resource_type
-                        if rt:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
-                        else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
+        else:
+            rts = EconomicResourceType.objects.filter(behavior="account")
+        self.fields["resource_type"].queryset = rts
+        if posting:
+            self.fields["resource"].queryset = EconomicResource.objects.all()
+        else:
+            if rts:
+                if self.instance.id:
+                    rt = self.instance.resource_type
+                    if rt:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
                     else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                else:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
             
 
 class DisbursementEventForm(forms.ModelForm):
@@ -1932,13 +1933,13 @@ class DisbursementEventForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource_type = forms.ModelChoiceField(
         queryset=EconomicResourceType.objects.all(),
-        label="From cash resource type",
+        label="From resource type",
         empty_label=None,
         widget=forms.Select(
             attrs={'class': 'resource-type-for-resource chzn-select'}))
     resource = ResourceModelChoiceField(
         queryset=EconomicResource.objects.all(), 
-        label="Cash resource account or earmark to decrease",
+        label="Account or earmark to decrease",
         required=False,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
     description = forms.CharField(
@@ -1954,24 +1955,21 @@ class DisbursementEventForm(forms.ModelForm):
         if pattern:
             self.pattern = pattern
             rts = pattern.disbursement_resource_types()
-            rts_vas = []
-            for rt in rts:
-                if rt.is_virtual_account():
-                    rts_vas.append(rt)
-            self.fields["resource_type"].choices = [(rt.id, rt.name) for rt in rts_vas]
-            #self.fields["resource_type"].queryset = rts
-            if posting:
-                self.fields["resource"].queryset = EconomicResource.objects.all()
-            else:
-                if rts_vas:
-                    if self.instance.id:
-                        rt = self.instance.resource_type
-                        if rt:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
-                        else:
-                            self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
+        else:
+            rts = EconomicResourceType.objects.filter(behavior="account")
+        self.fields["resource_type"].queryset = rts
+        if posting:
+            self.fields["resource"].queryset = EconomicResource.objects.all()
+        else:
+            if rts:
+                if self.instance.id:
+                    rt = self.instance.resource_type
+                    if rt:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rt)
                     else:
-                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts_vas[0])
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                else:
+                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
 
                         
 class ShipmentForm(forms.ModelForm):
@@ -1987,7 +1985,7 @@ class ShipmentForm(forms.ModelForm):
         label="Quantity shipped",
         widget=forms.TextInput(attrs={'class': 'quantity input-small',}))
     resource = ResourceModelChoiceField(
-        queryset=EconomicResource.objects.all(), 
+        queryset=EconomicResource.objects.onhand(), 
         label="Resource shipped",
         empty_label=None,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
@@ -2458,6 +2456,10 @@ class TransferTypeForm(forms.ModelForm):
         required=False,
         label="Can be used in a value equation",
         widget=forms.CheckboxInput())
+    is_to_distribute = forms.BooleanField(
+        required=False,
+        label="Can be used as a resource to distribute",
+        widget=forms.CheckboxInput())
     is_reciprocal = forms.BooleanField(
         required=False,
         label="Is a reciprocal transfer",
@@ -2493,7 +2495,7 @@ class TransferTypeForm(forms.ModelForm):
     
     class Meta:
         model = TransferType
-        fields = ('sequence', 'name', 'description', 'is_reciprocal', 'is_contribution', 
+        fields = ('sequence', 'name', 'description', 'is_reciprocal', 'is_contribution', 'is_to_distribute',  
                   'can_create_resource', 'is_currency', 'give_agent_is_context', 'give_agent_association_type', 
                   'receive_agent_is_context', 'receive_agent_association_type')
 
@@ -2575,10 +2577,6 @@ class CasualTimeContributionForm(forms.ModelForm):
         label=_("Context"),
         empty_label=None, 
         widget=forms.Select(attrs={'class': 'chzn-select'}))
-    #project = forms.ModelChoiceField(
-    #    queryset=Project.objects.all(), 
-    #    empty_label=None, 
-    #    widget=forms.Select(attrs={'class': 'chzn-select'}))
     event_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     description = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'item-description',}))
     url = forms.URLField(required=False, widget=forms.TextInput(attrs={'class': 'url',}))
@@ -2588,7 +2586,7 @@ class CasualTimeContributionForm(forms.ModelForm):
 	
     class Meta:
         model = EconomicEvent
-        fields = ('event_date', 'resource_type', 'context_agent', 'quantity', 'url', 'description')
+        fields = ('event_date', 'resource_type', 'context_agent', 'quantity', 'is_contribution', 'url', 'description')
 
     def __init__(self, *args, **kwargs):
         super(CasualTimeContributionForm, self).__init__(*args, **kwargs)
@@ -2600,6 +2598,7 @@ class CasualTimeContributionForm(forms.ModelForm):
         if pattern:
             self.fields["resource_type"].queryset = pattern.work_resource_types().order_by("name")
 
+            
 class HasAssociateChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.inverse_label
@@ -3335,28 +3334,23 @@ class SaleForm(forms.ModelForm):
             self.fields["customer"].queryset = context_agent.all_customers()
             
 class DistributionForm(forms.ModelForm):
-    process_pattern = forms.ModelChoiceField(
-        queryset=ProcessPattern.objects.none(), 
-        label=_("Pattern"),
+    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'name input-xlarge',}))
+    context_agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.context_agents(), 
+        label=_("Context"),
         empty_label=None, 
-        widget=forms.Select(
-            attrs={'class': 'pattern-selector'}))
-    start_date = forms.DateField(required=True, 
-        label=_("Date"),
+        widget=forms.Select(attrs={'class': 'chzn-select'}))
+    distribution_date = forms.DateField(required=True, 
+        label=_("Distribution date"),
         widget=forms.TextInput(attrs={'class': 'item-date date-entry',}))
     notes = forms.CharField(required=False, 
         label=_("Comments"),
         widget=forms.Textarea(attrs={'class': 'item-description',}))
     
     class Meta:
-        model = Exchange
-        fields = ('process_pattern', 'start_date', 'notes')
-        
-    def __init__(self, *args, **kwargs):
-        #import pdb; pdb.set_trace()
-        super(DistributionForm, self).__init__(*args, **kwargs)
-        use_case = UseCase.objects.get(identifier="distribution")
-        self.fields["process_pattern"].queryset = ProcessPattern.objects.usecase_patterns(use_case)
+        model = Distribution
+        fields = ('name', 'distribution_date', 'context_agent', 'notes')
+
   
 class DistributionValueEquationForm(forms.Form):
     value_equation = forms.ModelChoiceField(
@@ -3366,24 +3360,18 @@ class DistributionValueEquationForm(forms.Form):
         widget=forms.Select(
             attrs={'class': 've-selector'}))
     #todo: partial - needs a custom ModelMultipleChoiceField showing the undistributed_amount
-    cash_receipts = CashReceiptModelMultipleChoiceField(
+    events_to_distribute = CashReceiptModelMultipleChoiceField(
         required=False,
         queryset=EconomicEvent.objects.all(),
-        label=_("Select one or more Cash Receipts OR enter amount to distribute and account"),
-        widget=forms.SelectMultiple(attrs={'class': 'cash chzn-select input-xxlarge'}))
-    input_distributions = forms.ModelMultipleChoiceField(
-        required=False,
-        queryset=EconomicEvent.objects.all(),
-        label=_("OR select one or more Distributions"),
         widget=forms.SelectMultiple(attrs={'class': 'cash chzn-select input-xxlarge'}))
     money_to_distribute = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money'}))
     partial_distribution = forms.DecimalField(required=False,
-        help_text = _("if you selected only one cash receipt or distribution, you may distribute only part of it"),
+        help_text = _("if you selected only one distribution source, you may distribute only part of it"),
         widget=forms.TextInput(attrs={'value': '', 'class': 'partial'}))
     resource = forms.ModelChoiceField(
         queryset=EconomicResource.objects.all(), 
-        label="Cash resource account",
+        label="Distribute from account",
         required=False,
         widget=forms.Select(attrs={'class': 'resource input-xlarge',}))
     start_date = forms.DateField(required=True, 
@@ -3399,17 +3387,18 @@ class DistributionValueEquationForm(forms.Form):
         if post == False:
             if context_agent:
                 self.fields["value_equation"].queryset = context_agent.live_value_equations()
-                self.fields["cash_receipts"].queryset = context_agent.undistributed_cash_receipts()
-                self.fields["input_distributions"].queryset = context_agent.undistributed_distributions()
+                self.fields["events_to_distribute"].queryset = context_agent.undistributed_events() 
+            resources = []
             if pattern:
-                resources = []
                 rts = pattern.distribution_resource_types()
-                if rts:
-                    for rt in rts:
-                        rss = rt.all_resources()
-                        for res in rss:
-                            resources.append(res)
-                self.fields["resource"].choices = [('', '----------')] + [(res.id, res.identifier) for res in resources]
+            else:
+                rts = EconomicResourceType.objects.all() #todo: may be a way to narrow further
+            if rts:
+                for rt in rts:
+                    rss = rt.all_resources()
+                    for res in rss:
+                        resources.append(res)
+            self.fields["resource"].choices = [('', '----------')] + [(res.id, res.identifier) for res in resources]
         #import pdb; pdb.set_trace()
         
 class ResourceFlowForm(forms.ModelForm):
@@ -3929,8 +3918,11 @@ class OrderMultiSelectForm(forms.Form):
 class ShipmentMultiSelectForm(forms.Form):
     shipments = forms.ModelMultipleChoiceField(
         required=True,
+        #queryset=EconomicEvent.objects.filter(
+        #    event_type__relationship="shipment",
+        #    ),
         queryset=EconomicEvent.objects.filter(
-            event_type__relationship="shipment",
+            event_type__relationship="give",
             ),
         label=_("Select one or more Delivery Events"),
         #empty_label=None,

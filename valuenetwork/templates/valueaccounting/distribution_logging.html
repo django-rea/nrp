@@ -1,0 +1,389 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Distribution" %}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+
+.event {
+    margin-left: 2em; 
+    margin-bottom: 4px;
+}
+.btn {
+    margin-left: 10px;
+}
+h3, h4 {
+    color: firebrick;
+}
+.modal {
+    width: 600px;
+}
+.subsection-label {
+    font-weight: bold;
+}
+.detail-line {
+    margin: 0 0 0 2em;
+}
+li {
+    list-style-type: none;
+}
+.log-section {
+    border: solid 1px gainsboro;
+    background-color: beige; 
+    padding: 4px;
+    margin-bottom: 7px;   
+}
+.event-label {
+    color: green;
+    font-weight: bold;
+    font-style: normal;
+}
+.hdg {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #7D1818;
+}
+.onhand, .indent {
+    margin-left: 3em;
+}
+.unplanned {
+    color:  #7D1818;
+}
+#id_notes, #id_url {
+    width: 32em;
+}
+.notes {
+    margin-left: 3em;
+    padding-right: 2em;
+    font-style: italic;
+}
+.total {
+    float: right;
+    color: green;
+    font-size: 10pt;
+    margin-bottom: 0;
+    margin-top: 2px;
+}
+.info {
+    float: right;
+    margin-left: 5px;
+}
+.btn-mini {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+.item-description {
+    height: 100px;
+    width: 480px;
+}
+.totals {
+    border: solid 2px firebrick;
+    background-color: oldlace;
+    margin-bottom: 12px;
+    padding-left: 1em;
+}
+.total-top {
+    font-weight: bold;
+    padding-right: 2em;
+}
+
+</style>
+{% endblock %}
+
+{% block body_base %}
+<div class="container">
+    {% include "_messages.html" %}
+  <div>
+    <legend>
+        {% if dist %}
+            {% trans "Distribution in context of " %} {{ dist.context_agent }} 
+        {% else %}
+            New Distribution
+        {% endif %}
+    </legend>
+    
+    <div class="row-fluid">
+        <div class="span5">
+            <div class="totals">
+                <span class="total-top">{% trans "Total disbursement" %}: {{ dist.disbursement_total }} </span> 
+                <span class="total-top">{% trans "Total distributions" %}: {{ dist.distribution_total }} </span> 
+            </div>
+            <form id="mainForm" method="POST" action="">
+                {% csrf_token %}
+                {{ main_form|as_bootstrap }}
+                {% if logger %}
+                <div class="form-actions">
+                    <input type="submit" name="save" value="{% trans 'Save changes' %}" class="btn btn-primary" /> 
+                </div>
+                {% endif %}
+            </form>
+        </div>
+        
+        <div class="span7">
+            <div class="log-section">
+                <h3 style="margin-bottom: 4px;" >
+                    {% trans "Disbursement" %}:  
+                    {% if logger and dist %}
+                        <a href="#disburseModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a disbursement from a cash account" >
+                            {% trans "Log a disbursement" %}
+                        </a>
+                    {% endif %}
+                    <span class="info"> <a href="#" id="disb-info" data-toggle="popover" data-trigger='hover' title="Disbursement" data-placement="left"
+                        data-content="Disbursements are the resources used to distribute income,
+                        usually from a sale or other input into the network that will reward contributions. 
+                        The disbursement basically gets the cash out of the source account.">
+                        <img src="{% static 'img/information-icon.png' %}" /></a>
+                    </span>
+                </h3>
+                {% if logger and dist %}
+                    <div class="modal hide fade" id="disburseModal" tabindex="-1" role="dialog" aria-labelledby="disbursement" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="disbursement">{% trans "Log a Cash Disbursement" %}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form class="validateMe" id="disbursementForm" enctype="multipart/form-data" action="{% url add_disbursement distribution_id=dist.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ add_disbursement_form|as_bootstrap }}
+                            <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                            </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if dist.disbursement_events %}
+                    {% for event in dist.disbursement_events %}
+                        <div class="event">
+                            <span class="event-label">{% trans "Disbursed" %}: </span> 
+                            <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> from <a href="{{ event.resource.get_absolute_url }}"><b>{{ event.resource.identifier }}</b></a> {{ event.event_date }}
+                            {% if agent == event.from_agent or logger  %}
+                                <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                                <i class="icon-edit"></i>
+                                </a>
+        
+                                <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label{{ event.id }}" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="event-label{{ event.id }}">{% trans "Change Disbursement Event" %}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="validateMe" enctype="multipart/form-data" action="{% url change_disbursement_event event_id=event.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ event.disbursement_change_form|as_bootstrap }}
+                                            <div class="modal-footer">
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <form
+                                    style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="distribution" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete disbursement" >X</button>
+                                </form>
+                            {% endif %}
+                            {% if event.description %}
+                            <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+                            {% endif %}                       
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="log-section">
+                <h3 style="margin-bottom: 4px;" >
+                    {% trans "Distribution" %}:  
+                    {% if logger and dist %}
+                        <a href="#distributionModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a distribution of income" >
+                            {% trans "Log a distribution" %}
+                        </a>
+                    {% endif %}
+                    <span class="info"> <a href="#" id="dist-info" data-toggle="popover" data-trigger='hover' title="Income Distribution" data-placement="left" 
+                        data-content="Create a distribution for each agent receiving a portion of the disbursement.
+                        The distributions will be based on the agent's contributions to the income. ">
+                        <img src="{% static 'img/information-icon.png' %}" /></a>
+                    </span>
+                </h3>
+                {% if logger and dist %}
+                    <div class="modal hide fade" id="distributionModal" tabindex="-1" role="dialog" aria-labelledby="distribution" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="distribution">{% trans "Log a Distribution" %}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form class="validateMe" id="distributionForm" enctype="multipart/form-data" action="{% url add_distribution distribution_id=dist.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ add_distribution_form|as_bootstrap }}
+                            <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
+                            </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if dist.distribution_events %}
+                    {% for event in dist.distribution_events %}
+                        <div class="event">
+                            <span class="event-label">{% trans "Distributed" %}: </span> 
+                            <b>{{ event.quantity }} {{ event.unit_of_quantity}}</b> into 
+                            <b><a href="{{ event.resource.get_absolute_url }}">{{ event.resource.identifier }}</a></b> 
+                            {{ event.event_date }}
+                            {% if agent == event.to_agent or logger  %}
+                                <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+                                <i class="icon-edit"></i>
+                                </a>
+        
+                                <div class="modal hide fade" id="eventModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label{{ event.id }}" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="event-label{{ event.id }}">{% trans "Change Distribution Event" %}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="validateMe" enctype="multipart/form-data" action="{% url change_distribution_event event_id=event.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ event.distribution_change_form|as_bootstrap }}
+                                            <div class="modal-footer">
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <form
+                                    style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="distribution" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete distribution" >X</button>
+                                </form>
+                            {% endif %}
+                            {% if event.description %}
+                            <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+                            {% endif %}                       
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+            </div>
+
+        </div>
+    </div>
+  </div>
+</div>
+        
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/RelatedObjectLookups.js' %}"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+	
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        $('#dist-info').popover()
+        $('#disb-info').popover()
+        
+        $(".chzn-select").chosen();
+        
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+				label
+					.text('').addClass('valid')
+					.closest('.control-group').addClass('success');
+			}
+        });
+
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+    	$( "#mainForm" ).validate({
+			rules: {
+				distribution_date: {
+					required: true,
+					date: true
+				},
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+		
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
+
+        $.validator.addClassRules("quantity", { required: true, quantity: true, });
+        
+        $(".resource-type-for-resource").change(getResources);
+        
+        function getResources(event)
+        {
+            var resourceTypeId = event.target.value;
+            if (resourceTypeId)
+            {
+                var targetId = event.target.id;
+                var prefix = targetId.split('-')[0];
+                var resourceFieldId = "#" + prefix + "-resource";
+                $(resourceFieldId).empty();
+                var jsonUrl = encodeURI("/accounting/json-resourcetype-resources-locations/" + resourceTypeId + "/");
+                $.get(jsonUrl,
+                    function(data){
+                    for(var i=0 ; i<data.length ; i++)
+                    {
+                        var id = data[i].fields['pk'];
+                        var name = data[i].fields['identifier']; 
+                        var loc = data[i].fields['location']; 
+                        if (loc){
+                            name = name + " at " + loc;
+                        }
+                        $(resourceFieldId).append('<option value="' + id + '">' + name + '</option>') 
+                    }
+                    $(".chzn-select").trigger("liszt:updated");
+                });
+            }
+        }
+	}); // end document.ready
+	
+    </script>
+
+{% endblock %}

@@ -1,0 +1,192 @@
+
+Here are all the connections in NRP between Agents and other objects.
+
+The big differences here are between Agents that are contexts,
+and those that are not.  
+
+Projects, for example, are context agents, but they are not the only ones.
+See /api/contexts/
+
+Where the field name is context_agent, those can only apply to
+(you guessed it) context agents.
+All of the other relationships can apply to any Agent.
+
+A secondary difference is that some Agents are people
+and others are not.  But that is a more complex relationship in the 
+database.
+
+class AgentResourceType(models.Model):
+    "Defines the relationship between
+    an Agent, an EconomicResourceType and an EventType.
+    For example, one Agent might sell one EconomicResourceType,
+    buy another EconomicResourceType, and provide work of yet
+    another EconomicResourceType.
+    For Work resource_types, you can think of AgentResourceTypes 
+    as Skills demonstrated by a person."
+    agent = models.ForeignKey(EconomicAgent,
+        verbose_name=_('agent'), related_name='resource_types')
+
+class AgentResourceRole(models.Model):  
+    "Responsibility of an Agent toward a Resource,
+    like owner or custodian or trainer."
+    agent = models.ForeignKey(EconomicAgent,
+        verbose_name=_('agent'), related_name='agent_resource_roles')
+
+class Process(models.Model):
+    "A Process contains input and output EconomicEvents
+    of different types, and exists to create or enhance a resource.
+    Work is performed in Processes,
+    and happen in a context (the context_agent).
+    So context_agent.processes lists all the processes
+    in that context."
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='processes')
+
+class Exchange(models.Model):
+    "An Exchange connects Transfers that
+    are related to each other in that one happens because of the other,
+    like cash received for shipment of a product.
+    An Exchange can contain only one Transfer (for simplicity's sake), 
+    for example a cash contribution which has no reciprocal Transfer.
+    An Exchange happens in a context.
+    *NOTE: Transfer is new.  In master repo, Exchanges contain EconomicEvents."
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='exchanges')
+
+class Transfer(models.Model):
+    "A Transfer links a Give and a Receive EconomicEvent, and
+    represents rights to a resource transferring from one Agent to another.
+    A Transfer is part of an Exchange, and happens in that context.
+    *NOTE: Transfer is new, and not in master repo yet."
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='transfers')
+
+class Distribution(models.Model):
+    "A Distribution happens when income is distributed
+    according to a value equation,
+    which happens in a context. Distribution is logically
+    a sub-class of Exchange."
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='distributions')
+
+class Commitment(models.Model):
+    "A Commitment is a promise or plan 
+    for an EconomicEvent which may happen in the future.
+    Commitments are often contained in a Process or Exchange."
+    from_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="given_commitments", verbose_name=_('from'))
+    to_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="taken_commitments", verbose_name=_('to'))
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='commitments')
+
+class EconomicEvent(models.Model):
+    "An EconomicEvent changes an EconomicResource:
+    for example, by creating using, consuming, or citing it."
+    from_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="given_events", verbose_name=_('from'))
+    to_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="taken_events", verbose_name=_('to'))
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        related_name="events", verbose_name=_('context agent'),
+        on_delete=models.SET_NULL)   
+
+class ValueEquation(models.Model):
+    "A ValueEquation is a set of rules for distributing income or
+    any return value from exchanging EconomicResources.
+    Since ValueEquations are decided at the project team level,
+    it has a context."
+    context_agent = models.ForeignKey(EconomicAgent,
+        limit_choices_to={"is_context": True,},
+        related_name="value_equations", verbose_name=_('context agent'))
+
+class ValueEquationBucket(models.Model):
+    "ValueEquationBucket is a segment or piece of a ValueEquation
+    representing a set of rules for a % of the resource to be distributed.
+    A ValueEquationBucket can define distribution directly to a specific
+    Agent, thus distribution_agent.  Or it can define distribution to
+    a filtered set of Agents based on rules. Most of the rules reside at 
+    the ValueEquationBucketRule level, but the filter_agent can be used
+    to filter by context Agent."
+    distribution_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="value_equation_buckets", verbose_name=_('distribution agent')) 
+    filter_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="value_equation_filter_buckets", verbose_name=_('filter agent'))
+
+class Claim(models.Model):
+    "A Claim is created by a ValueEquation Distribution
+    showing what an Agent should receive in return for 
+    a contribution."
+    has_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="has_claims", verbose_name=_('has'))
+    against_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="claims_against", verbose_name=_('against'))
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        related_name="claims", verbose_name=_('context agent'),
+        on_delete=models.SET_NULL)
+        
+class AgentUser(models.Model):
+    "An AgentUser is a login User that represents an Agent."
+    agent = models.ForeignKey(EconomicAgent,
+        verbose_name=_('agent'), related_name='users')
+        
+class AgentAssociation(models.Model):
+    "An AgentAssociation is a defined relationship between two Agents."
+    is_associate = models.ForeignKey(EconomicAgent,
+        verbose_name=_('is associate of'), related_name='is_associate_of')
+    has_associate = models.ForeignKey(EconomicAgent,
+        verbose_name=_('has associate'), related_name='has_associates')
+        
+class Order(models.Model):
+    "An Order is an artifact of a planned Exchange, where
+    one Agent (the receiver) orders EconomicResources from
+    another Agent (the provider)."
+    receiver = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="purchase_orders", verbose_name=_('receiver'))
+    provider = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        related_name="sales_orders", verbose_name=_('provider'))
+        
+class ProcessType(models.Model):
+    "Recipes are defined as a sequence or tree of ProcessTypes
+    connected by output-input ResourceType relationships.
+    So the top level ProcessType in a recipe defines the context
+    for that recipe."
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='process_types')
+        
+class ExchangeType(models.Model):
+    "An ExchangeType allows user definitions for types of Exchange,
+    thus allowing networks to get away from the standard business
+    exchange types such as sales or purchases. For example, 'Fiscal
+    Sponsorship', 'Crowdfunding'.
+    ExchangeTypes can be defined by project, thus have a context_agent."
+    context_agent = models.ForeignKey(EconomicAgent,
+        blank=True, null=True,
+        limit_choices_to={"is_context": True,},
+        verbose_name=_('context agent'), related_name='exchange_types')

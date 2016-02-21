@@ -18,6 +18,11 @@ from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.contrib.auth.models import User, Group
+
+from rest_framework import viewsets, permissions
+
+from valuenetwork.api.serializers import *
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.utils import get_url_starter, camelcase, camelcase_lower
@@ -30,6 +35,136 @@ from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
 from urllib2 import urlopen
 from io import StringIO
 
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+
+class PeopleViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows people to be viewed or edited.
+    """
+    queryset = EconomicAgent.objects.individuals()
+    serializer_class = PeopleSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+class ContextViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows context agents to be viewed or edited.
+    """
+    queryset = EconomicAgent.objects.context_agents()
+    serializer_class = ContextSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+class AgentViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows all Economic Agents to be viewed or edited.
+    """
+    queryset = EconomicAgent.objects.all()
+    serializer_class = EconomicAgentSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+    
+class AgentTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Agent Types to be viewed or edited.
+    """
+    queryset = AgentType.objects.all()
+    serializer_class = AgentTypeSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+class EconomicEventViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Economic Events to be viewed or edited.
+    You may use a query parameter, ?context={ context agent.slug },
+    for example, ?context=breathing-games
+    Slugs can be found on the API context list.
+    
+    More query parameters and filters to come, on request.
+    """
+    serializer_class = EconomicEventSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+    def get_queryset(self):
+        """
+        Optionally restricts the returned purchases to a given user,
+        by filtering against a `username` query parameter in the URL.
+        """
+        queryset = EconomicEvent.objects.all()
+        context_slug = self.request.QUERY_PARAMS.get('context', None)
+        if context_slug is not None:
+            queryset = queryset.filter(context_agent__slug=context_slug)
+        return queryset
+
+class ContributionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Economic Events that are contributions 
+    to be viewed or edited.
+    You may use query parameters:
+    
+    ?context={ context_agent.slug },
+        for example, ?context=pv-characterization
+        Slugs can be found on the API context list.
+        
+    ?event-type={ event type.relationship },
+        for example, ?event-type=work
+        Relationships can be found on the API event-type list.
+        
+    To combine parameters, use &,
+        for example, ?context=pv-characterization&event-type=work
+    
+    More query parameters and filters to come, on request.
+    """
+    serializer_class = ContributionSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+    def get_queryset(self):
+        queryset = EconomicEvent.objects.filter(is_contribution=True)
+        #import pdb; pdb.set_trace()
+        context_slug = self.request.QUERY_PARAMS.get('context', None)
+        if context_slug is not None:
+            queryset = queryset.filter(context_agent__slug=context_slug)
+        event_type_relationship = self.request.QUERY_PARAMS.get('event-type', None)
+        if event_type_relationship is not None:
+            queryset = queryset.filter(event_type__relationship=event_type_relationship)
+        return queryset
+        
+class EventTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Agent Types to be viewed or edited.
+    """
+    queryset = EventType.objects.all()
+    serializer_class = EventTypeSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+class ResourceTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Agent Types to be viewed or edited.
+    """
+    queryset = EconomicResourceType.objects.all()
+    serializer_class = ResourceTypeSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+class EconomicResourceViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Agent Types to be viewed or edited.
+    """
+    queryset = EconomicResource.objects.all()
+    serializer_class = EconomicResourceSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+class UnitViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Agent Types to be viewed or edited.
+    """
+    queryset = Unit.objects.all()
+    serializer_class = UnitSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
 #the following methods relate to providing linked open data from NRP instances, for the valueflows vocab project.
 #they use rdflib, Copyright (c) 2012-2015, RDFLib Team All rights reserved.
 
@@ -374,7 +509,7 @@ def agent_jsonld_query(request):
 
     #import pdb; pdb.set_trace()
     g = Graph()
-    url = "http://nrp.webfactional.com/accounting/agent-jsonld/"
+    url = "http://nrp.webfactional.com/api/agent-jsonld/"
     remote_jsonld = urlopen(url).read()
     dict_data = simplejson.loads(remote_jsonld)
     context = dict_data["@context"]

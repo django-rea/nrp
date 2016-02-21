@@ -56,6 +56,7 @@
 	                <th>{% trans "Type of work" %}</th>
 	                <th>{% trans "Project" %}</th>
 	                <th>{% trans "Time spent" %}</th>
+	                <th>{% trans "Credit for value equations" %}</th>
 	                <th>{% trans "Description" %}</th>
 	                <th>{% trans "URL" %}</th>
 	            </tr>
@@ -69,7 +70,8 @@
 	                <td style="white-space:nowrap;" >
 	                    {{ form.quantity }}</br>
 	                    {{ form.quantity.help_text }}
-                    </td>                	
+                    </td>   
+                    <td>{{ form.is_contribution }}</td>
 	                <td>{{ form.description }}</td>
 	                <td>{{ form.url }}</td>
 	            </tr>

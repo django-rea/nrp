@@ -67,11 +67,11 @@ ul {
                 {% for stage in stages %}
                     <th>{{ stage.name }}</th>
 				{% endfor %}
-                <th>{% trans "Orders" %}</th>
+                <th>{% trans "Sales" %}</th>
             </thead>
 			<tbody>	
 				{% for lot in lots %}
-                  {% if lot.lot_process_exchange_flow or lot.lot_receipt %}
+                  {% if lot.lot_process_exchange_flow or lot.lot_receipt or lot.sales %}
 					<tr class="{% cycle 'odd' 'even' %}">
 						<td>
                             {% trans "Lot" %} 
@@ -116,13 +116,25 @@ ul {
                                     {% endif %}
                                     </ul>
                                 {% endfor %}
-                            {% endif %}</td>
+                           {% endif %}
+                           </td>
                         {% endfor %}
                         <td>
-                            {% for order in lot.orders %} <a href="{{ order.get_absolute_url }}">{{ order.shorter_label_customer_order }}</a><br /> {% endfor %}
+                            {% for sale in lot.sales %} 
+                            <li>
+                                <a href="{{ sale.get_absolute_url }}">{{ sale.exchange_type.name }} {{ sale.start_date }}</a>
+                                {% for evt in sale.events.all %}
+                                    <li><span class="hdg"> {{ evt.event_type }}: </span>{{ evt.shorter_label }}
+                                    {% if evt.resource %} 
+                                        <a href="{{ evt.resource.get_absolute_url }}">({{ evt.resource.identifier }})</a>
+                                    {% endif %}
+                                    </li>
+                                {% endfor %}
+                                <br /> 
+                            {% endfor %}
                         </td>
 					</tr>
-                  {% endif %}
+                   {% endif %}
 				{% endfor %}
 			</tbody>	
 		</table>

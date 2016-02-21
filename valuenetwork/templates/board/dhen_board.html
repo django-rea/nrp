@@ -82,6 +82,10 @@ h3 {
 .delete-form {
     margin-bottom: 0;
 }
+.rpt {
+    font-weight: bold;
+    float: right;
+}
 
 </style>
 {% endblock %}
@@ -91,6 +95,7 @@ h3 {
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
+        <a class="rpt" href="{% url resource_flow_report resource_type_id=14 %}" >{% trans "Resource Flow Report" %}</a>
 {% comment %}
     <div class="row-fluid">
         <div class="span12">
@@ -206,7 +211,7 @@ h3 {
                                     </div>
                                     <div class="modal-body">
                                         <form class="validateMe" id="farmForm" enctype="multipart/form-data" 
-                                            action="{% url purchase_resource context_agent_id=context_agent.id assoc_type_identifier='HarvestSite' commitment_id=com.id %}" 
+                                            action="{% url purchase_resource context_agent_id=context_agent.id commitment_id=com.id %}" 
                                             method="POST" >
                                             {% csrf_token %}
                                             {{ com.zero_form|as_bootstrap }}
@@ -271,7 +276,7 @@ h3 {
                                     </div>
                                     <div class="modal-body">
                                         <form class="validateMe" id="harvForm" enctype="multipart/form-data" 
-                                            action="{% url transfer_resource context_agent_id=context_agent.id assoc_type_identifier='DryingSite' resource_id=res.id %}" 
+                                            action="{% url transfer_resource context_agent_id=context_agent.id resource_id=res.id %}" 
                                             method="POST" >
                                             {% csrf_token %}
                                             {{ res.transfer_form|as_bootstrap }}
@@ -321,7 +326,7 @@ h3 {
                             </div>
                             <div class="modal-body">
                                 <form class="validateMe" id="combineForm" enctype="multipart/form-data" 
-                                    action="{% url combine_resources context_agent_id=context_agent.id assoc_type_identifier='Seller' resource_type_id=rt.id %}" 
+                                    action="{% url combine_resources context_agent_id=context_agent.id resource_type_id=rt.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                     {{ rt.combine_form|as_bootstrap }}
@@ -387,7 +392,7 @@ h3 {
         </div>
         <div class="modal-body">
             <form class="validateMe" id="availableForm" enctype="multipart/form-data" 
-                action="{% url add_available context_agent_id=context_agent.id assoc_type_identifier='HarvestSite' %}" method="POST" >
+                action="{% url add_available context_agent_id=context_agent.id %}" method="POST" >
                 {% csrf_token %}
                 {{ available_form|as_bootstrap }}
                 <div class="modal-footer">
@@ -405,7 +410,7 @@ h3 {
         </div>
         <div class="modal-body">
             <form class="validateMe" id="availableForm" enctype="multipart/form-data" 
-                action="{% url receive_directly context_agent_id=context_agent.id assoc_type_identifier='DryingSite' %}" method="POST" >
+                action="{% url receive_directly context_agent_id=context_agent.id %}" method="POST" >
                 {% csrf_token %}
                 {{ receive_form|as_bootstrap }}
                 <div class="modal-footer">

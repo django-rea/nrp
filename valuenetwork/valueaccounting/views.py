@@ -435,6 +435,7 @@ def agent(request, agent_id):
     is_associated_with = agent.all_is_associates()           
     
     headings = []
+    member_hours_recent = []
     member_hours_stats = []
     individual_stats = []
     member_hours_roles = []
@@ -453,6 +454,25 @@ def agent(request, agent_id):
     elif agent.is_context_agent():
     
         subs = agent.with_all_sub_agents()
+        end = datetime.date.today()
+        #end = end - datetime.timedelta(days=77)
+        start =  end - datetime.timedelta(days=60)
+        events = EconomicEvent.objects.filter(
+            event_type__relationship="work",
+            context_agent__in=subs,
+            event_date__range=(start, end))
+            
+        if events:
+            agents_stats = {}
+            for event in events:
+                agents_stats.setdefault(event.from_agent.name, Decimal("0"))
+                agents_stats[event.from_agent.name] += event.quantity
+            for key, value in agents_stats.items():
+                member_hours_recent.append((key, value))
+            member_hours_recent.sort(lambda x, y: cmp(y[1], x[1]))
+        
+        #import pdb; pdb.set_trace()
+        
         ces = CachedEventSummary.objects.filter(
             event_type__relationship="work",
             context_agent__in=subs)
@@ -496,6 +516,7 @@ def agent(request, agent_id):
         "has_associations": has_associations,
         "is_associated_with": is_associated_with,
         "headings": headings,
+        "member_hours_recent": member_hours_recent,
         "member_hours_stats": member_hours_stats,   
         "member_hours_roles": member_hours_roles,
         "individual_stats": individual_stats,
@@ -1043,23 +1064,27 @@ def resource_flow_report(request, resource_type_id):
     #redo: need exchange_types as well as process_types
     #this next stmt is obsolete until we get mixed process-exchange recipes
     #pts, inheritance = rt.staged_process_type_sequence_beyond_workflow()
+    # also, shd this be only onhand or all resources?
+    # or onhand + sold?
+    # if all, any other filters?
     if rt.direct_children():
-        lot_list = EconomicResource.objects.onhand().filter(resource_type__parent=rt)
+        #lot_list = EconomicResource.objects.onhand().filter(resource_type__parent=rt)
+        lot_list = EconomicResource.objects.filter(resource_type__parent=rt)
+        lot_list = [lot for lot in lot_list if lot.quantity > 0 or lot.sales()]
     else:
-        lot_list = rt.resources.filter(quantity__gt=0)
-    stages = []
+        #lot_list = rt.resources.filter(quantity__gt=0)
+        lot_list = rt.resources.all()
+        lot_list = [lot for lot in lot_list if lot.quantity > 0 or lot.sales()]
     #hack to get a full set of stages upfront
     #otherwise new ones incorrectly arrive at the end of the flow
     #would be better to figure out how to insert in the correct place
     stages = []
-    try:
-        lot = EconomicResource.objects.get(id=461)
-        stages = [pex.stage for pex in lot.process_exchange_flow()]
-        stages.reverse()
-    except EconomicResource.DoesNotExist:
-        pass
-    #if stages[0].id != 3:
-    #    import pdb; pdb.set_trace()
+    stages.append(ExchangeType.objects.get(id=3))
+    stages.append(ExchangeType.objects.get(id=2))
+    stages.append(ProcessType.objects.get(id=4))
+    stages.append(ExchangeType.objects.get(id=1))
+    stages.append(ProcessType.objects.get(id=5))
+    sales = []
     for lot in lot_list:
         #if lot.identifier == "direct345345": #70314
         #    import pdb; pdb.set_trace() 
@@ -1093,27 +1118,17 @@ def resource_flow_report(request, resource_type_id):
                 if pex.stage == stage:
                     stage_pex.append(pex)
             stage.stage_pex = stage_pex
-        #if lot.identifier == "51515": #70314
+        #if lot.identifier == "92714": #70314 AHtest
         #    import pdb; pdb.set_trace() 
         lot.lot_stages = lot_stages
         lot.lot_process_exchange_flow = lot_process_exchange_flow
-        orders = []
-        order = None
-        """
-        if lot_pts:
-            last_pt = lot_pts[-1]
-            if type(last_pt) is Process:
-                for proc in last_pt.lpt_pex:
-                    order = proc.independent_demand()
-                    if order:
-                        orders.append(order)
-        """
-        if not order:
-            shipped_orders = lot.shipped_on_orders()
-            if shipped_orders:
-                orders.extend(shipped_orders)
-        lot.orders = orders
-    #import pdb; pdb.set_trace() 
+        lot_sales = []
+
+        lot_sales = lot.sales()
+        if lot_sales:
+            sales.extend(lot_sales)
+        lot.sales = lot_sales
+    
     # just commented out next section because I don't understand it yet
     """
     for lot in lot_list:
@@ -1121,6 +1136,8 @@ def resource_flow_report(request, resource_type_id):
             if ptype not in lot.lot_pts:
                 lot.lot_pts.append(ptype)
     """    
+    
+    #import pdb; pdb.set_trace() 
     paginator = Paginator(lot_list, 500)
     page = request.GET.get('page')
     try:
@@ -1409,8 +1426,12 @@ def unscheduled_time_contributions(request):
         extra=8,
         max_num=8,
         )
+    init = []
+    for i in range(0, 8):
+        init.append({"is_contribution": True,})
     time_formset = TimeFormSet(
         queryset=EconomicEvent.objects.none(),
+        initial = init,
         data=request.POST or None)
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -1432,7 +1453,7 @@ def unscheduled_time_contributions(request):
                     if event.event_date and event.quantity:
                         event.from_agent=member
                         event.to_agent = event.context_agent.default_agent()
-                        event.is_contribution=True
+                        #event.is_contribution=True
                         rt = event.resource_type
                         event_type = pattern.event_type_for_resource_type("work", rt)
                         event.event_type=event_type
@@ -4153,7 +4174,36 @@ def project_stats(request, context_agent_slug):
             member_hours.sort(lambda x, y: cmp(y[1], x[1]))
     return render_to_response("valueaccounting/project_stats.html", {
         "member_hours": member_hours,
+        "page_title": "All-time project stats",
     }, context_instance=RequestContext(request))
+    
+def recent_stats(request, context_agent_slug):
+    project = None
+    member_hours = []
+    #import pdb; pdb.set_trace()
+    if context_agent_slug:
+        project = get_object_or_404(EconomicAgent, slug=context_agent_slug)
+    if project:
+        subs = project.with_all_sub_agents()
+        end = datetime.date.today()
+        #end = end - datetime.timedelta(days=77)
+        start =  end - datetime.timedelta(days=60)
+        events = EconomicEvent.objects.filter(
+            event_type__relationship="work",
+            context_agent__in=subs,
+            event_date__range=(start, end))
+        agents_stats = {}
+        for event in events:
+            agents_stats.setdefault(event.from_agent, Decimal("0"))
+            agents_stats[event.from_agent] += event.quantity
+        for key, value in agents_stats.items():
+            member_hours.append((key, value))
+        member_hours.sort(lambda x, y: cmp(y[1], x[1]))
+    return render_to_response("valueaccounting/project_stats.html", {
+        "member_hours": member_hours,
+        "page_title": "Last 2 months project stats",
+    }, context_instance=RequestContext(request))
+
 
 def project_roles(request, context_agent_slug):
     project = None
@@ -5459,12 +5509,12 @@ def delete_shipment_event(request, event_id):
         % ('accounting/exchange', exchange.id))
 
 @login_required
-def add_distribution(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+def add_distribution(request, distribution_id):
+    distribution = get_object_or_404(Distribution, pk=distribution_id)   
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        pattern = exchange.process_pattern
-        context_agent = exchange.context_agent
+        pattern = distribution.process_pattern
+        context_agent = distribution.context_agent
         form = DistributionEventForm(data=request.POST, pattern=pattern, posting=True, prefix='dist')
         if form.is_valid():
             data = form.cleaned_data
@@ -5472,13 +5522,13 @@ def add_distribution(request, exchange_id):
             if qty:
                 event = form.save(commit=False)
                 rt = data["resource_type"]
-                event_type = pattern.event_type_for_resource_type("distribute", rt)
+                event_type = EventType.objects.get(relationship="distribute")
                 event.event_type = event_type
-                event.exchange = exchange
-                event.context_agent = exchange.context_agent
+                event.context_agent = context_agent
+                event.distribution = distribution
                 event.resource_type = rt
                 event.unit_of_quantity = rt.unit
-                event.from_agent = exchange.context_agent
+                event.from_agent = context_agent
                 event.is_contribution = False
                 event.created_by = request.user
                 event.save()
@@ -5488,15 +5538,15 @@ def add_distribution(request, exchange_id):
                     resource.save()
                 
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+        % ('accounting/distribution', distribution.id))
 
 @login_required
-def add_disbursement(request, exchange_id):
-    exchange = get_object_or_404(Exchange, pk=exchange_id)   
+def add_disbursement(request, distribution_id):
+    distribution = get_object_or_404(Distribution, pk=distribution_id)   
     if request.method == "POST":
         #import pdb; pdb.set_trace()
-        pattern = exchange.process_pattern
-        context_agent = exchange.context_agent
+        pattern = distribution.process_pattern
+        context_agent = distribution.context_agent
         form = DisbursementEventForm(data=request.POST, pattern=pattern, posting=True, prefix='disb')
         if form.is_valid():
             data = form.cleaned_data
@@ -5504,17 +5554,17 @@ def add_disbursement(request, exchange_id):
             if qty:
                 event = form.save(commit=False)
                 rt = data["resource_type"]
-                event_type = pattern.event_type_for_resource_type("disburse", rt)
-                fa = exchange.context_agent
+                event_type = EventType.objects.get(relationship="disburse")
+                fa = distribution.context_agent
                 if event.resource:
                     if event.resource.owner():
                         fa = event.resource.owner()
                 event.event_type = event_type
-                event.exchange = exchange
-                event.context_agent = exchange.context_agent
+                event.context_agent = context_agent
+                event.distribution = distribution
                 event.unit_of_quantity = rt.unit
                 event.from_agent = fa
-                event.to_agent = exchange.context_agent
+                event.to_agent = context_agent
                 event.is_contribution = False
                 event.created_by = request.user
                 event.save()
@@ -5524,7 +5574,7 @@ def add_disbursement(request, exchange_id):
                     resource.save()
                 
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+        % ('accounting/distribution', distribution.id))
 
 @login_required
 def add_transfer(request, exchange_id, transfer_type_id):
@@ -5543,6 +5593,8 @@ def add_transfer(request, exchange_id, transfer_type_id):
             et2 = None
             res_identifier = None
             if qty:
+                et_give = EventType.objects.get(name="Give")
+                et_receive = EventType.objects.get(name="Receive")
                 event_date = data["event_date"]
                 if transfer_type.give_agent_is_context:
                     from_agent = context_agent
@@ -5569,6 +5621,10 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     is_contribution = data["is_contribution"]
                 else:
                     is_contribution = False
+                if transfer_type.is_to_distribute:
+                    is_to_distribute = data["is_to_distribute"]
+                else:
+                    is_to_distribute = False
                 event_ref = data["event_reference"]
                 if transfer_type.can_create_resource:
                     res = data["resource"]
@@ -5591,27 +5647,27 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     if transfer_type.is_reciprocal:
                         if res:
                             res.quantity -= res.quantity
-                        et = EventType.objects.get(name="Give")
+                        et = et_give
                     else:
                         if res:
                             res.quantity += res.quantity
-                        et = EventType.objects.get(name="Receive")
+                        et = et_receive
                 elif exchange.exchange_type.use_case == UseCase.objects.get(identifier="demand_xfer"):
                     if transfer_type.is_reciprocal:
                         if res:
                             res.quantity += res.quantity
-                        et = EventType.objects.get(name="Receive")
+                        et = et_receive
                     else:
                         if res:
                             res.quantity -= res.quantity
-                        et = EventType.objects.get(name="Give")
+                        et = et_give
                 else: #internal xfer use case
                     if transfer_type.is_reciprocal:
-                        et = EventType.objects.get(name="Receive")
-                        et2 = EventType.objects.get(name="Give")
+                        et = et_receive
+                        et2 = et_give
                     else:
-                        et = EventType.objects.get(name="Give")
-                        et2 = EventType.objects.get(name="Receive")
+                        et = et_give
+                        et2 = et_receive
                 if res:
                     res.save()
                 if res_identifier: #new resource
@@ -5643,6 +5699,12 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     created_by = request.user              
                     )
                 xfer.save()
+                e_is_to_distribute = is_to_distribute
+                if et == et_give:
+                    e_is_to_distribute = False
+                e_is_contribution = is_contribution
+                if et == et_receive:
+                    e_is_contribution = False
                 event = EconomicEvent(
                     event_type = et,
                     event_date=event_date,
@@ -5658,12 +5720,19 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     unit_of_value=unit_of_value,
                     from_agent = from_agent,
                     to_agent = to_agent,
-                    is_contribution = is_contribution,
+                    is_contribution = e_is_contribution,
+                    is_to_distribute = e_is_to_distribute,
                     event_reference=event_ref,
                     created_by = request.user,
                     )
                 event.save()
                 if et2:
+                    e2_is_to_distribute = is_to_distribute
+                    if et == et_give:
+                        e2_is_to_distribute = False
+                    e2_is_contribution = is_contribution
+                    if et == et_receive:
+                        e2_is_contribution = False
                     event2 = EconomicEvent(
                         event_type = et2,
                         event_date=event_date,
@@ -5679,7 +5748,8 @@ def add_transfer(request, exchange_id, transfer_type_id):
                         unit_of_value=unit_of_value,
                         from_agent = from_agent,
                         to_agent = to_agent,
-                        is_contribution = is_contribution,
+                        is_contribution = e2_is_contribution,
+                        is_to_distribute = e2_is_to_distribute,
                         event_reference=event_ref,
                         created_by = request.user,
                     )    
@@ -6356,6 +6426,7 @@ def delete_event(request, event_id):
         agent = event.from_agent
         process = event.process
         exchange = event.exchange
+        distribution = event.distribution
         resource = event.resource
         if resource:
             if event.consumes_resources():
@@ -6392,6 +6463,9 @@ def delete_event(request, event_id):
     if next == "exchange":
         return HttpResponseRedirect('/%s/%s/%s/'
             % ('accounting/exchange', 0, exchange.id))
+    if next == "distribution":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('accounting/distribution', distribution.id))
     if next == "resource":
         resource_id = request.POST.get("resource_id")
         return HttpResponseRedirect('/%s/%s/'
@@ -7044,7 +7118,9 @@ def process_oriented_logging(request, process_id):
             if agent == req.from_agent:
                 logger = True
                 worker = True  
-            init = {"from_agent": agent, "event_date": todays_date}
+            init = {"from_agent": agent, 
+                "event_date": todays_date,
+                "is_contribution": True,}
             req.input_work_form_init = req.input_event_form_init(init=init)
         for req in consume_reqs:
             req.changeform = req.change_form()
@@ -7077,14 +7153,19 @@ def process_oriented_logging(request, process_id):
                     add_output_form.fields["resource_type"].queryset = output_resource_types
         if "work" in slots:
             if agent:
-                work_resource_types = pattern.work_resource_types()
-                work_unit = work_resource_types[0].unit
-                #work_init = {"unit_of_quantity": work_unit,}
                 work_init = {
                     "from_agent": agent,
-                    "unit_of_quantity": work_unit,
+                    "is_contribution": True,
                 } 
+                work_resource_types = pattern.work_resource_types()
                 if work_resource_types:
+                    work_unit = work_resource_types[0].unit
+                    #work_init = {"unit_of_quantity": work_unit,}
+                    work_init = {
+                        "from_agent": agent,
+                        "unit_of_quantity": work_unit,
+                        "is_contribution": True,
+                    } 
                     unplanned_work_form = UnplannedWorkEventForm(prefix="unplanned", context_agent=context_agent, initial=work_init)
                     unplanned_work_form.fields["resource_type"].queryset = work_resource_types
                     #if logger:
@@ -7468,7 +7549,6 @@ def add_work_event(request, commitment_id):
         event.unit_of_quantity = ct.unit_of_quantity
         event.created_by = request.user
         event.changed_by = request.user
-        event.is_contribution=True
         event.save()
         ct.process.set_started(event.event_date, request.user)
         
@@ -7496,7 +7576,6 @@ def add_unplanned_work_event(request, process_id):
             event.unit_of_quantity = rt.unit
             event.created_by = request.user
             event.changed_by = request.user
-            event.is_contribution=True
             event.save()
             process.set_started(event.event_date, request.user)
             
@@ -8424,7 +8503,7 @@ def change_work_event(request, event_id):
     #import pdb; pdb.set_trace()
     if request.method == "POST":
         prefix = event.form_prefix()
-        form = InputEventForm(instance=event, prefix=prefix, data=request.POST)
+        form = WorkEventChangeForm(instance=event, prefix=prefix, data=request.POST)
         if form.is_valid():
             #import pdb; pdb.set_trace()
             data = form.cleaned_data
@@ -8636,41 +8715,41 @@ def change_distribution_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     old_resource = event.resource
     old_qty = event.quantity
-    exchange = event.exchange
-    pattern = exchange.process_pattern
-    if pattern:
-        if request.method == "POST":
-            form = DistributionEventForm(
-                pattern=pattern,
-                instance=event, 
-                posting=True,
-                prefix=str(event.id), 
-                data=request.POST)
-            if form.is_valid():
-                form.save(commit=False)
-                event.unit_of_quantity = event.resource_type.unit
-                event.save()
-                #import pdb; pdb.set_trace()
-                if event.resource:
-                    resource = event.resource
-                    if old_resource:
-                        if resource != old_resource:
-                            old_resource.quantity = old_resource.quantity - old_qty
-                            old_resource.save()
-                            resource.quantity = resource.quantity + event.quantity
-                        else:
-                            changed_qty = event.quantity - old_qty
-                            if changed_qty != 0:
-                                resource.quantity = resource.quantity + changed_qty
-                    else:
-                        resource.quantity = resource.quantity + event.quantity
-                    resource.save()
-                else:
-                    if old_resource:
+    distribution = event.distribution
+    pattern = distribution.process_pattern
+    if request.method == "POST":
+        form = DistributionEventForm(
+            pattern=pattern,
+            instance=event, 
+            posting=True,
+            prefix=event.form_prefix(), 
+            data=request.POST)
+        if form.is_valid():
+            form.save(commit=False)
+            event.unit_of_quantity = event.resource_type.unit
+            event.changed_by = request.user
+            event.save()
+            #import pdb; pdb.set_trace()
+            if event.resource:
+                resource = event.resource
+                if old_resource:
+                    if resource != old_resource:
                         old_resource.quantity = old_resource.quantity - old_qty
                         old_resource.save()
+                        resource.quantity = resource.quantity + event.quantity
+                    else:
+                        changed_qty = event.quantity - old_qty
+                        if changed_qty != 0:
+                            resource.quantity = resource.quantity + changed_qty
+                else:
+                    resource.quantity = resource.quantity + event.quantity
+                resource.save()
+            else:
+                if old_resource:
+                    old_resource.quantity = old_resource.quantity - old_qty
+                    old_resource.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+        % ('accounting/distribution', distribution.id))
 
 @login_required
 def change_disbursement_event(request, event_id):
@@ -8678,41 +8757,41 @@ def change_disbursement_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     old_resource = event.resource
     old_qty = event.quantity
-    exchange = event.exchange
-    pattern = exchange.process_pattern
-    if pattern:
-        if request.method == "POST":
-            form = DisbursementEventForm(
-                pattern=pattern,
-                instance=event, 
-                posting=True,
-                prefix=str(event.id), 
-                data=request.POST)
-            if form.is_valid():
-                form.save(commit=False)
-                event.unit_of_quantity = event.resource_type.unit
-                event.save()
-                #import pdb; pdb.set_trace()
-                if event.resource:
-                    resource = event.resource
-                    if old_resource:
-                        if resource != old_resource:
-                            old_resource.quantity = old_resource.quantity + old_qty
-                            old_resource.save()
-                            resource.quantity = resource.quantity - event.quantity
-                        else:
-                            changed_qty = event.quantity - old_qty
-                            if changed_qty != 0:
-                                resource.quantity = resource.quantity - changed_qty
-                    else:
-                        resource.quantity = resource.quantity - event.quantity
-                    resource.save()
-                else:
-                    if old_resource:
+    distribution = event.distribution
+    pattern = distribution.process_pattern
+    if request.method == "POST":
+        form = DisbursementEventForm(
+            pattern=pattern,
+            instance=event, 
+            posting=True,
+            prefix=event.form_prefix(), 
+            data=request.POST)
+        if form.is_valid():
+            form.save(commit=False)
+            event.unit_of_quantity = event.resource_type.unit
+            event.changed_by = request.user
+            event.save()
+            #import pdb; pdb.set_trace()
+            if event.resource:
+                resource = event.resource
+                if old_resource:
+                    if resource != old_resource:
                         old_resource.quantity = old_resource.quantity + old_qty
                         old_resource.save()
+                        resource.quantity = resource.quantity - event.quantity
+                    else:
+                        changed_qty = event.quantity - old_qty
+                        if changed_qty != 0:
+                            resource.quantity = resource.quantity - changed_qty
+                else:
+                    resource.quantity = resource.quantity - event.quantity
+                resource.save()
+            else:
+                if old_resource:
+                    old_resource.quantity = old_resource.quantity + old_qty
+                    old_resource.save()
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/exchange', exchange.id))
+        % ('accounting/distribution', distribution.id))
 
 @login_required
 def change_expense_event(request, event_id):
@@ -10823,6 +10902,7 @@ def exchange_logging(request, exchange_type_id=None, exchange_id=None, context_a
         "help": get_help("exchange"),
     }, context_instance=RequestContext(request))
 
+'''
 def exchange_logging_old(request, exchange_id):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
@@ -11167,7 +11247,8 @@ def create_exchange(request, use_case_identifier):
         "context_types": context_types,
         "help": get_help("create_exchange"),
     }, context_instance=RequestContext(request))
-    
+
+#obsolete    
 @login_required
 def create_sale(request):
     #import pdb; pdb.set_trace()
@@ -11194,7 +11275,8 @@ def create_sale(request):
         "context_types": context_types,
         "help": get_help("create_sale"),
     }, context_instance=RequestContext(request))
-    
+
+#obsolete
 @login_required
 def create_distribution(request, agent_id):
     #import pdb; pdb.set_trace()
@@ -11217,28 +11299,72 @@ def create_distribution(request, agent_id):
         "context_agent": context_agent,
         "help": get_help("create_distribution"),
     }, context_instance=RequestContext(request))
-
+'''
     
-@login_required
 def distribution_logging(request, distribution_id=None):
     #import pdb; pdb.set_trace()
-    if not request.user.is_staff:
-        return render_to_response('valueaccounting/no_permission.html')
-    exchange_form = DistributionForm()
-    if request.method == "POST":
-        exchange_form = DistributionForm(data=request.POST)
-        if exchange_form.is_valid():
-            exchange = exchange_form.save(commit=False)
-            exchange.use_case = UseCase.objects.get(identifier="distribution")
-            exchange.context_agent = context_agent
-            exchange.created_by = request.user
-            exchange.save()
-            return HttpResponseRedirect('/%s/%s/'
-                % ('accounting/exchange', exchange.id))
-    return render_to_response("valueaccounting/create_distribution.html", {
-        "exchange_form": exchange_form,
-        "context_agent": context_agent,
-        "help": get_help("create_distribution"),
+    agent = get_agent(request)
+    logger = False
+    if agent:
+        if request.user.is_superuser:
+            logger = True
+    pattern = None
+    use_case = UseCase.objects.get(identifier="distribution")
+    patterns = ProcessPattern.objects.usecase_patterns(use_case)
+    if patterns:
+        pattern = patterns[0]
+    dist = None
+    total_disb = 0
+    total_dist = 0
+    add_distribution_form = None
+    add_disbursement_form = None
+    
+    if not distribution_id: #new distribution
+        if agent:
+            if request.method == "POST":
+                main_form = DistributionForm(data=request.POST)
+                if main_form.is_valid():
+                    dist = main_form.save(commit=False)
+                    dist.process_pattern = pattern
+                    dist.created_by = request.user
+                    dist.save()
+                    return HttpResponseRedirect('/%s/%s/'
+                        % ('accounting/distribution', dist.id)) 
+        
+            main_form = DistributionForm()
+        
+        else:
+            raise ValidationError("System Error: No agent, not allowed to create distribution.")
+
+    else: #existing distribution
+        dist = get_object_or_404(Distribution, id=distribution_id)
+        
+        if request.method == "POST":
+            #import pdb; pdb.set_trace()
+            main_form = DistributionForm(instance=dist, data=request.POST)
+            if main_form.is_valid():
+                dist = main_form.save()
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/distribution', dist.id))   
+         
+        main_form = DistributionForm(instance=dist)
+        dist_init = {
+            "event_date": dist.distribution_date,
+        }      
+        add_distribution_form = DistributionEventForm(prefix='dist', initial=dist_init, pattern=pattern)
+        disb_init = {
+            "event_date": dist.distribution_date,
+        }      
+        add_disbursement_form = DisbursementEventForm(prefix='disb', initial=disb_init, pattern=pattern)   
+
+    return render_to_response("valueaccounting/distribution_logging.html", {
+        "main_form": main_form,
+        "dist": dist,
+        "agent": agent,
+        "logger": logger,
+        "add_distribution_form": add_distribution_form,
+        "add_disbursement_form": add_disbursement_form,
+        "help": get_help("distribution_logging"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -11253,9 +11379,12 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
         ve = None
     buckets = []
     use_case = UseCase.objects.get(identifier="distribution")
-    pattern = ProcessPattern.objects.usecase_patterns(use_case)[0]
+    pattern = None
+    patts = ProcessPattern.objects.usecase_patterns(use_case)
+    if patts:
+        pattern = patts[0]
     agent_totals = None
-    cash_receipts = {}
+    events_to_distribute = {}
     if request.method == "POST":
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True, data=request.POST)
         #import pdb; pdb.set_trace()
@@ -11264,25 +11393,19 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             ve = data["value_equation"]
             amount = data["money_to_distribute"]
             resource = data["resource"]
-            crs = data["cash_receipts"]
-            inds = data["input_distributions"]
+            events_to_distribute = data["events_to_distribute"]
             partial = data["partial_distribution"]
-            if crs:
-                resource = crs[0].resource
+            if events_to_distribute:
+                resource = events_to_distribute[0].resource
                 amount = 0
-                if len(crs) == 1:
+                if len(events_to_distribute) == 1:
                     if partial:
                         amount= partial
                     else:
-                        amount = crs[0].quantity
+                        amount = events_to_distribute[0].quantity
                 else:
-                    for cr in crs:
+                    for cr in events_to_distribute:
                         amount += cr.quantity
-            if inds:
-                resource = inds[0].resource
-                amount = 0
-                for ind in inds:
-                    amount += ind.quantity
             dist_date = data["start_date"]
             notes = data["notes"]
             serialized_filters = {}
@@ -11303,37 +11426,35 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                     serialized_filters=serialized_filters)
                 
             else:                            
-                exchange = Exchange(                
+                distribution = Distribution(                
                     name="Distribution for " + context_agent.nick,
                     process_pattern=pattern,
-                    use_case=use_case,
-                    start_date=dist_date,
+                    distribution_date=dist_date,
                     notes=notes,
                     context_agent=context_agent,
                     created_by=request.user,
                 )
                 #exchange.save()
                 
-                exchange = ve.run_value_equation_and_save(
-                    cash_receipts=crs,
-                    input_distributions=inds,
-                    exchange=exchange, 
+                distribution = ve.run_value_equation_and_save(
+                    events_to_distribute=events_to_distribute,
+                    distribution=distribution, 
                     money_resource=resource, 
                     amount_to_distribute=amount, 
                     serialized_filters=serialized_filters)
-                for event in exchange.distribution_events():
+                for event in distribution.distribution_events():
                     send_distribution_notification(event)
                     
                 return HttpResponseRedirect('/%s/%s/'
-                    % ('accounting/exchange', exchange.id))
+                    % ('accounting/distribution', distribution.id))
             
     else:
         ves = context_agent.live_value_equations()
         init = { "start_date": datetime.date.today(), "value_equation": ve }
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=False, initial=init)
-        crs = context_agent.undistributed_cash_receipts()
-        for cr in crs:
-            cash_receipts[cr.id] = float(cr.undistributed_amount())
+        etd = context_agent.undistributed_events()
+        for ev in etd:
+            events_to_distribute[ev.id] = float(ev.undistributed_amount())
         if ves:
             if not ve:
                 ve = ves[0]
@@ -11343,7 +11464,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                     bucket.form = bucket.filter_entry_form()
       
     return render_to_response("valueaccounting/create_distribution_using_value_equation.html", {
-        "cashReceipts": cash_receipts,
+        "events_to_distribute": events_to_distribute,
         "header_form": header_form,
         "buckets": buckets,
         "ve": ve,
@@ -11624,7 +11745,10 @@ def value_equation_sandbox(request, value_equation_id=None):
                     agent_subtotals[key] = AgentSubtotal(d.from_agent, d.vebr)
                 sub = agent_subtotals[key]
                 sub.quantity += d.quantity
-                sub.value += d.share
+                try:
+                    sub.value += d.share
+                except AttributeError:
+                    continue
                 try:
                     sub.distr_amt += d.distr_amt
                 except AttributeError:

@@ -210,7 +210,8 @@ li {
                                                 Value (total, not per unit):<br />{{ slot.add_xfer_form.value }}<br />
                                                 Unit of value:<br />{{ slot.add_xfer_form.unit_of_value }}<br />
                                             {% endif %}
-                                            {% if slot.is_contribution %}Can be used in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
+                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
+                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.add_xfer_form.is_to_distribute }}<br />{% endif %}
                                             {% if slot.is_currency %}Event reference:<br />{{ slot.add_xfer_form.event_reference }}<br />{% endif %}
                                             {% if slot.can_create_resource %}
                                                 <br />
@@ -334,7 +335,8 @@ li {
                                                                 Value (total, not per unit):<br />{{ xfer.commit_transfer_form.value }}<br />
                                                                 Unit of value:<br />{{ xfer.commit_transfer_form.unit_of_value }}<br />
                                                             {% endif %}
-                                                            {% if slot.is_contribution %}Can be used in a value equation:<br />{{ xfer.commit_transfer_form.is_contribution }}<br />{% endif %}
+                                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
+                                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.add_xfer_form.is_to_distribute }}<br />{% endif %}
                                                             {% if slot.is_currency %}Event reference:<br />{{ xfer.commit_transfer_form.event_reference }}<br />{% endif %}
                                                             {% if slot.can_create_resource %}
                                                                 <br />
@@ -391,7 +393,8 @@ li {
                                                                     Value (total, not per unit):<br />{{ xfer.change_events_form.value }}<br />
                                                                     Unit of value:<br />{{ xfer.change_events_form.unit_of_value }}<br />
                                                                 {% endif %}
-                                                                {% if slot.is_contribution %}Can be used in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
+                                                                {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
+                                                                {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.change_events_form.is_to_distribute }}<br />{% endif %}
                                                                 {% if slot.is_currency %}Event reference:<br />{{ xfer.change_events_form.event_reference }}<br />{% endif %}                                                               
                                                                 <div class="modal-footer">
                                                                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -440,7 +443,8 @@ li {
                                                             Value (total, not per unit):<br />{{ xfer.change_events_form.value }}<br />
                                                             Unit of value:<br />{{ xfer.change_events_form.unit_of_value }}<br />
                                                         {% endif %}
-                                                        {% if slot.is_contribution %}Can be used in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
+                                                        {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
+                                                        {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.change_events_form.is_to_distribute }}<br />{% endif %}
                                                         {% if slot.is_currency %}Event reference:<br />{{ xfer.change_events_form.event_reference }}<br />{% endif %} 
                                                         <div class="modal-footer">
                                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -513,7 +517,8 @@ li {
                                                 Value (total, not per unit):<br />{{ slot.add_xfer_form.value }}<br />
                                                 Unit of value:<br />{{ slot.add_xfer_form.unit_of_value }}<br />
                                             {% endif %}
-                                            {% if slot.is_contribution %}Can be used in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
+                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
+                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.add_xfer_form.is_to_distribute }}<br />{% endif %}
                                             {% if slot.is_currency %}Event reference:<br />{{ slot.add_xfer_form.event_reference }}<br />{% endif %}
                                             {% if slot.can_create_resource %}
                                                 <br />
@@ -637,7 +642,8 @@ li {
                                                                 Value (total, not per unit):<br />{{ xfer.commit_transfer_form.value }}<br />
                                                                 Unit of value:<br />{{ xfer.commit_transfer_form.unit_of_value }}<br />
                                                             {% endif %}
-                                                            {% if slot.is_contribution %}Can be used in a value equation:<br />{{ xfer.commit_transfer_form.is_contribution }}<br />{% endif %}
+                                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
+                                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.add_xfer_form.is_to_distribute }}<br />{% endif %}
                                                             {% if slot.is_currency %}Event reference:<br />{{ xfer.commit_transfer_form.event_reference }}<br />{% endif %}
                                                             {% if slot.can_create_resource %}
                                                                 <br />
@@ -694,7 +700,8 @@ li {
                                                                     Value (total, not per unit):<br />{{ xfer.change_events_form.value }}<br />
                                                                     Unit of value:<br />{{ xfer.change_events_form.unit_of_value }}<br />
                                                                 {% endif %}
-                                                                {% if slot.is_contribution %}Can be used in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
+                                                                {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
+                                                                {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.change_events_form.is_to_distribute }}<br />{% endif %}
                                                                 {% if slot.is_currency %}Event reference:<br />{{ xfer.change_events_form.event_reference }}<br />{% endif %}                                                               
                                                                 <div class="modal-footer">
                                                                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -743,7 +750,8 @@ li {
                                                             Value (total, not per unit):<br />{{ xfer.change_events_form.value }}<br />
                                                             Unit of value:<br />{{ xfer.change_events_form.unit_of_value }}<br />
                                                         {% endif %}
-                                                        {% if slot.is_contribution %}Can be used in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
+                                                        {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
+                                                        {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.change_events_form.is_to_distribute }}<br />{% endif %}
                                                         {% if slot.is_currency %}Event reference:<br />{{ xfer.change_events_form.event_reference }}<br />{% endif %} 
                                                         <div class="modal-footer">
                                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>

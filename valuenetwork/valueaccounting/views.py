@@ -8540,7 +8540,7 @@ def change_exchange_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     exchange = event.exchange
     context_agent=exchange.context_agent
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     if request.method == "POST":
         form = WorkEventAgentForm(
             context_agent=context_agent,

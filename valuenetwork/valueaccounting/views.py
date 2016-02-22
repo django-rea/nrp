@@ -11393,18 +11393,18 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             ve = data["value_equation"]
             amount = data["money_to_distribute"]
             resource = data["resource"]
-            events_to_distribute = data["events_to_distribute"]
+            etd = data["events_to_distribute"]
             partial = data["partial_distribution"]
-            if events_to_distribute:
-                resource = events_to_distribute[0].resource
+            if etd:
+                resource = etd[0].resource
                 amount = 0
-                if len(events_to_distribute) == 1:
+                if len(etd) == 1:
                     if partial:
                         amount= partial
                     else:
-                        amount = events_to_distribute[0].quantity
+                        amount = etd[0].quantity
                 else:
-                    for cr in events_to_distribute:
+                    for cr in etd:
                         amount += cr.quantity
             dist_date = data["start_date"]
             notes = data["notes"]
@@ -11437,7 +11437,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                 #exchange.save()
                 
                 distribution = ve.run_value_equation_and_save(
-                    events_to_distribute=events_to_distribute,
+                    events_to_distribute=etd,
                     distribution=distribution, 
                     money_resource=resource, 
                     amount_to_distribute=amount, 

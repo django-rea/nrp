@@ -176,16 +176,16 @@ th
                     {% endif %}
                 {% endfor %}
             </div>
-            <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
+            <input id="calculate" type="submit" name="submit" class="btn btn-primary" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
             <span class="warning"><b>WARNING</b>: This operation cannot be undone. Please test your data entry below first!</span>
             <span id="loading" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
             
             <div id="distributions">
-                <input id="test" type="submit" name="test-only" class="btn btn-warning" style="display: inline; vertical-align: top;" value="{% trans 'TEST Distribution Here First !' %}" />
+                <input id="test" type="submit" name="test-only" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'TEST Distribution Here First !' %}" />
                 <span id="loadingTest" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
    
                 {% if agent_totals %} 
-                    <div class="hdg">TEST Agent Totals:</div>
+                    <div class="hdg">TEST ONLY - Agent Totals:</div>
                     <table class="table table-bordered table-condensed" >
                         <thead>
                             <th>{% trans "Agent" %}</th>

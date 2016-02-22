@@ -11385,6 +11385,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
         pattern = patts[0]
     agent_totals = None
     events_to_distribute = {}
+    no_totals = None
     if request.method == "POST":
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True, data=request.POST)
         #import pdb; pdb.set_trace()
@@ -11424,6 +11425,8 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                 agent_totals, contribution_events = ve.run_value_equation(
                     amount_to_distribute=amount,
                     serialized_filters=serialized_filters)
+                if not agent_totals:
+                    no_totals = "No contributions found."
                 
             else:                            
                 distribution = Distribution(                
@@ -11470,6 +11473,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
         "ve": ve,
         "context_agent": context_agent,
         "agent_totals": agent_totals,
+        "no_totals": no_totals,
         "help": get_help("create_distribution"),
     }, context_instance=RequestContext(request))
          

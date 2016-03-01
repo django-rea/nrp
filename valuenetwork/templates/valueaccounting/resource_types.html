@@ -113,7 +113,7 @@
 		                {% if resource_type.producing_process_type_relationships %}
 		                  {% if resource_type.recipe_is_staged %}
                             <a href="{% url view_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
-                            <a href="{% url resource_flow_report resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Resource Flow Report" %}</a>
+                            {% comment %}<a href="{% url resource_flow_report resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Resource Flow Report" %}</a>{% endcomment %}
 		                  {% else %}
 			                <a href="{% url extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
 		                  {% endif %}

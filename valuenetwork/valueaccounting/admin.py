@@ -288,10 +288,10 @@ class EconomicEventAdmin(admin.ModelAdmin):
 admin.site.register(EconomicEvent, EconomicEventAdmin)
 
 
-class CompensationAdmin(admin.ModelAdmin):
-    list_display = ('initiating_event', 'compensating_event', 'compensation_date', 'compensating_value')
-    search_fields = ['initiating_event__from_agent__name', 'initiating_event__to_agent__name']
+#class CompensationAdmin(admin.ModelAdmin):
+#    list_display = ('initiating_event', 'compensating_event', 'compensation_date', 'compensating_value')
+#    search_fields = ['initiating_event__from_agent__name', 'initiating_event__to_agent__name']
     
-admin.site.register(Compensation, CompensationAdmin)
+#admin.site.register(Compensation, CompensationAdmin)
 
 

@@ -223,13 +223,14 @@ def projects(request):
         for node in root.nodes:
             aats = []
             for aat in node.agent_association_types():
-                aat.assoc_count = node.associate_count_of_type(aat.identifier)
-                assoc_list = node.all_has_associates_by_type(aat.identifier)
-                for assoc in assoc_list:
-                    association = AgentAssociation.objects.get(is_associate=assoc, has_associate=node, association_type=aat)
-                    assoc.state = association.state
-                aat.assoc_list = assoc_list
-                aats.append(aat)
+                if aat.association_behavior != "child":
+                    aat.assoc_count = node.associate_count_of_type(aat.identifier)
+                    assoc_list = node.all_has_associates_by_type(aat.identifier)
+                    for assoc in assoc_list:
+                        association = AgentAssociation.objects.get(is_associate=assoc, has_associate=node, association_type=aat)#
+                        assoc.state = association.state
+                    aat.assoc_list = assoc_list
+                    aats.append(aat)
             node.aats = aats
     agent = get_agent(request)
     agent_form = AgentCreateForm()

@@ -1,4 +1,5 @@
 import datetime
+import time
 import re
 from decimal import *
 from operator import attrgetter
@@ -9338,6 +9339,7 @@ class ValueEquation(models.Model):
         
     def run_value_equation(self, amount_to_distribute, serialized_filters):
         #import pdb; pdb.set_trace()
+        #start_time = time.time()
         atd = amount_to_distribute
         detail_sums = []
         claim_events = []
@@ -9415,7 +9417,8 @@ class ValueEquation(models.Model):
                         if claim.value < 0:
                             claim.value = 0
                     break
-
+        #end_time = time.time()
+        #print("run_value_equation elapsed time was %g seconds" % (end_time - start_time))
         return distribution_events, contribution_events
     
     
@@ -10482,7 +10485,7 @@ class EconomicEvent(models.Model):
                         
     def compute_income_fractions_for_process(self, value_equation):
         #EconomicEvent (shipment) method
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         shares = []
         #todo transferBreakout: 
         # shipment events are no longer event_type.name == "Shipment"
@@ -10672,6 +10675,7 @@ class ValueEquationBucket(models.Model):
             
     def run_bucket_value_equation(self, amount_to_distribute, context_agent, serialized_filter):
         #import pdb; pdb.set_trace()
+        #start_time = time.time()
         rules = self.bucket_rules.all()
         claim_events = []
         contribution_events = []
@@ -10704,10 +10708,13 @@ class ValueEquationBucket(models.Model):
             #import pdb; pdb.set_trace()
             ces = self.create_distribution_claim_events(claims=claims, portion_of_amount=portion_of_amount)
             claim_events.extend(ces)
+        #end_time = time.time()
+        #print("run_bucket_value_equation elapsed time was %g seconds" % (end_time - start_time))
         return claim_events, contribution_events    
        
     def gather_bucket_events(self, context_agent, serialized_filter):
         #import pdb; pdb.set_trace()
+        #start_time = time.time()
         ve = self.value_equation
         events = []
         filter = ""
@@ -10828,6 +10835,8 @@ class ValueEquationBucket(models.Model):
 
         for event in events:
             event.filter = filter
+        #end_time = time.time()
+        #print("gather_bucket_events elapsed time was %g seconds" % (end_time - start_time))
         return events
        
     def claims_from_events(self, events):

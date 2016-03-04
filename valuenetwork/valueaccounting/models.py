@@ -4495,7 +4495,7 @@ class EconomicResource(models.Model):
                 value = br.compute_claim_value(evt)
             if value:
                 vpu = value / evt.quantity
-                #todo 3d: how to compute?
+                #todo fc: this is wrong for shares for use
                 evt.share = quantity * vpu
                 events.append(evt)
         buys = self.purchase_events()

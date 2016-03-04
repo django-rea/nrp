@@ -1548,6 +1548,7 @@ class AgentSummary(object):
 #obsolete
 def value_equation(request, project_id):
     #import pdb; pdb.set_trace()
+    return render_to_response('valueaccounting/no_permission.html')
     project = get_object_or_404(EconomicAgent, pk=project_id)    
     all_subs = project.with_all_sub_agents()
     summaries = CachedEventSummary.objects.select_related(

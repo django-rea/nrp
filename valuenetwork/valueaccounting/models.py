@@ -3234,6 +3234,8 @@ class Order(models.Model):
         return ordered_processes 
         
     def unordered_processes(self):
+        #this cd be cts = order.dependent_commitments.all()
+        # or self.all_dependent_commitments()
         cts = Commitment.objects.filter(independent_demand=self)
         processes = set()
         for ct in cts:
@@ -3242,6 +3244,7 @@ class Order(models.Model):
         return processes
         
     def all_dependent_commitments(self):
+        # this cd be return order.dependent_commitments.all()
         return Commitment.objects.filter(independent_demand=self)
 
     def has_open_processes(self):
@@ -4518,7 +4521,7 @@ class EconomicResource(models.Model):
                 value = br.compute_claim_value(evt)
             if value:
                 vpu = value / evt.quantity
-                #todo 3d: how to compute?
+                #todo fc: this is wrong for shares for use
                 evt.share = quantity * vpu
                 events.append(evt)
         buys = self.purchase_events()
@@ -5802,6 +5805,7 @@ class Process(models.Model):
         return answer
         
     def previous_processes_for_order(self, order):
+        #this is actually previous_processes_for_order_item
         answer = []
         dmnd = None
         moc = self.main_outgoing_commitment()
@@ -5836,6 +5840,7 @@ class Process(models.Model):
                 process.all_previous_processes(ordered_processes, visited, depth)
                 
     def all_previous_processes_for_order(self, order, ordered_processes, visited, depth):
+        #this is actually all_previous_processes_for_order_item
         #import pdb; pdb.set_trace()
         self.depth = depth * 2
         ordered_processes.append(self)
@@ -5897,6 +5902,7 @@ class Process(models.Model):
             state = oc.state
             rt = oc.resource_type
             if oc.cycle_id() not in input_ids:
+                #todo: this can be slow for non-sub rts
                 for cc in rt.wanting_commitments():
                     if cc.process:
                         if cc.stage == stage and cc.state == state:

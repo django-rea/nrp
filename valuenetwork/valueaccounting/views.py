@@ -223,13 +223,14 @@ def projects(request):
         for node in root.nodes:
             aats = []
             for aat in node.agent_association_types():
-                aat.assoc_count = node.associate_count_of_type(aat.identifier)
-                assoc_list = node.all_has_associates_by_type(aat.identifier)
-                for assoc in assoc_list:
-                    association = AgentAssociation.objects.get(is_associate=assoc, has_associate=node, association_type=aat)
-                    assoc.state = association.state
-                aat.assoc_list = assoc_list
-                aats.append(aat)
+                if aat.association_behavior != "child":
+                    aat.assoc_count = node.associate_count_of_type(aat.identifier)
+                    assoc_list = node.all_has_associates_by_type(aat.identifier)
+                    for assoc in assoc_list:
+                        association = AgentAssociation.objects.get(is_associate=assoc, has_associate=node, association_type=aat)#
+                        assoc.state = association.state
+                    aat.assoc_list = assoc_list
+                    aats.append(aat)
             node.aats = aats
     agent = get_agent(request)
     agent_form = AgentCreateForm()
@@ -1690,6 +1691,7 @@ class AgentSummary(object):
 #obsolete
 def value_equation(request, project_id):
     #import pdb; pdb.set_trace()
+    return render_to_response('valueaccounting/no_permission.html')
     project = get_object_or_404(EconomicAgent, pk=project_id)    
     all_subs = project.with_all_sub_agents()
     summaries = CachedEventSummary.objects.select_related(
@@ -11386,6 +11388,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
         pattern = patts[0]
     agent_totals = None
     events_to_distribute = {}
+    no_totals = None
     if request.method == "POST":
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=True, data=request.POST)
         #import pdb; pdb.set_trace()
@@ -11426,6 +11429,8 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                 agent_totals, contribution_events = ve.run_value_equation(
                     amount_to_distribute=amount,
                     serialized_filters=serialized_filters)
+                if not agent_totals:
+                    no_totals = "No contributions found."
                 
             else:                            
                 distribution = Distribution(                
@@ -11473,6 +11478,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
         "ve": ve,
         "context_agent": context_agent,
         "agent_totals": agent_totals,
+        "no_totals": no_totals,
         "help": get_help("create_distribution"),
     }, context_instance=RequestContext(request))
          

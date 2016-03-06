@@ -200,6 +200,8 @@ th
                             {% endfor %}
                         <tbody> 
                     </table>
+                {% elif no_totals %}
+                   <div><b>{{ no_totals }}</b></div>
                 {% endif %}
             </div>
         </form>            

@@ -4520,7 +4520,9 @@ class EconomicResource(models.Model):
                 value = br.compute_claim_value(evt)
             if value:
                 vpu = value / evt.quantity
-                #todo 3d: how to compute?
+                #todo: this is wrong
+                # must depend on use_value
+                # https://github.com/valnet/valuenetwork/issues/477
                 evt.share = quantity * vpu
                 events.append(evt)
         buys = self.purchase_events()

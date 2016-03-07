@@ -1,3 +1,7 @@
+
+PAY ATTENTION!!!!! This version of valuenetwork is a fork of the original one.
+This fork done by Valentina Nardecchia for use to Freedom Coop.
+
 valuenetwork
 =====================
 

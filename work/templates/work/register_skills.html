@@ -1,0 +1,336 @@
+{% extends "work_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Register Skills for " %} {{ agent }}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+	tr.even td 
+	{
+		color:#000000;
+		background-color:#EAF2D3;
+	}
+
+	th
+	{
+		background-color:#C8D6E8;
+	}
+
+    #saving {
+	    color: green;
+    }
+    h4, h5 {
+        margin-bottom: 10px;
+    }
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+		<legend>
+            <span style="vertical-align: top;" >
+                {% trans "Register Skills for " %} {{ agent }} 
+            </span>
+            
+        </legend>
+        <h5>*** For Freedom Coop, this would be a new page, so that people who want work can register their skills.***</h5>
+        <h4>We need to discuss any other information needed about the skills.  And design how this page should work.</h4>
+        <h4>Note, the skills are the resource types that are types of work. Here is a list of what is in the system now.</h4>
+        <ul>
+            {% for skill in skills %}
+                <li>{{ skill }}</li>
+            {% endfor %}
+        </ul>
+{% comment %}
+		<table class="table table-bordered table-hover table-condensed" >
+			<thead>
+				<th>{% trans "Skill" %}</th>
+			</thead>
+			<tbody>	
+				{% for event in events %}
+					<tr class="{% cycle 'odd' 'even' %}">
+						<td>
+                            {% if user_is_agent %}
+						    <form class="eventDateForm" id="eventDateForm-{{ event.id }}" >
+								{% csrf_token %}
+								{% with event.change_date_form as form %}
+								    {{ form.id }}
+								    {{ form.event_date }}
+							    {% endwith %}
+							</form>
+							{% else %}
+                                {{ event.event_date }}
+							{% endif %}
+						</td>
+						<td style="white-space:nowrap;" >
+                            {% if user_is_agent %}
+						    <form class="eventQtyForm" id="eventQtyForm-{{ event.id }}" >
+								{% csrf_token %}
+								{% with event.change_quantity_form as form %}
+								    {{ form.id }}
+								    {{ form.quantity }} {{ event.unit_of_quantity.abbrev }}
+							    {% endwith %}
+							</form>
+							{% else %}
+                                {{ event.quantity }} {{ event.unit_of_quantity.abbrev }}
+                            {% endif %}
+						</td>
+						<td>
+							{% if event.url %}
+								<a href="{{ event.url }}" target="_blank">Open</a>
+							{% endif %}
+						</td>
+						<td>{% if event.description %}{{ event.description|urlize }}
+                            {% else %} {{ event.commitment.description|urlize }} {% endif %}
+                       </td>
+						<td>
+							{% if event.process %}
+								<a href="{% url process_logging process_id=event.process.id %}" target="_blank">{{ event.process.name }}</a>
+							{% endif %}
+						</td>
+						<td>
+						    {% for d in event.process.deliverables %}
+						        <a href="{% url resource resource_id=d.id %}">{{ d }}</a></br >
+					        {% endfor %}
+					    </td>
+					    {% if user_is_agent %}
+                            <td>
+                                <form
+                                    class="change-form" 
+                                    id="changeForm{{ event.id }}" 
+                                    action="{% url change_event event_id=event.id %}" 
+                                    method="GET" >
+                                    <input type='hidden' class="page" id='changePage{{ event.id }}' name='page' value='' />
+                                    <button class="btn btn-info btn-mini" title="Change" ><i class="icon-edit icon-white"></button>
+                                </form>
+                                <form
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type='hidden' class="page" id='deletePage{{ event.id }}' name='page' value='' />
+                                    <input type='hidden' id='next' name='next' value='contributions' />
+                                    <button class="btn btn-warning btn-mini" title="Delete" ><i class="icon-remove icon-white"></button>
+                                </form>
+                            </td>
+					    {% endif %}
+					</tr>
+				{% endfor %}
+			<tbody>	
+		</table>
+{% endcomment %}
+
+	</div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+<script type="text/javascript">
+
+    $(document).ready(function(){
+
+        $.extend({
+          getUrlVars: function(){
+            var vars = [], hash;
+            var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+            for(var i = 0; i < hashes.length; i++)
+            {
+              hash = hashes[i].split('=');
+              vars.push(hash[0]);
+              vars[hash[0]] = hash[1];
+            }
+            return vars;
+          },
+          getUrlVar: function(name){
+            return $.getUrlVars()[name];
+          }
+        });
+
+        var pageNumber = $.getUrlVar('page');
+
+        $( ".page" ).each(function() {
+            $(this).val(pageNumber);
+        });
+
+        $("select").chosen();
+        
+        $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+        $('.filter-date').datepicker({ dateFormat: "yy-mm-dd" });
+
+        $('.date-entry').change(saveDate);
+        $('.quantity').change(saveQuantity);
+
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
+
+        {% for event in events %}
+            $("#eventDateForm-{{ event.id }}").validate({
+			    rules: {
+				    "{{ event.id }}-event_date": {
+					    required: true, 
+                        date: true
+				    }
+			    },
+			    highlight: function(label) {
+				    $(label).closest('.control-group').addClass('error');
+			    }
+		    });
+		    $("#eventQtyForm-{{ event.id }}").validate({
+			    rules: {
+				    "{{ event.id }}-quantity": {
+					    required: true, 
+                        number: true, 
+                        max: 999999.99
+				    }
+			    },
+			    highlight: function(label) {
+				    $(label).closest('.control-group').addClass('error');
+			    }
+		    });
+		{% endfor %}
+
+
+    }); // end document.ready
+
+    function notifySaving()
+	{
+		$("#saving").css("color","green"); 
+		$("#saving").text("Saving...");
+	}
+
+	function notifySaved()
+	{
+		$("#saving").css("color","green"); 
+		$("#saving").text("Saved");
+	}
+
+	function notifyProblem()
+	{
+		$("#saving").css("color","red"); 
+		$("#saving").text("Problem saving");
+	}
+
+    function saveDate(event)
+    {
+        var field = event.target;
+        var formId = "#" + field.form.id;
+        eventId = formId.split("-")[1];
+        var formData = $(formId).serialize();
+        var eventId = "&eventId=" + eventId;
+        formData += eventId;
+        
+        var url = "{%url change_event_date %}";
+
+        notifySaving();
+
+        var jqxhr = $.post( url, formData,
+            function( data ) {
+                notifySaved();
+            })
+            .fail(function() 
+            { 
+                notifyProblem(); 
+            }
+        );
+    }
+
+    function saveQuantity(event)
+    {
+        var field = event.target;
+        var formId = "#" + field.form.id;
+        eventId = formId.split("-")[1];
+        var formData = $(formId).serialize();
+        var eventId = "&eventId=" + eventId;
+		formData += eventId;
+        
+        var url = "{%url change_event_qty %}";
+
+		notifySaving();
+
+		var jqxhr = $.post( url, formData,
+			function( data ) {
+				notifySaved();
+			})
+			.fail(function() 
+			{ 
+				notifyProblem(); 
+			}
+		);
+    }
+
+	$(document).ajaxSend(function(event, xhr, settings) 
+	{
+		function getCookie(name) 
+		{
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie != '') 
+			{
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) 
+				{
+		            var cookie = jQuery.trim(cookies[i]);
+		            // Does this cookie string begin with the name we want?
+		            if (cookie.substring(0, name.length + 1) == (name + '=')) 
+					{
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+    	}
+
+		function sameOrigin(url) 
+		{
+		    // url could be relative or scheme relative or absolute
+		    var host = document.location.host; // host + port
+		    var protocol = document.location.protocol;
+		    var sr_origin = '//' + host;
+		    var origin = protocol + sr_origin;
+		    // Allow absolute or scheme relative URLs to same origin
+		    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+		        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+		        // or any other URL that isn't scheme relative or absolute i.e relative.
+		        !(/^(\/\/|http:|https:).*/.test(url));
+		}
+
+		function safeMethod(method) 
+		{
+		    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+
+		if (!safeMethod(settings.type) && sameOrigin(settings.url)) 
+		{
+		    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+		}
+	});
+    </script>
+
+{% endblock %}

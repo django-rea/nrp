@@ -295,14 +295,12 @@ def my_history(request):
 @login_required
 def register_skills(request):
     #import pdb; pdb.set_trace()
-
+    agent = get_agent(request)
+    skills = EconomicResourceType.objects.filter(behavior="work")
     
-    return render_to_response("work_register_skills.html", {
+    return render_to_response("work/register_skills.html", {
         "agent": agent,
-        "user_is_agent": user_is_agent,
-        "events": events,
-        "filter_form": filter_form,
-        "event_ids": event_ids,
+        "skills": skills,
     }, context_instance=RequestContext(request))
 
 

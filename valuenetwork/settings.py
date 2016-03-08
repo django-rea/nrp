@@ -154,6 +154,7 @@ INSTALLED_APPS = [
     'valuenetwork.equipment',
     'valuenetwork.board',
     'account',
+    'work',
 
 ]
 

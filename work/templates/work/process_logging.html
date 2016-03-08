@@ -1,0 +1,1861 @@
+{% extends "work_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Process" %}: {{ process }}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.use {
+    margin-left: 4em;
+    font-style: italic;
+}
+
+.info {
+    margin: 0;
+    font-style: italic;
+}
+
+.event-section {
+    margin: 4px; 
+    padding: 4px;
+    border: 1px solid lightgray;
+    background-color: #F0F6F0;
+}
+
+.commitment {
+    margin: 4px;
+    border: 1px solid lightgray;
+    background-color: #FAFCFC;
+    padding: 5px;
+}
+
+.notes {
+    margin: 3px 1em 3px 1em;
+    font-style: italic;
+    border: 1px solid lightgray;
+    padding: 3px 3px 0px 5px;
+}
+
+.error {
+    color: red;
+}
+
+.reskedForm {
+    display: inline;
+}
+#addCiteModal textarea, #addConsumableModal textarea, #addUsableModal textarea, #addWorkModal textarea, #addOutputModal textarea, .item-description, .resourceModal textarea {
+  width: 500px;
+  height: 100px;
+}
+
+.workEventModal textarea, .unplannedWorkModal textarea {
+  width: 500px;
+  height: 400px;
+}
+
+
+.btn {
+    margin-left: 10px;
+}
+h3, h4, h2 {
+    color: firebrick;
+}
+li {
+    list-style-type: none;
+}
+.proc-notes {
+    font-style: italic;
+    font-weight: normal;
+    border: solid 1px gainsboro;
+    background-color: #FAFCFC;
+    padding: 4px;
+    margin: 4px 0 10px 0;
+}
+.log-section {
+    border: solid 1px lightgray;
+    background-color: beige; 
+    padding: 4px;
+    margin-bottom: 10px;   
+}
+.modal {
+    width: 600px;
+}
+
+.takeTaskModal {
+    width: 610px;
+    height: 550px;
+}
+
+.takeTaskBody {
+    max-height: 550px;
+}
+
+.subsection-label {
+    font-weight: bold;
+    color:  #7D1818;
+}
+.detail-line {
+    margin: 0 0 0 2em;
+}
+.taken {
+    font-style: italic;
+    font-weight: bold;
+    color: #5C8A8A;
+}
+.unplanned {
+}
+
+.event-label {
+    color: green;
+    font-weight: bold;
+    font-style: normal;
+}
+.indent {
+    margin-left: 3em;
+}
+
+.onhand {
+    margin-left: 2em;
+}
+.btn-mini {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+.info {
+    float: right;
+    margin-left: 5px;
+}
+.normal {
+    font-size: 1em;
+    color: black;
+    font-weight: normal;
+}
+/*
+hr {
+    margin-top: 3px;
+    margin-bottom: 2px;
+    border-color: #D6E2E2;
+}
+*/
+</style>
+
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+	<legend>
+		{% trans "Process" %}: <span class="process" >{{ process }} </span>
+		{% if agent %}
+            <a href="#changeProcess" role="button" class="btn btn-info" data-toggle="modal" title="Change this process">
+                {% trans "Change" %}
+            </a>
+            <div class="modal hide fade" id="changeProcess" tabindex="-1" role="dialog" aria-labelledby="change-process" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="change-process">{% trans "Change " %} {{ process }} </h3>
+                </div>
+                <div class="modal-body">
+                    <form class="validateMe" id="process-form" name="chgproc" enctype="multipart/form-data" 
+                        action="{% url change_process process_id=process.id %}" method="POST" >
+                        {% csrf_token %}
+                        {{ change_process_form|as_bootstrap }}
+                    <div class="modal-footer">
+                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                        <button class="btn btn-primary">{% trans "Save" %}</button>
+                    </div>
+                    </form>
+                </div>
+            </div>
+            {% if logger %}
+                <a class="btn btn-primary" href="{% url process_finished process_id=process.id %}">
+                    {% if process.finished %}
+                        {% trans "Unfinish" %}
+                    {% else %}
+                        {% trans "Finish" %}
+                    {% endif %}
+                </a>
+            {% endif %}
+		{% endif %}
+	</legend>
+    
+    {% if not agent %}
+        <p class="notes">
+            If you were logged in and working on this process, you would log your work on this page.
+        </p>
+    {% endif %}
+	
+	<div class="row-fluid">
+
+		<div class="span8">
+          <div class="log-section">
+		    <h2 style="margin-bottom: 4px;" >
+		        {% trans "Outputs" %}
+		        {% if logger %}
+		            <a href="#addOutputModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add an output requirement">
+		                {% trans "Add an output requirement" %}
+	                </a>
+	             {% endif %}
+                 {% if agent %}
+		                <a href="#unplannedOutputModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log an unplanned output" >
+			                {% trans "Log an unplanned output" %}
+		                </a>
+                 {% endif %}
+                <span class="info"> <a href="#" id="out-info" data-toggle="popover" data-trigger='hover' title="Process Outputs" 
+                    data-content="When the output item is created, log it so that it can be used in other processes or exchanged
+                    inside or outside the network.  If you
+                    have created secondary outputs or unplanned outputs, log them also.  A logged output will then appear
+                    in inventory if it is an inventoried item.  You can also create new requirements that were missed in the
+                    planning.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
+	        </h2>
+
+            <h4 class="subsection-label">{% trans "Scheduled" %}:</h4>
+		    {% for item in process.outgoing_commitments %}
+              <div class="commitment">
+                <div>
+                    <span class="output-requirement" >
+                        <b>{{ item.resource_type.name }}
+                        {% if item.stage %}
+                            @{{ item.stage.name }}
+                        {% endif %}</b>
+                            {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }} 
+                    </span>
+
+                    {% if logger %}
+                        {% if changeable_requirement %}
+                            <div>
+                                {{ to_be_changed_requirement.resource_type.name }}@{{ to_be_changed_requirement.stage }} change to: @{{ changeable_requirement.stage }}
+                                {% if to_be_changed_requirement.resources_ready_to_be_changed %}
+                                    {% for resource in to_be_changed_requirement.resources_ready_to_be_changed %}
+                                        <div>
+                                            {% trans "Resource" %}: <a href="{% url resource resource_id=resource.id  %}">{{ resource }}</a>
+                                            <form
+                                                style="display: inline;" 
+                                                class="changeable-form" 
+                                                id="change_stage_form" 
+                                                action="{% url log_stage_change_event commitment_id=to_be_changed_requirement.id resource_id=resource.id %}" 
+                                                method="POST" >
+                                                {% csrf_token %}
+                                                <input type="hidden" id="next" name="next" value="process" />
+                                                <button style="display: inline;"  class="btn btn-primary btn-mini" title="Change to next stage" >
+                                                    One-click Change to @{{ changeable_requirement.stage }}
+                                                </button>
+                                            </form>
+                                            <a href="#toBeChangedModal{{ to_be_changed_requirement.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log details" >
+                                                {% trans "or Log details" %}
+                                            </a>
+                                        </div>
+                                        <div class="modal hide fade toBeChangedModal" id="toBeChangedModal{{ to_be_changed_requirement.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                <h3 id="resource-label">{% trans "Change " %} {{ resource }} to @{{ changeable_requirement.stage }}</h3>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form class="resource-form validateMe" id="resourceForm{{ item.id }}" name="resfrm{{ item.id }}" enctype="multipart/form-data" 
+                                                    action="{% url log_stage_change_event commitment_id=to_be_changed_requirement.id resource_id=resource.id %}" method="POST" >
+                                                    {% csrf_token %}
+                                                    {{ resource.transform_form|as_bootstrap }}
+                                                <div class="modal-footer">
+                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                    <button class="btn btn-primary">{% trans "Save" %}</button>
+                                                </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                        {% else %}
+                            {% if add_output_form %}
+                                {% if not item.stage %}
+
+                                    <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change output requirement">
+                                    <i class="icon-edit"></i>
+                                    </a>
+                
+                                    <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                            <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form class="commitmentForm{{ item.id }} validateMe" name="comout{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+                                                {% csrf_token %}
+                                                {{ item.change_form|as_bootstrap }}
+                                                <input type="hidden" id="next" name="next" value="process" />
+                                                <div class="modal-footer">
+                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <form
+                                        style="display: inline;" 
+                                        class="delete-commitment-form" 
+                                        id="deleteCommitmentForm{{ item.id }}" 
+                                        action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" id="next" name="next" value="process" />
+                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete output requirement" >X</button>
+                                    </form> 
+                                {% endif %}
+                            
+                                <a href="#resourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log process output" >
+                                    {% trans "Log process output" %}
+                                </a>
+                                {% if item.addable_resources %}
+                                    <a href="#addToResourceModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Add to an existing Resource" >
+                                        {% trans "Add to Resource" %}
+                                    </a>
+                                {% endif %}
+                
+                                <div class="modal hide fade resourceModal" id="resourceModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="resource-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="resource-label">{% trans "Log new" %} {{ item.resource_type.name }}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="resource-form validateMe" id="resourceForm{{ item.id }}" name="resout{{ item.id }}" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ item.resource_create_form|as_bootstrap }}
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <button class="btn btn-primary">{% trans "Save" %}</button>
+                                        </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <div class="modal hide fade addToResourceModal" id="addToResourceModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="add-to-resource-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="add-to-resource-label">{% trans "Add to " %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="add-to-resource-form validateMe" id="addToResourceForm{{ item.id }}" name="addtores{{ item.id }}" enctype="multipart/form-data" action="{% url add_to_resource_for_commitment commitment_id=item.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ item.select_resource_form|as_bootstrap }}
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <button class="btn btn-primary">{% trans "Save" %}</button>
+                                        </div>
+                                        </form>
+                                    </div>
+                                </div>
+                          {% endif %}
+                        {% endif %}
+			        {% endif %}
+			    </div>
+			    
+			    {% if item.description %}
+		           <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+	            {% endif %}
+			
+			    {% for event in item.fulfilling_events %}
+				    <div class="event-section" >
+					    <span class="event-label">{% trans "Completed" %}:</span> <span class="event" >
+                            {{ event.event_type.label }} {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
+                        </span>
+					    {% if logger %}
+					        {% comment %}
+					        <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+					        {% endcomment %}
+					        <form
+					            style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete production event" >X</button>
+                            </form>
+					    {% endif %}
+					    {% if event.resource %}
+                            </br>
+                            &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">
+                            {{ event.resource }} {{ event.resource.quantity }} {{ event.resource.resource_type.unit }} </a>
+                        {% endif %}
+					
+				    </div>
+			    {% endfor %}
+              </div>
+		    {% endfor %}
+
+            {% if process.uncommitted_production_events %}
+                <h4 class="subsection-label">{% trans "Unplanned Production" %}:</h4>
+		        {% for event in process.uncommitted_production_events %}
+			        <div class="event-section" >
+				        <span class="event-label">{% trans "Created" %}: </span>
+                        <span class="event" >
+                            {% if event.resource %}
+                                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+                            {% else %}
+                                <b><a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
+                            {% endif %}
+				            {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
+				        {% if logger %}
+				            {% comment %}
+				            <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+				            {% endcomment %}
+		                    <form
+				                style="display: inline;" 
+                                class="delete-form" 
+                                id="deleteForm{{ event.id }}" 
+                                action="{% url delete_event event_id=event.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete production event" >X</button>
+                            </form>
+		                {% endif %}
+			        </div>
+		        {% endfor %}
+	        {% endif %}
+        </div>
+
+	    {% if work_reqs or process.uncommitted_work_events or "work" in slots %}
+		    <div class="log-section">
+		        <h2 style="margin-bottom: 4px;" >
+		            {% trans "Work" %} 
+		            {% if logger %}
+			            <a href="#addWorkModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a new work requirement, people with those skills will be notified">
+		                    {% if worker %}
+                                {% trans "Invite a collaborator" %}
+                            {% else %}
+                                {% trans "Add a work requirement" %}
+                            {% endif %}
+	                    </a>
+                    {% endif %}
+		            {% if agent %}
+		                <a href="#unplannedWorkModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned work" >
+			                {% trans "Log unplanned work" %}
+		                </a>
+	                {% endif %}
+                <span class="info"> <a href="#" id="work-info" data-toggle="popover" data-trigger='hover' title="Logging Work" 
+                    data-content="Networks that distribute income based on work contributions should log their work here.  (if
+                    you distribute income based on deliverables, this is optional.) 
+                    When logging work, there are coordination features where people can request others to collaborate on a task, or join
+                    others on a task.  You can also commit to a task before doing the work, which will signal others your intention
+                    to do the work.  Or you can just log the work directly without committing to the task.">
+                    <img src="{% static 'img/information-icon.png' %}" /></a>
+                </span>
+	            </h2>
+
+                <h4 class="subsection-label">{% trans "Planned Work" %}: <span class="normal">{% trans "(Requirements are ordered by due date)" %}</span></h4>            
+		        {% for item in work_reqs %}
+			        <div class="commitment">
+				        <span class="work-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
+                        {% with item.fulfilling_events as work_events %}
+                        {% if agent %}
+                        {% if super_logger or agent == item.from_agent %}
+				            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change work requirement">
+			                       <i class="icon-edit"></i>
+	                        </a>
+
+	                        <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+		                        <div class="modal-header">
+			                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			                        <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
+		                        </div>
+		                        <div class="modal-body">
+			                        <form class="commitmentForm{{ item.id }} validateMe" name="uncomm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+				                        {% csrf_token %}
+				                        {{ item.changeform|as_bootstrap }}
+				                        <input type="hidden" id="next" name="next" value="process" />
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+			                        </form>
+		                        </div>
+	                        </div>
+                            {% if not work_events %}
+                                <form
+                                    style="display: inline;" 
+                                    class="delete-commitment-form" 
+                                    id="deleteCommitmentForm{{ item.id }}" 
+                                    action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work requirement" >X</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                        {% endif %}
+                        {% if item.description %}
+                            <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+                        {% endif %}
+
+                        <div>
+                         {% if item.from_agent %}
+				          <span class="taken">{% trans "Taken by" %}<span class="agent" > {{ item.from_agent.nick }}</span></span>
+				            {% if agent == item.from_agent %} 
+
+				                {% if not work_events %}
+				                    <form
+	                                    style="display: inline;" 
+                                        class="uncommit-form" 
+                                        id="uncommitForm{{ item.id }}" 
+                                        action="{% url uncommit commitment_id=item.id %}" 
+                                        method="POST" >
+                                        {% csrf_token %}
+                                    	<input type="hidden" id="next" name="next" value="process" />
+                                        <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit to this task" >X</button>
+                                    </form>
+				                {% endif %}
+				                
+				                <a href="#inviteModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Notify others with these skills that you want help with this task">
+                                    {% trans "Invite a collaborator" %}
+                                </a>
+
+                                <div class="modal hide fade" id="inviteModal" tabindex="-1" role="dialog" aria-labelledby="invite-label" aria-hidden="true">
+                                  <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h3 id="invite-label">
+                                            {% trans "Invite a collaborator" %}
+                                    </h3>
+                                  </div>
+                                  <div class="modal-body">
+                                    <form class="invite-form validateMe" id="inviteForm" name="invite" action="{% url invite_collaborator commitment_id=item.id %}" method="POST" >
+                                        {% csrf_token %}
+{% comment %}
+                                        {{ item.invite_collaborator_form|as_bootstrap }}
+{% endcomment %}
+                                        <b>Notify people with these skills that you would like help with this task.</b><br />
+                                    <div class="modal-footer">
+                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                        <button class="btn btn-primary">
+                                            {% trans "Invite collaborator" %}
+                                        </button>
+                                    </div>
+                                    </form>
+                                  </div>
+                                </div>
+ 
+                              {% else %}
+                                    {% if agent %}
+                                        <a href="#joinForm{{ item.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Notify the person who has taken the task that you want to help">
+                                            {% trans "Join this task" %}
+                                        </a>
+                                        <div class="modal hide fade joinForm" id="joinForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="join-label" aria-hidden="true">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                <h3 id="join-label">{% trans "Join this task" %}: {{ item.resource_type.name }}</h3>
+{% comment %}
+                                                <p>{% trans "You are committing to collaborate with " %} {{ item.from_agent }}</p>
+{% endcomment %}
+                                            </div>
+                                            <div class="modal-body">
+                                                
+                                                <form class="joinForm validateMe" name="join{{ item.id }}" enctype="multipart/form-data" action="{% url join_task commitment_id=item.id %}" method="POST" >
+                                                    {% csrf_token %}
+{% comment %}
+                                                    {{ item.join_form|as_bootstrap }}
+{% endcomment %}
+                                                    <b>Notify the person assigned to this task that you would like to help.</b><br />
+                                                    <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
+                                                <div class="modal-footer">
+                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                    <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Join this task" %}' />
+                                                </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+			                  {% endif %}
+                           
+                          {% else %}
+                                <span class="taken">{% trans "Unassigned" %} </span>
+             
+                                    {% if agent %}                           
+                                        <a href="#commitmentForm{{ item.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="I commit to working on this later, assign this task to me">
+                                            {% trans "I'll work on this later" %}
+                                        </a>
+
+                                        <div class="modal hide fade takeTaskModal" id="commitmentForm{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                <h3 id="commitment-label">{% trans "Commit to this task" %}: {{ item.resource_type.name }}</h3>
+                                            </div>
+                                            <div class="takeTaskBody modal-body">
+                                                <form class="commitmentForm validateMe takeTaskForm" name="tt{{ item.id }}" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+                                                    {% csrf_token %}
+                                                    {{ item.commitment_form|as_bootstrap }}
+                                                    <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
+                                                <div class="modal-footer takeTaskFooter">
+                                                    <div class="info">
+                                                        {% trans "You are committing to do this work." %}</br>
+                                                        {% trans "The estimated time above is a guess about how long it will take." %}</br>
+                                                        {% trans "The next step is to do the work and log your actual time." %}
+                                                    </div>
+                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                    <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
+                                                    {% if work_now %}
+                                                        <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+                                                    {% endif %}
+                                                </div>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                    {% endif %} 
+                              {% endif %}
+
+                              {% if agent %}
+
+                                {% if work_now and item.unit_of_quantity.unit_type == "time" %}
+                                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" title="I'll start working on this now, I can time and document while working">{% trans "I'll start working now" %}</a>
+                                {% endif %}
+
+                                <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="I want to log work I have done on this task" >
+                                    {% trans "I did some work on this" %}
+                                </a>
+
+                                <div class="modal hide fade workEventModal" id="eventModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 id="event-label">{% trans "Add Work Contribution" %}</h3>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="eventForm{{ item.id }} validateMe" name="ef{{ item.id }}" enctype="multipart/form-data" action="{% url add_work_event commitment_id=item.id %}" method="POST" >
+                                            {% csrf_token %}
+                                            {{ item.input_work_form_init|as_bootstrap }}
+                                            <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                              {% endif %}
+                            </div>
+                
+			                {% if work_events %}
+			                    <div class="event-section">
+			                        <div class="subsection-label event-label" >{% trans "Work events" %}:</div>
+				                    {% for event in work_events %}
+					                    <div>
+					                    {{ event.event_date }} {{ event.quantity }} {{ event.unit_of_quantity.name  }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span>
+                                        {% if agent %}
+					                    {% if agent == event.from_agent or user == event.created_by  %}
+					                        
+							                <a href="#eventChgModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
+								               <i class="icon-edit"></i>
+							                </a>
+						
+							                <div class="modal hide fade workEventModal" id="eventChgModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+								                <div class="modal-header">
+									                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+									                <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
+								                </div>
+								                <div class="modal-body">
+									                <form class="eventForm{{ event.id }} validateMe" name="efc{{ event.id }}" enctype="multipart/form-data" action="{% url change_work_event event_id=event.id %}" method="POST" >
+										                {% csrf_token %}
+										                {{ event.work_event_change_form|as_bootstrap }}
+										                <input type="hidden" id="next" name="next" value="process" />
+                                                        <div class="modal-footer">
+                                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                        </div>
+									                </form>
+								                </div>
+							                </div>
+
+							                <form
+				                                style="display: inline;" 
+                                                class="delete-form" 
+                                                id="deleteForm{{ event.id }}" 
+                                                action="{% url delete_event event_id=event.id %}" 
+                                                method="POST" >
+                                                {% csrf_token %}
+                                            	<input type="hidden" id="next" name="next" value="process" />
+                                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work contribution!" >X</button>
+                                            </form>
+					                    {% endif %}
+                                        {% endif %}
+					                    {% if event.description %}
+			                               <div class="notes"> {{ event.description|urlize|linebreaks }}</div>
+		                                {% endif %}
+		                                </div>
+				                    {% endfor %}
+				                </div>
+				            {% endif %}
+			            
+                        {% endwith %}
+                    </div>
+		        {% endfor %}
+		        
+                {% if unplanned_work %}
+                    <h4 class="subsection-label">{% trans "Unplanned Work" %}:</h4>
+		            {% for event in unplanned_work %}
+			            <div class="event-section">
+				            <span class="event" ><span class="event-label">{% trans "Work event" %}: </span>
+				            <b> {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span></span>
+                            
+			                {% if agent == event.from_agent or user == event.created_by  %}
+		                        
+				                <a href="#eventChgModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change this work contribution">
+					               <i class="icon-edit"></i>
+				                </a>
+			
+				                <div class="modal hide fade workEventModal" id="eventChgModal{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+					                <div class="modal-header">
+						                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						                <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
+					                </div>
+					                <div class="modal-body">
+						                <form class="eventForm{{ event.id }} validateMe" name="efcc{{ event.id }}" enctype="multipart/form-data" action="{% url change_unplanned_work_event event_id=event.id %}" method="POST" >
+							                {% csrf_token %}
+							                {{ event.changeform|as_bootstrap }}
+							                <input type="hidden" id="next" name="next" value="process" />
+                                            <div class="modal-footer">
+                                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                            </div>
+						                </form>
+					                </div>
+				                </div>
+
+				                <form
+	                                style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work contribution!" >X</button>
+                                </form>
+		                    {% endif %}
+
+			                {% if event.description %}
+		                       <div class="notes"> {{ event.description|urlize|linebreaks }}</div>
+	                        {% endif %}
+				            
+			            </div>
+		            {% endfor %}
+		        {% endif %}
+            </div>
+	    {% endif %}
+          
+        {% if process.citation_requirements or process.uncommitted_citation_events or "cite" in slots %}
+            <div class="log-section">
+			    <h2>
+			        {% trans "Citations" %}
+			        {% if logger %}
+			            <a href="#addCiteModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a citation requirement">
+		                    {% trans "Add a citation requirement" %}
+	                    </a>
+                    {% endif %}
+                    {% if agent %}
+		                <a href="#unplannedCiteModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned citation" >
+			                {% trans "Log unplanned citation" %}
+		                </a>
+	                {% endif %}
+                    <span class="info"> <a href="#" id="cite-info" data-toggle="popover" data-trigger='hover' title="Citations" 
+                        data-content="Citations give you an opportunity to include non-material contributions such as designs
+                        or documented ideas into the value flow so they are eligible for income distribution. The person citing makes the decision what the cited contribution
+                        is worth in the context of this process. (This comes from the practice in the scientific community
+                        where is it customary to give credit to all whose work has helped you.)">
+                        <img src="{% static 'img/information-icon.png' %}" /></a>
+                    </span>
+                </h2>
+                {% if agent %}
+                    <div class="modal hide fade" id="unplannedCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="cite-label">{% trans "Add an unplanned citation" %}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form class="cite-form validateMe" name="cite" enctype="multipart/form-data" id="addUnplannedCiteForm" action="{% url add_unplanned_cite_event process_id=process.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ unplanned_cite_form|as_bootstrap }}
+                                <span id="cite-unit">{{ context_agent.cite_unit }}</span>
+                                <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <button id="select-resource" class="btn btn-primary">{% trans "Add citation" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                {% endif %}
+
+			    {% for item in citation_requirements %}
+                  <div class="commitment" >
+                    <div>
+			            <span class="citation-requirement" ><b>{{ item.resource_type }}</b></span>
+			            {% if logger %}
+			                {% if not item.fulfilling_events %}
+		                        <form
+		                            style="display: inline;" 
+                                    class="delete-commitment-form" 
+                                    id="deleteCommitmentForm{{ item.id }}" 
+                                    action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation requirement" >X</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+			            {% if item.description %}
+			                <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		                {% endif %}
+
+				    </div>
+				    
+				    {% if item.resources %}
+                        {% for resource in item.resources %}
+                            <div class="onhand" >
+                                <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
+                                {% with resource.event as event %}
+                                  <div class="event-section" style="display: inline;">
+                                    <span style="color: green; font-weight: bold;">{% trans "Cited" %}: </span>
+                                        {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+                                    
+                                    {% if logger %}
+                                        <form
+                                            style="display: inline;" 
+                                            class="delete-citation-form" 
+                                            id="deleteForm{{ event.id }}" 
+                                            action="{% url delete_citation_event commitment_id=item.id resource_id=resource.id %}" 
+                                            method="POST" >
+                                            {% csrf_token %}
+                                            <input type="hidden" id="next" name="next" value="process" />
+                                            <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
+                                        </form>
+                                    {% endif %}
+                                  </div>
+                                {% endwith %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+				    
+				    {% if item.onhand %}
+					    {% for resource in item.onhand %}
+                            {% comment %}todo: consider stage and state here{% endcomment %}
+					        {% if resource.id not in output_resource_ids %}
+                                {% if resource.id not in cited_ids %}
+                                    <div class="onhand" >
+                                        <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
+
+                                        {% if logger %}
+                                            <a href="#citeEventModal{{ resource.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your citation of this resource" >
+                                            {% trans "Log citation" %}
+                                            </a>
+                    
+                                            <div class="modal hide fade eventModal" id="citeEventModal{{ resource.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                    <h3 id="event-label">{% trans "Log citation of" %} {{ resource.identifier  }}</h3>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form class="eventForm{{ resource.id }} validateMe" name="res{{ resource.id }}" enctype="multipart/form-data" 
+                                                        action="{% url add_citation_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
+                                                        {% csrf_token %}
+                                                        {{ resource.cite_event_form|as_bootstrap }}
+                                                    <div class="modal-footer">
+                                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                                        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                                    </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                    </div>
+                                {% endif %}
+						    {% endif %}
+					    {% endfor %}
+				    {% endif %}
+                  </div>
+			    {% endfor %}
+			    
+                {% if process.uncommitted_citation_events %}
+                    <h4 class="subsection-label">{% trans "Unplanned Citations" %}:</h4>
+                    {% for event in process.uncommitted_citation_events %}
+			            <div class="event-section" >
+				            <span class="event-label">{% trans "Cited" %}:</span> 
+				            <span class="event" >
+				                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b> 
+				                {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+                            </span>
+				            {% if logger %}
+					            <form
+				                    style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete citation" >X</button>
+                                </form>
+					        {% endif %}
+			            </div>
+		            {% endfor %}
+	            {% endif %}
+					
+            </div>
+		  {% endif %}
+          
+          {% if consume_reqs or uncommitted_consumption or "consume" in slots %}
+            <div class="log-section">
+            
+		        <h2 style="margin-bottom: 4px;" >
+		            {% trans "Consumable Inputs" %}
+		            {% if logger %}
+		                <a href="#addConsumableModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a consumable input requirement">
+		                    {% trans "Add a consumable input requirement" %}
+	                    </a>
+		            {% endif %}
+		            {% if agent %}
+		                <a href="#unplannedConsumptionModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned consumption" >
+			                {% trans "Log unplanned consumption" %}
+		                </a>
+	                {% endif %}
+                    <span class="info"> <a href="#" id="consume-info" data-toggle="popover" data-trigger='hover' title="Consumed Inputs" 
+                        data-content="Consumable inputs are decremented from inventory, as they are consumed in the process.  This would
+                        include parts or components that go into an assembly, as well as things like solder or 3D printing polymer or filaments.
+                        Basically if they are gone at the end of the process, they should be logged here.  Inventory is automatically adjusted.">
+                        <img src="{% static 'img/information-icon.png' %}" /></a>
+                    </span>
+	            </h2>
+
+	             {% if agent %}
+                        <div class="modal hide fade" id="unplannedConsumptionModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-consumption-label" aria-hidden="true">
+                            <div class="modal-header">
+	                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h3 id="unplanned-consumption-label">{% trans "Add unplanned consumption" %}</h3>
+                            </div>
+                            <div class="modal-body">
+                                <form class="consumption-form validateMe" name="cf" enctype="multipart/form-data" id="addUnplannedConsumptionForm" 
+                                    action="{% url add_unplanned_input_event process_id=process.id slot='c' %}" method="POST" >
+	                              {% csrf_token %}
+	                              {{ unplanned_consumption_form|as_bootstrap }}
+	                              <div class="modal-footer">
+		                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+		                            <button id="select-resource" class="btn btn-primary">{% trans "Add consumption" %}</button>
+	                              </div>
+                                </form>
+                            </div>
+                        </div>
+
+	                {% endif %}
+
+	            
+		        {% for item in consume_reqs %}
+                  <div class="commitment" >
+                    <div>
+				        <span class="consumable-requirement" >
+                            <b>
+                                {{ item.resource_type.name }}{% if item.stage %}@{{ item.stage }}{% endif %}:
+                            </b> 
+                            {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
+                        </span>
+				        {% if logger %}
+                            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change consumption requirement">
+			                   <i class="icon-edit"></i>
+		                    </a>
+	
+		                    <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+			                    <div class="modal-header">
+				                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				                    <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
+			                    </div>
+			                    <div class="modal-body">
+				                    <form class="commitmentForm{{ item.id }} validateMe" name="com{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+					                    {% csrf_token %}
+					                    {{ item.changeform|as_bootstrap }}
+					                    <input type="hidden" id="next" name="next" value="process" />
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+				                    </form>
+			                    </div>
+		                    </div>
+				            
+		                    <form
+		                        style="display: inline;" 
+                                class="delete-commitment-form" 
+                                id="deleteCommitmentForm{{ item.id }}" 
+                                action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete consumption requirement" >X</button>
+                            </form>
+                        {% endif %}
+			        </div>
+			        {% if item.description %}
+			           <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		            {% endif %}
+                    {% if item.consumable_resources %}
+                    	{% for resource in item.consumable_resources %}
+					        <div class="onhand" >
+						        <b>{% trans "Onhand" %}:</b> <span class="event" >
+						            <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
+                                    {% if resource.stage %}
+                                        ~ Stage: {{ resource.stage }}
+                                    {% endif %}
+                                    ~ {{ resource.quantity }} {{ resource.unit_of_quantity }}
+                                    {% if resource.current_location %}
+                                        ~ Location: {{ resource.current_location }}
+                                    {% endif %}
+                                    {% if resource.agent_resource_roles.all %}
+                                        {% for item in resource.agent_resource_roles.all %}
+                                            ~ {{ item.role.name }}: {{ item.agent.nick }} 
+                                        {% endfor %}
+                                    {% endif %}
+                                </span>
+						        {% if resource.quantity and logger %}
+						            <a href="#consumeEventModal{{ resource.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your consumption of this resource" >
+					                {% trans "Log consumption" %}
+				                    </a>
+			
+				                    <div class="modal hide fade eventModal" id="consumeEventModal{{ resource.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+					                    <div class="modal-header">
+						                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						                    <h3 id="event-label">{% trans "Log consumption of" %} {{ resource.identifier }}</h3>
+					                    </div>
+					                    <div class="modal-body">
+						                    <form class="eventForm{{ resource.id }} validateMe" name="efr{{ resource.id }}" enctype="multipart/form-data" 
+						                        action="{% url add_consumption_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
+							                    {% csrf_token %}
+							                    {{ resource.consumption_event_form|as_bootstrap }}
+						                      <div class="modal-footer">
+							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+							                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+						                      </div>
+						                    </form>
+					                    </div>
+				                    </div>
+					            {% endif %}						    
+                                {% for event in resource.consuming_events %}
+                                    {% if event.commitment = item %}
+							            <div class="use event-section" >
+								            <span class="event-label">{% trans "Consumed" %}:</span><span>
+								                 {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
+								                {% trans "by" %} {{ event.from_agent }}
+							                </span>
+								            {% if logger %}
+								                {% comment %}
+								                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+								                {% endcomment %}
+								                <form
+				                                    style="display: inline;" 
+                                                    class="delete-form" 
+                                                    id="deleteForm{{ event.id }}" 
+                                                    action="{% url delete_event event_id=event.id %}" 
+                                                    method="POST" >
+                                                    {% csrf_token %}
+                                                	<input type="hidden" id="next" name="next" value="process" />
+                                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete consumption event" >X</button>
+                                                </form>
+								            {% endif %}
+							            </div>
+							        {% endif %}
+						        {% endfor %}
+					        </div>
+				        {% endfor %}
+			        {% elif item.scheduled_receipts %}
+                    	{% for ct in item.scheduled_receipts %}
+					        <p class="detail-line">
+						        <b>{% trans "Scheduled" %}:</b> 
+						        <a href="{{ ct.process.get_absolute_url }}" target="_blank" >
+                                    {% if ct.stage %}@{{ ct.stage }}{% endif %}
+                                    {{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}
+                                </a>
+					        </p>
+				        {% endfor %}
+			        {% else %}
+				        {% for source in item.sources %}
+					        <p class="detail-line">
+						        <b>{% trans "Possible source" %}:</b> <span class="source" >{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}</span>
+						        <br/>
+						        {% comment %}
+						        {% if source.too_late %}
+						            <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url forward_schedule_source commitment_id=item.id source_id=source.id %}" method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{% url process_details process_id=process.id %}" />
+						                <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;
+						                {% if super_logger %}
+                                            <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
+                                        {% endif %}
+                                    </form>
+					            {% else %}
+						            {% trans "Purchase by:" %}{{ source.order_release_date }}
+					            {% endif %}
+					            {% endcomment %}
+					        </p>
+				        {% endfor %}
+			        {% endif %}
+            </div>
+
+		        {% endfor %}
+
+                {% if uncommitted_consumption %}
+                    <h4 class="subsection-label">{% trans "Unplanned Consumption" %}:</h4>
+		            {% for event in uncommitted_consumption %}
+			            <div class="event-section" >
+				            <span class="event-label">{% trans "Consumed" %}:</span> 
+				            <span class="event" >
+                                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b>
+                                {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+                            </span>
+				            {% if logger %}
+				                {% comment %}
+				                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+				                {% endcomment %}
+		                        <form
+				                    style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete consumption event" >X</button>
+                                </form>
+			                {% endif %}
+			            </div>
+		            {% endfor %}
+	            {% endif %}
+          </div>
+	    {% endif %}
+
+	    {% if use_reqs or uncommitted_use  or "use" in slots %}
+		    <div class="log-section">
+		        <h2 style="margin-bottom: 4px;" >
+		            {% trans "Usable Inputs" %}
+		            {% if logger %}
+		                <a href="#addUsableModal" role="button" class="btn btn-primary btn-mini" data-toggle="modal" title="Add a usable input requirement">
+		                    {% trans "Add a usable input requirement" %}
+	                    </a>
+		            {% endif %}
+		            {% if agent %}
+		                <a href="#unplannedUseModal" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log unplanned use" >
+			                {% trans "Log unplanned use" %}
+		                </a>
+	                {% endif %}
+                    <span class="info"> <a href="#" id="use-info" data-toggle="popover" data-trigger='hover' title="Used Inputs" 
+                        data-content="Used inputs still exist at the end of the process, although they were unavailable during 
+                        the process.  Typical examples are equipment, tools, and space.  Inventory is not decremented.">
+                        <img src="{% static 'img/information-icon.png' %}" /></a>
+                    </span>
+	            </h2>
+
+	            {% if agent %}
+                    <div class="modal hide fade" id="unplannedUseModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-use-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="unplanned-use-label">{% trans "Add unplanned use" %}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form class="use-form validateMe" name="enuse" enctype="multipart/form-data" id="addUnplannedUseForm" 
+                                action="{% url add_unplanned_input_event process_id=process.id slot='u' %}" method="POST" >
+                              {% csrf_token %}
+                              {{ unplanned_use_form|as_bootstrap }}
+                              <div class="modal-footer">
+	                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	                            <button id="select-resource" class="btn btn-primary">{% trans "Add Use" %}</button>
+                              </div>
+                            </form>
+                        </div>
+                    </div>
+
+                {% endif %}
+
+		        {% for item in use_reqs %}
+                  <div class="commitment" >
+                    <div>
+				        <span class="usable-requirement" ><b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}</span>
+
+				        {% if logger %}
+				            <a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change use requirement">
+			                   <i class="icon-edit"></i>
+		                    </a>
+
+		                    <div class="modal hide fade commitmentModal" id="commitmentModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="commitment-label" aria-hidden="true">
+			                    <div class="modal-header">
+				                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				                    <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
+			                    </div>
+			                    <div class="modal-body">
+				                    <form class="commitmentForm{{ item.id }} validateMe" name="cm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+					                    {% csrf_token %}
+					                    {{ item.changeform|as_bootstrap }}
+					                    <input type="hidden" id="next" name="next" value="process" />
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+                                        </div>
+				                    </form>
+			                    </div>
+		                    </div>
+		                    
+		                    <form
+		                        style="display: inline;" 
+                                class="delete-commitment-form" 
+                                id="deleteCommitmentForm{{ item.id }}" 
+                                action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                            	<input type="hidden" id="next" name="next" value="process" />
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete use requirement" >X</button>
+                            </form>
+                        {% endif %}
+                        
+			        </div>
+			        {% if item.description %}
+			           <div class="notes"> {{ item.description|urlize|linebreaks }}</div>
+		            {% endif %}
+                    {% if item.resource_type.onhand %}
+                    	{% for resource in item.resource_type.onhand %}
+					        <div class="onhand" >
+						        <b>{% trans "Onhand" %}:</b> <span class="resource" >
+						        <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
+						        {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
+						        {% if logger %}
+						            <a href="#useEventModal{{ resource.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your use of this resource" >
+					                {% trans "Log use" %}
+				                    </a>
+			
+				                    <div class="modal hide fade eventModal" id="useEventModal{{ resource.id }}" tabindex="-1" role="dialog" aria-labelledby="event-label" aria-hidden="true">
+					                    <div class="modal-header">
+						                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						                    <h3 id="event-label">{% trans "Log use of" %} {{ resource.identifier  }}</h3>
+					                    </div>
+					                    <div class="modal-body">
+						                    <form class="eventForm{{ resource.id }} validateMe" name="resef{{ resource.id }}" enctype="multipart/form-data" 
+						                        action="{% url add_use_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
+							                    {% csrf_token %}
+							                    {{ resource.use_event_form|as_bootstrap }}
+						                      <div class="modal-footer">
+							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+							                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+						                      </div>
+						                    </form>
+					                    </div>
+				                    </div>
+						        {% endif %}
+                                {% for event in resource.using_events %}
+                                    {% if event.commitment = item %}
+							            <div  class="use event-section" >
+								            <span class="event-label">{% trans "Used" %}:</span> <span > 
+								                {{ event.resource.identifier }} {{ event.quantity }} {{ item.resource_type.unit_for_use }} {{ event.event_date }} 
+								                {% trans "by" %} {{ event.from_agent }}
+							                </span>
+								            {% if logger %}
+								                {% comment %}
+								                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+								                {% endcomment %}
+								                <form
+				                                    style="display: inline;" 
+                                                    class="delete-form" 
+                                                    id="deleteForm{{ event.id }}" 
+                                                    action="{% url delete_event event_id=event.id %}" 
+                                                    method="POST" >
+                                                    {% csrf_token %}
+                                                	<input type="hidden" id="next" name="next" value="process" />
+                                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete use event" >X</button>
+                                                </form>
+								            {% endif %}
+							            </div>
+							        {% endif %}
+						        {% endfor %}
+					        </div>
+				        {% endfor %}
+                    {% elif item.fulfilled_quantity %}
+				        <div class="onhand" >
+					        <b>{% trans "Onhand" %}:</b> 0 {{ item.unit_of_quantity }}
+					        <p class="use" >
+						        <span class="event-label">{% trans "Used" %}:</span> {{ item.fulfilled_quantity }} {{ item.resource_type.unit_of_use }}
+					        </p>
+				        </div>
+			        {% elif item.scheduled_receipts %}
+                    	{% for ct in item.scheduled_receipts %}
+					        <p class="detail-line">
+						        <b>{% trans "Scheduled" %}:</b> 
+						        <span class="scheduled-receipt" ><a href="{{ ct.process.get_absolute_url }}" target="_blank" >{{ ct.quantity }} {{ ct.unit_of_quantity }}  {{ ct.due_date }}</a></span>
+					        </p>
+				        {% endfor %}
+			        {% else %}
+				        {% for source in item.resource_type.producing_agent_relationships %}
+					        <p class="detail-line">
+						        <b>{% trans "Possible source" %}:</b> <span class="source" >{{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}</span>
+					        </p>
+				        {% endfor %}
+			        {% endif %}
+                  </div>
+		        {% endfor %}
+
+                {% if uncommitted_use %}
+                    <h4 class="subsection-label">{% trans "Unplanned Use" %}:</h4>
+		            {% for event in uncommitted_use %}
+			            <div class="event-section" >
+				            <span class="event-label">{% trans "Used" %}:</span>
+				            <span class="event" > 
+                                {% if event.resource %}
+                                    <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+                                {% else %}
+                                    <b><a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
+                                {% endif %}
+				                {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
+                            </span>
+				            {% if logger %}
+				                {% comment %}
+				                <a href="" class="btn btn-info btn-mini" title="Change" ><i class="icon-edit"></i></a>
+				                {% endcomment %}
+			                    <form
+				                    style="display: inline;" 
+                                    class="delete-form" 
+                                    id="deleteForm{{ event.id }}" 
+                                    action="{% url delete_event event_id=event.id %}" 
+                                    method="POST" >
+                                    {% csrf_token %}
+                                	<input type="hidden" id="next" name="next" value="process" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete use event" >X</button>
+                                </form>
+			                {% endif %}
+			            </div>
+		            {% endfor %}
+	            {% endif %}
+	        </div>
+	    {% endif %}
+
+	    </div>
+
+	    <div class="span4">
+
+		    {% if labnotes %}
+			    <h4>
+				    <a href="{% url labnotes process_id=process.id %}">Notes for this process</a>
+			    </h4>
+		    {% endif %}
+
+		    <h4>{% trans "Process context" %}:</h4>
+		    <p>
+		        {% if process.process_pattern %}
+                    {% trans "Pattern" %}:
+		            {{ process.process_pattern }}
+	            {% else %}
+	                {% if agent %}
+	                    <span style="color: red;">
+	                    No process pattern. See help.
+	                    </span>
+	                {% else %}
+	                    None
+	                {% endif %}
+	            {% endif %}
+		        
+		        <br />
+		        {% trans "Context" %}: <a href="{{ process.context_agent.get_absolute_url }}">{{ process.context_agent }}</a>
+
+            {% if process.independent_demand %}
+		        <br />
+		        {% trans "Order" %}: 
+		        <span class="rand-order" >
+		            <a href="{% url order_schedule order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
+	            </span>
+	        {% endif %}
+	        
+		    </p>
+
+			<h4>{% trans "Previous processes" %}:</h4>
+			{% for proc in process.previous_processes %}
+				<p><span class="process" ><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></span></p>
+			{% endfor %}
+
+			<h4>{% trans "Next processes" %}:</h4>
+			{% for proc in process.next_processes %}
+				<p><span class="process" ><a href="{{ proc.get_absolute_url }}">{{ proc }}</a></span></p>
+			{% endfor %}
+            <br />
+
+		    {% if process.notes %}
+		        <h4>{% trans "Process notes" %}:</h4>
+		        <div class="proc-notes" >
+			        {{ process.notes|urlize|linebreaks }}
+		        </div>
+		    {% endif %}	
+
+	    </div>
+    </div>
+
+    {% if logger %}
+    
+	<div class="modal hide fade" id="addOutputModal" tabindex="-1" role="dialog" aria-labelledby="output-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            <h3 id="output-label">{% trans "Add an output requirement" %}</h3>
+            
+        </div>
+        {% if add_output_form %}
+        <div class="modal-body">
+            <form class="output-form validateMe" name="addout" enctype="multipart/form-data" id="addOutputForm" action="{% url add_process_output process_id=process.id %}" method="POST" >
+	            {% csrf_token %}
+
+                    <p class="modal-line">{% trans "Resource Type" %} </p>
+                    <p>{{ add_output_form.resource_type }} 
+                    {% comment %}
+                    <a href="#createResourceModal" role="button" class="add-another" data-toggle="modal">
+                        <img src="{% static 'admin/img/icon_addlink.gif' %}" title="add new"></img>                    
+                    </a> 
+                    {% endcomment %}
+                    </p>                   
+                    <p class="modal-line">{% trans "Quantity" %} </p>
+                    <p>{{ add_output_form.quantity }} </p>
+                    <p class="modal-line">{% trans "Unit of Quantity" %} </p>
+                    <p>{{ add_output_form.unit_of_quantity }}</p>
+                    <p class="modal-line">{% trans "Description" %} </p>
+                    <p class="desc">{{ add_output_form.description }} </p>
+
+              <div class="modal-footer">
+	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	            <button class="btn btn-primary">{% trans "Add output" %}</button>
+              </div>
+
+
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="modal hide fade rtmodal" id="createResourceModal" tabindex="-1" role="dialog" aria-labelledby="resource-consumable-create-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="resource-consumable-create-label">{% trans "Create a new Resource Type" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="resource-create-form validateMe" id="resource-create-form" name="rescreate" enctype="multipart/form-data" action="." method="POST" >
+                {% csrf_token %}
+                {{ resource_type_form|as_bootstrap }}
+                {{ facet_formset.management_form }}
+                <table>
+                    {% for form in facet_formset %}
+                        <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
+                    {% endfor %}
+                </table>
+
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                <input type="submit" name="submit" id="save-resource-type" value="{% trans 'Save' %}" class="btn btn-primary save-resource-type" /> 
+                <input type="hidden" name="slot" value="out" />
+                <input type="hidden" name="pattern" value="{{ process.process_pattern.id }}" />
+              </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <div class="modal hide fade" id="addCiteModal" tabindex="-1" role="dialog" aria-labelledby="cite-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            <h3 id="cite-label">{% trans "Add a citation requirement" %}</h3>
+            
+        </div>
+        <div class="modal-body">
+            <form class="cite-form" enctype="multipart/form-data" id="addCitationForm" name="addcite" action="{% url add_process_citation process_id=process.id %}" method="POST" >
+	            {% csrf_token %}
+
+                    {{ add_citation_form|as_bootstrap }}
+
+              <div class="modal-footer">
+	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	            <button class="btn btn-primary">{% trans "Add citation" %}</button>
+              </div>
+
+
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hide fade" id="addConsumableModal" tabindex="-1" role="dialog" aria-labelledby="consumable-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            <h3 id="output-label">{% trans "Add a consumable input requirement" %}</h3>
+            
+        </div>
+        <div class="modal-body">
+            <form class="consumable-form validateMe" enctype="multipart/form-data" id="addConsumableForm" name="addcons" 
+                action="{% url add_process_input process_id=process.id slot='c' %}" method="POST" >
+	            {% csrf_token %}
+
+                    {{ add_consumable_form|as_bootstrap }}
+
+              <div class="modal-footer">
+	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	            <button class="btn btn-primary">{% trans "Add consumable" %}</button>
+              </div>
+
+
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hide fade" id="addUsableModal" tabindex="-1" role="dialog" aria-labelledby="use-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            <h3 id="output-label">{% trans "Add a usable input requirement" %}</h3>
+            
+        </div>
+        <div class="modal-body">
+            <form class="usable-form validateMe" enctype="multipart/form-data" id="addUsableForm" name="adduse" 
+                action="{% url add_process_input process_id=process.id  slot='u' %}" method="POST" >
+	            {% csrf_token %}
+
+                    {{ add_usable_form|as_bootstrap }}
+
+              <div class="modal-footer">
+	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	            <button class="btn btn-primary">{% trans "Add usable" %}</button>
+              </div>
+
+
+            </form>
+        </div>
+    </div>
+
+    <div class="modal hide fade" id="addWorkModal" tabindex="-1" role="dialog" aria-labelledby="work-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            <h3 id="work-label">
+                {% if worker %}
+                    {% trans "Invite a collaborator" %}
+                {% else %}
+                    {% trans "Add a work requirement" %}
+                {% endif %}
+            </h3>
+            
+        </div>
+        <div class="modal-body">
+            <form class="work-form validateMe" id="addWorkForm" name="addwork" action="{% url add_process_worker process_id=process.id %}" method="POST" >
+	            {% csrf_token %}
+
+                    {{ add_work_form|as_bootstrap }}
+
+              <div class="modal-footer">
+	            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+	            <button class="btn btn-primary">
+                {% if worker %}
+                    {% trans "Invite collaborator" %}
+                {% else %}
+                    {% trans "Add work requirement" %}
+                {% endif %}
+                </button>
+              </div>
+
+
+            </form>
+        </div>
+    </div>
+
+     {% endif %}
+
+     {% if agent %}
+
+     <div class="modal hide fade unplannedOutputModal" id="unplannedOutputModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-output-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="unplanned-output">{% trans "Log Unplanned Output" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="unplanned-output-form validateMe" name="unout" enctype="multipart/form-data" action="{% url add_unplanned_output process_id=process.id %}" method="POST" >
+                {% csrf_token %}
+                {{ unplanned_output_form|as_bootstrap }}
+                {{ role_formset.management_form }}
+                Resource Roles
+                <table>
+                    {% for form in role_formset %}
+                        <tr>
+                            <td>{{ form.role }}</td>
+                            <td>{{ form.agent }}</td>
+                            <td>{{ form.is_contact }} Is contact</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+              </div>
+            </form>
+        </div>
+    </div>
+
+     <div class="modal hide fade unplannedWorkModal" id="unplannedWorkModal" tabindex="-1" role="dialog" aria-labelledby="unplanned-work-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="unplanned-work">{% trans "Log Unplanned Work Contribution" %}</h3>
+        </div>
+        <div class="modal-body">
+            <form class="unplanned-work-form validateMe" enctype="multipart/form-data" name="unwork" action="{% url add_unplanned_work_event process_id=process.id %}" method="POST" >
+                {% csrf_token %}
+                {{ unplanned_work_form|as_bootstrap }}
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
+              </div>
+            </form>
+        </div>
+    </div>
+
+    {% endif %}
+ 
+{% endblock %}
+{% block extra_script %}
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$('#work').addClass('active');
+
+        $('#out-info').popover();
+        $('#work-info').popover();
+        $('#cite-info').popover();
+        $('#use-info').popover();
+        $('#consume-info').popover();
+
+		$(".chzn-select").chosen();
+        $(".chzn-select").trigger("liszt:updated");
+
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+		$(".res-ajax").change(getResources);
+		
+		jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
+        
+        jQuery.validator.setDefaults({ 
+            success: function(label) {
+		        label
+			        .text('').addClass('valid')
+			        .closest('.control-group').addClass('success');
+	        }
+        });
+
+        $.validator.addClassRules("quantity", { 
+            required: true, 
+            quantity: true,
+        });
+		$.validator.addClassRules("url", { url: true, maxlength: 255 });
+        $.validator.addClassRules("resourceType", { required: true});
+        $.validator.addClassRules("resource", { required: true});
+        $.validator.addClassRules("hours", { 
+			required: true,
+			number: true,
+			min: 0,
+			max: 24
+		});
+		$.validator.addClassRules("minutes", { 
+			required: true,
+			number: true,
+			min: 0,
+			max: 60
+		});
+        $.validator.addClassRules("date-entry", { required: true, date: true, });
+
+        $('.validateMe').each( function(){
+			var form = $(this);
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				}
+			});
+		});
+
+	    $(".resource-type-selector").change(getUnit);
+
+		function getUnit(event)
+		{
+	        $(".chzn-select").trigger("liszt:updated");
+		    var resourceId = event.target.value;
+		    if (resourceId)
+		    {
+                var targetId = event.target.id;
+			    if (targetId.search("usable") >= 0)
+			    {
+				    direction = "use";
+			    }
+			    else
+			    {
+				    direction = "other";
+			    }
+			    var prefix = targetId.split('-')[0];
+			    var unitName = "#" + prefix + "-unit_of_quantity";
+			    var jsonUrl = encodeURI("/accounting/json-directional-unit/" + resourceId + "/" + direction + "/");
+			    $.get(jsonUrl,
+				    function(data){
+					    var unit = data["unit"];
+                        $(unitName).val(unit);
+				    });
+		    }
+	    }
+	    
+	    $(".citation-selector").change(getCitationUnit);
+	    
+	    function getCitationUnit(event)
+        {
+            var resourceId = event.target.value;
+            if (resourceId)
+            {
+                var targetId = event.target.id;
+                var prefix = targetId.split('-')[0];
+                var unitName = "#" + prefix + "-unit_of_quantity";
+                var jsonUrl = encodeURI("/accounting/json-citation-unit/" + resourceId + "/");
+                $.get(jsonUrl,
+                    function(data){
+                        var unit = data["unit"];
+                        $(unitName).val(unit);
+                    });
+            }
+        }
+
+
+        $( "#addOutputForm" ).validate({
+			rules: {
+			    'output-resource_type': {
+                    required: true
+				},
+				'output-quantity': {
+                    required: true,
+					number: true,
+					min: .01
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+		$( "#addConsumableForm" ).validate({
+			rules: {
+			    'input-resource_type': {
+                    required: true
+				},
+				'input-quantity': {
+                    required: true,
+					number: true,
+					min: .01
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+		$( "#addUsableForm" ).validate({
+			rules: {
+			    'input-resource_type': {
+                    required: true
+				},
+				'input-quantity': {
+                    required: true,
+					number: true,
+					min: .01
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+		$( "#addWorkForm" ).validate({
+			rules: {
+			    'resource_type': {
+                    required: true
+				}
+			},
+			highlight: function(label) {
+				$(label).closest('.control-group').addClass('error');
+			},
+		});
+
+
+		$('.commitmentForm').each( function(){
+			var form = $(this);
+
+			form.validate({
+				highlight: function(label) {
+					$(label).closest('.control-group').addClass('error');
+				},
+			});
+		});
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow"); 
+            $( "#help" ).text("Show Help");
+        })
+
+
+	}); // end document.ready
+
+    function getResources(event)
+	{
+        var selectedRT = event.target.value;
+        var selectId = event.target.id;
+        var selectSplit = selectId.split("-");
+        //var resourcePrefix = selectSplit[0] + "-" + selectSplit[1];
+        var resourcePrefix = selectSplit[0];
+        var resourceFieldId = "#" + resourcePrefix + "-resource";
+        var jsonUrl = encodeURI("/accounting/json-resourcetype-resources/" + selectedRT + "/");
+        $(resourceFieldId).empty();
+	    $.get(jsonUrl,
+		    function(data){
+                for(var i=0 ; i<data.length ; i++)
+                {
+                    var id = data[i]['pk'];
+                    var name = data[i].fields['identifier']; 
+                    $(resourceFieldId).append('<option value="' + id + '">' + name + '</option>') 
+                }
+		    });
+	}
+
+    </script>
+
+{% endblock %}

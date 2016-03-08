@@ -5558,7 +5558,7 @@ class Process(models.Model):
     def get_absolute_url(self):
         return ('process_details', (),
             { 'process_id': str(self.id),})
-
+    
     def save(self, *args, **kwargs):
         pt_name = ""
         if self.process_type:

@@ -1,4 +1,5 @@
 import datetime
+import time
 import re
 from decimal import *
 from operator import attrgetter
@@ -2329,6 +2330,7 @@ class ResourceTypeFacetValue(models.Model):
 def all_purchased_resource_types():
     uc = UseCase.objects.get(name="Purchasing")
     pats = ProcessPattern.objects.usecase_patterns(uc)
+    #todo exchange redesign fallout
     et = EventType.objects.get(name="Receipt")
     rts = []
     for pat in pats:
@@ -4521,7 +4523,9 @@ class EconomicResource(models.Model):
                 value = br.compute_claim_value(evt)
             if value:
                 vpu = value / evt.quantity
-                #todo fc: this is wrong for shares for use
+                #todo fc: this is wrong
+                # must depend on use_value
+                # https://github.com/valnet/valuenetwork/issues/47
                 evt.share = quantity * vpu
                 events.append(evt)
         buys = self.purchase_events()
@@ -4759,6 +4763,7 @@ class EconomicResource(models.Model):
             return self.purchase_events()
         
     def transfer_events(self):
+        #todo exchange redesign fallout
         tx_et = EventType.objects.get(name="Transfer")
         return self.events.filter(event_type=tx_et)
         
@@ -4867,6 +4872,7 @@ class EconomicResource(models.Model):
             events = self.event_sequence()
             events.reverse()
             pet = EventType.objects.get(name="Resource Production")
+            #todo exchange redesign fallout
             xet = EventType.objects.get(name="Transfer")
             rcpt = EventType.objects.get(name="Receipt")
             
@@ -9341,6 +9347,7 @@ class ValueEquation(models.Model):
         
     def run_value_equation(self, amount_to_distribute, serialized_filters):
         #import pdb; pdb.set_trace()
+        #start_time = time.time()
         atd = amount_to_distribute
         detail_sums = []
         claim_events = []
@@ -9418,7 +9425,8 @@ class ValueEquation(models.Model):
                         if claim.value < 0:
                             claim.value = 0
                     break
-
+        #end_time = time.time()
+        #print("run_value_equation elapsed time was %g seconds" % (end_time - start_time))
         return distribution_events, contribution_events
     
     
@@ -9801,6 +9809,7 @@ class EconomicEvent(models.Model):
         """
         #import pdb; pdb.set_trace()
         prevs = []
+        #todo exchange redesign fallout
         ret = EventType.objects.get(name="Receipt")
         cet = EventType.objects.get(name="Resource Consumption")
         if self.event_type == ret:
@@ -10486,7 +10495,10 @@ class EconomicEvent(models.Model):
         #EconomicEvent (shipment) method
         #import pdb; pdb.set_trace()
         shares = []
-        if self.event_type.name == "Shipment":
+        #todo transferBreakout: 
+        # shipment events are no longer event_type.name == "Shipment"
+        # they are et.name == "Give"
+        if self.event_type.name == "Give":
             commitment = self.commitment
             #problem: if the shipment event with no (an uninventoried) resource has no commitment,
             #we can't find the process it came from.
@@ -10671,6 +10683,7 @@ class ValueEquationBucket(models.Model):
             
     def run_bucket_value_equation(self, amount_to_distribute, context_agent, serialized_filter):
         #import pdb; pdb.set_trace()
+        #start_time = time.time()
         rules = self.bucket_rules.all()
         claim_events = []
         contribution_events = []
@@ -10703,10 +10716,13 @@ class ValueEquationBucket(models.Model):
             #import pdb; pdb.set_trace()
             ces = self.create_distribution_claim_events(claims=claims, portion_of_amount=portion_of_amount)
             claim_events.extend(ces)
+        #end_time = time.time()
+        #print("run_bucket_value_equation elapsed time was %g seconds" % (end_time - start_time))
         return claim_events, contribution_events    
        
     def gather_bucket_events(self, context_agent, serialized_filter):
         #import pdb; pdb.set_trace()
+        #start_time = time.time()
         ve = self.value_equation
         events = []
         filter = ""
@@ -10827,6 +10843,8 @@ class ValueEquationBucket(models.Model):
 
         for event in events:
             event.filter = filter
+        #end_time = time.time()
+        #print("gather_bucket_events elapsed time was %g seconds" % (end_time - start_time))
         return events
        
     def claims_from_events(self, events):

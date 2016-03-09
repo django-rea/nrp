@@ -11372,6 +11372,7 @@ def distribution_logging(request, distribution_id=None):
 @login_required
 def create_distribution_using_value_equation(request, agent_id, value_equation_id=None):
     #import pdb; pdb.set_trace()
+    #start_time = time.time()
     if not request.user.is_staff:
         return render_to_response('valueaccounting/no_permission.html')
     context_agent = get_object_or_404(EconomicAgent, id=agent_id)
@@ -11424,6 +11425,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
 
             test_only = request.POST.get("test-only")
             if test_only:
+                #import pdb; pdb.set_trace()
                 agent_totals, contribution_events = ve.run_value_equation(
                     amount_to_distribute=amount,
                     serialized_filters=serialized_filters)
@@ -11467,7 +11469,8 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
             for bucket in buckets:
                 if bucket.filter_method:
                     bucket.form = bucket.filter_entry_form()
-      
+    #end_time = time.time()
+    #print("views.create_distribution_using_value_equation elapsed time was %g seconds" % (end_time - start_time))  
     return render_to_response("valueaccounting/create_distribution_using_value_equation.html", {
         "events_to_distribute": events_to_distribute,
         "header_form": header_form,

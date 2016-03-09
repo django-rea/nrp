@@ -978,8 +978,7 @@ li {
                 var jsonUrl = encodeURI("/accounting/json-resourcetype-resources-locations/" + resourceTypeId + "/");
                 $.get(jsonUrl,
                     function(data){
-                    //BOB, fix this!!!
-                    $(resourceFieldId).append('<option value="''">'----------'</option>')
+                    $(resourceFieldId).append('<option value="">' + '--------' + '</option>');
                     for(var i=0 ; i<data.length ; i++)
                     {
                         var id = data[i].fields['pk'];

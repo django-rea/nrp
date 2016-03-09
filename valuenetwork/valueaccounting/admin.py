@@ -94,6 +94,13 @@ class TransferInline(admin.TabularInline):
     fk_name = 'exchange'
     fields = ('name', 'transfer_type', 'transfer_date')
     
+class TransferTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'sequence', 'exchange_type', )
+    list_filter = ['exchange_type']
+
+admin.site.register(TransferType, TransferTypeAdmin)
+
+    
 class EconomicEventInline(admin.TabularInline):
     model = EconomicEvent
     fk_name = 'exchange'

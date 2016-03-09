@@ -1983,6 +1983,7 @@ class EconomicResourceType(models.Model):
                         return True
         return False
        
+    #does not seem to be used
     def is_purchased(self):
         rts = all_purchased_resource_types()
         return self in rts
@@ -2331,7 +2332,8 @@ def all_purchased_resource_types():
     uc = UseCase.objects.get(name="Purchasing")
     pats = ProcessPattern.objects.usecase_patterns(uc)
     #todo exchange redesign fallout
-    et = EventType.objects.get(name="Receipt")
+    #et = EventType.objects.get(name="Receipt")
+    et = EventType.objects.get(name="Receive")
     rts = []
     for pat in pats:
         rts.extend(pat.get_resource_types(et))
@@ -4063,6 +4065,7 @@ class EconomicResource(models.Model):
                 #print padding, "--- evt_vpu: ", evt_vpu
                 #print padding, "--- values:", values
             depth -= 1
+        #todo exchange redesign fallout
         xfers = self.transfer_events_for_exchange_stage()
         for evt in xfers:
             #import pdb; pdb.set_trace()
@@ -4383,6 +4386,7 @@ class EconomicResource(models.Model):
             #    events.append(evt)
             if evt.exchange:
                 evt.exchange.compute_income_shares(value_equation, evt, quantity, events, visited)
+        #todo exchange redesign fallout
         xfers = self.transfer_events()
         for evt in xfers:
             if evt.exchange:
@@ -4768,7 +4772,7 @@ class EconomicResource(models.Model):
         return self.events.filter(event_type=tx_et)
         
     def transfer_events_for_exchange_stage(self):
-        #todo dhen_bug:
+        #todo exchange redesign fallout
         if self.exchange_stage:
             return self.transfer_events().filter(exchange_stage=self.exchange_stage)
         else:
@@ -4874,7 +4878,8 @@ class EconomicResource(models.Model):
             pet = EventType.objects.get(name="Resource Production")
             #todo exchange redesign fallout
             xet = EventType.objects.get(name="Transfer")
-            rcpt = EventType.objects.get(name="Receipt")
+            #rcpt = EventType.objects.get(name="Receipt")
+            rcpt = EventType.objects.get(name="Receive")
             
             for event in events:
                 if event not in visited:
@@ -4889,6 +4894,7 @@ class EconomicResource(models.Model):
                                 visited.add(exchange)
                                 exchange.depth = depth + 1
                                 flows.append(exchange)
+                                #todo exchange redesign fallout
                                 for pmt in event.exchange.reciprocal_transfer_events():
                                     pmt.depth = depth + 2
                                     flows.append(pmt)
@@ -6961,6 +6967,7 @@ class Exchange(models.Model):
         return events        
                         
     def transfer_events(self):
+        #todo exchange redesign fallout?
         #exchange method
         events = []
         for transfer in self.transfers.all():
@@ -6970,6 +6977,7 @@ class Exchange(models.Model):
         return events
             
     def reciprocal_transfer_events(self):
+        #todo exchange redesign fallout?
         #exchange method
         events = []
         for transfer in self.transfers.all():
@@ -7171,6 +7179,7 @@ class Exchange(models.Model):
                 payments = self.payment_events().filter(to_agent=trigger_event.from_agent)
                 #share =  quantity / trigger_event.quantity
             else:
+                #todo exchange redesign fallout
                 xfers = self.transfer_events()
                 if xfers:
                     payments = self.cash_receipt_events().filter(from_agent=trigger_event.to_agent)
@@ -7277,6 +7286,7 @@ class Exchange(models.Model):
                 #share =  quantity / trigger_event.quantity
                 payments = self.payment_events()
             else:
+                #todo exchange redesign fallout
                 xfers = self.transfer_events()
                 if xfers:
                     #payments = self.cash_receipt_events().filter(from_agent=trigger_event.to_agent)

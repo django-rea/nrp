@@ -6,3 +6,5 @@ from valuenetwork.valueaccounting.tests.test_explosions import *
 from valuenetwork.valueaccounting.tests.test_recipes import *
 from valuenetwork.valueaccounting.tests.test_event_saving import *
 from valuenetwork.valueaccounting.tests.test_stages import *
+from valuenetwork.valueaccounting.tests.test_value_equations import *
+

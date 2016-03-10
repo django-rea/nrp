@@ -5678,13 +5678,23 @@ def add_transfer(request, exchange_id, transfer_type_id):
                         if form_rra.is_valid():
                             data_rra = form_rra.cleaned_data
                             if data_rra:
+                                #if role and agent:
+                                #    rra = AgentResourceRole()
+                                #    rra.agent = data_rra["agent"]
+                                #    rra.role = data_rra["role"]
+                                #    rra.resource = res
+                                #    rra.is_contact = data_rra["is_contact"]
+                                #    rra.save()  
+                                data_rra = form_rra.cleaned_data
+                                role = data_rra["role"]
+                                agent = data_rra["agent"]
                                 if role and agent:
                                     rra = AgentResourceRole()
-                                    rra.agent = data_rra["agent"]
-                                    rra.role = data_rra["role"]
+                                    rra.agent = agent
+                                    rra.role = role
                                     rra.resource = res
                                     rra.is_contact = data_rra["is_contact"]
-                                    rra.save()                    
+                                    rra.save()
 
                 xfer_name = transfer_type.name
                 if transfer_type.is_reciprocal:

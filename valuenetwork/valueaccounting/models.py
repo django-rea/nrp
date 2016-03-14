@@ -1010,6 +1010,34 @@ class EconomicAgent(models.Model):
             #            cr_ids.append(cr.id)
         return EconomicEvent.objects.filter(id__in=cr_ids)
         
+    def undistributed_income(self): #added donations to cash receipts - will be superceded by new exchange work, so doing the minimum
+        #import pdb; pdb.set_trace()
+        cr_ids = []
+        et_cr = EventType.objects.get(name="Cash Receipt")
+        et_don = EventType.objects.get(name="Donation")
+        crs = EconomicEvent.objects.filter(context_agent=self).filter(event_type=et_cr)
+        for cr in crs:
+            if cr.is_undistributed():
+                cr_ids.append(cr.id)
+        donations = EconomicEvent.objects.filter(context_agent=self).filter(event_type=et_don)
+        for don in donations:
+            if don.is_undistributed():
+                cr_ids.append(don.id)
+        exf = self.exchange_firm()
+        #todo: maybe use shipments in addition or instead of virtual accounts?
+        #exchange firm might put cash receipt into a more general virtual account
+        if exf:
+            crs = exf.undistributed_income()
+            cr_ids.extend(cr.id for cr in crs)
+            #todo: analyze this.
+            #is_undistributed is unnecessary: crs only includes undistributed
+            #is_virtual_account_of is the restriction that needs analysis
+            #for cr in crs:
+            #    if cr.is_undistributed():
+            #        if cr.resource.is_virtual_account_of(self):
+            #            cr_ids.append(cr.id)
+        return EconomicEvent.objects.filter(id__in=cr_ids)
+    
     def undistributed_distributions(self):
         #import pdb; pdb.set_trace()
         id_ids = []
@@ -9534,10 +9562,12 @@ class EconomicEvent(models.Model):
         return claim  
         
     def undistributed_amount(self):
+        #import pdb; pdb.set_trace()
         #todo: partial
         et_cr = EventType.objects.get(name="Cash Receipt")
         et_id = EventType.objects.get(name="Distribution")
-        if self.event_type == et_cr or self.event_type == et_id:
+        et_don = EventType.objects.get(name="Donation")
+        if self.event_type == et_cr or self.event_type == et_id or self.event_type == et_don:
             crd_amounts = sum(d.quantity for d in self.distributions.all())
             return self.quantity - crd_amounts
         else:

@@ -10599,11 +10599,12 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                     % ('accounting/exchange', exchange.id))
             
     else:
+        #import pdb; pdb.set_trace()
         ves = context_agent.live_value_equations()
         init = { "start_date": datetime.date.today(), "value_equation": ve }
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=False, initial=init)
-        crs = context_agent.undistributed_cash_receipts()
-        for cr in crs:
+        crs = context_agent.undistributed_income()
+        for cr in crs: #also includes donations now
             cash_receipts[cr.id] = float(cr.undistributed_amount())
         if ves:
             if not ve:

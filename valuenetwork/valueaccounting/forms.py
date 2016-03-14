@@ -3223,7 +3223,7 @@ class DistributionValueEquationForm(forms.Form):
         if post == False:
             if context_agent:
                 self.fields["value_equation"].queryset = context_agent.live_value_equations()
-                self.fields["cash_receipts"].queryset = context_agent.undistributed_cash_receipts()
+                self.fields["cash_receipts"].queryset = context_agent.undistributed_income()
                 self.fields["input_distributions"].queryset = context_agent.undistributed_distributions()
             if pattern:
                 resources = []

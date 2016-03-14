@@ -1080,6 +1080,7 @@ def resource_flow_report(request, resource_type_id):
     #otherwise new ones incorrectly arrive at the end of the flow
     #would be better to figure out how to insert in the correct place
     stages = []
+    #import pdb; pdb.set_trace() 
     stages.append(ExchangeType.objects.get(id=3))
     stages.append(ExchangeType.objects.get(id=2))
     stages.append(ProcessType.objects.get(id=4))

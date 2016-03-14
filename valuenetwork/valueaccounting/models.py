@@ -2089,7 +2089,7 @@ class EconomicResourceType(models.Model):
         answer = []
         #todo pr: this shd be own_recipes
         answer.extend(self.manufacturing_producing_process_type_relationships())
-        answer.extend(self.producer_relationships())
+        #answer.extend(self.producer_relationships())
         return answer
 
     def xbill_child_object(self):

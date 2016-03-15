@@ -108,16 +108,22 @@
             // The geocoder can return an area, like a city, or a
             // point, like an address. Here we handle both cases,
             // by fitting the map bounds to an area or zooming to a point.
-            if (data.lbounds) {
-                map.fitBounds(data.lbounds);
-            } else if (data.latlng) {
-                map.setView([data.latlng[0], data.latlng[1]], 13);
+            if (!data.latlng){
+                alert("can't find location");
             }
-            L.marker(data.latlng).addTo(map);
-            $("#id_latitude").val(data.latlng[0]);
-            $("#id_longitude").val(data.latlng[1]);
-            //var lat = $("#id_latitude").val();
-            //var lng = $("#id_longitude").val();
+            else
+            {
+                if (data.lbounds) {
+                    map.fitBounds(data.lbounds);
+                } else if (data.latlng) {
+                    map.setView([data.latlng[0], data.latlng[1]], 13);
+                }
+                L.marker(data.latlng).addTo(map);
+                $("#id_latitude").val(data.latlng[0]);
+                $("#id_longitude").val(data.latlng[1]);
+                //var lat = $("#id_latitude").val();
+                //var lng = $("#id_longitude").val();
+            }
         }
 
 

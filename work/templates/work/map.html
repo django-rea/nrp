@@ -1,0 +1,216 @@
+{% extends "work_base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Map" %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+<link href='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
+<style>
+
+</style>
+{% endblock %}
+
+{% block body_class %}map{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	<div>
+    <legend>
+        
+        {% if agent %}
+            {% if agent.address %}
+                {% trans "Change location?" %}
+                <input type="test" id="address" name="address" value="{{ agent.address }}" />
+                
+            {% else %}
+                {% trans "Where are you?" %}
+                <input type="test" id="address" name="address" value="" />
+                
+            {% endif %}
+            <input type="hidden" id="agentLatitude" name="agentLatitude" value="" />
+            <input type="hidden" id="agentLongitude" name="agentLongitude" value="" />
+            <span id="mapError" style="font-size: 70%;" ></span>
+            
+        {% else %}
+            {% trans "Map" %}
+        {% endif %}
+    </legend>
+
+    <div class="row-fluid">
+        <div class="span12">
+            <div id="map" style="width: 98%; height: 600px"></div>
+        </div>
+        
+        
+        
+    
+	</div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+   
+    <script src='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
+
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+	
+        $( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+        
+        L.mapbox.accessToken = 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg';
+
+        var map = L.map('map')
+            .setView([{{ latitude }},{{ longitude }}], {{ zoom }})
+            //.addControl(L.mapbox.geocoderControl('mapbox.places'))
+            ;
+        
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+            maxZoom: 18,
+            id: 'bhaugen.3f30d361',
+            accessToken: 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg'
+        }).addTo(map);
+        
+        var geocoder = L.mapbox.geocoder('mapbox.places');
+
+        $("#address").blur(geocodeAddress);
+        
+        var agentAddress = "{{ agent.address }}";
+        if (agentAddress) 
+        {
+            geocoder.query(agentAddress, showMap);
+        }
+
+        function geocodeAddress(event) {
+            var address = event.target.value;
+            
+            geocoder.query(address, showMap);
+        }
+        
+        function showMap(err, data) {
+            // The geocoder can return an area, like a city, or a
+            // point, like an address. Here we handle both cases,
+            // by fitting the map bounds to an area or zooming to a point.
+            if (!data.latlng){
+                $("#mapError").css("color","red"); 
+                $("#mapError").text("Can't find address");
+            }
+            else
+            {
+                
+                if (data.latlng) {
+                    map.setView([data.latlng[0], data.latlng[1]], {{ zoom }});
+                    var content = "<h2>" + $("#address").val() + "</h2>";
+                    var marker = L.marker(data.latlng)
+                        .addTo(map).bindPopup(content);
+                    $("#agentLatitude").val(data.latlng[0]);
+                    $("#agentLongitude").val(data.latlng[1]);
+                    $("#mapError").css("color","green"); 
+                    $("#mapError").text("");
+                }
+
+            }
+        }
+
+        
+        $("#agents").hide();
+        $("#resources").hide();
+
+        {% for loc in locations %}
+            {% if loc.latitude and loc.longitude %}
+                var locName = "{{ loc.name|safe }}";
+                var locAddress = "{{ loc.address }}";
+                var latlong = [ {{ loc.latitude }}, {{ loc.longitude }}];
+                
+                var content = "<h2>" + locName+ "</h2><p>" + locAddress + "</p>";
+
+                var marker = L.marker(latlong, {title: locName })
+                    .addTo(map).bindPopup(content)
+                    .on('popupopen', showResources)
+                    .on('popupclose', hideResources);
+                marker.locationUrl = "{% url change_location location_id=loc.id %}";
+                marker.name = locName;
+                marker.agents = [];
+                {% for agnt in loc.agents %}
+                    marker.agents.push("{{ agnt.name }}");
+                {% endfor %}
+                marker.resources = [];
+                {% for res in loc.resources %}
+                    marker.resources.push("{{ res }}");
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+        
+        function showResources(event) {
+            var target = event.target;
+            var location_id = target.location_id
+            var agents = target.agents;
+            var resources = target.resources;
+            
+            var changeAnchor = '<a href="' + target.locationUrl + '" >Change this Location</a>';
+            
+            $("#changeLocation").empty();
+            $("#changeLocation").append(changeAnchor);
+            $("#changeLocation").show();
+            
+            $("#agentList").empty();
+            $("#resourceList").empty();
+            
+            if (agents.length)
+            {  
+                $("#agentLocation").text(target.name);
+                $("#agentList").append("<ul>");
+                for (var i = 0; i < agents.length; i++) 
+                {
+                    var resourceItem = "<li>" + agents[i] + "</li>";
+                    $("#agentList").append(resourceItem);
+                }
+                $("#agentList").append("</ul>");
+                $("#agents").show();
+            }
+            
+            if (resources.length)
+            {  
+                $("#resourceLocation").text(target.name);
+                $("#resourceList").append("<ul>");
+                for (var i = 0; i < resources.length; i++) 
+                {
+                    var resourceItem = "<li>" + resources[i] + "</li>";
+                    $("#resourceList").append(resourceItem);
+                }
+                $("#resourceList").append("</ul>");
+                $("#resources").show();
+            }
+        }
+        
+        function hideResources(event) {
+            $("#changeLocation").hide();
+            $("#agents").hide();
+            $("#resources").hide();
+        }
+
+        
+	}); // end document.ready
+
+     
+    </script>
+/*
+{% endblock %}

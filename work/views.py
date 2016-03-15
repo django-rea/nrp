@@ -66,6 +66,23 @@ def my_dashboard(request):
         "work_now": work_now,
         #"help": get_help("my_work"),
     }, context_instance=RequestContext(request))
+    
+def map(request):
+    agent = get_agent(request)
+    locations = Location.objects.all()
+    nolocs = Location.objects.filter(latitude=0.0)
+    latitude = settings.MAP_LATITUDE
+    longitude = settings.MAP_LONGITUDE
+    zoom = settings.MAP_ZOOM
+    return render_to_response("work/map.html", {
+        "agent": agent,
+        "locations": locations,
+        "nolocs": nolocs,
+        "latitude": latitude,
+        "longitude": longitude,
+        "zoom": zoom,
+        #"help": get_help("map"),
+    }, context_instance=RequestContext(request))
 
 @login_required    
 def process_logging(request, process_id):

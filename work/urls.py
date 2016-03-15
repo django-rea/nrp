@@ -9,6 +9,5 @@ urlpatterns = patterns("",
     url(r'^my-history/$', 'work.views.my_history', name="my_history"),
     url(r'^register-skills/$', 'work.views.register_skills', name="register_skills"),
     url(r'^work-home/$', 'work.views.work_home', name="work_home"),
-    url(r'^work-change-commitment/(?P<commitment_id>\d+)/$', 'work.views.work_change_commitment', name="work_change_commitment"),
     url(r'^map/$', 'work.views.map', name="map"),
 )

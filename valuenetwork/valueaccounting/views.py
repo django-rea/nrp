@@ -4072,6 +4072,7 @@ def commit_to_task(request, commitment_id):
         agent = get_agent(request)
         prefix = ct.form_prefix()
         form = CommitmentForm(data=request.POST, prefix=prefix)
+        next = None
         next = request.POST.get("next")
         #import pdb; pdb.set_trace()
         if form.is_valid():
@@ -4103,8 +4104,12 @@ def commit_to_task(request, commitment_id):
             #            process.changed_by=request.user
             #            process.save()
             if request.POST.get("start"):
-                return HttpResponseRedirect('/%s/%s/%s/'
-                    % ('accounting/work-now', process.id, ct.id))
+                if next == "work":
+                    return HttpResponseRedirect('/%s/%s/%s/'
+                        % ('work/work-timer', process.id, ct.id))
+                else:
+                    return HttpResponseRedirect('/%s/%s/%s/'
+                        % ('accounting/work-now', process.id, ct.id))
             if request.POST.get("work-start"):
                 return HttpResponseRedirect('/%s/%s/%s/'
                     % ('work/work-timer', process.id, ct.id))
@@ -4171,6 +4176,12 @@ def join_task(request, commitment_id):
                     "site_name": site_name,
                     }
                 )
+                    
+        next = request.POST.get("next")
+        if next:
+            if next == "work":
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', process.id))
         
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', process.id))
@@ -4200,6 +4211,13 @@ def change_commitment(request, commitment_id):
             #flow todo: explode?
             #explode wd apply to rt changes, which will not happen here
             #handle_commitment_changes will propagate qty changes
+            
+        next = request.POST.get("next")
+        if next:
+            if next == "work":
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', process.id))
+        
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', process.id))
 
@@ -4232,6 +4250,9 @@ def uncommit(request, commitment_id):
     elif next == "work-start":
         return HttpResponseRedirect('/%s/'
             % ('work/my-dashboard'))
+    elif next == "work":
+        return HttpResponseRedirect('/%s/'
+            % ('work/process-logging'))
     else:
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', process.id))
@@ -4629,6 +4650,11 @@ def add_process_output(request, process_id):
                 if len(process.name) > 128:
                     process.name = process.name[0:128]
                 process.save()
+        next = request.POST.get("next")
+        if next:
+            if next == "work":
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', process.id))
                     
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -4698,6 +4724,12 @@ def add_unplanned_output(request, process_id):
                                 rra.resource = resource
                                 rra.is_contact = data_rra["is_contact"]
                                 rra.save()
+                                
+        next = request.POST.get("next")
+        if next:
+            if next == "work":
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', process.id))
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -5427,7 +5459,12 @@ def add_process_input(request, process_id, slot):
                     ct.context_agent = ptrt.process_type.context_agent
                 ct.save()
                 #todo: this is used in process logging; shd it explode?
-                #explode_dependent_demands(ct, request.user)                
+                #explode_dependent_demands(ct, request.user)
+        next = request.POST.get("next")
+        if next:
+            if next == "work":
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', process.id))
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
@@ -5511,6 +5548,11 @@ def add_process_worker(request, process_id):
                         "site_name": site_name,
                         }
                     )
+        next = request.POST.get("next")
+        if next:
+            if next == "work":
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', process.id))
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -5560,6 +5602,12 @@ def invite_collaborator(request, commitment_id):
                     "site_name": site_name,
                     }
                 )
+                    
+        next = request.POST.get("next")
+        if next:
+            if next == "work":
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', process.id))
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -5596,6 +5644,11 @@ def delete_process_commitment(request, commitment_id):
     process = commitment.process
     #commitment.delete_dependants()
     commitment.delete()
+    next = request.POST.get("next")
+    if next:
+        if next == "work":
+            return HttpResponseRedirect('/%s/%s/'
+                % ('work/process-logging', process.id))
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 
@@ -5711,6 +5764,9 @@ def delete_event(request, event_id):
         else:
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/contributionhistory', agent.id))
+    elif next == "work":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('work/process-logging', process.id))
 
 @login_required        
 def delete_citation_event(request, commitment_id, resource_id):
@@ -6584,9 +6640,10 @@ def log_stage_change_event(request, commitment_id, resource_id):
         resource.quantity = quantity
         resource.save()
         process.set_started(event.event_date, request.user)
+        #todo: the following not tested
         next = request.POST.get("next")
         if next:
-            if next == "process":
+            if next == "work":
                 return HttpResponseRedirect('/%s/%s/'
                     % ('work/process-logging', process.id))
         
@@ -6645,6 +6702,12 @@ def add_unplanned_input_event(request, process_id, slot):
                 resource.changed_by=request.user
                 resource.save()
             process.set_started(event.event_date, request.user)
+            
+    next = request.POST.get("next")
+    if next:
+        if next == "work":
+            return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', process.id))
                 
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -6699,6 +6762,12 @@ def log_resource_for_commitment(request, commitment_id):
         event.save()
         ct.process.set_started(event.event_date, request.user)
         
+    next = request.POST.get("next")
+    if next:
+        if next == "work":
+            return HttpResponseRedirect('/%s/%s/'
+                % ('work/process-logging', ct.process.id))
+        
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
         
@@ -6735,7 +6804,13 @@ def add_to_resource_for_commitment(request, commitment_id):
             )
             event.save()
             ct.process.set_started(event.event_date, request.user)
-        
+            
+    next = request.POST.get("next")
+    if next:
+        if next == "work":
+            return HttpResponseRedirect('/%s/%s/'
+                % ('work/process-logging', ct.process.id))
+            
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
         
@@ -6793,6 +6868,12 @@ def add_work_event(request, commitment_id):
         event.save()
         ct.process.set_started(event.event_date, request.user)
         
+    next = request.POST.get("next")
+    if next:
+        if next == "work":
+            return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', ct.process.id))
+        
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
 
@@ -6819,6 +6900,12 @@ def add_unplanned_work_event(request, process_id):
             event.changed_by = request.user
             event.save()
             process.set_started(event.event_date, request.user)
+            
+    next = request.POST.get("next")
+    if next:
+        if next == "work":
+            return HttpResponseRedirect('/%s/%s/'
+                % ('work/process-logging', process.id))
             
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -6872,6 +6959,12 @@ def add_use_event(request, commitment_id, resource_id):
         event.changed_by = request.user
         event.save()
         ct.process.set_started(event.event_date, request.user)
+        
+    next = request.POST.get("next")
+    if next:
+        if next == "work":
+            return HttpResponseRedirect('/%s/%s/'
+                % ('work/process-logging', ct.process.id))
         
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', ct.process.id))
@@ -7755,6 +7848,9 @@ def change_work_event(request, event_id):
     if next == "process":
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', process.id))
+    elif next == "work":
+        return HttpResponseRedirect('/%s/%s/'
+                % ('work/process-logging', process.id))
     else:
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/labnote', commitment.id))
@@ -7775,6 +7871,13 @@ def change_unplanned_work_event(request, event_id):
             if form.is_valid():
                 data = form.cleaned_data
                 form.save()
+                
+    next = request.POST.get("next")
+    if next:
+        if next == "work":
+            return HttpResponseRedirect('/%s/%s/'
+                % ('work/process-logging', process.id))
+                
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
 

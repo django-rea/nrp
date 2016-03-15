@@ -402,31 +402,3 @@ def work_process_finished(request, process_id):
     return HttpResponseRedirect('/%s/%s/'
         % ('work/process-logging', process_id))
 
-
-@login_required
-def work_change_commitment(request, commitment_id):
-    if request.method == "POST":
-        ct = get_object_or_404(Commitment, id=commitment_id)
-        process = ct.process
-        agent = get_agent(request)
-        prefix = ct.form_prefix()
-        #import pdb; pdb.set_trace()
-        if ct.event_type.relationship=="work":
-            form = WorkCommitmentForm(instance=ct, data=request.POST, prefix=prefix)
-        else:
-            form = ChangeCommitmentForm(instance=ct, data=request.POST, prefix=prefix)
-        next = request.POST.get("next")
-
-        if form.is_valid():
-            data = form.cleaned_data
-            rt = ct.resource_type
-            demand = ct.independent_demand
-            new_qty = data["quantity"]
-            old_ct = Commitment.objects.get(id=commitment_id)            
-            explode = handle_commitment_changes(old_ct, rt, new_qty, demand, demand)
-            commitment = form.save()
-            #flow todo: explode?
-            #explode wd apply to rt changes, which will not happen here
-            #handle_commitment_changes will propagate qty changes
-        return HttpResponseRedirect('/%s/%s/'
-            % ('work/process-logging', process.id))

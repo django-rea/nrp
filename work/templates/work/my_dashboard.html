@@ -211,7 +211,7 @@ th, td {
                                         action="{% url commitment_finished commitment_id=item.id %}" 
                                         method="POST" >
                                         {% csrf_token %}
-                                        <input type="hidden" id="next" name="next" value="start" />
+                                        <input type="hidden" id="next" name="next" value="work-start" />
                                         <button style="display: inline;"  class="btn btn-primary btn-mini" title="Close" >Close task</button>
                                     </form>
                                     <form
@@ -221,7 +221,7 @@ th, td {
                                         action="{% url uncommit commitment_id=item.id %}" 
                                         method="POST" >
                                         {% csrf_token %}
-                                        <input type="hidden" id="next" name="next" value="start" />
+                                        <input type="hidden" id="next" name="next" value="work-start" />
                                         <button style="display: inline;"  class="btn btn-warning btn-mini" title="Uncommit" >Unassign</button>
                                     </form>
 								</div>
@@ -347,7 +347,7 @@ th, td {
                                                             <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
                                                             <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
                                                             {% if work_now %}
-                                                                <input type="submit" class="btn btn-primary" name="start" value='{% trans "Start now" %}' />
+                                                                <input type="submit" class="btn btn-primary" name="work-start" value='{% trans "Start now" %}' />
                                                             {% endif %}
                                                           </div>
                                                         </form>

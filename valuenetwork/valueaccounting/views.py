@@ -4105,6 +4105,9 @@ def commit_to_task(request, commitment_id):
             if request.POST.get("start"):
                 return HttpResponseRedirect('/%s/%s/%s/'
                     % ('accounting/work-now', process.id, ct.id))
+            if request.POST.get("work-start"):
+                return HttpResponseRedirect('/%s/%s/%s/'
+                    % ('work/work-timer', process.id, ct.id))
         
         return HttpResponseRedirect(next)
         
@@ -4226,6 +4229,9 @@ def uncommit(request, commitment_id):
     if next == "start":
         return HttpResponseRedirect('/%s/'
             % ('accounting/start'))
+    elif next == "work-start":
+        return HttpResponseRedirect('/%s/'
+            % ('work/my-dashboard'))
     else:
         return HttpResponseRedirect('/%s/%s/'
             % ('accounting/process', process.id))
@@ -5772,7 +5778,12 @@ def commitment_finished(request, commitment_id):
     if not commitment.finished:
         commitment.finished = True
         commitment.changed_by = request.user
-        commitment.save()
+        commitment.save() 
+    next = request.POST.get("next")
+    if next:
+        if next == "work-start":
+            return HttpResponseRedirect('/%s/'
+                % ('work/my-dashboard'))
     return HttpResponseRedirect('/%s/'
             % ('accounting/start'))
 
@@ -6573,6 +6584,11 @@ def log_stage_change_event(request, commitment_id, resource_id):
         resource.quantity = quantity
         resource.save()
         process.set_started(event.event_date, request.user)
+        next = request.POST.get("next")
+        if next:
+            if next == "process":
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', process.id))
         
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
@@ -8148,6 +8164,11 @@ def change_process(request, process_id):
         if form.is_valid():
             data = form.cleaned_data
             form.save()
+            next = request.POST.get("next")
+            if next:
+                return HttpResponseRedirect('/%s/%s/'
+                    % ('work/process-logging', process.id))
+
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/process', process.id))
     '''

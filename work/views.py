@@ -19,15 +19,14 @@ from django.conf import settings
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
-from valuenetwork.valueaccounting.views import get_agent, get_help, get_site_name, resource_role_agent_formset
+from valuenetwork.valueaccounting.views import *
+#from valuenetwork.valueaccounting.views import get_agent, get_help, get_site_name, resource_role_agent_formset, uncommit, commitment_finished, commit_to_task
 
 if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
 else:
     notification = None
 
-    
-    
 
 def work_home(request):
 
@@ -388,3 +387,46 @@ def work_timer(
     return render_to_response("work/work_timer.html",
         template_params,
         context_instance=RequestContext(request))
+
+@login_required
+def work_process_finished(request, process_id):
+    #import pdb; pdb.set_trace()
+    process = get_object_or_404(Process, pk=process_id)
+    if not process.finished:
+        process.finished = True
+        process.save()
+    else:
+        if process.finished:
+            process.finished = False
+            process.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('work/process-logging', process_id))
+
+
+@login_required
+def work_change_commitment(request, commitment_id):
+    if request.method == "POST":
+        ct = get_object_or_404(Commitment, id=commitment_id)
+        process = ct.process
+        agent = get_agent(request)
+        prefix = ct.form_prefix()
+        #import pdb; pdb.set_trace()
+        if ct.event_type.relationship=="work":
+            form = WorkCommitmentForm(instance=ct, data=request.POST, prefix=prefix)
+        else:
+            form = ChangeCommitmentForm(instance=ct, data=request.POST, prefix=prefix)
+        next = request.POST.get("next")
+
+        if form.is_valid():
+            data = form.cleaned_data
+            rt = ct.resource_type
+            demand = ct.independent_demand
+            new_qty = data["quantity"]
+            old_ct = Commitment.objects.get(id=commitment_id)            
+            explode = handle_commitment_changes(old_ct, rt, new_qty, demand, demand)
+            commitment = form.save()
+            #flow todo: explode?
+            #explode wd apply to rt changes, which will not happen here
+            #handle_commitment_changes will propagate qty changes
+        return HttpResponseRedirect('/%s/%s/'
+            % ('work/process-logging', process.id))

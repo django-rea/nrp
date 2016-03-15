@@ -9,4 +9,6 @@ urlpatterns = patterns("",
     url(r'^my-history/$', 'work.views.my_history', name="my_history"),
     url(r'^register-skills/$', 'work.views.register_skills', name="register_skills"),
     url(r'^work-home/$', 'work.views.work_home', name="work_home"),
+    url(r'^save-timed-work-now/(?P<event_id>\d+)/$', 'work.views.save_timed_work_now', name="save_timed_work_now"),
+    
 )

@@ -341,7 +341,8 @@ def create_worktimer_context(
             prev = " ".join([str(prev_dur), unit])
     else:
         wb_form = WorkbookForm()
-    event.save()
+    #if event.quantity > 0:
+    event.save()    
     others_working = []
     other_work_reqs = []
     wrqs = process.work_requirements()
@@ -387,6 +388,27 @@ def work_timer(
     return render_to_response("work/work_timer.html",
         template_params,
         context_instance=RequestContext(request))
+
+@login_required
+def save_timed_work_now(request, event_id):
+    #import pdb; pdb.set_trace()
+    if request.method == "POST":
+        event = get_object_or_404(EconomicEvent, id=event_id)      
+        form = WorkbookForm(instance=event, data=request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            event = form.save(commit=False)
+            event.changed_by = request.user
+            process = event.process
+            event.save()
+            if not process.started:
+                process.started = event.event_date
+                process.changed_by=request.user
+                process.save()            
+            data = "ok"
+        else:
+            data = form.errors
+        return HttpResponse(data, mimetype="text/plain")
 
 @login_required
 def work_process_finished(request, process_id):

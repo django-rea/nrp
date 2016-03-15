@@ -631,7 +631,7 @@ hr {
                               {% if agent %}
 
                                 {% if work_now and item.unit_of_quantity.unit_type == "time" %}
-                                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" title="I'll start working on this now, I can time and document while working">{% trans "I'll start working now" %}</a>
+                                    <a href="{% url work_timer process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" title="I'll start working on this now, I can time and document while working">{% trans "I'll start working now" %}</a>
                                 {% endif %}
 
                                 <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="I want to log work I have done on this task" >
@@ -1378,6 +1378,7 @@ hr {
 
 		    <h4>{% trans "Process context" %}:</h4>
 		    <p>
+{% comment %}
 		        {% if process.process_pattern %}
                     {% trans "Pattern" %}:
 		            <b>{{ process.process_pattern }}</b>
@@ -1392,6 +1393,7 @@ hr {
 	            {% endif %}
 		        
 		        <br />
+{% endcomment %}
 		        {% trans "Context" %}: <b>{{ process.context_agent }}</b>
 
             {% if process.independent_demand %}

@@ -410,9 +410,11 @@ hr {
 				        <span class="event-label">{% trans "Created" %}: </span>
                         <span class="event" >
                             {% if event.resource %}
-                                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+                                {% comment %}<b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b>{% endcomment %}
+                                <b>{{ event.resource }}</b>
                             {% else %}
-                                <b><a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
+                                {% comment %}<b><a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b>{% endcomment %}
+                                <b>{{ event.resource_type }}</b>
                             {% endif %}
 				            {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				        {% if logger %}
@@ -1134,7 +1136,8 @@ hr {
 			            <div class="event-section" >
 				            <span class="event-label">{% trans "Consumed" %}:</span> 
 				            <span class="event" >
-                                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b>
+                                {% comment %}<b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b>{% endcomment %}
+                                <b>{{ event.resource.label }}</b>
                                 {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
                             </span>
 				            {% if logger %}
@@ -1249,7 +1252,8 @@ hr {
                     	{% for resource in item.resource_type.onhand %}
 					        <div class="onhand" >
 						        <b>{% trans "Onhand" %}:</b> <span class="resource" >
-						        <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
+						        {% comment %}<a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>{% endcomment %} 
+						        <b>{{ resource.label }}</b>
 						        {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
 						        {% if logger %}
 						            <a href="#useEventModal{{ resource.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your use of this resource" >
@@ -1333,9 +1337,11 @@ hr {
 				            <span class="event-label">{% trans "Used" %}:</span>
 				            <span class="event" > 
                                 {% if event.resource %}
-                                    <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+                                    {% comment %}<b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b>{% endcomment %}
+                                    <b>{{ event.resource }}</b>
                                 {% else %}
-                                    <b><a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
+                                    {% comment %}<b><a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b>{% endcomment %}
+                                    <b>{{ event.resource_type }}</b>
                                 {% endif %}
 				                {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
                             </span>

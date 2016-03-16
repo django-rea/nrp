@@ -89,13 +89,86 @@ def profile(request):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
     change_form = AgentCreateForm(instance=agent)
+    skills = EconomicResourceType.objects.filter(behavior="work")
+    et_work = EventType.objects.get(name="Time Contribution")
+    arts = agent.resource_types.filter(event_type=et_work)
+    agent_skills = []
+    for art in arts:
+        agent_skills.append(art.resource_type)
+    for skill in skills:
+        skill.checked = False
+        if skill in agent_skills:
+            skill.checked = True
           
     return render_to_response("work/profile.html", {
         "agent": agent,
         "photo_size": (128, 128),
         "change_form": change_form,
+        "skills": skills,
         "help": get_help("agent"),
     }, context_instance=RequestContext(request))
+
+@login_required
+def change_personal_info(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    change_form = AgentCreateForm(instance=agent, data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if change_form.is_valid():
+            agent = change_form.save()
+    return HttpResponseRedirect('/%s/'
+        % ('work/profile'))
+
+@login_required
+def upload_picture(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    
+    
+    
+    return HttpResponseRedirect('/%s/'
+        % ('work/profile'))
+
+@login_required
+def update_skills(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    if not user_agent:
+        return render_to_response('valueaccounting/no_permission.html')
+    #import pdb; pdb.set_trace()
+    et_work = EventType.objects.get(name="Time Contribution")
+    arts = agent.resource_types.filter(event_type=et_work)
+    old_skill_rts = []
+    for art in arts:
+        old_skill_rts.append(art.resource_type)
+    new_skills_list = request.POST.getlist('skill')
+    new_skill_rts = []
+    for rt_id in new_skills_list:
+        skill = EconomicResourceType.objects.get(id=int(rt_id))
+        new_skill_rts.append(skill)
+    for skill in old_skill_rts:
+        if skill not in new_skill_rts:
+            arts = AgentResourceType.objects.filter(agent=agent).filter(resource_type=skill)
+            if arts:
+                art = arts[0]
+                art.delete()
+    for skill in new_skill_rts:
+        if skill not in old_skill_rts:
+            art = AgentResourceType(
+                agent=agent,
+                resource_type=skill,
+                event_type=et_work,
+                created_by=request.user,
+            )
+            art.save()
+    
+    return HttpResponseRedirect('/%s/'
+        % ('work/profile'))
 
 @login_required    
 def process_logging(request, process_id):
@@ -354,6 +427,7 @@ def change_history_event(request, event_id):
         "page": page,
     }, context_instance=RequestContext(request)) 
 
+'''
 @login_required
 def register_skills(request):
     #import pdb; pdb.set_trace()
@@ -364,7 +438,7 @@ def register_skills(request):
         "agent": agent,
         "skills": skills,
     }, context_instance=RequestContext(request))
-
+'''
 
 def create_worktimer_context(
         request, 

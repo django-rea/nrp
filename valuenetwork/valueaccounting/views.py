@@ -343,12 +343,16 @@ def change_location(request, location_id, agent_id=None):
         #import pdb; pdb.set_trace()
         if location_form.is_valid():
             data = location_form.cleaned_data
-            agents = data["agents"]
+            agents_to_add = data["agents"]
+            agents_to_remove = data["remove_agents"]
             location = location_form.save()
-            for agt in agents:
+            for agt in agents_to_add:
                 if not agt.primary_location:
                     agt.primary_location = location
                     agt.save()
+            for agt in agents_to_remove:
+                agt.primary_location = None
+                agt.save()
             if agent:
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/agent', agent.id))
@@ -363,6 +367,15 @@ def change_location(request, location_id, agent_id=None):
         "longitude": longitude,
         "zoom": zoom,
     }, context_instance=RequestContext(request))
+    
+def add_agent_to_location(request, location_id, agent_id=None):
+    #import pdb; pdb.set_trace()
+    location = get_object_or_404(Location, id=location_id)
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    agent.primary_location = location
+    agent.save()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/agent', agent.id))
 
 @login_required
 def change_agent(request, agent_id):
@@ -417,6 +430,9 @@ def agent(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
+    user_is_agent = False
+    if agent == user_agent:
+        user_is_agent = True
     change_form = AgentCreateForm(instance=agent)
     user_form = None
     if agent.is_individual():
@@ -504,6 +520,7 @@ def agent(request, agent_id):
         "change_form": change_form,
         "user_form": user_form,
         "user_agent": user_agent,
+        "user_is_agent": user_is_agent,
         "has_associations": has_associations,
         "is_associated_with": is_associated_with,
         "headings": headings,

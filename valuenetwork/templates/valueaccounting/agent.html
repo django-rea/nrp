@@ -185,7 +185,7 @@
 		
 	            <table class="table table-bordered" >
 	                <tr>
-                        <th style="text-align: right;">{% trans "Identifier" %}</th>
+                        <th style="text-align: right;">{% trans "ID" %}</th>
                         <td>{{ agent.nick }}</td>
                     </tr>
                     {% if user_agent and agent.username %}
@@ -195,7 +195,7 @@
                         </tr>
                     {% endif %}
                     <tr>
-                        <th style="text-align: right;">{% trans "Name" %}</th>
+                        <th style="text-align: right;">{% trans "Full Name" %}</th>
                         <td>{{ agent.name }}</td>
                     </tr>
                     <tr>
@@ -227,20 +227,27 @@
                                 <td>{{ agent.email }}</td>
                             </tr>
                         {% endif %}
-                        {% if agent.address or agent.primary_location %}
-                            <tr>
-                                <th style="text-align: right; vertical-align: top; ">{% trans "Address" %}</th>
-                                <td>
+                        
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "Work Location" %}</th>
+                            <td>
+                                {% if user_agent %}
                                     {% if agent.primary_location %}
                                         {{ agent.primary_location.address }}</br>
                                         <a href="{% url change_location location_id=agent.primary_location.id agent_id=agent.id %}">{% trans "Change on Map" %} </a>
                                     {% else %}
-                                        {{ agent.address }}</br>
-                                        <a href="{% url create_location agent_id=agent.id %}">{% trans "Add to Map" %} </a>
+                                        {% if agent.address %}
+                                            {{ agent.address }}</br>
+                                            <a href="{% url create_location agent_id=agent.id %}">{% trans "Add to Map" %} </a>
+                                        {% else %}
+                                            <a href="{% url locations %}">{% trans "Select working location on map" %}</a>
+                                        {% endif %}
                                     {% endif %}
-                                </td>
-                            </tr>
-                        {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        
+                        
                     {% endif %}
                     {% if agent.photo %}
 	                	<tr>

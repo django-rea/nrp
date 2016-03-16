@@ -123,6 +123,7 @@
                     .on('popupopen', showResources)
                     .on('popupclose', hideResources);
                 marker.locationUrl = "{% url change_location location_id=loc.id %}";
+                marker.addAgentUrl = "{% url add_agent_to_location location_id=loc.id agent_id=agent.id %}";
                 marker.name = locName;
                 marker.agents = [];
                 {% for agnt in loc.agents %}
@@ -140,11 +141,14 @@
             var location_id = target.location_id
             var agents = target.agents;
             var resources = target.resources;
+            var addAgentUrl = target.addAgentUrl;
             
             var changeAnchor = '<a href="' + target.locationUrl + '" >Change this Location</a>';
+            var addAnchor = '&nbsp;&nbsp;&nbsp;<a href="' + target.addAgentUrl + '" >Add me, ' + '{{ agent.nick }}' +  ', to this Location</a>';
             
             $("#changeLocation").empty();
             $("#changeLocation").append(changeAnchor);
+            $("#changeLocation").append(addAnchor);
             $("#changeLocation").show();
             
             $("#agentList").empty();
@@ -156,8 +160,8 @@
                 $("#agentList").append("<ul>");
                 for (var i = 0; i < agents.length; i++) 
                 {
-                    var resourceItem = "<li>" + agents[i] + "</li>";
-                    $("#agentList").append(resourceItem);
+                    var agentItem = "<li>" + agents[i] + "</li>";
+                    $("#agentList").append(agentItem);
                 }
                 $("#agentList").append("</ul>");
                 $("#agents").show();

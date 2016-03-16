@@ -79,7 +79,11 @@ class AgentCreateForm(forms.ModelForm):
         help_text="Must be unique, and no more than 32 characters",
         widget=forms.TextInput(attrs={'class': 'required-field',}))   
     email = forms.EmailField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
-    address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    address = forms.CharField(
+        required=False, 
+        label="Work location",
+        help_text="Enter address for a new work location. Otherwise, select existing location on map.",
+        widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     description = forms.CharField(
         required=False, 
@@ -151,12 +155,25 @@ class ChangeLocationForm(forms.ModelForm):
         queryset=EconomicAgent.objects.filter(primary_location__isnull=True),
         label=_("Add Agents to this Location"),
         widget=forms.SelectMultiple(attrs={'class': 'chzn-select input-xxlarge'}))
+    remove_agents = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=EconomicAgent.objects.none(),
+        label=_("Remove Agents from this Location"),
+        widget=forms.SelectMultiple(attrs={'class': 'chzn-select input-xxlarge'}))
     latitude = forms.FloatField(required=False, widget=forms.HiddenInput)
     longitude = forms.FloatField(required=False, widget=forms.HiddenInput)
 
     class Meta:
         model = Location
         fields = ('address', 'name', 'description', 'latitude', 'longitude')
+        
+    def __init__(self, *args, **kwargs):
+        super(ChangeLocationForm, self).__init__(*args, **kwargs)
+        #import pdb; pdb.set_trace()
+        if self.instance:
+            instance = self.instance
+            agents = instance.agents_at_location.all()
+            self.fields["remove_agents"].queryset = agents
         
 
 class SelectResourceForm(forms.Form):

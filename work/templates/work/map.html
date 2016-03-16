@@ -23,12 +23,12 @@
         
         {% if agent %}
             {% if agent.address %}
-                {% trans "Change location?" %}
+                {% trans "Change work location?" %}
                 <input type="test" id="address" name="address" value="{{ agent.address }}" />
                 
             {% else %}
-                {% trans "Where are you?" %}
-                <input type="test" id="address" name="address" value="" />
+                {% trans "Where are you working? " %} <span id="workLoc">Select a marker on the map, or add a new one.</span>
+                <input type="test" id="address" name="address" value="new location" />
                 
             {% endif %}
             <input type="hidden" id="agentLatitude" name="agentLatitude" value="" />
@@ -120,7 +120,10 @@
                     map.setView([data.latlng[0], data.latlng[1]], {{ zoom }});
                     var content = "<h2>" + $("#address").val() + "</h2>";
                     var marker = L.marker(data.latlng)
-                        .addTo(map).bindPopup(content);
+                        .addTo(map).bindPopup(content)
+                        .on('popupopen', showAddUrl)
+                        .on('popupclose', hideAddUrl);
+                    marker.addAgentUrl = "{% url add_agent_to_location location_id=loc.id agent_id=agent.id %}";
                     $("#agentLatitude").val(data.latlng[0]);
                     $("#agentLongitude").val(data.latlng[1]);
                     $("#mapError").css("color","green"); 
@@ -144,8 +147,8 @@
 
                 var marker = L.marker(latlong, {title: locName })
                     .addTo(map).bindPopup(content)
-                    .on('popupopen', showResources)
-                    .on('popupclose', hideResources);
+                    .on('popupopen', showAddUrl)
+                    .on('popupclose', hideAddUrl);
                 marker.locationUrl = "{% url change_location location_id=loc.id %}";
                 marker.name = locName;
                 marker.agents = [];

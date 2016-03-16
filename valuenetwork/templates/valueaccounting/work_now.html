@@ -277,7 +277,10 @@
             if (description != newDescription)
 			{
                 description = newDescription;
-				saveContribution();
+                if(duration)
+                {
+                    saveContribution();
+                }
 			}
 		});
 

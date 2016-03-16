@@ -11,4 +11,5 @@ urlpatterns = patterns("",
     url(r'^work-home/$', 'work.views.work_home', name="work_home"),
     url(r'^save-timed-work-now/(?P<event_id>\d+)/$', 'work.views.save_timed_work_now', name="save_timed_work_now"),
     url(r'^map/$', 'work.views.map', name="map"),
+    url(r'^profile/$', 'work.views.profile', name="profile"),
 )

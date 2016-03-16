@@ -84,6 +84,19 @@ def map(request):
         #"help": get_help("map"),
     }, context_instance=RequestContext(request))
 
+@login_required
+def profile(request):
+    #import pdb; pdb.set_trace()
+    agent = get_agent(request)
+    change_form = AgentCreateForm(instance=agent)
+          
+    return render_to_response("work/profile.html", {
+        "agent": agent,
+        "photo_size": (128, 128),
+        "change_form": change_form,
+        "help": get_help("agent"),
+    }, context_instance=RequestContext(request))
+
 @login_required    
 def process_logging(request, process_id):
     process = get_object_or_404(Process, id=process_id)

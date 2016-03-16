@@ -65,6 +65,14 @@
 .down {
     margin-top: 10px;
 }
+h3 {
+    color: firebrick;
+    margin-bottom: 5px;
+}
+ul {
+    list-style-type: none;
+}
+
 </style>
 
 {% endblock %}
@@ -76,40 +84,38 @@
         {% include "_messages.html" %}
 
 		<legend>
-			{{ agent.agent_type }}: {{ agent.name }}
-
-			{% if agent and change_form %}
-		        <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
-	        {% endif %}
+			Profile for {{ agent.name }}
 
 		</legend>
-
-        {% if agent and change_form %}
-		    <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
-			    <div class="modal-header">
-				    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				    <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
-			    </div>
-			    <div class="modal-body">
-				    <form enctype="multipart/form-data" action="{% url change_agent agent_id=agent.id %}" method="POST" >
-					    {% csrf_token %}
-					    {{ change_form|as_bootstrap }}
-
-				        <div class="modal-footer">
-					      <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-					      <button class="btn btn-primary">{% trans "Save changes" %}</button>
-				        </div>
-				    </form>
-		      </div>
-
-		    </div>
-	    {% endif %}
-	    
-	    
 
 		<div class="row-fluid">
 		
 		    <div class="span4">
+                <h3>Personal Information
+                    {% if agent and change_form %}
+                        <a href="#agentChangeForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Change" %}</a>
+                    {% endif %}
+                </h3>
+                
+                {% if agent and change_form %}
+                    <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form enctype="multipart/form-data" action="{% url change_personal_info agent_id=agent.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ change_form|as_bootstrap }}
+
+                                <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <button class="btn btn-primary">{% trans "Save changes" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
 		
 	            <table class="table table-bordered" >
 	                <tr>
@@ -142,12 +148,6 @@
 	                        <td><a href="{{ agent.url }}">Open</a></td>
                         </tr>
                     {% endif %}
-	                {% if agent.description %}
-	                    <tr>
-	                        <th style="text-align: right;">{% trans "Description" %}</th>
-	                        <td>{{ agent.description|urlize|linebreaks }}</td>
-                        </tr>
-                    {% endif %}
                     {% if agent %}
                         {% if agent.email %}
                             <tr>
@@ -170,17 +170,14 @@
                             </tr>
                         {% endif %}
                     {% endif %}
-                    {% if agent.photo %}
-	                	<tr>
-	                        <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
-	                        <td><img src="{% thumbnail agent.photo photo_size %}" /></td>
+	                {% if agent.description %}
+	                    <tr>
+	                        <th style="text-align: right;">{% trans "More about me" %}</th>
+	                        <td>{{ agent.description|urlize|linebreaks }}</td>
                         </tr>
-                	{% elif agent.photo_url %}
-                        <tr>
-	                        <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
-	                        <td><img src="{{ agent.photo_url }}" width="128" height="96" /></td>
-                        </tr>
-	                {% endif %}
+                    {% endif %}
+
+{% comment %}
                     {% if agent.reputation %}
                         <tr>
 	                        <th style="text-align: right; vertical-align: top; ">{% trans "Reputation" %}</th>
@@ -195,11 +192,64 @@
                         <th style="text-align: right;">{% trans "Record created by" %}</th>
                         <td>{{ agent.created_by }}</td>
                     </tr>
+{% endcomment %}
 
 	            </table>
 	        
 	        </div>
 
+            <div class="span4">
+                <form class="register" name="register" enctype="multipart/form-data" action="{% url update_skills agent_id=agent.id %}" method="POST" >
+                    <h3>Registered Skills
+                        {% if agent %}
+                            <button class="btn btn-primary indent">{% trans "Save" %}</button>
+                        {% endif %}
+                    </h3>
+                    <p>(Probably want to add categories here also, let's discuss.)</p>
+                    {% csrf_token %}
+                    <ul>
+                    {% for skill in skills %}
+                        <li><input type="checkbox" name="skill" value="{{ skill.id }}" {% if skill.checked %} checked="checked" {% endif %} /> {{ skill }}</li>
+                    {% endfor %}
+                    </ul>
+                </form>
+            </div>
+            
+            <div class="span4">
+                <h3>Picture
+                    {% if agent %}
+                        <a href="#uploadPicture" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Upload" %}</a>
+                    {% endif %}
+                </h3>
+                
+                {% if agent %}
+                    <div class="modal hide fade" id="uploadPicture" tabindex="-1" role="dialog" aria-labelledby="upload-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="upload-label">{% trans "Upload Picture for " %} {{ agent.name }}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form enctype="multipart/form-data" action="{% url upload_picture agent_id=agent.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ change_form|as_bootstrap }}
+
+                                <div class="modal-footer">
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                <button class="btn btn-primary">{% trans "Upload" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if agent.photo %}
+                    <img src="{% thumbnail agent.photo photo_size %}" />
+                {% elif agent.photo_url %}
+                    <img src="{{ agent.photo_url }}" width="128" height="96" />
+                {% endif %}
+                
+            
+            </div>            
 
         </div>
 

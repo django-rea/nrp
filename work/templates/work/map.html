@@ -42,7 +42,7 @@
 
     <div class="row-fluid">
         <div class="span12">
-            <div id="map" style="width: 98%; height: 600px"></div>
+            <div id="mapDiv" style="width: 98%; height: 600px"></div>
         </div>
         
         
@@ -77,7 +77,7 @@
         
         L.mapbox.accessToken = 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg';
 
-        var map = L.map('map')
+        var map = L.map('mapDiv')
             .setView([{{ latitude }},{{ longitude }}], {{ zoom }})
             //.addControl(L.mapbox.geocoderControl('mapbox.places'))
             ;

@@ -307,6 +307,39 @@ def my_history(request):
         "event_ids": event_ids,
     }, context_instance=RequestContext(request))
 
+@login_required
+def change_history_event(request, event_id):
+    event = get_object_or_404(EconomicEvent, pk=event_id)
+    page = request.GET.get("page")
+    #import pdb; pdb.set_trace()
+    event_form = event.change_form(data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        page = request.POST.get("page")
+        if event_form.is_valid():
+            event = event_form.save(commit=False)
+            event.changed_by = request.user
+            event.save()
+        agent = event.from_agent
+        #next = request.POST.get("next")
+        if page:
+            #if next:
+            #    if next == "work-contributions":
+            #        return HttpResponseRedirect('/%s/'
+            #            % ('work/my-history', page))
+            return HttpResponseRedirect('/%s/'
+                % ('work/my-history', page))
+        else:
+            #if next:
+            #    if next == "work-contributions":
+            #        return HttpResponseRedirect('/%s/'
+            #            % ('work/my-history'))
+            return HttpResponseRedirect('/%s/'
+                % ('work/my-history'))
+    return render_to_response("work/change_history_event.html", {
+        "event_form": event_form,
+        "page": page,
+    }, context_instance=RequestContext(request)) 
 
 @login_required
 def register_skills(request):

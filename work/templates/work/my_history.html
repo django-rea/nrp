@@ -165,9 +165,10 @@
                                 <form
                                     class="change-form" 
                                     id="changeForm{{ event.id }}" 
-                                    action="{% url change_event event_id=event.id %}" 
+                                    action="{% url change_history_event event_id=event.id %}" 
                                     method="GET" >
                                     <input type='hidden' class="page" id='changePage{{ event.id }}' name='page' value='' />
+                                    <input type='hidden' id='next' name='next' value='work-contributions' />
                                     <button class="btn btn-info btn-mini" title="Change" ><i class="icon-edit icon-white"></button>
                                 </form>
                                 <form
@@ -177,7 +178,7 @@
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type='hidden' class="page" id='deletePage{{ event.id }}' name='page' value='' />
-                                    <input type='hidden' id='next' name='next' value='contributions' />
+                                    <input type='hidden' id='next' name='next' value='work-contributions' />
                                     <button class="btn btn-warning btn-mini" title="Delete" ><i class="icon-remove icon-white"></button>
                                 </form>
                             </td>

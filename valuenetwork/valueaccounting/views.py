@@ -5764,6 +5764,15 @@ def delete_event(request, event_id):
         else:
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/contributionhistory', agent.id))
+    elif next == "work-contributions":
+        page = request.POST.get("page")
+        
+        if page:
+            return HttpResponseRedirect('/%s/?page=%s'
+                % ('work/my-history', page))
+        else:
+            return HttpResponseRedirect('/%s/'
+                % ('work/my-history'))
     elif next == "work":
         return HttpResponseRedirect('/%s/%s/'
             % ('work/process-logging', process.id))

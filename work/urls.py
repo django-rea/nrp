@@ -16,4 +16,6 @@ urlpatterns = patterns("",
     url(r'^change-personal-info/(?P<agent_id>\d+)/$', 'work.views.change_personal_info', name="change_personal_info"),
     url(r'^upload-picture/(?P<agent_id>\d+)/$', 'work.views.upload_picture', name="upload_picture"),
     url(r'^update-skills/(?P<agent_id>\d+)/$', 'work.views.update_skills', name="update_skills"),
+    url(r"^add-worker-to-location/(?P<location_id>\d+)/(?P<agent_id>\d+)/$", 'work.views.add_worker_to_location', name="add_worker_to_location"),
+    url(r"^add-location-to-worker/(?P<agent_id>\d+)/$", 'work.views.add_location_to_worker', name="add_location_to_worker"),
 )

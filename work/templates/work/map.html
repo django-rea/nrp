@@ -10,6 +10,10 @@
 <link href='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
 <style>
 
+.currentLoc {
+    color: firebrick;
+}
+
 </style>
 {% endblock %}
 
@@ -22,17 +26,31 @@
     <legend>
         
         {% if agent %}
-            {% if agent.address %}
-                {% trans "Change work location?" %}
-                <input type="test" id="address" name="address" value="{{ agent.address }}" />
-                
+            {% if agent.primary_location %}
+                {% trans "Current work location" %}: <span class="currentLoc">{{ agent.primary_location }}.</span> &nbsp;&nbsp;
+                <span id="locPrompt">{% trans "To change, select a marker on the map, or add a new one." %}</span>
             {% else %}
-                {% trans "Where are you working? " %} <span id="workLoc">Select a marker on the map, or add a new one.</span>
-                <input type="test" id="address" name="address" value="new location" />
-                
+                {% trans "Where are you working? " %} 
+                <span id="locPrompt">{% trans "Select a marker on the map, or add a new one." %}</span>
             {% endif %}
-            <input type="hidden" id="agentLatitude" name="agentLatitude" value="" />
-            <input type="hidden" id="agentLongitude" name="agentLongitude" value="" />
+            
+            <form id="locationForm" method="POST" action="{% url add_location_to_worker agent_id=agent.id %}">
+                 {% csrf_token %}
+                
+                <span id="newLoc">
+                    <input type="text" id="address" name="address" value="new location" />
+                    </span>
+                <span id="addToLoc"></span>
+            
+                <input type="hidden" id="agentLatitude" name="agentLatitude" value="" />
+                <input type="hidden" id="agentLongitude" name="agentLongitude" value="" />
+                <span id="buttons">
+                    <input type="submit" name="save" value="{% trans 'Save new work location' %}" class="btn btn-primary" />
+                    <button class="btn btn-warning" id="cancel">{% trans "Cancel" %}</button>
+                </span>
+            
+            </form>
+            
             <span id="mapError" style="font-size: 70%;" ></span>
             
         {% else %}
@@ -66,6 +84,8 @@
     <script type="text/javascript">
 
 	$(document).ready(function(){
+	
+        $("#buttons").hide();
 	
         $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
@@ -121,13 +141,16 @@
                     var content = "<h2>" + $("#address").val() + "</h2>";
                     var marker = L.marker(data.latlng)
                         .addTo(map).bindPopup(content)
-                        .on('popupopen', showAddUrl)
-                        .on('popupclose', hideAddUrl);
-                    marker.addAgentUrl = "{% url add_agent_to_location location_id=loc.id agent_id=agent.id %}";
+                        .on('popupopen', showUrls)
+                        .on('popupclose', hideUrls);
+                    
                     $("#agentLatitude").val(data.latlng[0]);
                     $("#agentLongitude").val(data.latlng[1]);
                     $("#mapError").css("color","green"); 
                     $("#mapError").text("");
+                    
+                    $("#locPrompt").hide();
+                    $("#buttons").show();
                 }
 
             }
@@ -147,9 +170,9 @@
 
                 var marker = L.marker(latlong, {title: locName })
                     .addTo(map).bindPopup(content)
-                    .on('popupopen', showAddUrl)
-                    .on('popupclose', hideAddUrl);
-                marker.locationUrl = "{% url change_location location_id=loc.id %}";
+                    .on('popupopen', showUrls)
+                    .on('popupclose', hideUrls);
+                marker.addAgentUrl = "{% url add_worker_to_location location_id=loc.id agent_id=agent.id %}";
                 marker.name = locName;
                 marker.agents = [];
                 {% for agnt in loc.agents %}
@@ -162,54 +185,29 @@
             {% endif %}
         {% endfor %}
         
-        function showResources(event) {
+        function showUrls(event) {
             var target = event.target;
             var location_id = target.location_id
-            var agents = target.agents;
-            var resources = target.resources;
             
-            var changeAnchor = '<a href="' + target.locationUrl + '" >Change this Location</a>';
+            var addAnchor = '&nbsp;&nbsp;&nbsp;<a href="' + target.addAgentUrl + '" >Add me, ' + '{{ agent.nick }}' +  ', to this Location</a>';
             
-            $("#changeLocation").empty();
-            $("#changeLocation").append(changeAnchor);
-            $("#changeLocation").show();
-            
-            $("#agentList").empty();
-            $("#resourceList").empty();
-            
-            if (agents.length)
-            {  
-                $("#agentLocation").text(target.name);
-                $("#agentList").append("<ul>");
-                for (var i = 0; i < agents.length; i++) 
-                {
-                    var resourceItem = "<li>" + agents[i] + "</li>";
-                    $("#agentList").append(resourceItem);
-                }
-                $("#agentList").append("</ul>");
-                $("#agents").show();
-            }
-            
-            if (resources.length)
-            {  
-                $("#resourceLocation").text(target.name);
-                $("#resourceList").append("<ul>");
-                for (var i = 0; i < resources.length; i++) 
-                {
-                    var resourceItem = "<li>" + resources[i] + "</li>";
-                    $("#resourceList").append(resourceItem);
-                }
-                $("#resourceList").append("</ul>");
-                $("#resources").show();
-            }
+            $("#locPrompt").hide();
+            $("#newLoc").hide();
+            $("#buttons").hide();
+            $("#addToLoc").empty();
+            $("#addToLoc").append(addAnchor);
+            $("#addToLoc").show();
+
         }
         
-        function hideResources(event) {
-            $("#changeLocation").hide();
-            $("#agents").hide();
-            $("#resources").hide();
+        $("#cancel").click(hideUrls(event));
+        
+        function hideUrls(event) {
+            $("#addToLoc").hide();
+            $("#buttons").hide();
+            $("#locPrompt").show();
+            $("#newLoc").show();
         }
-
         
 	}); // end document.ready
 

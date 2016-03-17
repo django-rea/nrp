@@ -368,6 +368,7 @@ def change_location(request, location_id, agent_id=None):
         "zoom": zoom,
     }, context_instance=RequestContext(request))
     
+@login_required
 def add_agent_to_location(request, location_id, agent_id=None):
     #import pdb; pdb.set_trace()
     location = get_object_or_404(Location, id=location_id)

@@ -129,14 +129,18 @@ label {
                                 <td>{{ agent.email }}</td>
                             </tr>
                         {% endif %}
-                        {% if agent.primary_location %}
-                            <tr>
-                                <th style="text-align: right; vertical-align: top; ">{% trans "Work Location" %}</th>
-                                <td>
+                        
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "Work Location" %}</th>
+                            <td>
+                                {% if agent.primary_location %}
                                     {{ agent.primary_location.address }}
-                                </td>
-                            </tr>
-                        {% endif %}
+                                {% else %}
+                                    <a href="{% url map %}">{% trans "Add on map" %}</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        
                     {% endif %}
 	                {% if agent.description %}
 	                    <tr>

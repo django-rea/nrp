@@ -10,22 +10,14 @@
 
 <style>
 
-.labnote {
-    background-color: beige;
-    padding: 2px 6px 3px 6px;
-    border: 1px solid gainsboro;
-}
 .btn-info {
     margin-left: 10px;
-}
-.hdg {
-    color: firebrick;
 }
 .btn {
     margin-top: 1px;
     margin-bottom: 1px;
 }
-#id_notes, #id_access_rules {
+#id_notes {
   width: 500px;
   height: 100px;    
 }
@@ -41,27 +33,6 @@
 .indent {
     margin-left: .9em;
     }
-#chart_div0 {
-    margin-top: 25px;
-}
-.chart-heading{
-    text-align: center;
-}
-#chart_div1 {
-    margin-bottom: 25px;
-}
-#chart_div2 {
-    margin-bottom: 25px;
-}
-#chart_div3 {
-    margin-bottom: 25px;
-    height: {{ roles_height }}px;
-}
-#balance {
-    font-weight: bold;
-    font-size: 1.2em;
-    margin-right: 1em;
-}
 .down {
     margin-top: 10px;
 }
@@ -71,6 +42,9 @@ h3 {
 }
 ul {
     list-style-type: none;
+}
+label {
+    display: inline;
 }
 
 </style>
@@ -155,17 +129,11 @@ ul {
                                 <td>{{ agent.email }}</td>
                             </tr>
                         {% endif %}
-                        {% if agent.address or agent.primary_location %}
+                        {% if agent.primary_location %}
                             <tr>
-                                <th style="text-align: right; vertical-align: top; ">{% trans "Address" %}</th>
+                                <th style="text-align: right; vertical-align: top; ">{% trans "Work Location" %}</th>
                                 <td>
-                                    {% if agent.primary_location %}
-                                        {{ agent.primary_location.address }}</br>
-                                        <a href="{% url change_location location_id=agent.primary_location.id agent_id=agent.id %}">{% trans "Change on Map" %} </a>
-                                    {% else %}
-                                        {{ agent.address }}</br>
-                                        <a href="{% url create_location agent_id=agent.id %}">{% trans "Add to Map" %} </a>
-                                    {% endif %}
+                                    {{ agent.primary_location.address }}
                                 </td>
                             </tr>
                         {% endif %}
@@ -231,7 +199,7 @@ ul {
                         <div class="modal-body">
                             <form enctype="multipart/form-data" action="{% url upload_picture agent_id=agent.id %}" method="POST" >
                                 {% csrf_token %}
-                                {{ change_form|as_bootstrap }}
+                                {{ upload_form|as_bootstrap }}
 
                                 <div class="modal-footer">
                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -248,7 +216,6 @@ ul {
                     <img src="{{ agent.photo_url }}" width="128" height="96" />
                 {% endif %}
                 
-            
             </div>            
 
         </div>

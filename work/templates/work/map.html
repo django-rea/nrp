@@ -164,9 +164,20 @@
             {% if loc.latitude and loc.longitude %}
                 var locName = "{{ loc.name|safe }}";
                 var locAddress = "{{ loc.address }}";
+                var agents = [];
+                var agentString = ""
+                {% for agnt in loc.agents %}
+                    agents.push("{{ agnt.name }}");
+                    agentString += "{{ agnt.nick }}" + ", ";
+                {% endfor %}
+                var end = agentString.lastIndexOf(",");
+                agentString = agentString.substring(0, end);
                 var latlong = [ {{ loc.latitude }}, {{ loc.longitude }}];
                 
                 var content = "<h2>" + locName+ "</h2><p>" + locAddress + "</p>";
+                if (agentString){
+                    content += "Working here: " + agentString;
+                }
 
                 var marker = L.marker(latlong, {title: locName })
                     .addTo(map).bindPopup(content)
@@ -174,10 +185,7 @@
                     .on('popupclose', hideUrls);
                 marker.addAgentUrl = "{% url add_worker_to_location location_id=loc.id agent_id=agent.id %}";
                 marker.name = locName;
-                marker.agents = [];
-                {% for agnt in loc.agents %}
-                    marker.agents.push("{{ agnt.name }}");
-                {% endfor %}
+                marker.agents = agents;
                 marker.resources = [];
                 {% for res in loc.resources %}
                     marker.resources.push("{{ res }}");

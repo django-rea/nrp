@@ -19,6 +19,7 @@ from django.conf import settings
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
+from work.forms import *
 from valuenetwork.valueaccounting.views import *
 #from valuenetwork.valueaccounting.views import get_agent, get_help, get_site_name, resource_role_agent_formset, uncommit, commitment_finished, commit_to_task
 
@@ -99,11 +100,13 @@ def profile(request):
         skill.checked = False
         if skill in agent_skills:
             skill.checked = True
+    upload_form = UploadAgentForm(instance=agent)
           
     return render_to_response("work/profile.html", {
         "agent": agent,
         "photo_size": (128, 128),
         "change_form": change_form,
+        "upload_form": upload_form,
         "skills": skills,
         "help": get_help("agent"),
     }, context_instance=RequestContext(request))
@@ -128,8 +131,12 @@ def upload_picture(request, agent_id):
     user_agent = get_agent(request)
     if not user_agent:
         return render_to_response('valueaccounting/no_permission.html')
-    
-    
+    form = UploadAgentForm(instance=agent, data=request.POST, files=request.FILES)
+    if form.is_valid():
+        data = form.cleaned_data
+        agt = form.save(commit=False)                    
+        agt.changed_by=request.user
+        agt.save()
     
     return HttpResponseRedirect('/%s/'
         % ('work/profile'))

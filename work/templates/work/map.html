@@ -200,7 +200,10 @@
 
         }
         
-        $("#cancel").click(hideUrls(event));
+        $("#cancel").click(function(event) {
+            event.preventDefault();
+            location.reload();
+        });
         
         function hideUrls(event) {
             $("#addToLoc").hide();

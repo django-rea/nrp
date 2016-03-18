@@ -7644,15 +7644,16 @@ class Transfer(models.Model):
         return self.transfer_type.is_reciprocal  
         
     def give_event(self):
+        #import pdb; pdb.set_trace()
         try:
             return self.events.get(event_type__name="Give")
-        except EventType.DoesNotExist:
+        except EconomicEvent.DoesNotExist:
             return None
             
     def receive_event(self):
         try:
             return self.events.get(event_type__name="Receive")
-        except EventType.DoesNotExist:
+        except EconomicEvent.DoesNotExist:
             return None
     
     def quantity(self):
@@ -9881,9 +9882,9 @@ class EconomicEvent(models.Model):
         cet = EventType.objects.get(name="Resource Consumption")
         if self.event_type == ret:
             if self.transfer:
-                give = self.transfer.give_event()
-                if give:
-                    prevs.append(give)
+                give_evt = self.transfer.give_event()
+                if give_evt:
+                    prevs.append(give_evt)
                 return prevs
         resource = self.resource
         if resource:

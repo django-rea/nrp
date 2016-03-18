@@ -3981,11 +3981,12 @@ class EconomicResource(models.Model):
                 visited.add(e)
                 candidates = e.previous_events()
                 prevs = set()
-                for c in candidates:
-                    if c not in visited:
-                        visited.add(c)
-                    prevs.add(c)
+                for cand in candidates:
+                    #if cand not in visited:
+                    #    visited.add(cand)
+                    prevs.add(cand)
                 data[e] = prevs
+        #import pdb; pdb.set_trace()
         return toposort_flatten(data)
 
     def test_rollup(self, value_equation=None):
@@ -4519,18 +4520,18 @@ class EconomicResource(models.Model):
                                 
     def compute_income_shares_for_use(self, value_equation, use_event, use_value, resource_value, events, visited):
         #Resource method
+        #import pdb; pdb.set_trace()
         contributions = self.resource_contribution_events()
         for evt in contributions:
+            #todo exchange redesign fallout
+            #import pdb; pdb.set_trace()
             br = evt.bucket_rule(value_equation)
             value = evt.value
             if br:
                 value = br.compute_claim_value(evt)
             if value:
                 vpu = value / evt.quantity
-                #todo fc: this is wrong
-                # must depend on use_value
-                # https://github.com/valnet/valuenetwork/issues/47
-                evt.share = quantity * vpu
+                evt.share = min(vpu, use_value)
                 events.append(evt)
         buys = self.purchase_events()
         for evt in buys:
@@ -4742,8 +4743,9 @@ class EconomicResource(models.Model):
         return self.events.filter(event_type__relationship="use")
         
     def resource_contribution_events(self):
-        ret_et = EventType.objects.get(relationship="resource")
-        return self.events.filter(event_type=ret_et)
+        #todo exchange redesign fallout
+        ret_et = EventType.objects.get(name="Receive")
+        return self.events.filter(event_type=ret_et, is_contribution=True)
         
     def cash_events(self): #includes cash contributions, donations and loans
         return self.events.filter(
@@ -4768,7 +4770,7 @@ class EconomicResource(models.Model):
         
     def transfer_events(self):
         #todo exchange redesign fallout
-        tx_et = EventType.objects.get(name="Transfer")
+        tx_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=tx_et)
         
     def transfer_events_for_exchange_stage(self):
@@ -4870,6 +4872,7 @@ class EconomicResource(models.Model):
                 
     def incoming_value_flows_dfs(self, flows, visited, depth):
         #Resource method
+        #import pdb; pdb.set_trace()
         if self not in visited:
             visited.add(self)
             resources = []
@@ -4877,7 +4880,8 @@ class EconomicResource(models.Model):
             events.reverse()
             pet = EventType.objects.get(name="Resource Production")
             #todo exchange redesign fallout
-            xet = EventType.objects.get(name="Transfer")
+            #xet = EventType.objects.get(name="Transfer")
+            #xfer events no longer exist
             #rcpt = EventType.objects.get(name="Receipt")
             rcpt = EventType.objects.get(name="Receive")
             
@@ -4887,17 +4891,18 @@ class EconomicResource(models.Model):
                     depth += 1
                     event.depth = depth
                     flows.append(event)
-                    if event.event_type==xet or event.event_type==rcpt:
-                        exchange = event.exchange
-                        if exchange:
-                            if exchange not in visited:
-                                visited.add(exchange)
-                                exchange.depth = depth + 1
-                                flows.append(exchange)
-                                #todo exchange redesign fallout
-                                for pmt in event.exchange.reciprocal_transfer_events():
-                                    pmt.depth = depth + 2
-                                    flows.append(pmt)
+                    if event.event_type==rcpt:
+                        if event.transfer:
+                            exchange = event.transfer.exchange
+                            if exchange:
+                                if exchange not in visited:
+                                    visited.add(exchange)
+                                    exchange.depth = depth + 1
+                                    flows.append(exchange)
+                                    #todo exchange redesign fallout
+                                    for pmt in exchange.reciprocal_transfer_events():
+                                        pmt.depth = depth + 2
+                                        flows.append(pmt)
                         event.incoming_value_flows_dfs(flows, visited, depth)
                     elif event.event_type==pet:
                         process = event.process
@@ -5390,6 +5395,7 @@ class ProcessTypeResourceType(models.Model):
             if resource_type == inheritance.parent:
                 resource_type = inheritance.substitute(resource_type)
         unit = self.resource_type.directional_unit(self.event_type.relationship)
+        #import pdb; pdb.set_trace()
         commitment = Commitment(
             process=process,
             stage=self.stage,
@@ -5408,6 +5414,8 @@ class ProcessTypeResourceType(models.Model):
         return commitment
         
     def create_commitment(self, due_date, user):
+        unit = self.resource_type.directional_unit(self.event_type.relationship)
+        #import pdb; pdb.set_trace()
         commitment = Commitment(
             stage=self.stage,
             state=self.state,
@@ -5416,7 +5424,8 @@ class ProcessTypeResourceType(models.Model):
             event_type=self.event_type,
             resource_type=self.resource_type,
             quantity=self.quantity,
-            unit_of_quantity=self.resource_type.unit,
+            #todo transferBreakout
+            unit_of_quantity=unit,
             due_date=due_date,
             #from_agent=from_agent,
             #to_agent=to_agent,
@@ -6217,6 +6226,7 @@ class Process(models.Model):
                     if candidate:
                         resource_type = candidate
             #Todo: apply selected_context_agent here? Dnly if inheritance?
+            #import pdb; pdb.set_trace()
             commitment = self.add_commitment(
                 resource_type=resource_type,
                 demand=demand,
@@ -6285,6 +6295,7 @@ class Process(models.Model):
                             qty = qty_to_explode
                         #todo: must consider ratio of PT output qty to PT input qty
                         #Todo: apply selected_context_agent here? Dnly if inheritance?
+                        #import pdb; pdb.set_trace()
                         next_commitment = next_process.add_commitment(
                             resource_type=resource_type,
                             stage=pptr.stage,
@@ -6293,7 +6304,7 @@ class Process(models.Model):
                             order_item=order_item,
                             quantity=qty,
                             event_type=pptr.event_type,
-                            unit=resource_type.unit,
+                            unit=resource_type.directional_unit(pptr.event_type.relationship),
                             description=pptr.description or "",
                             user=user,
                         )
@@ -6502,6 +6513,9 @@ class Process(models.Model):
                                 new_visited = set()
                                 path = []
                                 depth = 0
+                                #import pdb; pdb.set_trace()
+                                #todo exchange redesign fallout
+                                #resource_value was 0
                                 resource_value = ip.resource.roll_up_value(path, depth, new_visited, value_equation)
                                 ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
@@ -6988,6 +7002,7 @@ class Exchange(models.Model):
     
     #todo:not tested
     def transfer_give_events(self):
+        #not reciprocal
         events = []
         et_give = EventType.objects.get(name="Give")
         for transfer in self.transfers.all():
@@ -6999,6 +7014,7 @@ class Exchange(models.Model):
      
     #todo:not tested
     def transfer_receive_events(self):
+        #not reciprocal
         events = []
         et_receive = EventType.objects.get(name="Receive")
         for transfer in self.transfers.all():
@@ -7020,7 +7036,7 @@ class Exchange(models.Model):
         return events
      
     #todo:not tested
-    def reciprocao_transfer_receive_events(self):
+    def reciprocal_transfer_receive_events(self):
         events = []
         et_receive = EventType.objects.get(name="Receive")
         for transfer in self.transfers.all():
@@ -7063,6 +7079,13 @@ class Exchange(models.Model):
     def flow_description(self):
         return self.__unicode__()
         
+    def expense_events(self):
+        #todo exchange redesign fallout
+        if self.use_case.name=="Incoming Exchange":
+            return self.transfer_receive_events()
+        else:
+            return []
+        
     def roll_up_value(self, trigger_event, path, depth, visited, value_equation=None):
         """ Rolling up value from an exchange for a resource.
         
@@ -7082,17 +7105,19 @@ class Exchange(models.Model):
             depth += 1
             path.append(self)
             values = Decimal("0.0")
-            
-            receipts = self.receipt_events()
+            #todo exchange redesign fallout
+            #just guessing at receipts and payments
+            # to eliminate errors
+            receipts = self.transfer_receive_events()
             #todo dhen_bug: need to deal with transfers
             #and then might be a flow between exchanges
             trigger_fraction = 1
-            if receipts.count() > 1:
+            if len(receipts) > 1:
                 rsum = sum(r.value for r in receipts)
                 trigger_fraction = trigger_event.value / rsum
-            payments = self.payment_events().filter(to_agent=trigger_event.from_agent)
+            payments = [evt for evt in self.reciprocal_transfer_receive_events() if evt.to_agent==trigger_event.from_agent]
             #share =  quantity / trigger_event.quantity
-            if payments.count() == 1:
+            if len(payments) == 1:
                 evt = payments[0]
                 #import pdb; pdb.set_trace()
                 value = evt.quantity
@@ -7110,7 +7135,7 @@ class Exchange(models.Model):
                     for c in contributions:
                         c.depth = depth
                         path.append(c)
-            elif payments.count() > 1:
+            elif len(payments) > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
                     fraction = evt.quantity / total
@@ -7171,7 +7196,8 @@ class Exchange(models.Model):
             
             trigger_fraction = 1
             share =  quantity / trigger_event.quantity
-            receipts = self.receipt_events()
+            #todo exchange redesign fallout
+            receipts = self.transfer_receive_events()
             if receipts:
                 if receipts.count() > 1:
                     rsum = sum(r.value for r in receipts)
@@ -7277,26 +7303,31 @@ class Exchange(models.Model):
             resource = use_event.resource
             trigger_fraction = 1
             #equip logging changes
-            receipts = self.receipt_events()
+            #todo exchange redesign fallout
+            receipts = self.transfer_receive_events()
+            payments = self.reciprocal_transfer_receive_events()
             if receipts:
                 if receipts.count() > 1:
                     rsum = sum(r.value for r in receipts)
                     #trigger_fraction = use_event.value / rsum
                 #payments = self.payment_events().filter(to_agent=trigger_event.from_agent)
                 #share =  quantity / trigger_event.quantity
-                payments = self.payment_events()
+                
             else:
                 #todo exchange redesign fallout
-                xfers = self.transfer_events()
+                xfers = self.transfers.all()
                 if xfers:
                     #payments = self.cash_receipt_events().filter(from_agent=trigger_event.to_agent)
-                    payments = self.cash_receipt_events()
-                    
-            cost = sum(p.quantity for p in payments)
+                    payments = self.reciprocal_transfer_receive_events()
+            cost = Decimal("0")
+            if payments:
+                cost = sum(p.quantity for p in payments)
             #equip logging changes
             #does this make any sense for use events?
-            use_share =  use_value / cost
-            if payments.count() == 1:
+            use_share = use_value
+            if cost:
+                use_share =  use_value / cost
+            if len(payments) == 1:
                 evt = payments[0]
                 contributions = []
                 if evt.resource:
@@ -7317,7 +7348,7 @@ class Exchange(models.Model):
                     #evt.share = value * use_share?
                     evt.share = use_value
                     events.append(evt)
-            elif payments.count() > 1:
+            elif len(payments) > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
                     #equip logging changes
@@ -7365,16 +7396,17 @@ class Exchange(models.Model):
                 fraction = value / resource_value
                 evt.share = use_value * fraction
                 events.append(evt)
-            local_total = sum(lo.share for lo in locals)
-            delta = use_value - local_total
-            if delta:
-                max_share = locals[0]
-                for lo in locals:
-                    if lo.share > max_share.share:
-                        max_share = lo
-            max_share.share = (max_share.share + delta)
-            #local_total = sum(lo.share for lo in locals)
-            #print "local_total:", local_total
+            if locals:
+                local_total = sum(lo.share for lo in locals)
+                delta = use_value - local_total
+                if delta:
+                    max_share = locals[0]
+                    for lo in locals:
+                        if lo.share > max_share.share:
+                            max_share = lo
+                max_share.share = (max_share.share + delta)
+                #local_total = sum(lo.share for lo in locals)
+                #print "local_total:", local_total
             
 
 class Transfer(models.Model):
@@ -7605,6 +7637,18 @@ class Transfer(models.Model):
     
     def is_reciprocal(self):
         return self.transfer_type.is_reciprocal  
+        
+    def give_event(self):
+        try:
+            return self.events.get(event_type__name="Give")
+        except EventType.DoesNotExist:
+            return None
+            
+    def receive_event(self):
+        try:
+            return self.events.get(event_type__name="Receive")
+        except EventType.DoesNotExist:
+            return None
     
     def quantity(self):
         events = self.events.all()
@@ -7699,6 +7743,13 @@ class Transfer(models.Model):
             return resource_string
         return None
 
+    def resource(self):
+        events = self.events.all()
+        resource = None
+        if events:
+            resource = events[0].resource
+        return resource
+        
     def is_deletable(self):
         if self.commitments.all():
             return False
@@ -9812,23 +9863,31 @@ class EconomicEvent(models.Model):
         Can't count on dates or event ids.
         This is currently for the DHen resource_flow_report
         and takes advantage of DHen data shape.
-        For example, Receipts will have no predecessors,
-        while Consumption events will have no successors.
+        For example, Consumption events will have no successors.
+        Receives will have no prevs except a Give event
+        in the same Transfer.
         Will most likely not work (yet) more generally.
-        And Receipts are going away...
         """
         #import pdb; pdb.set_trace()
         prevs = []
         #todo exchange redesign fallout
-        ret = EventType.objects.get(name="Receipt")
+        give = EventType.objects.get(name="Give")
+        ret = EventType.objects.get(name="Receive")
         cet = EventType.objects.get(name="Resource Consumption")
         if self.event_type == ret:
-            return prevs
+            if self.transfer:
+                give = self.transfer.give_event()
+                if give:
+                    prevs.append(give)
+                return prevs
         resource = self.resource
         if resource:
             candidates = resource.events.all()
-            prevs = candidates.filter(to_agent=self.from_agent).exclude(id=self.id)
+            prevs = candidates.filter(to_agent=self.from_agent).exclude(event_type=give)
             prevs = prevs.exclude(event_type=cet)
+            if self.event_type == give:
+                if self.transfer:
+                    prevs = prevs.exclude(transfer=self.transfer)
         return prevs
         
     def next_events(self):
@@ -9953,15 +10012,16 @@ class EconomicEvent(models.Model):
         # EconomicEvent method
         #todo dhen_bug:
         if self.event_type.relationship=="receive":
-            exchange = self.exchange
-            if exchange:
-                if exchange not in visited:
-                    visited.add(exchange)
-                    exchange.depth = depth + 1
-                    flows.append(exchange)
-                    for pmt in exchange.payment_events():
-                        pmt.depth = depth + 2
-                        flows.append(pmt)
+            if self.transfer:
+                exchange = self.transfer.exchange
+                if exchange:
+                    if exchange not in visited:
+                        visited.add(exchange)
+                        exchange.depth = depth + 1
+                        flows.append(exchange)
+                        for pmt in exchange.reciprocal_transfer_events():
+                            pmt.depth = depth + 2
+                            flows.append(pmt)
         if self.resource:
             depth = depth + 1
             #the exclude clause tries to head off infinite loops
@@ -10828,6 +10888,7 @@ class ValueEquationBucket(models.Model):
                 
             #print "total event hours:", tot
         elif self.filter_method == 'process':
+            #todo exchange redesign fallout
             from valuenetwork.valueaccounting.forms import ProcessMultiSelectForm
             form = ProcessMultiSelectForm(context_agent=context_agent)
             bucket_filter = form.deserialize(serialized_filter)
@@ -11031,10 +11092,13 @@ class ValueEquationBucketRule(models.Model):
         ])
 
     def filter_rule_deserialized(self):
-        from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
-        form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)
-        #import pdb; pdb.set_trace()
-        return form.deserialize(json=self.filter_rule)
+        if self.filter_rule:
+            from valuenetwork.valueaccounting.forms import BucketRuleFilterSetForm
+            form = BucketRuleFilterSetForm(prefix=str(self.id), context_agent=None, event_type=None, pattern=None)
+            #import pdb; pdb.set_trace()
+            return form.deserialize(json=self.filter_rule)
+        else:
+            return self.filter_rule
         
     def filter_events(self, events):
         #import pdb; pdb.set_trace()

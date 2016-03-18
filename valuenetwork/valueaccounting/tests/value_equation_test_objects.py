@@ -46,18 +46,42 @@ class ValueEquationRecipe(Recipe):
         self.work_event_type = work_event_type
         self.contribution_event_type = contribution_event_type
         self.hours_unit = hours_unit
-
-        if not usable:
-            self.usable = EconomicResourceType(
-                name="usable",
-                value_per_unit_of_use=Decimal("10"),
-                )
-            self.usable.save()
-
+        
+        if not hours_unit:
+            self.hours_unit = Unit(
+                unit_type="time",
+                abbrev="Hr",
+                name="hour",
+            )
+            self.hours_unit.save()
+            
         agent_type = AgentType(
             name="Active",
             )
         agent_type.save()
+            
+        ca = EconomicAgent(
+            name="context",
+            nick="context",
+            agent_type=agent_type,
+            is_context=True,
+            )
+        ca.save()
+        
+        urt = EconomicResourceType(
+            name="usable type",
+            unit_of_use=self.hours_unit,
+            unit=self.unit,
+            )
+        urt.save()
+
+        if not usable:
+            self.usable = EconomicResource(
+                resource_type=urt,
+                identifier="usable",
+                value_per_unit_of_use=Decimal("10"),
+                )
+            self.usable.save()
 
         if not worker:
             self.worker = EconomicAgent(
@@ -101,36 +125,120 @@ class ValueEquationRecipe(Recipe):
                 )
                 self.work_event_type.save()
                 
-        if not contribution_event_type:
-            try:
-                et = EventType.objects.get(name="Resource Contribution")
-                self.contribution_event_type = et
-            except EventType.DoesNotExist:
-                self.contribution_event_type = EventType(
-                name="Resource Contribution",
-                label="resource",
-                relationship="resource",
-                resource_effect="+",
-                )
-                self.contribution_event_type.save()
-                
-        if not hours_unit:
-            self.hours_unit = Unit(
-                unit_type="time",
-                abbrev="Hr",
-                name="hour",
-            )
-            self.unit.save()
-                
         parent_pt = self.parent.main_producing_process_type()
+        parent_pt.context_agent = ca
+        parent_pt.save()
+        
+        child_pt = self.child.main_producing_process_type()
+        child_pt.context_agent = ca
+        child_pt.save()
+        
         usable_input = ProcessTypeResourceType(
             process_type=parent_pt,
-            resource_type=self.usable,
+            resource_type=urt,
             event_type=self.use_event_type,
             quantity=Decimal("1"),
             unit_of_quantity=self.hours_unit,
         )
         usable_input.save()
+        
+        if not contribution_event_type:
+            try:
+                et = EventType.objects.get(name="Receive")
+                self.contribution_event_type = et
+            except EventType.DoesNotExist:
+                self.contribution_event_type = EventType(
+                name="Receive",
+                label="receives",
+                relationship="receive",
+                resource_effect="+",
+                )
+                self.contribution_event_type.save()
+                
+        try:
+            uc = UseCase.objects.get(name="Incoming Exchange")
+        except UseCase.DoesNotExist:
+            uc = UseCase(
+                name="Incoming Exchange",
+                identifier="supply_xfer",
+                )
+            uc.save()
+            
+        xt = ExchangeType(
+            name="Material Contribution",
+            use_case=uc,
+            )
+        xt.save()
+        
+        tt = TransferType(
+            name="Material Contribution",
+            exchange_type=xt,
+            is_contribution=True,
+            can_create_resource=True,
+            receive_agent_is_context=True,
+            )
+        tt.save()
+        
+        ex = Exchange(
+            use_case=uc,
+            exchange_type=xt,
+            context_agent=ca,
+            start_date=datetime.date.today(),
+            )
+        ex.save()
+        
+        xfer = Transfer(
+            transfer_type=tt,
+            exchange=ex,
+            context_agent=ca,
+            transfer_date=datetime.date.today(),
+            )
+        xfer.save()
+        
+        event = EconomicEvent(
+            event_type=self.contribution_event_type,
+            from_agent=self.contributor,
+            to_agent=ca,
+            event_date=datetime.date.today(),
+            resource_type=urt,
+            resource=self.usable,
+            exchange=ex,
+            transfer=xfer,
+            context_agent=ca,
+            quantity=Decimal("1.0"),
+            unit_of_quantity=self.unit,
+            value=Decimal("100"),
+            is_contribution=True,
+            )
+        event.save()
+        
+        self.value_equation = ValueEquation(
+            name="ve1",
+            context_agent=ca,
+            )
+        self.value_equation.save()
+        
+        bucket = ValueEquationBucket(
+            name="bucket0",
+            value_equation=self.value_equation,
+            filter_method="process",
+            percentage=Decimal("100"),
+            )
+        bucket.save()
+        
+        rule = ValueEquationBucketRule(
+            value_equation_bucket=bucket,
+            event_type=self.contribution_event_type,
+            division_rule="percentage",
+            claim_rule_type="debt-like",
+            claim_creation_equation="value",
+            )
+        rule.save()
+        
+            
+        # need to get work and use events connected to processes
+        # do here or in test_value_equations?
+        
                 
 """                
 class Agents(object):

@@ -106,10 +106,10 @@ ul {
                                     {% if pex.type == "Exchange" %}
                                         <li><span class="pex">Exchange:</span>
                                         <a href="{{ pex.get_absolute_url }}">{{ pex }}</a>
-                                        {% for event in pex.events.all %}
-                                            <li><span class="hdg"> {{ event.event_type }}: </span>{{ event.shorter_label }}
-                                            {% if event.resource %} 
-                                                <a href="{{ event.resource.get_absolute_url }}">({{ event.resource.identifier }})</a>
+                                        {% for xfer in pex.transfers.all %}
+                                            <li><span class="hdg"> {{ xfer.transfer_type }}: </span>{{ xfer }}
+                                            {% if xfer.resource %} 
+                                                <a href="{{ xfer.resource.get_absolute_url }}">({{ xfer.resource.identifier }})</a>
                                             {% endif %}
                                             </li>
                                         {% endfor %}

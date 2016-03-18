@@ -11467,6 +11467,7 @@ def create_distribution_using_value_equation(request, agent_id, value_equation_i
                     % ('accounting/distribution', distribution.id))
             
     else:
+        #import pdb; pdb.set_trace()
         ves = context_agent.live_value_equations()
         init = { "start_date": datetime.date.today(), "value_equation": ve }
         header_form = DistributionValueEquationForm(context_agent=context_agent, pattern=pattern, post=False, initial=init)

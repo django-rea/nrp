@@ -1027,7 +1027,6 @@ class EconomicAgent(models.Model):
             #            cr_ids.append(cr.id)
         return EconomicEvent.objects.filter(id__in=event_ids)
 
-    #obsolete
     def undistributed_distributions(self):
         #import pdb; pdb.set_trace()
         id_ids = []
@@ -2108,7 +2107,7 @@ class EconomicResourceType(models.Model):
         answer = []
         #todo pr: this shd be own_recipes
         answer.extend(self.manufacturing_producing_process_type_relationships())
-        answer.extend(self.producer_relationships())
+        #answer.extend(self.producer_relationships())
         return answer
 
     def xbill_child_object(self):
@@ -10263,6 +10262,7 @@ class EconomicEvent(models.Model):
         return claim  
         
     def undistributed_amount(self):
+        #import pdb; pdb.set_trace()
         #todo: partial
         #et_cr = EventType.objects.get(name="Cash Receipt")
         #et_id = EventType.objects.get(name="Distribution")

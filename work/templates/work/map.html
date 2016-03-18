@@ -111,6 +111,16 @@
         
         var geocoder = L.mapbox.geocoder('mapbox.places');
 
+        $("#address").focus(clearHint);
+        
+        function clearHint(event) {
+            var target = event.target;
+            if (target.value == "new location") {
+                target.value = "";
+            }
+        }
+        
+        
         $("#address").blur(geocodeAddress);
         
         var agentAddress = "{{ agent.address }}";

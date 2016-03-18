@@ -193,7 +193,9 @@
                     .addTo(map).bindPopup(content)
                     .on('popupopen', showUrls)
                     .on('popupclose', hideUrls);
-                marker.addAgentUrl = "{% url add_worker_to_location location_id=loc.id agent_id=agent.id %}";
+                {% if agent %}
+                    marker.addAgentUrl = "{% url add_worker_to_location location_id=loc.id agent_id=agent.id %}";
+                {% endif %}
                 marker.name = locName;
                 marker.agents = agents;
                 marker.resources = [];
@@ -206,8 +208,9 @@
         function showUrls(event) {
             var target = event.target;
             var location_id = target.location_id
-            
-            var addAnchor = '&nbsp;&nbsp;&nbsp;<a href="' + target.addAgentUrl + '" >Add me, ' + '{{ agent.nick }}' +  ', to this Location</a>';
+            {% if agent %}
+                var addAnchor = '&nbsp;&nbsp;&nbsp;<a href="' + target.addAgentUrl + '" >Add me, ' + '{{ agent.nick }}' +  ', to this Location</a>';
+            {% endif %}
             
             $("#locPrompt").hide();
             $("#newLoc").hide();

@@ -253,6 +253,15 @@ class ValueEquationRecipe(Recipe):
             )
         rule.save()
         
+        rule = ValueEquationBucketRule(
+            value_equation_bucket=bucket,
+            event_type=self.production_event_type,
+            division_rule="percentage",
+            claim_rule_type="debt-like",
+            claim_creation_equation="value",
+            )
+        rule.save()
+        
             
         # need to get work and use events connected to processes
         # do here or in test_value_equations?

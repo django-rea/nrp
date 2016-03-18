@@ -63,6 +63,7 @@ class ValueEquationTest(TestCase):
             quantity=Decimal("1"),
             unit_of_quantity=self.parent.unit,
             commitment=self.order_item,
+            value=Decimal("50"),
             event_date=datetime.date.today(),
             )
         pevent.save()
@@ -190,5 +191,8 @@ class ValueEquationTest(TestCase):
         work_contributions = [share for share in shares if share.event_type.name=="Time Contribution"]
         work_contributions = work_contributions[0]
         self.assertEqual(work_contributions.share, Decimal("25.0"))
+        resource_productions = [share for share in shares if share.event_type.name=="Resource Production"]
+        resource_production = resource_productions[0]
+        self.assertEqual(resource_production.share, Decimal("50.0"))
         
         

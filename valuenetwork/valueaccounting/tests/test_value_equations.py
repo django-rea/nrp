@@ -103,6 +103,62 @@ class ValueEquationTest(TestCase):
             event_date=datetime.date.today(),
             )
         use_event.save()
+        
+        child_resource = EconomicResource(
+            resource_type=child_input.resource_type,
+            identifier="child1",
+            quantity=Decimal("1"),
+            )
+        child_resource.save()
+        
+        consumption_event = EconomicEvent(
+            event_type=child_input.event_type,
+            resource_type=child_input.resource_type,
+            process=child_input.process,
+            resource=child_resource,
+            from_agent=self.recipe.worker,
+            to_agent=context_agent,
+            context_agent=context_agent,
+            quantity=Decimal("1"),
+            unit_of_quantity=child_input.unit_of_quantity,
+            commitment=child_input,
+            event_date=datetime.date.today(),
+            )
+        consumption_event.save()
+        
+        production_event = EconomicEvent(
+            event_type=child_output.event_type,
+            resource_type=child_output.resource_type,
+            process=child_output.process,
+            resource=child_resource,
+            from_agent=self.recipe.worker,
+            to_agent=context_agent,
+            context_agent=context_agent,
+            quantity=Decimal("1"),
+            unit_of_quantity=child_input.unit_of_quantity,
+            commitment=child_output,
+            event_date=datetime.date.today(),
+            )
+        production_event.save()
+        
+        work_rt = EconomicResourceType(
+            name="Work Resource Type",
+        )
+        work_rt.save()
+        
+        work_event = EconomicEvent(
+            event_type=self.recipe.work_event_type,
+            resource_type=work_rt,
+            process=child_process,
+            from_agent=self.recipe.worker,
+            to_agent=context_agent,
+            context_agent=context_agent,
+            quantity=Decimal("1"),
+            unit_of_quantity=self.recipe.hours_unit,
+            event_date=datetime.date.today(),
+            is_contribution=True,
+            )
+        work_event.save()
 
         
     def test_setup(self):
@@ -119,10 +175,20 @@ class ValueEquationTest(TestCase):
         grandchild_input = child_process.incoming_commitments()[0]
         used = self.recipe.parent.main_producing_process_type().used_resource_type_relationships()[0]
         used_commitment = process.used_input_requirements()[0]
-        import pdb; pdb.set_trace()
+        self.assertEqual(used_commitment.resource_type, self.recipe.usable.resource_type)
+        #import pdb; pdb.set_trace()
         
-    def test_use_of_contributed_resource(self):
+    def test_contribution_shares(self):
         ve = self.recipe.value_equation
         #import pdb; pdb.set_trace()
         shares = self.order_item.compute_income_fractions_for_process(ve)
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
+        resource_contributions = [share for share in shares if share.event_type.name=="Receive"]
+        self.assertEqual(len(resource_contributions), 1)
+        resource_contributions = resource_contributions[0]
+        self.assertEqual(resource_contributions.share, Decimal("10.0"))
+        work_contributions = [share for share in shares if share.event_type.name=="Time Contribution"]
+        work_contributions = work_contributions[0]
+        self.assertEqual(work_contributions.share, Decimal("25.0"))
+        
+        

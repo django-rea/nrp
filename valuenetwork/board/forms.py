@@ -161,13 +161,12 @@ class AvailableForm(forms.ModelForm):
         model = Commitment
         fields = ('from_agent', 'resource_type', 'start_date', 'quantity', 'description')
 
-    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
+    def __init__(self, exchange_type=None, context_agent=None, *args, **kwargs):
         super(AvailableForm, self).__init__(*args, **kwargs)
         #import pdb; pdb.set_trace()
-        if pattern:
-            self.pattern = pattern
-            et = EventType.objects.get(name="Transfer")
-            self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
+        if exchange_type:
+            tt = exchange_type.transfer_types_non_reciprocal()[0]
+            self.fields["resource_type"].queryset = tt.get_resource_types()
         if context_agent:
             self.fields["from_agent"].queryset = context_agent.all_has_associates_by_type(assoc_type_identifier="HarvestSite")
 
@@ -248,13 +247,12 @@ class ReceiveForm(forms.Form):
         label="Notes", 
         widget=forms.Textarea(attrs={'class': 'item-description',}))
         
-    def __init__(self, pattern=None, context_agent=None, *args, **kwargs):
+    def __init__(self, exchange_type=None, context_agent=None, *args, **kwargs):
         super(ReceiveForm, self).__init__(*args, **kwargs)
         #import pdb; pdb.set_trace()
-        if pattern:
-            self.pattern = pattern
-            et = EventType.objects.get(name="Receipt")
-            self.fields["resource_type"].queryset = pattern.get_resource_types(event_type=et)
+        if exchange_type:
+            tt = exchange_type.transfer_types_non_reciprocal()[0]
+            self.fields["resource_type"].queryset = tt.get_resource_types()
         if context_agent:
             self.fields["from_agent"].queryset = context_agent.all_has_associates_by_type(assoc_type_identifier="HarvestSite")
             self.fields["to_agent"].queryset = context_agent.all_has_associates_by_type(assoc_type_identifier="DryingSite") 

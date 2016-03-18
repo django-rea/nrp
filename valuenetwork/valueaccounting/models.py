@@ -803,7 +803,7 @@ class EconomicAgent(models.Model):
             if assocs:
                 return assocs
             parent = parent.parent()
-        return []
+        return EconomicAgent.objects.none()
     
     def associate_count_of_type(self, assoc_type_identifier):
         return self.all_has_associates_by_type(assoc_type_identifier).count()
@@ -1027,7 +1027,6 @@ class EconomicAgent(models.Model):
             #            cr_ids.append(cr.id)
         return EconomicEvent.objects.filter(id__in=event_ids)
 
-    #obsolete
     def undistributed_distributions(self):
         #import pdb; pdb.set_trace()
         id_ids = []
@@ -2108,7 +2107,7 @@ class EconomicResourceType(models.Model):
         answer = []
         #todo pr: this shd be own_recipes
         answer.extend(self.manufacturing_producing_process_type_relationships())
-        answer.extend(self.producer_relationships())
+        #answer.extend(self.producer_relationships())
         return answer
 
     def xbill_child_object(self):
@@ -2775,22 +2774,22 @@ class UseCase(models.Model):
 def create_use_cases(app, **kwargs):
     if app != "valueaccounting":
         return
-    UseCase.create('cash_contr', _('Cash Contribution'), True) 
+    #UseCase.create('cash_contr', _('Cash Contribution'), True) 
     UseCase.create('non_prod', _('Non-production Logging'), True)
     UseCase.create('rand', _('Manufacturing Recipes/Logging'))
     UseCase.create('recipe', _('Workflow Recipes/Logging'))
     UseCase.create('todo', _('Todos'), True)
     UseCase.create('cust_orders', _('Customer Orders'))
     UseCase.create('purchasing', _('Purchasing')) 
-    UseCase.create('res_contr', _('Material Contribution'))
-    UseCase.create('purch_contr', _('Purchase Contribution'))
-    UseCase.create('exp_contr', _('Expense Contribution'), True)
-    UseCase.create('sale', _('Sale'))
+    #UseCase.create('res_contr', _('Material Contribution'))
+    #UseCase.create('purch_contr', _('Purchase Contribution'))
+    #UseCase.create('exp_contr', _('Expense Contribution'), True)
+    #UseCase.create('sale', _('Sale'))
     UseCase.create('distribution', _('Distribution'), True)
     UseCase.create('val_equation', _('Value Equation'), True)
     UseCase.create('payout', _('Payout'), True)
-    UseCase.create('transfer', _('Transfer'))
-    UseCase.create('available', _('Make Available'), True)
+    #UseCase.create('transfer', _('Transfer'))
+    #UseCase.create('available', _('Make Available'), True)
     UseCase.create('intrnl_xfer', _('Internal Exchange'))
     UseCase.create('supply_xfer', _('Incoming Exchange'))
     UseCase.create('demand_xfer', _('Outgoing Exchange'))
@@ -2804,18 +2803,18 @@ def create_event_types(app, **kwargs):
     #Keep the first column (name) as unique
     EventType.create('Citation', _('cites'), _('cited by'), 'cite', 'process', '=', '')
     EventType.create('Resource Consumption', _('consumes'), _('consumed by'), 'consume', 'process', '-', 'quantity') 
-    EventType.create('Cash Contribution', _('contributes cash'), _('cash contributed by'), 'cash', 'exchange', '+', 'value')
-    EventType.create('Donation', _('donates cash'), _('cash donated by'), 'cash', 'exchange', '+', 'value') 
-    EventType.create('Resource Contribution', _('contributes resource'), _('resource contributed by'), 'resource', 'exchange', '+', 'quantity') 
+    #EventType.create('Cash Contribution', _('contributes cash'), _('cash contributed by'), 'cash', 'exchange', '+', 'value')
+    #EventType.create('Donation', _('donates cash'), _('cash donated by'), 'cash', 'exchange', '+', 'value') 
+    #EventType.create('Resource Contribution', _('contributes resource'), _('resource contributed by'), 'resource', 'exchange', '+', 'quantity') 
     EventType.create('Damage', _('damages'), _('damaged by'), 'out', 'agent', '-', 'value')  
-    EventType.create('Expense', _('expense'), '', 'expense', 'exchange', '=', 'value') 
+    #EventType.create('Expense', _('expense'), '', 'expense', 'exchange', '=', 'value') 
     EventType.create('Failed quantity', _('fails'), '', 'out', 'process', '<', 'quantity') 
-    EventType.create('Payment', _('pays'), _('paid by'), 'pay', 'exchange', '-', 'value') 
+    #EventType.create('Payment', _('pays'), _('paid by'), 'pay', 'exchange', '-', 'value') 
     EventType.create('Resource Production', _('produces'), _('produced by'), 'out', 'process', '+', 'quantity') 
     EventType.create('Work Provision', _('provides'), _('provided by'), 'out', 'agent', '+', 'time') 
-    EventType.create('Receipt', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity') 
+    #EventType.create('Receipt', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity') 
     EventType.create('Sale', _('sells'), _('sold by'), 'out', 'agent', '=', '') 
-    EventType.create('Shipment', _('ships'), _('shipped by'), 'shipment', 'exchange', '-', 'quantity') 
+    #EventType.create('Shipment', _('ships'), _('shipped by'), 'shipment', 'exchange', '-', 'quantity') 
     EventType.create('Supply', _('supplies'), _('supplied by'), 'out', 'agent', '=', '') 
     EventType.create('Todo', _('todo'), '', 'todo', 'agent', '=', '')
     EventType.create('Resource use', _('uses'), _('used by'), 'use', 'process', '=', 'time') 
@@ -2824,16 +2823,16 @@ def create_event_types(app, **kwargs):
     EventType.create('To Be Changed', _('to be changed'), '', 'in', 'process', '>~', 'quantity')  
     EventType.create('Change', _('changes'), 'changed', 'out', 'process', '~>', 'quantity') 
     EventType.create('Adjust Quantity', _('adjusts'), 'adjusted', 'adjust', 'agent', '+-', 'quantity')
-    EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
+    #EventType.create('Cash Receipt', _('receives cash'), _('cash received by'), 'receivecash', 'exchange', '+', 'value')
     EventType.create('Distribution', _('distributes'), _('distributed by'), 'distribute', 'distribution', '+', 'value')
     EventType.create('Cash Disbursement', _('disburses cash'), _('disbursed by'), 'disburse', 'distribution', '-', 'value')
     EventType.create('Payout', _('pays out'), _('paid by'), 'payout', 'agent', '-', 'value')
-    EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
+    #EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
     #the following is for fees, taxes, other extraneous charges not involved in a value equation
-    EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
+    #EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
     EventType.create('Give', _('gives'), _('given by'), 'give', 'transfer', '-', 'quantity')
     EventType.create('Receive', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity')
-    EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'agent', '+', 'quantity')
+    #EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'agent', '+', 'quantity')
     
     print "created event types"
 
@@ -10269,6 +10268,7 @@ class EconomicEvent(models.Model):
         return claim  
         
     def undistributed_amount(self):
+        #import pdb; pdb.set_trace()
         #todo: partial
         #et_cr = EventType.objects.get(name="Cash Receipt")
         #et_id = EventType.objects.get(name="Distribution")

@@ -30,7 +30,7 @@ def dhen_board(request, context_agent_id=None):
     agent = get_agent(request)
     pattern = ProcessPattern.objects.get(name="Transfer")
     selected_resource_type = None
-    filter_form = FilterForm(pattern=pattern, data=request.POST or None,)
+    #filter_form = FilterForm(pattern=pattern, data=request.POST or None,)
     if context_agent_id:
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
     else:
@@ -75,7 +75,7 @@ def dhen_board(request, context_agent_id=None):
         "context_agent": context_agent,
         "available_form": available_form,
         "receive_form": receive_form,
-        "filter_form": filter_form,
+        #"filter_form": filter_form,
         "resource_types": rts,
     }, context_instance=RequestContext(request))
 

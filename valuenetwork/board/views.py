@@ -289,37 +289,19 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
             data = form.cleaned_data
             event_date = data["event_date"] 
             to_agent = data["to_agent"]
-            #quantity = data["quantity"]
-            #value = data["value"]
-            #if not value:
-            #    value = 0
             unit_of_value = data["unit_of_value"]
-            #paid = data["paid"]
             notes  = data["notes"]
             lot_data = lot_form.cleaned_data
             identifier = lot_data["identifier"]
-            #bundle_stages = zero_data["bundle_stages"]
-            purch_use_case = UseCase.objects.get(identifier="supply_xfer")   #"purch_contr")
-            #purch_pattern = None
-            #purch_patterns = [puc.pattern for puc in purch_use_case.patterns.all()]
-            #if purch_patterns:
-            #    purch_pattern = purch_patterns[0]
+            purch_use_case = UseCase.objects.get(identifier="supply_xfer")
             purch_exchange_type = ExchangeType.objects.get(name="Farm to Harvester")
             xfer_use_case = UseCase.objects.get(identifier="intrnl_xfer")
-            #xfer_pattern = None
-            #xfer_patterns = [puc.pattern for puc in xfer_use_case.patterns.all()]
-            #if xfer_patterns:
-            #    xfer_pattern = xfer_patterns[0]
             xfer_exchange_type = ExchangeType.objects.get(name="Harvester to Drying Site")
             proc_use_case = UseCase.objects.get(identifier="rand")
             proc_pattern = None
             proc_patterns = [puc.pattern for puc in proc_use_case.patterns.all()]
             if proc_patterns:
                 proc_pattern = proc_patterns[0]
-            #receipt_et = EventType.objects.get(name="Receipt")
-            #transfer_et = EventType.objects.get(name="Transfer")
-            #rec_transfer_et = EventType.objects.get(name="Reciprocal Transfer")
-            #pay_et = EventType.objects.get(name="Payment")
             give_et = EventType.objects.get(name="Give")
             receive_et = EventType.objects.get(name="Receive")
             consume_et = EventType.objects.get(name="Resource Consumption")
@@ -479,7 +461,7 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                             context_agent = context_agent,
                             quantity = breakout_quantity,
                             unit_of_quantity = resource.resource_type.unit,
-                            value = value_stage_1,
+                            value = value_stage_2,
                             unit_of_value = unit_of_value,
                             created_by = request.user,
                         )
@@ -491,12 +473,12 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                             resource_type = resource.resource_type,
                             exchange_stage=next_next_stage,
                             transfer=xfer,
-                            from_agent = to_agent,
-                            to_agent = breakout_to_agent,
+                            from_agent = breakout_to_agent,
+                            to_agent = to_agent,
                             context_agent = context_agent,
                             quantity = breakout_quantity,
                             unit_of_quantity = resource.resource_type.unit,
-                            value = value_stage_1,
+                            value = value_stage_2,
                             unit_of_value = unit_of_value,
                             created_by = request.user,
                         )
@@ -536,8 +518,8 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                                     resource_type = pay_rt,
                                     transfer = xfer,
                                     exchange_stage=next_next_stage,
-                                    from_agent = xfer_event.from_agent,
-                                    to_agent = xfer_event.to_agent,
+                                    from_agent = xfer_event.to_agent,
+                                    to_agent = xfer_event.from_agent,
                                     context_agent = context_agent,
                                     quantity = value_stage_2,
                                     unit_of_quantity = unit_of_value,
@@ -545,7 +527,7 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                                     unit_of_value = unit_of_value,
                                     created_by = request.user,                        
                                 )
-                                pay_event_2.save()
+                                pay_event_2_receive.save()
                         elif paid_stage_2 == "later":
                             if value_stage_2 > 0:
                                 transfer_type = xfer_exchange_type.transfer_types_reciprocal()[0]

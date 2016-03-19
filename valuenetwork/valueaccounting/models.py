@@ -2918,7 +2918,7 @@ def create_usecase_eventtypes(app, **kwargs):
     UseCaseEventType.create('payout', 'Payout')
     #UseCaseEventType.create('transfer', 'Transfer')
     #UseCaseEventType.create('transfer', 'Reciprocal Transfer')
-    UseCaseEventType.create('available', 'Make Available')
+    #UseCaseEventType.create('available', 'Make Available')
     #UseCaseEventType.create('intrnl_xfer', 'Transfer')
     #UseCaseEventType.create('intrnl_xfer', 'Reciprocal Transfer')
     #UseCaseEventType.create('intrnl_xfer', 'Time Contribution')

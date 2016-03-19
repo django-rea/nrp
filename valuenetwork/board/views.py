@@ -269,7 +269,7 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
         #import pdb; pdb.set_trace()
         commitment = get_object_or_404(Commitment, id=commitment_id)
         context_agent = EconomicAgent.objects.get(id=context_agent_id)
-        stage = None #ExchangeType.objects.get(name="Farm to Harvester")
+        stage = None
         next_stage = get_next_stage(stage)
         next_next_stage = get_next_stage(next_stage)
         prefix = commitment.form_prefix()
@@ -299,25 +299,29 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
             lot_data = lot_form.cleaned_data
             identifier = lot_data["identifier"]
             #bundle_stages = zero_data["bundle_stages"]
-            purch_use_case = UseCase.objects.get(identifier="purch_contr")
-            purch_pattern = None
-            purch_patterns = [puc.pattern for puc in purch_use_case.patterns.all()]
-            if purch_patterns:
-                purch_pattern = purch_patterns[0]
-            xfer_use_case = UseCase.objects.get(identifier="transfer")
-            xfer_pattern = None
-            xfer_patterns = [puc.pattern for puc in xfer_use_case.patterns.all()]
-            if xfer_patterns:
-                xfer_pattern = xfer_patterns[0]
+            purch_use_case = UseCase.objects.get(identifier="supply_xfer")   #"purch_contr")
+            #purch_pattern = None
+            #purch_patterns = [puc.pattern for puc in purch_use_case.patterns.all()]
+            #if purch_patterns:
+            #    purch_pattern = purch_patterns[0]
+            purch_exchange_type = ExchangeType.objects.get(name="Farm to Harvester")
+            xfer_use_case = UseCase.objects.get(identifier="intrnl_xfer")
+            #xfer_pattern = None
+            #xfer_patterns = [puc.pattern for puc in xfer_use_case.patterns.all()]
+            #if xfer_patterns:
+            #    xfer_pattern = xfer_patterns[0]
+            xfer_exchange_type = ExchangeType.objects.get(name="Harvester to Drying Site")
             proc_use_case = UseCase.objects.get(identifier="rand")
             proc_pattern = None
             proc_patterns = [puc.pattern for puc in proc_use_case.patterns.all()]
             if proc_patterns:
                 proc_pattern = proc_patterns[0]
-            receipt_et = EventType.objects.get(name="Receipt")
-            transfer_et = EventType.objects.get(name="Transfer")
-            rec_transfer_et = EventType.objects.get(name="Reciprocal Transfer")
-            pay_et = EventType.objects.get(name="Payment")
+            #receipt_et = EventType.objects.get(name="Receipt")
+            #transfer_et = EventType.objects.get(name="Transfer")
+            #rec_transfer_et = EventType.objects.get(name="Reciprocal Transfer")
+            #pay_et = EventType.objects.get(name="Payment")
+            give_et = EventType.objects.get(name="Give")
+            receive_et = EventType.objects.get(name="Receive")
             consume_et = EventType.objects.get(name="Resource Consumption")
             produce_et = EventType.objects.get(name="Resource Production")
             pay_rt = EconomicResourceType.objects.filter(unit__unit_type="value")[0]
@@ -340,10 +344,9 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                         exchange = Exchange(
                             name="Transfer " + commitment.resource_type.name + " from farm",
                             use_case=purch_use_case,
-                            process_pattern=purch_pattern,
+                            exchange_type=purch_exchange_type,
                             start_date=event_date,
                             context_agent=context_agent,
-                            exchange_type=ExchangeType.objects.get(name="Farm to Harvester"),
                             created_by=request.user,                
                         )
                         exchange.save()
@@ -355,13 +358,24 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                             created_by=request.user
                         )
                         resource.save()
+                        transfer_type = purch_exchange_type.transfer_types_non_reciprocal()[0]
+                        xfer_name = transfer_type.name + " of " + commitment.resource_type.name
+                        xfer = Transfer(
+                            name=xfer_name,
+                            transfer_type = transfer_type,
+                            exchange = exchange,
+                            context_agent = context_agent,
+                            transfer_date = event_date,
+                            created_by = request.user              
+                        )
+                        xfer.save() 
                         receipt_event = EconomicEvent(
-                            event_type = receipt_et,
+                            event_type = receive_et,
                             event_date = event_date,
                             resource = resource,
                             resource_type = resource.resource_type,
-                            exchange = exchange,
                             exchange_stage=next_stage,
+                            transfer=xfer,
                             commitment=commitment,
                             from_agent = commitment.from_agent,
                             to_agent = breakout_to_agent,
@@ -375,12 +389,23 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                         receipt_event.save()
                         if paid_stage_1 == "paid":
                             if value_stage_1 > 0:
+                                transfer_type = purch_exchange_type.transfer_types_reciprocal()[0]
+                                xfer_name = transfer_type.name + " for " + commitment.resource_type.name
+                                xfer = Transfer(
+                                    name=xfer_name,
+                                    transfer_type = transfer_type,
+                                    exchange = exchange,
+                                    context_agent = context_agent,
+                                    transfer_date = event_date,
+                                    created_by = request.user              
+                                )
+                                xfer.save()
                                 pay_event_1 = EconomicEvent(
-                                    event_type = pay_et,
+                                    event_type = give_et,
                                     event_date = event_date,
                                     resource_type = pay_rt,
-                                    exchange = exchange,
                                     exchange_stage=next_stage,
+                                    transfer=xfer,
                                     from_agent = receipt_event.to_agent,
                                     to_agent = receipt_event.from_agent,
                                     context_agent = context_agent,
@@ -393,11 +418,22 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                                 pay_event_1.save()
                         elif paid_stage_1 == "later":
                             if value_stage_1 > 0:
+                                transfer_type = purch_exchange_type.transfer_types_reciprocal()[0]
+                                xfer_name = transfer_type.name + " for " + commitment.resource_type.name
+                                xfer = Transfer(
+                                    name=xfer_name,
+                                    transfer_type = transfer_type,
+                                    exchange = exchange,
+                                    context_agent = context_agent,
+                                    transfer_date = event_date,
+                                    created_by = request.user              
+                                )
+                                xfer.save()
                                 commit_1 = Commitment (
                                     commitment_date=event_date,
-                                    event_type=pay_et,
-                                    exchange=exchange,
+                                    event_type=give_et,
                                     exchange_stage=next_stage,
+                                    transfer=xfer,
                                     due_date=event_date,
                                     from_agent=receipt_event.to_agent,
                                     to_agent=receipt_event.from_agent,
@@ -414,20 +450,30 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                         xfer_exchange = Exchange(
                             name="Transfer " + commitment.resource_type.name,
                             use_case=xfer_use_case,
-                            process_pattern=xfer_pattern,
                             start_date=event_date,
                             context_agent=context_agent,
-                            exchange_type=ExchangeType.objects.get(name="Harvester to Drying Site"),
+                            exchange_type=xfer_exchange_type,
                             created_by=request.user,                
                         )
                         xfer_exchange.save()
+                        transfer_type = xfer_exchange_type.transfer_types_non_reciprocal()[0]
+                        xfer_name = transfer_type.name + " of " + commitment.resource_type.name
+                        xfer = Transfer(
+                            name=xfer_name,
+                            transfer_type = transfer_type,
+                            exchange = xfer_exchange,
+                            context_agent = context_agent,
+                            transfer_date = event_date,
+                            created_by = request.user              
+                        )
+                        xfer.save()
                         xfer_event = EconomicEvent(
-                            event_type = transfer_et,
+                            event_type = give_et,
                             event_date = event_date,
                             resource = resource,
                             resource_type = resource.resource_type,
-                            exchange = xfer_exchange,
                             exchange_stage=next_next_stage,
+                            transfer=xfer,
                             from_agent = breakout_to_agent,
                             to_agent = to_agent,
                             context_agent = context_agent,
@@ -438,13 +484,41 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                             created_by = request.user,
                         )
                         xfer_event.save()
+                        xfer_event_receive = EconomicEvent(
+                            event_type = receive_et,
+                            event_date = event_date,
+                            resource = resource,
+                            resource_type = resource.resource_type,
+                            exchange_stage=next_next_stage,
+                            transfer=xfer,
+                            from_agent = to_agent,
+                            to_agent = breakout_to_agent,
+                            context_agent = context_agent,
+                            quantity = breakout_quantity,
+                            unit_of_quantity = resource.resource_type.unit,
+                            value = value_stage_1,
+                            unit_of_value = unit_of_value,
+                            created_by = request.user,
+                        )
+                        xfer_event_receive.save()
                         if paid_stage_2 == "paid":
                             if value_stage_2 > 0:
+                                transfer_type = xfer_exchange_type.transfer_types_reciprocal()[0]
+                                xfer_name = transfer_type.name + " for " + commitment.resource_type.name
+                                xfer = Transfer(
+                                    name=xfer_name,
+                                    transfer_type = transfer_type,
+                                    exchange = xfer_exchange,
+                                    context_agent = context_agent,
+                                    transfer_date = event_date,
+                                    created_by = request.user              
+                                )
+                                xfer.save()
                                 pay_event_2 = EconomicEvent(
-                                    event_type = rec_transfer_et,
+                                    event_type = give_et,
                                     event_date = event_date,
                                     resource_type = pay_rt,
-                                    exchange = xfer_exchange,
+                                    transfer = xfer,
                                     exchange_stage=next_next_stage,
                                     from_agent = xfer_event.to_agent,
                                     to_agent = xfer_event.from_agent,
@@ -456,12 +530,39 @@ def purchase_resource(request, context_agent_id, commitment_id): #this is the fa
                                     created_by = request.user,                        
                                 )
                                 pay_event_2.save()
+                                pay_event_2_receive = EconomicEvent(
+                                    event_type = receive_et,
+                                    event_date = event_date,
+                                    resource_type = pay_rt,
+                                    transfer = xfer,
+                                    exchange_stage=next_next_stage,
+                                    from_agent = xfer_event.from_agent,
+                                    to_agent = xfer_event.to_agent,
+                                    context_agent = context_agent,
+                                    quantity = value_stage_2,
+                                    unit_of_quantity = unit_of_value,
+                                    value = value_stage_2,
+                                    unit_of_value = unit_of_value,
+                                    created_by = request.user,                        
+                                )
+                                pay_event_2.save()
                         elif paid_stage_2 == "later":
                             if value_stage_2 > 0:
+                                transfer_type = xfer_exchange_type.transfer_types_reciprocal()[0]
+                                xfer_name = transfer_type.name + " for " + commitment.resource_type.name
+                                xfer = Transfer(
+                                    name=xfer_name,
+                                    transfer_type = transfer_type,
+                                    exchange = xfer_exchange,
+                                    context_agent = context_agent,
+                                    transfer_date = event_date,
+                                    created_by = request.user              
+                                )
+                                xfer.save()
                                 commit_2 = Commitment (
                                     commitment_date=event_date,
-                                    event_type=pay_et,
-                                    exchange=xfer_exchange,
+                                    event_type=give_et,
+                                    transfer=xfer,
                                     exchange_stage=next_next_stage,
                                     due_date=event_date,
                                     from_agent=xfer_event.to_agent,
@@ -767,7 +868,7 @@ def delete_farm_commitment(request, commitment_id):
 def undo_col2(request, resource_id):
     resource = get_object_or_404(EconomicResource, pk=resource_id)
     context_agent_id = default_context_agent().id
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     flows = resource.incoming_value_flows()
     for item in flows:
         if item.class_label() == "Economic Event":

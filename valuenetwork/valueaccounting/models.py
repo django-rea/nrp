@@ -4534,8 +4534,10 @@ class EconomicResource(models.Model):
                 events.append(evt)
         buys = self.purchase_events()
         for evt in buys:
-            if evt.exchange:
-                evt.exchange.compute_income_shares_for_use(value_equation, use_event, use_value, resource_value, events, visited)
+            #this is because purchase_events will duplicate resource_contribution_events
+            if evt not in events:
+                if evt.exchange:
+                    evt.exchange.compute_income_shares_for_use(value_equation, use_event, use_value, resource_value, events, visited)
         processes = self.producing_processes()
         #shd only be one producing process for a used resource..right?
         quantity = self.quantity
@@ -4743,6 +4745,7 @@ class EconomicResource(models.Model):
         
     def resource_contribution_events(self):
         #todo exchange redesign fallout
+        #problem: this and purchase_events get the same events
         ret_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=ret_et, is_contribution=True)
         
@@ -4756,6 +4759,7 @@ class EconomicResource(models.Model):
             event_type__name='Cash Contribution')
         
     def purchase_events(self):
+        #problem: this and resource_contribution_events get the same events
         rct_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=rct_et)
         
@@ -6519,10 +6523,12 @@ class Process(models.Model):
                                 ip.resource.compute_income_shares_for_use(value_equation, ip, ip_value, resource_value, events, visited) 
                         elif ip.event_type.relationship == "consume" or ip.event_type.name == "To Be Changed":
                             #consume events are not contributions, but their resources may have contributions
-                            ip_value = ip.value * distro_fraction
+                            ##todo ve test: is this a bug? how does consumption event value get set?
+                            #ip_value = ip.value * distro_fraction
+                            #if ip_value:
+                            d_qty = ip.quantity * distro_fraction
                             #import pdb; pdb.set_trace()
-                            if ip_value:
-                                d_qty = ip.quantity * distro_fraction
+                            if d_qty:
                                 #print "consumption:", ip.id, ip, "ip.value:", ip.value
                                 #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
                                 if ip.resource:
@@ -7638,15 +7644,16 @@ class Transfer(models.Model):
         return self.transfer_type.is_reciprocal  
         
     def give_event(self):
+        #import pdb; pdb.set_trace()
         try:
             return self.events.get(event_type__name="Give")
-        except EventType.DoesNotExist:
+        except EconomicEvent.DoesNotExist:
             return None
             
     def receive_event(self):
         try:
             return self.events.get(event_type__name="Receive")
-        except EventType.DoesNotExist:
+        except EconomicEvent.DoesNotExist:
             return None
     
     def quantity(self):
@@ -9875,9 +9882,9 @@ class EconomicEvent(models.Model):
         cet = EventType.objects.get(name="Resource Consumption")
         if self.event_type == ret:
             if self.transfer:
-                give = self.transfer.give_event()
-                if give:
-                    prevs.append(give)
+                give_evt = self.transfer.give_event()
+                if give_evt:
+                    prevs.append(give_evt)
                 return prevs
         resource = self.resource
         if resource:

@@ -222,13 +222,40 @@ class ValueEquationRecipe(Recipe):
             name="bucket0",
             value_equation=self.value_equation,
             filter_method="process",
-            percentage=Decimal("100"),
+            percentage=Decimal("50"),
             )
         bucket.save()
         
         rule = ValueEquationBucketRule(
             value_equation_bucket=bucket,
             event_type=self.contribution_event_type,
+            division_rule="percentage",
+            claim_rule_type="debt-like",
+            claim_creation_equation="value",
+            )
+        rule.save()
+        
+        bucket = ValueEquationBucket(
+            name="bucket1",
+            sequence=1,
+            value_equation=self.value_equation,
+            filter_method="process",
+            percentage=Decimal("50"),
+            )
+        bucket.save()
+        
+        rule = ValueEquationBucketRule(
+            value_equation_bucket=bucket,
+            event_type=self.work_event_type,
+            division_rule="percentage",
+            claim_rule_type="debt-like",
+            claim_creation_equation="quantity * 25",
+            )
+        rule.save()
+        
+        rule = ValueEquationBucketRule(
+            value_equation_bucket=bucket,
+            event_type=self.production_event_type,
             division_rule="percentage",
             claim_rule_type="debt-like",
             claim_creation_equation="value",

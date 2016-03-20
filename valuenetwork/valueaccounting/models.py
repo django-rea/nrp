@@ -3883,6 +3883,8 @@ class EconomicResource(models.Model):
         return list(set(cas))
 
     def shipped_on_orders(self):
+        #todo exchange redesign fallout
+        #Lynn, this will crash
         orders = []
         et = EventType.objects.get(relationship="shipment")
         shipments = EconomicEvent.objects.filter(resource=self).filter(event_type=et)
@@ -3893,11 +3895,15 @@ class EconomicResource(models.Model):
         
     def sales(self):
         sales = []
-        et = EventType.objects.get(relationship="shipment")
-        shipments = EconomicEvent.objects.filter(resource=self).filter(event_type=et)
-        for ship in shipments:
-            if ship.exchange:
-                sales.append(ship.exchange)
+        use_case = UseCase.objects.get(identifier="demand_xfer")
+        et = EventType.objects.get(name="Give")
+        events = EconomicEvent.objects.filter(resource=self).filter(event_type=et)
+        for event in events:
+            if event.transfer:
+                transfer = event.transfer
+                if not transfer.is_reciprocal():
+                    if transfer.exchange.exchange_type.use_case == use_case:
+                        sales.append(event.transfer.exchange)
         return sales
             
     def value_equations(self):
@@ -4051,10 +4057,12 @@ class EconomicResource(models.Model):
             evt.depth = depth
             path.append(evt)
             value = evt.value
-            if evt.exchange:
-                #print "value b4:", value
-                value = evt.exchange.roll_up_value(evt, path, depth, visited, value_equation)
-                #print "value after:", value
+            if evt.transfer:
+                if evt.transfer.exchange:
+                    #print "value b4:", value
+                    exchange = evt.transfer.exchange
+                    value = exchange.roll_up_value(evt, path, depth, visited, value_equation)
+                    #print "value after:", value
             evt_vpu = value / evt.quantity
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
@@ -4066,6 +4074,8 @@ class EconomicResource(models.Model):
                 #print padding, "--- values:", values
             depth -= 1
         #todo exchange redesign fallout
+        #this is obsolete
+        """
         xfers = self.transfer_events_for_exchange_stage()
         for evt in xfers:
             #import pdb; pdb.set_trace()
@@ -4087,7 +4097,7 @@ class EconomicResource(models.Model):
                 #print padding, "--- evt_vpu: ", evt_vpu
                 #print padding, "--- values:", values
             depth -= 1
-        
+        """
         citations = []
         production_value = Decimal("0.0")
         #rollup stage change
@@ -4387,6 +4397,7 @@ class EconomicResource(models.Model):
             if evt.exchange:
                 evt.exchange.compute_income_shares(value_equation, evt, quantity, events, visited)
         #todo exchange redesign fallout
+        #change transfer_events, that method is obsolete
         xfers = self.transfer_events()
         for evt in xfers:
             if evt.exchange:
@@ -4742,12 +4753,9 @@ class EconomicResource(models.Model):
 
     def using_events(self):
         return self.events.filter(event_type__relationship="use")
-        
+               
     def resource_contribution_events(self):
-        #todo exchange redesign fallout
-        #problem: this and purchase_events get the same events
-        ret_et = EventType.objects.get(name="Receive")
-        return self.events.filter(event_type=ret_et, is_contribution=True)
+        return self.events.filter(is_contribution=True)        
         
     def cash_events(self): #includes cash contributions, donations and loans
         return self.events.filter(
@@ -4759,9 +4767,10 @@ class EconomicResource(models.Model):
             event_type__name='Cash Contribution')
         
     def purchase_events(self):
-        #problem: this and resource_contribution_events get the same events
+        #todo exchange redesign fallout
+        #is this correct?
         rct_et = EventType.objects.get(name="Receive")
-        return self.events.filter(event_type=rct_et)
+        return self.events.filter(event_type=rct_et, is_contribution=False)
         
     def purchase_events_for_exchange_stage(self):
         #todo dhen_bug:
@@ -4772,11 +4781,14 @@ class EconomicResource(models.Model):
             return self.purchase_events()
         
     def transfer_events(self):
+        #obsolete
         #todo exchange redesign fallout
+        print "obsolete resource.transfer_event"
         tx_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=tx_et)
         
     def transfer_events_for_exchange_stage(self):
+        #obsolete
         #todo exchange redesign fallout
         if self.exchange_stage:
             return self.transfer_events().filter(exchange_stage=self.exchange_stage)
@@ -5077,7 +5089,7 @@ class EconomicResource(models.Model):
     def receipt(self):
         in_out = self.value_flow_going_forward()
         receipt = None
-        et = EventType.objects.get(name='Receipt')
+        et = EventType.objects.get(name='Receive')
         for index, io in enumerate(in_out):
             if type(io) is EconomicEvent:
                 if io.event_type == et:
@@ -6806,8 +6818,10 @@ class Exchange(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('exchange_logging', (),
-            { 'exchange_id': str(self.id),})
+        return ('exchange_logging', (),{ 
+            'exchange_type_id': "0",
+            'exchange_id': str(self.id),
+            })
 
     def save(self, *args, **kwargs):
         ext_name = ""
@@ -6987,10 +7001,12 @@ class Exchange(models.Model):
                         
     def transfer_events(self):
         #todo exchange redesign fallout?
+        #obsolete? or just used wrong?
         #exchange method
+        print "obsolete exchange.transfer_event?"
         events = []
         for transfer in self.transfers.all():
-            if not transfer.is_reciprocal:
+            if not transfer.is_reciprocal():
                 for event in transfer.events.all():
                     events.append(event)
         return events
@@ -7000,7 +7016,7 @@ class Exchange(models.Model):
         #exchange method
         events = []
         for transfer in self.transfers.all():
-            if transfer.is_reciprocal:
+            if transfer.is_reciprocal():
                 for event in transfer.events.all():
                     events.append(event)
         return events 
@@ -7011,7 +7027,7 @@ class Exchange(models.Model):
         events = []
         et_give = EventType.objects.get(name="Give")
         for transfer in self.transfers.all():
-            if not transfer.is_reciprocal:
+            if not transfer.is_reciprocal():
                 for event in transfer.events.all():
                     if event.event_type == et_give:
                         events.append(event)
@@ -7023,7 +7039,7 @@ class Exchange(models.Model):
         events = []
         et_receive = EventType.objects.get(name="Receive")
         for transfer in self.transfers.all():
-            if not transfer.is_reciprocal:
+            if not transfer.is_reciprocal():
                 for event in transfer.events.all():
                     if event.event_type == et_receive:
                         events.append(event)
@@ -7034,7 +7050,7 @@ class Exchange(models.Model):
         events = []
         et_give = EventType.objects.get(name="Give")
         for transfer in self.transfers.all():
-            if transfer.is_reciprocal:
+            if transfer.is_reciprocal():
                 for event in transfer.events.all():
                     if event.event_type == et_give:
                         events.append(event)
@@ -7045,7 +7061,7 @@ class Exchange(models.Model):
         events = []
         et_receive = EventType.objects.get(name="Receive")
         for transfer in self.transfers.all():
-            if transfer.is_reciprocal:
+            if transfer.is_reciprocal():
                 for event in transfer.events.all():
                     if event.event_type == et_receive:
                         events.append(event)
@@ -7084,10 +7100,17 @@ class Exchange(models.Model):
     def flow_description(self):
         return self.__unicode__()
         
+    def resource_receive_events(self):
+        #todo exchange redesign fallout
+        if self.use_case.name=="Incoming Exchange":
+            return [evt for evt in self.transfer_receive_events() if evt.resource]         
+        else:
+            return []
+        
     def expense_events(self):
         #todo exchange redesign fallout
         if self.use_case.name=="Incoming Exchange":
-            return self.transfer_receive_events()
+            return [evt for evt in self.transfer_receive_events() if not evt.resource]         
         else:
             return []
         
@@ -7112,12 +7135,14 @@ class Exchange(models.Model):
             values = Decimal("0.0")
             #todo exchange redesign fallout
             #just guessing at receipts and payments
-            # to eliminate errors
-            receipts = self.transfer_receive_events()
+            # to eliminate error messages
+            #Note: trigger_event is also one of the receipts
+            receipts = self.resource_receive_events()
             #todo dhen_bug: need to deal with transfers
             #and then might be a flow between exchanges
             trigger_fraction = 1
             if len(receipts) > 1:
+                #what fraction is the trigger_event of the total value of receipts
                 rsum = sum(r.value for r in receipts)
                 trigger_fraction = trigger_event.value / rsum
             payments = [evt for evt in self.reciprocal_transfer_receive_events() if evt.to_agent==trigger_event.from_agent]
@@ -7163,14 +7188,17 @@ class Exchange(models.Model):
                         evt.depth = depth
                         path.append(evt)
                         values += evt.share
-            #todo: also need expenses
+            #todo exchange redesign fallout
+            #import pdb; pdb.set_trace()
+            #these expenses are exactly the same as the receipts above
             expenses = self.expense_events()
             for ex in expenses:
                 ex.depth = depth
                 path.append(ex)
                 value = ex.value
                 values += value * trigger_fraction
-                exp_payments = self.payment_events().filter(to_agent=ex.from_agent)
+                exp_payments = [evt for evt in self.reciprocal_transfer_receive_events() if evt.to_agent==ex.from_agent]
+                #exp_payments = self.payment_events().filter(to_agent=ex.from_agent)
                 for exp in exp_payments:
                     depth += 1
                     exp.depth = depth
@@ -7211,6 +7239,7 @@ class Exchange(models.Model):
                 #share =  quantity / trigger_event.quantity
             else:
                 #todo exchange redesign fallout
+                #change transfer_events, that method is obsolete
                 xfers = self.transfer_events()
                 if xfers:
                     payments = self.cash_receipt_events().filter(from_agent=trigger_event.to_agent)
@@ -7641,7 +7670,7 @@ class Transfer(models.Model):
             super(Transfer, self).save(*args, **kwargs)
     
     def is_reciprocal(self):
-        return self.transfer_type.is_reciprocal  
+        return self.transfer_type.is_reciprocal 
         
     def give_event(self):
         #import pdb; pdb.set_trace()
@@ -10342,7 +10371,18 @@ class EconomicEvent(models.Model):
         return self.to_agent or self.default_agent()
 
     def flow_type(self):
-        return self.event_type.name
+        if self. transfer:
+            return self.transfer.transfer_type.name
+        else:
+            return self.event_type.name
+        """
+        answer = self.event_type.name
+        if answer=="Receive":
+            if self.transfer:
+                if self.transfer.is_reciprocal():
+                    answer = self.transfer.transfer_type.name
+        return answer
+        """
 
     def flow_class(self):
         return self.event_type.relationship

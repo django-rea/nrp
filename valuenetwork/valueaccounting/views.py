@@ -5646,6 +5646,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
                                 quantity=0,
                                 created_by=request.user,
                                 )
+                # todo: adjusting resource quantity would be better to use EventType.creates_resources and .consumes_resources methods
                 if exchange.exchange_type.use_case == UseCase.objects.get(identifier="supply_xfer"):
                     if transfer_type.is_reciprocal:
                         if res:
@@ -5679,13 +5680,6 @@ def add_transfer(request, exchange_id, transfer_type_id):
                         if form_rra.is_valid():
                             data_rra = form_rra.cleaned_data
                             if data_rra:
-                                #if role and agent:
-                                #    rra = AgentResourceRole()
-                                #    rra.agent = data_rra["agent"]
-                                #    rra.role = data_rra["role"]
-                                #    rra.resource = res
-                                #    rra.is_contact = data_rra["is_contact"]
-                                #    rra.save()  
                                 data_rra = form_rra.cleaned_data
                                 role = data_rra["role"]
                                 agent = data_rra["agent"]
@@ -5716,7 +5710,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
                 if et == et_give:
                     e_is_to_distribute = False
                 e_is_contribution = is_contribution
-                if et == et_receive:
+                if et == et_receive and et2:
                     e_is_contribution = False
                 event = EconomicEvent(
                     event_type = et,
@@ -5741,10 +5735,10 @@ def add_transfer(request, exchange_id, transfer_type_id):
                 event.save()
                 if et2:
                     e2_is_to_distribute = is_to_distribute
-                    if et == et_give:
+                    if et2 == et_give:
                         e2_is_to_distribute = False
                     e2_is_contribution = is_contribution
-                    if et == et_receive:
+                    if et2 == et_receive:
                         e2_is_contribution = False
                     event2 = EconomicEvent(
                         event_type = et2,
@@ -6076,6 +6070,8 @@ def change_transfer_events(request, transfer_id):
                             else:
                                 old_res.quantity = old_res.quantity - qty
                             old_res.save()
+                transfer.transfer_date = event_date
+                transfer.save()
                 
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('accounting/exchange', 0, exchange.id))    

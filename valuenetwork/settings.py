@@ -147,13 +147,15 @@ INSTALLED_APPS = [
     'notification',
     'corsheaders',
     #'django_filters',
-    #'rest_framework',
+    'rest_framework',
     
     # project
     'valuenetwork.valueaccounting',
     'valuenetwork.equipment',
     'valuenetwork.board',
+    'valuenetwork.api',
     'account',
+
 
 ]
 

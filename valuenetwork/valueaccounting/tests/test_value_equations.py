@@ -160,6 +160,20 @@ class ValueEquationTest(TestCase):
             is_contribution=True,
             )
         work_event.save()
+        
+        event = EconomicEvent(
+            event_type=self.consumption_event_type,
+            from_agent=self.recipe.contributor,
+            to_agent=context_agent,
+            event_date=datetime.date.today(),
+            process=child_process,
+            resource_type=self.recipe.consumable_rt,
+            resource=self.recipe.consumable,
+            context_agent=context_agent,
+            quantity=Decimal("1.0"),
+            unit_of_quantity=self.unit,
+            )
+        event.save()
 
         
     def test_setup(self):
@@ -177,7 +191,8 @@ class ValueEquationTest(TestCase):
         used = self.recipe.parent.main_producing_process_type().used_resource_type_relationships()[0]
         used_commitment = process.used_input_requirements()[0]
         self.assertEqual(used_commitment.resource_type, self.recipe.usable.resource_type)
-        #import pdb; pdb.set_trace()
+        consumable = self.recipe.consumable
+        import pdb; pdb.set_trace()
         
     def test_contribution_shares(self):
         ve = self.recipe.value_equation
@@ -194,5 +209,7 @@ class ValueEquationTest(TestCase):
         resource_productions = [share for share in shares if share.event_type.name=="Resource Production"]
         resource_production = resource_productions[0]
         self.assertEqual(resource_production.share, Decimal("50.0"))
+        payment_for_consumable = [share for share in shares if share.event_type.name=="Give"][0]
+        self.assertEqual(payment_for_consumable.share, Decimal("50.0"))
         
         

@@ -74,6 +74,12 @@ class ValueEquationRecipe(Recipe):
             unit=self.unit,
             )
         urt.save()
+        
+        self.consumable_rt = EconomicResourceType(
+            name="consumable type",
+            unit=self.unit,
+            )
+        self.consumable_rt.save()
 
         if not usable:
             self.usable = EconomicResource(
@@ -212,6 +218,133 @@ class ValueEquationRecipe(Recipe):
             )
         event.save()
         
+        self.consumable = EconomicResource(
+            resource_type=self.consumable_rt,
+            identifier="consumable",
+            )
+        self.consumable.save()
+        
+        consumable_input = ProcessTypeResourceType(
+            process_type=child_pt,
+            resource_type=self.consumable_rt,
+            event_type=self.consumption_event_type,
+            quantity=Decimal("1"),
+            unit_of_quantity=self.unit,
+        )
+        consumable_input.save()
+        
+        xt = ExchangeType(
+            name="Material Purchase",
+            use_case=uc,
+            )
+        xt.save()
+        
+        rtt = TransferType(
+            name="Material Receipt",
+            exchange_type=xt,
+            can_create_resource=True,
+            receive_agent_is_context=True,
+            )
+        rtt.save()
+        
+        ptt = TransferType(
+            name="Payment",
+            exchange_type=xt,
+            is_reciprocal=True,
+            receive_agent_is_context=False,
+            )
+        ptt.save()
+        
+        ex = Exchange(
+            use_case=uc,
+            exchange_type=xt,
+            context_agent=ca,
+            start_date=datetime.date.today(),
+            )
+        ex.save()
+        
+        receiving_xfer = Transfer(
+            transfer_type=rtt,
+            exchange=ex,
+            context_agent=ca,
+            transfer_date=datetime.date.today(),
+            )
+        receiving_xfer.save()
+        
+        paying_xfer = Transfer(
+            transfer_type=ptt,
+            exchange=ex,
+            context_agent=ca,
+            transfer_date=datetime.date.today(),
+            )
+        paying_xfer.save()
+        
+        supplier = EconomicAgent(
+            name="supplier",
+            nick="supplier",
+            agent_type=agent_type,
+            is_context=True,
+            )
+        supplier.save()
+
+        receiving_event = EconomicEvent(
+            event_type=self.contribution_event_type,
+            from_agent=supplier,
+            to_agent=ca,
+            event_date=datetime.date.today(),
+            resource_type=self.consumable_rt,
+            resource=self.consumable,
+            exchange=ex,
+            transfer=receiving_xfer,
+            context_agent=ca,
+            quantity=Decimal("2.0"),
+            unit_of_quantity=self.unit,
+            value=Decimal("100"),
+            )
+        receiving_event.save()
+        
+        money_unit = Unit(
+                unit_type="value",
+                abbrev="DOL",
+                name="dollar",
+        )
+        money_unit.save()
+        
+        money_rt = EconomicResourceType(
+            name="money",
+            unit=money_unit
+            )
+        money_rt.save() 
+        
+        
+        try:
+            et = EventType.objects.get(name="Give")
+            payment_event_type = et
+        except EventType.DoesNotExist:
+            payment_event_type = EventType(
+            name="Give",
+            label="gives",
+            relationship="give",
+            resource_effect="-",
+            )
+            payment_event_type.save()
+        
+        paying_event = EconomicEvent(
+            event_type=payment_event_type,
+            from_agent=self.contributor,
+            to_agent=supplier,
+            event_date=datetime.date.today(),
+            resource_type=money_rt,
+            exchange=ex,
+            transfer=paying_xfer,
+            context_agent=ca,
+            quantity=Decimal("100.0"),
+            unit_of_quantity=money_unit,
+            value=Decimal("100"),
+            is_contribution=True,
+            )
+        paying_event.save()
+        
         self.value_equation = ValueEquation(
             name="ve1",
             context_agent=ca,
@@ -262,6 +395,14 @@ class ValueEquationRecipe(Recipe):
             )
         rule.save()
         
+        rule = ValueEquationBucketRule(
+            value_equation_bucket=bucket,
+            event_type=payment_event_type,
+            division_rule="percentage",
+            claim_rule_type="debt-like",
+            claim_creation_equation="value",
+            )
+        rule.save()
             
         # need to get work and use events connected to processes
         # do here or in test_value_equations?

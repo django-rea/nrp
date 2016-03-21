@@ -4386,7 +4386,8 @@ class EconomicResource(models.Model):
                 events.append(evt)
                 #print evt.id, evt, evt.share
                 #print "----Event.share:", evt.share, "= evt.value:", evt.value
-        #purchases of resources in value flow are contributions
+        #import pdb; pdb.set_trace()
+        #purchases of resources in value flow can be contributions
         buys = self.purchase_events()
         for evt in buys:
             #import pdb; pdb.set_trace()
@@ -4398,10 +4399,11 @@ class EconomicResource(models.Model):
                 evt.exchange.compute_income_shares(value_equation, evt, quantity, events, visited)
         #todo exchange redesign fallout
         #change transfer_events, that method is obsolete
-        xfers = self.transfer_events()
-        for evt in xfers:
-            if evt.exchange:
-                evt.exchange.compute_income_shares(value_equation, evt, quantity, events, visited)
+        #import pdb; pdb.set_trace()
+        #xfers = self.transfer_events()
+        #for evt in xfers:
+        #    if evt.exchange:
+        #       evt.exchange.compute_income_shares(value_equation, evt, quantity, events, visited)
         #import pdb; pdb.set_trace()
         #income_shares stage change
         processes = self.producing_processes_for_historical_stage()
@@ -4784,6 +4786,7 @@ class EconomicResource(models.Model):
         #obsolete
         #todo exchange redesign fallout
         print "obsolete resource.transfer_event"
+        #import pdb; pdb.set_trace()
         tx_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=tx_et)
         
@@ -7190,7 +7193,6 @@ class Exchange(models.Model):
                         values += evt.share
             #todo exchange redesign fallout
             #import pdb; pdb.set_trace()
-            #these expenses are exactly the same as the receipts above
             expenses = self.expense_events()
             for ex in expenses:
                 ex.depth = depth
@@ -7230,26 +7232,28 @@ class Exchange(models.Model):
             trigger_fraction = 1
             share =  quantity / trigger_event.quantity
             #todo exchange redesign fallout
-            receipts = self.transfer_receive_events()
+            receipts = self.resource_receive_events()
             if receipts:
-                if receipts.count() > 1:
+                if len(receipts) > 1:
                     rsum = sum(r.value for r in receipts)
                     trigger_fraction = trigger_event.value / rsum
-                payments = self.payment_events().filter(to_agent=trigger_event.from_agent)
-                #share =  quantity / trigger_event.quantity
+            payments = [evt for evt in self.reciprocal_transfer_give_events() if evt.to_agent==trigger_event.from_agent]
+            """
             else:
                 #todo exchange redesign fallout
                 #change transfer_events, that method is obsolete
                 xfers = self.transfer_events()
                 if xfers:
                     payments = self.cash_receipt_events().filter(from_agent=trigger_event.to_agent)
-            
-            if payments.count() == 1:
+            """
+            if len(payments) == 1:
                 evt = payments[0]
                 value = evt.quantity
                 contributions = []
                 #import pdb; pdb.set_trace()
-                if evt.resource and not xfers:
+                if evt.resource:
+                    #todo exchange redesign fallout
+                    #do cash_contribution_events work?
                     candidates = evt.resource.cash_contribution_events()
                     for cand in candidates:
                         br = cand.bucket_rule(value_equation)
@@ -7274,7 +7278,7 @@ class Exchange(models.Model):
                     evt.share = value * share * trigger_fraction
                     events.append(evt)
                     
-            elif payments.count() > 1:
+            elif len(payments) > 1:
                 total = sum(p.quantity for p in payments)
                 for evt in payments:
                     fraction = evt.quantity / total
@@ -7301,7 +7305,7 @@ class Exchange(models.Model):
                         
             expenses = self.expense_events()
             for ex in expenses:
-                exp_payments = self.payment_events().filter(to_agent=ex.from_agent)
+                exp_payments = [evt for evt in self.reciprocal_transfer_give_events() if evt.to_agent==ex.from_agent]
                 for exp in exp_payments:
                     value = exp.quantity
                     br = exp.bucket_rule(value_equation)

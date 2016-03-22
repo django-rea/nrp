@@ -189,7 +189,7 @@ def add_worker_to_location(request, location_id, agent_id):
 
 @login_required
 def add_location_to_worker(request, agent_id):
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     data = request.POST
     address = data["address"]

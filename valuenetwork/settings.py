@@ -147,22 +147,23 @@ INSTALLED_APPS = [
     'notification',
     'corsheaders',
     #'django_filters',
-    #'rest_framework',
+    'rest_framework',
     
     # project
     'valuenetwork.valueaccounting',
     'valuenetwork.equipment',
     'valuenetwork.board',
+    'valuenetwork.api',
     'account',
     'work',
 
 ]
 
-#REST_FRAMEWORK = {
-#    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
-#    'PAGINATE_BY': 10,
-#   'URL_FIELD_NAME': 'api_url',
-#}
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
+    'PAGINATE_BY': 10,
+   'URL_FIELD_NAME': 'api_url',
+}
 
 # valueaccounting settings
 USE_WORK_NOW = True

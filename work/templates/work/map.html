@@ -123,6 +123,15 @@
         
         $("#address").blur(geocodeAddress);
         
+        $('#address').on('keypress', function(e) {
+            var keyCode =  e.which;
+            if (keyCode == 13){
+                e.preventDefault();
+                $('#address').trigger( "blur" );
+                return false;
+            }
+        });
+        
         var agentAddress = "{{ agent.address }}";
         if (agentAddress) 
         {

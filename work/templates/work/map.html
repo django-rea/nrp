@@ -14,6 +14,17 @@
     color: firebrick;
 }
 
+#mapError {
+    font-size: 70%; 
+    margin: 0;
+    padding: 0;
+}
+
+#locationForm {
+    margin: 0;
+    padding: 0;
+}
+
 </style>
 {% endblock %}
 
@@ -51,7 +62,7 @@
             
             </form>
             
-            <span id="mapError" style="font-size: 70%;" ></span>
+            <span id="mapError" ></span>
             
         {% else %}
             {% trans "Map" %}

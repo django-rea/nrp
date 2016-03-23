@@ -80,7 +80,21 @@ class ValueEquationRecipe(Recipe):
             unit=self.unit,
             )
         self.consumable_rt.save()
-
+        
+        self.community_rt = EconomicResourceType(
+            name="community purchased type",
+            unit_of_use=self.hours_unit,
+            unit=self.unit,
+            )
+        self.community_rt.save()
+        
+        self.community_resource = EconomicResource(
+            resource_type=self.community_rt,
+            identifier="community resource",
+            value_per_unit_of_use=Decimal("50"),
+            )
+        self.community_resource.save()
+        
         if not usable:
             self.usable = EconomicResource(
                 resource_type=urt,
@@ -148,6 +162,15 @@ class ValueEquationRecipe(Recipe):
         )
         usable_input.save()
         
+        self.community_input = ProcessTypeResourceType(
+            process_type=child_pt,
+            resource_type=self.community_rt,
+            event_type=self.use_event_type,
+            quantity=Decimal("1"),
+            unit_of_quantity=self.hours_unit,
+        )
+        self.community_input.save()
+        
         if not contribution_event_type:
             try:
                 et = EventType.objects.get(name="Receive")
@@ -171,13 +194,13 @@ class ValueEquationRecipe(Recipe):
             uc.save()
             
         xt = ExchangeType(
-            name="Material Contribution",
+            name="Resource Contribution",
             use_case=uc,
             )
         xt.save()
         
         tt = TransferType(
-            name="Material Contribution",
+            name="Resource Contribution",
             exchange_type=xt,
             is_contribution=True,
             can_create_resource=True,
@@ -194,6 +217,7 @@ class ValueEquationRecipe(Recipe):
         ex.save()
         
         xfer = Transfer(
+            name="resource contribution",
             transfer_type=tt,
             exchange=ex,
             context_agent=ca,
@@ -234,13 +258,13 @@ class ValueEquationRecipe(Recipe):
         consumable_input.save()
         
         xt = ExchangeType(
-            name="Material Purchase",
+            name="Resource Purchase",
             use_case=uc,
             )
         xt.save()
         
         rtt = TransferType(
-            name="Material Receipt",
+            name="Resource Receipt",
             exchange_type=xt,
             can_create_resource=True,
             receive_agent_is_context=True,
@@ -251,6 +275,7 @@ class ValueEquationRecipe(Recipe):
             name="Payment",
             exchange_type=xt,
             is_reciprocal=True,
+            is_currency=True,
             receive_agent_is_context=False,
             )
         ptt.save()
@@ -264,6 +289,7 @@ class ValueEquationRecipe(Recipe):
         ex.save()
         
         receiving_xfer = Transfer(
+            name="consumable receipt",
             transfer_type=rtt,
             exchange=ex,
             context_agent=ca,
@@ -272,6 +298,7 @@ class ValueEquationRecipe(Recipe):
         receiving_xfer.save()
         
         paying_xfer = Transfer(
+            name="consumable payment",
             transfer_type=ptt,
             exchange=ex,
             context_agent=ca,
@@ -345,11 +372,244 @@ class ValueEquationRecipe(Recipe):
             )
         paying_event.save()
         
+        community_ex = Exchange(
+            use_case=uc,
+            exchange_type=xt,
+            context_agent=ca,
+            start_date=datetime.date.today(),
+            )
+        community_ex.save()
+        
+        community_receiving_xfer = Transfer(
+            transfer_type=rtt,
+            exchange=community_ex,
+            context_agent=ca,
+            transfer_date=datetime.date.today(),
+            )
+        community_receiving_xfer.save()
+        
+        community_receiving_event = EconomicEvent(
+            event_type=self.contribution_event_type,
+            from_agent=supplier,
+            to_agent=ca,
+            event_date=datetime.date.today(),
+            resource_type=self.community_rt,
+            resource=self.community_resource,
+            exchange=community_ex,
+            transfer=community_receiving_xfer,
+            context_agent=ca,
+            quantity=Decimal("1.0"),
+            unit_of_quantity=self.unit,
+            value=Decimal("1000"),
+            )
+        community_receiving_event.save()
+        
+        community_paying_xfer = Transfer(
+            name="community payment",
+            transfer_type=ptt,
+            exchange=community_ex,
+            context_agent=ca,
+            transfer_date=datetime.date.today(),
+            )
+        community_paying_xfer.save()
+        
+        
+        virtual_rt = EconomicResourceType(
+            name="virtual account",
+            unit=money_unit
+            )
+        virtual_rt.save()
+        
+        virtual_account = EconomicResource(
+            resource_type=virtual_rt,
+            identifier="test account",
+            )
+        virtual_account.save()
+        
+        # contributors and
+        #   contributions to virtual account
+        va_contributor1 = EconomicAgent(
+            name="va contributor1",
+            nick="vacontributor1",
+            agent_type=agent_type,
+            )
+        va_contributor1.save()
+        
+        va_contributor2 = EconomicAgent(
+            name="va contributor2",
+            nick="vacontributor2",
+            agent_type=agent_type,
+            )
+        va_contributor2.save()
+
+        #cash contributions into virtual account
+
+        #TransferType(
+        #Transfer(s
+        #Contributions event (just a receive)
+        
+        try:
+            iuc = UseCase.objects.get(name="Internal Exchange")
+        except UseCase.DoesNotExist:
+            iuc = UseCase(
+                name="Internal Exchange",
+                identifier="intrnl_xfer",
+                )
+            iuc.save()
+        
+        finxt = ExchangeType(
+            name="Financial Contribution",
+            use_case=iuc,
+            )
+        finxt.save()
+        
+        finex = Exchange(
+            use_case=iuc,
+            exchange_type=finxt,
+            context_agent=ca,
+            start_date=datetime.date.today(),
+            )
+        finex.save()
+        
+        fintt = TransferType(
+            name="Financial Contribution",
+            exchange_type=finxt,
+            is_currency=True,
+            receive_agent_is_context=True,
+            )
+        fintt.save()
+        
+        finxfer1 = Transfer(
+            name="financial contribution 1",
+            transfer_type=fintt,
+            exchange=finex,
+            context_agent=ca,
+            transfer_date=datetime.date.today(),
+            )
+        finxfer1.save()
+        
+        finxfer2 = Transfer(
+            name="financial contribution 2",
+            transfer_type=fintt,
+            exchange=finex,
+            context_agent=ca,
+            transfer_date=datetime.date.today(),
+            )
+        finxfer2.save()
+        
+
+        finevt1 = EconomicEvent(
+            event_type=self.contribution_event_type,
+            from_agent=va_contributor1,
+            to_agent=ca,
+            event_date=datetime.date.today(),
+            # ???
+            resource_type=money_rt,
+            resource=virtual_account,
+            exchange=finex,
+            transfer=finxfer1,
+            context_agent=ca,
+            quantity=Decimal("600.0"),
+            unit_of_quantity=money_unit,
+            value=Decimal("600"),
+            is_contribution=True,
+            )
+        finevt1.save()
+        
+        finevt2 = EconomicEvent(
+            event_type=self.contribution_event_type,
+            from_agent=va_contributor2,
+            to_agent=ca,
+            event_date=datetime.date.today(),
+            # ???
+            resource_type=money_rt,
+            resource=virtual_account,
+            exchange=finex,
+            transfer=finxfer2,
+            context_agent=ca,
+            quantity=Decimal("400.0"),
+            unit_of_quantity=money_unit,
+            value=Decimal("400"),
+            is_contribution=True,
+            )
+        finevt2.save()
+
+        community_paying_event = EconomicEvent(
+            event_type=payment_event_type,
+            # ???
+            from_agent=ca,
+            to_agent=supplier,
+            event_date=datetime.date.today(),
+            resource_type=money_rt,
+            resource=virtual_account,
+            exchange=community_ex,
+            transfer=community_paying_xfer,
+            context_agent=ca,
+            quantity=Decimal("1000.0"),
+            unit_of_quantity=money_unit,
+            value=Decimal("1000"),
+            )
+        community_paying_event.save()
+        
         self.value_equation = ValueEquation(
             name="ve1",
             context_agent=ca,
             )
         self.value_equation.save()
+        
+        supplier2 = EconomicAgent(
+            name="supplier2",
+            nick="supplier2",
+            agent_type=agent_type,
+            is_context=True,
+            )
+        supplier.save()
+        
+        expense_rt = EconomicResourceType(
+            name="expense type",
+            unit=self.unit,
+            )
+        expense_rt.save()
+        
+        receiving_event2 = EconomicEvent(
+            event_type=self.contribution_event_type,
+            from_agent=supplier2,
+            to_agent=ca,
+            event_date=datetime.date.today(),
+            resource_type=expense_rt,
+            exchange=ex,
+            transfer=receiving_xfer,
+            context_agent=ca,
+            quantity=Decimal("1.0"),
+            unit_of_quantity=self.unit,
+            value=Decimal("20"),
+            )
+        receiving_event2.save()
+        
+        expense_paying_xfer = Transfer(
+            name="expense payment",
+            transfer_type=ptt,
+            exchange=ex,
+            context_agent=ca,
+            transfer_date=datetime.date.today(),
+            )
+        expense_paying_xfer.save()
+        
+        paying_event2 = EconomicEvent(
+            event_type=payment_event_type,
+            from_agent=self.contributor,
+            to_agent=supplier2,
+            event_date=datetime.date.today(),
+            resource_type=money_rt,
+            exchange=ex,
+            transfer=expense_paying_xfer,
+            context_agent=ca,
+            quantity=Decimal("20.0"),
+            unit_of_quantity=money_unit,
+            value=Decimal("20"),
+            is_contribution=True,
+            )
+        paying_event2.save()
         
         bucket = ValueEquationBucket(
             name="bucket0",

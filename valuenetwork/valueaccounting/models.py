@@ -4764,9 +4764,13 @@ class EconomicResource(models.Model):
             event_type__relationship='cash')
             
     def cash_contribution_events(self): #includes only cash contributions
-        #todo 3d:
-        return self.events.filter(
-            event_type__name='Cash Contribution')
+        #todo exchange redesign fallout
+        #import pdb; pdb.set_trace()
+        rct_et = EventType.objects.get(name="Receive")
+        with_xfer = [event for event in self.events.all() if event.transfer and event.event_type==rct_et]
+        contributions = [event for event in with_xfer if event.is_contribution]
+        currencies = [event for event in contributions if event.transfer.transfer_type.is_currency]
+        return currencies
         
     def purchase_events(self):
         #todo exchange redesign fallout
@@ -7058,6 +7062,10 @@ class Exchange(models.Model):
                     if event.event_type == et_give:
                         events.append(event)
         return events
+        
+    def payment_events(self):
+        events = self.reciprocal_transfer_give_events()
+        return [evt for evt in events if evt.transfer.transfer_type.is_currency]
      
     #todo:not tested
     def reciprocal_transfer_receive_events(self):
@@ -7148,7 +7156,7 @@ class Exchange(models.Model):
                 #what fraction is the trigger_event of the total value of receipts
                 rsum = sum(r.value for r in receipts)
                 trigger_fraction = trigger_event.value / rsum
-            payments = [evt for evt in self.reciprocal_transfer_receive_events() if evt.to_agent==trigger_event.from_agent]
+            payments = [evt for evt in self.payment_events() if evt.to_agent==trigger_event.from_agent]
             #share =  quantity / trigger_event.quantity
             if len(payments) == 1:
                 evt = payments[0]
@@ -7199,7 +7207,7 @@ class Exchange(models.Model):
                 path.append(ex)
                 value = ex.value
                 values += value * trigger_fraction
-                exp_payments = [evt for evt in self.reciprocal_transfer_receive_events() if evt.to_agent==ex.from_agent]
+                exp_payments = [evt for evt in self.payment_events() if evt.to_agent==ex.from_agent]
                 #exp_payments = self.payment_events().filter(to_agent=ex.from_agent)
                 for exp in exp_payments:
                     depth += 1
@@ -7237,7 +7245,7 @@ class Exchange(models.Model):
                 if len(receipts) > 1:
                     rsum = sum(r.value for r in receipts)
                     trigger_fraction = trigger_event.value / rsum
-            payments = [evt for evt in self.reciprocal_transfer_give_events() if evt.to_agent==trigger_event.from_agent]
+            payments = [evt for evt in self.payment_events() if evt.to_agent==trigger_event.from_agent]
             """
             else:
                 #todo exchange redesign fallout
@@ -7305,7 +7313,7 @@ class Exchange(models.Model):
                         
             expenses = self.expense_events()
             for ex in expenses:
-                exp_payments = [evt for evt in self.reciprocal_transfer_give_events() if evt.to_agent==ex.from_agent]
+                exp_payments = [evt for evt in self.payment_events() if evt.to_agent==ex.from_agent]
                 for exp in exp_payments:
                     value = exp.quantity
                     br = exp.bucket_rule(value_equation)
@@ -7342,21 +7350,24 @@ class Exchange(models.Model):
             trigger_fraction = 1
             #equip logging changes
             #todo exchange redesign fallout
-            receipts = self.transfer_receive_events()
-            payments = self.reciprocal_transfer_receive_events()
+            receipts = self.resource_receive_events()
+            #needed?
+            #payments = [evt for evt in self.payment_events() if evt.to_agent==trigger_event.from_agent]
+            payments = self.payment_events()
             if receipts:
-                if receipts.count() > 1:
+                if len(receipts) > 1:
                     rsum = sum(r.value for r in receipts)
                     #trigger_fraction = use_event.value / rsum
                 #payments = self.payment_events().filter(to_agent=trigger_event.from_agent)
                 #share =  quantity / trigger_event.quantity
-                
+            """    
             else:
                 #todo exchange redesign fallout
                 xfers = self.transfers.all()
                 if xfers:
                     #payments = self.cash_receipt_events().filter(from_agent=trigger_event.to_agent)
                     payments = self.reciprocal_transfer_receive_events()
+            """
             cost = Decimal("0")
             if payments:
                 cost = sum(p.quantity for p in payments)

@@ -46,7 +46,5 @@ class RecipeTest(WebTest):
         node3 = nodes[3]
         assert node3.depth == 4
         assert node3.xbill_object() == self.grandchild
-        node4 = nodes[4]
-        assert node4.depth == 5
-        assert len(node4.close) > 0
+
 

@@ -234,14 +234,9 @@
                                 {% if user_agent %}
                                     {% if agent.primary_location %}
                                         {{ agent.primary_location.address }}</br>
-                                        <a href="{% url change_location location_id=agent.primary_location.id agent_id=agent.id %}">{% trans "Change on Map" %} </a>
+                                        <a href="{% url locations %}">{% trans "Change on map" %}</a>
                                     {% else %}
-                                        {% if agent.address %}
-                                            {{ agent.address }}</br>
-                                            <a href="{% url create_location agent_id=agent.id %}">{% trans "Add to Map" %} </a>
-                                        {% else %}
-                                            <a href="{% url locations %}">{% trans "Select working location on map" %}</a>
-                                        {% endif %}
+                                        <a href="{% url locations %}">{% trans "Add on map" %}</a>
                                     {% endif %}
                                 {% endif %}
                             </td>

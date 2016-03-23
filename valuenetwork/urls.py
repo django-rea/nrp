@@ -20,7 +20,7 @@ urlpatterns = patterns("",
     url(r"^equipment/", include("valuenetwork.equipment.urls")),
     url(r"^board/", include("valuenetwork.board.urls")),
     url(r"^work/", include("work.urls")),
-    #url(r"^api/", include("valuenetwork.api.urls")),
+    url(r"^api/", include("valuenetwork.api.urls")),
     #url(r'^report_builder/', include('report_builder.urls')),
 )
 

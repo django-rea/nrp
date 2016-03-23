@@ -179,33 +179,41 @@ def update_skills(request, agent_id):
         
 @login_required
 def add_worker_to_location(request, location_id, agent_id):
-    #import pdb; pdb.set_trace()
-    location = get_object_or_404(Location, id=location_id)
-    agent = get_object_or_404(EconomicAgent, id=agent_id)
-    agent.primary_location = location
-    agent.save()
-    return HttpResponseRedirect('/%s/'
-        % ('work/profile'))
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        location = get_object_or_404(Location, id=location_id)
+        agent = get_object_or_404(EconomicAgent, id=agent_id)
+        agent.primary_location = location
+        agent.save()
+        return HttpResponseRedirect('/%s/'
+            % ('work/profile'))
+    else:
+        return HttpResponseRedirect('/%s/'
+            % ('work/map'))
 
 @login_required
 def add_location_to_worker(request, agent_id):
-    import pdb; pdb.set_trace()
-    agent = get_object_or_404(EconomicAgent, id=agent_id)
-    data = request.POST
-    address = data["address"]
-    longitude = data["agentLongitude"]
-    latitude = data["agentLatitude"]
-    location, created = Location.objects.get_or_create(
-        latitude=latitude,
-        longitude=longitude,
-        address=address)
-    if created:
-        location.name = address
-        location.save()
-    agent.primary_location = location
-    agent.save()
-    return HttpResponseRedirect('/%s/'
-        % ('work/profile'))
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        agent = get_object_or_404(EconomicAgent, id=agent_id)
+        data = request.POST
+        address = data["address"]
+        longitude = data["agentLongitude"]
+        latitude = data["agentLatitude"]
+        location, created = Location.objects.get_or_create(
+            latitude=latitude,
+            longitude=longitude,
+            address=address)
+        if created:
+            location.name = address
+            location.save()
+        agent.primary_location = location
+        agent.save()
+        return HttpResponseRedirect('/%s/'
+            % ('work/profile'))
+    else:
+        return HttpResponseRedirect('/%s/'
+            % ('work/map'))
         
 @login_required    
 def process_logging(request, process_id):

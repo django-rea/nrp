@@ -5457,7 +5457,7 @@ class ProcessTypeResourceType(models.Model):
             event_type=self.event_type,
             resource_type=self.resource_type,
             quantity=self.quantity,
-            #todo transferBreakout
+            #todo exchange redesign fallout
             unit_of_quantity=unit,
             due_date=due_date,
             #from_agent=from_agent,
@@ -7160,8 +7160,6 @@ class Exchange(models.Model):
             # to eliminate error messages
             #Note: trigger_event is also one of the receipts
             receipts = self.resource_receive_events()
-            #todo dhen_bug: need to deal with transfers
-            #and then might be a flow between exchanges
             trigger_fraction = 1
             if len(receipts) > 1:
                 #what fraction is the trigger_event of the total value of receipts
@@ -10638,7 +10636,7 @@ class EconomicEvent(models.Model):
         #EconomicEvent (shipment) method
         #import pdb; pdb.set_trace()
         shares = []
-        #todo transferBreakout: 
+        #todo exchange redesign fallout 
         # shipment events are no longer event_type.name == "Shipment"
         # they are et.name == "Give"
         if self.event_type.name == "Give":

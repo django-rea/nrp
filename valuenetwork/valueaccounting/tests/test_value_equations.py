@@ -24,6 +24,7 @@ from valuenetwork.valueaccounting.tests.value_equation_test_objects import *
                             some work
                             uses a resource
                                 purchased with community contributions
+                                with an added expense
                                 
             One value equation
                 with one bucket
@@ -32,8 +33,9 @@ from valuenetwork.valueaccounting.tests.value_equation_test_objects import *
                         EventType Resource Production
                         EventType Resource Contributionm
                         EventType Payment 
-                            (for contributors to used community funded resource)
-    
+                            for contributors to used community funded resource
+                            and to the expense for that purchase
+                            
         test_setup:
             A convenience to see if value_equation_test_objects
             and those created in the setUp method below

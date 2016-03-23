@@ -27,7 +27,7 @@ from valuenetwork.valueaccounting.tests.value_equation_test_objects import *
                                 with an added expense
                                 
             One value equation
-                with one bucket
+                with one bucket: filter_method: order
                     with 4 bucket rules:
                         EventType Work
                         EventType Resource Production
@@ -35,6 +35,18 @@ from valuenetwork.valueaccounting.tests.value_equation_test_objects import *
                         EventType Payment 
                             for contributors to used community funded resource
                             and to the expense for that purchase
+                            
+            Not tested:
+                More value equations
+                    different percentage_behaviors
+                More buckets
+                    different filter methods
+                    direct to agent 
+                More bucket rules
+                    different division_rules
+                    different claim rules
+                    different claim_creation_equations
+                More distribution runs with partly paid claims
                             
         test_setup:
             A convenience to see if value_equation_test_objects

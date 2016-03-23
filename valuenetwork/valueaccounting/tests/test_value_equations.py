@@ -86,6 +86,24 @@ class ValueEquationTest(TestCase):
             )
         uevent.save()
         
+        uet = self.recipe.use_event_type
+        community_resource = self.recipe.community_resource
+        
+        community_use_event = EconomicEvent(
+            event_type=uet,
+            resource_type=community_resource.resource_type,
+            resource=community_resource,
+            from_agent=self.recipe.worker,
+            to_agent=context_agent,
+            process=process,
+            context_agent=context_agent,
+            quantity=Decimal("1"),
+            unit_of_quantity=community_resource.resource_type.unit_of_use,
+            #commitment=?,
+            event_date=datetime.date.today(),
+            )
+        community_use_event.save()
+        
         child_input = process.incoming_commitments()[0]
         child_output=child_input.associated_producing_commitments()[0]
         child_process=child_output.process
@@ -160,10 +178,23 @@ class ValueEquationTest(TestCase):
             is_contribution=True,
             )
         work_event.save()
+        
+        event = EconomicEvent(
+            event_type=self.consumption_event_type,
+            from_agent=self.recipe.contributor,
+            to_agent=context_agent,
+            event_date=datetime.date.today(),
+            process=child_process,
+            resource_type=self.recipe.consumable_rt,
+            resource=self.recipe.consumable,
+            context_agent=context_agent,
+            quantity=Decimal("1.0"),
+            unit_of_quantity=self.unit,
+            )
+        event.save()
 
         
     def test_setup(self):
-        
         parent = self.recipe.parent
         parent_pt = parent.main_producing_process_type()
         #import pdb; pdb.set_trace()
@@ -177,6 +208,7 @@ class ValueEquationTest(TestCase):
         used = self.recipe.parent.main_producing_process_type().used_resource_type_relationships()[0]
         used_commitment = process.used_input_requirements()[0]
         self.assertEqual(used_commitment.resource_type, self.recipe.usable.resource_type)
+        consumable = self.recipe.consumable
         #import pdb; pdb.set_trace()
         
     def test_contribution_shares(self):
@@ -184,15 +216,21 @@ class ValueEquationTest(TestCase):
         #import pdb; pdb.set_trace()
         shares = self.order_item.compute_income_fractions_for_process(ve)
         #import pdb; pdb.set_trace()
-        resource_contributions = [share for share in shares if share.event_type.name=="Receive"]
-        self.assertEqual(len(resource_contributions), 1)
-        resource_contributions = resource_contributions[0]
-        self.assertEqual(resource_contributions.share, Decimal("10.0"))
-        work_contributions = [share for share in shares if share.event_type.name=="Time Contribution"]
-        work_contributions = work_contributions[0]
-        self.assertEqual(work_contributions.share, Decimal("25.0"))
-        resource_productions = [share for share in shares if share.event_type.name=="Resource Production"]
-        resource_production = resource_productions[0]
+        work_contribution = [share for share in shares if share.event_type.name=="Time Contribution"][0]
+        self.assertEqual(work_contribution.share, Decimal("25.0"))
+        resource_production = [share for share in shares if share.event_type.name=="Resource Production"][0]
         self.assertEqual(resource_production.share, Decimal("50.0"))
+        
+        named = [share for share in shares if share.transfer]
+        financial_contribution1 = [share for share in named if share.transfer.name=="financial contribution 1"][0]
+        self.assertEqual(financial_contribution1.share, Decimal("30.0"))
+        financial_contribution2 = [share for share in named if share.transfer.name=="financial contribution 2"][0]
+        self.assertEqual(financial_contribution2.share, Decimal("20.0"))
+        resource_contribution = [share for share in named if share.transfer.name=="resource contribution"][0]
+        self.assertEqual(resource_contribution.share, Decimal("10.0"))
+        payment_for_consumable = [share for share in named if share.transfer.name=="consumable payment"][0]
+        self.assertEqual(payment_for_consumable.share, Decimal("50.0"))
+        payment_for_expense = [share for share in named if share.transfer.name=="expense payment"][0]
+        self.assertEqual(payment_for_expense.share, Decimal("10.0"))
         
         

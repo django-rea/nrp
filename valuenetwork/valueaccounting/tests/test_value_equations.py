@@ -7,8 +7,17 @@ from django.test import Client
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.utils import *
+from django.utils import simplejson
 #from valuenetwork.valueaccounting.tests.objects_for_testing import *
 from valuenetwork.valueaccounting.tests.value_equation_test_objects import *
+
+def serialize_filter(orders):
+    #import pdb; pdb.set_trace()
+    json = {"method": "Order",}
+    json["orders"] = [order.id for order in orders]
+    
+    string = simplejson.dumps(json)            
+    return string
 
 class ValueEquationTest(TestCase):
 
@@ -49,13 +58,21 @@ class ValueEquationTest(TestCase):
         visited = []
         process = commitment.generate_producing_process(self.user, visited, explode=True)
         
-        #need production event
+        #need produced resource
+        
+        self.parent_resource = EconomicResource(
+            resource_type=self.parent,
+            identifier="parent1",
+            quantity=Decimal("1"),
+            )
+        self.parent_resource.save()
         
         pet = self.recipe.production_event_type
         
         pevent = EconomicEvent(
             event_type=pet,
             resource_type=self.parent,
+            resource=self.parent_resource,
             from_agent=self.recipe.worker,
             to_agent=context_agent,
             process=process,
@@ -211,6 +228,18 @@ class ValueEquationTest(TestCase):
         consumable = self.recipe.consumable
         #import pdb; pdb.set_trace()
         
+    def test_rollup(self):
+        parent_resource = self.parent_resource
+        ve = self.recipe.value_equation
+        visited = set()
+        path = []
+        depth = 0
+        #import pdb; pdb.set_trace()
+        value_per_unit = parent_resource.roll_up_value(path, depth, visited, ve)
+        self.assertEqual(value_per_unit, Decimal("145.0"))
+
+        #import pdb; pdb.set_trace()
+        
     def test_contribution_shares(self):
         ve = self.recipe.value_equation
         #import pdb; pdb.set_trace()
@@ -233,4 +262,30 @@ class ValueEquationTest(TestCase):
         payment_for_expense = [share for share in named if share.transfer.name=="expense payment"][0]
         self.assertEqual(payment_for_expense.share, Decimal("10.0"))
         
+        #for share in shares:
+        #    print share.from_agent, share.share
         
+    def test_distribution(self):
+        ve = self.recipe.value_equation
+        order = self.order
+        orders = [order,]
+        buckets = ve.buckets.all()
+        #amount_to_distribute = Decimal("1000")
+        amount_to_distribute = Decimal("195")
+        serialized_filter = serialize_filter(orders)
+        serialized_filters = {}
+        for bucket in buckets:
+            serialized_filters[bucket.id] = serialized_filter
+        agent_totals, details = ve.run_value_equation(amount_to_distribute=amount_to_distribute, serialized_filters=serialized_filters)
+        for at in agent_totals:
+            #print at.to_agent, at.quantity
+            if at.to_agent.name == "worker":
+                self.assertEqual(at.quantity, Decimal("75.0"))
+            elif at.to_agent.name == "contributor":
+                self.assertEqual(at.quantity, Decimal("70.0"))
+            elif at.to_agent.name == "vacontributor1":
+                self.assertEqual(at.quantity, Decimal("30.0"))
+            elif at.to_agent.name == "vacontributor2":
+                self.assertEqual(at.quantity, Decimal("20.0"))
+                
+        #import pdb; pdb.set_trace()

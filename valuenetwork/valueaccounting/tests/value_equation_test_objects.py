@@ -611,10 +611,11 @@ class ValueEquationRecipe(Recipe):
             )
         paying_event2.save()
         
+        """
         bucket = ValueEquationBucket(
             name="bucket0",
             value_equation=self.value_equation,
-            filter_method="process",
+            filter_method="order",
             percentage=Decimal("50"),
             )
         bucket.save()
@@ -625,17 +626,29 @@ class ValueEquationRecipe(Recipe):
             division_rule="percentage",
             claim_rule_type="debt-like",
             claim_creation_equation="value",
+            filter_rule= "{}",
             )
         rule.save()
-        
+        """
         bucket = ValueEquationBucket(
             name="bucket1",
             sequence=1,
             value_equation=self.value_equation,
-            filter_method="process",
-            percentage=Decimal("50"),
+            filter_method="order",
+            percentage=Decimal("100"),
             )
         bucket.save()
+        
+        rule = ValueEquationBucketRule(
+            value_equation_bucket=bucket,
+            event_type=self.contribution_event_type,
+            division_rule="percentage",
+            claim_rule_type="debt-like",
+            claim_creation_equation="value",
+            filter_rule= "{}",
+            )
+        rule.save()
+        
         
         rule = ValueEquationBucketRule(
             value_equation_bucket=bucket,
@@ -643,6 +656,7 @@ class ValueEquationRecipe(Recipe):
             division_rule="percentage",
             claim_rule_type="debt-like",
             claim_creation_equation="quantity * 25",
+            filter_rule= "{}",
             )
         rule.save()
         
@@ -652,6 +666,7 @@ class ValueEquationRecipe(Recipe):
             division_rule="percentage",
             claim_rule_type="debt-like",
             claim_creation_equation="value",
+            filter_rule= "{}",
             )
         rule.save()
         
@@ -661,6 +676,7 @@ class ValueEquationRecipe(Recipe):
             division_rule="percentage",
             claim_rule_type="debt-like",
             claim_creation_equation="value",
+            filter_rule= "{}",
             )
         rule.save()
             

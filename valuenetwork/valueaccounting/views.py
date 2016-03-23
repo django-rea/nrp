@@ -5589,10 +5589,10 @@ def add_transfer(request, exchange_id, transfer_type_id):
         context_agent = exchange.context_agent
         form = TransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix="ATR" + str(transfer_type.id))
         if form.is_valid():
-            data = form.cleaned_data
-            
+            data = form.cleaned_data            
             qty = data["quantity"] 
             res = None
+            res_from = None
             et2 = None
             res_identifier = None
             if qty:
@@ -5608,8 +5608,10 @@ def add_transfer(request, exchange_id, transfer_type_id):
                 else:
                     to_agent = data["to_agent"]  
                 rt = data["resource_type"]
-                if not transfer_type.can_create_resource:
-                    res = data["resource"]
+                #if not transfer_type.can_create_resource:
+                res = data["resource"]
+                if transfer_type.is_currency:
+                    res_from = data["from_resource"]
                 description = data["description"]
                 if transfer_type.is_currency:
                     value = qty
@@ -5630,7 +5632,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     is_to_distribute = False
                 event_ref = data["event_reference"]
                 if transfer_type.can_create_resource:
-                    res = data["resource"]
+                    #res = data["resource"]
                     if not res:
                         res_identifier = data["identifier"]
                         if res_identifier:
@@ -5646,24 +5648,23 @@ def add_transfer(request, exchange_id, transfer_type_id):
                                 quantity=0,
                                 created_by=request.user,
                                 )
-                # todo: adjusting resource quantity would be better to use EventType.creates_resources and .consumes_resources methods
                 if exchange.exchange_type.use_case == UseCase.objects.get(identifier="supply_xfer"):
                     if transfer_type.is_reciprocal:
                         if res:
-                            res.quantity -= res.quantity
+                            res.quantity -= qty
                         et = et_give
                     else:
                         if res:
-                            res.quantity += res.quantity
+                            res.quantity += qty
                         et = et_receive
                 elif exchange.exchange_type.use_case == UseCase.objects.get(identifier="demand_xfer"):
                     if transfer_type.is_reciprocal:
                         if res:
-                            res.quantity += res.quantity
+                            res.quantity += qty
                         et = et_receive
                     else:
                         if res:
-                            res.quantity -= res.quantity
+                            res.quantity -= qty
                         et = et_give
                 else: #internal xfer use case
                     if transfer_type.is_reciprocal:
@@ -5672,8 +5673,16 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     else:
                         et = et_give
                         et2 = et_receive
+                    if transfer_type.is_currency:
+                        if res != res_from:
+                            if res:
+                                res.quantity += qty
+                            if res_from:
+                                res_from.quantity -= qty
                 if res:
                     res.save()
+                if res_from:
+                    res_from.save()
                 if res_identifier: #new resource
                     create_role_formset = resource_role_agent_formset(prefix=str(transfer_type.id), data=request.POST)
                     for form_rra in create_role_formset.forms:
@@ -5706,18 +5715,22 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     created_by = request.user              
                     )
                 xfer.save()
+                #import pdb; pdb.set_trace()
                 e_is_to_distribute = is_to_distribute
                 if et == et_give:
                     e_is_to_distribute = False
                 e_is_contribution = is_contribution
                 if et == et_receive and et2:
                     e_is_contribution = False
+                if et == et_give and res_from:
+                    event_res = res_from
+                else:
+                    event_res = res
                 event = EconomicEvent(
                     event_type = et,
                     event_date=event_date,
                     resource_type=rt,
-                    resource=res,
-                    exchange = exchange,
+                    resource=event_res,
                     transfer=xfer,
                     exchange_stage=exchange.exchange_type,
                     context_agent = context_agent,
@@ -5740,12 +5753,15 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     e2_is_contribution = is_contribution
                     if et2 == et_receive:
                         e2_is_contribution = False
+                    if et2 == et_give and res_from:
+                        event_res = res_from
+                    else:
+                        event_res = res
                     event2 = EconomicEvent(
                         event_type = et2,
                         event_date=event_date,
                         resource_type=rt,
-                        resource=res,
-                        exchange = exchange,
+                        resource=event_res,
                         transfer=xfer,
                         exchange_stage=exchange.exchange_type,
                         context_agent = context_agent,
@@ -5789,13 +5805,15 @@ def transfer_from_commitment(request, transfer_id):
             else:
                 to_agent = data["to_agent"]  
             rt = data["resource_type"]
-            if not transfer_type.can_create_resource:
-                res = data["resource"]
+            #if not transfer_type.can_create_resource:
+            res = data["resource"]
             description = data["description"]
             if transfer_type.is_currency:
                 value = qty
                 unit_of_value = rt.unit
+                res_from = data["from_resource"]
             else:
+                res_from = None
                 value = data["value"]
                 if value:
                     unit_of_value = data["unit_of_value"]
@@ -5806,9 +5824,9 @@ def transfer_from_commitment(request, transfer_id):
             else:
                 is_contribution = False
             event_ref = data["event_reference"]
-            res = None
+            #res = None
             if transfer_type.can_create_resource:
-                res = data["resource"]
+                #res = data["resource"]
                 if not res:
                     res_identifier = data["identifier"]
                     if res_identifier: #new resource
@@ -5820,31 +5838,36 @@ def transfer_from_commitment(request, transfer_id):
                             notes=data["notes"],
                             access_rules=data["access_rules"],
                             resource_type=rt,
-                            exchange_stage=exchange_type,
+                            exchange_stage=exchange.exchange_type,
                             quantity=0,
                             created_by=request.user,
                             )
                         res.save()
-                        create_role_formset = xfer.create_role_formset(prefix=transfer.form_prefix(), data=request.POST)
+                        create_role_formset = transfer.create_role_formset(data=request.POST)
                         for form_rra in create_role_formset.forms:
                             if form_rra.is_valid():
                                 data_rra = form_rra.cleaned_data
                                 if data_rra:
+                                    role = data_rra["role"]
+                                    agent = data_rra["agent"]
                                     if role and agent:
                                         rra = AgentResourceRole()
-                                        rra.agent = data_rra["agent"]
-                                        rra.role = data_rra["role"]
+                                        rra.agent = agent
+                                        rra.role = role
                                         rra.resource = res
                                         rra.is_contact = data_rra["is_contact"]
-                                        rra.save()       
+                                        rra.save()  
             for commit in transfer.commitments.all():
+                if commit.event_type == et_give and res_from:
+                    event_res = res_from
+                else:
+                    event_res = res
                 event = EconomicEvent(
                     event_type=commit.event_type,
                     resource_type = rt,
-                    resource = res,
+                    resource = event_res,
                     from_agent = from_agent,
                     to_agent = to_agent,
-                    exchange = transfer.exchange,
                     exchange_stage=transfer.exchange.exchange_type,
                     transfer=transfer,
                     commitment=commit,
@@ -5859,12 +5882,14 @@ def transfer_from_commitment(request, transfer_id):
                     created_by = request.user,
                 )
                 event.save()
-                if res:                
+                if event_res:                
                     if event.event_type == et_give:
-                        res.quantity -= res.quantity
+                        event_res.quantity -= event.quantity
                     else:
-                        res.quantity += res.quantity
-                    res.save()
+                        event_res.quantity += event.quantity
+                    event_res.save()
+                commit.finished = True
+                commit.save()
             
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('accounting/exchange', 0, exchange.id))    
@@ -6006,6 +6031,9 @@ def change_transfer_events(request, transfer_id):
                     to_agent = data["to_agent"]  
                 rt = data["resource_type"]
                 res = data["resource"]
+                res_from = None
+                if transfer_type.is_currency:
+                    res_from = data["from_resource"]
                 description = data["description"]
                 if transfer_type.is_currency:
                     value = qty
@@ -6022,13 +6050,16 @@ def change_transfer_events(request, transfer_id):
                     is_contribution = False
                 event_ref = data["event_reference"]
 
-                old_res = None
-                if events[0].resource:
-                    old_res = events[0].resource
-                    old_qty = events[0].quantity
+                #old_res = None
+                old_qty = events[0].quantity
+                old_res_from, old_res = transfer.give_and_receive_resources()
+                #if events[0].resource:
+                #    old_res = events[0].resource
                 for event in events:
                     event.resource_type = rt
                     event.resource = res
+                    if res_from and event.event_type == et_give:
+                        event.resource = res_from
                     event.from_agent = from_agent
                     event.to_agent = to_agent
                     event.event_date = event_date
@@ -6040,36 +6071,45 @@ def change_transfer_events(request, transfer_id):
                     event.event_reference=event_ref
                     event.changed_by = request.user
                     event.save()
-                    if res:
-                        if old_res:
-                            if res == old_res:
+                    res_to_change = event.resource
+                    if event.event_type == et_give:
+                        if old_res_from:
+                            old_res_to_change = old_res_from
+                        else:
+                            old_res_to_change = old_res
+                    else:
+                        old_res_to_change = old_res
+                    if res_to_change:
+                        if old_res_to_change:
+                            if res_to_change == old_res_to_change:
                                 if event.event_type == et_give:
-                                    res.quantity = res.quantity + old_qty - qty
+                                    res_to_change.quantity = res_to_change.quantity + old_qty - qty
                                 else:
-                                    res.quantity = res.quantity - old_qty + qty
-                                res.save()
+                                    res_to_change.quantity = res_to_change.quantity - old_qty + qty
+                                res_to_change.save()
                             else:
                                 if event.event_type == et_give:
-                                    res.quantity = res.quantity - qty
-                                    old_res.quantity = old_res.quantity + qty
+                                    res_to_change.quantity = res_to_change.quantity - qty
+                                    old_res_to_change.quantity = old_res_to_change.quantity + qty
                                 else:
-                                    res.quantity = res.quantity + qty
-                                    old_res.quantity = old_res.quantity - qty
-                                res.save()
-                                old_res.save()
+                                    res_to_change.quantity = res_to_change.quantity + qty
+                                    old_res_to_change.quantity = old_res_to_change.quantity - qty
+                                res_to_change.save()
+                                old_res_to_change.save()
                         else:
                             if event.event_type == et_give:
-                                res.quantity = res.quantity - qty
+                                res_to_change.quantity = res_to_change.quantity - qty
                             else:
-                                res.quantity = res.quantity + qty
-                            res.save()
+                                res_to_change.quantity = res_to_change.quantity + qty
+                            res_to_change.save()
                     else:
-                        if old_res:
+                        if old_res_to_change:
                             if event.event_type == et_give:
-                                old_res.quantity = old_res.quantity + qty
+                                old_res_to_change.quantity = old_res_to_change.quantity + qty
                             else:
-                                old_res.quantity = old_res.quantity - qty
-                            old_res.save()
+                                old_res_to_change.quantity = old_res_to_change.quantity - qty
+                            old_res_to_change.save()
+
                 transfer.transfer_date = event_date
                 transfer.save()
                 
@@ -6151,20 +6191,31 @@ def delete_transfer_events(request, transfer_id):
     if request.method == "POST":
         res = None
         events = transfer.events.all()
+        et_give = EventType.objects.get(name="Give")
+        give_res = None
+        receive_res = None
         if events:
-            res = events[0].resource
-        for event in events:
-            if res:
-                if event.consumes_resources():
-                    res.quantity += event.quantity
-                if event.creates_resources():
-                    res.quantity -= event.quantity
-            event.delete()
-        if res:
-            if res.is_deletable():
-                resource.delete()
-            else:
-                res.save()
+            for event in events:
+                if event.event_type == et_give:
+                    give_res = event.resource
+                else:
+                    receive_res = event.resource
+                event.delete()
+            if give_res != receive_res:
+                if give_res:
+                    give_res.quantity += event.quantity
+                if receive_res:
+                    receive_res.quantity -= event.quantity
+            if give_res:
+                if give_res.is_deletable():
+                    give_res.delete()
+                else:
+                    give_res.save()
+            if receive_res:
+                if receive_res.is_deletable():
+                    receive_res.delete()
+                else:
+                    receive_res.save()
         if transfer.is_deletable():
              transfer.delete()
     return HttpResponseRedirect('/%s/%s/%s/'

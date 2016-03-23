@@ -644,32 +644,38 @@ def transfer_resource(request, context_agent_id, resource_id): #this is drying s
             paid = data["paid"]
             notes = data["notes"]
             xfer_use_case = UseCase.objects.get(identifier="intrnl_xfer")
-            xfer_pattern = None
-            xfer_patterns = [puc.pattern for puc in xfer_use_case.patterns.all()]
-            if xfer_patterns:
-                xfer_pattern = xfer_patterns[0]
-            transfer_et = EventType.objects.get(name="Transfer")
-            rec_transfer_et = EventType.objects.get(name="Reciprocal Transfer")
-            pay_et = EventType.objects.get(name="Payment")
+            exchange_type = next_stage
+            give_et = EventType.objects.get(name="Give")
+            receive_et = EventType.objects.get(name="Receive")
             pay_rt = EconomicResourceType.objects.filter(unit__unit_type="value")[0]
             #import pdb; pdb.set_trace()
                         
             xfer_exchange = Exchange(
                 name="Transfer " + resource.resource_type.name,
                 use_case=xfer_use_case,
-                process_pattern=xfer_pattern,
                 start_date=event_date,
                 context_agent=context_agent,
-                exchange_type=ExchangeType.objects.get(name="Drying Site to Seller"), #should be next_stage, but not changing it
+                exchange_type=exchange_type, 
                 created_by=request.user,                
             )
             xfer_exchange.save()
-            xfer_event = EconomicEvent(
-                event_type = transfer_et,
+            transfer_type = exchange_type.transfer_types_non_reciprocal()[0]
+            xfer_name = transfer_type.name + " of " + resource.resource_type.name
+            xfer = Transfer(
+                name=xfer_name,
+                transfer_type = transfer_type,
+                exchange = xfer_exchange,
+                context_agent = context_agent,
+                transfer_date = event_date,
+                created_by = request.user              
+            )
+            xfer.save() 
+            xfer_give_event = EconomicEvent(
+                event_type = give_et,
                 event_date = event_date,
                 resource = resource,
                 resource_type = resource.resource_type,
-                exchange = xfer_exchange,
+                transfer=xfer,
                 exchange_stage=next_stage,
                 from_agent = resource.owner_based_on_exchange(),
                 to_agent = to_agent,
@@ -680,7 +686,24 @@ def transfer_resource(request, context_agent_id, resource_id): #this is drying s
                 unit_of_value = unit_of_value,
                 created_by = request.user,
             )
-            xfer_event.save()
+            xfer_give_event.save()
+            xfer_rec_event = EconomicEvent(
+                event_type = receive_et,
+                event_date = event_date,
+                resource = resource,
+                resource_type = resource.resource_type,
+                transfer=xfer,
+                exchange_stage=next_stage,
+                from_agent = resource.owner_based_on_exchange(),
+                to_agent = to_agent,
+                context_agent = context_agent,
+                quantity = quantity,
+                unit_of_quantity = resource.resource_type.unit,
+                value = value,
+                unit_of_value = unit_of_value,
+                created_by = request.user,
+            )
+            xfer_rec_event.save()
             resource.exchange_stage = next_stage
             resource.quantity = quantity
             if resource.notes:
@@ -690,14 +713,41 @@ def transfer_resource(request, context_agent_id, resource_id): #this is drying s
             resource.save()
             if paid == "paid":
                 if value > 0:
+                    transfer_type = exchange_type.transfer_types_reciprocal()[0]
+                    xfer_name = transfer_type.name + " for " + resource.resource_type.name
+                    xfer = Transfer(
+                        name=xfer_name,
+                        transfer_type = transfer_type,
+                        exchange = xfer_exchange,
+                        context_agent = context_agent,
+                        transfer_date = event_date,
+                        created_by = request.user              
+                    )
+                    xfer.save()                     
                     pay_event = EconomicEvent(
-                        event_type = rec_transfer_et,
+                        event_type = give_et,
                         event_date = event_date,
                         resource_type = pay_rt,
-                        exchange = xfer_exchange,
+                        transfer=xfer,
                         exchange_stage=next_stage,
-                        from_agent = xfer_event.to_agent,
-                        to_agent = xfer_event.from_agent,
+                        from_agent = xfer_give_event.to_agent,
+                        to_agent = xfer_give_event.from_agent,
+                        context_agent = context_agent,
+                        quantity = value,
+                        unit_of_quantity = unit_of_value,
+                        value = value,
+                        unit_of_value = unit_of_value,
+                        created_by = request.user,                        
+                    )
+                    pay_event.save()                     
+                    pay_rec_event = EconomicEvent(
+                        event_type = receive_et,
+                        event_date = event_date,
+                        resource_type = pay_rt,
+                        transfer=xfer,
+                        exchange_stage=next_stage,
+                        from_agent = xfer_give_event.to_agent,
+                        to_agent = xfer_give_event.from_agent,
                         context_agent = context_agent,
                         quantity = value,
                         unit_of_quantity = unit_of_value,
@@ -708,14 +758,25 @@ def transfer_resource(request, context_agent_id, resource_id): #this is drying s
                     pay_event.save()
             elif paid == "later":
                 if value > 0:
+                    transfer_type = exchange_type.transfer_types_reciprocal()[0]
+                    xfer_name = transfer_type.name + " for " + resource.resource_type.name
+                    xfer = Transfer(
+                        name=xfer_name,
+                        transfer_type = transfer_type,
+                        exchange = xfer_exchange,
+                        context_agent = context_agent,
+                        transfer_date = event_date,
+                        created_by = request.user              
+                    )
+                    xfer.save()   
                     commit = Commitment (
                         commitment_date=event_date,
-                        event_type=rec_transfer_et,
-                        exchange=xfer_exchange,
+                        event_type=give_et,
+                        transfer=xfer,
                         exchange_stage=next_stage,
                         due_date=event_date,
-                        from_agent=xfer_event.to_agent,
-                        to_agent=xfer_event.from_agent,
+                        from_agent=xfer_give_event.to_agent,
+                        to_agent=xfer_give_event.from_agent,
                         context_agent=context_agent,
                         resource_type=pay_rt,
                         quantity=value,

@@ -1567,6 +1567,11 @@ class TransferForm(forms.Form):
         label="Resource transferred (optional if not inventoried)",
         required=False,
         widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
+    from_resource = ResourceModelChoiceField(
+        queryset=EconomicResource.objects.none(),
+        label="Resource transferred from (optional if not inventoried)",
+        required=False,
+        widget=forms.Select(attrs={'class': 'resource input-xlarge chzn-select',}))
     value = forms.DecimalField(
         label="Value (total, not per unit)",
         initial=0,
@@ -1618,7 +1623,7 @@ class TransferForm(forms.Form):
         label="Resource Access Rules", 
         widget=forms.Textarea(attrs={'class': 'item-description',})) 
 
-    def __init__(self, transfer_type=None, context_agent=None, posting=False, *args, **kwargs):
+    def __init__(self, transfer_type=None, context_agent=None, resource_type=None, posting=False, *args, **kwargs):
         super(TransferForm, self).__init__(*args, **kwargs)
         #import pdb; pdb.set_trace()
         if transfer_type:
@@ -1626,9 +1631,15 @@ class TransferForm(forms.Form):
             self.fields["resource_type"].queryset = rts
             if posting:
                 self.fields["resource"].queryset = EconomicResource.objects.all()
+                self.fields["from_resource"].queryset = EconomicResource.objects.all()
             else:
                 if rts:
-                    self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                    if resource_type:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=resource_type)
+                        self.fields["from_resource"].queryset = EconomicResource.objects.filter(resource_type=resource_type)
+                    else:
+                        self.fields["resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
+                        self.fields["from_resource"].queryset = EconomicResource.objects.filter(resource_type=rts[0])
             if context_agent:
                 self.fields["to_agent"].queryset = transfer_type.to_agents(context_agent)
                 self.fields["from_agent"].queryset = transfer_type.from_agents(context_agent)

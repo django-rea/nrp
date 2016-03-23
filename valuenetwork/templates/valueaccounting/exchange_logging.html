@@ -199,31 +199,39 @@ li {
                                     <div class="modal-body">
                                         <form class="validateMe" id="xferForm{{ slot.id }}" enctype="multipart/form-data" action="{% url add_transfer exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
                                             {% csrf_token %}
-                                            Event date:<br />{{ slot.add_xfer_form.event_date }}<br />
-                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ slot.add_xfer_form.from_agent }}<br />{% endif %}
-                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ slot.add_xfer_form.to_agent }}<br />{% endif %}
-                                            Quantity transferred:<br />{{ slot.add_xfer_form.quantity }}<br />
-                                            Resource type transferred:<br />{{ slot.add_xfer_form.resource_type }}<br />
-                                            {% if not slot.can_create_resource %}Resource transferred (no entry if not inventoried)<br />{{ slot.add_xfer_form.resource }}<br />{% endif %}
-                                            Description:<br />{{ slot.add_xfer_form.description }}<br />
-                                            {% if not slot.is_currency %}
-                                                Value (total, not per unit):<br />{{ slot.add_xfer_form.value }}<br />
-                                                Unit of value:<br />{{ slot.add_xfer_form.unit_of_value }}<br />
+                                            {% with slot.add_xfer_form as ax_form %}
+                                            Event date:<br />{{ ax_form.event_date }}<br />
+                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ax_form.from_agent }}<br />{% endif %}
+                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ax_form.to_agent }}<br />{% endif %}
+                                            Quantity transferred:<br />{{ ax_form.quantity }}<br />
+                                            Resource type transferred:<br />{{ ax_form.resource_type }}<br />
+                                            {% if not slot.can_create_resource %}
+                                                {% if slot.is_currency and xfer.transfer_type.exchange_type.use_case.identifier == "intrnl_xfer" %}
+                                                    Account from (if virtual account)<br />{{ ax_form.from_resource }}<br />
+                                                    Account to (if virtual account)<br />{{ ax_form.resource }}<br />
+                                                {% else %}
+                                                    Resource transferred (no entry if not inventoried)<br />{{ ax_form.resource }}<br />
+                                                {% endif %}
                                             {% endif %}
-                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
-                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.add_xfer_form.is_to_distribute }}<br />{% endif %}
-                                            {% if slot.is_currency %}Event reference:<br />{{ slot.add_xfer_form.event_reference }}<br />{% endif %}
+                                            Description:<br />{{ ax_form.description }}<br />
+                                            {% if not slot.is_currency %}
+                                                Value (total, not per unit):<br />{{ ax_form.value }}<br />
+                                                Unit of value:<br />{{ ax_form.unit_of_value }}<br />
+                                            {% endif %}
+                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ ax_form.is_contribution }}<br />{% endif %}
+                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ax_form.is_to_distribute }}<br />{% endif %}
+                                            {% if slot.is_currency %}Event reference:<br />{{ ax_form.event_reference }}<br />{% endif %}
                                             {% if slot.can_create_resource %}
                                                 <br />
                                                 <span class="modal-hdg">Incoming resource:</span><br>
-                                                Add to an existing resource:<br />{{ slot.add_xfer_form.resource }}<br />
+                                                Add to an existing resource:<br />{{ ax_form.resource }}<br />
                                                 <br /><b>OR create a new resource:</b><br />
-                                                Identifier: (for example, lot number or serial number)<br />{{ slot.add_xfer_form.identifier }}<br />
-                                                URL:<br />{{ slot.add_xfer_form.url }}<br />
-                                                Photo URL:<br />{{ slot.add_xfer_form.photo_url }}<br />
-                                                Current Resource Location:<br />{{ slot.add_xfer_form.current_location }}<br />
-                                                Resource Notes:<br />{{ slot.add_xfer_form.notes }}<br />
-                                                Resource Access Rules:<br />{{ slot.add_xfer_form.access_rules }}<br />
+                                                Identifier: (for example, lot number or serial number)<br />{{ ax_form.identifier }}<br />
+                                                URL:<br />{{ ax_form.url }}<br />
+                                                Photo URL:<br />{{ ax_form.photo_url }}<br />
+                                                Current Resource Location:<br />{{ ax_form.current_location }}<br />
+                                                Resource Notes:<br />{{ ax_form.notes }}<br />
+                                                Resource Access Rules:<br />{{ ax_form.access_rules }}<br />
                                                 {{ slot.create_role_formset.management_form }}
                                                 Resource access roles<br />
                                                 {% for form in slot.create_role_formset %}
@@ -234,6 +242,7 @@ li {
                                                     </tr>
                                                 {% endfor %}
                                             {% endif %}
+                                            {% endwith %}
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
@@ -249,17 +258,19 @@ li {
                                     <div class="modal-body">
                                         <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer_commitment exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
                                             {% csrf_token %}
-                                            Commitment date:<br />{{ slot.add_commit_form.commitment_date }}<br />
-                                            Due date:<br />{{ slot.add_commit_form.due_date }}<br />
-                                            {% if not slot.give_agent_is_context %}Transfer from:<br />{{ slot.add_commit_form.from_agent }}<br />{% endif %}
-                                            {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ slot.add_commit_form.to_agent }}<br />{% endif %}
-                                            Quantity:<br />{{ slot.add_commit_form.quantity }}<br />
-                                            Resource type:<br />{{ slot.add_commit_form.resource_type }}<br />
-                                            Description:<br />{{ slot.add_commit_form.description }}<br />
+                                            {% with slot.add_commit_form as ac_form %}
+                                            Commitment date:<br />{{ ac_form.commitment_date }}<br />
+                                            Due date:<br />{{ ac_form.due_date }}<br />
+                                            {% if not slot.give_agent_is_context %}Transfer from:<br />{{ ac_form.from_agent }}<br />{% endif %}
+                                            {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ ac_form.to_agent }}<br />{% endif %}
+                                            Quantity:<br />{{ ac_form.quantity }}<br />
+                                            Resource type:<br />{{ ac_form.resource_type }}<br />
+                                            Description:<br />{{ ac_form.description }}<br />
                                             {% if not slot.is_currency %}
-                                                Value (total, not per unit):<br />{{ slot.add_commit_form.value }}<br />
-                                                Unit of value:<br />{{ slot.add_commit_form.unit_of_value }}<br />
+                                                Value (total, not per unit):<br />{{ ac_form.value }}<br />
+                                                Unit of value:<br />{{ ac_form.unit_of_value }}<br />
                                             {% endif %}
+                                            {% endwith %}
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
@@ -286,17 +297,19 @@ li {
                                                 <div class="modal-body">
                                                     <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_commitments transfer_id=xfer.id %}" method="POST" >
                                                         {% csrf_token %}
-                                                        Commitment date:<br />{{ xfer.change_commitments_form.commitment_date }}<br />
-                                                        Due date:<br />{{ xfer.change_commitments_form.due_date }}<br />
-                                                        {% if not slot.give_agent_is_context %}Transfer from:<br />{{ xfer.change_commitments_form.from_agent }}<br />{% endif %}
-                                                        {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ xfer.change_commitments_form.to_agent }}<br />{% endif %}
-                                                        Quantity:<br />{{ xfer.change_commitments_form.quantity }}<br />
-                                                        Resource type:<br />{{ xfer.change_commitments_form.resource_type }}<br />
-                                                        Description:<br />{{ xfer.change_commitments_form.description }}<br />
+                                                        {% with xfer.change_commitments_form as cc_form %}
+                                                        Commitment date:<br />{{ cc_form.commitment_date }}<br />
+                                                        Due date:<br />{{ cc_form.due_date }}<br />
+                                                        {% if not slot.give_agent_is_context %}Transfer from:<br />{{ cc_form.from_agent }}<br />{% endif %}
+                                                        {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ cc_form.to_agent }}<br />{% endif %}
+                                                        Quantity:<br />{{ cc_form.quantity }}<br />
+                                                        Resource type:<br />{{ cc_form.resource_type }}<br />
+                                                        Description:<br />{{ cc_form.description }}<br />
                                                         {% if not slot.is_currency %}
-                                                            Value (total, not per unit):<br />{{ xfer.change_commitments_form.value }}<br />
-                                                            Unit of value:<br />{{ xfer.change_commitments_form.unit_of_value }}<br />
+                                                            Value (total, not per unit):<br />{{ cc_form.value }}<br />
+                                                            Unit of value:<br />{{ cc_form.unit_of_value }}<br />
                                                         {% endif %}
+                                                        {% endwith %}
                                                         <div class="modal-footer">
                                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -324,31 +337,39 @@ li {
                                                     <div class="modal-body">
                                                         <form class="validateMe" enctype="multipart/form-data" action="{% url transfer_from_commitment transfer_id=xfer.id %}" method="POST" >
                                                             {% csrf_token %}
-                                                            Event date:<br />{{ xfer.commit_transfer_form.event_date }}<br />
-                                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ xfer.commit_transfer_form.from_agent }}<br />{% endif %}
-                                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ xfer.commit_transfer_form.to_agent }}<br />{% endif %}
-                                                            Quantity transferred:<br />{{ xfer.commit_transfer_form.quantity }}<br />
-                                                            Resource type transferred:<br />{{ xfer.commit_transfer_form.resource_type }}<br />
-                                                            {% if not slot.can_create_resource %}Resource transferred (no entry if not inventoried)<br />{{ commit.transfer_form.resource }}<br />{% endif %}
-                                                            Description:<br />{{ xfer.commit_transfer_form.description }}<br />
-                                                            {% if not slot.is_currency %}
-                                                                Value (total, not per unit):<br />{{ xfer.commit_transfer_form.value }}<br />
-                                                                Unit of value:<br />{{ xfer.commit_transfer_form.unit_of_value }}<br />
+                                                            {% with xfer.commit_transfer_form as ct_form %}
+                                                            Event date:<br />{{ ct_form.event_date }}<br />
+                                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ct_form.from_agent }}<br />{% endif %}
+                                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ct_form.to_agent }}<br />{% endif %}
+                                                            Quantity transferred:<br />{{ ct_form.quantity }}<br />
+                                                            Resource type transferred:<br />{{ ct_form.resource_type }}<br />
+                                                            {% if not slot.can_create_resource %}
+                                                                {% if slot.is_currency and xfer.transfer_type.exchange_type.use_case.identifier == "intrnl_xfer" %}
+                                                                    Account from (if virtual account)<br />{{ ct_form.from_resource }}<br />
+                                                                    Account to (if virtual account)<br />{{ ct_form.resource }}<br />
+                                                                {% else %}
+                                                                    Resource transferred (no entry if not inventoried)<br />{{ ct_form.resource }}<br />
+                                                                {% endif %}
                                                             {% endif %}
-                                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
-                                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.add_xfer_form.is_to_distribute }}<br />{% endif %}
-                                                            {% if slot.is_currency %}Event reference:<br />{{ xfer.commit_transfer_form.event_reference }}<br />{% endif %}
+                                                            Description:<br />{{ ct_form.description }}<br />
+                                                            {% if not slot.is_currency %}
+                                                                Value (total, not per unit):<br />{{ ct_form.value }}<br />
+                                                                Unit of value:<br />{{ ct_form.unit_of_value }}<br />
+                                                            {% endif %}
+                                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ ct_form.is_contribution }}<br />{% endif %}
+                                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ct_form.is_to_distribute }}<br />{% endif %}
+                                                            {% if slot.is_currency %}Event reference:<br />{{ ct_form.event_reference }}<br />{% endif %}
                                                             {% if slot.can_create_resource %}
                                                                 <br />
                                                                 <span class="modal-hdg">Incoming resource:</span><br>
-                                                                Add to an existing resource:<br />{{ xfer.commit_transfer_form.resource }}<br />
+                                                                Add to an existing resource:<br />{{ ct_form.resource }}<br />
                                                                 <br /><b>OR create a new resource:</b><br />
-                                                                Identifier: (for example, lot number or serial number)<br />{{ xfer.commit_transfer_form.identifier }}<br />
-                                                                URL:<br />{{ xfer.commit_transfer_form.url }}<br />
-                                                                Photo URL:<br />{{ xfer.commit_transfer_form.photo_url }}<br />
-                                                                Current Resource Location:<br />{{ xfer.commit_transfer_form.current_location }}<br />
-                                                                Resource Notes:<br />{{ xfer.commit_transfer_form.notes }}<br />
-                                                                Resource Access Rules:<br />{{ xfer.commit_transfer_form.access_rules }}<br />
+                                                                Identifier: (for example, lot number or serial number)<br />{{ ct_form.identifier }}<br />
+                                                                URL:<br />{{ ct_form.url }}<br />
+                                                                Photo URL:<br />{{ ct_form.photo_url }}<br />
+                                                                Current Resource Location:<br />{{ ct_form.current_location }}<br />
+                                                                Resource Notes:<br />{{ ct_form.notes }}<br />
+                                                                Resource Access Rules:<br />{{ ct_form.access_rules }}<br />
                                                                 {{ xfer.create_role_formset.management_form }}
                                                                 Resource access roles<br />
                                                                 {% for form in xfer.create_role_formset %}
@@ -359,6 +380,7 @@ li {
                                                                     </tr>
                                                                 {% endfor %}
                                                             {% endif %}
+                                                            {% endwith %}
                                                             <div class="modal-footer">
                                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                                 <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -383,19 +405,26 @@ li {
                                                         <div class="modal-body">
                                                             <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_events transfer_id=xfer.id %}" method="POST" >
                                                                 {% csrf_token %}
-                                                                Event date:<br />{{ xfer.change_events_form.event_date }}<br />
-                                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ xfer.change_events_form.from_agent }}<br />{% endif %}
-                                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ xfer.change_events_form.to_agent }}<br />{% endif %}
-                                                                Quantity transferred:<br />{{ xfer.change_events_form.quantity }}<br />
-                                                                Resource type transferred:<br />{{ xfer.change_events_form.resource_type }}<br />
-                                                                Resource transferred (only if inventoried):<br />{{ xfer.change_events_form.resource }}<br />Description:<br />{{ xfer.change_events_form.description }}<br />
-                                                                {% if not slot.is_currency %}
-                                                                    Value (total, not per unit):<br />{{ xfer.change_events_form.value }}<br />
-                                                                    Unit of value:<br />{{ xfer.change_events_form.unit_of_value }}<br />
+                                                                {% with xfer.change_events_form as ce_form %}
+                                                                Event date:<br />{{ ce_form.event_date }}<br />
+                                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ce_form.from_agent }}<br />{% endif %}
+                                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ce_form.to_agent }}<br />{% endif %}
+                                                                Quantity transferred:<br />{{ ce_form.quantity }}<br />
+                                                                Resource type transferred:<br />{{ ce_form.resource_type }}<br />
+                                                                {% if slot.is_currency and xfer.transfer_type.exchange_type.use_case.identifier == "intrnl_xfer" %}
+                                                                    Account from (if virtual account)<br />{{ ce_form.from_resource }}<br />
+                                                                    Account to (if virtual account)<br />{{ ce_form.resource }}<br />
+                                                                {% else %}
+                                                                    Resource transferred (only if inventoried):<br />{{ ce_form.resource }}<br />Description:<br />{{ ce_form.description }}<br />
                                                                 {% endif %}
-                                                                {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
-                                                                {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.change_events_form.is_to_distribute }}<br />{% endif %}
-                                                                {% if slot.is_currency %}Event reference:<br />{{ xfer.change_events_form.event_reference }}<br />{% endif %}                                                               
+                                                                {% if not slot.is_currency %}
+                                                                    Value (total, not per unit):<br />{{ ce_form.value }}<br />
+                                                                    Unit of value:<br />{{ ce_form.unit_of_value }}<br />
+                                                                {% endif %}
+                                                                {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ ce_form.is_contribution }}<br />{% endif %}
+                                                                {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ce_form.is_to_distribute }}<br />{% endif %}
+                                                                {% if slot.is_currency %}Event reference:<br />{{ ce_form.event_reference }}<br />{% endif %}                                                               
+                                                                {% endwith %}
                                                                 <div class="modal-footer">
                                                                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                                     <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -433,19 +462,27 @@ li {
                                                 <div class="modal-body">
                                                     <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_events transfer_id=xfer.id %}" method="POST" >
                                                         {% csrf_token %}
-                                                        Event date:<br />{{ xfer.change_events_form.event_date }}<br />
-                                                        {% if not slot.give_agent_is_context %}Transferred from:<br />{{ xfer.change_events_form.from_agent }}<br />{% endif %}
-                                                        {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ xfer.change_events_form.to_agent }}<br />{% endif %}
-                                                        Quantity transferred:<br />{{ xfer.change_events_form.quantity }}<br />
-                                                        Resource type transferred:<br />{{ xfer.change_events_form.resource_type }}<br />
-                                                        Resource transferred (only if inventoried):<br />{{ xfer.change_events_form.resource }}<br />Description:<br />{{ xfer.change_events_form.description }}<br />
-                                                        {% if not slot.is_currency %}
-                                                            Value (total, not per unit):<br />{{ xfer.change_events_form.value }}<br />
-                                                            Unit of value:<br />{{ xfer.change_events_form.unit_of_value }}<br />
+                                                        {% with xfer.change_events_form as cev_form %}
+                                                        Event date:<br />{{ cev_form.event_date }}<br />
+                                                        {% if not slot.give_agent_is_context %}Transferred from:<br />{{ cev_form.from_agent }}<br />{% endif %}
+                                                        {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ cev_form.to_agent }}<br />{% endif %}
+                                                        Quantity transferred:<br />{{ cev_form.quantity }}<br />
+                                                        Resource type transferred:<br />{{ cev_form.resource_type }}<br />
+                                                        {% if slot.is_currency and xfer.transfer_type.exchange_type.use_case.identifier == "intrnl_xfer" %}
+                                                            Account from (if virtual account)<br />{{ cev_form.from_resource }}<br />
+                                                            Account to (if virtual account)<br />{{ cev_form.resource }}<br />
+                                                        {% else %}
+                                                            Resource transferred (only if inventoried):<br />{{ cev_form.resource }}<br />
                                                         {% endif %}
-                                                        {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
-                                                        {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.change_events_form.is_to_distribute }}<br />{% endif %}
-                                                        {% if slot.is_currency %}Event reference:<br />{{ xfer.change_events_form.event_reference }}<br />{% endif %} 
+                                                        Description:<br />{{ cev_form.description }}<br />
+                                                        {% if not slot.is_currency %}
+                                                            Value (total, not per unit):<br />{{ cev_form.value }}<br />
+                                                            Unit of value:<br />{{ cev_form.unit_of_value }}<br />
+                                                        {% endif %}
+                                                        {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ cev_form.is_contribution }}<br />{% endif %}
+                                                        {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ cev_form.is_to_distribute }}<br />{% endif %}
+                                                        {% if slot.is_currency %}Event reference:<br />{{ cev_form.event_reference }}<br />{% endif %} 
+                                                        {% endwith %}
                                                         <div class="modal-footer">
                                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -506,31 +543,39 @@ li {
                                     <div class="modal-body">
                                         <form class="validateMe" id="xferForm{{ slot.id }}" enctype="multipart/form-data" action="{% url add_transfer exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
                                             {% csrf_token %}
-                                            Event date:<br />{{ slot.add_xfer_form.event_date }}<br />
-                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ slot.add_xfer_form.from_agent }}<br />{% endif %}
-                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ slot.add_xfer_form.to_agent }}<br />{% endif %}
-                                            Quantity transferred:<br />{{ slot.add_xfer_form.quantity }}<br />
-                                            Resource type transferred:<br />{{ slot.add_xfer_form.resource_type }}<br />
-                                            {% if not slot.can_create_resource %}Resource transferred (no entry if not inventoried)<br />{{ slot.add_xfer_form.resource }}<br />{% endif %}
-                                            Description:<br />{{ slot.add_xfer_form.description }}<br />
-                                            {% if not slot.is_currency %}
-                                                Value (total, not per unit):<br />{{ slot.add_xfer_form.value }}<br />
-                                                Unit of value:<br />{{ slot.add_xfer_form.unit_of_value }}<br />
+                                            {% with slot.add_xfer_form as ax_form %}
+                                            Event date:<br />{{ ax_form.event_date }}<br />
+                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ax_form.from_agent }}<br />{% endif %}
+                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ax_form.to_agent }}<br />{% endif %}
+                                            Quantity transferred:<br />{{ ax_form.quantity }}<br />
+                                            Resource type transferred:<br />{{ ax_form.resource_type }}<br />
+                                            {% if not slot.can_create_resource %}
+                                                {% if slot.is_currency and xfer.transfer_type.exchange_type.use_case.identifier == "intrnl_xfer" %}
+                                                    Account from (if virtual account)<br />{{ ax_form.from_resource }}<br />
+                                                    Account to (if virtual account)<br />{{ ax_form.resource }}<br />
+                                                {% else %}
+                                                    Resource transferred (no entry if not inventoried)<br />{{ ax_form.resource }}<br />
+                                                {% endif %}
                                             {% endif %}
-                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
-                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.add_xfer_form.is_to_distribute }}<br />{% endif %}
-                                            {% if slot.is_currency %}Event reference:<br />{{ slot.add_xfer_form.event_reference }}<br />{% endif %}
+                                            Description:<br />{{ ax_form.description }}<br />
+                                            {% if not slot.is_currency %}
+                                                Value (total, not per unit):<br />{{ ax_form.value }}<br />
+                                                Unit of value:<br />{{ ax_form.unit_of_value }}<br />
+                                            {% endif %}
+                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ ax_form.is_contribution }}<br />{% endif %}
+                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ax_form.is_to_distribute }}<br />{% endif %}
+                                            {% if slot.is_currency %}Event reference:<br />{{ ax_form.event_reference }}<br />{% endif %}
                                             {% if slot.can_create_resource %}
                                                 <br />
                                                 <span class="modal-hdg">Incoming resource:</span><br>
-                                                Add to an existing resource:<br />{{ slot.add_xfer_form.resource }}<br />
+                                                Add to an existing resource:<br />{{ ax_form.resource }}<br />
                                                 <br /><b>OR create a new resource:</b><br />
-                                                Identifier: (for example, lot number or serial number)<br />{{ slot.add_xfer_form.identifier }}<br />
-                                                URL:<br />{{ slot.add_xfer_form.url }}<br />
-                                                Photo URL:<br />{{ slot.add_xfer_form.photo_url }}<br />
-                                                Current Resource Location:<br />{{ slot.add_xfer_form.current_location }}<br />
-                                                Resource Notes:<br />{{ slot.add_xfer_form.notes }}<br />
-                                                Resource Access Rules:<br />{{ slot.add_xfer_form.access_rules }}<br />
+                                                Identifier: (for example, lot number or serial number)<br />{{ ax_form.identifier }}<br />
+                                                URL:<br />{{ ax_form.url }}<br />
+                                                Photo URL:<br />{{ ax_form.photo_url }}<br />
+                                                Current Resource Location:<br />{{ ax_form.current_location }}<br />
+                                                Resource Notes:<br />{{ ax_form.notes }}<br />
+                                                Resource Access Rules:<br />{{ ax_form.access_rules }}<br />
                                                 {{ slot.create_role_formset.management_form }}
                                                 Resource access roles<br />
                                                 {% for form in slot.create_role_formset %}
@@ -541,6 +586,7 @@ li {
                                                     </tr>
                                                 {% endfor %}
                                             {% endif %}
+                                            {% endwith %}
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
@@ -556,17 +602,19 @@ li {
                                     <div class="modal-body">
                                         <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer_commitment exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
                                             {% csrf_token %}
-                                            Commitment date:<br />{{ slot.add_commit_form.commitment_date }}<br />
-                                            Due date:<br />{{ slot.add_commit_form.due_date }}<br />
-                                            {% if not slot.give_agent_is_context %}Transfer from:<br />{{ slot.add_commit_form.from_agent }}<br />{% endif %}
-                                            {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ slot.add_commit_form.to_agent }}<br />{% endif %}
-                                            Quantity:<br />{{ slot.add_commit_form.quantity }}<br />
-                                            Resource type:<br />{{ slot.add_commit_form.resource_type }}<br />
-                                            Description:<br />{{ slot.add_commit_form.description }}<br />
+                                            {% with slot.add_commit_form as ac_form %}
+                                            Commitment date:<br />{{ ac_form.commitment_date }}<br />
+                                            Due date:<br />{{ ac_form.due_date }}<br />
+                                            {% if not slot.give_agent_is_context %}Transfer from:<br />{{ ac_form.from_agent }}<br />{% endif %}
+                                            {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ ac_form.to_agent }}<br />{% endif %}
+                                            Quantity:<br />{{ ac_form.quantity }}<br />
+                                            Resource type:<br />{{ ac_form.resource_type }}<br />
+                                            Description:<br />{{ ac_form.description }}<br />
                                             {% if not slot.is_currency %}
-                                                Value (total, not per unit):<br />{{ slot.add_commit_form.value }}<br />
-                                                Unit of value:<br />{{ slot.add_commit_form.unit_of_value }}<br />
+                                                Value (total, not per unit):<br />{{ ac_form.value }}<br />
+                                                Unit of value:<br />{{ ac_form.unit_of_value }}<br />
                                             {% endif %}
+                                            {% endwith %}
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <input type="submit" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
@@ -593,17 +641,19 @@ li {
                                                 <div class="modal-body">
                                                     <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_commitments transfer_id=xfer.id %}" method="POST" >
                                                         {% csrf_token %}
-                                                        Commitment date:<br />{{ xfer.change_commitments_form.commitment_date }}<br />
-                                                        Due date:<br />{{ xfer.change_commitments_form.due_date }}<br />
-                                                        {% if not slot.give_agent_is_context %}Transfer from:<br />{{ xfer.change_commitments_form.from_agent }}<br />{% endif %}
-                                                        {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ xfer.change_commitments_form.to_agent }}<br />{% endif %}
-                                                        Quantity:<br />{{ xfer.change_commitments_form.quantity }}<br />
-                                                        Resource type:<br />{{ xfer.change_commitments_form.resource_type }}<br />
-                                                        Description:<br />{{ xfer.change_commitments_form.description }}<br />
+                                                        {% with xfer.change_commitments_form as cc_form %}
+                                                        Commitment date:<br />{{ cc_form.commitment_date }}<br />
+                                                        Due date:<br />{{ cc_form.due_date }}<br />
+                                                        {% if not slot.give_agent_is_context %}Transfer from:<br />{{ cc_form.from_agent }}<br />{% endif %}
+                                                        {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ cc_form.to_agent }}<br />{% endif %}
+                                                        Quantity:<br />{{ cc_form.quantity }}<br />
+                                                        Resource type:<br />{{ cc_form.resource_type }}<br />
+                                                        Description:<br />{{ cc_form.description }}<br />
                                                         {% if not slot.is_currency %}
-                                                            Value (total, not per unit):<br />{{ xfer.change_commitments_form.value }}<br />
-                                                            Unit of value:<br />{{ xfer.change_commitments_form.unit_of_value }}<br />
+                                                            Value (total, not per unit):<br />{{ cc_form.value }}<br />
+                                                            Unit of value:<br />{{ cc_form.unit_of_value }}<br />
                                                         {% endif %}
+                                                        {% endwith %}
                                                         <div class="modal-footer">
                                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -631,31 +681,39 @@ li {
                                                     <div class="modal-body">
                                                         <form class="validateMe" enctype="multipart/form-data" action="{% url transfer_from_commitment transfer_id=xfer.id %}" method="POST" >
                                                             {% csrf_token %}
-                                                            Event date:<br />{{ xfer.commit_transfer_form.event_date }}<br />
-                                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ xfer.commit_transfer_form.from_agent }}<br />{% endif %}
-                                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ xfer.commit_transfer_form.to_agent }}<br />{% endif %}
-                                                            Quantity transferred:<br />{{ xfer.commit_transfer_form.quantity }}<br />
-                                                            Resource type transferred:<br />{{ xfer.commit_transfer_form.resource_type }}<br />
-                                                            {% if not slot.can_create_resource %}Resource transferred (no entry if not inventoried)<br />{{ commit.transfer_form.resource }}<br />{% endif %}
-                                                            Description:<br />{{ xfer.commit_transfer_form.description }}<br />
-                                                            {% if not slot.is_currency %}
-                                                                Value (total, not per unit):<br />{{ xfer.commit_transfer_form.value }}<br />
-                                                                Unit of value:<br />{{ xfer.commit_transfer_form.unit_of_value }}<br />
+                                                            {% with xfer.commit_transfer_form as ct_form %}
+                                                            Event date:<br />{{ ct_form.event_date }}<br />
+                                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ct_form.from_agent }}<br />{% endif %}
+                                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ct_form.to_agent }}<br />{% endif %}
+                                                            Quantity transferred:<br />{{ ct_form.quantity }}<br />
+                                                            Resource type transferred:<br />{{ ct_form.resource_type }}<br />
+                                                            {% if not slot.can_create_resource %}
+                                                                {% if slot.is_currency and xfer.transfer_type.exchange_type.use_case.identifier == "intrnl_xfer" %}
+                                                                    Account from (if virtual account)<br />{{ ct_form.from_resource }}<br />
+                                                                    Account to (if virtual account)<br />{{ ct_form.resource }}<br />
+                                                                {% else %}
+                                                                    Resource transferred (no entry if not inventoried)<br />{{ ct_form.resource }}<br />
+                                                                {% endif %}
                                                             {% endif %}
-                                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ slot.add_xfer_form.is_contribution }}<br />{% endif %}
-                                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.add_xfer_form.is_to_distribute }}<br />{% endif %}
-                                                            {% if slot.is_currency %}Event reference:<br />{{ xfer.commit_transfer_form.event_reference }}<br />{% endif %}
+                                                            Description:<br />{{ ct_form.description }}<br />
+                                                            {% if not slot.is_currency %}
+                                                                Value (total, not per unit):<br />{{ ct_form.value }}<br />
+                                                                Unit of value:<br />{{ ct_form.unit_of_value }}<br />
+                                                            {% endif %}
+                                                            {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ ct_form.is_contribution }}<br />{% endif %}
+                                                            {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ct_form.is_to_distribute }}<br />{% endif %}
+                                                            {% if slot.is_currency %}Event reference:<br />{{ ct_form.event_reference }}<br />{% endif %}
                                                             {% if slot.can_create_resource %}
                                                                 <br />
                                                                 <span class="modal-hdg">Incoming resource:</span><br>
-                                                                Add to an existing resource:<br />{{ xfer.commit_transfer_form.resource }}<br />
+                                                                Add to an existing resource:<br />{{ ct_form.resource }}<br />
                                                                 <br /><b>OR create a new resource:</b><br />
-                                                                Identifier: (for example, lot number or serial number)<br />{{ xfer.commit_transfer_form.identifier }}<br />
-                                                                URL:<br />{{ xfer.commit_transfer_form.url }}<br />
-                                                                Photo URL:<br />{{ xfer.commit_transfer_form.photo_url }}<br />
-                                                                Current Resource Location:<br />{{ xfer.commit_transfer_form.current_location }}<br />
-                                                                Resource Notes:<br />{{ xfer.commit_transfer_form.notes }}<br />
-                                                                Resource Access Rules:<br />{{ xfer.commit_transfer_form.access_rules }}<br />
+                                                                Identifier: (for example, lot number or serial number)<br />{{ ct_form.identifier }}<br />
+                                                                URL:<br />{{ ct_form.url }}<br />
+                                                                Photo URL:<br />{{ ct_form.photo_url }}<br />
+                                                                Current Resource Location:<br />{{ ct_form.current_location }}<br />
+                                                                Resource Notes:<br />{{ ct_form.notes }}<br />
+                                                                Resource Access Rules:<br />{{ ct_form.access_rules }}<br />
                                                                 {{ xfer.create_role_formset.management_form }}
                                                                 Resource access roles<br />
                                                                 {% for form in xfer.create_role_formset %}
@@ -666,6 +724,7 @@ li {
                                                                     </tr>
                                                                 {% endfor %}
                                                             {% endif %}
+                                                            {% endwith %}
                                                             <div class="modal-footer">
                                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                                 <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -690,19 +749,27 @@ li {
                                                         <div class="modal-body">
                                                             <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_events transfer_id=xfer.id %}" method="POST" >
                                                                 {% csrf_token %}
-                                                                Event date:<br />{{ xfer.change_events_form.event_date }}<br />
-                                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ xfer.change_events_form.from_agent }}<br />{% endif %}
-                                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ xfer.change_events_form.to_agent }}<br />{% endif %}
-                                                                Quantity transferred:<br />{{ xfer.change_events_form.quantity }}<br />
-                                                                Resource type transferred:<br />{{ xfer.change_events_form.resource_type }}<br />
-                                                                Resource transferred (only if inventoried):<br />{{ xfer.change_events_form.resource }}<br />Description:<br />{{ xfer.change_events_form.description }}<br />
-                                                                {% if not slot.is_currency %}
-                                                                    Value (total, not per unit):<br />{{ xfer.change_events_form.value }}<br />
-                                                                    Unit of value:<br />{{ xfer.change_events_form.unit_of_value }}<br />
+                                                                {% with xfer.change_events_form as ce_form %}
+                                                                Event date:<br />{{ ce_form.event_date }}<br />
+                                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ce_form.from_agent }}<br />{% endif %}
+                                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ce_form.to_agent }}<br />{% endif %}
+                                                                Quantity transferred:<br />{{ ce_form.quantity }}<br />
+                                                                Resource type transferred:<br />{{ ce_form.resource_type }}<br />
+                                                                {% if slot.is_currency and xfer.transfer_type.exchange_type.use_case.identifier == "intrnl_xfer" %}
+                                                                    Account from (if virtual account)<br />{{ ce_form.from_resource }}<br />
+                                                                    Account to (if virtual account)<br />{{ ce_form.resource }}<br />
+                                                                {% else %}
+                                                                    Resource transferred (only if inventoried):<br />{{ ce_form.resource }}<br />
                                                                 {% endif %}
-                                                                {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
-                                                                {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.change_events_form.is_to_distribute }}<br />{% endif %}
-                                                                {% if slot.is_currency %}Event reference:<br />{{ xfer.change_events_form.event_reference }}<br />{% endif %}                                                               
+                                                                Description:<br />{{ ce_form.description }}<br />
+                                                                {% if not slot.is_currency %}
+                                                                    Value (total, not per unit):<br />{{ ce_form.value }}<br />
+                                                                    Unit of value:<br />{{ ce_form.unit_of_value }}<br />
+                                                                {% endif %}
+                                                                {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ ce_form.is_contribution }}<br />{% endif %}
+                                                                {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ce_form.is_to_distribute }}<br />{% endif %}
+                                                                {% if slot.is_currency %}Event reference:<br />{{ ce_form.event_reference }}<br />{% endif %}                                                               
+                                                                {% endwith %}
                                                                 <div class="modal-footer">
                                                                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                                     <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -740,19 +807,26 @@ li {
                                                 <div class="modal-body">
                                                     <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_events transfer_id=xfer.id %}" method="POST" >
                                                         {% csrf_token %}
-                                                        Event date:<br />{{ xfer.change_events_form.event_date }}<br />
-                                                        {% if not slot.give_agent_is_context %}Transferred from:<br />{{ xfer.change_events_form.from_agent }}<br />{% endif %}
-                                                        {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ xfer.change_events_form.to_agent }}<br />{% endif %}
-                                                        Quantity transferred:<br />{{ xfer.change_events_form.quantity }}<br />
-                                                        Resource type transferred:<br />{{ xfer.change_events_form.resource_type }}<br />
-                                                        Resource transferred (only if inventoried):<br />{{ xfer.change_events_form.resource }}<br />Description:<br />{{ xfer.change_events_form.description }}<br />
-                                                        {% if not slot.is_currency %}
-                                                            Value (total, not per unit):<br />{{ xfer.change_events_form.value }}<br />
-                                                            Unit of value:<br />{{ xfer.change_events_form.unit_of_value }}<br />
+                                                        {% with xfer.change_events_form as cev_form %}
+                                                        Event date:<br />{{ cev_form.event_date }}<br />
+                                                        {% if not slot.give_agent_is_context %}Transferred from:<br />{{ cev_form.from_agent }}<br />{% endif %}
+                                                        {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ cev_form.to_agent }}<br />{% endif %}
+                                                        Quantity transferred:<br />{{ cev_form.quantity }}<br />
+                                                        Resource type transferred:<br />{{ cev_form.resource_type }}<br />
+                                                        {% if slot.is_currency and xfer.transfer_type.exchange_type.use_case.identifier == "intrnl_xfer" %}
+                                                            Account from (if virtual account)<br />{{ cev_form.from_resource }}<br />
+                                                            Account to (if virtual account)<br />{{ cev_form.resource }}<br />
+                                                        {% else %}
+                                                            Resource transferred (only if inventoried):<br />{{ cev_form.resource }}<br />Description:<br />{{ xfer.change_events_form.description }}<br />
                                                         {% endif %}
-                                                        {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ xfer.change_events_form.is_contribution }}<br />{% endif %}
-                                                        {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ slot.change_events_form.is_to_distribute }}<br />{% endif %}
-                                                        {% if slot.is_currency %}Event reference:<br />{{ xfer.change_events_form.event_reference }}<br />{% endif %} 
+                                                        {% if not slot.is_currency %}
+                                                            Value (total, not per unit):<br />{{ cev_form.value }}<br />
+                                                            Unit of value:<br />{{ cev_form.unit_of_value }}<br />
+                                                        {% endif %}
+                                                        {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ cev_form.is_contribution }}<br />{% endif %}
+                                                        {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ cev_form.is_to_distribute }}<br />{% endif %}
+                                                        {% if slot.is_currency %}Event reference:<br />{{ cev_form.event_reference }}<br />{% endif %} 
+                                                        {% endwith %}
                                                         <div class="modal-footer">
                                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
@@ -778,7 +852,7 @@ li {
                                 </div>
                             {% endfor %}
                             
-                        </div>   
+                        </div> 
                     {% endif %}
 
                 {% endfor %}        

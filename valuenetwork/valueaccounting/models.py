@@ -7771,6 +7771,19 @@ class Transfer(models.Model):
         
     def flow_description(self):
         return self.__unicode__()
+    
+    def give_and_receive_resources(self):
+        events = self.events.all()
+        give_resource = None
+        receive_resource = None
+        et_give = EventType.objects.get(name="Give")
+        if events:
+            for ev in events:
+                if ev.event_type == et_give:
+                    give_resource = ev.resource
+                else:
+                    receive_resource = ev.resource
+        return give_resource, receive_resource
 
     def form_prefix(self):
         return "TR" + str(self.id)
@@ -7791,47 +7804,57 @@ class Transfer(models.Model):
         return TransferForm(initial=init, transfer_type=self.transfer_type, context_agent=self.context_agent, posting=False, prefix=prefix)
 
     def create_role_formset(self, data=None):
-        #todo: not tested
+        #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.views import resource_role_agent_formset
-        return resource_role_agent_formset(prefix=self.form_prefix())
+        return resource_role_agent_formset(prefix=self.form_prefix(), data=data)
     
     def change_commitments_form(self):
         from valuenetwork.valueaccounting.forms import TransferCommitmentForm
         prefix = self.form_prefix() + "C"
-        commit = self.commitments.all()[0]
-        init = {
-            "commitment_date": commit.commitment_date,
-            "due_date": commit.due_date,
-            "description":commit.description,
-            "resource_type": commit.resource_type,
-            "quantity": commit.quantity,
-            "value": commit.value,
-            "unit_of_value": commit.unit_of_value,
-            "from_agent": commit.from_agent,
-            "to_agent": commit.to_agent,
-            }
-        return TransferCommitmentForm(initial=init, transfer_type=self.transfer_type, context_agent=self.context_agent, posting=False, prefix=prefix)
+        commits = self.commitments.all()
+        if commits:
+            commit = commits[0]
+            init = {
+                "commitment_date": commit.commitment_date,
+                "due_date": commit.due_date,
+                "description":commit.description,
+                "resource_type": commit.resource_type,
+                "quantity": commit.quantity,
+                "value": commit.value,
+                "unit_of_value": commit.unit_of_value,
+                "from_agent": commit.from_agent,
+                "to_agent": commit.to_agent,
+                }
+            return TransferCommitmentForm(initial=init, transfer_type=self.transfer_type, context_agent=self.context_agent, posting=False, prefix=prefix)
+        return None
         
     def change_events_form(self):
+        #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import TransferForm
         prefix = self.form_prefix() + "E"
-        event = self.events.all()[0]
-        init = {
-            "resource": event.resource,
-            "description": event.description,
-            "is_contribution": event.is_contribution,
-            "event_reference": event.event_reference,
-            "event_date": event.event_date,
-            "description":event.description,
-            "resource_type": event.resource_type,
-            "quantity": event.quantity,
-            "value": event.value,
-            "unit_of_value": event.unit_of_value,
-            "from_agent": event.from_agent,
-            "to_agent": event.to_agent,
-            }
-        return TransferForm(initial=init, transfer_type=self.transfer_type, context_agent=self.context_agent, posting=False, prefix=prefix)
-         
+        events = self.events.all()
+        if events:
+            event = events[0]
+            from_resource, resource = self.give_and_receive_resources()
+            if from_resource and not resource:
+                resource = from_resource
+            init = {
+                "resource": resource,
+                "from_resource": from_resource,
+                "description": event.description,
+                "is_contribution": event.is_contribution,
+                "event_reference": event.event_reference,
+                "event_date": event.event_date,
+                "description":event.description,
+                "resource_type": event.resource_type,
+                "quantity": event.quantity,
+                "value": event.value,
+                "unit_of_value": event.unit_of_value,
+                "from_agent": event.from_agent,
+                "to_agent": event.to_agent,
+                }
+            return TransferForm(initial=init, transfer_type=self.transfer_type, context_agent=self.context_agent, resource_type=event.resource_type, posting=False, prefix=prefix)
+        return None
         
 
 class Feature(models.Model):

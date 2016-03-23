@@ -8,8 +8,49 @@ from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.utils import *
 from django.utils import simplejson
-#from valuenetwork.valueaccounting.tests.objects_for_testing import *
 from valuenetwork.valueaccounting.tests.value_equation_test_objects import *
+
+"""
+    Tests:
+    
+        Setup:
+    
+            One order
+                for a parent resource
+                    from a process with inputs:
+                        uses a contributed resource
+                        consumes a child resource
+                        produced by another process with inputs:
+                            some work
+                            uses a resource
+                                purchased with community contributions
+                                
+            One value equation
+                with one bucket
+                    with 4 bucket rules:
+                        EventType Work
+                        EventType Resource Production
+                        EventType Resource Contributionm
+                        EventType Payment 
+                            (for contributors to used community funded resource)
+    
+        test_setup:
+            A convenience to see if value_equation_test_objects
+            and those created in the setUp method below
+            are correct.
+            
+        test_rollup:
+            Tests the accumulated value of the parent resource.
+            
+        test_contribution_shares:
+            Tests that the events selected by the ValueEquationBuckets
+            got their proportional shares of any distribution.
+            
+        test_distribution:
+            Tests that the events actually got their distribution quantity
+            according to their poportional shares.
+
+"""
 
 def serialize_filter(orders):
     #import pdb; pdb.set_trace()

@@ -78,7 +78,7 @@ label {
                             <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
                         </div>
                         <div class="modal-body">
-                            <form enctype="multipart/form-data" action="{% url change_personal_info agent_id=agent.id %}" method="POST" >
+                            <form id="agentForm" class="validateMe" enctype="multipart/form-data" action="{% url change_personal_info agent_id=agent.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ change_form|as_bootstrap }}
 
@@ -264,6 +264,8 @@ label {
         }, "Both role and agent must be entered.");
 
         $.validator.addClassRules("select-role", { agentRequired: true });
+        $.validator.addClassRules("url", { url: true });
+        $.validator.addClassRules("email", { email: true });
         
         jQuery.validator.setDefaults({ 
             success: function(label) {
@@ -273,7 +275,14 @@ label {
             }
         });
        
-
+        $('.validateMe').each( function(){
+            var form = $(this);
+            form.validate({
+                highlight: function(label) {
+                    $(label).closest('.control-group').addClass('error');
+                }
+            });
+        });
 
 
     }); // end document.ready

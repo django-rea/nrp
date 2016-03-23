@@ -78,12 +78,12 @@ class AgentCreateForm(forms.ModelForm):
         label="ID", 
         help_text="Must be unique, and no more than 32 characters",
         widget=forms.TextInput(attrs={'class': 'required-field',}))   
-    email = forms.EmailField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
-    address = forms.CharField(
-        required=False, 
-        label="Work location",
-        help_text="Enter address for a new work location. Otherwise, select existing location on map.",
-        widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
+    email = forms.EmailField(required=False, widget=forms.TextInput(attrs={'class': 'email input-xxlarge',}))
+    #address = forms.CharField(
+    #    required=False, 
+    #    label="Work location",
+    #    help_text="Enter address for a new work location. Otherwise, select existing location on map.",
+    #    widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     description = forms.CharField(
         required=False, 
@@ -100,7 +100,8 @@ class AgentCreateForm(forms.ModelForm):
 
     class Meta:
         model = EconomicAgent
-        fields = ('name', 'nick', 'agent_type', 'is_context', 'description', 'url', 'address', 'email')
+        #removed address
+        fields = ('name', 'nick', 'agent_type', 'is_context', 'description', 'url', 'email')
 
 
 #todo: queryset methods cd be cached

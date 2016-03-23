@@ -1174,7 +1174,8 @@ class AgentAssociation(models.Model):
     def __unicode__(self):
         return self.is_associate.nick + " " + self.association_type.label + " " + self.has_associate.nick
         
-
+#todo exchange redesign fallout
+#many of these are obsolete
 DIRECTION_CHOICES = (
     ('in', _('input')),
     ('consume', _('consume')),
@@ -1226,6 +1227,8 @@ class EventTypeManager(models.Manager):
         used_ids = [et.id for et in ets if et.used_for_value_equations()]
         return EventType.objects.filter(id__in=used_ids)
         
+    #todo exchange redesign fallout
+    #obsolete event type
     def cash_event_types(self):
         return EventType.objects.filter(relationship="cash")
 
@@ -1301,6 +1304,8 @@ class EventType(models.Model):
                 print "Created %s EventType" % name
 
     def default_event_value_equation(self):
+        #todo exchange redesign fallout
+        #some of these are obsolete
         if self.used_for_value_equations():
             if self.relationship == "cite" or self.relationship == "pay" or self.name == "Cash Receipt":
                 return "quantity"
@@ -4722,6 +4727,8 @@ class EconomicResource(models.Model):
         return pes
         
     def where_from_events(self):
+        #todo exchange redesign fallout
+        #these are all obsolete
         return self.events.filter(
             Q(event_type__relationship='out')|Q(event_type__relationship='receive')|Q(event_type__relationship='receivecash')
             |Q(event_type__relationship='cash')|Q(event_type__relationship='resource')|Q(event_type__relationship='change')
@@ -4760,8 +4767,11 @@ class EconomicResource(models.Model):
         return self.events.filter(is_contribution=True)        
         
     def cash_events(self): #includes cash contributions, donations and loans
-        return self.events.filter(
-            event_type__relationship='cash')
+        #todo exchange redesign fallout
+        rct_et = EventType.objects.get(name="Receive")
+        with_xfer = [event for event in self.events.all() if event.transfer and event.event_type==rct_et]
+        currencies = [event for event in with_xfer if event.transfer.transfer_type.is_currency]
+        return currencies
             
     def cash_contribution_events(self): #includes only cash contributions
         #todo exchange redesign fallout
@@ -4779,7 +4789,6 @@ class EconomicResource(models.Model):
         return self.events.filter(event_type=rct_et, is_contribution=False)
         
     def purchase_events_for_exchange_stage(self):
-        #todo dhen_bug:
         #import pdb; pdb.set_trace()
         if self.exchange_stage:
             return self.purchase_events().filter(exchange_stage=self.exchange_stage)
@@ -4807,6 +4816,8 @@ class EconomicResource(models.Model):
         return self.events.filter(event_type=av_et)
     
     def all_usage_events(self):
+        #todo exchange redesign fallout
+        #cash is obsolete
         return self.events.exclude(event_type__relationship="out").exclude(event_type__relationship="receive").exclude(event_type__relationship="resource").exclude(event_type__relationship="cash")
 
     def demands(self):

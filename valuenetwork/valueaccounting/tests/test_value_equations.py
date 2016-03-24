@@ -58,11 +58,13 @@ from valuenetwork.valueaccounting.tests.value_equation_test_objects import *
             
         test_contribution_shares:
             Tests that the events selected by the ValueEquationBuckets
-            got their proportional shares of any distribution.
+            got their proportional shares of any distribution
+            according to their proportion of the value of the
+            deliverablels that generated the income.
             
         test_distribution:
             Tests that the events actually got their distribution quantity
-            according to their poportional shares.
+            according to their poportional shares of the accumulated value.
 
 """
 

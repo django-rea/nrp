@@ -47,4 +47,3 @@ class RecipeTest(WebTest):
         assert node3.depth == 4
         assert node3.xbill_object() == self.grandchild
 
-

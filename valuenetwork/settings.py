@@ -156,6 +156,7 @@ INSTALLED_APPS = [
     'valuenetwork.api',
     'account',
 
+
 ]
 
 #REST_FRAMEWORK = {

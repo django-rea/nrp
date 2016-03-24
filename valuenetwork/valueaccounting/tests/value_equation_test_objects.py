@@ -630,6 +630,7 @@ class ValueEquationRecipe(Recipe):
             )
         rule.save()
         """
+        
         bucket = ValueEquationBucket(
             name="bucket1",
             sequence=1,

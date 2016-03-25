@@ -6,8 +6,9 @@
 {% block head_title %}{% trans "Map" %}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
-<link href='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/leaflet.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geocoder-mapzen/1.4.0/leaflet-geocoder-mapzen.css">
+
 <style>
 
 .currentLoc {
@@ -39,20 +40,18 @@
         {% if agent %}
             {% if agent.primary_location %}
                 {% trans "Current work location" %}: <span class="currentLoc">{{ agent.primary_location }}.</span> &nbsp;&nbsp;
-                <span id="locPrompt">{% trans "To change, select a marker on the map, or add a new one." %}</span>
+                <span id="locPrompt">{% trans "To change, select a marker on the map, or search for a new one." %}</span>
             {% else %}
                 {% trans "Where are you working? " %} 
-                <span id="locPrompt">{% trans "Select a marker on the map, or add a new one." %}</span>
+                <span id="locPrompt">{% trans "Select a marker on the map, or search for a new one." %}</span>
             {% endif %}
             
             <form id="locationForm" method="POST" action="{% url add_location_to_worker agent_id=agent.id %}">
                  {% csrf_token %}
                 
-                <span id="newLoc">
-                    <input type="text" id="address" name="address" value="new location" />
-                    </span>
                 <span id="addToLoc"></span>
-            
+                
+                <input type="hidden" id="address" name="address" value="" />
                 <input type="hidden" id="agentLatitude" name="agentLatitude" value="" />
                 <input type="hidden" id="agentLongitude" name="agentLongitude" value="" />
                 <span id="buttons">
@@ -83,9 +82,10 @@
 {% block extra_script %}
     <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geocoder-mapzen/1.4.0/leaflet-geocoder-mapzen.js"></script>
    
-    <script src='https://api.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
+
 
 {% endblock %}
 
@@ -105,87 +105,35 @@
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
+                
+        var map = L.map('mapDiv').setView([{{ latitude }},{{ longitude }}], {{ zoom }});
         
-        L.mapbox.accessToken = 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg';
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+        }).addTo(map);
 
-        var map = L.map('mapDiv')
-            .setView([{{ latitude }},{{ longitude }}], {{ zoom }})
-            //.addControl(L.mapbox.geocoderControl('mapbox.places'))
-            ;
-        
-        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-            maxZoom: 18,
-            id: 'bhaugen.3f30d361',
-            accessToken: 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg'
+        var geocoder = L.control.geocoder('search-iJjA5fn', {
+            fullWidth: 650,
+            expanded: true,
         }).addTo(map);
         
-        var geocoder = L.mapbox.geocoder('mapbox.places');
+        // Re-sort control order so that geocoder is on top
+        var geocoderEl = geocoder._container;
+        geocoderEl.parentNode.insertBefore(geocoderEl, geocoderEl.parentNode.childNodes[0]);
 
-        $("#address").focus(clearHint);
-        
-        function clearHint(event) {
-            var target = event.target;
-            if (target.value == "new location") {
-                target.value = "";
-            }
-        }
-        
-        
-        $("#address").blur(geocodeAddress);
-        
-        $('#address').on('keypress', function(e) {
-            var keyCode =  e.which;
-            if (keyCode == 13){
-                e.preventDefault();
-                $('#address').trigger( "blur" );
-                return false;
-            }
-        });
-        
-        var agentAddress = "{{ agent.address }}";
-        if (agentAddress) 
-        {
-            geocoder.query(agentAddress, showMap);
-        }
-
-        function geocodeAddress(event) {
-            var address = event.target.value;
+        geocoder.on('select', function (e) {
+            var latlng = e.latlng;
+            var feature = e.feature;
+            var label = e.feature.properties.label;
+            $("#address").val(label);
+            $("#agentLatitude").val(latlng.lat);
+            $("#agentLongitude").val(latlng.lng);
+            $("#mapError").css("color","green"); 
+            $("#mapError").text("");
             
-            geocoder.query(address, showMap);
-        }
-        
-        function showMap(err, data) {
-            // The geocoder can return an area, like a city, or a
-            // point, like an address. Here we handle both cases,
-            // by fitting the map bounds to an area or zooming to a point.
-            if (!data.latlng){
-                $("#mapError").css("color","red"); 
-                $("#mapError").text("Can't find address");
-            }
-            else
-            {
-                
-                if (data.latlng) {
-                    map.setView([data.latlng[0], data.latlng[1]], {{ zoom }});
-                    var content = "<h2>" + $("#address").val() + "</h2>";
-                    var marker = L.marker(data.latlng)
-                        .addTo(map).bindPopup(content)
-                        .on('popupopen', showUrls)
-                        .on('popupclose', hideUrls);
-                    
-                    $("#agentLatitude").val(data.latlng[0]);
-                    $("#agentLongitude").val(data.latlng[1]);
-                    $("#mapError").css("color","green"); 
-                    $("#mapError").text("");
-                    
-                    $("#locPrompt").hide();
-                    $("#buttons").show();
-                }
-
-            }
-        }
-
+            $("#locPrompt").hide();
+            $("#buttons").show();
+        });
         
         $("#agents").hide();
         $("#resources").hide();
@@ -233,12 +181,10 @@
             {% endif %}
             
             $("#locPrompt").hide();
-            $("#newLoc").hide();
             $("#buttons").hide();
             $("#addToLoc").empty();
             $("#addToLoc").append(addAnchor);
             $("#addToLoc").show();
-
         }
         
         $("#cancel").click(function(event) {
@@ -250,7 +196,6 @@
             $("#addToLoc").hide();
             $("#buttons").hide();
             $("#locPrompt").show();
-            $("#newLoc").show();
         }
         
 	}); // end document.ready

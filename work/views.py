@@ -179,8 +179,7 @@ def update_skills(request, agent_id):
         
 @login_required
 def add_worker_to_location(request, location_id, agent_id):
-    if request.method == "POST":
-        #import pdb; pdb.set_trace()
+    if location_id and agent_id:
         location = get_object_or_404(Location, id=location_id)
         agent = get_object_or_404(EconomicAgent, id=agent_id)
         agent.primary_location = location

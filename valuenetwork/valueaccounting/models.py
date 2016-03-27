@@ -7196,7 +7196,7 @@ class Exchange(models.Model):
                         evt.share = evt.quantity * fraction * trigger_fraction
                         evt.depth = depth
                         path.append(evt)
-                        values += evt.shareexchange
+                        values += evt.share
                         #todo 3d: do multiple payments make sense for cash contributions?
                     else:
                         value = evt.quantity

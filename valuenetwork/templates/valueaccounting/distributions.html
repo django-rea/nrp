@@ -40,7 +40,6 @@
 		<legend>{% trans "Distributions" %}
             {% if agent %} 
                 for {{ agent.agent_type }} {{ agent.name }} 
-            {% else %}
                 <a class="btn btn-primary indent" href="{% url distribution_logging %}">{% trans "Create Distribution Manually" %}</a>
             {% endif %}
         </legend>

@@ -10243,9 +10243,11 @@ def exchanges(request, agent_id=None):
             x.transfer_list = list(x.transfers.all())
         for transfer in x.transfer_list:
             if not transfer.transfer_type.is_reciprocal:
-                total_transfers = total_transfers + transfer.quantity()
+                if transfer.quantity():
+                    total_transfers = total_transfers + transfer.quantity()
             else:
-                total_rec_transfers = total_rec_transfers + transfer.quantity()
+                if transfer.quantity():
+                    total_rec_transfers = total_rec_transfers + transfer.quantity()
             for event in transfer.events.all():
                 event_ids = event_ids + comma + str(event.id)
                 comma = ","

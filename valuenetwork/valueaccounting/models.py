@@ -410,7 +410,8 @@ class EconomicAgent(models.Model):
     longitude = models.FloatField(_('longitude'), default=0.0, blank=True, null=True)
     primary_location = models.ForeignKey(Location, 
         verbose_name=_('current location'), related_name='agents_at_location', 
-        blank=True, null=True)
+        blank=True, null=True,
+        on_delete=models.SET_NULL)
     reputation = models.DecimalField(_('reputation'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     photo = ThumbnailerImageField(_("photo"),
@@ -7196,7 +7197,7 @@ class Exchange(models.Model):
                         evt.share = evt.quantity * fraction * trigger_fraction
                         evt.depth = depth
                         path.append(evt)
-                        values += evt.shareexchange
+                        values += evt.share
                         #todo 3d: do multiple payments make sense for cash contributions?
                     else:
                         value = evt.quantity

@@ -1594,13 +1594,18 @@ hr {
                 {% csrf_token %}
                 {{ unplanned_output_form|as_bootstrap }}
                 {{ role_formset.management_form }}
-                Resource Roles
                 <table>
+                    <tr>
+                        <td>Resource access role</td>
+                        <td>Assignment</td>
+                        <td>Is contact &nbsp;</td>
+                    </tr>
                     {% for form in role_formset %}
-                        <tr>
-                            <td class="td-role" >{{ form.role }}</td>
-                            <td class="td-agent" >{{ form.agent }}</td>
-                            <td>{{ form.is_contact }} Is contact</td>
+                        {{ form.id }}  
+                        <tr class="role-row">
+                            <td class="td-role">{{ form.role }}</td>
+                            <td class="td-agent">{{ form.agent }}</td>
+                            <td class="text-center">{{ form.is_contact }}</td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -1705,6 +1710,39 @@ hr {
 				}
 			});
 		});
+		
+		$.validator.addMethod("agentRequired", function (value, element) {
+            var form_id = element.form.id;
+            form_id = "#" + form_id;
+            var parent = element.parentElement;
+            var parentSib = parent.nextElementSibling;
+            var sib = parentSib.children[0];
+            var sibValue = sib.value;
+            if (sibValue){
+                var sibId = sib.id;
+                sibId = "#" + sibId;
+                $(sibId).removeClass('error').next('label.error').remove();
+            }
+            return this.optional(element) || sibValue;
+        }, "Both role and agent must be selected.");
+        
+        $.validator.addMethod("roleRequired", function (value, element) {
+            var form_id = element.form.id;
+            form_id = "#" + form_id;
+            var parent = element.parentElement;
+            var parentSib = parent.previousElementSibling;
+            var sib = parentSib.children[0];
+            var sibValue = sib.value;
+            if (sibValue){
+                var sibId = sib.id;
+                sibId = "#" + sibId;
+                $(sibId).removeClass('error').next('label.error').remove();
+            }
+            return this.optional(element) || sibValue;
+        }, "Both role and agent must be selected.");
+        
+        $.validator.addClassRules("select-role", { agentRequired: true });
+        $.validator.addClassRules("select-agent", { roleRequired: true });
 
 	    $(".resource-type-selector").change(getUnit);
 

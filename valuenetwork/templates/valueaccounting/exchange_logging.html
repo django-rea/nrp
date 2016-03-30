@@ -155,7 +155,7 @@ li {
                 <span class="total-top">{% trans "Total transfer value" %}: {{ total_t }} </span> 
                 <span class="total-top">{% trans "Total reciprocal transfer value" %}: {{ total_rect }} </span> 
             </div>
-            <form id="exchangeForm" method="POST" action="">
+            <form class="validateMe" id="exchangeForm" method="POST" action="">
                 {% csrf_token %}
                 {{ exchange_form|as_bootstrap }}
                 {% if agent %}
@@ -233,14 +233,21 @@ li {
                                                 Resource Notes:<br />{{ ax_form.notes }}<br />
                                                 Resource Access Rules:<br />{{ ax_form.access_rules }}<br />
                                                 {{ slot.create_role_formset.management_form }}
-                                                Resource access roles<br />
-                                                {% for form in slot.create_role_formset %}
+                                                <table>
                                                     <tr>
-                                                        <td>{{ form.role }}</td>
-                                                        <td>{{ form.agent }}</td>
-                                                        <td>{{ form.is_contact }} Is contact</td>
+                                                        <td>Resource access role</td>
+                                                        <td>Assignment</td>
+                                                        <td>Is contact &nbsp;</td>
                                                     </tr>
-                                                {% endfor %}
+                                                    {% for form in slot.create_role_formset %}
+                                                        {{ form.id }}  
+                                                        <tr class="role-row">
+                                                            <td class="td-role">{{ form.role }}</td>
+                                                            <td class="td-agent">{{ form.agent }}</td>
+                                                            <td class="text-center">{{ form.is_contact }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </table>
                                             {% endif %}
                                             {% endwith %}
                                             <div class="modal-footer">
@@ -577,14 +584,21 @@ li {
                                                 Resource Notes:<br />{{ ax_form.notes }}<br />
                                                 Resource Access Rules:<br />{{ ax_form.access_rules }}<br />
                                                 {{ slot.create_role_formset.management_form }}
-                                                Resource access roles<br />
-                                                {% for form in slot.create_role_formset %}
+                                                <table>
                                                     <tr>
-                                                        <td>{{ form.role }}</td>
-                                                        <td>{{ form.agent }}</td>
-                                                        <td>{{ form.is_contact }} Is contact</td>
+                                                        <td>Resource access role</td>
+                                                        <td>Assignment</td>
+                                                        <td>Is contact &nbsp;</td>
                                                     </tr>
-                                                {% endfor %}
+                                                    {% for form in slot.create_role_formset %}
+                                                        {{ form.id }}  
+                                                        <tr class="role-row">
+                                                            <td class="td-role">{{ form.role }}</td>
+                                                            <td class="td-agent">{{ form.agent }}</td>
+                                                            <td class="text-center">{{ form.is_contact }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </table>
                                             {% endif %}
                                             {% endwith %}
                                             <div class="modal-footer">
@@ -906,7 +920,7 @@ li {
                                     <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
                                 </div>
                                 <div class="modal-body">
-                                    <form class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_exchange_work_event event_id=event.id %}" method="POST" >
+                                    <form class="validateMe"  class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_exchange_work_event event_id=event.id %}" method="POST" >
                                         {% csrf_token %}
                                         {{ event.changeform|as_bootstrap }}
                                         <input type="hidden" id="next" name="next" value="exchange" />
@@ -978,7 +992,7 @@ li {
         });
 
         $.validator.addClassRules("quantity", { required: true, quantity: true, });
-        $.validator.addClassRules("value", { required: true, number: true });
+        //$.validator.addClassRules("value", { required: true, number: true });
 		$.validator.addClassRules("url", { url: true });
         $.validator.addClassRules("resourceType", { required: true});
         $.validator.addClassRules("hours", { 
@@ -994,6 +1008,39 @@ li {
 			max: 60
 		});
         $.validator.addClassRules("date-entry", { required: true, date: true });
+
+        $.validator.addMethod("agentRequired", function (value, element) {
+            var form_id = element.form.id;
+            form_id = "#" + form_id;
+            var parent = element.parentElement;
+            var parentSib = parent.nextElementSibling;
+            var sib = parentSib.children[0];
+            var sibValue = sib.value;
+            if (sibValue){
+                var sibId = sib.id;
+                sibId = "#" + sibId;
+                $(sibId).removeClass('error').next('label.error').remove();
+            }
+            return this.optional(element) || sibValue;
+        }, "Both role and agent must be selected.");
+        
+        $.validator.addMethod("roleRequired", function (value, element) {
+            var form_id = element.form.id;
+            form_id = "#" + form_id;
+            var parent = element.parentElement;
+            var parentSib = parent.previousElementSibling;
+            var sib = parentSib.children[0];
+            var sibValue = sib.value;
+            if (sibValue){
+                var sibId = sib.id;
+                sibId = "#" + sibId;
+                $(sibId).removeClass('error').next('label.error').remove();
+            }
+            return this.optional(element) || sibValue;
+        }, "Both role and agent must be selected.");
+        
+        $.validator.addClassRules("select-role", { agentRequired: true });
+        $.validator.addClassRules("select-agent", { roleRequired: true });
 
         $('.validateMe').each( function(){
 			var form = $(this);

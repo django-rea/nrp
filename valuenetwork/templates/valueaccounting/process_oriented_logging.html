@@ -1598,8 +1598,8 @@ hr {
                 <table>
                     {% for form in role_formset %}
                         <tr>
-                            <td>{{ form.role }}</td>
-                            <td>{{ form.agent }}</td>
+                            <td class="td-role" >{{ form.role }}</td>
+                            <td class="td-agent" >{{ form.agent }}</td>
                             <td>{{ form.is_contact }} Is contact</td>
                         </tr>
                     {% endfor %}

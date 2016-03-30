@@ -350,16 +350,37 @@
             $( "#help" ).text("Show Help");
         })
 
-        $('td.td-role > select').addClass('select-role');   
-        $('td.td-agent > select').addClass('select-agent');  
+        //$('td.td-role > select').addClass('select-role');   
+        //$('td.td-agent > select').addClass('select-agent');  
 
         $.validator.addMethod("agentRequired", function (value, element) {
-            //alert("value " + value + " element " + element);
-            //agent = element.closest(".select-agent");
-            //alert("agent " + agent);
-
-            return true;
-        }, "Both role and agent must be entered.");
+            var parent = element.parentElement;
+            var parentSib = parent.nextElementSibling;
+            var sib = parentSib.children[0];
+            var sibValue = sib.value;
+            if (sibValue){
+                var sibId = sib.id;
+                sibId = "#" + sibId;
+                $(sibId).removeClass('error').next('label.error').remove();
+            }
+            return this.optional(element) || sibValue;
+        }, "Both role and agent must be selected.");
+        
+        $.validator.addMethod("roleRequired", function (value, element) {
+            var parent = element.parentElement;
+            var parentSib = parent.previousElementSibling;
+            var sib = parentSib.children[0];
+            var sibValue = sib.value;
+            if (sibValue){
+                var sibId = sib.id;
+                sibId = "#" + sibId;
+                $(sibId).removeClass('error').next('label.error').remove();
+            }
+            return this.optional(element) || sibValue;
+        }, "Both role and agent must be selected.");
+        
+        $.validator.addClassRules("select-role", { agentRequired: true });
+        $.validator.addClassRules("select-agent", { roleRequired: true });
         
         jQuery.validator.addMethod("quantity",
             function(value, element) {
@@ -369,7 +390,6 @@
             "Please enter a number less than 1000000 with no more than 2 decimal places"
         );
 
-        $.validator.addClassRules("select-role", { agentRequired: true });
         $.validator.addClassRules("quantity", { quantity: true });
 
             

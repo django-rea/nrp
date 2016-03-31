@@ -1060,7 +1060,9 @@ def inventory(request):
 
 def resource_flow_report(request, resource_type_id):
     #todo: this report is dependent on DHEN's specific work flow, will need to be generalized
-    #import pdb; pdb.set_trace() 
+    #import pdb; pdb.set_trace()
+    if settings.ALL_WORK_PAGE != "/board/dhen-board/":
+        return render_to_response('valueaccounting/no_permission.html')
     rt = get_object_or_404(EconomicResourceType, id=resource_type_id)
     #redo: need exchange_types as well as process_types
     #this next stmt is obsolete until we get mixed process-exchange recipes

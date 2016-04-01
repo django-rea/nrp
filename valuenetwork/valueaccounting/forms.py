@@ -230,6 +230,9 @@ class EconomicResourceForm(forms.ModelForm):
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     created_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    price_per_unit = forms.DecimalField(
+        max_digits=8, decimal_places=2,
+        widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity price'}))
 
     class Meta:
         model = EconomicResource
@@ -321,10 +324,14 @@ class ResourceRoleAgentForm(forms.ModelForm):
     id = forms.CharField(required=False, widget=forms.HiddenInput)
     role = forms.ModelChoiceField(
         queryset=AgentResourceRoleType.objects.all(), 
-        required=False)
+        required=False,
+        widget=forms.Select(
+            attrs={'class': 'select-role'}))
     agent = AgentModelChoiceField(
         queryset=EconomicAgent.objects.resource_role_agents(), 
-        required=False)
+        required=False,
+        widget=forms.Select(
+            attrs={'class': 'select-agent'}))
     is_contact = forms.BooleanField(
         required=False, 
         widget=forms.CheckboxInput())
@@ -1576,7 +1583,7 @@ class TransferForm(forms.Form):
         label="Value (total, not per unit)",
         initial=0,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+        widget=forms.TextInput(attrs={'class': 'quantity value input-small',}))
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
         required=False,
@@ -1677,7 +1684,7 @@ class TransferCommitmentForm(forms.Form):
         label="Value (total, not per unit)",
         initial=0,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'value input-small',}))
+        widget=forms.TextInput(attrs={'class': 'value quantity input-small',}))
     unit_of_value = forms.ModelChoiceField(
         empty_label=None,
         required=False,
@@ -2767,6 +2774,11 @@ class EconomicResourceTypeForm(forms.ModelForm):
 
 class EconomicResourceTypeChangeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'existing-name input-xlarge',}))
+    parent = forms.ModelChoiceField(
+        queryset=EconomicResourceType.objects.all(), 
+        required=False, 
+        widget=forms.Select(
+            attrs={'class': 'chzn-select'}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     price_per_unit = forms.DecimalField(
         max_digits=8, decimal_places=2,

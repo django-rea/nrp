@@ -5943,7 +5943,6 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
                     exchange = exchange,
                     context_agent = context_agent,
                     transfer_date = commitment_date,
-                    notes = description,
                     created_by = request.user              
                     )
                 xfer.save()
@@ -5980,6 +5979,7 @@ def add_transfer_commitment(request, exchange_id, transfer_type_id):
                     unit_of_value=unit_of_value,
                     from_agent = from_agent,
                     to_agent = to_agent,
+                    description=description,
                     created_by = request.user,
                     )
                 commit.save()

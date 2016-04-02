@@ -7686,6 +7686,14 @@ class Transfer(models.Model):
                 ])
         return text
     
+    def commit_description(self):
+        #import pdb; pdb.set_trace()
+        commits = self.commitments.all()
+        if commits:
+            return commits[0].description
+        else:
+            return None
+        
     def save(self, *args, **kwargs):
         if self.id:
             if not self.transfer_type:

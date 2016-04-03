@@ -397,6 +397,9 @@ li {
                                                 </div>              
                                             {% endif %}                            
                                         {% endif %}
+                                        {% if xfer.commit_description %}
+                                            <div class="notes"> {{ xfer.commit_description|urlize|linebreaks }} </div>
+                                        {% endif %}
                                         {% if xfer.events.all %}
                                             <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.commit_event_text }}
                                                 {% if logger  %}

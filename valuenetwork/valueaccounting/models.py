@@ -8462,7 +8462,14 @@ class Commitment(models.Model):
         #import pdb; pdb.set_trace()
         from valuenetwork.valueaccounting.forms import InputEventAgentForm
         prefix=self.form_prefix()
-        qty_help = " ".join(["unit:", self.unit_of_quantity.abbrev, ", up to 2 decimal places"])
+        qty_help = ""
+        unit = self.resource_type.unit
+        if unit:
+            if unit.abbrev:
+                unit_string = unit.abbrev
+            else:
+                unit_string = unit.name
+            qty_help = " ".join(["unit:", unit_string, ", up to 2 decimal places"])
         if init:
             return InputEventAgentForm(qty_help=qty_help, prefix=prefix, initial=init, data=data)
         else:

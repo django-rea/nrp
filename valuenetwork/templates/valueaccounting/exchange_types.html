@@ -75,27 +75,6 @@ h3 {
                 </ul>
               </div>
               <div class="span4">
-                <h3>{% trans "Outgoing / Demand Exchange Types" %}:</h3>
-                <ul>
-                {% for ext in demand_exchange_types %}
-                    <li>
-                        <a href="{% url change_exchange_type exchange_type_id=ext.id %}">{{ ext }}</a>
-                        {% if ext.is_deletable %}
-                            <form
-                                style="display: inline;" 
-                                class="remove-form" 
-                                id="removeForm{{ ext.id }}" 
-                                action="{% url delete_exchange_type exchange_type_id=ext.id %}" 
-                                method="POST" >
-                                {% csrf_token %}
-                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this exchange type" >X</button>
-                            </form>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-                </ul>
-              </div>
-              <div class="span4">
                 <h3>{% trans "Internal Exchange Types" %}:</h3>
                 <ul>
                 {% for ext in internal_exchange_types %}
@@ -116,6 +95,28 @@ h3 {
                 {% endfor %}
                 </ul>
               </div>
+              <div class="span4">
+                <h3>{% trans "Outgoing / Demand Exchange Types" %}:</h3>
+                <ul>
+                {% for ext in demand_exchange_types %}
+                    <li>
+                        <a href="{% url change_exchange_type exchange_type_id=ext.id %}">{{ ext }}</a>
+                        {% if ext.is_deletable %}
+                            <form
+                                style="display: inline;" 
+                                class="remove-form" 
+                                id="removeForm{{ ext.id }}" 
+                                action="{% url delete_exchange_type exchange_type_id=ext.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this exchange type" >X</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
+              </div>
+
             </div>
 	    </div>
     </div>

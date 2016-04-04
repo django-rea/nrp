@@ -126,14 +126,21 @@ container li {
 			            {% csrf_token %}
 			            {{ create_form|as_bootstrap }}
                         {{ create_role_formset.management_form }}
-                        Resource access roles<br />
-	                    {% for form in create_role_formset %}
-	                        <tr>
-	                            <td>{{ form.role }}</td>
-	                            <td>{{ form.agent }}</td>
-	                            <td>{{ form.is_contact }} Is contact</td>
-	                        </tr>
-                       	{% endfor %}
+                        <table>
+                            <tr>
+                                <td>Resource access role</td>
+                                <td>Assignment</td>
+                                <td>Is contact &nbsp;</td>
+                            </tr>
+                            {% for form in create_role_formset %}
+                                {{ form.id }}  
+                                <tr class="role-row">
+                                    <td class="td-role">{{ form.role }}</td>
+                                    <td class="td-agent">{{ form.agent }}</td>
+                                    <td class="text-center">{{ form.is_contact }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
 		              <div class="modal-footer">
 			            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 			            <button class="btn btn-primary">{% trans "Save" %}</button>
@@ -290,7 +297,7 @@ container li {
 
         $('#inventory').addClass('active');
 
-        $("select").chosen();
+        $(".chzn-select").chosen();
 
         $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" ); 
@@ -386,15 +393,6 @@ container li {
 
         $('#resourceForm').validate(
         {
-            rules: {
-                url: {
-                    url: true
-                },
-                quantity: {
-                    required: true,
-                    quantity: true
-                }
-            },
             highlight: function(label) {
                 $(label).closest('.control-group').addClass('error');
             }
@@ -410,6 +408,35 @@ container li {
 
             });
         });
+        
+        jQuery.validator.addMethod("agentRequired", function (value, element) {
+            var parent = element.parentElement;
+            var parentSib = parent.nextElementSibling;
+            var sib = parentSib.children[0];
+            var sibValue = sib.value;
+            if (sibValue){
+                var sibId = sib.id;
+                sibId = "#" + sibId;
+                $(sibId).removeClass('error').next('label.error').remove();
+            }
+            return this.optional(element) || sibValue;
+        }, "Both role and agent must be selected.");
+        
+        jQuery.validator.addMethod("roleRequired", function (value, element) {
+            var parent = element.parentElement;
+            var parentSib = parent.previousElementSibling;
+            var sib = parentSib.children[0];
+            var sibValue = sib.value;
+            if (sibValue){
+                var sibId = sib.id;
+                sibId = "#" + sibId;
+                $(sibId).removeClass('error').next('label.error').remove();
+            }
+            return this.optional(element) || sibValue;
+        }, "Both role and agent must be selected.");
+        
+        $.validator.addClassRules("select-role", { agentRequired: true });
+        $.validator.addClassRules("select-agent", { roleRequired: true });
 
     }); // end document.ready
 

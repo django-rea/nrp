@@ -85,6 +85,7 @@ h3 {
 .rpt {
     font-weight: bold;
     float: right;
+    font-size: 1.2em;
 }
 
 </style>
@@ -95,20 +96,11 @@ h3 {
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-        <a class="rpt" href="{% url resource_flow_report resource_type_id=14 %}" >{% trans "Resource Flow Report" %}</a>
-{% comment %}
     <div class="row-fluid">
         <div class="span12">
+{% comment %}
             <form id="filterForm" action="." method="POST" >
                 {% csrf_token %}
-                <div id="div_id_context_agent" class="control-group" style="display: inline;" >
-                    <label for="id_context_agent" class="control-label fltr-label" style="display: inline; " >
-                        {% trans "Context" %}
-                    </label>
-                    <div class="controls fltr" style="display: inline;" >
-                        {{ filter_form.context_agent }}
-                    </div>                    
-                </div>
                 <div id="div_id_resource_type" class="control-group" style="display: inline;" >
                     <label for="id_context_agent" class="control-label fltr-label" style="display: inline;  " >
                         {% trans "Resource Type" %}
@@ -119,9 +111,10 @@ h3 {
                 </div>
                 <input type="submit" name="submit" class="btn btn-info fltr-label" style="display: inline; " value="{% trans 'Reload' %}" />
             </form>
+{% endcomment %}
+            <a class="rpt" href="{% url resource_flow_report resource_type_id=14 %}" >{% trans "Resource Flow Report" %}</a>
         </div>
     </div>
-{% endcomment %}
     <div class="row-fluid">
         <div class="span4">
             <span class="top">Harvesting Site</span>
@@ -138,7 +131,7 @@ h3 {
         <div class="span4">
             <span class="top">Seller</span>
             {% if agent %}
-                <a data-toggle="modal" class="btn btn-primary btn-mini" href="{% url create_sale %}">{% trans "Make Sale" %}</a>
+                <a data-toggle="modal" class="btn btn-primary btn-mini" href="{% url exchange_logging exchange_type_id=4 exchange_id=0 context_agent_id=seller.id %}">{% trans "Make Sale" %}</a>
             {% endif %}
         </div>
     </div>
@@ -296,7 +289,7 @@ h3 {
                                         method="POST" >
                                         {% csrf_token %}
                                         <button style="display: inline;"  class="btn btn-info btn-mini" title="Undo and make available again" >Undo</button>
-                                    </form>                             
+                                    </form>
                                   </div>
                                 {% endif %}
                                 {% if res.notes %}

@@ -49,10 +49,10 @@
 			<ul>
 			    {% for x in exchanges %}
 					<li>
-                        <a href="{% url exchange_logging exchange_id=x.id %}">{{ x }}
+                        <a href="{% url exchange_logging exchange_type_id=0 exchange_id=x.id %}">{{ x }}
                         {% if x.order %} for {{ x.order }}{% endif %}</a>  {% trans "created by" %} {{ x.created_by }}
 						{% if user = x.created_by or user.is_superuser%}
-                        	<a class="btn btn-info btn-mini" href="{% url exchange_logging exchange_id=x.id %}">{% trans "Change" %}</a> 
+                        	<a class="btn btn-info btn-mini" href="{% url exchange_logging exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a> 
                         	{% if x.is_deletable %}
 	                            <form
 			                        style="display: inline;" 
@@ -67,10 +67,17 @@
                     	    {% endif %}
 						{% endif %}
                     </li>
-                    {% if x.event_list %}
+                    {% if x.transfers.all %}
                         <ul>
-                            {% for event in x.event_list %}
-                                <li>{{ event }} {% if event.value %} {{ event.value }} {{ event.unit_of_value }} {% endif %}</li>
+                            {% for transfer in x.transfers.all %}
+                                <li>{{ transfer }} </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% if x.work_events %}
+                        <ul>
+                            {% for event in x.work_events %}
+                                <li>{{ event }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
@@ -107,13 +114,15 @@
                 <p class="title"> {% trans "Exchange Type" %} </p> 
                 {% for et in ets %}
                     <p><input type="checkbox" class="category" id="{{ et.id }}" name="{{ et.id }}" value="{{ et.id }}" /> {{ et.name }}</p>
-                {% endfor %}     
+                {% endfor %}   
+{% comment %}
                 {% if references %}
 	            <p class="title"> {% trans "Accounting Reference" %} </p>
 	            {% for ar in references %}
 	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
 	            {% endfor %}
 	            {% endif %}
+{% endcomment %}
 	            <input type='hidden' id='categories' name='categories' value=' {{ selected_values }} ' />
 	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
             </form>

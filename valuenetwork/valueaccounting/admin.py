@@ -76,22 +76,55 @@ class ClaimEventAdmin(admin.ModelAdmin):
 
 admin.site.register(ClaimEvent, ClaimEventAdmin)
 
+class TransferEconomicEventInline(admin.TabularInline):
+    model = EconomicEvent
+    fk_name = 'transfer'
+    fields = ('event_type', 'event_date', 'resource_type', 'exchange_stage', 'quantity', 'unit_of_quantity', 'value', 'unit_of_value', 'from_agent', 'to_agent')
+ 
+class TransferAdmin(admin.ModelAdmin):
+    date_hierarchy = 'transfer_date'
+    list_display = ('id', 'transfer_date', 'transfer_type', 'name', 'context_agent')
+    list_filter = ['transfer_type']
+    inlines = [ TransferEconomicEventInline ]
+
+admin.site.register(Transfer, TransferAdmin)
+
+class TransferInline(admin.TabularInline):
+    model = Transfer
+    fk_name = 'exchange'
+    fields = ('name', 'transfer_type', 'transfer_date')
+    
+class TransferTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'sequence', 'exchange_type', )
+    list_filter = ['exchange_type']
+
+admin.site.register(TransferType, TransferTypeAdmin)
+
+    
 class EconomicEventInline(admin.TabularInline):
     model = EconomicEvent
     fk_name = 'exchange'
     fields = ('event_type', 'event_date', 'resource_type', 'exchange_stage', 'quantity', 'unit_of_quantity', 'value', 'unit_of_value', 'from_agent', 'to_agent')
- 
-class CommitInline(admin.TabularInline):
-    model = Commitment
-    fk_name = 'exchange'
-    fields = ('event_type', 'commitment_date', 'resource_type', 'exchange_stage', 'quantity', 'unit_of_quantity', 'from_agent', 'to_agent')
-    
+   
 class ExchangeAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
-    list_display = ('id', 'start_date', 'use_case', 'name', 'context_agent', 'supplier')
-    inlines = [ EconomicEventInline, CommitInline ]
+    list_display = ('id', 'start_date', 'use_case', 'name', 'context_agent', 'exchange_type')
+    list_filter = ['use_case', 'exchange_type']
+    inlines = [ TransferInline, EconomicEventInline ]
 
 admin.site.register(Exchange, ExchangeAdmin)
+
+class DistEconomicEventInline(admin.TabularInline):
+    model = EconomicEvent
+    fk_name = 'distribution'
+    fields = ('event_type', 'event_date', 'resource_type', 'exchange_stage', 'quantity', 'unit_of_quantity', 'value', 'unit_of_value', 'from_agent', 'to_agent')
+ 
+class DistributionAdmin(admin.ModelAdmin):
+    date_hierarchy = 'distribution_date'
+    list_display = ('id', 'distribution_date', 'name', 'context_agent', 'value_equation')
+    inlines = [ DistEconomicEventInline ]
+
+admin.site.register(Distribution, DistributionAdmin)
 
 class IncomeEventDistributionAdmin(admin.ModelAdmin):
     date_hierarchy = 'distribution_date'
@@ -197,8 +230,8 @@ class TransferTypeInline(admin.TabularInline):
     fk_name = "exchange_type"
 
 class ExchangeTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'use_case', 'context_agent', 'process_pattern' )
-    list_filter = ['context_agent', 'use_case']
+    list_display = ('name', 'use_case' )
+    list_filter = ['use_case']
     search_fields = ['name',]
     inlines = [ TransferTypeInline, ]
 
@@ -264,7 +297,7 @@ admin.site.register(Process, ProcessAdmin)
 
 class CommitmentAdmin(admin.ModelAdmin):
     date_hierarchy = 'due_date'
-    list_display = ('resource_type', 'quantity', 'unit_of_quantity', 'event_type', 'due_date', 'finished', 'from_agent', 'to_agent', 'process', 'context_agent', 'order', 'independent_demand',  
+    list_display = ('resource_type', 'quantity', 'unit_of_quantity', 'event_type', 'due_date', 'finished', 'from_agent', 'to_agent', 'process', 'exchange', 'context_agent', 'order', 'independent_demand',  
         'description')
     list_filter = ['independent_demand', 'event_type', 'resource_type', 'from_agent', 'context_agent']
     search_fields = ['event_type__name', 'from_agent__name', 'to_agent__name', 'resource_type__name']

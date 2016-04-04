@@ -101,84 +101,10 @@
 			},
 		});
 
-		$("#id_context_agent").change(getCustomers);
-		//$("#id_customer").change(getOrders);
-		//$("#id_order").change(getCustomer);
-        
+		$("#id_context_agent").change(getCustomers);        
 
 	}); // end document.ready
 	
-    function getCustomers()
-    {
-        var selectedAgent = document.getElementById('id_context_agent').value;
-        var jsonUrl = encodeURI("/accounting/json-context-agent-customers/" + selectedAgent + "/");
-        var selectedCustomer = document.getElementById('id_customer').value;
-        $("#id_customer").empty();
-        $.get(jsonUrl,
-        function(data){
-            $("#id_customer").append('<option value="">' + '--------' + '</option>'); 
-            for(var i=0 ; i<data.length ; i++)
-            {
-                var id = data[i]['pk'];
-                var name = data[i].fields['nick']; 
-                if (selectedCustomer == id) {
-                    $("#id_customer").append('<option value="' + id + '" selected>' + name + '</option>');
-                } else {
-                    $("#id_customer").append('<option value="' + id + '">' + name + '</option>'); 
-                }
-            }
-            $(".chzn-select").trigger("liszt:updated");
-        });
-    }
-/*    
-    function getOrders()
-    {
-        var selectedCustomer = document.getElementById('id_customer').value;
-        if (selectedCustomer == '')
-        {
-            selectedCustomer = '0'
-        }
-        var jsonUrl = encodeURI("/accounting/json-customer-orders/" + selectedCustomer + "/");
-        $("#id_order").empty();
-        $.get(jsonUrl,
-        function(data){
-            $("#id_order").append('<option value="">' + '--------' + '</option>'); 
-            for(var i=0 ; i<data.length ; i++)
-            {
-                var id = data[i]['pk'];
-                var name = data[i].fields['name']; 
-                $("#id_order").append('<option value="' + id + '">' + name + '</option>'); 
-            }
-        });
-    }
-                
-    function getCustomer()
-    {
-        var selectedOrder = document.getElementById('id_order').value;
-        //alert(selectedOrder); --the above is not working under some conditions.....?????
-        if (selectedOrder == '')
-        {
-            selectedOrder = '0'
-        }
-        var selectedAgent = document.getElementById('id_context_agent').value;
-        var jsonUrl = encodeURI("/accounting/json-order-customer/" + selectedOrder + "/" + selectedAgent + "/");
-        $("#id_customer").empty();
-        $.get(jsonUrl,
-        function(data){
-            $("#id_customer").append('<option value="">' + '--------' + '</option>'); 
-            for(var i=0 ; i<data.length ; i++)
-            {
-                var id = data[i]['pk'];
-                var name = data[i].fields['nick']; 
-                if (selectedOrder == '0') {
-                    $("#id_customer").append('<option value="' + id + '">' + name + '</option>');
-                } else {
-                    $("#id_customer").append('<option value="' + id + '" selected>' + name + '</option>');
-                }
-            } 
-        });
-    }
- */   
     </script>
 
 {% endblock %}

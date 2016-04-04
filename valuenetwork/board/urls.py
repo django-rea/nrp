@@ -18,5 +18,6 @@ urlpatterns = patterns("",
     url(r'^undo-col2/(?P<resource_id>\d+)/$', 'valuenetwork.board.views.undo_col2', name="undo_col2"),
     url(r'^undo-col3/(?P<resource_id>\d+)/$', 'valuenetwork.board.views.undo_col3', name="undo_col3"),
     url(r'^delete-farm-commitment/(?P<commitment_id>\d+)/$', 'valuenetwork.board.views.delete_farm_commitment', name="delete_farm_commitment"),
+    #url(r'^delete-receipt/(?P<resource_id>\d+)/$', 'valuenetwork.board.views.delete_receipt', name="delete_receipt"),
     
 )

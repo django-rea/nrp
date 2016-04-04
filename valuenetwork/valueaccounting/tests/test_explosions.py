@@ -22,6 +22,7 @@ class ExplosionTest(TestCase):
         self.user = User.objects.create_user('alice', 'alice@whatever.com', 'password')
 
         recipe = Recipe()
+        self.recipe = recipe
         self.parent = recipe.parent
         self.child = recipe.child
         self.grandchild = recipe.grandchild

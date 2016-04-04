@@ -11369,6 +11369,9 @@ def create_distribution(request, agent_id):
 def distribution_logging(request, distribution_id=None):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
+    if not agent:
+        if not distribution_id:
+            return render_to_response('valueaccounting/no_permission.html')
     logger = False
     if agent:
         if request.user.is_superuser:

@@ -10694,6 +10694,7 @@ def distributions(request, agent_id=None):
     if agent_id:
         agent = get_object_or_404(EconomicAgent, id=agent_id)
     today = datetime.date.today()
+    user_agent = get_agent(request)
     end =  today + datetime.timedelta(days=5)
     start = datetime.date(today.year, 1, 1)
     init = {"start_date": start, "end_date": end}
@@ -10734,6 +10735,7 @@ def distributions(request, agent_id=None):
         "total_distributions": total_distributions,
         "event_ids": event_ids,
         "agent": agent,
+        "user_agent": user_agent,
     }, context_instance=RequestContext(request))
   
 @login_required    

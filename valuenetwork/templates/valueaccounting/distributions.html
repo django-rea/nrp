@@ -39,8 +39,10 @@
         {% include "_messages.html" %}
 		<legend>{% trans "Distributions" %}
             {% if agent %} 
-                for {{ agent.agent_type }} {{ agent.name }} 
-                <a class="btn btn-primary indent" href="{% url distribution_logging %}">{% trans "Create Distribution Manually" %}</a>
+                for {{ agent.agent_type }} {{ agent.name }}
+                {% if user_agent %}
+                    <a class="btn btn-primary indent" href="{% url distribution_logging %}">{% trans "Create Distribution Manually" %}</a>
+                {% endif %}
             {% endif %}
         </legend>
 

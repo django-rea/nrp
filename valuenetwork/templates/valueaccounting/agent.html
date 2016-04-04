@@ -125,7 +125,7 @@ legend {
                 <a href="#createUserForm" role="button" class="btn btn-primary indent" data-toggle="modal">{% trans "Create User" %}</a>
             {% endif %}
             
-            {% if agent.is_context %}
+            {% if agent.is_context and user_agent %}
                 <form style="display: inline;" class="indent" id="exchangeForm" method="POST" action="">
                     {% csrf_token %}
                     Create an internal exchange in this context: <span style="vertical-align: middle;">{{ nav_form.exchange_type }}</span>

@@ -2835,6 +2835,8 @@ def create_event_types(app, **kwargs):
     EventType.create('Payout', _('pays out'), _('paid by'), 'payout', 'agent', '-', 'value')
     EventType.create('Loan', _('loans'), _('loaned by'), 'cash', 'exchange', '+', 'value')
     #the following is for fees, taxes, other extraneous charges not involved in a value equation
+    EventType.create('Transfer', _('transfers'), _('transfered by'), 'transfer', 'exchange', '=', 'quantity')
+    EventType.create('Reciprocal Transfer', _('reciprocal transfers'), _('transfered by'), 'transfer', 'exchange', '=', 'quantity')
     EventType.create('Fee', _('fees'), _('charged by'), 'fee', 'exchange', '-', 'value')
     EventType.create('Give', _('gives'), _('given by'), 'give', 'transfer', '-', 'quantity')
     EventType.create('Receive', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity')

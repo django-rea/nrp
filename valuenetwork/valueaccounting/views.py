@@ -622,7 +622,20 @@ def change_exchange_type(request, exchange_type_id):
     slots = exchange_type.slots() 
     change_ext_form = ExchangeTypeForm(instance=exchange_type, data=request.POST or None)
     add_tt_form = TransferTypeForm(data=request.POST or None)
-    #import pdb; pdb.set_trace()
+    for slot in slots:       
+        FacetValueFormSet = modelformset_factory(
+            TransferTypeFacetValue,
+            form=TransferTypeFacetValueForm,
+            can_delete=True,
+            extra=2,
+            )
+        facet_value_formset = FacetValueFormSet(
+            queryset=slot.facet_values.all(),
+            prefix=str(slot.id))
+        slot.formset = facet_value_formset
+        slot.rts = ResourceTypeSelectionForm(
+            qs=slot.get_resource_types(),
+            prefix=str(slot.id))
         
     if request.method == "POST":
         #import pdb; pdb.set_trace()
@@ -635,6 +648,21 @@ def change_exchange_type(request, exchange_type_id):
                 ext.save()
                 
         else: #save transfer type facet values
+            for slot in slots:       
+                FacetValueFormSet = modelformset_factory(
+                    TransferTypeFacetValue,
+                    form=TransferTypeFacetValueForm,
+                    can_delete=True,
+                    extra=2,
+                    )
+                facet_value_formset = FacetValueFormSet(
+                    queryset=slot.facet_values.all(),
+                    data=request.POST or None,
+                    prefix=str(slot.id))
+                slot.formset = facet_value_formset
+                slot.rts = ResourceTypeSelectionForm(
+                    qs=slot.get_resource_types(),
+                    prefix=str(slot.id))
             for slot in slots:
                 for form in slot.formset:
                     if form.is_valid():
@@ -656,24 +684,7 @@ def change_exchange_type(request, exchange_type_id):
 
             return HttpResponseRedirect('/%s/%s/'
                 % ('accounting/change-exchange-type', exchange_type.id))
-    else:
-        for slot in slots:
-            #slot.resource_types = slot.get_resource_types()
-            #slot.facets = slot.facets()          
-            FacetValueFormSet = modelformset_factory(
-                TransferTypeFacetValue,
-                form=TransferTypeFacetValueForm,
-                can_delete=True,
-                extra=2,
-                )
-            facet_value_formset = FacetValueFormSet(
-                queryset=slot.facet_values.all(),
-                data=request.POST or None,
-                prefix=str(slot.id))
-            slot.formset = facet_value_formset
-            slot.rts = ResourceTypeSelectionForm(
-                qs=slot.get_resource_types(),
-                prefix=str(slot.id))
+
                    
     return render_to_response("valueaccounting/change_exchange_type.html", {
         "exchange_type": exchange_type,

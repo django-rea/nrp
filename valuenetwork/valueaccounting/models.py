@@ -8764,6 +8764,13 @@ class Commitment(models.Model):
                 event = events[0]
                 answer = event.resource
         return answer
+        
+    def is_shipment(self):
+        if self.order:
+            if self.order.order_type == "customer":
+                if self.event_type.name == "Give":
+                    return True
+        return False
 
     def generate_producing_process(self, user, visited, inheritance=None, explode=False):
         
@@ -8792,7 +8799,7 @@ class Commitment(models.Model):
             ptrt, inheritance = rt.main_producing_process_type_relationship(stage=self.stage, state=self.state)
             if ptrt:
                 resource_type = self.resource_type
-                if self.event_type.relationship == "shipment": #todo: Bob, this doesn't work any more because the event type is name="Give"
+                if self.is_shipment():
                     producing_commitment = Commitment(
                         resource_type=resource_type,
                         independent_demand=self.independent_demand,

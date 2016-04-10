@@ -157,6 +157,7 @@ INSTALLED_APPS = [
     'account',
     'work',
 
+
 ]
 
 REST_FRAMEWORK = {

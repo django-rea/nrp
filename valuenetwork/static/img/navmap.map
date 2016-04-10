@@ -1,0 +1,29 @@
+<img src="[navmap] (imported)" width="691" height="457" border="0" usemap="#map" />
+
+<map name="map">
+<!-- #$-:Image map file created by GIMP Image Map plug-in -->
+<!-- #$-:GIMP Image Map plug-in by Maurits Rijk -->
+<!-- #$-:Please do not edit lines starting with "#$" -->
+<!-- #$VERSION:2.3 -->
+<!-- #$AUTHOR:Lynn Foster -->
+<area shape="rect" coords="28,44,139,97" alt="Setup Organization" href="/accounting/projects" />
+<area shape="rect" coords="148,43,260,98" alt="Setup Resource Types and Recipes" href="/accounting/resources/" />
+<area shape="rect" coords="270,42,379,97" alt="Setup Exchange Types" href="/accounting/exchange-types/" />
+<area shape="rect" coords="391,44,499,95" alt="Setup Value Equations" href="/accounting/value-equations/" />
+<area shape="rect" coords="30,176,140,228" alt="Create Customer and Work Orders" href="/accounting/demand/" />
+<area shape="rect" coords="31,238,140,289" alt="Create Customer Order" href="/accounting/create-order/" />
+<area shape="rect" coords="29,303,138,355" alt="Plan Work From Recipe" href="/accounting/plan-from-recipe/" />
+<area shape="rect" coords="31,370,139,423" alt="Plan Work Without Recipe" href="/accounting/plan-work/" />
+<area shape="rect" coords="191,176,304,229" alt="Log Incoming Exchange" href="/accounting/supply/" />
+<area shape="rect" coords="190,307,300,361" alt="All Work" href="/accounting/work/" />
+<area shape="rect" coords="193,366,300,422" alt="My Work" href="/accounting/start/" />
+<area shape="rect" coords="374,179,483,233" alt="Log Outgoing Exchange" href="/accounting/demand/" />
+<area shape="rect" coords="375,255,484,307" alt="Distribute Rewards Using Value Equation" href="/demand/value-equations/" />
+<area shape="rect" coords="366,371,480,424" alt="Log Non-Production Work" href="/accounting/unscheduled-time/" />
+<area shape="rect" coords="545,61,655,114" alt="Cash Accounting Report" href="/accounting/cash-report/" />
+<area shape="rect" coords="543,123,655,175" alt="All Contributions Report" href="/accounting/all-contributions/" />
+<area shape="rect" coords="545,184,653,237" alt="Incoming Exchanges Report" href="/accounting/exchanges/" />
+<area shape="rect" coords="545,244,654,299" alt="Outgoing Exchanges Report" href="/accounting/demand-exchanges/" />
+<area shape="rect" coords="546,309,654,360" alt="Distributions Report" href="/accounting/distributions" />
+<area shape="rect" coords="544,372,656,422" alt="Inventory Listing" href="/accounting/inventory/" />
+</map>

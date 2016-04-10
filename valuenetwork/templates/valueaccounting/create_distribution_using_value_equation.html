@@ -119,15 +119,11 @@ th
             <p>Value Equation</p>
             <p>{{ header_form.value_equation }}</p>
             <table id="selection">
-              <tr><td>Select one or more source Cash Receipts</td><td class="or">OR</td><td>Enter amount to distribute</td></tr>
+              <tr><td>Select one or more sources to be distributed</td><td class="or">OR</td><td>Enter amount to distribute</td></tr>
               <tr>
                 <td class="top">
                     <span id="cashRcpt">
-                    {{ header_form.cash_receipts }}<br />
-                    </span>
-                    <span id="or1" class="or">OR</span>
-                    <span id="sourceDist">
-                    select one or more source Distributions<br />{{ header_form.input_distributions }}
+                    {{ header_form.events_to_distribute }}<br />
                     </span>
                 </td>
                 <td>&nbsp;</td>
@@ -180,16 +176,16 @@ th
                     {% endif %}
                 {% endfor %}
             </div>
-            <input id="calculate" type="submit" name="submit" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
+            <input id="calculate" type="submit" name="submit" class="btn btn-primary" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
             <span class="warning"><b>WARNING</b>: This operation cannot be undone. Please test your data entry below first!</span>
             <span id="loading" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
             
             <div id="distributions">
-                <input id="test" type="submit" name="test-only" class="btn btn-warning" style="display: inline; vertical-align: top;" value="{% trans 'TEST Distribution Here First !' %}" />
+                <input id="test" type="submit" name="test-only" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'TEST Distribution Here First !' %}" />
                 <span id="loadingTest" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
    
                 {% if agent_totals %} 
-                    <div class="hdg">TEST Agent Totals:</div>
+                    <div class="hdg">TEST ONLY - Agent Totals:</div>
                     <table class="table table-bordered table-condensed" >
                         <thead>
                             <th>{% trans "Agent" %}</th>
@@ -204,6 +200,8 @@ th
                             {% endfor %}
                         <tbody> 
                     </table>
+                {% elif no_totals %}
+                   <div><b>{{ no_totals }}</b></div>
                 {% endif %}
             </div>
         </form>            
@@ -230,7 +228,7 @@ th
 
     <script type="text/javascript">
     
-    var cashReceipts = {{ cashReceipts }};
+    var cashReceipts = {{ events_to_distribute }};
     var crAmount = 0;
 
 	$(document).ready(function(){
@@ -284,8 +282,8 @@ th
         $("#calculate").click(showLoading);
         $("#test").click(showLoadingTest);
 		$("#id_value_equation").change(reloadPage);
-		$("#id_cash_receipts").change(adjustDist);
-		$("#id_input_distributions").change(inputDistributionChanged);
+		$("#id_events_to_distribute").change(adjustDist);
+		//$("#id_input_distributions").change(inputDistributionChanged);
 		//$("#id_20-shipments").change(shipmentsChanged);
  
 	}); // end document.ready
@@ -407,12 +405,12 @@ th
     
     function adjustDist()
     {
-        var selectedCrs = $("#id_cash_receipts :selected");
-        var count=$("#id_cash_receipts :selected").length;
+        var selectedCrs = $("#id_events_to_distribute :selected");
+        var count=$("#id_events_to_distribute :selected").length;
         if (count)
         {
             $("#sourceDist").hide();
-            $("#or1").hide();
+            //$("#or1").hide();
         }
         if (count == 1)
         {
@@ -437,14 +435,14 @@ th
         }
         if (count == 0)
         {
-            $("#sourceDist").show();
+            //$("#sourceDist").show();
             $("#cashRcpt").show();
-            $("#or1").show();
+            //$("#or1").show();
             count=$("#id_input_distributions :selected").length;
             if (count)
             {
                 $("#cashRcpt").hide();
-                $("#or1").hide();
+                //$("#or1").hide();
             }
         }
         if (count != 0) {

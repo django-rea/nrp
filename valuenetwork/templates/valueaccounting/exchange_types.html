@@ -1,0 +1,150 @@
+{% extends "site_base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Maintain Exchange Types" %}{% endblock %}
+
+{% block extra_head %}
+
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+li {
+    list-style-type: none;
+    font-weight: bold;
+}
+
+h3 {
+    color: firebrick;
+    margin-bottom: 5px;
+}
+.expl {
+    font-weight: bold;
+}
+
+</style>
+{% endblock %}
+
+{% block body_class %}exchange{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+	    <div>
+		    <legend>
+		        {% trans "Maintain Exchange Types / Patterns" %} &nbsp;&nbsp;&nbsp;<a href="{% url resource_facet_table %}">{% trans "Change Resource Type Facets" %}</a> 
+	        </legend>
+
+            <div class="row-fluid">
+                <h3>{% trans "New Exchange Type" %}:</h3>
+                <form id="etForm" action="." method="POST" >
+                    {% csrf_token %}
+                    Use Case: <span style="display: inline; vertical-align: top;"> {{ new_form.use_case }}</span>
+                    Name: {{ new_form.name }}
+                    <input type="submit" name="new-exchange-type" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Create exchange type' %}" />
+                    <div class="expl">(After creating your exchange type, please click on it below to finish defining it.)</div>
+                </form>
+                  
+            </div>
+	        
+            <div class="row-fluid">
+              <div class="span4">
+	            <h3>{% trans "Incoming / Supply Exchange Types" %}:</h3>
+	            <ul>
+	            {% for ext in supply_exchange_types %}
+	                <li>
+	                    <a href="{% url change_exchange_type exchange_type_id=ext.id %}">{{ ext }}</a>
+	                    {% if ext.is_deletable %}
+                            <form
+                                style="display: inline;" 
+                                class="remove-form" 
+                                id="removeForm{{ ext.id }}" 
+                                action="{% url delete_exchange_type exchange_type_id=ext.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this exchange type" >X</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
+              </div>
+              <div class="span4">
+                <h3>{% trans "Internal Exchange Types" %}:</h3>
+                <ul>
+                {% for ext in internal_exchange_types %}
+                    <li>
+                        <a href="{% url change_exchange_type exchange_type_id=ext.id %}">{{ ext }}</a>
+                        {% if ext.is_deletable %}
+                            <form
+                                style="display: inline;" 
+                                class="remove-form" 
+                                id="removeForm{{ ext.id }}" 
+                                action="{% url delete_exchange_type exchange_type_id=ext.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this exchange type" >X</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
+              </div>
+              <div class="span4">
+                <h3>{% trans "Outgoing / Demand Exchange Types" %}:</h3>
+                <ul>
+                {% for ext in demand_exchange_types %}
+                    <li>
+                        <a href="{% url change_exchange_type exchange_type_id=ext.id %}">{{ ext }}</a>
+                        {% if ext.is_deletable %}
+                            <form
+                                style="display: inline;" 
+                                class="remove-form" 
+                                id="removeForm{{ ext.id }}" 
+                                action="{% url delete_exchange_type exchange_type_id=ext.id %}" 
+                                method="POST" >
+                                {% csrf_token %}
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this exchange type" >X</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
+              </div>
+
+            </div>
+	    </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+		$(".chzn-select").chosen();
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+	}); // end document.ready
+	
+    </script>
+
+{% endblock %}

@@ -9941,6 +9941,12 @@ class EconomicEvent(models.Model):
         update_summary(agent, context_agent, resource_type, event_type)
         if agent_change or resource_type_change or context_agent_change or event_type_change:
             update_summary(prev_agent, prev_context_agent, prev_resource_type, prev_event_type)
+            
+        #for handling faircoin
+        #if self.resource:
+        #    if self.resource.resource_type.is_virtual_account():
+                #call the faircoin method here, pass the event info needed
+                
 
     def delete(self, *args, **kwargs):
         if self.is_contribution:

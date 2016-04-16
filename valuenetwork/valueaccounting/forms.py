@@ -2414,10 +2414,12 @@ class EventTypeFilterForm(forms.Form):
         label="End date",
         widget=forms.TextInput(attrs={'class': 'input-small filter-date', }))
     event_types = forms.MultipleChoiceField(required=False)
+    paid_filter = forms.ChoiceField()
 
     def __init__(self, event_types, *args, **kwargs):
         super(EventTypeFilterForm, self).__init__(*args, **kwargs)
         self.fields["event_types"].choices = [('', '----------')] + [(et.id, et.name) for et in event_types]
+        self.fields["paid_filter"].choices = [("U", "Show Unpaid Only"), ("A", "Show All")]
 
 
 class ProjectSelectionForm(forms.Form):

@@ -10373,7 +10373,7 @@ class EconomicEvent(models.Model):
         )
         claim.claim_event = claim_event
         claim.new = True
-        return claim  
+        return claim         
         
     def undistributed_amount(self):
         #import pdb; pdb.set_trace()
@@ -10498,21 +10498,47 @@ class EconomicEvent(models.Model):
             quantity_string,
             resource_string,
         ])
+    
+    #compensation methods obsolete
+    #def my_compensations(self):
+    #    return self.initiated_compensations.all()
+
+    #def compensation(self):
+    #    return sum(c.compensating_value for c in self.my_compensations())
+
+    #def value_due(self):
+    #    return self.value - self.compensation()
+
+    #def is_compensated(self):
+    #    if self.value_due() > 0:
+    #        return False
+    #    return True
+    
+    def claimed_amount(self): #for contribution events
+        if self.is_contribution:
+            if self.created_claim():
+                return self.created_claim().original_value
+            else:
+                return None
+        else:
+            return None
         
-    def my_compensations(self):
-        return self.initiated_compensations.all()
-
-    def compensation(self):
-        return sum(c.compensating_value for c in self.my_compensations())
-
-    def value_due(self):
-        return self.value - self.compensation()
-
-    def is_compensated(self):
-        if self.value_due() > 0:
-            return False
-        return True
-
+    def owed_amount(self): #for contribution events
+        if self.is_contribution:
+            if self.claimed_amount():
+                return self.created_claim().value
+            else:
+                return None
+        else:
+            return None   
+        
+    def distributed_amount(self): #for contribution events
+        if self.is_contribution:
+            if self.created_claim():
+                return self.created_claim().original_value - self.created_claim().value
+        else:
+            return Decimal("0.0")
+        
     def unit(self):
         if self.unit_of_quantity:
             return self.unit_of_quantity.abbrev

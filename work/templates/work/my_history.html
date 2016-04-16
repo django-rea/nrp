@@ -13,20 +13,40 @@
 
 <style>
 
-	tr.even td 
-	{
-		color:#000000;
-		background-color:#EAF2D3;
-	}
+tr.even td {
+    color:#000000;
+    background-color:#EAF2D3;
+}
+th {
+    background-color:#C8D6E8;
+}
+form {
+    margin-bottom: 1px;
+    padding-bottom: 0;
+}
+#saving {
+    color: green;
+}
 
-	th
-	{
-		background-color:#C8D6E8;
-	}
-
-    #saving {
-	    color: green;
-    }
+h4 {
+    color: firebrick;
+}
+.summary {
+    border: solid 1px firebrick;
+    background-color: #C8D6E8;
+    padding: .8em;
+    margin-bottom: 10px;
+}
+.summary td, th {
+    background-color: #C8D6E8;
+}
+.summary td {
+    text-align: right;
+    padding-left: 1em;
+}
+.summary th {
+    text-align: right;
+}
 
 </style>
 
@@ -42,67 +62,89 @@
             <span style="vertical-align: top;" >
                 {% trans "Contributions from " %} {{ agent }} 
             </span>
-            
         </legend>
-        <h4>*** For Freedom Coop, we could add payment information to each line? And separate into paid and unpaid? ***</h4><br />
-        <div>
-            <form id="filterForm" action="." method="POST" style="display: inline;" >
-                {% csrf_token %}
-                <div id="div_id_start_date" class="control-group" style="display: inline;" >     
-                    <label for="id_start_date" class="control-label required-field" style="display: inline;" >
-                        {% trans "Show contributions from " %}
-                    </label>
-                    <div class="controls" style="display: inline;" >
-                        {{ filter_form.start_date }}
-                    </div>
-                </div>
-                <div id="div_id_end_date" class="control-group" style="display: inline;" >     
-                    <label for="id_end_date" class="control-label required-field" style="display: inline;" >
-                        {% trans " through " %}
-                    </label>
-                    <div class="controls" style="display: inline;" >
-                        {{ filter_form.end_date }}
-                    </div>
-                </div>
-                <div id="div_id_event_types" class="control-group" style="display: inline;" >
-                    <label for="id_event_types" class="control-label" style="display: inline;" >
-                        {% trans "Event Types" %}
-                    </label>
-                    <div class="controls" style="display: inline; vertical-align: bottom;" >
-                        {{ filter_form.event_types }}
-                    </div>                    
-                </div>&nbsp;
-                <input type="submit" name="submit" class="btn btn-info" style="display: inline;" value="{% trans 'Filter' %}" />
-            </form>
-            {% if event_ids and agent %}
-                <a 
-                    href=" {% url contribution_events_csv %}?event-ids={{ event_ids }}" 
-                    id="btn-export" 
-                    class="btn btn-primary" 
-                    title="Export filtered list to csv (comma separated value) format" 
-                    style="display: inline; vertical-align: middle;"
-                    >{% trans "Export CSV File" %}
-                </a>
-            {% endif %}
+        <div class="row-fluid">    
+            <div class="span5 summary">
+                <table>
+                    <tr>
+                        <th>{% trans "Contributions with no Value Equation" %}:</th>
+                        <td>{{ no_bucket }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Contributions with Value Equations" %}:</th>
+                        <td>{{ with_bucket }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Total Value of Contributions" %}:</th>
+                        <td>{{ claim_value }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Total Paid for" %}:</th>
+                        <td>{{ claim_distributions }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Total Outstanding" %}:</th>
+                        <td>{{ outstanding_claims }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Total Other Distributions" %}:</th>
+                        <td>{{ other_distributions }}</td>
+                    </tr>
+
+                </table>
+            </div>
         
+            <div class="span7">
+                <form id="filterForm" action="." method="POST" >
+                    {% csrf_token %}
+                    <div id="div_id_start_date" class="control-group" style="display: inline;" >     
+                        <label for="id_start_date" class="control-label required-field" style="display: inline;" >
+                            {% trans "Show contributions from " %}
+                        </label>
+                        <div class="controls" style="display: inline;" >
+                            {{ filter_form.start_date }}
+                        </div>
+                    </div>
+                    <div id="div_id_end_date" class="control-group" style="display: inline;" >     
+                        <label for="id_end_date" class="control-label required-field" style="display: inline;" >
+                            {% trans " through " %}
+                        </label>
+                        <div class="controls" style="display: inline;" >
+                            {{ filter_form.end_date }}
+                        </div>
+                    </div>
+                    <div id="div_id_event_types" class="control-group" >
+                        <label for="id_event_types" class="control-label" style="display: inline;" >
+                            {% trans "Event Types" %}
+                        </label>
+                        <div class="controls" style="display: inline; vertical-align: -10px;" >
+                            {{ filter_form.event_types }}
+                        </div>                    
+                    </div>
+                    <div id="div_id_paid_filter" class="control-group" >
+                        <div class="controls" style="display: inline; vertical-align: -10px;" >
+                            {{ filter_form.paid_filter }}
+                        </div>                    
+                    </div>
+                    <div>
+                        <input type="submit" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
+                    </div>
+                </form>        
+            </div>
         </div>
         
-		{% if user_is_agent %}
-            <p>
-                {% trans "You can change date or qty inline and it will be automatically saved." %} <span id="saving"></span>
-            </p>
-	    {% endif %}
 		<table class="table table-bordered table-hover table-condensed" >
 			<thead>
 				<th>{% trans "Date" %}</th>
 				<th>{% trans "Type" %}</th>
 				<th>{% trans "Project" %}</th>
 				<th>{% trans "Resource Type" %}</th>
-				<th>{% trans "Qty" %}</th>
-				<th>{% trans "URL" %}</th>
+				<th>{% trans "Quantity" %}</th>
 				<th>{% trans "Description" %}</th>
-				<th>{% trans "Process" %}</th>
-				<th>{% trans "Deliverables" %}</th>
+				<th>{% trans "Process or Exchange" %}</th>
+				<th>{% trans "Value" %}</th>
+				<th>{% trans "Paid" %}</th>
+				<th>{% trans "Unpaid" %}</th>
 				{% if user_is_agent %}
                     <th>&nbsp;</th>
                 {% endif %}
@@ -110,56 +152,24 @@
 			<tbody>	
 				{% for event in events %}
 					<tr class="{% cycle 'odd' 'even' %}">
-						<td>
-                            {% if user_is_agent %}
-						    <form class="eventDateForm" id="eventDateForm-{{ event.id }}" >
-								{% csrf_token %}
-								{% with event.change_date_form as form %}
-								    {{ form.id }}
-								    {{ form.event_date }}
-							    {% endwith %}
-							</form>
-							{% else %}
-                                {{ event.event_date }}
-							{% endif %}
-						</td>
+						<td>{{ event.event_date }}</td>
 						<td>{{ event.event_type }}</td>
 						<td>{{ event.context_agent }}</td>
 						<td>{{ event.resource_type }}</td>
-						{% comment %}
 						<td style="text-align: right;" >{{ event.quantity_formatted }}</td>
-						{% endcomment %}
-						<td style="white-space:nowrap;" >
-                            {% if user_is_agent %}
-						    <form class="eventQtyForm" id="eventQtyForm-{{ event.id }}" >
-								{% csrf_token %}
-								{% with event.change_quantity_form as form %}
-								    {{ form.id }}
-								    {{ form.quantity }} {{ event.unit_of_quantity.abbrev }}
-							    {% endwith %}
-							</form>
-							{% else %}
-                                {{ event.quantity }} {{ event.unit_of_quantity.abbrev }}
-                            {% endif %}
-						</td>
-						<td>
-							{% if event.url %}
-								<a href="{{ event.url }}" target="_blank">Open</a>
-							{% endif %}
-						</td>
 						<td>{% if event.description %}{{ event.description|urlize }}
                             {% else %} {{ event.commitment.description|urlize }} {% endif %}
                        </td>
 						<td>
 							{% if event.process %}
 								<a href="{% url process_logging process_id=event.process.id %}" target="_blank">{{ event.process.name }}</a>
+                            {% elif event.transfer %}
+                                <a href="{% url exchange_logging exchange_type_id=0 exchange_id=event.transfer.exchange.id %}" target="_blank">{{ event.transfer.transfer_type.name }}</a>
 							{% endif %}
 						</td>
-						<td>
-						    {% for d in event.process.deliverables %}
-						        <a href="{% url resource resource_id=d.id %}">{{ d }}</a></br >
-					        {% endfor %}
-					    </td>
+						<td>{{ event.claimed_amount }}</td>
+						<td>{{ event.distributed_amount }}</td>
+						<td>{{ event.owed_amount }}</td>
 					    {% if user_is_agent %}
                             <td>
                                 <form
@@ -187,21 +197,22 @@
 				{% endfor %}
 			<tbody>	
 		</table>
-<div class="pagination">
-    <span class="step-links">
-        {% if events.has_previous %}
-            <a href="?page={{ events.previous_page_number }}">{% trans "previous" %}</a>
-        {% endif %}
+		
+        <div class="pagination">
+            <span class="step-links">
+                {% if events.has_previous %}
+                    <a href="?page={{ events.previous_page_number }}">{% trans "previous" %}</a>
+                {% endif %}
 
-        <span class="current">
-            {% trans "Page" %} {{ events.number }} {% trans "of" %} {{ events.paginator.num_pages }}.
-        </span>
+                <span class="current">
+                    {% trans "Page" %} {{ events.number }} {% trans "of" %} {{ events.paginator.num_pages }}.
+                </span>
 
-        {% if events.has_next %}
-            <a href="?page={{ events.next_page_number }}">{% trans "next" %}</a>
-        {% endif %}
-    </span>
-</div>
+                {% if events.has_next %}
+                    <a href="?page={{ events.next_page_number }}">{% trans "next" %}</a>
+                {% endif %}
+            </span>
+        </div>
 
 	</div>
     </div>

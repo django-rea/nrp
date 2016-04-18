@@ -1321,6 +1321,8 @@ class EventType(models.Model):
         return ""
             
     def used_for_value_equations(self):
+        #todo exchange redesign fallout
+        #some of these are obsolete
         bad_relationships = [
             "consume",
             "in",
@@ -3165,11 +3167,13 @@ class Order(models.Model):
             context_agent=ptrt.process_type.context_agent
         else:
             if self.order_type == "customer":
-                event_type = EventType.objects.get(relationship="shipment")
+                #todo exchange redesign fallout
+                event_type = EventType.objects.get(name="Give")
                 ois = self.order_items()
                 if ois:
                     context_agent = ois[0].context_agent
             else:
+                #todo wha?
                 assert ptrt, 'create_order_item for a work order assumes items with a producing process type'
         commitment = self.add_commitment(
             resource_type=resource_type,
@@ -3819,6 +3823,8 @@ class EconomicResource(models.Model):
     current_location = models.ForeignKey(Location, 
         verbose_name=_('current location'), related_name='resources_at_location', 
         blank=True, null=True)
+    digital_currency_address = models.CharField(_("digital currency address"), max_length=96,
+        blank=True, null=True, editable=False)
     value_per_unit = models.DecimalField(_('value per unit'), max_digits=8, decimal_places=2, 
         default=Decimal("0.00"))
     value_per_unit_of_use = models.DecimalField(_('value per unit of use'), max_digits=8, decimal_places=2, 
@@ -3892,9 +3898,10 @@ class EconomicResource(models.Model):
 
     def shipped_on_orders(self):
         #todo exchange redesign fallout
-        #Lynn, this will crash
         orders = []
-        et = EventType.objects.get(relationship="shipment")
+        #this is insufficient to select shipments
+        #sales below is better
+        et = EventType.objects.get(name="Give") #was shipment
         shipments = EconomicEvent.objects.filter(resource=self).filter(event_type=et)
         for ship in shipments:
             if ship.exchange.order:
@@ -4739,6 +4746,8 @@ class EconomicResource(models.Model):
 
     #todo: add transfer?
     def where_to_events(self):
+        #todo exchange redesign fallout
+        #shipment is obsolete
         return self.events.filter(
             Q(event_type__relationship='in')|Q(event_type__relationship='consume')|Q(event_type__relationship='use')
             |Q(event_type__relationship='cite')|Q(event_type__relationship='pay')|Q(event_type__relationship='shipment')
@@ -8768,8 +8777,11 @@ class Commitment(models.Model):
     def is_shipment(self):
         if self.order:
             if self.order.order_type == "customer":
-                if self.event_type.name == "Give":
-                    return True
+                exchange = self.order.exchange()
+                if exchange:
+                    if exchange.use_case.identifier == "demand_xfer":
+                        if self.event_type.name == "Give":
+                            return True
         return False
 
     def generate_producing_process(self, user, visited, inheritance=None, explode=False):
@@ -9749,6 +9761,13 @@ class EconomicEventManager(models.Manager):
         
     def contributions(self):
         return EconomicEvent.objects.filter(is_contribution=True)
+        
+TX_STATE_CHOICES = (
+    ('new', _('New')),
+    ('pending', _('Pending')),
+    ('broadcast', _('Broadcast')),
+    ('confirmed', _('Confirmed')),
+)
     
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType, 
@@ -9811,6 +9830,11 @@ class EconomicEvent(models.Model):
         verbose_name=_('accounting reference'), related_name="events",
         help_text=_('optional reference to an accounting grouping'))
     event_reference = models.CharField(_('reference'), max_length=128, blank=True, null=True)
+    digital_currency_tx_hash = models.CharField(_("digital currency transaction hash"), max_length=96,
+        blank=True, null=True, editable=False)
+    digital_currency_tx_state = models.CharField(_('digital currency transaction hash'), 
+        max_length=12, choices=TX_STATE_CHOICES,
+        blank=True, null=True, editable=False)
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
         related_name='events_created', blank=True, null=True, editable=False)
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),

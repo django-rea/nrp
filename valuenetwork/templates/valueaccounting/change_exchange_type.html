@@ -167,11 +167,11 @@ h3 {
                             <h3 id="ttype">{% trans "Add a Transfer Type" %}</h3>
                         </div>
                         <div class="modal-body">
-                            <form class="validateMe" id="ttForm" enctype="multipart/form-data" action="{% url add_transfer_type exchange_type_id=exchange_type.id %}" method="POST" >
+                            <form id="ttForm" class="validateMe" id="ttForm" enctype="multipart/form-data" action="{% url add_transfer_type exchange_type_id=exchange_type.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ add_tt_form|as_bootstrap }}
                                 <div class="modal-footer">
-                                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                    <button class="btn cancelBtn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                     <input type="submit" name="add_tt" class="btn btn-primary" name="submit" value="{% trans 'Save' %}" />
                                 </div>
                             </form>
@@ -194,11 +194,11 @@ h3 {
                                     <h3 id="tt-label">{% trans "Change Transfer Type" %}</h3>
                                 </div>
                                 <div class="modal-body">
-                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_type transfer_type_id=slot.id %}" method="POST" >
+                                    <form id="changeForm{{ slot.id }}" class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_type transfer_type_id=slot.id %}" method="POST" >
                                         {% csrf_token %}  
                                         {{ slot.change_form|as_bootstrap }}
                                         <div class="modal-footer">
-                                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                            <button class="btn cancelBtn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
                                         </div>
                                     </form>
@@ -327,44 +327,17 @@ h3 {
             $( "#help" ).text("Show Help");
         })
         
-        $("#patternName").blur(saveName);
+        $(".cancelBtn").click(function(event) 
+        {
+            var target = event.target;
+            var form = target.form;
+            var formId = "#" + form.id;
+            $(formId)[0].reset();
+            
+        });
 
 	}); // end document.ready
 	
-	function saveName(event)
-    {
-        var name = event.target.value;
-        id = {{ pattern.id }};
-        notifySaving();
-        var jqxhr = $.post("{% url change_pattern_name  %}",  { patternId: id, name: name },
-            function( data ) 
-            {
-                notifySaved();
-            })
-            .fail(function() 
-            { 
-                notifyProblem(); 
-            }
-        );   
-    }
-    
-    function notifySaving()
-    {
-        $("#saving").css("color","green"); 
-        $("#saving").text("Saving new name...");
-    }
-
-    function notifySaved()
-    {
-        $("#saving").css("color","green"); 
-        $("#saving").text("Saved new name");
-    }
-
-    function notifyProblem()
-    {
-        $("#saving").css("color","red"); 
-        $("#saving").text("Problem saving new name");
-    }
 
     $(document).ajaxSend(function(event, xhr, settings) 
     {

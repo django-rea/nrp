@@ -438,6 +438,9 @@ class EconomicAgent(models.Model):
     
     def save(self, *args, **kwargs):
         unique_slugify(self, self.nick)
+        #todo faircoin
+        #faircoin_address = create_faircoin_address
+        #handle failure
         super(EconomicAgent, self).save(*args, **kwargs)
         
     def delete(self, *args, **kwargs):
@@ -449,10 +452,20 @@ class EconomicAgent(models.Model):
                 au.delete()
         super(EconomicAgent, self).delete(*args, **kwargs)
         
+    def create_faircoin_address(self):
+        #import pdb; pdb.set_trace()
+        from valuenetwork.valueaccounting.faircoin_utils import create_address_for_agent
+        address = None
+        address = create_address_for_agent(self)
+        return address
+        
     @models.permalink
     def get_absolute_url(self):
         return ('agent', (),
         { 'agent_id': str(self.id),})
+        
+    def is_coop_worker(self):
+        return False
             
     def seniority(self):
         return (datetime.date.today() - self.created_date).days
@@ -9878,6 +9891,21 @@ class EconomicEvent(models.Model):
 
     def save(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
+        #todo faircoin
+        #not to_address below
+        # another new field?
+        # or what?
+        """
+        if self.faircoin_tx_state == "to be sent":
+            from valuenetwork.valueaccounting.faircoin_utils import send_faircoins
+            faircoin_tx_hash = send_faircoins(
+                self.from_agent.faircoin_address, 
+                to_address, <-this is funky, too
+                self.quantity)
+            if not faircoin_tx_hash:
+                handle failure
+                abort event.save()
+        """
         from_agt = 'Unassigned'
         agent = self.from_agent
         context_agent = self.context_agent

@@ -1079,6 +1079,7 @@ ASSOCIATION_BEHAVIOR_CHOICES = (
     ('child', _('child')),
     ('custodian', _('custodian')),
     ('exchange', _('exchange firm')),
+    ('peer', _('peer')),
 )
 
 class AgentAssociationType(models.Model):

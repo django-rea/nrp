@@ -389,7 +389,6 @@ def process_logging(request, process_id):
     }, context_instance=RequestContext(request))
 
 
-
 @login_required
 def my_history(request):
     #import pdb; pdb.set_trace()
@@ -400,8 +399,16 @@ def my_history(request):
     if agent == user_agent:
         user_is_agent = True
     event_list = agent.contributions()
+    no_bucket = 0
+    with_bucket = 0
+    event_value = Decimal("0.0")
+    claim_value = Decimal("0.0")
+    outstanding_claims = Decimal("0.0")
+    claim_distributions = Decimal("0.0")
+    claim_distro_events = []
     event_types = {e.event_type for e in event_list}
     filter_form = EventTypeFilterForm(event_types=event_types, data=request.POST or None)
+    paid_filter = "U"
     if request.method == "POST":
         if filter_form.is_valid():
             #import pdb; pdb.set_trace()
@@ -409,6 +416,7 @@ def my_history(request):
             et_ids = data["event_types"]
             start = data["start_date"]
             end = data["end_date"]
+            paid_filter = data["paid_filter"]
             if start:
                 event_list = event_list.filter(event_date__gte=start)
             if end:
@@ -416,9 +424,32 @@ def my_history(request):
             #belt and suspenders: if no et_ids, form is not valid
             if et_ids:
                 event_list = event_list.filter(event_type__id__in=et_ids)
-    event_ids = ",".join([str(event.id) for event in event_list]) 
-    paginator = Paginator(event_list, 25)
 
+    for event in event_list:
+        if event.bucket_rule_for_context_agent():
+            with_bucket += 1
+        else:
+            no_bucket += 1
+        for claim in event.claims():
+            claim_value += claim.original_value
+            outstanding_claims += claim.value
+            for de in claim.distribution_events():
+                claim_distributions += de.value
+                claim_distro_events.append(de.event)
+    et = EventType.objects.get(name="Distribution")
+    all_distro_evts = EconomicEvent.objects.filter(to_agent=agent, event_type=et)
+    other_distro_evts = [d for d in all_distro_evts if d not in claim_distro_events]
+    other_distributions = sum(de.quantity for de in other_distro_evts)
+    #took off csv export for now
+    #event_ids = ",".join([str(event.id) for event in event_list]) 
+                    
+    if paid_filter == "U":
+        event_list = list(event_list)
+        for evnt in event_list:
+            if evnt.owed_amount() == 0:
+                    event_list.remove(evnt)
+    
+    paginator = Paginator(event_list, 25)
     page = request.GET.get('page')
     try:
         events = paginator.page(page)
@@ -429,12 +460,19 @@ def my_history(request):
         # If page is out of range (e.g. 9999), deliver last page of results.
         events = paginator.page(paginator.num_pages)
     
+    #import pdb; pdb.set_trace()
     return render_to_response("work/my_history.html", {
         "agent": agent,
         "user_is_agent": user_is_agent,
         "events": events,
         "filter_form": filter_form,
-        "event_ids": event_ids,
+        #"event_ids": event_ids,
+        "no_bucket": no_bucket,
+        "with_bucket": with_bucket,
+        "claim_value": format(claim_value, ",.2f"),
+        "outstanding_claims": format(outstanding_claims, ",.2f"),
+        "claim_distributions": format(claim_distributions, ",.2f"),
+        "other_distributions": format(other_distributions, ",.2f"),
     }, context_instance=RequestContext(request))
 
 @login_required

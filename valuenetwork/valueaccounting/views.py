@@ -322,6 +322,20 @@ def create_location(request, agent_id=None):
         "longitude": longitude,
         "zoom": zoom,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def create_faircoin_address(request, agent_id=None):
+    if request.method == "POST":
+        agent = None
+        if agent_id:
+            agent = get_object_or_404(EconomicAgent, id=agent_id)
+        user_agent = get_agent(request)
+        if not user_agent:
+            return render_to_response('valueaccounting/no_permission.html')
+        if agent:
+            agent.create_faircoin_address()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('accounting/agent', agent.id))
 
 @login_required
 def change_location(request, location_id, agent_id=None):
@@ -1213,8 +1227,7 @@ def adjust_resource(request, resource_id):
             resource.save()
             
     return HttpResponseRedirect('/%s/%s/'
-        % ('accounting/event-history', resource.id))
-    
+        % ('accounting/event-history', resource.id))  
     
 def event_history(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
@@ -1243,7 +1256,32 @@ def event_history(request, resource_id):
         "unit": unit,
         "events": events,
     }, context_instance=RequestContext(request))
+    
+@login_required
+def send_faircoins(request, resource_id):
+    if request.method == "POST":
+        resource = get_object_or_404(EconomicResource, id=resource_id)
+        agent = get_agent(request)
+        send_coins_form = SendFairCoinsForm(data=request.POST)
+        if send_coins_form.is_valid():
+            
+    
 
+            return HttpResponseRedirect('/%s/%s/'
+                    % ('accounting/resource', resource.id))
+                    
+def validate_faircoin_address(request):
+    #import pdb; pdb.set_trace()
+    from valuenetwork.valueaccounting.faircoin_utils import is_valid
+    data = request.GET
+    address = data["to_address"]
+    answer = is_valid(address)
+    if not answer:
+        answer = "Invalid FairCoin address"
+    response = simplejson.dumps(answer, ensure_ascii=False)
+    return HttpResponse(response, mimetype="text/json-comment-filtered")
+
+                    
 def all_contributions(request):
     event_list = EconomicEvent.objects.filter(is_contribution=True)
     paginator = Paginator(event_list, 25)
@@ -6661,6 +6699,7 @@ def delete_citation_event(request, commitment_id, resource_id):
 @login_required        
 def delete_exchange(request, exchange_id): 
     #import pdb; pdb.set_trace()
+    #todo: Lynn needs lots of work
     if request.method == "POST":
         exchange = get_object_or_404(Exchange, pk=exchange_id)
         if exchange.is_deletable:
@@ -6671,13 +6710,14 @@ def delete_exchange(request, exchange_id):
                 % ('accounting/exchanges'))
         if next == "demand_transfers":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/sales-and-distributions'))
+                % ('accounting/sales-and-distributions')) #obsolete
         if next == "material_contributions":
             return HttpResponseRedirect('/%s/'
-                % ('accounting/material-contributions'))
+                % ('accounting/material-contributions')) #obsolete
         if next == "distributions":
             return HttpResponseRedirect('/%s/'
                 % ('accounting/distributions'))
+       #needs a fall-through if next is none of the above
 
 
 @login_required
@@ -8002,12 +8042,10 @@ def open_todos(request):
     }, context_instance=RequestContext(request))
 
 
-def resource(request, resource_id):
+def resource(request, resource_id, extra_context=None):
     #import pdb; pdb.set_trace()
     resource = get_object_or_404(EconomicResource, id=resource_id)
     agent = get_agent(request)
-    process_add_form = None
-    order_form = None
     RraFormSet = modelformset_factory(
         AgentResourceRole,
         form=ResourceRoleAgentForm,
@@ -8018,19 +8056,24 @@ def resource(request, resource_id):
         prefix="role", 
         queryset=resource.agent_resource_roles.all()
         )
-    process = None
-    pattern = None
-    if resource.producing_events(): 
-        process = resource.producing_events()[0].process
+        
+    if not resource.is_digital_currency_resource():
+        process_add_form = None
+        order_form = None
+        process = None
         pattern = None
-        if process:
-            pattern = process.process_pattern 
-    else:
-        if agent:
-            form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
-            process_add_form = AddProcessFromResourceForm(form_data)
-            init={"start_date": datetime.date.today(),}
-            order_form = StartDateAndNameForm(initial=init)
+        if resource.producing_events(): 
+            process = resource.producing_events()[0].process
+            pattern = None
+            if process:
+                pattern = process.process_pattern 
+        else:
+            if agent:
+                form_data = {'name': 'Create ' + resource.identifier, 'start_date': resource.created_date, 'end_date': resource.created_date}
+                process_add_form = AddProcessFromResourceForm(form_data)
+                init={"start_date": datetime.date.today(),}
+                order_form = StartDateAndNameForm(initial=init)
+                
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         process_save = request.POST.get("process-save")
@@ -8057,15 +8100,27 @@ def resource(request, resource_id):
                 event.save()
                 return HttpResponseRedirect('/%s/%s/'
                     % ('accounting/resource', resource.id))
-                       
-    return render_to_response("valueaccounting/resource.html", {
-        "resource": resource,
-        "photo_size": (128, 128),
-        "process_add_form": process_add_form,
-        "order_form": order_form,
-        "role_formset": role_formset,
-        "agent": agent,
-    }, context_instance=RequestContext(request))
+    if resource.is_digital_currency_resource():
+        send_coins_form = None
+        if agent:
+            if agent.owns(resource):
+                send_coins_form = SendFairCoinsForm()
+        return render_to_response("valueaccounting/digital_currency_resource.html", {
+            "resource": resource,
+            "photo_size": (128, 128),
+            "role_formset": role_formset,
+            "agent": agent,
+            "send_coins_form": send_coins_form,
+        }, context_instance=RequestContext(request))
+    else:
+        return render_to_response("valueaccounting/resource.html", {
+            "resource": resource,
+            "photo_size": (128, 128),
+            "process_add_form": process_add_form,
+            "order_form": order_form,
+            "role_formset": role_formset,
+            "agent": agent,
+        }, context_instance=RequestContext(request))
 
 
 def resource_role_agent_formset(prefix, data=None):

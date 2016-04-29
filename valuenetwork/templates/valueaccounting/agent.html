@@ -106,7 +106,19 @@ legend {
 		<div class="button-row">
             {% if user_agent %}
                 <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
-
+                {% if not agent.faircoin_address %}
+                    <form
+                        style="display: inline;" 
+                        class="faircoin-form indent" 
+                        id="createFairCoinAddressForm" 
+                        action="{% url create_faircoin_address agent_id=agent.id %}" 
+                        method="POST" >
+                        {% csrf_token %}
+                        <button style="display: inline;"  class="btn btn-primary btn-mini" title="Create FairCoin Address" >
+                            {% trans "Create FairCoin Address" %}
+                        </button>
+                    </form>
+                {% endif %}
             {% endif %}
             
             {% if user.is_staff and agent.is_deletable %}
@@ -257,6 +269,12 @@ legend {
                         </tr>
                         
                         
+                    {% endif %}
+                    {% if agent.faircoin_address %}
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "FairCoin address" %}</th>
+                            <td>{{ agent.faircoin_address }}</td>
+                        </tr>
                     {% endif %}
                     {% if agent.photo %}
 	                	<tr>

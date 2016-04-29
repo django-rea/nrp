@@ -50,6 +50,11 @@ class ValueEquationModelChoiceField(forms.ModelChoiceField):
         else:
             label = ": ".join([obj.name , "Test Only"])
         return label
+        
+
+class SendFairCoinsForm(forms.Form):
+    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'faircoins input-small',}))
+    to_address = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-xlarge',}))
 
         
 class AgentForm(forms.Form):

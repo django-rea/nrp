@@ -49,11 +49,11 @@
 
 		<legend>
 			{% trans "Resource" %}: {{ resource }} &nbsp;
-			{% if agent %}
-		        <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
-		        <a href="#resourceOrderForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Plan Work Order" %}</a>&nbsp;&nbsp;
-	        {% endif %}
-	        <a href="{% url event_history resource_id=resource.id %}">{% trans "Event history" %}</a>&nbsp;&nbsp;
+            {% if agent %}
+                <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
+                <a href="#resourceOrderForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Plan Work Order" %}</a>&nbsp;&nbsp;
+            {% endif %}
+            <a href="{% url event_history resource_id=resource.id %}">{% trans "Event history" %}</a>&nbsp;&nbsp;
             <a href="{% url incoming_value_flows resource_id=resource.id %}">{% trans "Incoming Value Flow" %}</a>
 		</legend>
 		
@@ -144,6 +144,12 @@
 	                    <tr>
 	                        <th style="text-align: right;">{% trans "Current Location" %}</th>
 	                        <td>{{ resource.current_location }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if resource.digital_currency_address %}
+                        <tr>
+                            <th style="text-align: right;">{% trans "FairCoin Address" %}</th>
+                            <td>{{ resource.digital_currency_address }}</td>
                         </tr>
                     {% endif %}
                     {% if resource.notes %}

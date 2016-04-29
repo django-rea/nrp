@@ -525,5 +525,10 @@ urlpatterns += patterns("",
         name="change_transfer_type"), 
     url(r'^delete-transfer-type/(?P<transfer_type_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_transfer_type', 
         name="delete_transfer_type"), 
+    url(r"^create-faircoin-address/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.create_faircoin_address', name="create_faircoin_address"),
+    url(r"^send-faircoins/(?P<resource_id>\d+)/$", 'valuenetwork.valueaccounting.views.send_faircoins', 
+        name="send_faircoins"),
+    url(r"^validate-faircoin-address/$", 'valuenetwork.valueaccounting.views.validate_faircoin_address', name="validate_faircoin_address"),
+    
 )
 

@@ -28,6 +28,8 @@ http://global.ihs.com/doc_detail.cfm?item_s_key=00495115&item_key_date=920616
 
 """
 
+FAIRCOIN_DIVISOR = Decimal("1000000.00")
+
 def unique_slugify(instance, value, slug_field_name='slug', queryset=None,
                    slug_separator='-'):
     """
@@ -452,17 +454,76 @@ class EconomicAgent(models.Model):
                 au.delete()
         super(EconomicAgent, self).delete(*args, **kwargs)
         
-    def create_faircoin_address(self):
-        #import pdb; pdb.set_trace()
-        from valuenetwork.valueaccounting.faircoin_utils import create_address_for_agent
-        address = None
-        address = create_address_for_agent(self)
-        return address
-        
     @models.permalink
     def get_absolute_url(self):
         return ('agent', (),
         { 'agent_id': str(self.id),})
+        
+    def create_faircoin_address(self):
+        #import pdb; pdb.set_trace()
+        address = self.faircoin_address()
+        if not address:
+            from valuenetwork.valueaccounting.faircoin_utils import create_address_for_agent
+            address = None
+            address = create_address_for_agent(self)
+            #address = "Test address"
+            resource = self.create_faircoin_resource(address)
+        return address
+        
+    def create_faircoin_resource(self, address):
+        role_types = AgentResourceRoleType.objects.filter(is_owner=True)
+        owner_role_type = None
+        if role_types:
+            owner_role_type = role_types[0]
+        resource_types = EconomicResourceType.objects.filter(
+            behavior="dig_curr")
+        if resource_types.count() == 0:
+            raise ValidationError("Cannot create digital currency resource for " + self.nick + " because no digital currency ResourceTypes.")
+            return None
+        if resource_types.count() > 1:
+            raise ValidationError("Cannot create digital currency resource for " + self.nick + ", more than one digital currency ResourceType.")
+            return None
+        resource_type = resource_types[0]
+        if owner_role_type:
+            va = EconomicResource(
+                resource_type=resource_type,
+                identifier="Faircoin address for " + self.nick,
+                digital_currency_address=address,
+            )
+            va.save()
+            arr = AgentResourceRole(
+                agent=self,
+                role=owner_role_type,
+                resource=va,
+            )
+            arr.save()
+            return va
+        else:
+            raise ValidationError("Cannot create digital currency resource for " + self.nick + " because no owner AgentResourceRoleTypes.")
+            return None
+        
+    def faircoin_address(self):
+        fcr = self.faircoin_resource()
+        if fcr:
+            return fcr.digital_currency_address
+        else:
+            return None
+            
+    def faircoin_resource(self):
+        candidates = self.agent_resource_roles.filter(
+            role__is_owner=True, 
+            resource__resource_type__behavior="dig_curr",
+            resource__digital_currency_address__isnull=False)
+        if candidates:
+            return candidates[0].resource
+        else:
+            return None
+            
+    def owns(self, resource):
+        if self in resource.owners():
+            return True
+        else:
+            return False
         
     def is_coop_worker(self):
         return False
@@ -1444,6 +1505,7 @@ INVENTORY_RULE_CHOICES = (
 BEHAVIOR_CHOICES = (
     ('work', _('Type of Work')),
     ('account', _('Virtual Account')),
+    ('dig_curr', _('Digital Currency')),
     ('other', _('Other')),
 )
 
@@ -3900,6 +3962,29 @@ class EconomicResource(models.Model):
                 resource_string,
                 id_str,
             ])
+    def is_digital_currency_resource(self):
+        if self.digital_currency_address:
+            return True
+        else:
+            return False
+            
+    def digital_currency_history(self):
+        history = []
+        address = self.digital_currency_address
+        if address:
+            from valuenetwork.valueaccounting.faircoin_utils import get_address_history
+            history = get_address_history(address)
+        return history
+        
+    def digital_currency_balance(self):
+        bal = 0
+        address = self.digital_currency_address
+        if address:
+            from valuenetwork.valueaccounting.faircoin_utils import get_address_balance
+            balance = get_address_balance(address)
+            if balance:
+                bal = Decimal(balance[0]) / FAIRCOIN_DIVISOR
+        return bal
             
     def context_agents(self):
         pes = self.where_from_events()
@@ -5170,10 +5255,17 @@ class EconomicResource(models.Model):
         return InputEventForm(qty_help=qty_help, prefix=prefix, data=data)
     
     def owner(self): #returns first owner
-        owner_roles = self.agent_resource_roles.filter(role__is_owner=True)
-        if owner_roles:
-            return owner_roles[0].agent
-        return None
+        #owner_roles = self.agent_resource_roles.filter(role__is_owner=True)
+        #if owner_roles:
+        #    return owner_roles[0].agent
+        owners = self.owners()
+        if owners:
+            return owners[0]
+        else:
+            return None
+        
+    def owners(self):
+        return [arr.agent for arr in self.agent_resource_roles.filter(role__is_owner=True)]
         
     def is_virtual_account_of(self, agent):
         if self.resource_type.is_virtual_account():

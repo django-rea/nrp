@@ -26,7 +26,7 @@ def is_coop_worker(request):
 def default_redirect(request, fallback_url, **kwargs):
     redirect_field_name = kwargs.get("redirect_field_name", "next")
     next = request.REQUEST.get(redirect_field_name)
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
     if is_coop_worker(request):
         next = settings.WORKER_LOGIN_REDIRECT_URL    
     if not next:

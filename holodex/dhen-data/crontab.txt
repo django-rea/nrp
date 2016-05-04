@@ -1,0 +1,3 @@
+* * * * * (cd /home/nrp/webapps/django/valuenetwork; /usr/local/bin/python2.7 manage.py emit_notices >> /home/nrp/webapps/django/valuenetwork/emit_notices.log)
+2,22,42 * * * * ~/webapps/django/apache2/bin/start
+

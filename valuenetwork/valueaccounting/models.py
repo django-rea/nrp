@@ -526,10 +526,29 @@ class EconomicAgent(models.Model):
             return True
         else:
             return False
-        
-    def is_coop_worker(self):
+
+    def my_user(self):
+        #import pdb; pdb.set_trace()
+        users = self.users.all()
+        if users:
+            return users[0].user
+        return None
+    
+    def is_superuser(self):
+        if self.my_user():
+            return self.my_user().is_superuser
         return False
-            
+    
+    def is_staff(self):
+        if self.my_user():
+            return self.my_user().is_staff
+        return False
+    
+    def is_coop_worker(self):
+        if not self.is_superuser() and not self.is_staff():
+            return True
+        return False
+    
     def seniority(self):
         return (datetime.date.today() - self.created_date).days
 

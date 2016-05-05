@@ -9,6 +9,7 @@ from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.utils import *
 from django.utils import simplejson
 from valuenetwork.valueaccounting.tests.value_equation_test_objects import *
+from valuenetwork.valueaccounting.tests.objects_for_testing import Facets
 
 """
     Tests:
@@ -84,6 +85,9 @@ class ValueEquationTest(TestCase):
     def setUp(self):
 
         self.user = User.objects.create_user('alice', 'alice@whatever.com', 'password')
+        
+        facets = Facets()
+        self.pattern = facets.full_pattern
 
         self.recipe = ValueEquationRecipe()
         recipe = self.recipe
@@ -235,7 +239,7 @@ class ValueEquationTest(TestCase):
         production_event.save()
         
         work_rt = EconomicResourceType(
-            name="Work Resource Type",
+            name="Work ResourceType",
         )
         work_rt.save()
         
@@ -345,4 +349,70 @@ class ValueEquationTest(TestCase):
             elif at.to_agent.name == "vacontributor2":
                 self.assertEqual(at.quantity, Decimal("20.0"))
                 
+        #import pdb; pdb.set_trace()
+        
+    def test_faircoin_distribution(self):
+        ve = self.recipe.value_equation
+        order = self.order
+        orders = [order,]
+        buckets = ve.buckets.all()
+        #amount_to_distribute = Decimal("1000")
+        amount_to_distribute = Decimal("195")
+        serialized_filter = serialize_filter(orders)
+        serialized_filters = {}
+        for bucket in buckets:
+            serialized_filters[bucket.id] = serialized_filter
+        context_agent = ve.context_agent
+        dist_date = datetime.date.today()
+        pattern = self.pattern
+        fc_unit = Unit(
+            unit_type="value",
+            abbrev="FairCoin",
+            name="FairCoin",
+            )
+        fc_unit.save()
+        faircoin_rt = EconomicResourceType(
+            name="FairCoin",
+            unit_of_price=fc_unit,
+            price_per_unit=Decimal('1'),
+            behavior='dig_curr',
+            )
+        faircoin_rt.save()
+        owner_role = AgentResourceRoleType(
+            name="owner",
+            is_owner=True,
+            )
+        owner_role.save()
+        address = context_agent.create_faircoin_address()
+        money_resource = context_agent.faircoin_resource()
+        self.assertIsNotNone(money_resource)
+        distribution = Distribution(                
+            name="Distribution for " + context_agent.nick,
+            process_pattern=pattern,
+            distribution_date=dist_date,
+            notes="",
+            context_agent=context_agent,
+            created_by=self.user,
+        )
+        #import pdb; pdb.set_trace()
+
+        distribution = ve.run_value_equation_and_save(
+            #events_to_distribute=etd, <-CashReceipts, optional
+            distribution=distribution, 
+            money_resource=money_resource, 
+            amount_to_distribute=amount_to_distribute, 
+            serialized_filters=serialized_filters)
+            
+        distribution_events = distribution.distribution_events()
+            
+        for at in distribution_events:
+            if at.to_agent.name == "worker":
+                self.assertEqual(at.quantity, Decimal("75.0"))
+            elif at.to_agent.name == "contributor":
+                self.assertEqual(at.quantity, Decimal("70.0"))
+            elif at.to_agent.name == "vacontributor1":
+                self.assertEqual(at.quantity, Decimal("30.0"))
+            elif at.to_agent.name == "vacontributor2":
+                self.assertEqual(at.quantity, Decimal("20.0"))
+
         #import pdb; pdb.set_trace()

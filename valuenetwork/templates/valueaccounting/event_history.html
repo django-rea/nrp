@@ -76,7 +76,11 @@
                 <th>{% trans "URL" %}</th>
                 <th>{% trans "Description" %}</th>
                 <th>{% trans "Process" %}</th>
-                
+                {% if resource.digital_currency_address %}
+                    <th>{% trans "To Address" %}</th>
+                    <th>{% trans "Tx State" %}</th>
+                    <th>{% trans "Chain" %}</th>
+                {% endif %}
             </thead>
             <tbody> 
                 {% for event in events %}
@@ -99,6 +103,15 @@
                                 <a href="{{ event.process.get_absolute_url }}" target="_blank">{{ event.process.name }}</a>
                             {% endif %}
                         </td>
+                        {% if resource.digital_currency_address %}
+                            <td>{{ event.event_reference }}</td>
+                            <td>{{ event.transaction_state }}</td>
+                            <td>
+                            {% if event.digital_currency_tx_hash %}
+                                <a href="https://chain.fair-coin.org/tx/{{ event.digital_currency_tx_hash }}" target="_blank">{% trans "On Chain" %}</a>
+                            {% endif %}
+                        </td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
             </tbody>    

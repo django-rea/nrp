@@ -26,11 +26,39 @@ def create_address_for_agent(agent):
         )
     return address
     
+def network_fee():
+    return efn.network_fee
+    
 def send_faircoins(address_origin, address_end, amount):
     #import pdb; pdb.set_trace()
     init_electrum_fair()
+    wallet = efn.wallet
     tx = efn.make_transaction_from_address(address_origin, address_end, amount)
-    return tx
+    tx_hash = tx.hash()
+    # this is my feeble attempt to determine
+    # if the transaction has been broadcasted.
+    # it does not work, doesn't wait long enough.
+    # And cannot actually tell if the tx has failed
+    # to be accepted by the network.
+    broadcasted = False
+    for i in range(0, 32):
+        try:
+            wallet.tx_result
+            print "wallet.tx_result"
+        except AttributeError:
+            continue
+        if broadcasted:
+            print "broadcast break"
+            break
+        broadcasted, out = wallet.receive_tx(tx_hash, tx)
+    return tx, broadcasted
+    
+def send_fake_faircoins(address_origin, address_end, amount):
+    print "sending fake faircoins"
+    import time
+    tx = str(time.time())
+    broadcasted = True
+    return tx, broadcasted
     
 def get_address_history(address):
     init_electrum_fair()
@@ -45,3 +73,7 @@ def is_valid(address):
     init_electrum_fair()
     return efn.is_valid(address)
     
+def get_confirmations(tx):
+    init_electrum_fair()
+    return efn.get_confirmations(tx)
+        

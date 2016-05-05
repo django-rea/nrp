@@ -475,6 +475,7 @@ class EconomicAgent(models.Model):
         owner_role_type = None
         if role_types:
             owner_role_type = role_types[0]
+        #import pdb; pdb.set_trace()
         resource_types = EconomicResourceType.objects.filter(
             behavior="dig_curr")
         if resource_types.count() == 0:
@@ -485,6 +486,7 @@ class EconomicAgent(models.Model):
             return None
         resource_type = resource_types[0]
         if owner_role_type:
+            # resource type has unit
             va = EconomicResource(
                 resource_type=resource_type,
                 identifier="Faircoin address for " + self.nick,
@@ -3983,9 +3985,22 @@ class EconomicResource(models.Model):
         if address:
             from valuenetwork.valueaccounting.faircoin_utils import get_address_balance
             balance = get_address_balance(address)
+            balance = balance[0]
+            if balance:
+                bal = Decimal(balance) / FAIRCOIN_DIVISOR
+        return bal
+        
+    def spending_limit(self):
+        limit = 0
+        address = self.digital_currency_address
+        if address:
+            from valuenetwork.valueaccounting.faircoin_utils import get_address_balance, network_fee
+            balance = get_address_balance(address)
             if balance:
                 bal = Decimal(balance[0]) / FAIRCOIN_DIVISOR
-        return bal
+                fee = Decimal(network_fee()) / FAIRCOIN_DIVISOR
+                limit = bal - fee
+        return limit
             
     def context_agents(self):
         pes = self.where_from_events()
@@ -8559,6 +8574,7 @@ class Commitment(models.Model):
         return TodoForm(instance=self, prefix=prefix)
 
     #obsolete?
+    """
     def work_event_form(self, data=None):   
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
         prefix=self.form_prefix()
@@ -8567,7 +8583,8 @@ class Commitment(models.Model):
             return TimeEventForm(prefix=prefix, data=data)
         else:
             qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
-            return InputEDistributionventForm(qty_help=qty_help, prefix=prefix, data=data)
+            return InputDistributionEventForm(qty_help=qty_help, prefix=prefix, data=data)
+    """
             
     def input_event_form(self, data=None):
         from valuenetwork.valueaccounting.forms import InputEventForm
@@ -9498,22 +9515,50 @@ class ValueEquation(models.Model):
         distribution_events, contribution_events = self.run_value_equation(
             amount_to_distribute=amount_to_distribute,
             serialized_filters=serialized_filters)
+        context_agent = self.context_agent
+        testing = False
+        if context_agent.name == "test context agent":
+            testing = True
         for dist_event in distribution_events:
             va = None
-            vas = dist_event.to_agent.virtual_accounts()
-            if vas:
-                for vacct in vas:
-                    if vacct.resource_type.unit == money_resource.resource_type.unit:
-                        va = vacct
-                        break
-            if not va:
-                va = dist_event.to_agent.create_virtual_account(resource_type=money_resource.resource_type)
-            if va:
-                dist_event.resource = va
-                dist_event.resource_type = va.resource_type 
-                dist_event.unit_of_quantity = va.resource_type.unit
+            #todo faircoin distribution
+            #import pdb; pdb.set_trace()
+            to_agent = dist_event.to_agent
+            if money_resource.is_digital_currency_resource():
+                from valuenetwork.valueaccounting.faircoin_utils import *
+                #faircoins are the only digital currency we handle now
+                va = to_agent.faircoin_resource()
+                if va:
+                    if va.resource_type != money_resource.resource_type:
+                        raise ValidationError(" ".join([
+                            money_resource.identifier, 
+                            va.identifier, 
+                            "digital currencies do not match."]))
+
+                else:
+                    address = to_agent.create_faircoin_address()
+                    va = to_agent.faircoin_resource()
+                if va:
+                    dist_event.resource = va
+                    dist_event.resource_type = va.resource_type 
+                    dist_event.unit_of_quantity = va.resource_type.unit
+                else:
+                    raise ValidationError(dist_event.to_agent.nick + ' needs faircoin address, unable to create one.')
             else:
-                raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
+                vas = dist_event.to_agent.virtual_accounts()
+                if vas:
+                    for vacct in vas:
+                        if vacct.resource_type.unit == money_resource.resource_type.unit:
+                            va = vacct
+                            break
+                if not va:
+                    va = dist_event.to_agent.create_virtual_account(resource_type=money_resource.resource_type)
+                if va:
+                    dist_event.resource = va
+                    dist_event.resource_type = va.resource_type 
+                    dist_event.unit_of_quantity = va.resource_type.unit
+                else:
+                    raise ValidationError(dist_event.to_agent.nick + ' needs a virtual account, unable to create one.')
         et = EventType.objects.get(name='Cash Disbursement')
         #distribution.save() #?? used to be exchange; was anything changed?
         buckets = {}
@@ -9569,6 +9614,42 @@ class ValueEquation(models.Model):
             resource_type=money_resource.resource_type,
             resource=money_resource,
         )
+        #todo faircoin distribution
+        #import pdb; pdb.set_trace()
+        if money_resource.is_digital_currency_resource():
+            
+            # do we need the context_agent.faircoin_resource here or just the address?
+            va = context_agent.faircoin_resource()
+            if va:
+                if va.resource_type != money_resource.resource_type:
+                    raise ValidationError(" ".join([
+                        money_resource.identifier, 
+                        va.identifier, 
+                        "digital currencies do not match."]))
+
+            else:
+                address = context_agent.create_faircoin_address()
+                va = context_agent.faircoin_resource()
+            if not va:
+                raise ValidationError(dist_event.to_agent.nick + ' needs faircoin address, unable to create one.')
+            address_origin = money_resource.digital_currency_address
+            address_end = context_agent.faircoin_address()
+            # what about network_fee?
+            quantity = amount_to_distribute
+            if testing:
+                tx, broadcasted = send_fake_faircoins(address_origin, address_end, quantity)
+            else:
+                tx, broadcasted = send_faircoins(address_origin, address_end, quantity)
+            if tx:
+                try:
+                    tx_hash = tx.hash()
+                except AttributeError:
+                    tx_hash = tx
+                state = "pending"
+                if broadcasted:
+                    state = "broadcast"
+                disbursement_event.digital_currency_tx_hash = tx_hash
+                disbursement_event.digital_currency_tx_state = state
         disbursement_event.save()
         money_resource.quantity -= amount_to_distribute
         money_resource.save()
@@ -9608,6 +9689,27 @@ class ValueEquation(models.Model):
         for dist_event in distribution_events:
             dist_event.distribution = distribution
             dist_event.event_date = distribution.distribution_date
+            #todo faircoin distribution
+            #import pdb; pdb.set_trace()
+            if dist_event.resource.is_digital_currency_resource():
+                address_origin = self.context_agent.faircoin_address()
+                address_end = dist_event.resource.digital_currency_address
+                # what about network_fee?
+                quantity = dist_event.quantity
+                if testing:
+                    tx, broadcasted = send_fake_faircoins(address_origin, address_end, quantity)
+                else:
+                    tx, broadcasted = send_faircoins(address_origin, address_end, quantity)
+                if tx:
+                    try:
+                        tx_hash = tx.hash()
+                    except AttributeError:
+                        tx_hash = tx
+                    state = "pending"
+                    if broadcasted:
+                        state = "broadcast"
+                    dist_event.digital_currency_tx_hash = tx_hash
+                    dist_event.digital_currency_tx_state = state
             dist_event.save()
             to_resource = dist_event.resource
             to_resource.quantity += dist_event.quantity
@@ -9951,7 +10053,7 @@ class EconomicEvent(models.Model):
     objects = EconomicEventManager()
 
     class Meta:
-        ordering = ('-event_date',)
+        ordering = ('-event_date', '-pk')
 
     def __unicode__(self):
         if self.unit_of_quantity:
@@ -10155,6 +10257,25 @@ class EconomicEvent(models.Model):
             candidates = resource.events.all()
             nexts = candidates.filter(from_agent=self.to_agent).exclude(id=self.id)
         return nexts
+        
+    def transaction_state(self):
+        #import pdb; pdb.set_trace()
+        state = self.digital_currency_tx_state
+        new_state = None
+        if state == "pending" or state == "broadcast":
+            tx = self.digital_currency_tx_hash
+            if tx:
+                from valuenetwork.valueaccounting.faircoin_utils import get_confirmations
+                confirmations, timestamp = get_confirmations(tx)
+                if confirmations > 0:
+                    new_state = "broadcast"
+                if confirmations > 6:
+                    new_state = "confirmed"
+        if new_state:
+            state = new_state
+            self.digital_currency_tx_state = new_state
+            self.save()
+        return state
         
     def seniority(self):
         return (datetime.date.today() - self.event_date).days

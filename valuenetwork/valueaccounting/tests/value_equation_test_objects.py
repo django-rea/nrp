@@ -61,7 +61,7 @@ class ValueEquationRecipe(Recipe):
         agent_type.save()
             
         ca = EconomicAgent(
-            name="context",
+            name="test context agent",
             nick="context",
             agent_type=agent_type,
             is_context=True,

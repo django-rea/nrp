@@ -20,11 +20,13 @@
                     {% comment %}
 	                <li><a href="{% url create_user_and_agent %}"><i class="icon-user"></i> Create Agent and User</a></li>
                     {% endcomment %}
-	                <li><a href="{% url misc %}"><i class="icon-cog"></i> Miscellaneous pages</a></li>
+	                <li><a href="{% url misc %}"><i class="icon-cog"></i> Miscellaneous Pages</a></li>
 				{% endif %}
+				
+				<li><a href="{% url my_dashboard %}"><i class="icon-time"></i> Coop Work App</a></li>
 
                 <li class="divider"></li>
-                <li><a href="{% url account_logout %}"><i class="icon-off"></i> Log out</a></li>
+                <li><a href="{% url account_logout %}"><i class="icon-off"></i> Log Out</a></li>
             </ul>
         </li>
     {% else %}

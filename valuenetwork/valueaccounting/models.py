@@ -546,7 +546,7 @@ class EconomicAgent(models.Model):
         if not self.is_superuser() and not self.is_staff():
             return True
         return False
-            
+    
     def seniority(self):
         return (datetime.date.today() - self.created_date).days
 

@@ -16,3 +16,4 @@ django-cors-headers
 rdflib
 rdflib-jsonld
 djangorestframework==2.4.8
+https://electrum.fair-coin.org/download/Electrum-fair-2.3.3.tar.gz

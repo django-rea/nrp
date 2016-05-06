@@ -110,6 +110,12 @@ label {
                         <th style="text-align: right;">{% trans "Type" %}</th>
                         <td>{{ agent.agent_type.name }}</td>
                     </tr>
+                    {% if agent.faircoin_address %}
+                        <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "FairCoin account" %}</th>
+                            <td><a href="{% url manage_faircoin_account resource_id=agent.faircoin_resource.id %}">Manage Account</a></td>
+                        </tr>
+                    {% endif %}
                     {% if agent.unit_of_claim_value %}
                         <tr>
                             <th style="text-align: right;">{% trans "Unit of claim value" %}</th>

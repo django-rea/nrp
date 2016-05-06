@@ -1,0 +1,317 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load thumbnail %}
+
+{% block head_title %}{% trans "FairCoin Resource" %}: {{ resource }}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+
+<style>
+
+.labnote {
+    background-color: beige;
+    padding: 2px 6px 3px 6px;
+    border: 1px solid gainsboro;
+}
+.btn-info {
+    margin-left: 10px;
+}
+.hdg {
+    color: firebrick;
+}
+.btn {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+#id_notes, #id_access_rules {
+  width: 500px;
+  height: 100px;    
+}
+.modal {
+    width: 600px;
+}
+.text-center {
+    text-align: center;
+}
+
+#coins, #coinHeader {
+    margin-top: 0;
+    padding-top: 0;
+}
+</style>
+
+{% endblock %}
+
+{% block body_class %}work{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+
+		<legend>
+			{% trans "FairCoin Resource" %}: {{ resource }} &nbsp;
+            {% if agent %}
+                <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
+            {% endif %}
+
+            <a href="{% url event_history resource_id=resource.id %}">{% trans "Event history" %}</a>&nbsp;&nbsp;
+
+            <a href="https://chain.fair-coin.org/address/{{ resource.digital_currency_address }}" target="_blank" >{% trans "Follow Chain" %}</a>
+		</legend>
+		
+        {% if agent %}
+		    <div class="modal hide fade" id="resourceChangeForm" tabindex="-1" role="dialog" aria-labelledby="resource-change-label" aria-hidden="true">
+			    <div class="modal-header">
+				    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				    <h3 id="resource-change-label">{% trans "Change" %} {{ resource }}</h3>
+			    </div>
+			    <div class="modal-body">
+				    <form id="resource-change-form" action="{% url change_resource resource_id=resource.id %}" method="POST" >
+					    {% csrf_token %}
+					    {{ resource.change_form|as_bootstrap }}
+                        {{ role_formset.management_form }}
+                        <table>
+                            <tr>
+                                <td>Resource access role</td>
+                                <td>Assignment</td>
+                                <td>Is contact &nbsp;</td>
+                                <td>Delete</td>
+                            </tr>
+	                        {% for form in role_formset %}
+                                {{ form.id }}  
+	                            <tr class="role-row">
+	                                <td class="td-role">{{ form.role }}</td>
+	                                <td class="td-agent">{{ form.agent }}</td>
+	                                <td class="text-center">{{ form.is_contact }}</td>
+                                    <td class="text-center">{{ form.DELETE }}</td>
+	                            </tr>
+                           	{% endfor %}
+                        </table>
+				        <div class="modal-footer">
+					      <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+					      <button class="btn btn-primary">{% trans "Save changes" %}</button>
+				        </div>
+				    </form>
+                </div>
+            </div>
+		      
+
+	    {% endif %}
+
+		<div class="row-fluid">
+		
+		    <div class="span6 resource">
+		
+	            <table class="table table-bordered" >
+	                <tr>
+                        <th style="text-align: right;">{% trans "Balance" %}</th>
+                        <td>{{ resource.digital_currency_balance }} {{ resource.unit_of_quantity }}</td>
+                    </tr>
+{% comment %}
+                    <tr>
+                        <th style="text-align: right;">{% trans "Quality" %}</th>
+                        <td>{{ resource.quality }}</td>
+                    </tr>
+{% endcomment %}
+                    {% if resource.value_per_unit_of_use and resource.resource_type.unit_of_use %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Value per" %} {{ resource.resource_type.unit_of_use.abbrev }} {% trans "of use" %}</th>
+	                        <td>{{ resource.value_per_unit_of_use }}</td>
+                        </tr>
+                    {% endif %}
+
+	                {% if resource.url %}
+	                    <tr>
+	                        <th style="text-align: right;">{% trans "URL" %}</th>
+	                        <td>{{ resource.url|urlize }}</td>
+                        </tr>
+                    {% endif %}
+	                {% if resource.current_location %}
+	                    <tr>
+	                        <th style="text-align: right;">{% trans "Current Location" %}</th>
+	                        <td>{{ resource.current_location }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if resource.digital_currency_address %}
+                        <tr>
+                            <th style="text-align: right;">{% trans "FairCoin Address" %}</th>
+                            <td>{{ resource.digital_currency_address }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if resource.notes %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Notes" %}</th>
+	                        <td>{{ resource.notes|urlize|linebreaks }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if resource.access_rules %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Access Rules" %}</th>
+	                        <td>{{ resource.access_rules|urlize|linebreaks }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if resource.photo %}
+	                	<tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
+	                        <td><img src="{% thumbnail resource.photo photo_size %}" /></td>
+                        </tr>
+                	{% elif resource.photo_url %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Photo" %}</th>
+	                        <td><img src="{{ resource.photo_url }}" width="128" height="96" /></td>
+                        </tr>
+	                {% endif %}
+                    {% if resource.agent_resource_roles.all %}
+                        <tr>
+	                        <th style="text-align: right; vertical-align: top; ">{% trans "Assignments" %}</th>
+	                        <td>
+                                {% for item in resource.agent_resource_roles.all %}
+                                    {{ item.role.name }} : {{ item.agent.nick }} 
+                                    {% if item.is_contact %} (Contact) {% endif %} <br />
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <th style="text-align: right;">{% trans "Record created date" %}</th>
+                        <td>{{ resource.created_date }}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right;">{% trans "Record created by" %}</th>
+                        <td>{{ resource.created_by }}</td>
+                    </tr>
+
+	            </table>
+	        
+	        </div>
+
+	        <div id="coins" class="span6 info">
+                {% if send_coins_form %}
+                    <h3 id="coinHeader" >{% trans "Send Faircoins" %}</h3>
+                    <form id="sendCoinsForm" action="{% url send_faircoins resource_id=resource.id %}" method="POST" >
+                        {% csrf_token %}
+                        {{ send_coins_form|as_bootstrap }}
+                        <button class="btn btn-primary" name="sendCoins" value="coins">{% trans "Send" %}</button>
+                    </form>
+                {% endif %}
+                
+	        </div>
+
+		</div>
+
+        
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+{% endblock %}
+
+
+{% block extra_body %}
+	{{ block.super }}
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+		$('#inventory').addClass('active');
+		
+		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+
+		$( "#help" ).toggle( function(){
+            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $( "#help" ).text("Hide Help");
+        }, function() {
+            $('#help-content').hide("slide", { direction: "right" }, "slow");
+            $( "#help" ).text("Show Help");
+        })
+
+        //$('td.td-role > select').addClass('select-role');   
+        //$('td.td-agent > select').addClass('select-agent');  
+
+        $.validator.addMethod("agentRequired", function (value, element) {
+            var parent = element.parentElement;
+            var parentSib = parent.nextElementSibling;
+            var sib = parentSib.children[0];
+            var sibValue = sib.value;
+            if (sibValue){
+                var sibId = sib.id;
+                sibId = "#" + sibId;
+                $(sibId).removeClass('error').next('label.error').remove();
+            }
+            return this.optional(element) || sibValue;
+        }, "Both role and agent must be selected.");
+        
+        $.validator.addMethod("roleRequired", function (value, element) {
+            var parent = element.parentElement;
+            var parentSib = parent.previousElementSibling;
+            var sib = parentSib.children[0];
+            var sibValue = sib.value;
+            if (sibValue){
+                var sibId = sib.id;
+                sibId = "#" + sibId;
+                $(sibId).removeClass('error').next('label.error').remove();
+            }
+            return this.optional(element) || sibValue;
+        }, "Both role and agent must be selected.");
+        
+        $.validator.addClassRules("select-role", { agentRequired: true });
+        $.validator.addClassRules("select-agent", { roleRequired: true });
+        
+        jQuery.validator.addMethod("quantity",
+            function(value, element) {
+                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                return this.optional(element) || isValidQuantity;
+            },
+            "Please enter a number less than 1000000 with no more than 2 decimal places"
+        );
+
+        $.validator.addClassRules("quantity", { quantity: true });
+        
+        // limit must include network fee
+        var limit = parseFloat({{ limit }});
+        
+        jQuery.validator.addMethod("notMoreThanLimit", function(value, element) {
+            return this.optional(element) || (parseFloat(value) <= limit );
+        }, "Cannot be more than balance - network fee, " + limit );
+
+            
+        $('#resource-change-form').validate(
+        {
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            }
+
+        });
+        
+        $('#sendCoinsForm').validate(
+        {
+            onkeyup: false,
+            rules: {
+                to_address: {
+                    required: true,
+                    remote: "/accounting/validate-faircoin-address/"
+                },
+                quantity: {
+                    number: true,
+                    notMoreThanLimit: true
+                    
+                },               
+            },
+            highlight: function(label) {
+                $(label).closest('.control-group').addClass('error');
+            }
+
+        });
+    
+    }); // end document.ready
+
+    </script>
+    
+{% endblock %}

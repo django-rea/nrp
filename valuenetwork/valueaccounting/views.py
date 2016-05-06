@@ -1335,6 +1335,7 @@ def send_faircoins(request, resource_id):
                 tx, broadcasted = send_faircoins(address_origin, address_end, quantity)
                 if tx:
                     tx_hash = tx.hash()
+                    #wishful thinking here
                     confirmations = get_confirmations(tx_hash)
                     more = get_confirmations(tx)
                     from_agent = resource.owner()

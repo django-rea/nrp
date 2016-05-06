@@ -470,6 +470,15 @@ class EconomicAgent(models.Model):
             resource = self.create_faircoin_resource(address)
         return address
         
+    def create_fake_faircoin_address(self):
+        #import pdb; pdb.set_trace()
+        address = self.faircoin_address()
+        if not address:
+            address = str(time.time())
+            resource = self.create_faircoin_resource(address)
+            print "created fake faircoin address"
+        return address
+        
     def create_faircoin_resource(self, address):
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
         owner_role_type = None
@@ -9544,7 +9553,7 @@ class ValueEquation(models.Model):
             #import pdb; pdb.set_trace()
             to_agent = dist_event.to_agent
             if money_resource.is_digital_currency_resource():
-                from valuenetwork.valueaccounting.faircoin_utils import *
+                from valuenetwork.valueaccounting.faircoin_utils import send_faircoins, send_fake_faircoins
                 #faircoins are the only digital currency we handle now
                 va = to_agent.faircoin_resource()
                 if va:
@@ -9555,7 +9564,10 @@ class ValueEquation(models.Model):
                             "digital currencies do not match."]))
 
                 else:
-                    address = to_agent.create_faircoin_address()
+                    if testing:
+                        address = to_agent.create_fake_faircoin_address()
+                    else:
+                        address = to_agent.create_faircoin_address()
                     va = to_agent.faircoin_resource()
                 if va:
                     dist_event.resource = va
@@ -9647,7 +9659,10 @@ class ValueEquation(models.Model):
                         "digital currencies do not match."]))
 
             else:
-                address = context_agent.create_faircoin_address()
+                if testing:
+                    address = context_agent.create_fake_faircoin_address()
+                else:
+                    address = context_agent.create_faircoin_address()
                 va = context_agent.faircoin_resource()
             if not va:
                 raise ValidationError(dist_event.to_agent.nick + ' needs faircoin address, unable to create one.')

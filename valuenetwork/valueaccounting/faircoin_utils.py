@@ -54,10 +54,10 @@ def send_faircoins(address_origin, address_end, amount):
     return tx, broadcasted
     
 def send_fake_faircoins(address_origin, address_end, amount):
-    print "sending fake faircoins"
     import time
     tx = str(time.time())
     broadcasted = True
+    print "sent fake faircoins"
     return tx, broadcasted
     
 def get_address_history(address):

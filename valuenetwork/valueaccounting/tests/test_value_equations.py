@@ -353,6 +353,9 @@ class ValueEquationTest(TestCase):
         
     def test_faircoin_distribution(self):
         ve = self.recipe.value_equation
+        context_agent = ve.context_agent
+        if context_agent.name == "test context agent":
+            print "### test_faircoin_distribution will create fake faircoin addresses and coins"
         order = self.order
         orders = [order,]
         buckets = ve.buckets.all()
@@ -362,7 +365,6 @@ class ValueEquationTest(TestCase):
         serialized_filters = {}
         for bucket in buckets:
             serialized_filters[bucket.id] = serialized_filter
-        context_agent = ve.context_agent
         dist_date = datetime.date.today()
         pattern = self.pattern
         fc_unit = Unit(

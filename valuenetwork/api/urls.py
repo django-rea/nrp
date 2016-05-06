@@ -19,6 +19,10 @@ router.register(r'resource-types', views.ResourceTypeViewSet, 'economicresourcet
 router.register(r'resources', views.EconomicResourceViewSet, 'economicresource')
 router.register(r'units', views.UnitViewSet)
 
+router.register(r'usercreation', views.UserCreationViewSet, 'usercreation')
+router.register(r'agentcreation', views.AgentCreationViewSet, 'agentcreation')
+router.register(r'agentuser', views.AgentUserViewSet, 'agentuser')
+
 urlpatterns = patterns("",
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),

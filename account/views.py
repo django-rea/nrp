@@ -278,6 +278,8 @@ class LoginView(FormView):
 class LogoutView(TemplateResponseMixin, View):
     
     template_name = "account/logout.html"
+    form_kwargs = {}
+    redirect_field_name = "next"
     
     def get(self, *args, **kwargs):
         if not self.request.user.is_authenticated():
@@ -286,16 +288,43 @@ class LogoutView(TemplateResponseMixin, View):
         return self.render_to_response(ctx)
     
     def post(self, *args, **kwargs):
+        #import pdb; pdb.set_trace()
+        coop_worker = False
         if self.request.user.is_authenticated():
+            user = self.request.user
+            try:
+                agent = user.agent.agent
+                if agent.is_coop_worker():
+                    coop_worker = True
+            except:
+                pass       
             auth.logout(self.request)
-        return redirect(self.get_redirect_url())
+        return redirect(self.get_redirect_url(is_worker=coop_worker))
     
-    def get_context_data(self):
-        return {}
+    def get_context_data(self, **kwargs):
+        ctx = kwargs
+        redirect_field_name = self.get_redirect_field_name()
+        ctx.update({
+            "redirect_field_name": redirect_field_name,
+            "redirect_field_value": self.request.REQUEST.get(redirect_field_name),
+        })
+        return ctx
+        
+    def get_form_kwargs(self):
+        kwargs = super(LogoutView, self).get_form_kwargs()
+        kwargs.update(self.form_kwargs)
+        return kwargs
+        
+    def get_redirect_field_name(self):
+        return self.redirect_field_name
     
-    def get_redirect_url(self, fallback_url=None):
+    def get_redirect_url(self, is_worker=False, fallback_url=None):
+        
         if fallback_url is None:
-            fallback_url = settings.ACCOUNT_LOGOUT_REDIRECT_URL
+            if is_worker:
+                fallback_url = settings.WORKER_LOGOUT_REDIRECT_URL
+            else:
+                fallback_url = settings.ACCOUNT_LOGOUT_REDIRECT_URL
         return default_redirect(self.request, fallback_url)
 
 class ConfirmEmailView(TemplateResponseMixin, View):

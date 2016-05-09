@@ -56,7 +56,7 @@ class UserCreationViewSet(viewsets.ModelViewSet):
         """
         On creation, replace the raw password with a hashed version.
         """
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         if created:
             obj.set_password(obj.password)
             obj.save()

@@ -237,6 +237,8 @@ CORS_URLS_REGEX = r'^/api/.*$'
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
+BROADCAST_FAIRCOINS_LOCK_WAIT_TIMEOUT = None
+
 import re
 IGNORABLE_404_URLS = (
     re.compile(r'\.(php|cgi)$'),

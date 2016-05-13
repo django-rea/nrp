@@ -1,5 +1,8 @@
+import logging
+
 import faircoin_nrp.electrum_fair_nrp as efn
 
+from valuenetwork.valueaccounting.models import EconomicEvent
 #todo faircoin: how to handle failures?
 
 def init_electrum_fair():
@@ -77,3 +80,31 @@ def get_confirmations(tx):
     init_electrum_fair()
     return efn.get_confirmations(tx)
         
+def broadcast_tx():
+    init_electrum_fair()
+    events = EconomicEvent.objects.filter(
+        digital_currency_tx_state="new",
+        event_type__name="Give")
+    #can I do a lot of events in a batch?
+    #probly...
+    if events:
+        event = events[0]
+        if event.resource:
+            address_origin = event.resource.digital_currency_address
+            address_end = event.event_reference
+            amount = event.quantity
+            tx_hash = efn.make_transaction_from_address(address_origin, address_end, amount)
+            if tx_hash:
+                event.digital_currency_tx_state = "broadcast"
+                event.digital_currency_tx_hash = tx_hash
+                event.save()
+                transfer = event.transfer
+                if transfer:
+                    revent = transfer.receive_event()
+                    if revent:
+                        revent.digital_currency_tx_state = "broadcast"
+                        revent.digital_currency_tx_hash = tx_hash
+                        revent.save()
+                msg = " ".join([ "**** sent tx", tx_hash, "amount", str(amount), "from", address_origin, "to", address_end ])
+                logging.info(msg)
+    return events.count()

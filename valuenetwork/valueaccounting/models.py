@@ -9553,8 +9553,9 @@ class ValueEquation(models.Model):
             #import pdb; pdb.set_trace()
             to_agent = dist_event.to_agent
             if money_resource.is_digital_currency_resource():
-                from valuenetwork.valueaccounting.faircoin_utils import send_faircoins, send_fake_faircoins
-                #faircoins are the only digital currency we handle now
+                if testing:
+                    from valuenetwork.valueaccounting.faircoin_utils import send_fake_faircoins
+                    #faircoins are the only digital currency we handle now
                 va = to_agent.faircoin_resource()
                 if va:
                     if va.resource_type != money_resource.resource_type:
@@ -9670,20 +9671,14 @@ class ValueEquation(models.Model):
             address_end = context_agent.faircoin_address()
             # what about network_fee?
             quantity = amount_to_distribute
+            state = "new"
             if testing:
-                tx, broadcasted = send_fake_faircoins(address_origin, address_end, quantity)
-            else:
-                tx, broadcasted = send_faircoins(address_origin, address_end, quantity)
-            if tx:
-                try:
-                    tx_hash = tx.hash()
-                except AttributeError:
-                    tx_hash = tx
+                tx_hash, broadcasted = send_fake_faircoins(address_origin, address_end, quantity)
                 state = "pending"
                 if broadcasted:
                     state = "broadcast"
                 disbursement_event.digital_currency_tx_hash = tx_hash
-                disbursement_event.digital_currency_tx_state = state
+            disbursement_event.digital_currency_tx_state = state
         disbursement_event.save()
         money_resource.quantity -= amount_to_distribute
         money_resource.save()
@@ -9730,20 +9725,14 @@ class ValueEquation(models.Model):
                 address_end = dist_event.resource.digital_currency_address
                 # what about network_fee?
                 quantity = dist_event.quantity
+                state = "new"
                 if testing:
-                    tx, broadcasted = send_fake_faircoins(address_origin, address_end, quantity)
-                else:
-                    tx, broadcasted = send_faircoins(address_origin, address_end, quantity)
-                if tx:
-                    try:
-                        tx_hash = tx.hash()
-                    except AttributeError:
-                        tx_hash = tx
+                    tx_hash, broadcasted = send_fake_faircoins(address_origin, address_end, quantity)
                     state = "pending"
                     if broadcasted:
                         state = "broadcast"
                     dist_event.digital_currency_tx_hash = tx_hash
-                    dist_event.digital_currency_tx_state = state
+                dist_event.digital_currency_tx_state = state
             dist_event.save()
             to_resource = dist_event.resource
             to_resource.quantity += dist_event.quantity
@@ -10144,21 +10133,7 @@ class EconomicEvent(models.Model):
 
     def save(self, *args, **kwargs):
         #import pdb; pdb.set_trace()
-        #todo faircoin
-        #not to_address below
-        # another new field?
-        # or what?
-        """
-        if self.faircoin_tx_state == "to be sent":
-            from valuenetwork.valueaccounting.faircoin_utils import send_faircoins
-            faircoin_tx_hash = send_faircoins(
-                self.from_agent.faircoin_address, 
-                to_address, <-this is funky, too
-                self.quantity)
-            if not faircoin_tx_hash:
-                handle failure
-                abort event.save()
-        """
+
         from_agt = 'Unassigned'
         agent = self.from_agent
         context_agent = self.context_agent
@@ -10302,7 +10277,8 @@ class EconomicEvent(models.Model):
                 from valuenetwork.valueaccounting.faircoin_utils import get_confirmations
                 confirmations, timestamp = get_confirmations(tx)
                 if confirmations > 0:
-                    new_state = "broadcast"
+                    if state != "broadcast":
+                        new_state = "broadcast"
                 if confirmations > 6:
                     new_state = "confirmed"
         if new_state:

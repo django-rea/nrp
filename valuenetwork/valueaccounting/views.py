@@ -1464,7 +1464,7 @@ def unscheduled_time_contributions(request):
             if pattern:
                 unit = Unit.objects.filter(
                     unit_type="time",
-                    name__icontains="Hours")[0]
+                    name__icontains="Hour")[0]
                 for event in events:
                     if event.event_date and event.quantity:
                         event.from_agent=member

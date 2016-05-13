@@ -252,8 +252,9 @@ class EconomicResourceForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'item-name',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
-    created_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    created_date = forms.DateField(required=False, widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
     price_per_unit = forms.DecimalField(
+        required=False,
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'quantity price'}))
 
@@ -2779,6 +2780,9 @@ def possible_parent_resource_types():
 class EconomicResourceTypeForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'unique-name input-xlarge',}))
     url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
+    unit = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Unit.objects.all())
     price_per_unit = forms.DecimalField(
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'price'}))
@@ -2809,6 +2813,7 @@ class EconomicResourceTypeChangeForm(forms.ModelForm):
         max_digits=8, decimal_places=2,
         widget=forms.TextInput(attrs={'value': '0.0', 'class': 'price'}))
     unit = forms.ModelChoiceField(
+        empty_label=None,
         queryset=Unit.objects.all())
     
     class Meta:

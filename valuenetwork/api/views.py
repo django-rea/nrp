@@ -43,6 +43,24 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
+    
+class UserCreationViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be created.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserCreationSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+    def post_save(self, obj, created=False):
+        """
+        On creation, replace the raw password with a hashed version.
+        """
+        #import pdb; pdb.set_trace()
+        if created:
+            obj.set_password(obj.password)
+            obj.save()
+
 
 class PeopleViewSet(viewsets.ModelViewSet):
     """
@@ -66,6 +84,24 @@ class AgentViewSet(viewsets.ModelViewSet):
     """
     queryset = EconomicAgent.objects.all()
     serializer_class = EconomicAgentSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+    
+class AgentCreationViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Economic Agents created.
+    """
+    queryset = EconomicAgent.objects.all()
+    serializer_class = EconomicAgentCreationSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+    
+class AgentUserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows AgentUsers to be viewed, edited or created.
+    """
+    queryset = AgentUser.objects.all()
+    serializer_class = AgentUserSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     
     

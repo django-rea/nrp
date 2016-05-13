@@ -1905,7 +1905,7 @@ class EconomicResourceType(models.Model):
         return chain, inheritance
         
     def staged_process_type_sequence(self):
-        #ximport pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         #pr changed
         pts = []
         stages, inheritance = self.staged_commitment_type_sequence()
@@ -1931,14 +1931,16 @@ class EconomicResourceType(models.Model):
     def recipe_needs_starting_resource(self):
         #todo pr: shd this pass inheritance on?
         #shd recipe_is_staged consider own_or_parent_recipes?
+        #import pdb; pdb.set_trace()
         if not self.recipe_is_staged():
             return False
         seq, inheritance = self.staged_commitment_type_sequence()
-        ct0 = seq[0]
-        if ct0.event_type.name == 'To Be Changed':
-            return True
-        else:
-            return False
+        answer = False
+        if seq:
+            ct0 = seq[0]
+            if ct0.event_type.name == 'To Be Changed':
+                answer =  True
+        return answer
             
     def has_listable_recipe(self):
         #todo pr: shd this be own or own_or_parent_recipes?

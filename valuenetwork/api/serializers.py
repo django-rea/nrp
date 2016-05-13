@@ -4,15 +4,20 @@ from rest_framework import serializers
 from valuenetwork.valueaccounting.models import *
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
+    api_url = serializers.HyperlinkedIdentityField(
+        view_name='user-detail',
+        lookup_field='pk'
+    )
     class Meta:
         model = User
-        fields = ('api_url', 'username', 'email', 'groups')
+        fields = ('api_url', 'username', 'email',)
 
-
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
+        
+class UserCreationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Group
-        fields = ('api_url', 'name')
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'password',)
+
         
 class PlainContextSerializer(serializers.HyperlinkedModelSerializer):
     api_url = serializers.HyperlinkedIdentityField(
@@ -23,14 +28,43 @@ class PlainContextSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = EconomicAgent
         fields = ('api_url', 'url', 'name', 'slug', 'agent_type', 'address',)
+
         
 class EconomicAgentSerializer(serializers.HyperlinkedModelSerializer):
+    api_url = serializers.HyperlinkedIdentityField(
+        view_name='economicagent-detail',
+        lookup_field='pk'
+    )
     agent_type = serializers.RelatedField()
     projects = PlainContextSerializer(source='contexts_participated_in',
         many=True, read_only=True)
     class Meta:
         model = EconomicAgent
         fields = ('api_url', 'url', 'name', 'nick', 'slug', 'agent_type', 'address', 'email', 'projects')
+
+        
+class EconomicAgentCreationSerializer(serializers.HyperlinkedModelSerializer):
+    #agent_type = serializers.RelatedField()
+    class Meta:
+        model = EconomicAgent
+        fields = (
+            'url', 
+            'name', 
+            'nick', 
+            'agent_type', 
+            'address', 
+            'email',)
+            
+            
+class AgentUserSerializer(serializers.HyperlinkedModelSerializer):
+    api_url = serializers.HyperlinkedIdentityField(
+        view_name='agentuser-detail',
+        lookup_field='pk'
+    )
+    class Meta:
+        model = AgentUser
+        fields = ('api_url', 'agent', 'user')
+
         
 class PeopleSerializer(serializers.HyperlinkedModelSerializer):
     #agent_type = serializers.RelatedField()

@@ -80,8 +80,7 @@ def broadcast_tx():
         event_type__name="Give")
     #can I do a lot of events in a batch?
     #probly...
-    if events:
-        event = events[0]
+    for event in events:
         if event.resource:
             address_origin = event.resource.digital_currency_address
             address_end = event.event_reference

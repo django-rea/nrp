@@ -31,7 +31,9 @@
         <legend>
             {% trans "Event History for Resource" %} {{ resource }}&nbsp;&nbsp;
             {% if agent %}
-                <a href="#adjustmentForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Adjust Quantity" %}</a>&nbsp;&nbsp;
+                {% if not resource.digital_currency_address %}
+                    <a href="#adjustmentForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Adjust Quantity" %}</a>&nbsp;&nbsp;
+                {% endif %}
             {% endif %}
         </legend>
         
@@ -44,30 +46,32 @@
         </p>
         
         {% if agent %}
-            <div class="modal hide fade" id="adjustmentForm" tabindex="-1" role="dialog" aria-labelledby=adjustment-label" aria-hidden="true">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h3 id="adjustment-label">{% trans "Adjust quantity of" %} {{ resource }}</h3>
+            {% if not resource.digital_currency_address %}
+                <div class="modal hide fade" id="adjustmentForm" tabindex="-1" role="dialog" aria-labelledby=adjustment-label" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 id="adjustment-label">{% trans "Adjust quantity of" %} {{ resource }}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <form id="adjustment-form" enctype="multipart/form-data" action="{% url adjust_resource resource_id=resource.id %}" method="POST" >
+                            {% csrf_token %}
+                            <p>
+                                {{ adjustment_form.quantity.label }}</br>
+                                {{ adjustment_form.quantity }}</br>
+                                {% trans "of unit " %}{{ unit }}
+                            </p>
+                            <p>
+                                {{ adjustment_form.description.label }}</br>
+                                {{ adjustment_form.description }}
+                            </p>
+                            <div class="modal-footer">
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                            <button class="btn btn-primary">{% trans "Save" %}</button>
+                            </div>
+                        </form>
                 </div>
-                <div class="modal-body">
-                    <form id="adjustment-form" enctype="multipart/form-data" action="{% url adjust_resource resource_id=resource.id %}" method="POST" >
-                        {% csrf_token %}
-                        <p>
-                            {{ adjustment_form.quantity.label }}</br>
-                            {{ adjustment_form.quantity }}</br>
-                            {% trans "of unit " %}{{ unit }}
-                        </p>
-                        <p>
-                            {{ adjustment_form.description.label }}</br>
-                            {{ adjustment_form.description }}
-                        </p>
-                        <div class="modal-footer">
-                          <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                          <button class="btn btn-primary">{% trans "Save" %}</button>
-                        </div>
-                    </form>
-              </div>
-            </div>
+                </div>
+            {% endif %}
         {% endif %}
         
         <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >

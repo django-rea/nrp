@@ -1375,9 +1375,6 @@ def send_faircoins(request, resource_id):
                         )
                     transfer.save()
                     
-                # network_fee is subtracted from quantity
-                # so quantity is correct for the giving event 
-                # but receiving event will get quantity - network_fee
                 state =  "new"
                 event = EconomicEvent(
                     event_type = et_give,
@@ -1393,16 +1390,11 @@ def send_faircoins(request, resource_id):
                     )
                 event.save()
                 if to_agent:
+                    # network_fee is subtracted from quantity
+                    # so quantity is correct for the giving event 
+                    # but receiving event will get quantity - network_fee
                     from valuenetwork.valueaccounting.faircoin_utils import network_fee
-                    outputs = tx.get_outputs()
-                    value = 0
-                    for address, val in outputs:
-                        if address == address_end:
-                            value = val
-                    if value:
-                        quantity = Decimal(value / 1.e6)
-                    else:
-                        quantity = quantity - Decimal(float(network_fee) / 1.e6)
+                    quantity = quantity - Decimal(float(network_fee()) / 1.e6)
                     et_receive = EventType.objects.get(name="Receive")
                     event = EconomicEvent(
                         event_type = et_receive,
@@ -1414,6 +1406,7 @@ def send_faircoins(request, resource_id):
                         digital_currency_tx_state = state,
                         quantity = quantity, 
                         transfer=transfer,
+                        event_reference=address_end,
                         )
                     event.save()
                     print "receive event:", event

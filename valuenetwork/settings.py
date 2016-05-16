@@ -216,6 +216,8 @@ LOGGING = {
     }
 }
 
+#LOGGING_CONFIG = None
+
 FIXTURE_DIRS = [
     os.path.join(PROJECT_ROOT, "fixtures"),
 ]
@@ -232,6 +234,7 @@ WORKER_LOGOUT_REDIRECT_URL = "/work/work-home/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "home"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 2
 LOGIN_URL = '/account/login/'
+AUTH_USER_MODEL = "auth.User"
 
 CORS_URLS_REGEX = r'^/api/.*$'
 CORS_ORIGIN_ALLOW_ALL = True

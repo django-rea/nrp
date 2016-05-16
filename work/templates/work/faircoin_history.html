@@ -119,32 +119,7 @@
 
     $(document).ready(function(){
 
-        $('#inventory').addClass('active');
-        
-        jQuery.validator.addMethod("quantity",
-            function(value, element) {
-                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
-                return this.optional(element) || isValidQuantity;
-            },
-            "Please enter a number less than 1000000 with no more than 2 decimal places"
-        );
-        
-        $('#adjustment-form').validate(
-        {
-            rules: {
-                quantity: {
-                    required: true,
-                    quantity: true
-                },
-                description: {
-                    required: true
-                }
-            },
-            highlight: function(label) {
-                $(label).closest('.control-group').addClass('error');
-            }
-
-        });
+        //$('#inventory').addClass('active');
 
     }); // end document.ready
 

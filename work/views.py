@@ -31,7 +31,9 @@ else:
 
 def work_home(request):
 
-    return render_to_response("work_home.html",
+    return render_to_response("work_home.html", {
+        "help": get_help("work_home"),
+    }, 
         context_instance=RequestContext(request))
 
     

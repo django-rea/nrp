@@ -12288,6 +12288,7 @@ def value_equation_sandbox(request, value_equation_id=None):
                         ser_string = bucket_data = bucket_form.serialize()
                         serialized_filters[bucket.id] = ser_string
                         bucket.form = bucket_form
+            #import pdb; pdb.set_trace()
             agent_totals, details = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
             total = sum(at.quantity for at in agent_totals)
             hours = sum(d.quantity for d in details)
@@ -12304,11 +12305,11 @@ def value_equation_sandbox(request, value_equation_id=None):
                 try:
                     sub.value += d.share
                 except AttributeError:
-                    continue
+                    sub.value = Decimal("0.0")
                 try:
-                    sub.distr_amt += d.distr_amt
+                    sub.distr_amt += d.distr_amt                        
                 except AttributeError:
-                    continue
+                    sub.distr_amt = Decimal("0.0")
                 sub.rate = 0
                 if sub.distr_amt and sub.quantity:
                     sub.rate = (sub.distr_amt / sub.quantity).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)

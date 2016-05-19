@@ -41,7 +41,8 @@ from valuenetwork.valueaccounting.tests.objects_for_testing import Facets
                 More value equations
                     different percentage_behaviors
                 More buckets
-                    different filter methods
+                    different filter methods:
+                        date range
                     direct to agent 
                 More bucket rules
                     different division_rules

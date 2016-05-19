@@ -11241,9 +11241,9 @@ class ValueEquationBucket(models.Model):
                     ])
             if "end_date" in bucket_filter:
                 end_date = bucket_filter["end_date"]
-                filter = "".join([
+                filter = " ".join([
                     filter,
-                    "End date: ",
+                    "End date:",
                     end_date.strftime('%Y-%m-%d')
                     ])
             if "context_agent" in bucket_filter:
@@ -11263,6 +11263,16 @@ class ValueEquationBucket(models.Model):
                 events = events.filter(event_date__gte=start_date)
             elif end_date:
                 events = events.filter(event_date__gte=end_date)
+            for evt in events:
+                br = evt.bucket_rule(ve)
+                value = evt.value
+                if br:
+                    #import pdb; pdb.set_trace()
+                    value = br.compute_claim_value(evt)
+                if value:
+                    vpu = value / evt.quantity
+                    evt.share = evt.quantity * vpu
+
         elif self.filter_method == 'order':
             from valuenetwork.valueaccounting.forms import OrderMultiSelectForm
             form = OrderMultiSelectForm(context_agent=context_agent)

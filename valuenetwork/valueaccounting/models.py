@@ -183,6 +183,14 @@ PAGE_CHOICES = (
     ('resource_types', _('Resource Types')),
     ('resource_type', _('Resource Type')),
     ('supply', _('Supply')),
+    ('non_proc_log', _('Non-process Logging (Work)')),
+    ('proc_log', _('Process Logging (Work)')),
+    ('profile', _('My Profile (Work)')),
+    ('my_history', _('My History (Work)')),
+    ('work_map', _('Map (Work)')),
+    ('work_home', _('Home (Work)')),
+    ('process_work', _('Process (Work)')),
+    ('work_timer', _('Work Now (Work)')),
 )
 
 class Help(models.Model):

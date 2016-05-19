@@ -388,6 +388,67 @@ def process_logging(request, process_id):
         "help": get_help("process"),
     }, context_instance=RequestContext(request))
 
+@login_required
+def non_process_logging(request):
+    member = get_agent(request)
+    if not member:
+        return HttpResponseRedirect('/%s/'
+            % ('work/work-home'))
+        
+    TimeFormSet = modelformset_factory(
+        EconomicEvent,
+        form=CasualTimeContributionForm,
+        can_delete=False,
+        extra=8,
+        max_num=8,
+        )
+    init = []
+    for i in range(0, 8):
+        init.append({"is_contribution": True,})
+    time_formset = TimeFormSet(
+        queryset=EconomicEvent.objects.none(),
+        initial = init,
+        data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        keep_going = request.POST.get("keep-going")
+        just_save = request.POST.get("save")
+        if time_formset.is_valid():
+            events = time_formset.save(commit=False)
+            pattern = None
+            patterns = PatternUseCase.objects.filter(use_case__identifier='non_prod')
+            if patterns:
+                pattern = patterns[0].pattern
+            else:
+                raise ValidationError("no non-production ProcessPattern")
+            if pattern:
+                unit = Unit.objects.filter(
+                    unit_type="time",
+                    name__icontains="Hour")[0]
+                for event in events:
+                    if event.event_date and event.quantity:
+                        event.from_agent=member
+                        event.to_agent = event.context_agent.default_agent()
+                        #event.is_contribution=True
+                        rt = event.resource_type
+                        event_type = pattern.event_type_for_resource_type("work", rt)
+                        event.event_type=event_type
+                        event.unit_of_quantity=unit
+                        event.created_by=request.user
+                        event.save()
+            if keep_going:
+                return HttpResponseRedirect('/%s/'
+                    % ('work/non-process-logging'))
+            else:
+                return HttpResponseRedirect('/%s/'
+                    % ('work/my-history'))
+    
+    return render_to_response("work/non_process_logging.html", {
+        "member": member,
+        "time_formset": time_formset,
+        "help": get_help("non_production"),
+    }, context_instance=RequestContext(request))
+
 
 @login_required
 def my_history(request):

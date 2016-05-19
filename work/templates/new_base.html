@@ -45,10 +45,15 @@
                                 {% block nav %}
                                         <ul class="nav">
                                             {% if request.user.is_authenticated %}
+                                                <li id="non-process-logging" >
+                                                    <a href="{% url 'non_process_logging' %}"  
+                                                    title="{% trans 'Your non-process related work' %}"  
+                                                    >{% trans 'Non-process Logging' %}</a>
+                                                </li>
                                                 <li id="my-dashboard" >
                                                     <a href="{% url 'my_dashboard' %}"  
-                                                    title="{% trans 'Your work and potential work' %}"  
-                                                    >{% trans 'My Dashboard' %}</a>
+                                                    title="{% trans 'Your process related work and potential work' %}"  
+                                                    >{% trans 'Process Logging' %}</a>
                                                 </li>
                                                 <li id="my-history" >
                                                     <a href="{% url 'my_history' %}"  

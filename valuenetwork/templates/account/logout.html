@@ -3,13 +3,41 @@
 {% load url from future %}
 {% load i18n %}
 
-{% block head_title %}{% trans "Log out" %}{% endblock %}
+{% block extra_head %}
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    width: 600px;
+    margin: 0 auto;
+}
+
+.btn {
+    padding-top: 2px;
+    padding-bottom: 3px;
+    font-weight: bold;
+}
+
+.log {
+    padding: 0;
+
+}
+legend {
+    font-size: 2em;
+    margin-top: 1em;
+    margin-bottom: 15px;
+}
+
+</style>
+
+{% endblock %}
 
 {% block body %}
     <div class="row">
         <div class="span12">
             <form method="POST" action="{% url "account_logout" %}" class="form-horizontal">
-                <legend>{% trans "Log out" %}</legend>
+                <legend>{% trans "Log out of OCP" %}</legend>
                 <fieldset>
                     {% csrf_token %}
                     <p>{% trans "Are you sure you want to log out?" %}</p>

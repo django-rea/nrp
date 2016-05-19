@@ -4,13 +4,41 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 
-{% block head_title %}{% trans "Log in" %}{% endblock %}
+{% block extra_head %}
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    width: 600px;
+    margin: 0 auto;
+}
+
+.btn {
+    padding-top: 2px;
+    padding-bottom: 3px;
+    font-weight: bold;
+}
+
+.log {
+    padding: 0;
+
+}
+legend {
+    font-size: 2em;
+    margin-top: 1em;
+    margin-bottom: 15px;
+}
+
+</style>
+
+{% endblock %}
 
 {% block body %}
     <div class="row">
-        <div class="span8">
+        <legend>{% trans "Log in to the OCP" %}</legend>
+        <div class="log">
             <form method="POST" action="{% url "account_login" %}" autocapitalize="off" class="form-horizontal"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
-                <legend>{% trans "Log in to an existing account" %}</legend>
                 {% csrf_token %}
                 {{ form|as_bootstrap }}
                 {% if redirect_field_value %}

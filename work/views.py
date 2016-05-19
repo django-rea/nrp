@@ -31,7 +31,9 @@ else:
 
 def work_home(request):
 
-    return render_to_response("work_home.html",
+    return render_to_response("work_home.html", {
+        "help": get_help("work_home"),
+    }, 
         context_instance=RequestContext(request))
 
     
@@ -65,7 +67,7 @@ def my_dashboard(request):
         "my_skillz": my_skillz,
         "other_unassigned": other_unassigned,
         "work_now": work_now,
-        #"help": get_help("my_work"),
+        "help": get_help("proc_log"),
     }, context_instance=RequestContext(request))
     
 def map(request):
@@ -82,7 +84,7 @@ def map(request):
         "latitude": latitude,
         "longitude": longitude,
         "zoom": zoom,
-        #"help": get_help("map"),
+        "help": get_help("work_map"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -108,7 +110,7 @@ def profile(request):
         "change_form": change_form,
         "upload_form": upload_form,
         "skills": skills,
-        "help": get_help("agent"),
+        "help": get_help("profile"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -385,7 +387,7 @@ def process_logging(request, process_id):
         "uncommitted_process_expenses": process.uncommitted_process_expense_events(),
         "unplanned_work": unplanned_work,
         "work_now": work_now,
-        "help": get_help("process"),
+        "help": get_help("process_work"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -446,7 +448,7 @@ def non_process_logging(request):
     return render_to_response("work/non_process_logging.html", {
         "member": member,
         "time_formset": time_formset,
-        "help": get_help("non_production"),
+        "help": get_help("non_proc_log"),
     }, context_instance=RequestContext(request))
 
 
@@ -534,6 +536,7 @@ def my_history(request):
         "outstanding_claims": format(outstanding_claims, ",.2f"),
         "claim_distributions": format(claim_distributions, ",.2f"),
         "other_distributions": format(other_distributions, ",.2f"),
+        "help": get_help("my_history"),
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -643,7 +646,7 @@ def create_worktimer_context(
         "today": today,
         "prev": prev,
         "event": event,
-        "help": get_help("labnotes"),
+        "help": get_help("work_timer"),
     }
 
 @login_required

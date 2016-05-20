@@ -1,9 +1,15 @@
+import time
 import logging
+from logging.handlers import TimedRotatingFileHandler
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # create file handler which logs even debug messages
-fh = logging.FileHandler('/home/bob/.virtualenvs/fcx/valuenetwork/broadcast_faircoins.log')
-fh.setLevel(logging.DEBUG)
+fhpath = '/home/bob/.virtualenvs/fcx/valuenetwork/broadcast_faircoins.log'
+fh = TimedRotatingFileHandler(fhpath,
+                            when="d",
+                            interval=1,
+                            backupCount=7)
+fh.setLevel(logging.INFO)
 # create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
@@ -19,7 +25,11 @@ class Command(BaseCommand):
     help = "Broadcast new FairCoin transactions to the network."
 
     def handle(self, *args, **options):
-        logger.info("-" * 72)
-        count = broadcast_tx()
-        msg = " ".join(["new tx count:", str(count)])
+        #logger.info("-" * 72)
+        try:
+            msg = broadcast_tx()
+        except Exception:
+            _, e, _ = sys.exc_info()
+            logger.critical("an exception occurred in broadcast_tx: {0}".format(e))
+       
         logger.info(msg)

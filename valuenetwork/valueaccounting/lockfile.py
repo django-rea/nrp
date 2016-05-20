@@ -57,6 +57,23 @@ import threading
 import time
 import errno
 
+import logging
+from logging.handlers import TimedRotatingFileHandler
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+# create file handler which logs even debug messages
+fhpath = '/home/bob/.virtualenvs/fcx/valuenetwork/lock_file.log'
+fh = TimedRotatingFileHandler(fhpath,
+                            when="d",
+                            interval=1,
+                            backupCount=7)
+fh.setLevel(logging.INFO)
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+fh.setFormatter(formatter)
+# add the handler to logger
+logger.addHandler(fh)
+
 from valuenetwork.valueaccounting.compat import quote, get_ident
 
 # Work with PEP8 and non-PEP8 versions of threading module.
@@ -173,7 +190,7 @@ class LockBase:
         self.lock_file = os.path.abspath(path) + ".lock"
         self.hostname = socket.gethostname()
         self.pid = os.getpid()
-        app_name = "-work"
+        app_name = "-test"
         if threaded:
             name = threading.current_thread().get_name()
             tname = "%s-" % quote(name, safe="")
@@ -185,6 +202,10 @@ class LockBase:
                                                      app_name,
                                                      tname,
                                                      self.pid))
+        msg = " ".join(["lock_file:", self.lock_file])
+        logger.debug(msg)
+        msg = " ".join(["unique_name:", self.unique_name])
+        logger.debug(msg)
 
     def acquire(self, timeout=None):
         """
@@ -250,6 +271,8 @@ class LinkFileLock(LockBase):
             open(self.unique_name, "wb").close()
         except IOError:
             raise LockFailed("failed to create %s" % self.unique_name)
+        
+        logger.debug("opened LinkFile")
 
         end_time = time.time()
         if timeout is not None and timeout > 0:
@@ -259,24 +282,34 @@ class LinkFileLock(LockBase):
             # Try and create a hard link to it.
             try:
                 os.link(self.unique_name, self.lock_file)
+                logger.debug("lockfile linked lock_file")
             except OSError:
                 # Link creation failed.  Maybe we"ve double-locked?
+                _, e, _ = sys.exc_info()
+                logger.critical("an exception occurred in acquire_lock: {0}".format(e))
+                
                 nlinks = os.stat(self.unique_name).st_nlink
                 if nlinks == 2:
+                    logger.debug("Link creation ok")
                     # The original link plus the one I created == 2.  We"re
                     # good to go.
                     return
                 else:
                     # Otherwise the lock creation failed.
+                    logger.debug("Link creation failed")
                     if timeout is not None and time.time() > end_time:
                         os.unlink(self.unique_name)
                         if timeout > 0:
+                            logger.warning("Link creation timeout")
                             raise LockTimeout
                         else:
+                            logger.warning("Link creation already locked")
                             raise AlreadyLocked
+                    logger.debug("about to sleep")
                     time.sleep(timeout is not None and (timeout / 10) or 0.1)
             else:
                 # Link creation succeeded.  We"re good to go.
+                logger.debug("lockfile acquired lock")
                 return
 
     def release(self):
@@ -284,8 +317,10 @@ class LinkFileLock(LockBase):
             raise NotLocked
         elif not os.path.exists(self.unique_name):
             raise NotMyLock
+        logger.debug("lockfile b4 unlink")
         os.unlink(self.unique_name)
         os.unlink(self.lock_file)
+        logger.debug("lockfile unlinked lock_file")
 
     def is_locked(self):
         return os.path.exists(self.lock_file)

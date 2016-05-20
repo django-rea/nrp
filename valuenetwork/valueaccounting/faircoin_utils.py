@@ -1,10 +1,16 @@
 import sys
+import time
 import logging
+from logging.handlers import TimedRotatingFileHandler
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # create file handler which logs even debug messages
-fh = logging.FileHandler('/home/bob/.virtualenvs/fcx/valuenetwork/faircoin_utils.log')
-fh.setLevel(logging.DEBUG)
+fhpath = '/home/bob/.virtualenvs/fcx/valuenetwork/faircoin_utils.log'
+fh = TimedRotatingFileHandler(fhpath,
+                            when="d",
+                            interval=1,
+                            backupCount=7)
+fh.setLevel(logging.INFO)
 # create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
@@ -74,54 +80,59 @@ def acquire_lock():
     logger.debug("acquiring lock...")
     try:
         #lock.acquire(settings.BROADCAST_FAIRCOINS_LOCK_WAIT_TIMEOUT)
-        lock.acquire()
+        lock.acquire(1)
     except AlreadyLocked:
-        logger.debug("lock already in place. quitting.")
-        return
+        logger.warning("lock already in place. quitting.")
+        return False
     except LockTimeout:
-        logger.debug("waiting for the lock timed out. quitting.")
-        return
-    logger.debug("acquired.")
+        logger.warning("waiting for the lock timed out. quitting.")
+        return False
+    logger.debug("lock acquired.")
     return lock
         
 def broadcast_tx():
     #import pdb; pdb.set_trace()
-    logger.info("broadcast_tx b4 acquire_lock")
+    logger.debug("broadcast_tx b4 acquire_lock")
     
-    #problem: no log messages appeared after acquire_lock
-    #so disableled it for debugging
-    #don't know if lock failed, or something there swallowed logging
-    #try:
-    #    lock = acquire_lock()
-    #except Exception:
-    #    _, e, _ = sys.exc_info()
-    #    logger.critical("an exception occurred in acquire_lock: {0}".format(e))
+    try:
+        lock = acquire_lock()
+    except Exception:
+        _, e, _ = sys.exc_info()
+        logger.critical("an exception occurred in acquire_lock: {0}".format(e))
+        return "lock failed"
+        
+    if not lock:
+        return "lock failed"
     
-    logger.info("broadcast_tx not locking for test")
+    logger.debug("broadcast_tx not locking for test")
     
     #problem: this log message was the last one that appeared
-    logger.info("broadcast_tx after acquire_lock")
+    logger.debug("broadcast_tx after acquire_lock")
     
     try:
         events = EconomicEvent.objects.filter(
             digital_currency_tx_state="new",
             event_type__name="Give")
         msg = " ".join(["new tx count b4 init_electrum_fair:", str(events.count())])
-        logger.info(msg)
+        logger.debug(msg)
     except Exception:
         _, e, _ = sys.exc_info()
         logger.critical("an exception occurred in retrieving events: {0}".format(e))
+        logger.warning("releasing lock because of error...")
+        lock.release()
+        logger.debug("released.")
+        return "failed to get events"
         
     try:
         if events:
             init_electrum_fair()
-            logger.info("broadcast_tx ready to process events")
+            logger.debug("broadcast_tx ready to process events")
         for event in events:
             if event.resource:
                 address_origin = event.resource.digital_currency_address
                 address_end = event.event_reference
                 amount = event.quantity
-                logger.info("about to make_transaction_from_address")
+                logger.debug("about to make_transaction_from_address")
                 
                 #import pdb; pdb.set_trace()
                 #problem: this never happened when run from cron over many tests
@@ -143,13 +154,20 @@ def broadcast_tx():
                             revent.digital_currency_tx_hash = tx_hash
                             revent.save()
                     msg = " ".join([ "**** sent tx", tx_hash, "amount", str(amount), "from", address_origin, "to", address_end ])
-                    logger.info(msg)
+                    logger.debug(msg)
     except Exception:
         _, e, _ = sys.exc_info()
         logger.critical("an exception occurred in processing events: {0}".format(e))
-    logger.debug("releasing lock...")
-    # disabled for debugging
-    #lock.release()
+        logger.warning("releasing lock because of error...")
+        lock.release()
+        logger.debug("released.")
+        return "failed to process events"
+        
+    logger.debug("releasing lock normally...")
+    lock.release()
     logger.debug("released.")
-
-    return events.count()
+    if events:
+        msg = " ".join(["processed", str(events.count()), "new faircoin tx."])
+    else:
+        msg = "No new faircoin tx to process."
+    return msg

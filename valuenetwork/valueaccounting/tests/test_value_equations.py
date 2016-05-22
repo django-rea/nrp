@@ -381,6 +381,13 @@ class ValueEquationTest(TestCase):
             behavior='dig_curr',
             )
         faircoin_rt.save()
+        faircoin_address_rt = EconomicResourceType(
+            name="FairCoin Address",
+            unit_of_price=fc_unit,
+            price_per_unit=Decimal('1'),
+            behavior='dig_acct',
+            )
+        faircoin_address_rt.save()
         owner_role = AgentResourceRoleType(
             name="owner",
             is_owner=True,

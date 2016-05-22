@@ -494,12 +494,12 @@ class EconomicAgent(models.Model):
             owner_role_type = role_types[0]
         #import pdb; pdb.set_trace()
         resource_types = EconomicResourceType.objects.filter(
-            behavior="dig_curr")
+            behavior="dig_acct")
         if resource_types.count() == 0:
-            raise ValidationError("Cannot create digital currency resource for " + self.nick + " because no digital currency ResourceTypes.")
+            raise ValidationError("Cannot create digital currency resource for " + self.nick + " because no digital currency account ResourceTypes.")
             return None
         if resource_types.count() > 1:
-            raise ValidationError("Cannot create digital currency resource for " + self.nick + ", more than one digital currency ResourceType.")
+            raise ValidationError("Cannot create digital currency resource for " + self.nick + ", more than one digital currency account ResourceTypes.")
             return None
         resource_type = resource_types[0]
         if owner_role_type:
@@ -531,7 +531,7 @@ class EconomicAgent(models.Model):
     def faircoin_resource(self):
         candidates = self.agent_resource_roles.filter(
             role__is_owner=True, 
-            resource__resource_type__behavior="dig_curr",
+            resource__resource_type__behavior="dig_acct",
             resource__digital_currency_address__isnull=False)
         if candidates:
             return candidates[0].resource
@@ -1545,6 +1545,8 @@ BEHAVIOR_CHOICES = (
     ('work', _('Type of Work')),
     ('account', _('Virtual Account')),
     ('dig_curr', _('Digital Currency')),
+    ('dig_acct', _('Digital Currency Address')),
+    ('dig_wallet', _('Digital Currency Wallet')),
     ('other', _('Other')),
 )
 

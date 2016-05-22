@@ -19,7 +19,7 @@ logger.addHandler(fh)
 
 from django.core.management.base import BaseCommand
 
-from valuenetwork.valueaccounting.faircoin_utils import broadcast_tx
+from valuenetwork.valueaccounting.broadcast import broadcast_tx
 
 class Command(BaseCommand):
     help = "Broadcast new FairCoin transactions to the network."

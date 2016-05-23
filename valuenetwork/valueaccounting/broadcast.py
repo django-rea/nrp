@@ -2,22 +2,7 @@ import sys
 import time
 import logging
 
-#logger = logging.getLogger(__name__)
 logger = logging.getLogger("broadcasting")
-
-from logging.handlers import TimedRotatingFileHandler
-
-logger.setLevel(logging.DEBUG)
-# create file handler which logs even debug messages
-fhpath = '/home/bob/.virtualenvs/fcx/valuenetwork/broadcast.log'
-fh = TimedRotatingFileHandler(fhpath,
-                            when="d",
-                            interval=1,
-                            backupCount=7)
-fh.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-fh.setFormatter(formatter)
-logger.addHandler(fh)
 
 from django.conf import settings
 from django.db.models import Q

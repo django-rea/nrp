@@ -41,7 +41,8 @@ from valuenetwork.valueaccounting.tests.objects_for_testing import Facets
                 More value equations
                     different percentage_behaviors
                 More buckets
-                    different filter methods
+                    different filter methods:
+                        date range
                     direct to agent 
                 More bucket rules
                     different division_rules
@@ -380,6 +381,13 @@ class ValueEquationTest(TestCase):
             behavior='dig_curr',
             )
         faircoin_rt.save()
+        faircoin_address_rt = EconomicResourceType(
+            name="FairCoin Address",
+            unit_of_price=fc_unit,
+            price_per_unit=Decimal('1'),
+            behavior='dig_acct',
+            )
+        faircoin_address_rt.save()
         owner_role = AgentResourceRoleType(
             name="owner",
             is_owner=True,

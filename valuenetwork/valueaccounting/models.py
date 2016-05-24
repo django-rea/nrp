@@ -494,12 +494,12 @@ class EconomicAgent(models.Model):
             owner_role_type = role_types[0]
         #import pdb; pdb.set_trace()
         resource_types = EconomicResourceType.objects.filter(
-            behavior="dig_curr")
+            behavior="dig_acct")
         if resource_types.count() == 0:
-            raise ValidationError("Cannot create digital currency resource for " + self.nick + " because no digital currency ResourceTypes.")
+            raise ValidationError("Cannot create digital currency resource for " + self.nick + " because no digital currency account ResourceTypes.")
             return None
         if resource_types.count() > 1:
-            raise ValidationError("Cannot create digital currency resource for " + self.nick + ", more than one digital currency ResourceType.")
+            raise ValidationError("Cannot create digital currency resource for " + self.nick + ", more than one digital currency account ResourceTypes.")
             return None
         resource_type = resource_types[0]
         if owner_role_type:
@@ -531,7 +531,7 @@ class EconomicAgent(models.Model):
     def faircoin_resource(self):
         candidates = self.agent_resource_roles.filter(
             role__is_owner=True, 
-            resource__resource_type__behavior="dig_curr",
+            resource__resource_type__behavior="dig_acct",
             resource__digital_currency_address__isnull=False)
         if candidates:
             return candidates[0].resource
@@ -1545,6 +1545,8 @@ BEHAVIOR_CHOICES = (
     ('work', _('Type of Work')),
     ('account', _('Virtual Account')),
     ('dig_curr', _('Digital Currency')),
+    ('dig_acct', _('Digital Currency Address')),
+    ('dig_wallet', _('Digital Currency Wallet')),
     ('other', _('Other')),
 )
 
@@ -9658,40 +9660,10 @@ class ValueEquation(models.Model):
         )
         #todo faircoin distribution
         #import pdb; pdb.set_trace()
-        if money_resource.is_digital_currency_resource():
-            
-            # do we need the context_agent.faircoin_resource here or just the address?
-            va = context_agent.faircoin_resource()
-            if va:
-                if va.resource_type != money_resource.resource_type:
-                    raise ValidationError(" ".join([
-                        money_resource.identifier, 
-                        va.identifier, 
-                        "digital currencies do not match."]))
-
-            else:
-                if testing:
-                    address = context_agent.create_fake_faircoin_address()
-                else:
-                    address = context_agent.create_faircoin_address()
-                va = context_agent.faircoin_resource()
-            if not va:
-                raise ValidationError(dist_event.to_agent.nick + ' needs faircoin address, unable to create one.')
-            address_origin = money_resource.digital_currency_address
-            address_end = context_agent.faircoin_address()
-            # what about network_fee?
-            quantity = amount_to_distribute
-            state = "new"
-            if testing:
-                tx_hash, broadcasted = send_fake_faircoins(address_origin, address_end, quantity)
-                state = "pending"
-                if broadcasted:
-                    state = "broadcast"
-                disbursement_event.digital_currency_tx_hash = tx_hash
-            disbursement_event.digital_currency_tx_state = state
         disbursement_event.save()
-        money_resource.quantity -= amount_to_distribute
-        money_resource.save()
+        if not money_resource.is_digital_currency_resource():
+            money_resource.quantity -= amount_to_distribute
+            money_resource.save()
         if events_to_distribute:
             #import pdb; pdb.set_trace()
             if len(events_to_distribute) == 1:
@@ -9730,6 +9702,7 @@ class ValueEquation(models.Model):
             dist_event.event_date = distribution.distribution_date
             #todo faircoin distribution
             #import pdb; pdb.set_trace()
+            #digital_currency_resources for to_agents created earlier in this method
             if dist_event.resource.is_digital_currency_resource():
                 address_origin = self.context_agent.faircoin_address()
                 address_end = dist_event.resource.digital_currency_address
@@ -9743,6 +9716,7 @@ class ValueEquation(models.Model):
                         state = "broadcast"
                     dist_event.digital_currency_tx_hash = tx_hash
                 dist_event.digital_currency_tx_state = state
+                dist_event.event_reference=address_end
             dist_event.save()
             to_resource = dist_event.resource
             to_resource.quantity += dist_event.quantity
@@ -11249,9 +11223,9 @@ class ValueEquationBucket(models.Model):
                     ])
             if "end_date" in bucket_filter:
                 end_date = bucket_filter["end_date"]
-                filter = "".join([
+                filter = " ".join([
                     filter,
-                    "End date: ",
+                    "End date:",
                     end_date.strftime('%Y-%m-%d')
                     ])
             if "context_agent" in bucket_filter:
@@ -11271,6 +11245,16 @@ class ValueEquationBucket(models.Model):
                 events = events.filter(event_date__gte=start_date)
             elif end_date:
                 events = events.filter(event_date__gte=end_date)
+            for evt in events:
+                br = evt.bucket_rule(ve)
+                value = evt.value
+                if br:
+                    #import pdb; pdb.set_trace()
+                    value = br.compute_claim_value(evt)
+                if value:
+                    vpu = value / evt.quantity
+                    evt.share = evt.quantity * vpu
+
         elif self.filter_method == 'order':
             from valuenetwork.valueaccounting.forms import OrderMultiSelectForm
             form = OrderMultiSelectForm(context_agent=context_agent)

@@ -18,17 +18,38 @@ logger.addHandler(fh)
 
 from django.core.management.base import BaseCommand
 
-from valuenetwork.valueaccounting.broadcast import broadcast_tx
+from valuenetwork.valueaccounting.broadcast import *
 
 class Command(BaseCommand):
-    help = "Broadcast new FairCoin transactions to the network."
+    help = "Send new FairCoin address and transaction requests to the network."
 
     def handle(self, *args, **options):
         logger.info("-" * 72)
+        
         try:
-            msg = broadcast_tx()
+            lock = acquire_lock()
         except Exception:
             _, e, _ = sys.exc_info()
-            logger.critical("an exception occurred in broadcast_tx: {0}".format(e))
-       
-        logger.info(msg)
+            logger.critical("an exception occurred in acquire_lock: {0}".format(e))
+            
+        if lock:
+            
+            try:
+                msg = create_requested_addresses()
+                logger.info(msg)
+            except Exception:
+                _, e, _ = sys.exc_info()
+                logger.critical("an exception occurred in create_requested_addresses: {0}".format(e))
+             
+            try:
+                msg = broadcast_tx()
+                logger.info(msg)
+            except Exception:
+                _, e, _ = sys.exc_info()
+                logger.critical("an exception occurred in broadcast_tx: {0}".format(e))
+                
+            logger.debug("releasing lock normally...")
+            #shd this be in broadcast.py?
+            lock.release()
+            logger.debug("released.")
+            

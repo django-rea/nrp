@@ -123,6 +123,7 @@ def create_user(request, agent_id):
                 agent = agent,
                 user = user)
             au.save()
+            agent.request_faircoin_address()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/agent', agent.id))            
                                                                                     
@@ -324,7 +325,7 @@ def create_location(request, agent_id=None):
     }, context_instance=RequestContext(request))
     
 @login_required
-def create_faircoin_address(request, agent_id=None):
+def request_faircoin_address(request, agent_id=None):
     if request.method == "POST":
         agent = None
         if agent_id:
@@ -333,7 +334,7 @@ def create_faircoin_address(request, agent_id=None):
         if not user_agent:
             return render_to_response('valueaccounting/no_permission.html')
         if agent:
-            agent.create_faircoin_address()
+            agent.request_faircoin_address()
     return HttpResponseRedirect('/%s/%s/'
         % ('accounting/agent', agent.id))
 
@@ -1543,7 +1544,6 @@ def validate_faircoin_address(request):
     response = simplejson.dumps(answer, ensure_ascii=False)
     return HttpResponse(response, mimetype="text/json-comment-filtered")
 
-                    
 def all_contributions(request):
     event_list = EconomicEvent.objects.filter(is_contribution=True)
     paginator = Paginator(event_list, 25)
@@ -8366,15 +8366,18 @@ def resource(request, resource_id, extra_context=None):
         send_coins_form = None
         limit = 0
         if agent:
-            if agent.owns(resource):
-                send_coins_form = SendFairCoinsForm()
-                from faircoin_utils import network_fee
-                limit = resource.spending_limit()
+            is_owner = agent.owns(resource)
+            if is_owner:
+                if resource.address_is_activated():
+                    send_coins_form = SendFairCoinsForm()
+                    from faircoin_utils import network_fee
+                    limit = resource.spending_limit()
         return render_to_response("valueaccounting/digital_currency_resource.html", {
             "resource": resource,
             "photo_size": (128, 128),
             "role_formset": role_formset,
             "agent": agent,
+            "is_owner": is_owner,
             "send_coins_form": send_coins_form,
             "limit": limit,
         }, context_instance=RequestContext(request))

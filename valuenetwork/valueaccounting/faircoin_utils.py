@@ -12,7 +12,9 @@ def init_electrum_fair():
         #handle failure better here
         msg = "Can not init Electrum Network. Exiting."
         assert False, msg
-        
+
+#obsolete
+"""
 def create_address_for_agent(agent):
     #import pdb; pdb.set_trace()
     init_electrum_fair()
@@ -23,7 +25,8 @@ def create_address_for_agent(agent):
         entity = agent.agent_type.name,
         )
     return address
-    
+"""
+
 def network_fee():
     return efn.network_fee
     

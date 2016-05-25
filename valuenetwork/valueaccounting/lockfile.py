@@ -58,21 +58,22 @@ import time
 import errno
 
 import logging
+logger = logging.getLogger("broadcasting")
+
+"""
 from logging.handlers import TimedRotatingFileHandler
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-# create file handler which logs even debug messages
 fhpath = '/home/bob/.virtualenvs/fcx/valuenetwork/lock_file.log'
 fh = TimedRotatingFileHandler(fhpath,
                             when="d",
                             interval=1,
                             backupCount=7)
 fh.setLevel(logging.INFO)
-# create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
-# add the handler to logger
 logger.addHandler(fh)
+"""
 
 from valuenetwork.valueaccounting.compat import quote, get_ident
 

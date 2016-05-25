@@ -471,10 +471,18 @@ class EconomicAgent(models.Model):
         #import pdb; pdb.set_trace()
         address = self.faircoin_address()
         if not address:
-            from valuenetwork.valueaccounting.faircoin_utils import create_address_for_agent
+            #from valuenetwork.valueaccounting.faircoin_utils import create_address_for_agent
             address = None
             address = create_address_for_agent(self)
             #address = "Test address"
+            resource = self.create_faircoin_resource(address)
+        return address
+        
+    def request_faircoin_address(self):
+        #import pdb; pdb.set_trace()
+        address = self.faircoin_address()
+        if not address:
+            address = "address_requested"
             resource = self.create_faircoin_resource(address)
         return address
         
@@ -4011,6 +4019,13 @@ class EconomicResource(models.Model):
         else:
             return False
             
+    def address_is_activated(self):
+        address = self.digital_currency_address
+        if address:
+            if address != "address_requested":
+                return True
+        return False
+            
     def digital_currency_history(self):
         history = []
         address = self.digital_currency_address
@@ -5321,6 +5336,8 @@ class EconomicResource(models.Model):
             return None
         
     def owners(self):
+        #todo faircoin: possible problem with multiple owners of faircoin_resources?
+        #mitigated by requiring owner or superuser to change faircoin resource
         return [arr.agent for arr in self.agent_resource_roles.filter(role__is_owner=True)]
         
     def is_virtual_account_of(self, agent):

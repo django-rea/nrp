@@ -104,24 +104,23 @@ legend {
 
 		</legend>
 		<div class="button-row">
-            {% comment %}
-            {% if user_agent %}
+
+            {% if user.is_staff %}
                 <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
                 {% if not agent.faircoin_address %}
                     <form
                         style="display: inline;" 
                         class="faircoin-form indent" 
                         id="createFairCoinAddressForm" 
-                        action="{% url create_faircoin_address agent_id=agent.id %}" 
+                        action="{% url request_faircoin_address agent_id=agent.id %}" 
                         method="POST" >
                         {% csrf_token %}
-                        <button style="display: inline;"  class="btn btn-primary btn-mini" title="Create FairCoin Address" >
-                            {% trans "Create FairCoin Address" %}
+                        <button style="display: inline;"  class="btn btn-primary" title="Create FairCoin Address" >
+                            {% trans "Request FairCoin Address" %}
                         </button>
                     </form>
                 {% endif %}
             {% endif %}
-            {% endcomment %}
             
             {% if user.is_staff and agent.is_deletable %}
                 <form

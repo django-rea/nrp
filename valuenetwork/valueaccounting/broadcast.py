@@ -9,7 +9,7 @@ from django.db.models import Q
 
 import faircoin_nrp.electrum_fair_nrp as efn
 
-from valuenetwork.valueaccounting.models import EconomicEvent
+from valuenetwork.valueaccounting.models import EconomicAgent, EconomicEvent, EconomicResource
 from valuenetwork.valueaccounting.lockfile import FileLock, AlreadyLocked, LockTimeout, LockFailed
 
 def init_electrum_fair():
@@ -39,25 +39,71 @@ def acquire_lock():
         return False
     logger.debug("lock acquired.")
     return lock
+    
+def create_address_for_agent(agent):
+    #import pdb; pdb.set_trace()
+    wallet = efn.wallet
+    address = None
+    try:
+        address = efn.new_fair_address(
+            entity_id = agent.nick, 
+            entity = agent.agent_type.name,
+            )
+    except Exception:
+        _, e, _ = sys.exc_info()
+        logger.critical("an exception occurred in creating a FairCoin address: {0}".format(e))
+    return address
+    
+def create_address_for_resource(resource):
+    agent = resource.owner()
+    address = create_address_for_agent(agent)
+    if address:
+        resource.digital_currency_address = address
+        resource.save()
+        return True
+    else:
+        msg = " ".join(["Failed to get a FairCoin address for", agent.name])
+        logger.warning(msg)
+        return False
+    
+def create_requested_addresses():
+    try:
+        requests = EconomicResource.objects.filter(
+            digital_currency_address="address_requested")
+
+        msg = " ".join(["new FairCoin address requests count:", str(requests.count())])
+        logger.debug(msg)
+    except Exception:
+        _, e, _ = sys.exc_info()
+        logger.critical("an exception occurred in retrieving FairCoin address requests: {0}".format(e))
+        return "failed to get FairCoin address requests"
         
+    if requests:
+        init_electrum_fair()
+        logger.debug("broadcast_tx ready to process FairCoin address requests")
+        for resource in requests:
+            result = create_address_for_resource(resource)
+            
+        msg = " ".join(["created", str(requests.count()), "new faircoin addresses."])
+    else:
+        msg = "No new faircoin address requests to process."
+    return msg
+    
 def broadcast_tx():
     #import pdb; pdb.set_trace()
-    logger.debug("broadcast_tx b4 acquire_lock")
     
+    """
+    logger.debug("broadcast_tx b4 acquire_lock")
     try:
         lock = acquire_lock()
     except Exception:
         _, e, _ = sys.exc_info()
         logger.critical("an exception occurred in acquire_lock: {0}".format(e))
-        return "lock failed"
-        
+        return "lock failed"  
     if not lock:
         return "lock failed"
-    
-    logger.debug("broadcast_tx not locking for test")
-    
-    #problem: this log message was the last one that appeared
     logger.debug("broadcast_tx after acquire_lock")
+    """
     
     try:
         events = EconomicEvent.objects.filter(
@@ -117,14 +163,18 @@ def broadcast_tx():
     except Exception:
         _, e, _ = sys.exc_info()
         logger.critical("an exception occurred in processing events: {0}".format(e))
+        """
         logger.warning("releasing lock because of error...")
         lock.release()
         logger.debug("released.")
+        """
         return "failed to process events"
-        
+    """    
     logger.debug("releasing lock normally...")
     lock.release()
     logger.debug("released.")
+    """
+    
     if events:
         msg = " ".join(["processed", str(events.count()), "new faircoin tx."])
     else:

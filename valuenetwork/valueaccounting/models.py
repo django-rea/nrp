@@ -448,9 +448,6 @@ class EconomicAgent(models.Model):
     
     def save(self, *args, **kwargs):
         unique_slugify(self, self.nick)
-        #todo faircoin
-        #faircoin_address = create_faircoin_address
-        #handle failure
         super(EconomicAgent, self).save(*args, **kwargs)
         
     def delete(self, *args, **kwargs):
@@ -467,16 +464,6 @@ class EconomicAgent(models.Model):
         return ('agent', (),
         { 'agent_id': str(self.id),})
         
-    def create_faircoin_address(self):
-        #import pdb; pdb.set_trace()
-        address = self.faircoin_address()
-        if not address:
-            #from valuenetwork.valueaccounting.faircoin_utils import create_address_for_agent
-            address = None
-            address = create_address_for_agent(self)
-            #address = "Test address"
-            resource = self.create_faircoin_resource(address)
-        return address
         
     def request_faircoin_address(self):
         #import pdb; pdb.set_trace()
@@ -1129,7 +1116,7 @@ class EconomicAgent(models.Model):
         #import pdb; pdb.set_trace()
         event_ids = []
         #et = EventType.objects.get(name="Cash Receipt")
-        events = EconomicEvent.objects.filter(context_agent=self).filter(is_to_distribute=True)
+        events = EconomicEvent.objects.filter(to_agent=self).filter(is_to_distribute=True)
         for event in events:
             if event.is_undistributed():
                 event_ids.append(event.id)
@@ -9597,7 +9584,7 @@ class ValueEquation(models.Model):
                     if testing:
                         address = to_agent.create_fake_faircoin_address()
                     else:
-                        address = to_agent.create_faircoin_address()
+                        address = to_agent.request_faircoin_address()
                     va = to_agent.faircoin_resource()
                 if va:
                     dist_event.resource = va
@@ -9719,11 +9706,12 @@ class ValueEquation(models.Model):
             dist_event.event_date = distribution.distribution_date
             #todo faircoin distribution
             #import pdb; pdb.set_trace()
-            #digital_currency_resources for to_agents created earlier in this method
+            #digital_currency_resources for to_agents were created earlier in this method
             if dist_event.resource.is_digital_currency_resource():
                 address_origin = self.context_agent.faircoin_address()
                 address_end = dist_event.resource.digital_currency_address
                 # what about network_fee?
+                #handle when tx is broadcast
                 quantity = dist_event.quantity
                 state = "new"
                 if testing:
@@ -9810,6 +9798,7 @@ class ValueEquation(models.Model):
                 context_agent = self.context_agent,
                 quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
                 is_contribution = False,
+                is_to_distribute = True,
             )
             agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
             for ce in agent_claim_events:

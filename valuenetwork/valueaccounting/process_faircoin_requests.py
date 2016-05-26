@@ -1,8 +1,9 @@
 import sys
 import time
 import logging
+from decimal import *
 
-logger = logging.getLogger("broadcasting")
+logger = logging.getLogger("faircoins")
 
 from django.conf import settings
 from django.db.models import Q
@@ -11,6 +12,8 @@ import faircoin_nrp.electrum_fair_nrp as efn
 
 from valuenetwork.valueaccounting.models import EconomicAgent, EconomicEvent, EconomicResource
 from valuenetwork.valueaccounting.lockfile import FileLock, AlreadyLocked, LockTimeout, LockFailed
+
+FAIRCOIN_DIVISOR = Decimal("1000000.00")
 
 def init_electrum_fair():
     #import pdb; pdb.set_trace()
@@ -91,20 +94,7 @@ def create_requested_addresses():
     
 def broadcast_tx():
     #import pdb; pdb.set_trace()
-    
-    """
-    logger.debug("broadcast_tx b4 acquire_lock")
-    try:
-        lock = acquire_lock()
-    except Exception:
-        _, e, _ = sys.exc_info()
-        logger.critical("an exception occurred in acquire_lock: {0}".format(e))
-        return "lock failed"  
-    if not lock:
-        return "lock failed"
-    logger.debug("broadcast_tx after acquire_lock")
-    """
-    
+        
     try:
         events = EconomicEvent.objects.filter(
             digital_currency_tx_state="new").order_by('pk')
@@ -122,10 +112,16 @@ def broadcast_tx():
         
     try:
         #import pdb; pdb.set_trace()
+        successful_events = 0
+        failed_events = 0
         if events:
             init_electrum_fair()
             logger.debug("broadcast_tx ready to process events")
         for event in events:
+            #do we need to check for missing digital_currency_address here?
+            #and create them?
+            fee = efn.network_fee
+            fee = Decimal(fee) / FAIRCOIN_DIVISOR
             if event.resource:
                 if event.event_type.name=="Give":
                     address_origin = event.resource.digital_currency_address
@@ -134,15 +130,18 @@ def broadcast_tx():
                     address_origin = event.from_agent.faircoin_address()
                     address_end = event.resource.digital_currency_address
                 
-                amount = event.quantity
+                amount = event.quantity - fee
                 logger.debug("about to make_transaction_from_address")
                 
                 #import pdb; pdb.set_trace()
                 tx_hash = None
                 try:
                     tx_hash = efn.make_transaction_from_address(address_origin, address_end, amount)
-                    if not tx_hash:
+                    if tx_hash:
+                        successful_events += 1
+                    else:
                         logger.warning("no tx_hash, make tx failed without raising Exception")
+                        failed_events += 1
                 except Exception:
                     _, e, _ = sys.exc_info()
                     logger.critical("an exception occurred in make_transaction_from_address: {0}".format(e))
@@ -176,7 +175,9 @@ def broadcast_tx():
     """
     
     if events:
-        msg = " ".join(["processed", str(events.count()), "new faircoin tx."])
+        msg = " ".join(["Broadcast", str(successful_events), "new faircoin tx."])
+        if failed_events:
+            msg += " ".join([ str(failed_events), "events failed."])
     else:
         msg = "No new faircoin tx to process."
     return msg

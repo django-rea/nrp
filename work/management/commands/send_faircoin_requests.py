@@ -6,7 +6,7 @@ from django.conf import settings
 
 logger = logging.getLogger("broadcasting")
 logger.setLevel(logging.DEBUG)
-fhpath = "/".join([settings.PROJECT_ROOT, "broadcast.log",])
+fhpath = "/".join([settings.PROJECT_ROOT, "faircoins.log",])
 fh = TimedRotatingFileHandler(fhpath,
                             when="d",
                             interval=1,
@@ -18,7 +18,7 @@ logger.addHandler(fh)
 
 from django.core.management.base import BaseCommand
 
-from valuenetwork.valueaccounting.broadcast import *
+from valuenetwork.valueaccounting.process_faircoin_requests import *
 
 class Command(BaseCommand):
     help = "Send new FairCoin address and transaction requests to the network."

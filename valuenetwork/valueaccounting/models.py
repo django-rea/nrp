@@ -9570,6 +9570,8 @@ class ValueEquation(models.Model):
             to_agent = dist_event.to_agent
             if money_resource.is_digital_currency_resource():
                 if testing:
+                    #todo faircoin distribution: shd put this into models
+                    # no need to import from faircoin_utils
                     from valuenetwork.valueaccounting.faircoin_utils import send_fake_faircoins
                     #faircoins are the only digital currency we handle now
                 va = to_agent.faircoin_resource()

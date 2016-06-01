@@ -36,7 +36,8 @@ electrum_fair.set_verbosity(True)
 import ConfigParser
 config = ConfigParser.ConfigParser()
 #this is because cron needs full paths
-conf_path = "/".join([settings.PROJECT_ROOT, "electrum-fair-nrp.conf",])
+conf_path = "/".join([settings.PROJECT_ROOT, "faircoin_nrp/electrum-fair-nrp.conf",])
+
 config.read(conf_path)
 
 wallet_path = config.get('electrum','wallet_path')

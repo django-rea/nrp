@@ -355,7 +355,9 @@ class ValueEquationTest(TestCase):
     def test_faircoin_distribution(self):
         ve = self.recipe.value_equation
         context_agent = ve.context_agent
+        testing = False
         if context_agent.name == "test context agent":
+            testing = True
             print "### test_faircoin_distribution will create fake faircoin addresses and coins"
         order = self.order
         orders = [order,]
@@ -393,7 +395,10 @@ class ValueEquationTest(TestCase):
             is_owner=True,
             )
         owner_role.save()
-        address = context_agent.create_faircoin_address()
+        if testing:
+            address = context_agent.create_fake_faircoin_address()
+        else:
+            address = context_agent.request_faircoin_address()
         money_resource = context_agent.faircoin_resource()
         self.assertIsNotNone(money_resource)
         distribution = Distribution(                

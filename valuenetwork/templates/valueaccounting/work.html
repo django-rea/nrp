@@ -9,7 +9,7 @@
 {% block extra_head %}
 
 
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
@@ -511,8 +511,8 @@ th, td {
     </div>
 {% endblock %}
 {% block extra_script %}
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
@@ -538,7 +538,7 @@ th, td {
 
 		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
-        // from http://stackoverflow.com/questions/9047703/fixed-position-navbar-obscures-anchors
+        // from https://stackoverflow.com/questions/9047703/fixed-position-navbar-obscures-anchors
 		$("body").on("click", "a", function() {
             fromTop = 150;
             href = $(this).attr("href");

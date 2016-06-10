@@ -17,6 +17,8 @@ The prototype used the https://github.com/pinax/pinax-project-account starter pr
 
 See /docs/install.txt for developer installation instructions or [INSTALL.md](INSTALL.md).
 
+See /docs/install_ocp_debian_apache_ssl.rst for installation on debian-apache-ssl server. 
+
 The valueaccounting app could be split out and used in other Django projects.
 
 Roadmap moved to https://github.com/valnet/valuenetwork/wiki/Roadmap

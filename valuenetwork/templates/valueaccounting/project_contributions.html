@@ -68,7 +68,7 @@
             </form>
                 {% if event_ids and agent %}
                     <a 
-                        href=" {% url contribution_events_csv %}?event-ids={{ event_ids }}" 
+                        href=" {% url "contribution_events_csv" %}?event-ids={{ event_ids }}" 
                         id="btn-export" 
                         class="btn btn-primary" 
                         title="Export filtered list to csv (comma separated value) format" 
@@ -114,7 +114,7 @@
 						</td>
 						<td>
 						    {% for d in event.process.deliverables %}
-						        <a href="{% url resource resource_id=d.id %}">{{ d }}</a></br >
+						        <a href="{% url "resource" resource_id=d.id %}">{{ d }}</a></br >
 					        {% endfor %}
 					    </td>
 					</tr>

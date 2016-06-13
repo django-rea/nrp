@@ -28,9 +28,9 @@
 						        <span class="prefix created-prefix">{{ event.event_type.name }}:</span> 
 						        {{ event.from_agent }} 
 						        {% if event.resource %}
-                                    <a href="{% url resource resource_id=event.resource.id %}" target="_blank">{{ event.resource_type.name }} {{ event.resource.label }}</a>
+                                    <a href="{% url "resource" resource_id=event.resource.id %}" target="_blank">{{ event.resource_type.name }} {{ event.resource.label }}</a>
                                 {% else %}
-                                    <a href="{% url resource_type resource_type_id=event.resource_type.id %}" target="_blank">{{ event.resource_type.name }}</a>
+                                    <a href="{% url "resource_type" resource_type_id=event.resource_type.id %}" target="_blank">{{ event.resource_type.name }}</a>
                                 {% endif %}
 						        {{ event.quantity }} {{ event.unit_of_quantity }}
 					        </li>
@@ -70,7 +70,7 @@
 					{% if item.from_agent %}
 					    <span class="taken">{% trans "Taken by" %} {{ item.from_agent.nick }}</span>
 					    {% if agent == item.from_agent and work_now %}
-					        <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" target="_blank">{% trans "Work Now" %}</a>
+					        <a href="{% url "work_now" process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" target="_blank">{% trans "Work Now" %}</a>
 					    {% endif %}
 					{% else %}
 					     <span class="due">{% trans "due" %} {{ item.due_date }}</span>
@@ -88,10 +88,10 @@
 							    </div>
 							    <div class="modal-body">
 
-								    <form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+								    <form class="commitmentForm" enctype="multipart/form-data" action="{% url "commit_to_task" commitment_id=item.id %}" method="POST" >
 									    {% csrf_token %}
 									    {{ item.commitment_form|as_bootstrap }}
-									    <input type="hidden" name="next" value="{% url work %}" />
+									    <input type="hidden" name="next" value="{% url "work" %}" />
 								      <div class="modal-footer">
 									    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									    <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
@@ -137,7 +137,7 @@
 				    {% for resource in item.onhand %}
 					    <li class="subline" >
 					        <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
-					        <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource }}</a>
+					        <a class="resource" href="{% url "resource" resource_id=resource.id %}" target="_blank" >{{ resource }}</a>
 				        </li>
 					    
 				    {% endfor %}
@@ -165,7 +165,7 @@
 				        {% for resource in reqmt.onhand %}
 					        <li class="subline" >
 						        <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
-						        <a href="{% url resource resource_id=resource.id %}" target="_blank">{{ resource.resource_type.name }} {{ resource.label }}</a> 
+						        <a href="{% url "resource" resource_id=resource.id %}" target="_blank">{{ resource.resource_type.name }} {{ resource.label }}</a> 
 						        {{ resource.quantity }} {{ resource.unit_of_quantity }}
 					        </li>
 				        {% endfor %}
@@ -214,7 +214,7 @@
 			            {% for resource in reqmt.onhand %}
 				            <li class="subline" >
 					            <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
-					            <a href="{% url resource resource_id=resource.id %}" target="_blank">{{ resource.resource_type.name }} {{ resource.label }}</a> 
+					            <a href="{% url "resource" resource_id=resource.id %}" target="_blank">{{ resource.resource_type.name }} {{ resource.label }}</a> 
 					            {{ resource.quantity }} {{ resource.unit_of_quantity }}
 				            </li>
 			            {% endfor %}

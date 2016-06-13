@@ -93,14 +93,14 @@ th
         <legend>
             {% if value_equation %}
                 {% trans "Edit Value Equation" %} {{ value_equation }}
-                <a class="indent" href="{% url value_equation_sandbox value_equation_id=value_equation.id %}">Value Equation Sandbox</a> 
+                <a class="indent" href="{% url "value_equation_sandbox" value_equation_id=value_equation.id %}">Value Equation Sandbox</a> 
                 {% if value_equation.live and user.is_staff %}
-                    <a class="indent" href="{% url create_distribution_using_value_equation agent_id=value_equation.context_agent.id value_equation_id=value_equation.id %}">Distribute Income</a>
+                    <a class="indent" href="{% url "create_distribution_using_value_equation" agent_id=value_equation.context_agent.id value_equation_id=value_equation.id %}">Distribute Income</a>
                 {% endif %}
             {% else %}
                 {% trans "Create Value Equation" %}
             {% endif %}
-            <a class="indent" href="{% url value_equations %}">Value Equations List</a>
+            <a class="indent" href="{% url "value_equations" %}">Value Equations List</a>
         </legend>
 
         {% if not value_equation %}
@@ -115,7 +115,7 @@ th
                         <h3 id="create-ve-label">{% trans "Create Value Equation" %}</h3>
                     </div>
                     <div class="modal-body">
-                        <form class="validateMe" action="{% url create_value_equation %}" method="POST" >
+                        <form class="validateMe" action="{% url "create_value_equation" %}" method="POST" >
                             {% csrf_token %}
                             {{ value_equation_form }}
                             <div class="modal-footer">
@@ -145,7 +145,7 @@ th
                             <h3 id="change-ve-label">{% trans "Change Value Equation" %} </h3>
                         </div>
                         <div class="modal-body">
-                            <form class="validateMe"  action="{% url change_value_equation value_equation_id=value_equation.id %}" method="POST" >
+                            <form class="validateMe"  action="{% url "change_value_equation" value_equation_id=value_equation.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ value_equation_form|as_bootstrap }}
                                 <div class="modal-footer">
@@ -162,7 +162,7 @@ th
                             <h3 id="create-veb-label">{% trans "Create Value Equation Bucket" %} </h3>
                         </div>
                         <div class="modal-body">
-                            <form class="validateMe"  action="{% url create_value_equation_bucket value_equation_id=value_equation.id %}" method="POST" >
+                            <form class="validateMe"  action="{% url "create_value_equation_bucket" value_equation_id=value_equation.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ value_equation_bucket_form|as_bootstrap }}
                                 <div class="modal-footer">
@@ -180,7 +180,7 @@ th
                         style="display: inline;" 
                         class="test-form" 
                         id="test-ve" 
-                        action="{% url value_equation_sandbox value_equation_id=value_equation.id %}" 
+                        action="{% url "value_equation_sandbox" value_equation_id=value_equation.id %}" 
                         method="GET" >
                         <button style="display: inline;"  class="btn btn-info btn-mini" title="Test this value equation" >Value Equation Sandbox</button>
                     </form>
@@ -190,7 +190,7 @@ th
                         style="display: inline;" 
                         class="indent" 
                         id="make-live" 
-                        action="{% url value_equation_live_test value_equation_id=value_equation.id %}" 
+                        action="{% url "value_equation_live_test" value_equation_id=value_equation.id %}" 
                         method="POST" >
                         {% csrf_token %}
                         <button style="display: inline;"  class="btn btn-primary btn-mini" title="Make value equation live or test" >
@@ -227,7 +227,7 @@ th
                                     style="display: inline;" 
                                     class="delete-form" 
                                     id="deleteBucketForm{{ bucket.id }}" 
-                                    action="{% url delete_value_equation_bucket bucket_id=bucket.id %}" 
+                                    action="{% url "delete_value_equation_bucket" bucket_id=bucket.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this value equation bucket" >Delete</button>
@@ -239,7 +239,7 @@ th
                                         <h3 id="change-veb-label">{% trans "Change Value Equation Bucket" %} </h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="validateMe"  action="{% url change_value_equation_bucket bucket_id=bucket.id %}" method="POST" >
+                                        <form class="validateMe"  action="{% url "change_value_equation_bucket" bucket_id=bucket.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ bucket.change_form|as_bootstrap }}
                                             <div class="modal-footer">
@@ -260,7 +260,7 @@ th
                                         <h3 id="create-vebr-label{{ bucket.id }}">{% trans "Create Bucket Rule for " %}{{ bucket.name }} </h3>
                                     </div>
                                     <div class="modal-body cvebr-body">
-                                        <form class="validateMe" action="{% url create_value_equation_bucket_rule bucket_id=bucket.id %}" method="POST" >
+                                        <form class="validateMe" action="{% url "create_value_equation_bucket_rule" bucket_id=bucket.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ bucket.rule_form|as_bootstrap }}
                                             {{ bucket.rule_filter_form|as_bootstrap }}
@@ -290,7 +290,7 @@ th
                                                 style="display: inline;" 
                                                 class="delete-form" 
                                                 id="deleteBucketRuleForm{{ rule.id }}" 
-                                                action="{% url delete_value_equation_bucket_rule rule_id=rule.id %}" 
+                                                action="{% url "delete_value_equation_bucket_rule" rule_id=rule.id %}" 
                                                 method="POST" >
                                                 {% csrf_token %}
                                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this value equation bucket rule" >Delete</button>
@@ -302,7 +302,7 @@ th
                                                     <h3 id="change-vebr-label">{% trans "Change Rule for " %} {{ bucket.name }} - {{ rule.event_type.name }} </h3>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form action="{% url change_value_equation_bucket_rule rule_id=rule.id %}" method="POST" >
+                                                    <form action="{% url "change_value_equation_bucket_rule" rule_id=rule.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         {{ rule.change_form|as_bootstrap }}
                                                         {{ rule.change_filter_form|as_bootstrap }}

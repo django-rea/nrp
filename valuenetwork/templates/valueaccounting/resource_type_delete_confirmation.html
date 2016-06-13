@@ -41,11 +41,11 @@
 		{% endif %}
 
 		<div>
-	<form style="display: inline;" action="{% url delete_resource_type resource_type_id=resource_type.id %}" method="POST">
+	<form style="display: inline;" action="{% url "delete_resource_type" resource_type_id=resource_type.id %}" method="POST">
 		{% csrf_token %}
     		<input type="submit" value="{% trans 'Delete' %}" class="btn btn-warning" />
 	</form>
-	<form style="display: inline;" action="{% url resource_types %}" method="GET">
+	<form style="display: inline;" action="{% url "resource_types" %}" method="GET">
     		<input type="submit" value="{% trans 'Cancel' %}" class="btn btn-info" />
     </form>
 

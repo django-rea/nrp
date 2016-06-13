@@ -168,7 +168,7 @@ hr {
                 </div>
                 <div class="modal-body">
                     <form class="validateMe" id="process-form" name="chgproc" enctype="multipart/form-data" 
-                        action="{% url change_process process_id=process.id %}" method="POST" >
+                        action="{% url "change_process" process_id=process.id %}" method="POST" >
                         {% csrf_token %}
                         {{ change_process_form|as_bootstrap }}
                     <div class="modal-footer">
@@ -179,7 +179,7 @@ hr {
                 </div>
             </div>
             {% if logger %}
-                <a class="btn btn-primary" href="{% url process_finished process_id=process.id %}">
+                <a class="btn btn-primary" href="{% url "process_finished" process_id=process.id %}">
                     {% if process.finished %}
                         {% trans "Unfinish" %}
                     {% else %}
@@ -241,12 +241,12 @@ hr {
                                 {% if to_be_changed_requirement.resources_ready_to_be_changed %}
                                     {% for resource in to_be_changed_requirement.resources_ready_to_be_changed %}
                                         <div>
-                                            {% trans "Resource" %}: <a href="{% url resource resource_id=resource.id  %}">{{ resource }}</a>
+                                            {% trans "Resource" %}: <a href="{% url "resource" resource_id=resource.id  %}">{{ resource }}</a>
                                             <form
                                                 style="display: inline;" 
                                                 class="changeable-form" 
                                                 id="change_stage_form" 
-                                                action="{% url log_stage_change_event commitment_id=to_be_changed_requirement.id resource_id=resource.id %}" 
+                                                action="{% url "log_stage_change_event" commitment_id=to_be_changed_requirement.id resource_id=resource.id %}" 
                                                 method="POST" >
                                                 {% csrf_token %}
                                                 <input type="hidden" id="next" name="next" value="process" />
@@ -265,7 +265,7 @@ hr {
                                             </div>
                                             <div class="modal-body">
                                                 <form class="resource-form validateMe" id="resourceForm{{ item.id }}" name="resfrm{{ item.id }}" enctype="multipart/form-data" 
-                                                    action="{% url log_stage_change_event commitment_id=to_be_changed_requirement.id resource_id=resource.id %}" method="POST" >
+                                                    action="{% url "log_stage_change_event" commitment_id=to_be_changed_requirement.id resource_id=resource.id %}" method="POST" >
                                                     {% csrf_token %}
                                                     {{ resource.transform_form|as_bootstrap }}
                                                 <div class="modal-footer">
@@ -293,7 +293,7 @@ hr {
                                             <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
                                         </div>
                                         <div class="modal-body">
-                                            <form class="commitmentForm{{ item.id }} validateMe" name="comout{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+                                            <form class="commitmentForm{{ item.id }} validateMe" name="comout{{ item.id }}" enctype="multipart/form-data" action="{% url "change_commitment" commitment_id=item.id %}" method="POST" >
                                                 {% csrf_token %}
                                                 {{ item.change_form|as_bootstrap }}
                                                 <input type="hidden" id="next" name="next" value="process" />
@@ -309,7 +309,7 @@ hr {
                                         style="display: inline;" 
                                         class="delete-commitment-form" 
                                         id="deleteCommitmentForm{{ item.id }}" 
-                                        action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                        action="{% url "delete_process_commitment" commitment_id=item.id %}" 
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" id="next" name="next" value="process" />
@@ -332,7 +332,7 @@ hr {
                                         <h3 id="resource-label">{% trans "Log new" %} {{ item.resource_type.name }}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="resource-form validateMe" id="resourceForm{{ item.id }}" name="resout{{ item.id }}" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >
+                                        <form class="resource-form validateMe" id="resourceForm{{ item.id }}" name="resout{{ item.id }}" enctype="multipart/form-data" action="{% url "log_resource_for_commitment" commitment_id=item.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ item.resource_create_form|as_bootstrap }}
                                         <div class="modal-footer">
@@ -349,7 +349,7 @@ hr {
                                         <h3 id="add-to-resource-label">{% trans "Add to " %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="add-to-resource-form validateMe" id="addToResourceForm{{ item.id }}" name="addtores{{ item.id }}" enctype="multipart/form-data" action="{% url add_to_resource_for_commitment commitment_id=item.id %}" method="POST" >
+                                        <form class="add-to-resource-form validateMe" id="addToResourceForm{{ item.id }}" name="addtores{{ item.id }}" enctype="multipart/form-data" action="{% url "add_to_resource_for_commitment" commitment_id=item.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ item.select_resource_form|as_bootstrap }}
                                         <div class="modal-footer">
@@ -381,7 +381,7 @@ hr {
 					            style="display: inline;" 
                                 class="delete-form" 
                                 id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
+                                action="{% url "delete_event" event_id=event.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="process" />
@@ -390,7 +390,7 @@ hr {
 					    {% endif %}
 					    {% if event.resource %}
                             </br>
-                            &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">
+                            &nbsp;&nbsp;{% trans "Resource" %}: <a href="{% url "resource" resource_id=event.resource.id  %}">
                             {{ event.resource }} {{ event.resource.quantity }} {{ event.resource.resource_type.unit }} </a>
                         {% endif %}
 					
@@ -406,9 +406,9 @@ hr {
 				        <span class="event-label">{% trans "Created" %}: </span>
                         <span class="event" >
                             {% if event.resource %}
-                                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+                                <b><a href="{% url "resource" resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
                             {% else %}
-                                <b><a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
+                                <b><a href="{% url "resource_type" resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
                             {% endif %}
 				            {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}</span>
 				        {% if logger %}
@@ -419,7 +419,7 @@ hr {
 				                style="display: inline;" 
                                 class="delete-form" 
                                 id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
+                                action="{% url "delete_event" event_id=event.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="process" />
@@ -476,7 +476,7 @@ hr {
 			                        <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
 		                        </div>
 		                        <div class="modal-body">
-			                        <form class="commitmentForm{{ item.id }} validateMe" name="uncomm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+			                        <form class="commitmentForm{{ item.id }} validateMe" name="uncomm{{ item.id }}" enctype="multipart/form-data" action="{% url "change_commitment" commitment_id=item.id %}" method="POST" >
 				                        {% csrf_token %}
 				                        {{ item.changeform|as_bootstrap }}
 				                        <input type="hidden" id="next" name="next" value="process" />
@@ -492,7 +492,7 @@ hr {
                                     style="display: inline;" 
                                     class="delete-commitment-form" 
                                     id="deleteCommitmentForm{{ item.id }}" 
-                                    action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                    action="{% url "delete_process_commitment" commitment_id=item.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" id="next" name="next" value="process" />
@@ -515,7 +515,7 @@ hr {
 	                                    style="display: inline;" 
                                         class="uncommit-form" 
                                         id="uncommitForm{{ item.id }}" 
-                                        action="{% url uncommit commitment_id=item.id %}" 
+                                        action="{% url "uncommit" commitment_id=item.id %}" 
                                         method="POST" >
                                         {% csrf_token %}
                                     	<input type="hidden" id="next" name="next" value="process" />
@@ -535,7 +535,7 @@ hr {
                                     </h3>
                                   </div>
                                   <div class="modal-body">
-                                    <form class="invite-form validateMe" id="inviteForm" name="invite" action="{% url invite_collaborator commitment_id=item.id %}" method="POST" >
+                                    <form class="invite-form validateMe" id="inviteForm" name="invite" action="{% url "invite_collaborator" commitment_id=item.id %}" method="POST" >
                                         {% csrf_token %}
 {% comment %}
                                         {{ item.invite_collaborator_form|as_bootstrap }}
@@ -566,7 +566,7 @@ hr {
                                             </div>
                                             <div class="modal-body">
                                                 
-                                                <form class="joinForm validateMe" name="join{{ item.id }}" enctype="multipart/form-data" action="{% url join_task commitment_id=item.id %}" method="POST" >
+                                                <form class="joinForm validateMe" name="join{{ item.id }}" enctype="multipart/form-data" action="{% url "join_task" commitment_id=item.id %}" method="POST" >
                                                     {% csrf_token %}
 {% comment %}
                                                     {{ item.join_form|as_bootstrap }}
@@ -598,7 +598,7 @@ hr {
                                                 <h3 id="commitment-label">{% trans "Commit to this task" %}: {{ item.resource_type.name }}</h3>
                                             </div>
                                             <div class="takeTaskBody modal-body">
-                                                <form class="commitmentForm validateMe takeTaskForm" name="tt{{ item.id }}" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+                                                <form class="commitmentForm validateMe takeTaskForm" name="tt{{ item.id }}" enctype="multipart/form-data" action="{% url "commit_to_task" commitment_id=item.id %}" method="POST" >
                                                     {% csrf_token %}
                                                     {{ item.commitment_form|as_bootstrap }}
                                                     <input type="hidden" name="next" value="{{ process.get_absolute_url }}" />
@@ -624,7 +624,7 @@ hr {
                               {% if agent %}
 
                                 {% if work_now and item.unit_of_quantity.unit_type == "time" %}
-                                    <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" title="I'll start working on this now, I can time and document while working">{% trans "I'll start working now" %}</a>
+                                    <a href="{% url "work_now" process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" title="I'll start working on this now, I can time and document while working">{% trans "I'll start working now" %}</a>
                                 {% endif %}
 
                                 <a href="#eventModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="I want to log work I have done on this task" >
@@ -637,7 +637,7 @@ hr {
                                         <h3 id="event-label">{% trans "Add Work Contribution" %}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="eventForm{{ item.id }} validateMe" name="ef{{ item.id }}" enctype="multipart/form-data" action="{% url add_work_event commitment_id=item.id %}" method="POST" >
+                                        <form class="eventForm{{ item.id }} validateMe" name="ef{{ item.id }}" enctype="multipart/form-data" action="{% url "add_work_event" commitment_id=item.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ item.input_work_form_init|as_bootstrap }}
                                             <div class="modal-footer">
@@ -670,7 +670,7 @@ hr {
 									                <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
 								                </div>
 								                <div class="modal-body">
-									                <form class="eventForm{{ event.id }} validateMe" name="efc{{ event.id }}" enctype="multipart/form-data" action="{% url change_work_event event_id=event.id %}" method="POST" >
+									                <form class="eventForm{{ event.id }} validateMe" name="efc{{ event.id }}" enctype="multipart/form-data" action="{% url "change_work_event" event_id=event.id %}" method="POST" >
 										                {% csrf_token %}
 										                {{ event.work_event_change_form|as_bootstrap }}
 										                <input type="hidden" id="next" name="next" value="process" />
@@ -686,7 +686,7 @@ hr {
 				                                style="display: inline;" 
                                                 class="delete-form" 
                                                 id="deleteForm{{ event.id }}" 
-                                                action="{% url delete_event event_id=event.id %}" 
+                                                action="{% url "delete_event" event_id=event.id %}" 
                                                 method="POST" >
                                                 {% csrf_token %}
                                             	<input type="hidden" id="next" name="next" value="process" />
@@ -725,7 +725,7 @@ hr {
 						                <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
 					                </div>
 					                <div class="modal-body">
-						                <form class="eventForm{{ event.id }} validateMe" name="efcc{{ event.id }}" enctype="multipart/form-data" action="{% url change_unplanned_work_event event_id=event.id %}" method="POST" >
+						                <form class="eventForm{{ event.id }} validateMe" name="efcc{{ event.id }}" enctype="multipart/form-data" action="{% url "change_unplanned_work_event" event_id=event.id %}" method="POST" >
 							                {% csrf_token %}
 							                {{ event.changeform|as_bootstrap }}
 							                <input type="hidden" id="next" name="next" value="process" />
@@ -741,7 +741,7 @@ hr {
 	                                style="display: inline;" 
                                     class="delete-form" 
                                     id="deleteForm{{ event.id }}" 
-                                    action="{% url delete_event event_id=event.id %}" 
+                                    action="{% url "delete_event" event_id=event.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                 	<input type="hidden" id="next" name="next" value="process" />
@@ -788,7 +788,7 @@ hr {
                             <h3 id="cite-label">{% trans "Add an unplanned citation" %}</h3>
                         </div>
                         <div class="modal-body">
-                            <form class="cite-form validateMe" name="cite" enctype="multipart/form-data" id="addUnplannedCiteForm" action="{% url add_unplanned_cite_event process_id=process.id %}" method="POST" >
+                            <form class="cite-form validateMe" name="cite" enctype="multipart/form-data" id="addUnplannedCiteForm" action="{% url "add_unplanned_cite_event" process_id=process.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ unplanned_cite_form|as_bootstrap }}
                                 <span id="cite-unit">{{ context_agent.cite_unit }}</span>
@@ -812,7 +812,7 @@ hr {
 		                            style="display: inline;" 
                                     class="delete-commitment-form" 
                                     id="deleteCommitmentForm{{ item.id }}" 
-                                    action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                    action="{% url "delete_process_commitment" commitment_id=item.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                 	<input type="hidden" id="next" name="next" value="process" />
@@ -829,7 +829,7 @@ hr {
 				    {% if item.resources %}
                         {% for resource in item.resources %}
                             <div class="onhand" >
-                                <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
+                                <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url "resource" resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
                                 {% with resource.event as event %}
                                   <div class="event-section" style="display: inline;">
                                     <span style="color: green; font-weight: bold;">{% trans "Cited" %}: </span>
@@ -840,7 +840,7 @@ hr {
                                             style="display: inline;" 
                                             class="delete-citation-form" 
                                             id="deleteForm{{ event.id }}" 
-                                            action="{% url delete_citation_event commitment_id=item.id resource_id=resource.id %}" 
+                                            action="{% url "delete_citation_event" commitment_id=item.id resource_id=resource.id %}" 
                                             method="POST" >
                                             {% csrf_token %}
                                             <input type="hidden" id="next" name="next" value="process" />
@@ -859,7 +859,7 @@ hr {
 					        {% if resource.id not in output_resource_ids %}
                                 {% if resource.id not in cited_ids %}
                                     <div class="onhand" >
-                                        <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
+                                        <b>{% trans "Onhand" %}:</b> <a class="resource" href="{% url "resource" resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
 
                                         {% if logger %}
                                             <a href="#citeEventModal{{ resource.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your citation of this resource" >
@@ -873,7 +873,7 @@ hr {
                                                 </div>
                                                 <div class="modal-body">
                                                     <form class="eventForm{{ resource.id }} validateMe" name="res{{ resource.id }}" enctype="multipart/form-data" 
-                                                        action="{% url add_citation_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
+                                                        action="{% url "add_citation_event" commitment_id=item.id resource_id=resource.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         {{ resource.cite_event_form|as_bootstrap }}
                                                     <div class="modal-footer">
@@ -899,7 +899,7 @@ hr {
 			            <div class="event-section" >
 				            <span class="event-label">{% trans "Cited" %}:</span> 
 				            <span class="event" >
-				                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b> 
+				                <b><a href="{% url "resource" resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b> 
 				                {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
                             </span>
 				            {% if logger %}
@@ -907,7 +907,7 @@ hr {
 				                    style="display: inline;" 
                                     class="delete-form" 
                                     id="deleteForm{{ event.id }}" 
-                                    action="{% url delete_event event_id=event.id %}" 
+                                    action="{% url "delete_event" event_id=event.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                 	<input type="hidden" id="next" name="next" value="process" />
@@ -952,7 +952,7 @@ hr {
                             </div>
                             <div class="modal-body">
                                 <form class="consumption-form validateMe" name="cf" enctype="multipart/form-data" id="addUnplannedConsumptionForm" 
-                                    action="{% url add_unplanned_input_event process_id=process.id slot='c' %}" method="POST" >
+                                    action="{% url "add_unplanned_input_event" process_id=process.id slot='c' %}" method="POST" >
 	                              {% csrf_token %}
 	                              {{ unplanned_consumption_form|as_bootstrap }}
 	                              <div class="modal-footer">
@@ -986,7 +986,7 @@ hr {
 				                    <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
 			                    </div>
 			                    <div class="modal-body">
-				                    <form class="commitmentForm{{ item.id }} validateMe" name="com{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+				                    <form class="commitmentForm{{ item.id }} validateMe" name="com{{ item.id }}" enctype="multipart/form-data" action="{% url "change_commitment" commitment_id=item.id %}" method="POST" >
 					                    {% csrf_token %}
 					                    {{ item.changeform|as_bootstrap }}
 					                    <input type="hidden" id="next" name="next" value="process" />
@@ -1002,7 +1002,7 @@ hr {
 		                        style="display: inline;" 
                                 class="delete-commitment-form" 
                                 id="deleteCommitmentForm{{ item.id }}" 
-                                action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                action="{% url "delete_process_commitment" commitment_id=item.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="process" />
@@ -1017,7 +1017,7 @@ hr {
                     	{% for resource in item.consumable_resources %}
 					        <div class="onhand" >
 						        <b>{% trans "Onhand" %}:</b> <span class="event" >
-						            <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
+						            <a class="resource" href="{% url "resource" resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a>
                                     {% if resource.stage %}
                                         ~ Stage: {{ resource.stage }}
                                     {% endif %}
@@ -1043,7 +1043,7 @@ hr {
 					                    </div>
 					                    <div class="modal-body">
 						                    <form class="eventForm{{ resource.id }} validateMe" name="efr{{ resource.id }}" enctype="multipart/form-data" 
-						                        action="{% url add_consumption_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
+						                        action="{% url "add_consumption_event" commitment_id=item.id resource_id=resource.id %}" method="POST" >
 							                    {% csrf_token %}
 							                    {{ resource.consumption_event_form|as_bootstrap }}
 						                      <div class="modal-footer">
@@ -1069,7 +1069,7 @@ hr {
 				                                    style="display: inline;" 
                                                     class="delete-form" 
                                                     id="deleteForm{{ event.id }}" 
-                                                    action="{% url delete_event event_id=event.id %}" 
+                                                    action="{% url "delete_event" event_id=event.id %}" 
                                                     method="POST" >
                                                     {% csrf_token %}
                                                 	<input type="hidden" id="next" name="next" value="process" />
@@ -1098,9 +1098,9 @@ hr {
 						        <br/>
 						        {% comment %}
 						        {% if source.too_late %}
-						            <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url forward_schedule_source commitment_id=item.id source_id=source.id %}" method="POST" >
+						            <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url "forward_schedule_source" commitment_id=item.id source_id=source.id %}" method="POST" >
                                         {% csrf_token %}
-                                        <input type="hidden" name="next" value="{% url process_details process_id=process.id %}" />
+                                        <input type="hidden" name="next" value="{% url "process_details" process_id=process.id %}" />
 						                <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;
 						                {% if super_logger %}
                                             <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
@@ -1123,7 +1123,7 @@ hr {
 			            <div class="event-section" >
 				            <span class="event-label">{% trans "Consumed" %}:</span> 
 				            <span class="event" >
-                                <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b>
+                                <b><a href="{% url "resource" resource_id=event.resource.id  %}">{{ event.resource.label }}</a></b>
                                 {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
                             </span>
 				            {% if logger %}
@@ -1134,7 +1134,7 @@ hr {
 				                    style="display: inline;" 
                                     class="delete-form" 
                                     id="deleteForm{{ event.id }}" 
-                                    action="{% url delete_event event_id=event.id %}" 
+                                    action="{% url "delete_event" event_id=event.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                 	<input type="hidden" id="next" name="next" value="process" />
@@ -1176,7 +1176,7 @@ hr {
                         </div>
                         <div class="modal-body">
                             <form class="use-form validateMe" name="enuse" enctype="multipart/form-data" id="addUnplannedUseForm" 
-                                action="{% url add_unplanned_input_event process_id=process.id slot='u' %}" method="POST" >
+                                action="{% url "add_unplanned_input_event" process_id=process.id slot='u' %}" method="POST" >
                               {% csrf_token %}
                               {{ unplanned_use_form|as_bootstrap }}
                               <div class="modal-footer">
@@ -1205,7 +1205,7 @@ hr {
 				                    <h3 id="commitment-label">{% trans "Change Requirement" %}</h3>
 			                    </div>
 			                    <div class="modal-body">
-				                    <form class="commitmentForm{{ item.id }} validateMe" name="cm{{ item.id }}" enctype="multipart/form-data" action="{% url change_commitment commitment_id=item.id %}" method="POST" >
+				                    <form class="commitmentForm{{ item.id }} validateMe" name="cm{{ item.id }}" enctype="multipart/form-data" action="{% url "change_commitment" commitment_id=item.id %}" method="POST" >
 					                    {% csrf_token %}
 					                    {{ item.changeform|as_bootstrap }}
 					                    <input type="hidden" id="next" name="next" value="process" />
@@ -1221,7 +1221,7 @@ hr {
 		                        style="display: inline;" 
                                 class="delete-commitment-form" 
                                 id="deleteCommitmentForm{{ item.id }}" 
-                                action="{% url delete_process_commitment commitment_id=item.id %}" 
+                                action="{% url "delete_process_commitment" commitment_id=item.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                             	<input type="hidden" id="next" name="next" value="process" />
@@ -1237,7 +1237,7 @@ hr {
                     	{% for resource in item.resource_type.onhand %}
 					        <div class="onhand" >
 						        <b>{% trans "Onhand" %}:</b> <span class="resource" >
-						        <a class="resource" href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
+						        <a class="resource" href="{% url "resource" resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
 						        {{ resource.quantity }} {{ resource.unit_of_quantity }} </span>
 						        {% if logger %}
 						            <a href="#useEventModal{{ resource.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log your use of this resource" >
@@ -1251,7 +1251,7 @@ hr {
 					                    </div>
 					                    <div class="modal-body">
 						                    <form class="eventForm{{ resource.id }} validateMe" name="resef{{ resource.id }}" enctype="multipart/form-data" 
-						                        action="{% url add_use_event commitment_id=item.id resource_id=resource.id %}" method="POST" >
+						                        action="{% url "add_use_event" commitment_id=item.id resource_id=resource.id %}" method="POST" >
 							                    {% csrf_token %}
 							                    {{ resource.use_event_form|as_bootstrap }}
 						                      <div class="modal-footer">
@@ -1277,7 +1277,7 @@ hr {
 				                                    style="display: inline;" 
                                                     class="delete-form" 
                                                     id="deleteForm{{ event.id }}" 
-                                                    action="{% url delete_event event_id=event.id %}" 
+                                                    action="{% url "delete_event" event_id=event.id %}" 
                                                     method="POST" >
                                                     {% csrf_token %}
                                                 	<input type="hidden" id="next" name="next" value="process" />
@@ -1320,9 +1320,9 @@ hr {
 				            <span class="event-label">{% trans "Used" %}:</span>
 				            <span class="event" > 
                                 {% if event.resource %}
-                                    <b><a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
+                                    <b><a href="{% url "resource" resource_id=event.resource.id  %}">{{ event.resource }}</a></b> 
                                 {% else %}
-                                    <b><a href="{% url resource_type resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
+                                    <b><a href="{% url "resource_type" resource_type_id=event.resource_type.id  %}">{{ event.resource_type }}</a></b> 
                                 {% endif %}
 				                {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }}
                             </span>
@@ -1334,7 +1334,7 @@ hr {
 				                    style="display: inline;" 
                                     class="delete-form" 
                                     id="deleteForm{{ event.id }}" 
-                                    action="{% url delete_event event_id=event.id %}" 
+                                    action="{% url "delete_event" event_id=event.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                 	<input type="hidden" id="next" name="next" value="process" />
@@ -1353,7 +1353,7 @@ hr {
 
 		    {% if labnotes %}
 			    <h4>
-				    <a href="{% url labnotes process_id=process.id %}">Notes for this process</a>
+				    <a href="{% url "labnotes" process_id=process.id %}">Notes for this process</a>
 			    </h4>
 		    {% endif %}
 
@@ -1379,7 +1379,7 @@ hr {
 		        <br />
 		        {% trans "Order" %}: 
 		        <span class="rand-order" >
-		            <a href="{% url order_schedule order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
+		            <a href="{% url "order_schedule" order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
 	            </span>
 	        {% endif %}
 	        
@@ -1417,7 +1417,7 @@ hr {
         </div>
         {% if add_output_form %}
         <div class="modal-body">
-            <form class="output-form validateMe" name="addout" enctype="multipart/form-data" id="addOutputForm" action="{% url add_process_output process_id=process.id %}" method="POST" >
+            <form class="output-form validateMe" name="addout" enctype="multipart/form-data" id="addOutputForm" action="{% url "add_process_output" process_id=process.id %}" method="POST" >
 	            {% csrf_token %}
 
                     <p class="modal-line">{% trans "Resource Type" %} </p>
@@ -1482,7 +1482,7 @@ hr {
             
         </div>
         <div class="modal-body">
-            <form class="cite-form" enctype="multipart/form-data" id="addCitationForm" name="addcite" action="{% url add_process_citation process_id=process.id %}" method="POST" >
+            <form class="cite-form" enctype="multipart/form-data" id="addCitationForm" name="addcite" action="{% url "add_process_citation" process_id=process.id %}" method="POST" >
 	            {% csrf_token %}
 
                     {{ add_citation_form|as_bootstrap }}
@@ -1506,7 +1506,7 @@ hr {
         </div>
         <div class="modal-body">
             <form class="consumable-form validateMe" enctype="multipart/form-data" id="addConsumableForm" name="addcons" 
-                action="{% url add_process_input process_id=process.id slot='c' %}" method="POST" >
+                action="{% url "add_process_input" process_id=process.id slot='c' %}" method="POST" >
 	            {% csrf_token %}
 
                     {{ add_consumable_form|as_bootstrap }}
@@ -1530,7 +1530,7 @@ hr {
         </div>
         <div class="modal-body">
             <form class="usable-form validateMe" enctype="multipart/form-data" id="addUsableForm" name="adduse" 
-                action="{% url add_process_input process_id=process.id  slot='u' %}" method="POST" >
+                action="{% url "add_process_input" process_id=process.id  slot='u' %}" method="POST" >
 	            {% csrf_token %}
 
                     {{ add_usable_form|as_bootstrap }}
@@ -1559,7 +1559,7 @@ hr {
             
         </div>
         <div class="modal-body">
-            <form class="work-form validateMe" id="addWorkForm" name="addwork" action="{% url add_process_worker process_id=process.id %}" method="POST" >
+            <form class="work-form validateMe" id="addWorkForm" name="addwork" action="{% url "add_process_worker" process_id=process.id %}" method="POST" >
 	            {% csrf_token %}
 
                     {{ add_work_form|as_bootstrap }}
@@ -1590,7 +1590,7 @@ hr {
             <h3 id="unplanned-output">{% trans "Log Unplanned Output" %}</h3>
         </div>
         <div class="modal-body">
-            <form class="unplanned-output-form validateMe" name="unout" enctype="multipart/form-data" action="{% url add_unplanned_output process_id=process.id %}" method="POST" >
+            <form class="unplanned-output-form validateMe" name="unout" enctype="multipart/form-data" action="{% url "add_unplanned_output" process_id=process.id %}" method="POST" >
                 {% csrf_token %}
                 {{ unplanned_output_form|as_bootstrap }}
                 {{ role_formset.management_form }}
@@ -1623,7 +1623,7 @@ hr {
             <h3 id="unplanned-work">{% trans "Log Unplanned Work Contribution" %}</h3>
         </div>
         <div class="modal-body">
-            <form class="unplanned-work-form validateMe" enctype="multipart/form-data" name="unwork" action="{% url add_unplanned_work_event process_id=process.id %}" method="POST" >
+            <form class="unplanned-work-form validateMe" enctype="multipart/form-data" name="unwork" action="{% url "add_unplanned_work_event" process_id=process.id %}" method="POST" >
                 {% csrf_token %}
                 {{ unplanned_work_form|as_bootstrap }}
               <div class="modal-footer">

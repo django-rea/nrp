@@ -57,7 +57,7 @@
     <div class="container">
         {% include "_messages.html" %}
 	  <div>
-		<legend>{% trans "Incoming Value Flows for " %} <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a></legend>
+		<legend>{% trans "Incoming Value Flows for " %} <a href="{% url "resource" resource_id=resource.id %}">{{ resource }}</a></legend>
 		<div class="ves" >
             <span class="ve">{% trans "Using Value Equation" %}: {{ value_equation }} </span>
             {% if ve_selection_form %}

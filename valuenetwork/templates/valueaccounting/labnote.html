@@ -29,8 +29,8 @@
 			    <a href="{{ process.get_absolute_url }}">{{ process.name }}</a>  
 			    {% trans "from " %} {{ commitment.from_agent.name }}
 			{% if author %}
-			    <a href="{% url work_now process_id=process.id commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Work Now" %}</a> 
-			    <a class="btn btn-info" href="{% url change_process process_id=commitment.process.id %}">{% trans "Change Process" %}</a>
+			    <a href="{% url "work_now" process_id=process.id commitment_id=commitment.id %}" role="button" class="btn btn-info" >{% trans "Work Now" %}</a> 
+			    <a class="btn btn-info" href="{% url "change_process" process_id=commitment.process.id %}">{% trans "Change Process" %}</a>
 			{% endif %}
 		</legend>
 
@@ -56,7 +56,7 @@
 									<h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
 								</div>
 								<div class="modal-body">
-									<form class="eventForm{{ event.id }}" enctype="multipart/form-data" action="{% url change_work_event event_id=event.id %}" method="POST" >
+									<form class="eventForm{{ event.id }}" enctype="multipart/form-data" action="{% url "change_work_event" event_id=event.id %}" method="POST" >
 										{% csrf_token %}
 										{{ event.work_event_change_form|as_bootstrap }}
 									  <div class="modal-footer">

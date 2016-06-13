@@ -57,9 +57,9 @@ li {
 		                {% for req in process.work_requirements %}
 		                    {% if req.description %}
 		                        <li class="who" ><span class="name" >{{ req.from_agent }}</span> 
-		                            <a href="{% url labnote commitment_id=req.id %}">{% trans "Work Notes" %}:</a>
+		                            <a href="{% url "labnote" commitment_id=req.id %}">{% trans "Work Notes" %}:</a>
 		                            {% if agent == req.from_agent %}
-		                                <a href="{% url work_now process_id=process.id commitment_id=req.id %}" role="button" class="btn btn-info btn-mini" >
+		                                <a href="{% url "work_now" process_id=process.id commitment_id=req.id %}" role="button" class="btn btn-info btn-mini" >
 		                                    {% trans "Open" %}
 	                                    </a>
 		                            {% endif %}
@@ -72,7 +72,7 @@ li {
 	                    <ul>
 	                        {% for resource in process.deliverables %}
 	                            <li class="deliverable" >{% trans "Deliverable" %}: 
-	                                <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a>
+	                                <a href="{% url "resource" resource_id=resource.id %}">{{ resource }}</a>
                                 </li>
 		                        {% if resource.photo %}
 		                        	<img src="{% thumbnail resource.photo photo_size %}" />

@@ -135,10 +135,10 @@ textarea {
                 <h3 id="resource-change-label">{% trans "Change" %} {{ resource_type }}</h3>
             </div>
             <div class="modal-body">
-                <form class="resource-change-form" enctype="multipart/form-data" action="{% url change_resource_type resource_type_id=resource_type.id %}" method="POST" >
+                <form class="resource-change-form" enctype="multipart/form-data" action="{% url "change_resource_type" resource_type_id=resource_type.id %}" method="POST" >
                     {% csrf_token %}
                     {{ resource_type_form }}
-                    <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                    <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                     <div class="modal-footer">
                         <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                         <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -175,10 +175,10 @@ textarea {
                     <h3 id="process-insert-label">{% blocktrans %}Insert process type for {% endblocktrans %} {{ resource_type }} </h3>
                 </div>
                 <div class="modal-body">
-                    <form class="process-form" action="{% url create_process_type_for_streaming resource_type_id=resource_type.id process_type_id=process_type.id %}" method="POST">
+                    <form class="process-form" action="{% url "create_process_type_for_streaming" resource_type_id=resource_type.id process_type_id=process_type.id %}" method="POST">
                         {% csrf_token %}
                         {{ process_type.stream_process_type_create_form }}
-                        <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                        <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                         <div class="modal-footer">
                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                             <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -206,10 +206,10 @@ textarea {
                 <h3 id="process-change-label">{% trans "Change" %} {{ xbill_object }}</h3>
                 </div>
                 <div class="modal-body">
-                    <form class="process-change-form" action="{% url change_process_type process_type_id=process_type.id %}" method="POST" >
+                    <form class="process-change-form" action="{% url "change_process_type" process_type_id=process_type.id %}" method="POST" >
                         {% csrf_token %}
                         {{ process_type.recipe_change_form }}
-                        <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                        <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                         <div class="modal-footer">
                         <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                         <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -218,9 +218,9 @@ textarea {
                 </div>
             </div>
     
-            <form style="display: inline;" action="{% url delete_process_type_confirmation process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
+            <form style="display: inline;" action="{% url "delete_process_type_confirmation" process_type_id=process_type.id resource_type_id=resource_type.id %}" method="POST" >
                 {% csrf_token %}
-                <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                 <button class="btn btn-warning" title="Delete process type" >Delete</button>
             </form>
             
@@ -237,10 +237,10 @@ textarea {
                         <h3 id="work-label">{% blocktrans %}Add work to {% endblocktrans %} {{ process_type.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form class="work-form" action="{% url create_process_type_work process_type_id=process_type.id %}" method="POST" >
+                        <form class="work-form" action="{% url "create_process_type_work" process_type_id=process_type.id %}" method="POST" >
                             {% csrf_token %}
                             {{ process_type.xbill_work_form }}
-                            <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                            <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                             <div class="modal-footer">
                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                 <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -263,7 +263,7 @@ textarea {
                         <h3 id="consumable-label">{% blocktrans %}Add a consumable input to {% endblocktrans %} {{ process_type.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form class="consumable-form" action="{% url create_process_type_input process_type_id=process_type.id slot='c' %}" method="POST" >
+                        <form class="consumable-form" action="{% url "create_process_type_input" process_type_id=process_type.id slot='c' %}" method="POST" >
                             {% csrf_token %}
                             {% with iform=process_type.xbill_consumable_form %}
                                 <p class="modal-line">{% trans "Resource Type" %} </p>
@@ -281,7 +281,7 @@ textarea {
                                 <p class="modal-line">{% trans "Description" %} </p>
                                 <p class="desc">{{ iform.description }} </p>
                             {% endwith %}
-                            <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                            <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                             <div class="modal-footer">
                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                 <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -305,7 +305,7 @@ textarea {
                         <h3 id="uses-label">{% blocktrans %}Add a usable input to {% endblocktrans %} {{ process_type.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form class="uses-form" action="{% url create_process_type_input process_type_id=process_type.id slot='u' %}" method="POST" >
+                        <form class="uses-form" action="{% url "create_process_type_input" process_type_id=process_type.id slot='u' %}" method="POST" >
                             {% csrf_token %}
                             {% with iform=process_type.xbill_usable_form %}
                                 <p class="modal-line">{% trans "Resource Type" %} </p>
@@ -323,7 +323,7 @@ textarea {
                                 <p class="modal-line">{% trans "Description" %} </p>
                                 <p class="desc">{{ iform.description }} </p>
                             {% endwith %}
-                            <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                            <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                             <div class="modal-footer">
                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                 <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -346,7 +346,7 @@ textarea {
                         <h3 id="cites-label">{% blocktrans %}Add a citable input to {% endblocktrans %} {{ process_type.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form class="cites-form" action="{% url create_process_type_citable process_type_id=process_type.id %}" method="POST" >
+                        <form class="cites-form" action="{% url "create_process_type_citable" process_type_id=process_type.id %}" method="POST" >
                             {% csrf_token %}
                             {% with iform=process_type.stream_recipe_citable_form %}
                                 <p class="modal-line">{% trans "Resource Type" %} </p>
@@ -360,7 +360,7 @@ textarea {
                                 <p class="modal-line">{% trans "Description" %} </p>
                                 <p class="desc">{{ iform.description }} </p>
                             {% endwith %}
-                            <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                            <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                             <div class="modal-footer">
                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                 <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -408,10 +408,10 @@ textarea {
                             <h3 id="change-input-label">{% trans "Change" %} {{ ptrt }}</h3>
                         </div>
                         <div class="modal-body">
-                            <form class="change-input-form" action="{% url change_process_type_input input_id=ptrt.id %}" method="POST" >
+                            <form class="change-input-form" action="{% url "change_process_type_input" input_id=ptrt.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ ptrt.xbill_change_form }}
-                                <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                                <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                                 <div class="modal-footer">
                                     <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                     <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -421,10 +421,10 @@ textarea {
                     </div>
 
                     <div style="display: inline;" >
-                      <form style="display: inline;" action="{% url delete_process_type_input process_input_id=ptrt.id resource_type_id=resource_type.id %}" method="POST" >
+                      <form style="display: inline;" action="{% url "delete_process_type_input" process_input_id=ptrt.id resource_type_id=resource_type.id %}" method="POST" >
                         {% csrf_token %}
                         <button class="btn btn-warning" title="Delete input item" >Delete</button>
-                        <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                        <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                       </form>
                     </div>
                     
@@ -478,10 +478,10 @@ textarea {
                 <h3 id="process-label">{% blocktrans %}Add next process type for {% endblocktrans %} {{ resource_type }} </h3>
             </div>
             <div class="modal-body">
-                <form class="process-form" action="{% url create_process_type_for_streaming resource_type_id=resource_type.id %}" method="POST">
+                <form class="process-form" action="{% url "create_process_type_for_streaming" resource_type_id=resource_type.id %}" method="POST">
                     {% csrf_token %}
                     {{ resource_type.process_stream_create_form }}
-                    <input type="hidden" name="next" value="{% url edit_stream_recipe resource_type_id=resource_type.id %}" />
+                    <input type="hidden" name="next" value="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" />
                     <div class="modal-footer">
                         <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                         <button class="btn btn-primary">{% trans "Save changes" %}</button>

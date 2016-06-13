@@ -91,7 +91,7 @@
                         This process fulfills a {{ process.independent_demand.get_order_type_display }}.</br>
                     {% endif %}</span>
                     <span class="emph" >{% trans "Order" %}:</span> 
-                    <a href="{% url order_schedule order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
+                    <a href="{% url "order_schedule" order_id=process.independent_demand.id %}">{{ process.independent_demand }}</a>
                     {% if process.independent_demand.description %}
                         <div class="description">{{ process.independent_demand.description|urlize|linebreaks }}</div>
                     {% endif %}
@@ -100,9 +100,9 @@
             {% endif %}
         </div>
         <div class="span3">
-            <div><a href="{% url projects %}">{% trans "All Contexts" %}</a></div>
+            <div><a href="{% url "projects" %}">{% trans "All Contexts" %}</a></div>
             {% if process.independent_demand %}
-                <div><a href="{% url demand %}">{% trans "All Orders" %}</a></div>
+                <div><a href="{% url "demand" %}">{% trans "All Orders" %}</a></div>
             {% endif %}
         </div>
     </div>
@@ -112,7 +112,7 @@
               <div class="prevnext pull-left">
                 <h4 class="title">{% trans "Previous processes" %}:</h4>
                 {% for proc in process.previous_processes %}
-                    <p><span class="process" ><a href="{% url unfold_process process_id=proc.id %}">{{ proc }}</a></span></p>
+                    <p><span class="process" ><a href="{% url "unfold_process" process_id=proc.id %}">{{ proc }}</a></span></p>
                 {% endfor %}
               </div>
               <img class="pull-left" src="{% static 'img/right.png' %}" />
@@ -167,7 +167,7 @@
               <div class="prevnext pull-left">
                 <h4 class="title">{% trans "Next processes" %}:</h4>
                 {% for proc in process.next_processes %}
-                    <p><span class="process" ><a href="{% url unfold_process process_id=proc.id %}">{{ proc }}</a></span></p>
+                    <p><span class="process" ><a href="{% url "unfold_process" process_id=proc.id %}">{{ proc }}</a></span></p>
                 {% endfor %}
               </div>
             </div>

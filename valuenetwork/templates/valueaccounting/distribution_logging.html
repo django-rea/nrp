@@ -151,7 +151,7 @@ li {
                             <h3 id="disbursement">{% trans "Log a Cash Disbursement" %}</h3>
                         </div>
                         <div class="modal-body">
-                            <form class="validateMe" id="disbursementForm" enctype="multipart/form-data" action="{% url add_disbursement distribution_id=dist.id %}" method="POST" >
+                            <form class="validateMe" id="disbursementForm" enctype="multipart/form-data" action="{% url "add_disbursement" distribution_id=dist.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ add_disbursement_form|as_bootstrap }}
                             <div class="modal-footer">
@@ -179,7 +179,7 @@ li {
                                         <h3 id="event-label{{ event.id }}">{% trans "Change Disbursement Event" %}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="validateMe" enctype="multipart/form-data" action="{% url change_disbursement_event event_id=event.id %}" method="POST" >
+                                        <form class="validateMe" enctype="multipart/form-data" action="{% url "change_disbursement_event" event_id=event.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ event.disbursement_change_form|as_bootstrap }}
                                             <div class="modal-footer">
@@ -193,7 +193,7 @@ li {
                                     style="display: inline;" 
                                     class="delete-form" 
                                     id="deleteForm{{ event.id }}" 
-                                    action="{% url delete_event event_id=event.id %}" 
+                                    action="{% url "delete_event" event_id=event.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" id="next" name="next" value="distribution" />
@@ -229,7 +229,7 @@ li {
                             <h3 id="distribution">{% trans "Log a Distribution" %}</h3>
                         </div>
                         <div class="modal-body">
-                            <form class="validateMe" id="distributionForm" enctype="multipart/form-data" action="{% url add_distribution distribution_id=dist.id %}" method="POST" >
+                            <form class="validateMe" id="distributionForm" enctype="multipart/form-data" action="{% url "add_distribution" distribution_id=dist.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ add_distribution_form|as_bootstrap }}
                             <div class="modal-footer">
@@ -259,7 +259,7 @@ li {
                                         <h3 id="event-label{{ event.id }}">{% trans "Change Distribution Event" %}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="validateMe" enctype="multipart/form-data" action="{% url change_distribution_event event_id=event.id %}" method="POST" >
+                                        <form class="validateMe" enctype="multipart/form-data" action="{% url "change_distribution_event" event_id=event.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ event.distribution_change_form|as_bootstrap }}
                                             <div class="modal-footer">
@@ -273,7 +273,7 @@ li {
                                     style="display: inline;" 
                                     class="delete-form" 
                                     id="deleteForm{{ event.id }}" 
-                                    action="{% url delete_event event_id=event.id %}" 
+                                    action="{% url "delete_event" event_id=event.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" id="next" name="next" value="distribution" />

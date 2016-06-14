@@ -31,7 +31,7 @@
         <div>
             <legend>
                 {% trans "Value Equation Bucket Filter demo" %} &nbsp;&nbsp;&nbsp;
-                <a href="{% url bucket_filter_header %}">{% trans "Start over" %}</a>
+                <a href="{% url "bucket_filter_header" %}">{% trans "Start over" %}</a>
             </legend>
             <p>
                 Filter set: {{ filter_set }}, Context: {{ context_agent }}, Event type: {{ event_type }}, Pattern: {{ pattern }}

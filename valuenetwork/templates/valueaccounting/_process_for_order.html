@@ -13,9 +13,9 @@
 {% if agent %}
     {% if process.too_late %}
         {% if process.start_date and process.end_date %}
-            <form class="reskedProcessForm" id="reskedProcessForm-{{ process.id }}" action="{% url forward_schedule_process process_id=process.id %}" method="POST" >
+            <form class="reskedProcessForm" id="reskedProcessForm-{{ process.id }}" action="{% url "forward_schedule_process" process_id=process.id %}" method="POST" >
                 {% csrf_token %}
-                <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                <input type="hidden" name="next" value="{% url "order_schedule" order_id=order.id %}" />
                 <span class="error" style="margin-left: 2em;">
                     {% if process.started %}
                         {% if process.end_date %}
@@ -67,7 +67,7 @@
 					        <li class="subline" >
 						        <span class="prefix created-prefix">{{ event.event_type.name }}:</span> 
 						        {% if event.resource %}
-                                    <a href="{% url resource resource_id=event.resource.id %}">{{ event.resource_type.name }} {{ event.resource.label }}</a>
+                                    <a href="{% url "resource" resource_id=event.resource.id %}">{{ event.resource_type.name }} {{ event.resource.label }}</a>
                                 {% else %}
                                     <a href="{{ event.resource_type.get_absolute_url }}">{{ event.resource_type.name }}</a>
                                 {% endif %}
@@ -91,7 +91,7 @@
 					{% if item.from_agent %}
 					    <span class="taken">{% trans "Taken by" %} {{ item.from_agent.nick }}</span>
 					    {% if agent == item.from_agent %}
-					        <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
+					        <a href="{% url "work_now" process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
 					    {% endif %}
 					{% else %}
 					     <span class="due">{% trans "due" %} {{ item.due_date }}</span>
@@ -127,7 +127,7 @@
 				        {% for resource in reqmt.onhand %}
 					        <li class="subline" >
 						        <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
-						        <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
+						        <a href="{% url "resource" resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
 						        {{ resource.quantity }} {{ resource.unit_of_quantity }}
 					        </li>
 				        {% endfor %}
@@ -140,9 +140,9 @@
 						        {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}
 						        {% if agent %}
 						            {% if source.too_late %}
-					                    <form class="reskedSourceForm" id="reskedSourceForm-{{ source.id }}" action="{% url forward_schedule_source commitment_id=source.commitment.id source_id=source.id %}" method="POST" >
+					                    <form class="reskedSourceForm" id="reskedSourceForm-{{ source.id }}" action="{% url "forward_schedule_source" commitment_id=source.commitment.id source_id=source.id %}" method="POST" >
                                             {% csrf_token %}
-                                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                            <input type="hidden" name="next" value="{% url "order_schedule" order_id=order.id %}" />
 					                        <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;
                                             <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
                                         </form>
@@ -177,7 +177,7 @@
 			            {% for resource in reqmt.onhand %}
 				            <li class="subline" >
 					            <span class="prefix onhand-prefix">{% trans "Onhand" %}:</span> 
-					            <a href="{% url resource resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
+					            <a href="{% url "resource" resource_id=resource.id %}">{{ resource.resource_type.name }} {{ resource.label }}</a> 
 					            {{ resource.quantity }} {{ resource.unit_of_quantity }}
 				            </li>
 			            {% endfor %}

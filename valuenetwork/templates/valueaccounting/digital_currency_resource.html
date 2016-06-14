@@ -58,7 +58,7 @@
                 <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
             {% endif %}
 
-            <a href="{% url event_history resource_id=resource.id %}">{% trans "Event history" %}</a>&nbsp;&nbsp;
+            <a href="{% url "event_history" resource_id=resource.id %}">{% trans "Event history" %}</a>&nbsp;&nbsp;
 
             <a href="https://chain.fair-coin.org/address/{{ resource.digital_currency_address }}" target="_blank" >{% trans "Follow Chain" %}</a>
 		</legend>
@@ -70,7 +70,7 @@
 				    <h3 id="resource-change-label">{% trans "Change" %} {{ resource }}</h3>
 			    </div>
 			    <div class="modal-body">
-				    <form id="resource-change-form" action="{% url change_resource resource_id=resource.id %}" method="POST" >
+				    <form id="resource-change-form" action="{% url "change_resource" resource_id=resource.id %}" method="POST" >
 					    {% csrf_token %}
 					    {{ resource.change_form|as_bootstrap }}
                         {{ role_formset.management_form }}
@@ -192,7 +192,7 @@
 	        <div id="coins" class="span6 info">
                 {% if send_coins_form %}
                     <h3 id="coinHeader" >{% trans "Send Faircoins" %}</h3>
-                    <form id="sendCoinsForm" action="{% url send_faircoins resource_id=resource.id %}" method="POST" >
+                    <form id="sendCoinsForm" action="{% url "send_faircoins" resource_id=resource.id %}" method="POST" >
                         {% csrf_token %}
                         {{ send_coins_form|as_bootstrap }}
                         <button class="btn btn-primary" name="sendCoins" value="coins">{% trans "Send" %}</button>

@@ -260,3 +260,5 @@ try:
 except ImportError:
     pass
 
+# updating to django 1.5
+USE_TZ = True

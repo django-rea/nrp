@@ -24,12 +24,12 @@
 		{% endif %}
 
 		<div>
-	<form style="display: inline;" action="{% url delete_feature feature_id=feature.id %}" method="POST">
+	<form style="display: inline;" action="{% url "delete_feature" feature_id=feature.id %}" method="POST">
 		{% csrf_token %}
     		<input type="submit" value="{% trans 'Delete' %}" class="btn btn-warning" />
-			<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type_id %}" />
+			<input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type_id %}" />
 	</form>
-	<form style="display: inline;" action="{% url edit_extended_bill resource_type_id=resource_type_id %}" method="GET">
+	<form style="display: inline;" action="{% url "edit_extended_bill" resource_type_id=resource_type_id %}" method="GET">
     		<input type="submit" value="{% trans 'Cancel' %}" class="btn btn-info" />
     </form>
 

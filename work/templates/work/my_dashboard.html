@@ -201,14 +201,14 @@ th, td {
                                     {% trans "Process" %}: {{ item.process }}
                                     {% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %} </br>
                                     {% if work_now %}
-                                        <a href="{% url work_timer process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
+                                        <a href="{% url "work_timer" process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
                                     {% endif %}
-                                    <a href="{% url process_logging process_id=item.process.id %}" role="button" class="btn btn-info btn-mini">Log work on process</a>
+                                    <a href="{% url "process_logging" process_id=item.process.id %}" role="button" class="btn btn-info btn-mini">Log work on process</a>
                                     <form
                                         style="display: inline;" 
                                         class="finish-form" 
                                         id="finishForm{{ item.id }}" 
-                                        action="{% url commitment_finished commitment_id=item.id %}" 
+                                        action="{% url "commitment_finished" commitment_id=item.id %}" 
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" id="next" name="next" value="work-start" />
@@ -218,7 +218,7 @@ th, td {
                                         style="display: inline;" 
                                         class="uncommit-form" 
                                         id="uncommitForm{{ item.id }}" 
-                                        action="{% url uncommit commitment_id=item.id %}" 
+                                        action="{% url "uncommit" commitment_id=item.id %}" 
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" id="next" name="next" value="work-start" />
@@ -261,10 +261,10 @@ th, td {
 
 												<div class="row-fluid">
 													<div class="span12">
-														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+														<form class="commitmentForm" enctype="multipart/form-data" action="{% url "commit_to_task" commitment_id=item.id %}" method="POST" >
 															{% csrf_token %}
 															{{ item.commitment_form|as_bootstrap }}
-															<input type="hidden" name="next" value="{% url my_dashboard %}" />
+															<input type="hidden" name="next" value="{% url "my_dashboard" %}" />
 														  <div class="modal-footer">
 															<input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
 															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
@@ -339,10 +339,10 @@ th, td {
 
                                                 <div class="row-fluid">
                                                     <div class="span12">
-                                                        <form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+                                                        <form class="commitmentForm" enctype="multipart/form-data" action="{% url "commit_to_task" commitment_id=item.id %}" method="POST" >
                                                             {% csrf_token %}
                                                             {{ item.commitment_form|as_bootstrap }}
-                                                            <input type="hidden" name="next" value="{% url my_dashboard %}" />
+                                                            <input type="hidden" name="next" value="{% url "my_dashboard" %}" />
                                                           <div class="modal-footer">
                                                             <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
                                                             <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
@@ -365,7 +365,7 @@ th, td {
                                     {% endif %}
                                 </li>
                                 <p style="margin-left: 1em; margin-bottom: 0;">
-                                    {% trans "for process" %}: <a href="{% url process_logging process_id=item.process.id %}">{{ item.process }}</a>
+                                    {% trans "for process" %}: <a href="{% url "process_logging" process_id=item.process.id %}">{{ item.process }}</a>
                                 </p>
                                 <p style="margin-left: 1em; margin-bottom: 0;">
                                     {% trans "for order" %}: {{ item.independent_demand }}
@@ -497,7 +497,7 @@ th, td {
         {
             var hours = timeInput.value;
             notifySaving();
-		    var jqxhr = $.post("{% url todo_time  %}",  { todoId: id, hours: hours },
+		    var jqxhr = $.post("{% url "todo_time"  %}",  { todoId: id, hours: hours },
 			    function( data ) 
 			    {
 				    notifySaved();
@@ -516,7 +516,7 @@ th, td {
         var id = didInput.id.split('-')[0];;
         var did = didInput.value;
         notifySaving();
-	    var jqxhr = $.post("{% url todo_description  %}",  { todoId: id, did: did },
+	    var jqxhr = $.post("{% url "todo_description"  %}",  { todoId: id, did: did },
 		    function( data ) 
 		    {
 			    notifySaved();

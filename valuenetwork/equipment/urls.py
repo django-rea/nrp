@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url
-from django.views.generic.simple import direct_to_template
+from django.views.generic import TemplateView
 
 urlpatterns = patterns("",
     url(r"^log-equipment-use/(?P<scenario>\d+)/(?P<equip_resource_id>\d+)/(?P<context_agent_id>\d+)/(?P<pattern_id>\d+)/(?P<sale_pattern_id>\d+)/(?P<equip_svc_rt_id>\d+)/(?P<equip_fee_rt_id>\d+)/(?P<tech_rt_id>\d+)/(?P<consumable_rt_id>\d+)/(?P<payment_rt_id>\d+)/(?P<tech_rel_id>\d+)/(?P<ve_id>\d+)/(?P<va_id>\d+)/(?P<price_id>\d+)/(?P<part_rt_id>\d+)/(?P<cite_rt_id>\d+)/$",

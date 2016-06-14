@@ -112,7 +112,7 @@ textarea {
         <legend>
             {% trans "View Workflow Recipe for " %} {{ resource_type }} 
             {% if agent %}
-                <a href="{% url edit_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+                <a href="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
                     {% trans "Change Recipe" %}
                 </a>
             {% endif %}

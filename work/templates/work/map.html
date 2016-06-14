@@ -46,7 +46,7 @@
                 <span id="locPrompt">{% trans "Select a marker on the map, or search for a new one." %}</span>
             {% endif %}
             
-            <form id="locationForm" method="POST" action="{% url add_location_to_worker agent_id=agent.id %}">
+            <form id="locationForm" method="POST" action="{% url "add_location_to_worker" agent_id=agent.id %}">
                  {% csrf_token %}
                 
                 <span id="addToLoc"></span>
@@ -162,7 +162,7 @@
                     .on('popupopen', showUrls)
                     .on('popupclose', hideUrls);
                 {% if agent %}
-                    marker.addAgentUrl = "{% url add_worker_to_location location_id=loc.id agent_id=agent.id %}";
+                    marker.addAgentUrl = "{% url "add_worker_to_location" location_id=loc.id agent_id=agent.id %}";
                 {% endif %}
                 marker.name = locName;
                 marker.agents = agents;

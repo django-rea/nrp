@@ -36,7 +36,7 @@ text {
     <div class="container">
 		<h1>{% trans "Log Time Contributions for " %} {{ member }}</h1>
 		{% if member.id %}
-		<p><a href="{% url 'contribution_history' agent_id=member.id %}">{% trans "Contribution history for " %} {{ member }}</a></p>
+		<p><a href="{% url "'contribution_history'" agent_id=member.id %}">{% trans "Contribution history for " %} {{ member }}</a></p>
 		{% endif %}
 
 		<p>

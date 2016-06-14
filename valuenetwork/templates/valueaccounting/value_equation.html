@@ -45,8 +45,8 @@ th
       {% include "_messages.html" %}
 	  <div>
 		<legend>{% trans "Value Time Contributions for " %} {{ project }}
-            <a class="btn btn-info btn-head" href="{% url 'create_distribution' agent_id=project.id %}">{% trans "Distribute Income" %}</a>
-            &nbsp;<a href="{% url 'sales_and_distributions' agent_id=project.id %}">{% trans "Sales and Distributions" %}</a>
+            <a class="btn btn-info btn-head" href="{% url "'create_distribution'" agent_id=project.id %}">{% trans "Distribute Income" %}</a>
+            &nbsp;<a href="{% url "'sales_and_distributions'" agent_id=project.id %}">{% trans "Sales and Distributions" %}</a>
 		</legend>
 		<form method="POST" action=".">
 		    {% csrf_token %}

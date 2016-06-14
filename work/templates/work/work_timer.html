@@ -134,7 +134,7 @@
 			<div class="span3">
 			    <div class="row-fluid">
 				    <div class="span10">
-				        <a href="{% url process_logging process_id=process.id %}" class="btn btn-primary" 
+				        <a href="{% url "process_logging" process_id=process.id %}" class="btn btn-primary" 
 				            title="Close page" >
 				            {% trans "Save and Go Back" %}
 			            </a>
@@ -434,7 +434,7 @@
 	{
 	    var commitmentId = {{ commitment.id }};
 		notifySaving();
-		var jqxhr = $.post("{% url work_done  %}",  { commitmentId: commitmentId, done: done },
+		var jqxhr = $.post("{% url "work_done"  %}",  { commitmentId: commitmentId, done: done },
 			function( data ) 
 			{
 				notifySaved();
@@ -454,7 +454,7 @@
 	    var processId = {{ process.id }};
 	    var commitmentId = {{ commitment.id }};
 		notifySaving();
-		var jqxhr = $.post("{% url process_done  %}",  { processId: processId, commitmentId: commitmentId, done: done },
+		var jqxhr = $.post("{% url "process_done"  %}",  { processId: processId, commitmentId: commitmentId, done: done },
 			function( data ) 
 			{
 				notifySaved();
@@ -473,7 +473,7 @@
 	function saveTimeInput(id, resourceId, quantity)
 	{
 		notifySaving();
-		var jqxhr = $.post("{% url time_use_event_for_commitment  %}",  { id: id, resourceId: resourceId, quantity: quantity },
+		var jqxhr = $.post("{% url "time_use_event_for_commitment"  %}",  { id: id, resourceId: resourceId, quantity: quantity },
 			function( data ) 
 			{
 				notifySaved();

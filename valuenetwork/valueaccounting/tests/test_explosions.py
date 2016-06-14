@@ -182,11 +182,11 @@ class ExplosionTest(TestCase):
         #When I reschedule the child process forward,
         child_process.reschedule_forward(delta_days, self.user)        
         #(get the parent_process again because it has changed)
-        parent_process = child_input.process        
+        parent_process = Process.objects.get(id=process.id)     
         #then the child_process will no longer start in the past,
         self.assertFalse(child_process.too_late())        
         #and the end item due date will now be in the future.
-        #self.assertTrue(parent_process.end_date > datetime.date.today())
+        self.assertTrue(parent_process.end_date > datetime.date.today())
         
         #When I reschedule forward from the purchase lead time,
         grandchild_input.reschedule_forward_from_source(source.lead_time, self.user)

@@ -12,7 +12,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.forms.models import formset_factory, modelformset_factory, inlineformset_factory, BaseModelFormSet
 from django.forms import ValidationError
-from django.utils import simplejson
+import json as simplejson
 from django.utils.datastructures import SortedDict
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings

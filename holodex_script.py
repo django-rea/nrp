@@ -14,7 +14,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "valuenetwork.settings")
 
 #from collections import OrderedDict
 
-#from django.utils import simplejson
+#import json as simplejson
 import csv
 
 from valuenetwork.valueaccounting.models import *

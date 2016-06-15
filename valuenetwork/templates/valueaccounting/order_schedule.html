@@ -96,7 +96,7 @@ textarea {
 	<div>
 		<legend>{% trans "Schedule for " %}{{ order }}
             {% if order.exchange %}
-                <a href="{% url exchange_logging exchange_type_id=0 exchange_id=order.exchange.id %}" style="display: inline;"  class="btn btn-info indent" title="Exchange for this order" >Go to Exchange</a>
+                <a href="{% url "exchange_logging" exchange_type_id=0 exchange_id=order.exchange.id %}" style="display: inline;"  class="btn btn-info indent" title="Exchange for this order" >Go to Exchange</a>
             {% endif %}
         </legend>
 		
@@ -142,12 +142,12 @@ textarea {
                                 </div>
 
                                 <div class="modal-body">
-                                    <form class="resource-qty-form validateMe" enctype="multipart/form-data" action="{% url change_commitment_quantities order_item_id=item.id %}" method="POST" >
+                                    <form class="resource-qty-form validateMe" enctype="multipart/form-data" action="{% url "change_commitment_quantities" order_item_id=item.id %}" method="POST" >
                                         {% csrf_token %}
                                         {{ item.resource_qty_form }} {{ unit }}
                                         <p>This will change the planned quantity for the workflow resource on all processes for this order item.</p>
                                         <p>If work inputs also are using the same quantity and unit, they will also be changed.</p>
-                                        <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                        <input type="hidden" name="next" value="{% url "order_schedule" order_id=order.id %}" />
                                         <div class="modal-footer">
                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                             <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -163,11 +163,11 @@ textarea {
                                 </div>
 
                                 <div class="modal-body">
-                                    <form class="wf-project-form validateMe" enctype="multipart/form-data" action="{% url change_workflow_project order_item_id=item.id %}" method="POST" >
+                                    <form class="wf-project-form validateMe" enctype="multipart/form-data" action="{% url "change_workflow_project" order_item_id=item.id %}" method="POST" >
                                         {% csrf_token %}
                                         {{ item.project_form }}
                                         <p>This will change the project on all processes for this order item.</p>
-                                        <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                        <input type="hidden" name="next" value="{% url "order_schedule" order_id=order.id %}" />
                                         <div class="modal-footer">
                                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                             <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -191,10 +191,10 @@ textarea {
                         <h3 id="order-item-label">{% trans "Add another Order Item" %} </h3>
                     </div>
                     <div class="modal-body">
-                        <form class="order-item-form validateMe" enctype="multipart/form-data" action="{% url add_order_item order_id=order.id %}" method="POST" >
+                        <form class="order-item-form validateMe" enctype="multipart/form-data" action="{% url "add_order_item" order_id=order.id %}" method="POST" >
                             {% csrf_token %}
                             {{ add_order_item_form|as_bootstrap }}
-                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                            <input type="hidden" name="next" value="{% url "order_schedule" order_id=order.id %}" />
                             <div class="modal-footer">
                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                 <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -210,9 +210,9 @@ textarea {
 					<h3 style="margin-bottom: 4px;" >
 					    {% trans "Production Schedule" %}:
 					    {% if order.all_processes %}
-                            <a class="indent" href="{% url processes_graph object_type='O' object_id=order.id %}">Process graph diagram</a>
+                            <a class="indent" href="{% url "processes_graph" object_type='O' object_id=order.id %}">Process graph diagram</a>
                             
-                            <a class="indent" href="{% url order_timeline order_id=order.id %}">Timeline</a>
+                            <a class="indent" href="{% url "order_timeline" order_id=order.id %}">Timeline</a>
 					    {% endif %}
 				    </h3> 
 					
@@ -239,7 +239,7 @@ textarea {
                                 <h3 id="productionProcess-label">{% trans "Add Production Process" %}</h3>
                             </div>
                             <div class="modal-body">
-                                <form class="productionProcess{{ item.id }} validateMe" action="{% url create_production_process commitment_id=item.id %}" method="POST" >
+                                <form class="productionProcess{{ item.id }} validateMe" action="{% url "create_production_process" commitment_id=item.id %}" method="POST" >
                                     {% csrf_token %}
                                     {{ item.process_form|as_bootstrap }}
                                     <input type="hidden" id="next" name="next" value="process" />
@@ -274,7 +274,7 @@ textarea {
                                         <h3 id="process-insert-label">{% blocktrans %}Insert process for {% endblocktrans %} {{ order }} </h3>
                                     </div>
                                     <div class="modal-body">
-                                    <form class="process-form validateMe" action="{% url insert_process_for_streaming order_item_id=item.id process_id=process.id %}" method="POST">
+                                    <form class="process-form validateMe" action="{% url "insert_process_for_streaming" order_item_id=item.id process_id=process.id %}" method="POST">
                                             {% csrf_token %}
                                             
                                             {% with process.insert_process_form as processForm %}
@@ -298,7 +298,7 @@ textarea {
                                                 </table>
                                             {% endwith %}
                                             
-                                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                            <input type="hidden" name="next" value="{% url "order_schedule" order_id=order.id %}" />
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -325,10 +325,10 @@ textarea {
                                         <h3 id="process-change-label">{% trans "Change" %} {{ process.name }}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="process-change-form validateMe" action="{% url change_process_plan process_id=process.id %}" method="POST" >
+                                        <form class="process-change-form validateMe" action="{% url "change_process_plan" process_id=process.id %}" method="POST" >
                                             {% csrf_token %}
                                             {{ process.plan_change_form }}
-                                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                            <input type="hidden" name="next" value="{% url "order_schedule" order_id=order.id %}" />
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -341,10 +341,10 @@ textarea {
                                  {% if process.is_deletable %}
                                   <form
                                     id="deleteProcessForm{{ process.id }}" 
-                                    action="{% url delete_workflow_process order_item_id=item.id process_id=process.id %}" 
+                                    action="{% url "delete_workflow_process" order_item_id=item.id process_id=process.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
-                                    <input type="hidden" id="next" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                    <input type="hidden" id="next" name="next" value="{% url "order_schedule" order_id=order.id %}" />
                                     <button class="btn btn-warning btn-mini" title="Delete this process" >Delete process</button>
                                   </form>    
                                 {% endif %}
@@ -370,7 +370,7 @@ textarea {
                                         <h3 id="process-add-label">{% blocktrans %}Add process for {% endblocktrans %} {{ order }} </h3>
                                     </div>
                                     <div class="modal-body">
-                                    <form class="process-form validateMe" action="{% url create_process_for_streaming order_item_id=item.id %}" method="POST">
+                                    <form class="process-form validateMe" action="{% url "create_process_for_streaming" order_item_id=item.id %}" method="POST">
                                             {% csrf_token %}
 
                                             <table>
@@ -392,7 +392,7 @@ textarea {
                                                 <tr><td>{{ item.add_process_form.notes }}</td></tr>
                                             </table>
                                             
-                                            <input type="hidden" name="next" value="{% url order_schedule order_id=order.id %}" />
+                                            <input type="hidden" name="next" value="{% url "order_schedule" order_id=order.id %}" />
                                             <div class="modal-footer">
                                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                                 <button class="btn btn-primary">{% trans "Save changes" %}</button>

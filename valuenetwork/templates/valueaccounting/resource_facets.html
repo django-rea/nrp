@@ -115,7 +115,7 @@
                 var newVal = changeArray[3];
                 var facet = headings[prop];
                 var rt = this.getDataAtCell(row, 0);
-                var jqxhr = $.post("{% url change_resource_facet_value  %}",  { facet: facet, resourceType: rt, facetValue: newVal },
+                var jqxhr = $.post("{% url "change_resource_facet_value"  %}",  { facet: facet, resourceType: rt, facetValue: newVal },
 			        function( data ) 
 			        {
 				        //notifySaved();

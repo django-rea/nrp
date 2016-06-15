@@ -40,45 +40,45 @@
                                 <span class="icon-bar"></span>
                                 <span class="icon-bar"></span>
                             </a>
-                            {% block site_brand %}<a class="brand" href="{% url 'home' %}">{{ SITE_NAME }}</a>{% endblock %}
+                            {% block site_brand %}<a class="brand" href="{% url "home" %}">{{ SITE_NAME }}</a>{% endblock %}
                             <div class="nav-collapse">
                                 {% block nav %}
                                         <ul class="nav">
                                             <li id="projects" >
-                                                <a href="{% url 'projects' %}" 
+                                                <a href="{% url "projects" %}" 
                                                 title="{% trans 'Networks and Projects' %}" 
                                                 >{% trans 'Organization' %}</a>
                                             </li>
                                             <li id="demand" >
-                                                <a href="{% url 'demand' %}" 
+                                                <a href="{% url "demand" %}" 
                                                 title="{% trans 'Customer and R&amp;D Orders' %}" 
                                                 >{% trans 'Demand' %}</a>
                                             </li>
                                             <li id="supply" >
-                                                <a href="{% url 'supply' %}" 
+                                                <a href="{% url "supply" %}" 
                                                 title="{% trans 'Purchasing requirements now, purchasing forms to come' %}" 
                                                 >{% trans 'Supply' %}</a>
                                             </li>
                                             <li id="inventory" >
-                                                <a href="{% url 'inventory' %}" 
+                                                <a href="{% url "inventory" %}" 
                                                 title="{% trans 'Available resources with their histories' %}"  
                                                 >{% trans 'Inventory' %}</a>
                                             </li>
                                             <li id="distribution" >
-                                                <a href="{% url 'value_equations' %}" 
+                                                <a href="{% url "value_equations" %}" 
                                                 title="{% trans 'Value Equations and income distributions' %}" 
                                                 >{% trans 'Distribution' %}</a>
                                             </li>
                                             
                                             {% if request.user.is_authenticated %}
                                                 <li id="my-work" >
-                                                    <a href="{% url 'start' %}"  
+                                                    <a href="{% url "start" %}"  
                                                     title="{% trans 'Your work and comparative stats' %}"  
                                                     >{% trans 'My Work' %}</a>
                                                 </li>
                                             {% endif %}
                                             <li id="work" >
-                                                <a href="{% url 'work' %}" 
+                                                <a href="{% url "work" %}" 
                                                 title="{% trans 'All the work in the network for a date range' %}" 
                                                 >{% trans 'All Work' %}</a>
                                             </li>

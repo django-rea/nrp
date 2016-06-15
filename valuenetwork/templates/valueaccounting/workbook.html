@@ -121,7 +121,7 @@
 							<li>
 								<b>{{ item.from_agent }}</b> {% trans "doing" %} {{ item.resource_type }}
                                 {% if item.has_labnotes %}
-									<a href="{% url labnote commitment_id=item.id %}" target="_blank" class="lablink">Work Now</a>
+									<a href="{% url "labnote" commitment_id=item.id %}" target="_blank" class="lablink">Work Now</a>
 								{% endif %}
 							</li>
 
@@ -145,7 +145,7 @@
 					    </p>
 				    </div>
 				    <div class="span2">
-				        <a href="{% url labnote commitment_id=commitment.id %}" class="btn btn-primary btn-mini" 
+				        <a href="{% url "labnote" commitment_id=commitment.id %}" class="btn btn-primary btn-mini" 
 				            title="Close page" >
 				            {% trans "Close" %}
 			            </a>
@@ -202,7 +202,7 @@
 				                
 				            </div>
 				            <div class="modal-body">
-					            <form class="output-form" enctype="multipart/form-data" id="addOutputForm" action="{% url new_process_output commitment_id=commitment.id %}" method="POST" >
+					            <form class="output-form" enctype="multipart/form-data" id="addOutputForm" action="{% url "new_process_output" commitment_id=commitment.id %}" method="POST" >
 						            {% csrf_token %}
 
 					                    <p class="modal-line">{% trans "Resource Type" %} </p>
@@ -266,7 +266,7 @@
 				                
 				            </div>
 				            <div class="modal-body">
-					            <form class="cite-form" enctype="multipart/form-data" id="addCitationForm" action="{% url new_process_citation commitment_id=commitment.id %}" method="POST" >
+					            <form class="cite-form" enctype="multipart/form-data" id="addCitationForm" action="{% url "new_process_citation" commitment_id=commitment.id %}" method="POST" >
 						            {% csrf_token %}
 
 					                    {{ add_citation_form|as_bootstrap }}
@@ -293,7 +293,7 @@
 				            </div>
 				            <div class="modal-body">
 					            <form class="consumable-form" enctype="multipart/form-data" id="addConsumableForm" 
-					                action="{% url new_process_input commitment_id=commitment.id slot='c' %}" method="POST" >
+					                action="{% url "new_process_input" commitment_id=commitment.id slot='c' %}" method="POST" >
 						            {% csrf_token %}
 
 					                    {{ add_consumable_form|as_bootstrap }}
@@ -320,7 +320,7 @@
 				            </div>
 				            <div class="modal-body">
 					            <form class="usable-form" enctype="multipart/form-data" id="addUsableForm" 
-					                action="{% url new_process_input commitment_id=commitment.id  slot='u' %}" method="POST" >
+					                action="{% url "new_process_input" commitment_id=commitment.id  slot='u' %}" method="POST" >
 						            {% csrf_token %}
 
 					                    {{ add_usable_form|as_bootstrap }}
@@ -346,7 +346,7 @@
 				                
 				            </div>
 				            <div class="modal-body">
-					            <form class="work-form" id="addWorkForm" action="{% url new_process_worker commitment_id=commitment.id %}" method="POST" >
+					            <form class="work-form" id="addWorkForm" action="{% url "new_process_worker" commitment_id=commitment.id %}" method="POST" >
 						            {% csrf_token %}
 
 					                    {{ add_work_form|as_bootstrap }}
@@ -378,7 +378,7 @@
 								    <form style="display: inline;" 
 								        class="delete-form" 
 								        id="deleteForm{{ item.id }}" 
-								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								        action="{% url "delete_commitment" commitment_id=item.id labnotes_id=commitment.id %}" 
 								        method="POST" >
 					                    {% csrf_token %}
                                     	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
@@ -419,7 +419,7 @@
 						                
 						            </div>
 						            <div class="modal-body">
-							            <form class="detail-form" enctype="multipart/form-data" id="detailForm{{ item.id }}" action="{% url resource_event_for_commitment commitment_id=item.id %}" method="POST" >
+							            <form class="detail-form" enctype="multipart/form-data" id="detailForm{{ item.id }}" action="{% url "resource_event_for_commitment" commitment_id=item.id %}" method="POST" >
 								            {% csrf_token %}
 
 
@@ -430,7 +430,7 @@
 						                    {% endif %}
 						                    
                                         	<input type="hidden" name="itemId" value="{{ item.id }}" />					            
-								            <input type="hidden" name="next" value="{% url work_commitment commitment_id=commitment.id %}" />
+								            <input type="hidden" name="next" value="{% url "work_commitment" commitment_id=commitment.id %}" />
 							              <div class="modal-footer">
 								            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 								            <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -448,10 +448,10 @@
 							        <h3 id="failure-label">{% trans "Failed" %} {{ item.resource_type.name }}</h3>
 						        </div>
 						        <div class="modal-body">
-							        <form class="failure-form" id="failForm{{ item.id }}" action="{% url failed_outputs commitment_id=item.id %}" method="POST" >
+							        <form class="failure-form" id="failForm{{ item.id }}" action="{% url "failed_outputs" commitment_id=item.id %}" method="POST" >
 								        {% csrf_token %}
 								        {{ failure_form|as_bootstrap }}
-								        <input type="hidden" name="next" value="{% url work_commitment commitment_id=commitment.id %}" />
+								        <input type="hidden" name="next" value="{% url "work_commitment" commitment_id=commitment.id %}" />
 							          <div class="modal-footer">
 								        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 								        <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -477,7 +477,7 @@
 							        <form style="display: inline;" 
 								        class="delete-form" 
 								        id="deleteForm{{ item.id }}" 
-								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								        action="{% url "delete_commitment" commitment_id=item.id labnotes_id=commitment.id %}" 
 								        method="POST" >
 					                    {% csrf_token %}
                                     	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
@@ -491,7 +491,7 @@
 							{% if item.onhand %}
 								{% for resource in item.onhand %}
 									<li>
-										<b>{% trans "Onhand" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b> 
+										<b>{% trans "Onhand" %}: <a href="{% url "resource" resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b> 
 										{% trans "Cite" %}: <input class="input-mini cited" id="{{ resource.id }}" name="{{ item.id }}" type="checkbox" 
 										    {% if resource.id in cited_ids %} checked="checked" {% endif %} /></br>
 									</li>
@@ -522,7 +522,7 @@
 							        <form style="display: inline;" 
 								        class="delete-form" 
 								        id="deleteForm{{ item.id }}" 
-								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								        action="{% url "delete_commitment" commitment_id=item.id labnotes_id=commitment.id %}" 
 								        method="POST" >
 					                    {% csrf_token %}
                                     	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
@@ -536,7 +536,7 @@
 							{% if item.onhand %}
 								{% for resource in item.onhand_with_fulfilled_quantity %}
 									<li>
-										<b>{% trans "Onhand" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b> 
+										<b>{% trans "Onhand" %}: <a href="{% url "resource" resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b> 
 										<span id="onhand-{{resource.id}}">{{ resource.quantity }}</span> {{ resource.unit_of_quantity }}</br>
 										{% trans "Used" %}: <input class="input-mini used-quantity" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
 									</li>
@@ -579,7 +579,7 @@
 								        <form style="display: inline;" 
 								            class="delete-form" 
 								            id="deleteForm{{ item.id }}" 
-								            action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								            action="{% url "delete_commitment" commitment_id=item.id labnotes_id=commitment.id %}" 
 								            method="POST" >
 					                        {% csrf_token %}
                                         	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
@@ -593,7 +593,7 @@
 									{% if item.onhand %}
 										{% for resource in item.onhand_with_fulfilled_quantity %}
 											<li>
-												<b>{% trans "Available" %}: <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b></br>
+												<b>{% trans "Available" %}: <a href="{% url "resource" resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a></b></br>
 												{% trans "Used" %}: <input class="input-mini time-used" id="{{ item.id }}" name="{{ resource.id }}" type="text" size="6" value="{{ resource.fulfilled_quantity }}" /></br>
 											</li>
 										{% endfor %}
@@ -634,7 +634,7 @@
 								    <form style="display: inline;" 
 								        class="delete-form" 
 								        id="deleteForm{{ item.id }}" 
-								        action="{% url delete_commitment commitment_id=item.id labnotes_id=commitment.id %}" 
+								        action="{% url "delete_commitment" commitment_id=item.id labnotes_id=commitment.id %}" 
 								        method="POST" >
 					                    {% csrf_token %}
                                     	<input type='hidden' id='deleteRunning{{ item.id }}' name='wasRunning' value='' />
@@ -669,7 +669,7 @@
     <script type="text/javascript">
 
     var commitment_id = {{ commitment.id }};
-    var returnUrl = "{% url work_commitment commitment_id=commitment.id %}";
+    var returnUrl = "{% url "work_commitment" commitment_id=commitment.id %}";
 	var start = new Date();
     var duration = {{ duration }};
     var description = "";
@@ -1571,7 +1571,7 @@
 		var $form = $(formId);
 		var detailQtyId = $form.find( 'input[name*="quantity"]' ).attr('id');
 		detailQtyId = "#" + detailQtyId;
-		var jqxhr = $.post("{% url production_event_for_commitment %}",  { id: id, quantity: quantity },
+		var jqxhr = $.post("{% url "production_event_for_commitment" %}",  { id: id, quantity: quantity },
 			function( data ) 
 			{
 				notifySaved();
@@ -1590,7 +1590,7 @@
 	function saveInput(id, resourceId, quantity)
 	{
 		notifySaving();
-		var jqxhr = $.post("{% url consumption_event_for_commitment  %}",  { id: id, resourceId: resourceId, quantity: quantity },
+		var jqxhr = $.post("{% url "consumption_event_for_commitment"  %}",  { id: id, resourceId: resourceId, quantity: quantity },
 			function( data ) 
 			{
 				notifySaved();
@@ -1615,7 +1615,7 @@
 	function saveCitation(id, resourceId, cited)
 	{
 		notifySaving();
-		var jqxhr = $.post("{% url citation_event_for_commitment  %}",  { id: id, resourceId: resourceId, cited: cited },
+		var jqxhr = $.post("{% url "citation_event_for_commitment"  %}",  { id: id, resourceId: resourceId, cited: cited },
 			function( data ) 
 			{
 				notifySaved();
@@ -1634,7 +1634,7 @@
 	{
 	    var commitmentId = {{ commitment.id }};
 		notifySaving();
-		var jqxhr = $.post("{% url work_done  %}",  { commitmentId: commitmentId, done: done },
+		var jqxhr = $.post("{% url "work_done"  %}",  { commitmentId: commitmentId, done: done },
 			function( data ) 
 			{
 				notifySaved();
@@ -1654,7 +1654,7 @@
 	    var processId = {{ process.id }};
 	    var commitmentId = {{ commitment.id }};
 		notifySaving();
-		var jqxhr = $.post("{% url process_done  %}",  { processId: processId, commitmentId: commitmentId, done: done },
+		var jqxhr = $.post("{% url "process_done"  %}",  { processId: processId, commitmentId: commitmentId, done: done },
 			function( data ) 
 			{
 				notifySaved();
@@ -1673,7 +1673,7 @@
 	function saveTimeInput(id, resourceId, quantity)
 	{
 		notifySaving();
-		var jqxhr = $.post("{% url time_use_event_for_commitment  %}",  { id: id, resourceId: resourceId, quantity: quantity },
+		var jqxhr = $.post("{% url "time_use_event_for_commitment"  %}",  { id: id, resourceId: resourceId, quantity: quantity },
 			function( data ) 
 			{
 				notifySaved();

@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.template.defaultfilters import slugify
-from django.utils import simplejson
+import json as simplejson
 
 from easy_thumbnails.fields import ThumbnailerImageField
 

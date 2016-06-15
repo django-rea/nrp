@@ -28,7 +28,7 @@
                     style="display: inline;" 
                     class="delete-resource-form" 
                     id="deleteResourceForm{{ orphan.id }}" 
-                    action="{% url delete_resource resource_id=orphan.id %}" 
+                    action="{% url "delete_resource" resource_id=orphan.id %}" 
                     method="POST" >
                     {% csrf_token %}
                 	<input type="hidden" id="next" name="next" value="cleanup-resources" />

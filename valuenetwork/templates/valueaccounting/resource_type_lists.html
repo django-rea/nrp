@@ -53,7 +53,7 @@
             {% trans "Resource Type Lists" %} &nbsp;&nbsp;&nbsp;
             {% if agent %}
                 <div style="display: inline;" >
-                    <a href="{% url create_resource_type_list %}" role="button" class="btn btn-primary" >{% trans "Create new List" %}</a>
+                    <a href="{% url "create_resource_type_list" %}" role="button" class="btn btn-primary" >{% trans "Create new List" %}</a>
                 </div>
             {% endif %}
 
@@ -69,12 +69,12 @@
                     <span class="name">{{ rtl.name }}</span>
                     {% if agent %}
                         <div style="display: inline;" >
-                            <a href="{% url change_resource_type_list list_id=rtl.id %}" role="button" class="btn btn-primary btn-mini" >{% trans "Change" %}</a>
+                            <a href="{% url "change_resource_type_list" list_id=rtl.id %}" role="button" class="btn btn-primary btn-mini" >{% trans "Change" %}</a>
                             <form
                                 style="display: inline;" 
                                 class="delete-list-form" 
                                 id="deleteListForm{{ rtl.id }}" 
-                                action="{% url delete_resource_type_list list_id=rtl.id %}" 
+                                action="{% url "delete_resource_type_list" list_id=rtl.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete List" >Delete</button>

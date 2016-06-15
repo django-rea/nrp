@@ -53,7 +53,7 @@
                         <h3 id="adjustment-label">{% trans "Adjust quantity of" %} {{ resource }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form id="adjustment-form" enctype="multipart/form-data" action="{% url adjust_resource resource_id=resource.id %}" method="POST" >
+                        <form id="adjustment-form" enctype="multipart/form-data" action="{% url "adjust_resource" resource_id=resource.id %}" method="POST" >
                             {% csrf_token %}
                             <p>
                                 {{ adjustment_form.quantity.label }}</br>

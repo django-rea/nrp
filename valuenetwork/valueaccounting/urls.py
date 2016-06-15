@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url
-from django.views.generic.simple import direct_to_template
+from django.views.generic import TemplateView
 
 urlpatterns = patterns("",
     url(r"^start/$", 'valuenetwork.valueaccounting.views.start', name="start"),
@@ -474,9 +474,7 @@ urlpatterns += patterns("",
         name="json_distribution_related_order"),
     url(r'^cash-events-csv/$', 'valuenetwork.valueaccounting.views.cash_events_csv', 
         name="cash_events_csv"),
-    url(r'^tutorials/$', direct_to_template, {
-        'template': 'valueaccounting/tutorials.html'
-    }, name="tutorials"),
+    url(r'^tutorials/$', TemplateView.as_view(template_name='valueaccounting/tutorials.html'), name='tutorials'),
     url(r'^virtual-accounts/$', 'valuenetwork.valueaccounting.views.virtual_accounts', 
         name="virtual_accounts"),
     url(r"^virtual-payout/(?P<account_id>\d+)/$", 'valuenetwork.valueaccounting.views.payout_from_virtual_account', 

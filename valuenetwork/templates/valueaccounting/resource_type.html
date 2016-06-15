@@ -67,7 +67,7 @@ container li {
 			    </div>
 			    {% if resource_type.is_deletable %}
 			        <div style="display: inline;" >
-				        <a href="{% url delete_resource_type_confirmation resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >{% trans "Delete" %}</a>
+				        <a href="{% url "delete_resource_type_confirmation" resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >{% trans "Delete" %}</a>
 			        </div>
 		        {% endif %}
 		        
@@ -79,16 +79,16 @@ container li {
 	   
             {% if resource_type.own_recipes %}
                 {% if resource_type.recipe_is_staged %}
-                    <a href="{% url view_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+                    <a href="{% url "view_stream_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
                 {% else %}
-                    <a href="{% url extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+                    <a href="{% url "extended_bill" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
                 {% endif %}
             {% endif %}
             {% if agent %}
                 {% if resource_type.recipe_is_staged %}
-                    <a href="{% url edit_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+                    <a href="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
                 {% else %}
-                    <a href="{% url edit_extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+                    <a href="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
                 {% endif %}
                 
                 {% if resource_type.producing_process_type_relationships %}
@@ -99,18 +99,18 @@ container li {
                 </a>
                 
                 {% if not resource_type.producing_process_type_relationships %}
-                    <a href="{% url edit_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+                    <a href="{% url "edit_stream_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
                     {% trans "Create Workflow Recipe" %}
                     </a>
                 {% endif %}
                 
-		        <a href="{% url plan_from_rt resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan" %}</a>
+		        <a href="{% url "plan_from_rt" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan" %}</a>
                 {% if resource_type.producing_process_type_relationships %} 
-                    <a href="{% url plan_from_rt_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan using recipe" %}</a>
+                    <a href="{% url "plan_from_rt_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "Plan using recipe" %}</a>
                 {% endif %}
 	        {% endif %}
 	        
-	        <a href="{% url resource_types %}">{% trans "All Resource Types" %}</a>
+	        <a href="{% url "resource_types" %}">{% trans "All Resource Types" %}</a>
 
 		</legend>
 		
@@ -163,9 +163,9 @@ container li {
                     {% if parent.own_recipes %}
                         &nbsp;&nbsp;
                         {% if parent.recipe_is_staged %}
-                            <a href="{% url view_stream_recipe resource_type_id=parent.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+                            <a href="{% url "view_stream_recipe" resource_type_id=parent.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
                         {% else %}
-                            <a href="{% url extended_bill resource_type_id=parent.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+                            <a href="{% url "extended_bill" resource_type_id=parent.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
                         {% endif %}
                     {% endif %}
                 </div>
@@ -179,7 +179,7 @@ container li {
                 <ul>
                     {% for child in resource_type.direct_children %}
                         <li>
-                            <span class="name"><a href="{% url resource_type resource_type_id=child.id %}">{{ child }}</a></span>
+                            <span class="name"><a href="{% url "resource_type" resource_type_id=child.id %}">{{ child }}</a></span>
                         </li>
                     {% endfor %}
                 </ul>
@@ -201,9 +201,9 @@ container li {
 	                    {% if output %}
                             <li>
                                 {% if output.recipe_is_staged %}
-                                    <a href="{% url view_stream_recipe resource_type_id=output.id %}">{{ pt }}</a>
+                                    <a href="{% url "view_stream_recipe" resource_type_id=output.id %}">{{ pt }}</a>
                                 {% else %}
-                                    <a href="{% url extended_bill resource_type_id=output.id %}">{{ pt }}</a>
+                                    <a href="{% url "extended_bill" resource_type_id=output.id %}">{{ pt }}</a>
                                 {% endif %}
                             </li>
 	                    {% endif %}
@@ -218,7 +218,7 @@ container li {
 	        <ul>
 	            {% for r in resource_type.all_resources %}
 	                <li>
-                        <a href="{% url resource resource_id=r.id %}">{{ r }} {% trans "quantity" %} {{ r.quantity }} {{ r.unit_of_quantity }} </a>
+                        <a href="{% url "resource" resource_id=r.id %}">{{ r }} {% trans "quantity" %} {{ r.quantity }} {{ r.unit_of_quantity }} </a>
 	                </li>
 	            {% endfor %}
 	        </ul>
@@ -253,10 +253,10 @@ container li {
 					<h3 id="resource-change-label">{% trans "Change" %} {{ resource_type }}</h3>
 				</div>
 				<div class="modal-body">
-					<form class="resource-change-form" enctype="multipart/form-data" action="{% url change_resource_type resource_type_id=resource_type.id %}" method="POST" >
+					<form class="resource-change-form" enctype="multipart/form-data" action="{% url "change_resource_type" resource_type_id=resource_type.id %}" method="POST" >
 						{% csrf_token %}
 						{{ resource_type.change_form|as_bootstrap }}
-						<input type="hidden" name="next" value="{% url resource_type resource_type_id=resource_type.id %}" />
+						<input type="hidden" name="next" value="{% url "resource_type" resource_type_id=resource_type.id %}" />
 					  <div class="modal-footer">
 						<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						<button class="btn btn-primary">{% trans "Save changes" %}</button>

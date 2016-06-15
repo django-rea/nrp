@@ -24,14 +24,14 @@
         {% include "_messages.html" %}
 	<div>
         <legend>{% trans "Demand" %}
-            <a class="report" href="{% url closed_work_orders %}">{% trans "Closed Work Orders" %}</a>
-            <a class="report" href="{% url demand_exchanges %}">{% trans "Exchange List" %}</a>
+            <a class="report" href="{% url "closed_work_orders" %}">{% trans "Closed Work Orders" %}</a>
+            <a class="report" href="{% url "demand_exchanges" %}">{% trans "Exchange List" %}</a>
 		</legend>
         {% if agent %}
             <p>
-                <a class="btn btn-primary" href="{% url create_order %}">{% trans "Create Customer Order" %}</a>
-                <a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Work" %}</a>
-                <a class="btn btn-primary" href="{% url plan_from_recipe %}">{% trans "Plan Work Using Recipe" %}</a>
+                <a class="btn btn-primary" href="{% url "create_order" %}">{% trans "Create Customer Order" %}</a>
+                <a class="btn btn-primary" href="{% url "process_selections" rand=1 %}">{% trans "Plan Work" %}</a>
+                <a class="btn btn-primary" href="{% url "plan_from_recipe" %}">{% trans "Plan Work Using Recipe" %}</a>
                 <form id="exchangeForm" style="display: inline;" method="POST" action="">
                     {% csrf_token %}
                     Choose a type to create a new exchange: {{ nav_form.exchange_type }}
@@ -44,11 +44,11 @@
             <ul>
                 {% for order in orders %}
                     <li>
-                        <a href="{% url order_schedule order_id=order.id %}">{{ order }}</a> {% trans "created by" %} {{ order.created_by }}
+                        <a href="{% url "order_schedule" order_id=order.id %}">{{ order }}</a> {% trans "created by" %} {{ order.created_by }}
                         {% if user = order.created_by or user.is_superuser %}
                             <form
                                 style="display: inline;"  
-                                action="{% url delete_order_confirmation order_id=order.id %}" 
+                                action="{% url "delete_order_confirmation" order_id=order.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                                 <input type="hidden" id="next" name="next" value="demand" />
@@ -58,7 +58,7 @@
                         <form 
                             style="display: inline;" 
                             id="sale{{ order.id }}" 
-                            action="{% url exchange_logging exchange_type_id=0 exchange_id=order.exchange.id %}" 
+                            action="{% url "exchange_logging" exchange_type_id=0 exchange_id=order.exchange.id %}" 
                             method="GET" >
                             <button style="display: inline;"  class="btn btn-info" title="Outgoing exchange for this order" >Fulfill this order</button>
                         </form>
@@ -74,11 +74,11 @@
             <ul>
                 {% for rand in rands %}
                     <li>
-                        <a href="{% url order_schedule order_id=rand.id %}">{{ rand }}</a>  {% trans "created by" %} {{ rand.created_by }}
+                        <a href="{% url "order_schedule" order_id=rand.id %}">{{ rand }}</a>  {% trans "created by" %} {{ rand.created_by }}
                         {% if user = rand.created_by or user.is_superuser %}
                             <form
                                 style="display: inline;"  
-                                action="{% url change_order order_id=rand.id %}" 
+                                action="{% url "change_order" order_id=rand.id %}" 
                                 method="GET" >
                                 {% csrf_token %}
                                 <input type="hidden" id="next" name="next" value="demand" />
@@ -87,7 +87,7 @@
                             </form>
                             <form
                                 style="display: inline;"  
-                                action="{% url delete_order_confirmation order_id=rand.id %}" 
+                                action="{% url "delete_order_confirmation" order_id=rand.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                                 <input type="hidden" id="next" name="next" value="demand" />
@@ -98,7 +98,7 @@
                                 {% if user.is_superuser %}
                                     <form
                                         style="display: inline;"  
-                                        action="{% url delete_order_confirmation order_id=rand.id %}" 
+                                        action="{% url "delete_order_confirmation" order_id=rand.id %}" 
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" id="next" name="next" value="demand" />

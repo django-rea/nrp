@@ -30,7 +30,7 @@
                         style="display: inline;" 
                         class="finish-form" 
                         id="finishProcessForm{{ orphan.id }}" 
-                        action="{% url process_finished process_id=orphan.id %}" 
+                        action="{% url "process_finished" process_id=orphan.id %}" 
                         method="POST" >
                         {% csrf_token %}
                         <input type="hidden" id="next" name="next" value="cleanup-old-processes" />
@@ -42,7 +42,7 @@
                         style="display: inline;" 
                         class="delete-process-form" 
                         id="deleteProcessForm{{ orphan.id }}" 
-                        action="{% url delete_process process_id=orphan.id %}" 
+                        action="{% url "delete_process" process_id=orphan.id %}" 
                         method="POST" >
                         {% csrf_token %}
                         <input type="hidden" id="next" name="next" value="cleanup-old-processes" />
@@ -63,7 +63,7 @@
                                 style="display: inline;" 
                                 class="delete-form" 
                                 id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
+                                action="{% url "delete_event" event_id=event.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                                 <input type="hidden" id="next" name="next" value="cleanup-processes" />

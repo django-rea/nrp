@@ -112,7 +112,7 @@ textarea {
                         <span class="process-dates" > {% trans "Due " %}: {{ order.due_date }} </span> 
                         &nbsp;&nbsp;
                         <span class="url">
-                            <a href="{% url order_schedule order_id=order.id %}" target="_blank" >{% trans "Detailed schedule" %}</a>
+                            <a href="{% url "order_schedule" order_id=order.id %}" target="_blank" >{% trans "Detailed schedule" %}</a>
                         </span>
                     </h3>
                     {% for item in order.items %}

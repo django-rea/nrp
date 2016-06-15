@@ -22,7 +22,7 @@
     <legend>
         {% trans "Locations" %}
         {% if agent %}
-            &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url create_location %}">{% trans "Create a new Location" %}</a>
+            &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url "create_location" %}">{% trans "Create a new Location" %}</a>
         {% endif %}
     </legend>
 
@@ -55,7 +55,7 @@
                     <li>
                         {{ loc }} 
                         {% if agent %}
-                            <a href="{% url change_location location_id=loc.id %}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change Location">
+                            <a href="{% url "change_location" location_id=loc.id %}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Change Location">
 		                           <i class="icon-edit"></i>
                             </a>
                         {% endif %}
@@ -124,8 +124,8 @@
                     .on('popupclose', hideResources);
                 
                 {% if agent %}
-                    marker.locationUrl = "{% url change_location location_id=loc.id %}";
-                    marker.addAgentUrl = "{% url add_agent_to_location location_id=loc.id agent_id=agent.id %}";
+                    marker.locationUrl = "{% url "change_location" location_id=loc.id %}";
+                    marker.addAgentUrl = "{% url "add_agent_to_location" location_id=loc.id agent_id=agent.id %}";
                 {% else %}
                     marker.locationUrl = "";
                     marker.addAgentUrl = "";

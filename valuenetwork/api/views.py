@@ -14,7 +14,7 @@ from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import MultipleObjectsReturned
 from django.forms import ValidationError
-from django.utils import simplejson
+import json as simplejson
 from django.utils.datastructures import SortedDict
 from django.conf import settings
 from django.contrib.sites.models import Site

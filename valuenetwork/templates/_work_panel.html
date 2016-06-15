@@ -17,7 +17,7 @@
             {% if item.process %}
                 <i>{% trans "Purpose:" %} {{ item.description }}</i>
                 <p style="margin-left: 1em; margin-bottom: 0; font-size: 90%;">
-                    <a href="{% url unfold_commitment commitment_id=item.id %}">Learn more...</a>
+                    <a href="{% url "unfold_commitment" commitment_id=item.id %}">Learn more...</a>
                 </p>
                 
                     {% comment %}
@@ -27,7 +27,7 @@
                         </a>
                     </div>                
                     <p style="margin-left: 1em; margin-bottom: 0; font-size: 90%;">
-                        {% trans "for process" %}: <a href="{% url unfold process_id=item.process.id %}">{{ item.process.name }}</a>
+                        {% trans "for process" %}: <a href="{% url "unfold" process_id=item.process.id %}">{{ item.process.name }}</a>
                     </p>
                     {% endcomment %}
             {% endif %}

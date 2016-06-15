@@ -40,33 +40,33 @@
                                 <span class="icon-bar"></span>
                                 <span class="icon-bar"></span>
                             </a>
-                            {% block site_brand %}<a class="brand" href="{% url "'work_home'" %}">{{ SITE_NAME }}</a>{% endblock %}
+                            {% block site_brand %}<a class="brand" href="{% url 'work_home' %}">{{ SITE_NAME }}</a>{% endblock %}
                             <div class="nav-collapse">
                                 {% block nav %}
                                         <ul class="nav">
                                             {% if request.user.is_authenticated %}
                                                 <li id="non-process-logging" >
-                                                    <a href="{% url "'non_process_logging'" %}"  
+                                                    <a href="{% url 'non_process_logging' %}"  
                                                     title="{% trans 'Your non-process related work' %}"  
                                                     >{% trans 'Non-process Logging' %}</a>
                                                 </li>
                                                 <li id="my-dashboard" >
-                                                    <a href="{% url "'my_dashboard'" %}"  
+                                                    <a href="{% url 'my_dashboard' %}"  
                                                     title="{% trans 'Your process related work and potential work' %}"  
                                                     >{% trans 'Process Logging' %}</a>
                                                 </li>
                                                 <li id="my-history" >
-                                                    <a href="{% url "'my_history'" %}"  
+                                                    <a href="{% url 'my_history' %}"  
                                                     title="{% trans 'Your work history with payments' %}"  
                                                     >{% trans 'My History' %}</a>
                                                 </li>
                                                 <li id="map" >
-                                                    <a href="{% url "'map'" %}"  
+                                                    <a href="{% url 'map' %}"  
                                                     title="{% trans 'Map of worker locations' %}"  
                                                     >{% trans 'Map' %}</a>
                                                 </li>
                                                 <li id="profile" >
-                                                    <a href="{% url "'profile'" %}"  
+                                                    <a href="{% url 'profile' %}"  
                                                     title="{% trans 'My personal information and skills' %}"  
                                                     >{% trans 'My Profile' %}</a>
                                                 </li>

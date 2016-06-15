@@ -6,6 +6,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from valuenetwork.valueaccounting.models import *
+from work.models import *
 
 class UploadAgentForm(forms.ModelForm):
     photo_url = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'url input-xxlarge',}))
@@ -13,3 +14,10 @@ class UploadAgentForm(forms.ModelForm):
     class Meta:
         model = EconomicAgent
         fields = ('photo', 'photo_url')
+
+
+class MembershipRequestForm(forms.ModelForm):
+    
+    class Meta:
+        model = MembershipRequest
+        exclude = ('agent',)

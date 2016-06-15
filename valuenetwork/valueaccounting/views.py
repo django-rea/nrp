@@ -109,7 +109,7 @@ def create_agent(request):
     
 @login_required
 def create_user(request, agent_id):
-    if not request.user.is_superuser:
+    if not request.user.is_staff:
         return render_to_response('valueaccounting/no_permission.html')
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     if request.method == "POST":

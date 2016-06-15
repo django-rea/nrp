@@ -966,3 +966,10 @@ def faircoin_history(request, resource_id):
         "unit": unit,
         "events": events,
     }, context_instance=RequestContext(request))
+    
+def membership_request(request):
+    membership_form = MembershipRequestForm()
+    return render_to_response("work/membership_request.html", {
+        "help": get_help("work_membership_request"),
+        "membership_form": membership_form,
+    }, context_instance=RequestContext(request))

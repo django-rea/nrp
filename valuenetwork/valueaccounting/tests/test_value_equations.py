@@ -410,7 +410,7 @@ class ValueEquationTest(TestCase):
             created_by=self.user,
         )
         #import pdb; pdb.set_trace()
-
+        
         distribution = ve.run_value_equation_and_save(
             #events_to_distribute=etd, <-CashReceipts, optional
             distribution=distribution, 

@@ -3980,14 +3980,16 @@ def supply(request):
     #todo: separate tool reqs from material reqs
     treqs = []
     nav_form = SupplyExchangeNavForm(data=request.POST or None)
+    ext = None
     
     if request.method == "POST":
         #import pdb; pdb.set_trace()
         if nav_form.is_valid():
             data = nav_form.cleaned_data
             ext = data["exchange_type"]
-        return HttpResponseRedirect('/%s/%s/%s/'
-            % ('accounting/exchange', ext.id, 0))
+            if ext:
+                return HttpResponseRedirect('/%s/%s/%s/'
+                    % ('accounting/exchange', ext.id, 0))
     
     return render_to_response("valueaccounting/supply.html", {
         "mreqs": mreqs,

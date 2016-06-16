@@ -333,7 +333,7 @@ h4 {
         var eventId = "&eventId=" + eventId;
         formData += eventId;
         
-        var url = "{%url change_event_date %}";
+        var url = "{% url 'change_event_date' %}";
 
         notifySaving();
 
@@ -357,7 +357,7 @@ h4 {
         var eventId = "&eventId=" + eventId;
 		formData += eventId;
         
-        var url = "{%url change_event_qty %}";
+        var url = "{% url 'change_event_qty' %}";
 
 		notifySaving();
 

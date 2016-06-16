@@ -108,10 +108,19 @@
                 
         var map = L.map('mapDiv').setView([{{ latitude }},{{ longitude }}], {{ zoom }});
         
+        /*
+        got insecure responses from osm tiles, switchingn to mapbox
         L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
         }).addTo(map);
-
+        */
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://mapbox.com">Mapbox</a>',
+            maxZoom: 18,
+            id: 'bhaugen.3f30d361',
+            accessToken: 'pk.eyJ1IjoiYmhhdWdlbiIsImEiOiIxMjdjMTUzNjNmOWIzNmEwMGUzZjgxYjg4NzZmZTZiYiJ9.2vafy9xqJJRFUGg_O6tAOg'
+        }).addTo(map);
+        
         var geocoder = L.control.geocoder('search-iJjA5fn', {
             fullWidth: 650,
             expanded: true,

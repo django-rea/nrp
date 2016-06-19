@@ -141,7 +141,6 @@ INSTALLED_APPS = [
     "metron",
     #'debug_toolbar',
     'django_extensions',
-    'south',
     'easy_thumbnails',
     #'report_builder',
     'notification',

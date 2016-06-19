@@ -1236,7 +1236,7 @@ class AgentAssociationType(models.Model):
             if verbosity > 1:
                 print "Created %s AgentAssociationType" % name
 
-from south.signals import post_migrate
+from django.db.models.signals import post_migrate
         
 def create_agent_types(app, **kwargs):
     if app != "valueaccounting":
@@ -3873,12 +3873,12 @@ class ExchangeType(models.Model):
 
 
 class GoodResourceManager(models.Manager):
-    def get_query_set(self):
-        return super(GoodResourceManager, self).get_query_set().exclude(quality__lt=0)
+    def get_queryset(self):
+        return super(GoodResourceManager, self).get_queryset().exclude(quality__lt=0)
 
 class FailedResourceManager(models.Manager):
-    def get_query_set(self):
-        return super(FailedResourceManager, self).get_query_set().filter(quality__lt=0)
+    def get_queryset(self):
+        return super(FailedResourceManager, self).get_queryset().filter(quality__lt=0)
         
 class EconomicResourceManager(models.Manager):
     

@@ -138,7 +138,7 @@ INSTALLED_APPS = [
     
     # external
     #"account",
-    "metron",
+    #"metron",
     #'debug_toolbar',
     'django_extensions',
     'easy_thumbnails',

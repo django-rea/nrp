@@ -269,7 +269,7 @@ def agent_type_lod(request, agent_type_name):
             agent_type = at
 
     if not agent_type:
-        return HttpResponse({}, mimetype='application/json') 
+        return HttpResponse({}, content_type='application/json') 
         
 
     path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
@@ -285,7 +285,7 @@ def agent_type_lod(request, agent_type_name):
             store.add((ref, RDFS.subClassOf, vf_ns.Group))
     
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json')    
+    return HttpResponse(ser, content_type='application/json')    
     #return render_to_response("valueaccounting/agent_type.html", {
     #    "agent_type": agent_type,
     #}, context_instance=RequestContext(request))    
@@ -303,7 +303,7 @@ def agent_relationship_type_lod(request, agent_assoc_type_name):
             inverse = True
 
     if not agent_assoc_type:
-        return HttpResponse({}, mimetype='application/json') 
+        return HttpResponse({}, content_type='application/json') 
 
     path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
     
@@ -322,7 +322,7 @@ def agent_relationship_type_lod(request, agent_assoc_type_name):
     store.add((ref, OWL.inverseOf, inv_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json')      
+    return HttpResponse(ser, content_type='application/json')      
     #return render_to_response("valueaccounting/agent_assoc_type.html", {
     #    "agent_assoc_type": agent_assoc_type,
     #}, context_instance=RequestContext(request)) 
@@ -330,7 +330,7 @@ def agent_relationship_type_lod(request, agent_assoc_type_name):
 def agent_relationship_lod(request, agent_assoc_id):
     aa = AgentAssociation.objects.filter(id=agent_assoc_id)
     if not aa:
-        return HttpResponse({}, mimetype='application/json')
+        return HttpResponse({}, content_type='application/json')
     else:
         agent_association = aa[0]
 
@@ -349,7 +349,7 @@ def agent_relationship_lod(request, agent_assoc_id):
     store.add((ref, OWL.inverseOf, inv_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json')         
+    return HttpResponse(ser, content_type='application/json')         
     #return render_to_response("valueaccounting/agent_association.html", {
     #    "agent_association": agent_association,
     #}, context_instance=RequestContext(request))    
@@ -358,7 +358,7 @@ def agent_relationship_lod(request, agent_assoc_id):
 def agent_relationship_inv_lod(request, agent_assoc_id):
     aa = AgentAssociation.objects.filter(id=agent_assoc_id)
     if not aa:
-        return HttpResponse({}, mimetype='application/json')
+        return HttpResponse({}, content_type='application/json')
     else:
         agent_association = aa[0]
     
@@ -382,7 +382,7 @@ def agent_relationship_inv_lod(request, agent_assoc_id):
     store.add((ref, OWL.inverseOf, inv_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json')         
+    return HttpResponse(ser, content_type='application/json')         
     #return render_to_response("valueaccounting/agent_association.html", {
     #    "agent_association": agent_association,
     #}, context_instance=RequestContext(request))    
@@ -390,7 +390,7 @@ def agent_relationship_inv_lod(request, agent_assoc_id):
 def agent_lod(request, agent_id):
     agents = EconomicAgent.objects.filter(id=agent_id)
     if not agents:
-        return HttpResponse({}, mimetype='application/json')
+        return HttpResponse({}, content_type='application/json')
 
     agent = agents[0]
     subject_assocs = agent.all_is_associates()
@@ -428,7 +428,7 @@ def agent_lod(request, agent_id):
             store.add((ref, inv_ref_relationship, subj_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json')  
+    return HttpResponse(ser, content_type='application/json')  
     
 #following method supplied by Niklas at rdflib-jsonld support to get the desired output for nested rdf inputs for rdflib
 def simplyframe(data):
@@ -454,7 +454,7 @@ def simplyframe(data):
 def agent_jsonld(request):
     #test = "{'@context': 'http://json-ld.org/contexts/person.jsonld', '@id': 'http://dbpedia.org/resource/John_Lennon', 'name': 'John Lennon', 'born': '1940-10-09', 'spouse': 'http://dbpedia.org/resource/Cynthia_Lennon' }"
     #test = '{ "@id": "http://nrp.webfactional.com/accounting/agent-lod/1", "@type": "Person", "vf:label": { "@language": "en", "@value": "Bob Haugen" } }'
-    #return HttpResponse(test, mimetype='application/json')
+    #return HttpResponse(test, content_type='application/json')
 
     #mport pdb; pdb.set_trace()
     path, instance_abbrv, context, store, vf_ns = get_lod_setup_items()
@@ -537,8 +537,8 @@ def agent_jsonld(request):
     #import json
     #data = json.loads(ser)
     #simplyframe(data)
-    #return HttpResponse(json.dumps(data, indent=4), mimetype='application/json') 
-    return HttpResponse(ser, mimetype='application/json')
+    #return HttpResponse(json.dumps(data, indent=4), content_type='application/json') 
+    return HttpResponse(ser, content_type='application/json')
 
 def agent_jsonld_query(request):
 
@@ -607,5 +607,5 @@ def agent_jsonld_query(request):
             result += line + "\n" 
         result += "========== \n"
 
-    return HttpResponse(result, mimetype='text/plain')
+    return HttpResponse(result, content_type='text/plain')
 

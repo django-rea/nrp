@@ -691,7 +691,7 @@ def save_timed_work_now(request, event_id):
             data = "ok"
         else:
             data = form.errors
-        return HttpResponse(data, mimetype="text/plain")
+        return HttpResponse(data, content_type="text/plain")
 
 @login_required
 def work_process_finished(request, process_id):

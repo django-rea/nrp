@@ -423,7 +423,7 @@ class ResourceTypeListForm(forms.ModelForm):
 
     class Meta:
         model = ResourceTypeList
-
+        fields = ('name', 'description', 'context_agent',)
         
 class ResourceTypeListElementForm(forms.ModelForm):
     resource_type_id = forms.IntegerField(widget=forms.HiddenInput)

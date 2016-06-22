@@ -847,7 +847,7 @@ def change_pattern_name(request):
             name = request.POST.get("name")
             pattern.name = name
             pattern.save()
-    return HttpResponse("Ok", mimetype="text/plain")
+    return HttpResponse("Ok", content_type="text/plain")
 
 @login_required
 def add_pattern_to_use_case(request, use_case_id):
@@ -1542,7 +1542,7 @@ def validate_faircoin_address(request):
     if not answer:
         answer = "Invalid FairCoin address"
     response = simplejson.dumps(answer, ensure_ascii=False)
-    return HttpResponse(response, mimetype="text/json-comment-filtered")
+    return HttpResponse(response, content_type="text/json-comment-filtered")
 
 def all_contributions(request):
     event_list = EconomicEvent.objects.filter(is_contribution=True)
@@ -1872,13 +1872,13 @@ def agent_associations(request, agent_id):
 def json_resource_type_resources(request, resource_type_id):
     #import pdb; pdb.set_trace()
     json = serializers.serialize("json", EconomicResource.objects.filter(resource_type=resource_type_id), fields=('identifier'))
-    return HttpResponse(json, mimetype='application/json')
+    return HttpResponse(json, content_type='application/json')
     
 def json_resource_type_stages(request, resource_type_id):
     #import pdb; pdb.set_trace()
     rt = get_object_or_404(EconomicResourceType, pk=resource_type_id)
     json = serializers.serialize("json", rt.all_stages(), fields=('name'))
-    return HttpResponse(json, mimetype='application/json')
+    return HttpResponse(json, content_type='application/json')
     
 def json_resource_type_resources_with_locations(request, resource_type_id):
     #import pdb; pdb.set_trace()
@@ -1895,7 +1895,7 @@ def json_resource_type_resources_with_locations(request, resource_type_id):
         }
         resources.append({"fields": fields})
     data = simplejson.dumps(resources, ensure_ascii=False)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
     
 def json_resource(request, resource_id):
     #import pdb; pdb.set_trace()
@@ -1917,7 +1917,7 @@ def json_resource(request, resource_id):
         assignments[item.role.name] = item.agent.name
     rdict["assignments"] = assignments
     data = simplejson.dumps(rdict)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
     
 def json_organization(request):
     #import pdb; pdb.set_trace()
@@ -1968,7 +1968,7 @@ def json_organization(request):
         "agentAssociations": assoc_dict,
     }
     data = simplejson.dumps(big_d)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
     
 def json_distribution_related_shipment(request, distribution_id):
     d = get_object_or_404(EconomicEvent, pk=distribution_id)
@@ -1980,7 +1980,7 @@ def json_distribution_related_shipment(request, distribution_id):
             "ship_description": ship.__unicode__(),
         }
     data = simplejson.dumps(sd)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
     
 def json_distribution_related_order(request, distribution_id):
     d = get_object_or_404(EconomicEvent, pk=distribution_id)
@@ -1993,7 +1993,7 @@ def json_distribution_related_order(request, distribution_id):
                 "order_description": order.__unicode__(),
             }
     data = simplejson.dumps(od)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
     
 class EventSummary(object):
     def __init__(self, agent, role, quantity, value=Decimal('0.0')):
@@ -2556,9 +2556,9 @@ def create_resource_type_ajax(request):
                     rtfv.facet_value = fv
                     rtfv.save()
         return_data = serializers.serialize("json", EconomicResourceType.objects.filter(id=rt.id), fields=('id','name',)) 
-        return HttpResponse(return_data, mimetype="text/json-comment-filtered")
+        return HttpResponse(return_data, content_type="text/json-comment-filtered")
     else:
-        return HttpResponse(form.errors, mimetype="text/json-comment-filtered")
+        return HttpResponse(form.errors, content_type="text/json-comment-filtered")
 
 @login_required
 def create_resource_type_simple_patterned_ajax(request):
@@ -2583,9 +2583,9 @@ def create_resource_type_simple_patterned_ajax(request):
                     rtfv.facet_value = fv
                     rtfv.save()
         return_data = serializers.serialize("json", EconomicResourceType.objects.filter(id=rt.id), fields=('id','name',)) 
-        return HttpResponse(return_data, mimetype="text/json-comment-filtered")
+        return HttpResponse(return_data, content_type="text/json-comment-filtered")
     else:
-        return HttpResponse(form.errors, mimetype="text/json-comment-filtered")
+        return HttpResponse(form.errors, content_type="text/json-comment-filtered")
 
 @login_required
 def create_process_type_input(request, process_type_id, slot):
@@ -3023,7 +3023,7 @@ def json_timeline(request, from_date, to_date, context_id):
     create_events(orders, processes, events)
     data = simplejson.dumps(events, ensure_ascii=False)
     #import pdb; pdb.set_trace()
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
     
 def context_timeline(request, context_id):
     context_agent = get_object_or_404(EconomicAgent, pk=context_id)
@@ -3051,7 +3051,7 @@ def json_context_timeline(request, context_id):
     create_events(orders, processes, events)
     data = simplejson.dumps(events, ensure_ascii=False)
     #import pdb; pdb.set_trace()
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
 
 def order_timeline(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
@@ -3080,7 +3080,7 @@ def json_order_timeline(request, order_id):
     create_events(orders, processes, events)
     data = simplejson.dumps(events, ensure_ascii=False)
     #import pdb; pdb.set_trace()
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
     
 
 def json_processes(request, order_id=None):
@@ -3092,7 +3092,7 @@ def json_processes(request, order_id=None):
         processes = Process.objects.unfinished()
     graph = process_graph(processes)
     data = simplejson.dumps(graph)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
 
 def json_project_processes(request, object_type=None, object_id=None):
     #import pdb; pdb.set_trace()
@@ -3121,16 +3121,16 @@ def json_project_processes(request, object_type=None, object_id=None):
     #import pdb; pdb.set_trace()
     graph = project_process_resource_agent_graph(projects, processes)
     data = simplejson.dumps(graph)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
 
 
 def json_resource_type_unit(request, resource_type_id):
     data = serializers.serialize("json", EconomicResourceType.objects.filter(id=resource_type_id), fields=('unit',))
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
 
 def json_agent(request, agent_id):
     data = serializers.serialize("json", EconomicAgent.objects.filter(id=agent_id))
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
 
 def json_resource_type_citation_unit(request, resource_type_id):
     #import pdb; pdb.set_trace()
@@ -3140,7 +3140,7 @@ def json_resource_type_citation_unit(request, resource_type_id):
         "unit": ert.directional_unit(direction).name,
     }
     data = simplejson.dumps(defaults, ensure_ascii=False)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
 
 def json_directional_unit(request, resource_type_id, direction):
     #import pdb; pdb.set_trace()
@@ -3149,13 +3149,13 @@ def json_directional_unit(request, resource_type_id, direction):
         "unit": ert.directional_unit(direction).id,
     }
     data = simplejson.dumps(defaults, ensure_ascii=False)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
     
 def json_default_equation(request, event_type_id):
     et = get_object_or_404(EventType, pk=event_type_id)
     equation = et.default_event_value_equation()
     data = simplejson.dumps(equation, ensure_ascii=False)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
 
 def json_directional_unit_and_rule(request, resource_type_id, direction):
     #import pdb; pdb.set_trace()
@@ -3165,7 +3165,7 @@ def json_directional_unit_and_rule(request, resource_type_id, direction):
         "rule": ert.inventory_rule
     }
     data = simplejson.dumps(defaults, ensure_ascii=False)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
 
 def json_resource_type_defaults(request, resource_type_id):
     ert = get_object_or_404(EconomicResourceType, pk=resource_type_id)
@@ -3174,19 +3174,19 @@ def json_resource_type_defaults(request, resource_type_id):
     }
     #import pdb; pdb.set_trace()
     data = simplejson.dumps(defaults, ensure_ascii=False)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
     
 def json_context_agent_suppliers(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = EconomicAgent.objects.get(id=agent_id)
     json = serializers.serialize("json", agent.all_suppliers(), fields=('pk', 'nick'))
-    return HttpResponse(json, mimetype='application/json')
+    return HttpResponse(json, content_type='application/json')
     
 def json_context_agent_customers(request, agent_id):
     #import pdb; pdb.set_trace()
     agent = EconomicAgent.objects.get(id=agent_id)
     json = serializers.serialize("json", agent.all_customers(), fields=('pk', 'nick'))
-    return HttpResponse(json, mimetype='application/json')
+    return HttpResponse(json, content_type='application/json')
     
 def json_order_customer(request, order_id, agent_id):
     #import pdb; pdb.set_trace()
@@ -3199,7 +3199,7 @@ def json_order_customer(request, order_id, agent_id):
         if order.provider:
             customers.append(order.provider)
         json = serializers.serialize("json", customers, fields=('pk', 'nick'))
-    return HttpResponse(json, mimetype='application/json')       
+    return HttpResponse(json, content_type='application/json')       
     
 def json_customer_orders(request, customer_id):
     #import pdb; pdb.set_trace()
@@ -3216,7 +3216,7 @@ def json_customer_orders(request, customer_id):
         }
         orders.append({"fields": fields})
     data = simplejson.dumps(orders, ensure_ascii=False)
-    return HttpResponse(data, mimetype="text/json-comment-filtered")
+    return HttpResponse(data, content_type="text/json-comment-filtered")
    
         
 def explore(request):
@@ -4047,9 +4047,9 @@ def change_process_sked_ajax(request):
         process.notes = data["notes"]
         process.save()
         return_data = "OK" 
-        return HttpResponse(return_data, mimetype="text/plain")
+        return HttpResponse(return_data, content_type="text/plain")
     else:
-        return HttpResponse(form.errors, mimetype="text/json-comment-filtered")
+        return HttpResponse(form.errors, content_type="text/json-comment-filtered")
 
 def work(request):
     next = settings.ALL_WORK_PAGE
@@ -4312,7 +4312,7 @@ def todo_time(request):
                 event = create_event_from_todo(todo)
                 event.quantity = qty
                 event.save()
-    return HttpResponse("Ok", mimetype="text/plain")
+    return HttpResponse("Ok", content_type="text/plain")
 
 @login_required
 def todo_description(request):
@@ -4333,7 +4333,7 @@ def todo_description(request):
                 event = create_event_from_todo(todo)
                 event.description = did
                 event.save()
-    return HttpResponse("Ok", mimetype="text/plain")
+    return HttpResponse("Ok", content_type="text/plain")
 
 @login_required
 def todo_done(request, todo_id):
@@ -6828,7 +6828,7 @@ def change_event_date(request):
     if form.is_valid():
         data = form.cleaned_data
         event = form.save()
-    return HttpResponse("Ok", mimetype="text/plain")
+    return HttpResponse("Ok", content_type="text/plain")
 
 @login_required
 def change_event_qty(request):
@@ -6839,7 +6839,7 @@ def change_event_qty(request):
     if form.is_valid():
         data = form.cleaned_data
         event = form.save()
-    return HttpResponse("Ok", mimetype="text/plain")
+    return HttpResponse("Ok", content_type="text/plain")
 
 @login_required
 def change_event(request, event_id):
@@ -6999,7 +6999,7 @@ def work_done(request):
             commitment.finished = False
             commitment.save()
 
-    return HttpResponse("Ok", mimetype="text/plain")
+    return HttpResponse("Ok", content_type="text/plain")
     
 @login_required
 def commitment_finished(request, commitment_id):
@@ -7044,7 +7044,7 @@ def process_done(request):
             process.finished = False
             process.save()
 
-    return HttpResponse("Ok", mimetype="text/plain")
+    return HttpResponse("Ok", content_type="text/plain")
 
 @login_required
 def process_finished(request, process_id):
@@ -7413,7 +7413,7 @@ def save_work_now(request, event_id):
             data = "ok"
         else:
             data = form.errors
-        return HttpResponse(data, mimetype="text/plain")
+        return HttpResponse(data, content_type="text/plain")
 
 @login_required
 def save_labnotes(request, commitment_id):
@@ -7466,7 +7466,7 @@ def save_labnotes(request, commitment_id):
             data = "ok"
         else:
             data = form.errors
-        return HttpResponse(data, mimetype="text/plain")
+        return HttpResponse(data, content_type="text/plain")
 
 @login_required
 def save_past_work(request, commitment_id):
@@ -7519,7 +7519,7 @@ def save_past_work(request, commitment_id):
             data = "ok"
         else:
             data = form.errors
-        return HttpResponse(data, mimetype="text/plain")
+        return HttpResponse(data, content_type="text/plain")
 
 
 def process_details(request, process_id):
@@ -8623,7 +8623,7 @@ def production_event_for_commitment(request):
         event.save()
 
     data = "ok"
-    return HttpResponse(data, mimetype="text/plain")
+    return HttpResponse(data, content_type="text/plain")
 
 @login_required
 def resource_event_for_commitment(request, commitment_id):
@@ -8686,7 +8686,7 @@ def resource_event_for_commitment(request, commitment_id):
             )
             event.save()
         data = unicode(resource.quantity)
-    return HttpResponse(data, mimetype="text/plain")
+    return HttpResponse(data, content_type="text/plain")
 
 #todo: how to handle splits?
 @login_required
@@ -8745,7 +8745,7 @@ def consumption_event_for_commitment(request):
             event.save()
 
     data = "ok"
-    return HttpResponse(data, mimetype="text/plain")
+    return HttpResponse(data, content_type="text/plain")
 
 @login_required
 def citation_event_for_commitment(request):
@@ -8789,7 +8789,7 @@ def citation_event_for_commitment(request):
         event.save()
 
     data = "ok"
-    return HttpResponse(data, mimetype="text/plain")
+    return HttpResponse(data, content_type="text/plain")
 
 @login_required
 def time_use_event_for_commitment(request):
@@ -8848,7 +8848,7 @@ def time_use_event_for_commitment(request):
         event.save()
 
     data = "ok"
-    return HttpResponse(data, mimetype="text/plain")
+    return HttpResponse(data, content_type="text/plain")
 
 @login_required
 def failed_outputs(request, commitment_id):
@@ -8907,7 +8907,7 @@ def failed_outputs(request, commitment_id):
             event.changed_by = request.user
             event.save()
             data = unicode(ct.failed_output_qty())
-            return HttpResponse(data, mimetype="text/plain")
+            return HttpResponse(data, content_type="text/plain")
 
 #todo: obsolete
 @login_required
@@ -10599,7 +10599,7 @@ def change_resource_facet_value(request):
                     facet_value=facet_value)
                 rtfv.save()
 
-    return HttpResponse("Ok", mimetype="text/plain")
+    return HttpResponse("Ok", content_type="text/plain")
 
 def create_facet_formset(data=None):
     RtfvFormSet = formset_factory(ResourceTypeFacetValueForm, extra=0)
@@ -11225,7 +11225,7 @@ def distributions(request, agent_id=None):
 def exchange_events_csv(request):
     #import pdb; pdb.set_trace()
     event_ids = request.GET.get("event-ids")
-    response = HttpResponse(mimetype='text/csv')
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=contributions.csv'
     writer = csv.writer(response)
     writer.writerow(["Exchange Type", "Exchange ID", "Transfer Type", "Transfer ID", "Event ID", "Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL"])
@@ -11294,7 +11294,7 @@ def exchange_events_csv(request):
 def contribution_events_csv(request):
     #import pdb; pdb.set_trace()
     event_ids = request.GET.get("event-ids")
-    response = HttpResponse(mimetype='text/csv')
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=contributions.csv'
     writer = csv.writer(response)
     #writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
@@ -12094,7 +12094,7 @@ def payment_event_for_commitment(request):
         event.save()
 
     data = "ok"
-    return HttpResponse(data, mimetype="text/plain")
+    return HttpResponse(data, content_type="text/plain")
 '''
 
 #demo page for DHEN
@@ -12363,7 +12363,7 @@ def json_value_equation_bucket(request, value_equation_id):
         }
         buckets.append({"fields": fields})
         json = simplejson.dumps(buckets, ensure_ascii=False)
-    return HttpResponse(json, mimetype='application/json')   
+    return HttpResponse(json, content_type='application/json')   
     
 def value_equations(request):
     #import pdb; pdb.set_trace()
@@ -12639,7 +12639,7 @@ def cash_report(request):
 def cash_events_csv(request):
     #import pdb; pdb.set_trace()
     event_ids = request.GET.get("event-ids")
-    response = HttpResponse(mimetype='text/csv')
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=contributions.csv'
     writer = csv.writer(response)
     writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Reference", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])
@@ -12798,7 +12798,7 @@ def agent_type_lod(request, agent_type_name):
             agent_type = at
 
     if not agent_type:
-        return HttpResponse({}, mimetype='application/json') 
+        return HttpResponse({}, content_type='application/json') 
         
     from rdflib import Graph, Literal, BNode
     from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
@@ -12818,7 +12818,7 @@ def agent_type_lod(request, agent_type_name):
             store.add((ref, RDFS.subClassOf, vf_ns.Group))
     
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json')    
+    return HttpResponse(ser, content_type='application/json')    
     #return render_to_response("valueaccounting/agent_type.html", {
     #    "agent_type": agent_type,
     #}, context_instance=RequestContext(request))    
@@ -12836,7 +12836,7 @@ def agent_relationship_type_lod(request, agent_assoc_type_name):
             inverse = True
 
     if not agent_assoc_type:
-        return HttpResponse({}, mimetype='application/json') 
+        return HttpResponse({}, content_type='application/json') 
     
     from rdflib import Graph, Literal, BNode
     from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
@@ -12860,7 +12860,7 @@ def agent_relationship_type_lod(request, agent_assoc_type_name):
     store.add((ref, OWL.inverseOf, inv_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json')      
+    return HttpResponse(ser, content_type='application/json')      
     #return render_to_response("valueaccounting/agent_assoc_type.html", {
     #    "agent_assoc_type": agent_assoc_type,
     #}, context_instance=RequestContext(request)) 
@@ -12868,7 +12868,7 @@ def agent_relationship_type_lod(request, agent_assoc_type_name):
 def agent_relationship_lod(request, agent_assoc_id):
     aa = AgentAssociation.objects.filter(id=agent_assoc_id)
     if not aa:
-        return HttpResponse({}, mimetype='application/json')
+        return HttpResponse({}, content_type='application/json')
     else:
         agent_association = aa[0]
     
@@ -12892,7 +12892,7 @@ def agent_relationship_lod(request, agent_assoc_id):
     store.add((ref, OWL.inverseOf, inv_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json')         
+    return HttpResponse(ser, content_type='application/json')         
     #return render_to_response("valueaccounting/agent_association.html", {
     #    "agent_association": agent_association,
     #}, context_instance=RequestContext(request))    
@@ -12901,7 +12901,7 @@ def agent_relationship_lod(request, agent_assoc_id):
 def agent_relationship_inv_lod(request, agent_assoc_id):
     aa = AgentAssociation.objects.filter(id=agent_assoc_id)
     if not aa:
-        return HttpResponse({}, mimetype='application/json')
+        return HttpResponse({}, content_type='application/json')
     else:
         agent_association = aa[0]
     
@@ -12925,7 +12925,7 @@ def agent_relationship_inv_lod(request, agent_assoc_id):
     store.add((ref, OWL.inverseOf, inv_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json')         
+    return HttpResponse(ser, content_type='application/json')         
     #return render_to_response("valueaccounting/agent_association.html", {
     #    "agent_association": agent_association,
     #}, context_instance=RequestContext(request))    
@@ -12933,7 +12933,7 @@ def agent_relationship_inv_lod(request, agent_assoc_id):
 def agent_lod(request, agent_id):
     agents = EconomicAgent.objects.filter(id=agent_id)
     if not agents:
-        return HttpResponse({}, mimetype='application/json')
+        return HttpResponse({}, content_type='application/json')
 
     agent = agents[0]
     subject_assocs = agent.all_is_associates()
@@ -12976,7 +12976,7 @@ def agent_lod(request, agent_id):
             store.add((ref, inv_ref_relationship, subj_ref))
 
     ser = store.serialize(format='json-ld', context=context, indent=4)
-    return HttpResponse(ser, mimetype='application/json')  
+    return HttpResponse(ser, content_type='application/json')  
     
 #following method supplied by Niklas at rdflib-jsonld support to get the desired output for nested rdf inputs for rdflib
 def simplyframe(data):
@@ -13002,7 +13002,7 @@ def simplyframe(data):
 def agent_jsonld(request):
     #test = "{'@context': 'http://json-ld.org/contexts/person.jsonld', '@id': 'http://dbpedia.org/resource/John_Lennon', 'name': 'John Lennon', 'born': '1940-10-09', 'spouse': 'http://dbpedia.org/resource/Cynthia_Lennon' }"
     #test = '{ "@id": "http://nrp.webfactional.com/accounting/agent-lod/1", "@type": "Person", "vf:label": { "@language": "en", "@value": "Bob Haugen" } }'
-    #return HttpResponse(test, mimetype='application/json')
+    #return HttpResponse(test, content_type='application/json')
 
     from rdflib import Graph, Literal, BNode
     from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
@@ -13090,8 +13090,8 @@ def agent_jsonld(request):
     #import json
     #data = json.loads(ser)
     #simplyframe(data)
-    #return HttpResponse(json.dumps(data, indent=4), mimetype='application/json') 
-    return HttpResponse(ser, mimetype='application/json')
+    #return HttpResponse(json.dumps(data, indent=4), content_type='application/json') 
+    return HttpResponse(ser, content_type='application/json')
 
 def agent_jsonld_query(request):
     from rdflib import Graph
@@ -13167,8 +13167,8 @@ def agent_jsonld_query(request):
     #result = "Number of triples: " + str(len(g)) + "\n"
     #for s,p,o in g.triples( (None, None, None) ):
     #    result += s + " " + p + " " + o + "\n"
-    return HttpResponse(result, mimetype='text/plain')
-    #return HttpResponse(local_expanded_json, mimetype='application/json')
+    return HttpResponse(result, content_type='text/plain')
+    #return HttpResponse(local_expanded_json, content_type='application/json')
 
 '''
 g = Graph()

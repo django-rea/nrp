@@ -137,11 +137,8 @@ INSTALLED_APPS = [
     "django_forms_bootstrap",
     
     # external
-    #"account",
-    "metron",
     #'debug_toolbar',
     'django_extensions',
-    'south',
     'easy_thumbnails',
     #'report_builder',
     'notification',

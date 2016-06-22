@@ -1236,11 +1236,12 @@ class AgentAssociationType(models.Model):
             if verbosity > 1:
                 print "Created %s AgentAssociationType" % name
 
-from south.signals import post_migrate
+from django.db.models.signals import post_migrate
         
-def create_agent_types(app, **kwargs):
-    if app != "valueaccounting":
-        return
+#def create_agent_types(app, **kwargs):
+#    if app != "valueaccounting":
+#        return
+def create_agent_types(**kwargs):
     AgentType.create('Individual', 'individual', False) 
     AgentType.create('Organization', 'org', False) 
     AgentType.create('Network', 'network', True) 
@@ -1248,9 +1249,10 @@ def create_agent_types(app, **kwargs):
     
 post_migrate.connect(create_agent_types) 
 
-def create_agent_association_types(app, **kwargs):
-    if app != "valueaccounting":
-        return
+#def create_agent_association_types(app, **kwargs):
+#    if app != "valueaccounting":
+#        return
+def create_agent_association_types(**kwargs):
     AgentAssociationType.create('child', 'Child', 'Children', 'child', 'is child of', 'has child') 
     AgentAssociationType.create('member', 'Member', 'Members', 'member', 'is member of', 'has member')  
     AgentAssociationType.create('supplier', 'Supplier', 'Suppliers', 'supplier', 'is supplier of', 'has supplier') 
@@ -2892,9 +2894,10 @@ class UseCase(models.Model):
         return allowed_ps
 
 
-def create_use_cases(app, **kwargs):
-    if app != "valueaccounting":
-        return
+#def create_use_cases(app, **kwargs):
+#    if app != "valueaccounting":
+#        return
+def create_use_cases(**kwargs):
     UseCase.create('cash_contr', _('Cash Contribution'), True) 
     UseCase.create('non_prod', _('Non-production Logging'), True)
     UseCase.create('rand', _('Manufacturing Recipes/Logging'))
@@ -2918,9 +2921,10 @@ def create_use_cases(app, **kwargs):
 
 post_migrate.connect(create_use_cases)
 
-def create_event_types(app, **kwargs):
-    if app != "valueaccounting":
-        return
+#def create_event_types(app, **kwargs):
+#    if app != "valueaccounting":
+#        return
+def create_event_types(**kwargs):
     #Keep the first column (name) as unique
     EventType.create('Citation', _('cites'), _('cited by'), 'cite', 'process', '=', '')
     EventType.create('Resource Consumption', _('consumes'), _('consumed by'), 'consume', 'process', '-', 'quantity') 
@@ -2985,9 +2989,10 @@ class UseCaseEventType(models.Model):
             #import pdb; pdb.set_trace()
             print "Created %s UseCaseEventType" % (use_case_identifier + " " + event_type_name)
 
-def create_usecase_eventtypes(app, **kwargs):
-    if app != "valueaccounting":
-        return
+#def create_usecase_eventtypes(app, **kwargs):
+#    if app != "valueaccounting":
+#        return
+def create_usecase_eventtypes(**kwargs):
     UseCaseEventType.create('cash_contr', 'Time Contribution') 
     UseCaseEventType.create('cash_contr', 'Cash Contribution')  
     UseCaseEventType.create('cash_contr', 'Donation') 
@@ -3873,12 +3878,12 @@ class ExchangeType(models.Model):
 
 
 class GoodResourceManager(models.Manager):
-    def get_query_set(self):
-        return super(GoodResourceManager, self).get_query_set().exclude(quality__lt=0)
+    def get_queryset(self):
+        return super(GoodResourceManager, self).get_queryset().exclude(quality__lt=0)
 
 class FailedResourceManager(models.Manager):
-    def get_query_set(self):
-        return super(FailedResourceManager, self).get_query_set().filter(quality__lt=0)
+    def get_queryset(self):
+        return super(FailedResourceManager, self).get_queryset().filter(quality__lt=0)
         
 class EconomicResourceManager(models.Manager):
     

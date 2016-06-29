@@ -24,4 +24,7 @@ urlpatterns = patterns("",
     url(r"^faircoin-history/(?P<resource_id>\d+)/$", 'work.views.faircoin_history', 
         name="faircoin_history"),
     url(r'^membership/$', 'work.views.membership_request', name="membership_request"),
+    url(r'^membershipthanks/$', direct_to_template, {
+        'template': 'work/membership_thanks.html'
+    }, name="membership_thanks"),
 )

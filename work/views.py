@@ -973,7 +973,7 @@ def faircoin_history(request, resource_id):
 def membership_request(request):
     membership_form = MembershipRequestForm(data=request.POST or None)
     if request.method == "POST":
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         if membership_form.is_valid():
             data = membership_form.cleaned_data
             name = data["name"]
@@ -996,6 +996,8 @@ def membership_request(request):
                         "site_name": site_name,
                         }
                     )
+            return HttpResponseRedirect('/%s/'
+                % ('work/membershipthanks'))
     return render_to_response("work/membership_request.html", {
         "help": get_help("work_membership_request"),
         "membership_form": membership_form,

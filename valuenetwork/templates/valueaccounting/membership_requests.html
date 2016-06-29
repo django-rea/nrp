@@ -1,0 +1,120 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Freedom Coop Membership Requests" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+
+    tr.even td 
+    {
+        color:#000000;
+        background-color:#EAF2D3;
+    }
+
+    th
+    {
+        background-color:#C8D6E8;
+    }
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}projects{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div>
+        <legend>
+            {% trans "Freedom Coop Membership Requests" %}
+        </legend>
+        
+       
+        
+        <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+            <thead>
+                <th>{% trans "Date" %}</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Requested username" %}</th>
+                <th>{% trans "Type" %}</th>
+                <th>{% trans "Description" %}</th>
+                <th>{% trans "Email" %}</th>
+                <th>{% trans "Phone" %}</th>
+                <th>{% trans "Address" %}</th>
+                <th>{% trans "Language" %}</th>
+                <th>{% trans "For services?" %}</th>
+                <th>{% trans "Autonomous?" %}</th>
+                <th>{% trans "OCP user?" %}</th>
+                <th>{% trans "Consumer?" %}</th>
+                <th>{% trans "Shares" %}</th>
+                <th>{% trans "Work for shares?" %}</th>
+                <th>{% trans "Website" %}</th>
+                <th>{% trans "How known" %}</th>
+                <th>{% trans "Who known" %}</th>
+                <th>{% trans "Comments" %}</th>
+            </thead>
+            <tbody> 
+                {% for req in requests %}
+                    <tr class="{% cycle 'odd' 'even' %}">
+                        <td>{{ req.request_date }}</td>
+                        <td>{{ req.name }} {{ req.surname }}  </td>
+                        <td>{{ req.requested_username }}</td>
+                        <td>{{ req.type_of_membership }}</td>
+                        <td>{{ req.description }}</td>
+                        <td>{{ req.email_address }}</td>
+                        <td>{{ req.phone_number }}</td>
+                        <td>{{ req.address }}</td>
+                        <td>{{ req.native_language }}</td>
+                        <td>{{ req.membership_for_services }}</td>
+                        <td>{{ req.autonomous_membership }}</td>
+                        <td>{{ req.ocp_user_membership }}</td>
+                        <td>{{ req.consumer_membership }}</td>
+                        <td>{{ req.number_of_shares }}</td>
+                        <td>{{ req.work_for_shares }}</td>
+                        <td>{{ req.website }}</td>
+                        <td>{{ req.how_do_you_know_fc }}</td>
+                        <td>{{ req.known_member }}</td>
+                        <td>{{ req.comments_and_questions }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>    
+        </table>
+
+{% comment %}
+<div class="pagination">
+    <span class="step-links">
+        {% if events.has_previous %}
+            <a href="?page={{ events.previous_page_number }}">{% trans "previous" %}</a>
+        {% endif %}
+
+        <span class="current">
+            {% trans "Page" %} {{ events.number }} {% trans "of" %} {{ events.paginator.num_pages }}.
+        </span>
+
+        {% if events.has_next %}
+            <a href="?page={{ events.next_page_number }}">{% trans "next" %}</a>
+        {% endif %}
+    </span>
+</div>
+{% endcomment %}
+
+    </div>
+    </div>
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+        //$('#inventory').addClass('active');
+
+    }); // end document.ready
+
+    </script>
+{% endblock %}

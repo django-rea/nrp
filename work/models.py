@@ -10,6 +10,7 @@ MEMBERSHIP_TYPE_CHOICES = (
 )
 
 class MembershipRequest(models.Model):
+    request_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     name = models.CharField(_('name'), max_length=255)
     surname = models.CharField(_('surname (for individuals)'), max_length=255, blank=True)
     requested_username = models.CharField(_('requested username'), max_length=32)
@@ -34,7 +35,7 @@ class MembershipRequest(models.Model):
         help_text=_("How many shares do you want to underwrite? (minimum one. Each share worth 600 Faircoin = 30 Euro."))
     work_for_shares = models.BooleanField(_('work for one share'), default=False,
         help_text=_("You can get 1 share for 6 hours of work. If you choose this option, we will send you a list of tasks and the deadline. You won't have full access before the tasks are accomplished."))
-    description = models.TextField(_('Description'), blank=True,
+    description = models.TextField(_('Description'),
         help_text=_("Describe your project or collective and skills or abilities you can offer to the cooperative"))
     website = models.CharField(_('website'), max_length=255, blank=True)
     how_do_you_know_fc = models.TextField(_('How do you know Freedom Coop?'), blank=True,)
@@ -44,3 +45,6 @@ class MembershipRequest(models.Model):
         verbose_name=_('agent'), related_name='membership_requests',
         blank=True, null=True,
         help_text=_("this membership request became this EconomicAgent"))
+
+    def __unicode__(self):
+        return self.name

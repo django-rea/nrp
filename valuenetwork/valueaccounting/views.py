@@ -25,6 +25,7 @@ from django.contrib.sites.models import Site
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
 from valuenetwork.valueaccounting.utils import *
+from work.models import MembershipRequest
 
 if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
@@ -13181,3 +13182,10 @@ peeps = [x for x in graph if x['@type']=='Person']
 rels = [x for x in graph if x['@type']=='Relationship']
 ids = [x['@id'].split('/')[1] for x in graph]
 '''
+
+def membership_requests(request):
+    requests = MembershipRequest.objects.all()
+    return render_to_response("valueaccounting/membership_requests.html", {
+        "help": get_help("membership_requests"),
+        "requests": requests,
+    }, context_instance=RequestContext(request))

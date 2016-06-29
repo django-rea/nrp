@@ -529,6 +529,7 @@ urlpatterns += patterns("",
     url(r"^send-faircoins/(?P<resource_id>\d+)/$", 'valuenetwork.valueaccounting.views.send_faircoins', 
         name="send_faircoins"),
     url(r"^validate-faircoin-address/$", 'valuenetwork.valueaccounting.views.validate_faircoin_address', name="validate_faircoin_address"),
+    url(r'^membership-requests/$', 'work.views.membership_requests', name="membership_requests"),
     
 )
 

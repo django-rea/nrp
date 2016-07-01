@@ -4,7 +4,7 @@ from decimal import *
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from django.utils import simplejson
+import json as simplejson
 
 from valuenetwork.valueaccounting.models import *
 
@@ -423,7 +423,7 @@ class ResourceTypeListForm(forms.ModelForm):
 
     class Meta:
         model = ResourceTypeList
-
+        fields = ('name', 'description', 'context_agent',)
         
 class ResourceTypeListElementForm(forms.ModelForm):
     resource_type_id = forms.IntegerField(widget=forms.HiddenInput)

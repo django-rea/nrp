@@ -41,7 +41,7 @@
 		<legend>
             <span style="vertical-align: top;" >
                 {% trans "Contributions from " %} {{ agent }} &nbsp;&nbsp;&nbsp;
-                <a href="{% url agent_value_accounting agent_id=agent.id %}" style="vertical-align: top;">{% trans "Value Accounting" %}</a>
+                <a href="{% url 'agent_value_accounting' agent_id=agent.id %}" style="vertical-align: top;">{% trans "Value Accounting" %}</a>
             </span>
         </legend>
         <div>
@@ -75,7 +75,7 @@
             </form>
             {% if event_ids and agent %}
                 <a 
-                    href=" {% url contribution_events_csv %}?event-ids={{ event_ids }}" 
+                    href=" {% url 'contribution_events_csv' %}?event-ids={{ event_ids }}" 
                     id="btn-export" 
                     class="btn btn-primary" 
                     title="Export filtered list to csv (comma separated value) format" 
@@ -157,7 +157,7 @@
 						</td>
 						<td>
 						    {% for d in event.process.deliverables %}
-						        <a href="{% url resource resource_id=d.id %}">{{ d }}</a></br >
+						        <a href="{% url 'resource' resource_id=d.id %}">{{ d }}</a></br >
 					        {% endfor %}
 					    </td>
 					    {% if user_is_agent %}
@@ -165,7 +165,7 @@
                                 <form
                                     class="change-form" 
                                     id="changeForm{{ event.id }}" 
-                                    action="{% url change_event event_id=event.id %}" 
+                                    action="{% url 'change_event' event_id=event.id %}" 
                                     method="GET" >
                                     <input type='hidden' class="page" id='changePage{{ event.id }}' name='page' value='' />
                                     <button class="btn btn-info btn-mini" title="Change" ><i class="icon-edit icon-white"></button>
@@ -173,7 +173,7 @@
                                 <form
                                     class="delete-form" 
                                     id="deleteForm{{ event.id }}" 
-                                    action="{% url delete_event event_id=event.id %}" 
+                                    action="{% url 'delete_event' event_id=event.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type='hidden' class="page" id='deletePage{{ event.id }}' name='page' value='' />
@@ -313,7 +313,7 @@
         var eventId = "&eventId=" + eventId;
         formData += eventId;
         
-        var url = "{%url change_event_date %}";
+        var url = "{% url 'change_event_date' %}";
 
         notifySaving();
 
@@ -337,7 +337,7 @@
         var eventId = "&eventId=" + eventId;
 		formData += eventId;
         
-        var url = "{%url change_event_qty %}";
+        var url = "{% url 'change_event_qty' %}";
 
 		notifySaving();
 

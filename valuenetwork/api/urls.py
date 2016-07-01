@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url
-from django.views.generic.simple import direct_to_template
+from django.views.generic import TemplateView
 from django.conf.urls import url, include
 
 from rest_framework import routers

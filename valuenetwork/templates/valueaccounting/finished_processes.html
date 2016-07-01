@@ -35,7 +35,7 @@
         <ul>
             {% for process in processes %}
                 <li>
-                    <a href="{% url process_details process_id=process.id %}">{{ process }}</a>
+                    <a href="{% url "process_details" process_id=process.id %}">{{ process }}</a>
                 </li>
                 <ul>
                     {% if process.independent_demand %}

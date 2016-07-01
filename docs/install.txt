@@ -83,7 +83,7 @@ And this to load some starter help:
 ./manage.py loaddata ./fixtures/help.json
 
 13. run the tests
-./manage.py test valueaccounting
+./manage.py test valuenetwork.valueaccounting.tests
 
 14. crank up the django server
 ./manage.py runserver

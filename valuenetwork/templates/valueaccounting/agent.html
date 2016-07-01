@@ -89,18 +89,18 @@ legend {
 		<legend>
 			{{ agent.agent_type }}: {{ agent.name }}
             {% if agent.is_individual %}
-                    <a class="indent smaller" href="{% url contribution_history agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+                    <a class="indent smaller" href="{% url "contribution_history" agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
                 {% else %}
-                    <a class="indent smaller" href="{% url contributions project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+                    <a class="indent smaller" href="{% url "contributions" project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
             {% endif %}
                 {% if agent.is_context_agent %}
-                    <a class="indent smaller" href="{% url distributions agent_id=agent.id %}">{% trans "Distributions" %}</a>
-                    <a class="indent smaller" href="{% url orders agent_id=agent.id %}">{% trans "Active Orders" %} </a>
-                    <a class="indent smaller" href="{% url context_timeline context_id=agent.id %}">Timeline</a>
+                    <a class="indent smaller" href="{% url "distributions" agent_id=agent.id %}">{% trans "Distributions" %}</a>
+                    <a class="indent smaller" href="{% url "orders" agent_id=agent.id %}">{% trans "Active Orders" %} </a>
+                    <a class="indent smaller" href="{% url "context_timeline" context_id=agent.id %}">Timeline</a>
                 {% endif %}
-            <a class="indent smaller" href="{% url radial_graph agent_id=agent.id %}">{% trans "Association Graph" %}</a>
-            <a class="indent smaller" href="{% url agent_associations agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
-            <a class="indent smaller" href="{% url agents %}">{% trans "All Agents" %}</a>
+            <a class="indent smaller" href="{% url "radial_graph" agent_id=agent.id %}">{% trans "Association Graph" %}</a>
+            <a class="indent smaller" href="{% url "agent_associations" agent_id=agent.id %}">{% trans "Maintain Associations" %}</a>
+            <a class="indent smaller" href="{% url "agents" %}">{% trans "All Agents" %}</a>
 
 		</legend>
 		<div class="button-row">
@@ -112,7 +112,7 @@ legend {
                         style="display: inline;" 
                         class="faircoin-form indent" 
                         id="createFairCoinAddressForm" 
-                        action="{% url request_faircoin_address agent_id=agent.id %}" 
+                        action="{% url "request_faircoin_address" agent_id=agent.id %}" 
                         method="POST" >
                         {% csrf_token %}
                         <button style="display: inline;"  class="btn btn-primary" title="Create FairCoin Address" >
@@ -127,7 +127,7 @@ legend {
                     style="display: inline;" 
                     class="delete-agent-form indent" 
                     id="deleteAgentForm" 
-                    action="{% url delete_agent agent_id=agent.id %}" 
+                    action="{% url "delete_agent" agent_id=agent.id %}" 
                     method="POST" >
                     {% csrf_token %}
                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete Agent" >Delete</button>
@@ -153,7 +153,7 @@ legend {
                         <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form enctype="multipart/form-data" action="{% url change_agent agent_id=agent.id %}" method="POST" >
+                        <form enctype="multipart/form-data" action="{% url "change_agent" agent_id=agent.id %}" method="POST" >
                             {% csrf_token %}
                             {{ change_form|as_bootstrap }}
                             <div class="modal-footer">
@@ -172,7 +172,7 @@ legend {
                         <h3 id="create-user-label">{% trans "Create login user for" %} {{ agent.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form id="userForm" enctype="multipart/form-data" action="{% url create_user agent_id=agent.id %}" method="POST" >
+                        <form id="userForm" enctype="multipart/form-data" action="{% url "create_user" agent_id=agent.id %}" method="POST" >
                             {% csrf_token %}
                             {{ user_form|as_bootstrap }}
 
@@ -261,9 +261,9 @@ legend {
                                 {% if user_agent %}
                                     {% if agent.primary_location %}
                                         {{ agent.primary_location.address }}</br>
-                                        <a href="{% url locations %}">{% trans "Change on map" %}</a>
+                                        <a href="{% url "locations" %}">{% trans "Change on map" %}</a>
                                     {% else %}
-                                        <a href="{% url locations %}">{% trans "Add on map" %}</a>
+                                        <a href="{% url "locations" %}">{% trans "Add on map" %}</a>
                                     {% endif %}
                                 {% endif %}
                             </td>

@@ -65,7 +65,7 @@
                         <h3 id="agent-label">{% trans "Create a New Agent" %}</h3>
                     </div>
                     <div class="modal-body">
-                        <form class="validateMe" id="agentForm" enctype="multipart/form-data" action="{% url create_agent %}" method="POST" >
+                        <form class="validateMe" id="agentForm" enctype="multipart/form-data" action="{% url "create_agent" %}" method="POST" >
                             {% csrf_token %}
                             {{ agent_form|as_bootstrap }}
                             <div class="modal-footer">
@@ -91,9 +91,9 @@
                         &nbsp;&nbsp;&nbsp;
                         {% if agent.contributions_count %}
                             {% if agent.is_individual %}
-                                <a href="{% url contribution_history agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+                                <a href="{% url "contribution_history" agent_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
                             {% else %}
-                                <a href="{% url contributions project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
+                                <a href="{% url "contributions" project_id=agent.id %}">{% trans "Contributions" %}: {{ agent.contributions_count }}</a>
                             {% endif %}
                         {% endif %}
 

@@ -37,7 +37,7 @@ h3 {
         {% include "_messages.html" %}
 	    <div>
 		    <legend>
-		        {% trans "Maintain Exchange Types / Patterns" %} &nbsp;&nbsp;&nbsp;<a href="{% url resource_facet_table %}">{% trans "Change Resource Type Facets" %}</a> 
+		        {% trans "Maintain Exchange Types / Patterns" %} &nbsp;&nbsp;&nbsp;<a href="{% url "resource_facet_table" %}">{% trans "Change Resource Type Facets" %}</a> 
 	        </legend>
 
             <div class="row-fluid">
@@ -58,13 +58,13 @@ h3 {
 	            <ul>
 	            {% for ext in supply_exchange_types %}
 	                <li>
-	                    <a href="{% url change_exchange_type exchange_type_id=ext.id %}">{{ ext }}</a>
+	                    <a href="{% url "change_exchange_type" exchange_type_id=ext.id %}">{{ ext }}</a>
 	                    {% if ext.is_deletable %}
                             <form
                                 style="display: inline;" 
                                 class="remove-form" 
                                 id="removeForm{{ ext.id }}" 
-                                action="{% url delete_exchange_type exchange_type_id=ext.id %}" 
+                                action="{% url "delete_exchange_type" exchange_type_id=ext.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this exchange type" >X</button>
@@ -79,13 +79,13 @@ h3 {
                 <ul>
                 {% for ext in internal_exchange_types %}
                     <li>
-                        <a href="{% url change_exchange_type exchange_type_id=ext.id %}">{{ ext }}</a>
+                        <a href="{% url "change_exchange_type" exchange_type_id=ext.id %}">{{ ext }}</a>
                         {% if ext.is_deletable %}
                             <form
                                 style="display: inline;" 
                                 class="remove-form" 
                                 id="removeForm{{ ext.id }}" 
-                                action="{% url delete_exchange_type exchange_type_id=ext.id %}" 
+                                action="{% url "delete_exchange_type" exchange_type_id=ext.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this exchange type" >X</button>
@@ -100,13 +100,13 @@ h3 {
                 <ul>
                 {% for ext in demand_exchange_types %}
                     <li>
-                        <a href="{% url change_exchange_type exchange_type_id=ext.id %}">{{ ext }}</a>
+                        <a href="{% url "change_exchange_type" exchange_type_id=ext.id %}">{{ ext }}</a>
                         {% if ext.is_deletable %}
                             <form
                                 style="display: inline;" 
                                 class="remove-form" 
                                 id="removeForm{{ ext.id }}" 
-                                action="{% url delete_exchange_type exchange_type_id=ext.id %}" 
+                                action="{% url "delete_exchange_type" exchange_type_id=ext.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this exchange type" >X</button>

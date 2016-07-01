@@ -58,7 +58,7 @@
 		
 			<legend>
                 {% trans "Resource Types" %}&nbsp;&nbsp;&nbsp;
-                <a href="{% url resource_type_lists %}">{% trans "Resource Type Lists" %}</a>
+                <a href="{% url "resource_type_lists" %}">{% trans "Resource Type Lists" %}</a>
             </legend>
 
 			{% if user.is_authenticated %}
@@ -74,7 +74,7 @@
 						<h3 id="resource-create-label">{% trans "Create a new Resource Type" %}</h3>
 					</div>
 					<div class="modal-body">
-						<form class="resource-create-form" id="resourceCreateForm" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
+						<form class="resource-create-form" id="resourceCreateForm" enctype="multipart/form-data" action="{% url "create_resource_type" %}" method="POST" >
 							{% csrf_token %}
 							{{ create_form|as_bootstrap }}
                             {{ create_formset.management_form }}
@@ -83,7 +83,7 @@
                                     <tr><td class="facet-name"> {{ form.facet_name }} </td><td> {{ form.value }} {{ form.facet_id }} </td></tr>
                                 {% endfor %}
                             </table>
-							<input type="hidden" name="next" value="{% url resource_types %}" />
+							<input type="hidden" name="next" value="{% url "resource_types" %}" />
 
 						  <div class="modal-footer">
 							<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -101,7 +101,7 @@
 			    {% for resource_type in roots %}
 			    		        
 				    <li>
-					    <span class="name"><a href="{% url resource_type resource_type_id=resource_type.id %}">{{ resource_type }}</a></span> 
+					    <span class="name"><a href="{% url "resource_type" resource_type_id=resource_type.id %}">{{ resource_type }}</a></span> 
 
 					    {% if resource_type.photo %}
 			                <img src="{% thumbnail resource_type.photo photo_size %}" />
@@ -112,10 +112,10 @@
 		                {% comment %}#todo pr: shd this use own or own_or_parent_recipes?{% endcomment %}
 		                {% if resource_type.producing_process_type_relationships %}
 		                  {% if resource_type.recipe_is_staged %}
-                            <a href="{% url view_stream_recipe resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+                            <a href="{% url "view_stream_recipe" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
 
 		                  {% else %}
-			                <a href="{% url extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
+			                <a href="{% url "extended_bill" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >{% trans "View Recipe" %}</a>
 		                  {% endif %}
                         {% endif %}
 

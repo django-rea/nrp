@@ -7,7 +7,7 @@ from django.test import Client
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.utils import *
-from django.utils import simplejson
+import json as simplejson
 from valuenetwork.valueaccounting.tests.value_equation_test_objects import *
 from valuenetwork.valueaccounting.tests.objects_for_testing import Facets
 

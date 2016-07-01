@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url
-from django.views.generic.simple import direct_to_template
+from django.views.generic import TemplateView
 
 urlpatterns = patterns("",
     url(r'^my-dashboard/$', 'work.views.my_dashboard', name="my_dashboard"),
@@ -28,3 +28,4 @@ urlpatterns = patterns("",
         'template': 'work/membership_thanks.html'
     }, name="membership_thanks"),
 )
+

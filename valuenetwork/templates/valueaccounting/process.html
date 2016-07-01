@@ -64,9 +64,9 @@ body .modal {
 		<legend>
 			{% trans "Process" %}: {{ process }} {% if process.started %} - {% trans "Started" %} {{ process.started }}{% endif %} 
 			{% if agent %}
-	            &nbsp;<a class="btn btn-info" href="{% url change_process process_id=process.id %}">{% trans "Change Process Plan" %}</a>
+	            &nbsp;<a class="btn btn-info" href="{% url "change_process" process_id=process.id %}">{% trans "Change Process Plan" %}</a>
 	           
-                <a class="btn btn-primary" href="{% url process_finished process_id=process.id %}">
+                <a class="btn btn-primary" href="{% url "process_finished" process_id=process.id %}">
                     {% if process.finished %}
                         {% trans "Unfinish" %}
                     {% else %}
@@ -78,7 +78,7 @@ body .modal {
 
 		{% if labnotes %}
 			<h4>
-				<a href="{% url labnotes process_id=process.id %}">Labnotes for this process</a>
+				<a href="{% url "labnotes" process_id=process.id %}">Labnotes for this process</a>
 			</h4>
 		{% endif %}
         <br />
@@ -131,7 +131,7 @@ body .modal {
 		                    <h3 id="resource-label">{% trans "Create" %} {{ item.resource_type.name }} {% trans "Resource" %}</h3>
 	                    </div>
 	                    <div class="modal-body">
-		                    <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="{% url log_resource_for_commitment commitment_id=item.id %}" method="POST" >
+		                    <form class="resource-form" id="resourceForm" enctype="multipart/form-data" action="{% url "log_resource_for_commitment" commitment_id=item.id %}" method="POST" >
 			                    {% csrf_token %}
 			                    {{ item.resource_create_form|as_bootstrap }}
 		                      <div class="modal-footer">
@@ -152,7 +152,7 @@ body .modal {
 			{% for event in item.fulfilling_events %}
 				<p style="margin-left: 2em;">
 					<b>{% trans "Completed" %}:</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} 
-					{% trans "Resource" %}: <a href="{% url resource resource_id=event.resource.id  %}">{{ event.resource }}</a>
+					{% trans "Resource" %}: <a href="{% url "resource" resource_id=event.resource.id  %}">{{ event.resource }}</a>
 				</p>
 			{% endfor %}
 		{% endfor %}
@@ -173,7 +173,7 @@ body .modal {
 				{% if item.onhand %}
 					{% for resource in item.onhand %}
 						<li>
-							<b>{% trans "Onhand" %}:</b> <a href="{% url resource resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
+							<b>{% trans "Onhand" %}:</b> <a href="{% url "resource" resource_id=resource.id %}" target="_blank" >{{ resource.label }}</a> 
 							{% if resource.id in cited_ids %}
 							    <span style="color: green; font-weight: bold;">{% trans "Cited" %}</span>
 							{% endif %}
@@ -236,9 +236,9 @@ body .modal {
 						    <b>{% trans "Source" %}:</b> {{ source.agent.name }} {% trans "Lead time" %}: {{ source.lead_time }} {% trans "days" %}<br/>
 						    {% comment %}
 						    {% if source.too_late %}
-						        <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url forward_schedule_source commitment_id=item.id source_id=source.id %}" method="POST" >
+						        <form class="reskedForm" id="reskedForm-{{ source.id }}" action="{% url "forward_schedule_source" commitment_id=item.id source_id=source.id %}" method="POST" >
                                     {% csrf_token %}
-                                    <input type="hidden" name="next" value="{% url process_details process_id=process.id %}" />
+                                    <input type="hidden" name="next" value="{% url "process_details" process_id=process.id %}" />
 						            <span class="error" style="margin-left: 2em;">{% trans "Should have purchased" %} {{ source.order_release_date|timesince }} {% trans "ago" %}</span> &nbsp;
                                     <button class="btn btn-warning btn-mini" title="Reschedule forward from purchase release date" >{% trans "Reschedule forward" %}</button>
                                 </form>
@@ -335,10 +335,10 @@ body .modal {
 							    </div>
 							    <div class="modal-body">
 
-								    <form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+								    <form class="commitmentForm" enctype="multipart/form-data" action="{% url "commit_to_task" commitment_id=item.id %}" method="POST" >
 									    {% csrf_token %}
 									    {{ item.commitment_form|as_bootstrap }}
-									    <input type="hidden" name="next" value="{% url work %}" />
+									    <input type="hidden" name="next" value="{% url "work" %}" />
 								      <div class="modal-footer">
 									    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									    <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />

@@ -53,8 +53,8 @@
                 <a href="#resourceChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>&nbsp;&nbsp;
                 <a href="#resourceOrderForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Plan Work Order" %}</a>&nbsp;&nbsp;
             {% endif %}
-            <a href="{% url event_history resource_id=resource.id %}">{% trans "Event history" %}</a>&nbsp;&nbsp;
-            <a href="{% url incoming_value_flows resource_id=resource.id %}">{% trans "Incoming Value Flow" %}</a>
+            <a href="{% url "event_history" resource_id=resource.id %}">{% trans "Event history" %}</a>&nbsp;&nbsp;
+            <a href="{% url "incoming_value_flows" resource_id=resource.id %}">{% trans "Incoming Value Flow" %}</a>
 		</legend>
 		
         {% if agent %}
@@ -64,7 +64,7 @@
 				    <h3 id="resource-change-label">{% trans "Change" %} {{ resource }}</h3>
 			    </div>
 			    <div class="modal-body">
-				    <form id="resource-change-form" action="{% url change_resource resource_id=resource.id %}" method="POST" >
+				    <form id="resource-change-form" action="{% url "change_resource" resource_id=resource.id %}" method="POST" >
 					    {% csrf_token %}
 					    {{ resource.change_form|as_bootstrap }}
                         {{ role_formset.management_form }}
@@ -99,7 +99,7 @@
                     <h3 id="resource-order-label">{% trans "Create Work Order for" %} {{ resource }}</h3>
                 </div>
                 <div class="modal-body">
-                    <form enctype="multipart/form-data" action="{% url plan_work_order_for_resource resource_id=resource.id %}" method="POST" >
+                    <form enctype="multipart/form-data" action="{% url "plan_work_order_for_resource" resource_id=resource.id %}" method="POST" >
                         {% csrf_token %}
                         {{ order_form|as_bootstrap }}
                         <div class="modal-footer">
@@ -224,7 +224,7 @@
 
                             {% if event.process %}
                                 <ul>
-                                    <li><b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a>
+                                    <li><b>{% trans "Process" %}:</b> <a href="{% url "process_details" process_id=event.process.id %}">{{ event.process.name }}</a>
 
                                     </li>
 
@@ -232,7 +232,7 @@
                             {% endif %}
                             {% if event.exchange %}
                                 <ul>
-                                    <li><b>{% trans "Exchange" %}:</b> <a href="{% url exchange_logging exchange_type_id=0 exchange_id=event.exchange.id %}">{{ event.exchange }}</a>
+                                    <li><b>{% trans "Exchange" %}:</b> <a href="{% url "exchange_logging" exchange_type_id=0 exchange_id=event.exchange.id %}">{{ event.exchange }}</a>
                                     </li>
                                         {% if event.exchange.payment_sources_with_contributions %}
                                             <li><b>{% trans "Contributions to payment for " %} {{ resource.identifier }}:</b></li>
@@ -299,7 +299,7 @@
                         {% if event.process %}
                             <ul>
                                 <li>
-                                    <b>{% trans "Process" %}:</b> <a href="{% url process_details process_id=event.process.id %}">{{ event.process.name }}</a>
+                                    <b>{% trans "Process" %}:</b> <a href="{% url "process_details" process_id=event.process.id %}">{{ event.process.name }}</a>
                                </li>
                                 <ul>
                                     {% for req in event.process.work_requirements %}
@@ -314,7 +314,7 @@
                                     {% if op.resource %}
                                         <li>{% trans "Event" %}: <b>{{ op.event_type }}</b>  {{ op.resource_type.name }} {{ event.quantity }} {{ event.unit_of_quantity.abbrev }} {{ event.event_date }}</li>
                                         <ul>
-                                            <li><b>{% trans "Resource" %}:</b> <a href="{% url resource resource_id=op.resource.id %}">{{ op.resource.label }}</a></li>
+                                            <li><b>{% trans "Resource" %}:</b> <a href="{% url "resource" resource_id=op.resource.id %}">{{ op.resource.label }}</a></li>
                                         </ul>
                                     {% endif %}
                                 {% endfor %}

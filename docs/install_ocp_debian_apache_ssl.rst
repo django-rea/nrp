@@ -19,23 +19,14 @@ This is a howto for installing ocp in a debian/ubuntu system.
     pip install --no-deps easy_thumbnails
     pip install Image
 
-- Create local_settings.py for easy_thumbnails: ::
-
-    vim local_settings.py
-
-This is the content of local_settings.py: ::
-
-    SOUTH_MIGRATION_MODULES = { 
-        'easy_thumbnails': 'easy_thumbnails.south_migrations',
-    }
 
 - Create database, load some data, run tests and start with dev server: ::
 
-    ./manage.py syncdb
+    ./manage.py makemigrations
     ./manage.py migrate
     ./manage.py loaddata ./fixtures/starters.json
     ./manage.py loaddata ./fixtures/help.json
-    ./manage.py test valueaccounting
+    ./manage.py test valuenetwork.valueaccounting.tests
     ./manage.py runserver
 
 - Check everything is ok in http://127.0.0.1:8000 with web browser.
@@ -134,7 +125,11 @@ If you get a *forbidden* error, make sure that apache has permission to access t
         Require all granted
     </Directory>
 
-- Include absolute path to database, STATIC_ROOT constant and map settings in local_settings.py: ::
+- Create local_settings.py: ::
+
+    vim local_settings.py
+
+Include absolute path to database, STATIC_ROOT constant and map settings in local_settings.py: ::
 
     DATABASES = {
     'default': {

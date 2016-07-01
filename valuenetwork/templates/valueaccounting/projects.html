@@ -57,7 +57,7 @@
                         <h3 id="agent-label">{% trans "Create a New Agent" %}</h3>
                     </div>
                     <div class="modal-body">
-                        <form class="validateMe" id="agentForm" enctype="multipart/form-data" action="{% url create_agent %}" method="POST" >
+                        <form class="validateMe" id="agentForm" enctype="multipart/form-data" action="{% url "create_agent" %}" method="POST" >
                             {% csrf_token %}
                             {{ agent_form|as_bootstrap }}
                             <div class="modal-footer">
@@ -71,17 +71,18 @@
             {% endif %}
 
 
-            <a class="indent" href="{% url agents %}">{% trans "All Agents" %}</a>
-            <a class="indent" href="{% url locations %}">{% trans "Locations" %}</a>
-            <a class="indent" href="{% url all_contributions %}">{% trans "All contributions" %}</a>
+            <a class="indent" href="{% url "agents" %}">{% trans "All Agents" %}</a>
+            <a class="indent" href="{% url "locations" %}">{% trans "Locations" %}</a>
+            <a class="indent" href="{% url "all_contributions" %}">{% trans "All contributions" %}</a>
 {% comment %}
-            <a class="indent" href="{% url demand_exchanges %}">{% trans "All demand exchanges" %}</a>
+            <a class="indent" href="{% url "demand_exchanges" %}">{% trans "All demand exchanges" %}</a>
 {% endcomment %}
-            <a class="indent" href="{% url project_network %}">{% trans "Network diagram" %}</a>
-            <a class="indent" href="{% url cash_report %}">{% trans "Cash Flow Report" %}</a>
-            <a class="indent" href="{% url value_equations %}">{% trans "Value Equations" %}</a>
-            <a class="indent" href="{% url membership_requests %}">{% trans "Membership requests" %}</a>
+
             
+            <a class="indent" href="{% url "project_network" %}">{% trans "Network diagram" %}</a>
+            <a class="indent" href="{% url "cash_report" %}">{% trans "Cash Flow Report" %}</a>
+            <a class="indent" href="{% url "value_equations" %}">{% trans "Value Equations" %}</a>
+            <a class="indent" href="{% url 'membership_requests' %}">{% trans "Membership requests" %}</a>
                 
         </legend>
         
@@ -99,21 +100,21 @@
                 
                 <li>
                     <b><a href="{{ node.get_absolute_url }}">{{ node.name }}</a></b> 
-                    <a class="indent" href="{% url contributions project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
+                    <a class="indent" href="{% url "contributions" project_id=node.id %}">{% trans "Contributions" %}: {{ node.contributions_count }}</a>
                     {% if node.wip %}
-                        <a class="indent" href="{% url project_wip project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
+                        <a class="indent" href="{% url "project_wip" project_id=node.id %}">{% trans "Work in process" %}: {{ node.wip.count }}</a>
                     {% endif %}
                     {% if node.supply_exchange_count > 0 %}
-                        <a class="indent" href="{% url exchanges agent_id=node.id %}">{% trans "Incoming Exchanges" %}: {{ node.supply_exchange_count }}</a>
+                        <a class="indent" href="{% url "exchanges" agent_id=node.id %}">{% trans "Incoming Exchanges" %}: {{ node.supply_exchange_count }}</a>
                     {% endif %}
                     {% if node.demand_exchange_count > 0 %}
-                        <a class="indent" href="{% url demand_exchanges agent_id=node.id %}">{% trans "Outgoing Exchanges" %}: {{ node.demand_exchange_count }}</a>
+                        <a class="indent" href="{% url "demand_exchanges" agent_id=node.id %}">{% trans "Outgoing Exchanges" %}: {{ node.demand_exchange_count }}</a>
                     {% endif %}
                     {% if node.internal_exchange_count > 0 %}
-                        <a class="indent" href="{% url internal_exchanges agent_id=node.id %}">{% trans "Internal Exchanges" %}: {{ node.internal_exchange_count }}</a>
+                        <a class="indent" href="{% url "internal_exchanges" agent_id=node.id %}">{% trans "Internal Exchanges" %}: {{ node.internal_exchange_count }}</a>
                     {% endif %}
                     {% if node.distributions_count > 0 %}
-                        <a class="indent" href="{% url distributions agent_id=node.id %}">{% trans "Distributions" %}: {{ node.distributions_count }}</a>
+                        <a class="indent" href="{% url "distributions" agent_id=node.id %}">{% trans "Distributions" %}: {{ node.distributions_count }}</a>
                     {% endif %}
                     {% if node.description %}
                         <div class="description" >{{ node.description|urlize|linebreaks }}</div>

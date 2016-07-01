@@ -145,10 +145,10 @@ ul {
 					<h3 id="resource-change-label">{% trans "Change" %} {{ resource_type }}</h3>
 				</div>
 				<div class="modal-body">
-					<form class="resource-change-form" enctype="multipart/form-data" action="{% url change_resource_type resource_type_id=resource_type.id %}" method="POST" >
+					<form class="resource-change-form" enctype="multipart/form-data" action="{% url "change_resource_type" resource_type_id=resource_type.id %}" method="POST" >
 						{% csrf_token %}
 						{{ resource_type_form }}
-						<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+						<input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 					  <div class="modal-footer">
 						<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 						<button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -183,10 +183,10 @@ ul {
 			<h3 id="process-label">{% blocktrans %}Add a process type to create {{ resource_type }}{% endblocktrans %}</h3>
 		  </div>
 		  <div class="modal-body">
-				<form class="process-form" action="{% url create_process_type_for_resource_type resource_type_id=resource_type.id %}" method="POST">
+				<form class="process-form" action="{% url "create_process_type_for_resource_type" resource_type_id=resource_type.id %}" method="POST">
 						{% csrf_token %}
 					{{ resource_type.process_create_form }}
-					<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+					<input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 				  <div class="modal-footer">
 					<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 					<button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -246,10 +246,10 @@ ul {
 							<h3 id="process-change-label">{% trans "Change" %} {{ xbill_object }}</h3>
 						  </div>
 						  <div class="modal-body">
-								<form class="process-change-form" action="{% url change_mfg_process_type process_type_id=xbill_object.id %}" method="POST" >
+								<form class="process-change-form" action="{% url "change_mfg_process_type" process_type_id=xbill_object.id %}" method="POST" >
 									{% csrf_token %}
 									{{ xbill_object.xbill_change_form }}
-									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									<input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
 									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									<button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -262,7 +262,7 @@ ul {
 						</div>
 
 						<div style="display: inline;" >
-							<a href="{% url delete_process_type_confirmation process_type_id=xbill_object.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >Delete</a>
+							<a href="{% url "delete_process_type_confirmation" process_type_id=xbill_object.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >Delete</a>
 						</div>
 
 					{% endif %}
@@ -279,10 +279,10 @@ ul {
 							<h3 id="change-input-label">{% trans "Change" %} {{ xbill_node }}</h3>
 						  </div>
 						  <div class="modal-body">
-								<form class="change-input-form" action="{% url change_process_type_input input_id=xbill_node.id %}" method="POST" >
+								<form class="change-input-form" action="{% url "change_process_type_input" input_id=xbill_node.id %}" method="POST" >
 									{% csrf_token %}
 									{{ xbill_node.xbill_change_form }}
-									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									<input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
 									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									<button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -295,7 +295,7 @@ ul {
 						</div>
 
 						<div style="display: inline;" >
-							<a href="{% url delete_process_input process_input_id=xbill_node.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
+							<a href="{% url "delete_process_input" process_input_id=xbill_node.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
 								{% trans "Delete" %}
 							</a>
 						</div>
@@ -315,10 +315,10 @@ ul {
 							<h3 id="change-source-label">{% trans "Change" %} {{ xbill_node }}</h3>
 						  </div>
 						  <div class="modal-body">
-								<form class="change-source-form form-horizontal" action="{% url change_agent_resource_type agent_resource_type_id=xbill_node.id %}" method="POST" >
+								<form class="change-source-form form-horizontal" action="{% url "change_agent_resource_type" agent_resource_type_id=xbill_node.id %}" method="POST" >
 									{% csrf_token %}
 									{{ xbill_node.xbill_change_form }}
-									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									<input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
 									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									<button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -330,7 +330,7 @@ ul {
 						</div>
 
 						<div style="display: inline;" >
-							<a href="{% url delete_source source_id=xbill_node.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
+							<a href="{% url "delete_source" source_id=xbill_node.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
 								{% trans "Delete" %}
 							</a>
 						</div>
@@ -371,10 +371,10 @@ ul {
 								        <h3 id="process-label">{% blocktrans %}Add a process type to produce {{ rtype }}{% endblocktrans %}</h3>
 							          </div>
 							          <div class="modal-body">
-									        <form class="process-form form-horizontal" action="{% url create_process_type_for_resource_type resource_type_id=rtype.id %}" method="POST" >
+									        <form class="process-form form-horizontal" action="{% url "create_process_type_for_resource_type" resource_type_id=rtype.id %}" method="POST" >
 										        {% csrf_token %}
 										        {{ rtype.process_create_form }}
-										        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+										        <input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 									          <div class="modal-footer">
 										        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 										        <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -403,10 +403,10 @@ ul {
 							                <h3 id="source-label">{% blocktrans %}Add a source for {{ rtype }}{% endblocktrans %}</h3>
 						                  </div>
 						                  <div class="modal-body">
-								                <form class="source-form form-horizontal" action="{% url create_agent_resource_type resource_type_id=rtype.id %}" method="POST" >
+								                <form class="source-form form-horizontal" action="{% url "create_agent_resource_type" resource_type_id=rtype.id %}" method="POST" >
 									                {% csrf_token %}
 									                {{ rtype.source_create_form }}
-									                <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									                <input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 								                  <div class="modal-footer">
 									                <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									                <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -438,7 +438,7 @@ ul {
 							            <h3 id="consumable-label">{% blocktrans %}Add a consumable input to {{ ptype }}{% endblocktrans %}</h3>
 						              </div>
 						              <div class="modal-body">
-								            <form class="consumable-form" action="{% url create_process_type_input process_type_id=ptype.id slot='c' %}" method="POST" >
+								            <form class="consumable-form" action="{% url "create_process_type_input" process_type_id=ptype.id slot='c' %}" method="POST" >
 									            {% csrf_token %}
                                                 {% with iform=ptype.xbill_consumable_form %}
 					                                <p class="modal-line">{% trans "Resource Type" %} </p>
@@ -455,7 +455,7 @@ ul {
                                                     <p class="modal-line">{% trans "Description" %} </p>
                                                     <p class="desc">{{ iform.description }} </p>
                                                 {% endwith %}
-									            <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									            <input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 								              <div class="modal-footer">
 									            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									            <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -483,7 +483,7 @@ ul {
                                                         {% endfor %}
                                                     </table>
                                                 {% endwith %}
-    {% comment %}							                <input type="hidden" name="next" value="{% url edit_extended_bill %}" /> {% endcomment %}
+    {% comment %}							                <input type="hidden" name="next" value="{% url "edit_extended_bill" %}" /> {% endcomment %}
 
 						                      <div class="modal-footer">
 							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -514,7 +514,7 @@ ul {
 							            <h3 id="usable-label">{% blocktrans %}Add a usable input to {{ ptype }}{% endblocktrans %}</h3>
 						              </div>
 						              <div class="modal-body">
-								            <form class="usable-form" action="{% url create_process_type_input process_type_id=ptype.id slot='u' %}" method="POST" >
+								            <form class="usable-form" action="{% url "create_process_type_input" process_type_id=ptype.id slot='u' %}" method="POST" >
 									            {% csrf_token %}
                                                 {% with iform=ptype.xbill_usable_form %}
 					                                <p class="modal-line">{% trans "Resource Type" %} </p>
@@ -529,7 +529,7 @@ ul {
                                                     <p class="modal-line">{% trans "Description" %} </p>
                                                     <p class="desc">{{ iform.description }} </p>
                                                 {% endwith %}
-									            <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									            <input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 								              <div class="modal-footer">
 									            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									            <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -557,7 +557,7 @@ ul {
                                                         {% endfor %}
                                                     </table>
                                     {% endwith %}
-    {% comment %}							                <input type="hidden" name="next" value="{% url edit_extended_bill %}" /> {% endcomment %}
+    {% comment %}							                <input type="hidden" name="next" value="{% url "edit_extended_bill" %}" /> {% endcomment %}
 
 						                      <div class="modal-footer">
 							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -588,7 +588,7 @@ ul {
 							            <h3 id="cite-label">{% blocktrans %}Add a citable to {{ ptype }}{% endblocktrans %}</h3>
 						              </div>
 						              <div class="modal-body">
-								            <form class="cite-form" action="{% url create_process_type_citable process_type_id=ptype.id %}" method="POST" >
+								            <form class="cite-form" action="{% url "create_process_type_citable" process_type_id=ptype.id %}" method="POST" >
 									            {% csrf_token %}
                                                 {% with cform=ptype.xbill_citable_form %}
 					                                <p class="modal-line">{% trans "Resource Type" %} </p>
@@ -599,7 +599,7 @@ ul {
                                                     <p class="modal-line">{% trans "Description" %} </p>
                                                     <p class="desc">{{ cform.description }} </p>
                                                 {% endwith %}
-									            <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									            <input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 								              <div class="modal-footer">
 									            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									            <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -616,7 +616,7 @@ ul {
 						                    <h3 id="resource-citable-create-label{{ ptype.node_id }}">{% trans "Create a new Resource Type" %}</h3>
 					                    </div>
 					                    <div class="modal-body">
-						                    <form class="resource-create-form" id="formcite{{ citable_prefix }}" enctype="multipart/form-data" action="{% url create_resource_type %}" method="POST" >
+						                    <form class="resource-create-form" id="formcite{{ citable_prefix }}" enctype="multipart/form-data" action="{% url "create_resource_type" %}" method="POST" >
 							                    {% csrf_token %}
 							                    {{ ptype.xbill_citable_rt_form }}
                                                 {% with facet_formset=ptype.xbill_citable_rt_facet_formset %}
@@ -627,7 +627,7 @@ ul {
                                                         {% endfor %}
                                                     </table>
                                                 {% endwith %}
-    {% comment %}							                <input type="hidden" name="next" value="{% url edit_extended_bill %}" /> {% endcomment %}
+    {% comment %}							                <input type="hidden" name="next" value="{% url "edit_extended_bill" %}" /> {% endcomment %}
 
 						                      <div class="modal-footer">
 							                    <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
@@ -655,10 +655,10 @@ ul {
 							        <h3 id="work-label">{% blocktrans %}Add work to {{ ptype }}{% endblocktrans %}</h3>
 						          </div>
 						          <div class="modal-body">
-								        <form class="work-form" action="{% url create_process_type_work process_type_id=ptype.id %}" method="POST" >
+								        <form class="work-form" action="{% url "create_process_type_work" process_type_id=ptype.id %}" method="POST" >
 									        {% csrf_token %}
 					                        {{ ptype.xbill_work_form }}
-									        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									        <input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 								          <div class="modal-footer">
 									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									        <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -681,10 +681,10 @@ ul {
 							        <h3 id="feature-label">{% blocktrans %}Add a feature to {{ ptype }}{% endblocktrans %}</h3>
 						          </div>
 						          <div class="modal-body">
-								        <form class="feature-form" action="{% url create_process_type_feature process_type_id=ptype.id %}" method="POST" >
+								        <form class="feature-form" action="{% url "create_process_type_feature" process_type_id=ptype.id %}" method="POST" >
 									        {% csrf_token %}
 									        {{ feature_form }}
-									        <input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									        <input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 								          <div class="modal-footer">
 									        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									        <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -717,10 +717,10 @@ ul {
 							<h3 id="change-feature-label">{% trans "Change" %} {{ xbill_object }}</h3>
 						  </div>
 						  <div class="modal-body">
-								<form class="change-feature-form" action="{% url change_feature feature_id=xbill_object.id %}" method="POST" >
+								<form class="change-feature-form" action="{% url "change_feature" feature_id=xbill_object.id %}" method="POST" >
 									{% csrf_token %}
 									{{ xbill_object.xbill_change_form }}
-									<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+									<input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 								  <div class="modal-footer">
 									<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 									<button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -732,7 +732,7 @@ ul {
 						</div>
 
 						<div style="display: inline;" >
-							<a href="{% url delete_feature_confirmation feature_id=xbill_object.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
+							<a href="{% url "delete_feature_confirmation" feature_id=xbill_object.id resource_type_id=resource_type.id %}" role="button" class="btn btn-warning" >
 								{% trans "Delete" %}
 							</a>
 						</div>
@@ -751,10 +751,10 @@ ul {
 									<h3 id="options-change-label">{% blocktrans %}Change options for {{ xbill_object }}{% endblocktrans %}</h3>
 								  </div>
 								  <div class="modal-body">
-										<form class="options-change-form" action="{% url change_options_for_feature feature_id=xbill_object.id %}" method="POST" >
+										<form class="options-change-form" action="{% url "change_options_for_feature" feature_id=xbill_object.id %}" method="POST" >
 											{% csrf_token %}
 											{{ xbill_object.options_change_form }}
-											<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+											<input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 										  <div class="modal-footer">
 											<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 											<button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -778,10 +778,10 @@ ul {
 									<h3 id="options-label">{% blocktrans %}Select options for {{ xbill_object }}{% endblocktrans %}</h3>
 								  </div>
 								  <div class="modal-body">
-										<form class="options-form" action="{% url create_options_for_feature feature_id=xbill_object.id %}" method="POST" >
+										<form class="options-form" action="{% url "create_options_for_feature" feature_id=xbill_object.id %}" method="POST" >
 											{% csrf_token %}
 											{{ xbill_object.options_form }}
-											<input type="hidden" name="next" value="{% url edit_extended_bill resource_type_id=resource_type.id %}" />
+											<input type="hidden" name="next" value="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" />
 										  <div class="modal-footer">
 											<button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
 											<button class="btn btn-primary">{% trans "Save changes" %}</button>

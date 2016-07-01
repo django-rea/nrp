@@ -57,12 +57,12 @@
         <legend>
             {% trans "Value Equations" %}  
             {% if agent %}
-                <a class="btn btn-info" href="{% url edit_value_equation %}">{% trans "Create Value Equation" %}</a>
+                <a class="btn btn-info" href="{% url "edit_value_equation" %}">{% trans "Create Value Equation" %}</a>
             {% endif %}
             &nbsp;&nbsp;
-            <a href="{% url virtual_accounts %}">{% trans "Virtual Accounts" %}</a>
+            <a href="{% url "virtual_accounts" %}">{% trans "Virtual Accounts" %}</a>
             &nbsp;&nbsp;
-            <a href="{% url distributions %}">{% trans "Distributions" %}</a>
+            <a href="{% url "distributions" %}">{% trans "Distributions" %}</a>
         </legend>
 
         <div class="ves" >
@@ -73,14 +73,14 @@
                     {% if user = ve.created_by or user.is_superuser %}
                         <form
                             style="display: inline;"  
-                            action="{% url edit_value_equation value_equation_id=ve.id %}" 
+                            action="{% url "edit_value_equation" value_equation_id=ve.id %}" 
                             method="GET" >
                             <button style="display: inline;"  class="btn btn-primary" title="Change" >Change</button>
                         </form>
                         {% if ve.is_deletable %}
                             <form
                                 style="display: inline;"  
-                                action="{% url delete_value_equation value_equation_id=ve.id %}" 
+                                action="{% url "delete_value_equation" value_equation_id=ve.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                                 <button style="display: inline;"  class="btn btn-warning" title="Delete" >Delete</button>
@@ -89,16 +89,16 @@
 {% comment %}
                         <form
                             style="display: inline;"  
-                            action="{% url value_equation_sandbox value_equation_id=ve.id %}" 
+                            action="{% url "value_equation_sandbox" value_equation_id=ve.id %}" 
                             method="GET" >
                             <button style="display: inline;"  class="btn btn-info" title="Change" >Experiment in the Sandbox</button>
                         </form>
 {% endcomment %}
                     {% endif %}
-                    <a class="link" href="{% url value_equation_sandbox value_equation_id=ve.id %}">Value Equation Sandbox</a> 
+                    <a class="link" href="{% url "value_equation_sandbox" value_equation_id=ve.id %}">Value Equation Sandbox</a> 
                     {% if agent %}
                       {% if ve.live and user.is_staff %}
-                        <a class="link" href="{% url create_distribution_using_value_equation agent_id=ve.context_agent.id value_equation_id=ve.id %}">Distribute Income</a>
+                        <a class="link" href="{% url "create_distribution_using_value_equation" agent_id=ve.context_agent.id value_equation_id=ve.id %}">Distribute Income</a>
                       {% endif %}
                     {% endif %}
                 </div> 

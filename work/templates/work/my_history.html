@@ -8,7 +8,7 @@
 
 {% block extra_head %}
 
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
@@ -162,9 +162,9 @@ h4 {
                        </td>
 						<td>
 							{% if event.process %}
-								<a href="{% url process_logging process_id=event.process.id %}" target="_blank">{{ event.process.name }}</a>
+								<a href="{% url "process_logging" process_id=event.process.id %}" target="_blank">{{ event.process.name }}</a>
                             {% elif event.transfer %}
-                                <a href="{% url exchange_logging exchange_type_id=0 exchange_id=event.transfer.exchange.id %}" target="_blank">{{ event.transfer.transfer_type.name }}</a>
+                                <a href="{% url "exchange_logging" exchange_type_id=0 exchange_id=event.transfer.exchange.id %}" target="_blank">{{ event.transfer.transfer_type.name }}</a>
 							{% endif %}
 						</td>
 						<td>{{ event.claimed_amount }}</td>
@@ -175,7 +175,7 @@ h4 {
                                 <form
                                     class="change-form" 
                                     id="changeForm{{ event.id }}" 
-                                    action="{% url change_history_event event_id=event.id %}" 
+                                    action="{% url "change_history_event" event_id=event.id %}" 
                                     method="GET" >
                                     <input type='hidden' class="page" id='changePage{{ event.id }}' name='page' value='' />
                                     <input type='hidden' id='next' name='next' value='work-contributions' />
@@ -184,7 +184,7 @@ h4 {
                                 <form
                                     class="delete-form" 
                                     id="deleteForm{{ event.id }}" 
-                                    action="{% url delete_event event_id=event.id %}" 
+                                    action="{% url "delete_event" event_id=event.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type='hidden' class="page" id='deletePage{{ event.id }}' name='page' value='' />
@@ -218,8 +218,8 @@ h4 {
     </div>
 {% endblock %}
 {% block extra_script %}
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
@@ -333,7 +333,7 @@ h4 {
         var eventId = "&eventId=" + eventId;
         formData += eventId;
         
-        var url = "{%url change_event_date %}";
+        var url = "{% url 'change_event_date' %}";
 
         notifySaving();
 
@@ -357,7 +357,7 @@ h4 {
         var eventId = "&eventId=" + eventId;
 		formData += eventId;
         
-        var url = "{%url change_event_qty %}";
+        var url = "{% url 'change_event_qty' %}";
 
 		notifySaving();
 

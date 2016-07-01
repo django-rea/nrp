@@ -7,7 +7,7 @@
 {% block head_title %}{% trans "Workflow " %} {% endblock %}
 
 {% block extra_head %}
- <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+ <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
  <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
@@ -119,7 +119,7 @@ a {
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-        <a class="btn btn-primary" href="{% url process_selections rand=1 %}">{% trans "Plan Processes" %}</a>
+        <a class="btn btn-primary" href="{% url "process_selections" rand=1 %}">{% trans "Plan Processes" %}</a>
     <div class="row-fluid">
         <div class="span3">
             <span class="top">Harvest</span>
@@ -215,7 +215,7 @@ a {
                 <h3 id="complete-process">{% trans "Complete this process" %}</h3>
             </div>
             <div class="modal-body">
-                <form class="validateMe" id="addToResourceForm" enctype="multipart/form-data" action="{% url workflow_board_demo %}" method="POST" >
+                <form class="validateMe" id="addToResourceForm" enctype="multipart/form-data" action="{% url "workflow_board_demo" %}" method="POST" >
                     {% csrf_token %}
                     Date complete: {{ resource_form.event_date }}<br />
                     Quantity: {{ resource_form.quantity }} LB<br />
@@ -234,7 +234,7 @@ a {
                 <h3 id="complete-process">{% trans "Change this process" %}</h3>
             </div>
             <div class="modal-body">
-                <form class="validateMe" id="editProcessForm" enctype="multipart/form-data" action="{% url workflow_board_demo %}" method="POST" >
+                <form class="validateMe" id="editProcessForm" enctype="multipart/form-data" action="{% url "workflow_board_demo" %}" method="POST" >
                     {% csrf_token %}
                     {{ process_form }}
                 <div class="modal-footer">
@@ -247,7 +247,7 @@ a {
     </div>
 {% endblock %}
 {% block extra_script %}
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 {% endblock %}
 {% block extra_body %}
 	{{ block.super }}

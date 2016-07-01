@@ -9,7 +9,7 @@
 {% block extra_head %}
 
 
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
@@ -174,7 +174,7 @@ th, td {
 		    <legend>
 		        {% trans "Change Pattern" %}: 
 		        <input id="patternName" name="patternName" value="{{ pattern.name }}" />
-		        &nbsp;&nbsp;&nbsp;<a href="{% url resource_facet_table %}">{% trans "Change Resource Type Facets" %}</a>
+		        &nbsp;&nbsp;&nbsp;<a href="{% url "resource_facet_table" %}">{% trans "Change Resource Type Facets" %}</a>
 		        &nbsp;&nbsp;&nbsp;<span id="saving"></span>
 	        </legend>
 
@@ -258,7 +258,7 @@ th, td {
     </div>
 {% endblock %}
 {% block extra_script %}
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
@@ -288,7 +288,7 @@ th, td {
         var name = event.target.value;
         id = {{ pattern.id }};
         notifySaving();
-        var jqxhr = $.post("{% url change_pattern_name  %}",  { patternId: id, name: name },
+        var jqxhr = $.post("{% url "change_pattern_name"  %}",  { patternId: id, name: name },
             function( data ) 
             {
                 notifySaved();

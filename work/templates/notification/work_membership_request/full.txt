@@ -1,0 +1,9 @@
+{% load i18n %}{% blocktrans %}New membership request:
+
+Name: {{ name }} {{ surname }}
+Type: {{ type_of_membership }}
+
+Description: {{ description }}
+
+You can see all unfinished membership requests here:{% endblocktrans %}
+http://{{ current_site }}

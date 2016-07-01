@@ -8,7 +8,7 @@
 
 {% block extra_head %}
 
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
@@ -108,9 +108,9 @@ th
 	<div>
 	{% if context_agent %}
         <legend>{% trans "Create Distribution for " %} {{ context_agent }}
-            <a class="indent" href="{% url value_equation_sandbox value_equation_id=ve.id %}">Value Equation Sandbox</a>
-            <a class="indent" href="{% url edit_value_equation value_equation_id=ve.id %}">Edit Value Equation</a> 
-            <a class="indent" href="{% url value_equations %}">Value Equations List</a>
+            <a class="indent" href="{% url "value_equation_sandbox" value_equation_id=ve.id %}">Value Equation Sandbox</a>
+            <a class="indent" href="{% url "edit_value_equation" value_equation_id=ve.id %}">Edit Value Equation</a> 
+            <a class="indent" href="{% url "value_equations" %}">Value Equations List</a>
         </legend>
 
         <p class="hdg">Distribution:</p>
@@ -178,11 +178,11 @@ th
             </div>
             <input id="calculate" type="submit" name="submit" class="btn btn-primary" style="display: inline; vertical-align: top;" value="{% trans 'Distribute Income' %}" />
             <span class="warning"><b>WARNING</b>: This operation cannot be undone. Please test your data entry below first!</span>
-            <span id="loading" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
+            <span id="loading" style="display: none;" >Calculating, please be patient... <img src="https://i.stack.imgur.com/FhHRx.gif"></img></span> 
             
             <div id="distributions">
                 <input id="test" type="submit" name="test-only" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'TEST Distribution Here First !' %}" />
-                <span id="loadingTest" style="display: none;" >Calculating, please be patient... <img src="http://i.stack.imgur.com/FhHRx.gif"></img></span> 
+                <span id="loadingTest" style="display: none;" >Calculating, please be patient... <img src="https://i.stack.imgur.com/FhHRx.gif"></img></span> 
    
                 {% if agent_totals %} 
                     <div class="hdg">TEST ONLY - Agent Totals:</div>
@@ -218,8 +218,8 @@ th
     </div>
 {% endblock %}
 {% block extra_script %}
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 

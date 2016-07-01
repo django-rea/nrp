@@ -12,10 +12,11 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.forms.models import formset_factory, modelformset_factory, inlineformset_factory, BaseModelFormSet
 from django.forms import ValidationError
-from django.utils import simplejson
+import json as simplejson
 from django.utils.datastructures import SortedDict
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
+from django.contrib.sites.models import Site
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
@@ -27,7 +28,9 @@ if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
 else:
     notification = None
-
+    
+def get_site_name():
+    return Site.objects.get_current().name
 
 def work_home(request):
 
@@ -691,7 +694,7 @@ def save_timed_work_now(request, event_id):
             data = "ok"
         else:
             data = form.errors
-        return HttpResponse(data, mimetype="text/plain")
+        return HttpResponse(data, content_type="text/plain")
 
 @login_required
 def work_process_finished(request, process_id):
@@ -966,3 +969,39 @@ def faircoin_history(request, resource_id):
         "unit": unit,
         "events": events,
     }, context_instance=RequestContext(request))
+    
+def membership_request(request):
+    membership_form = MembershipRequestForm(data=request.POST or None)
+    if request.method == "POST":
+        #import pdb; pdb.set_trace()
+        if membership_form.is_valid():
+            data = membership_form.cleaned_data
+            name = data["name"]
+            surname = data["surname"]
+            type_of_membership = data["type_of_membership"]
+            description = data["description"]
+            membership_form.save()
+            if notification:
+                #import pdb; pdb.set_trace()
+                users = User.objects.filter(is_staff=True)
+                if users:
+                    site_name = get_site_name()
+                    notification.send(
+                        users, 
+                        "work_membership_request", 
+                        {"name": name,
+                        "surname": surname,
+                        "type_of_membership": type_of_membership,
+                        "description": description,
+                        "site_name": site_name,
+                        }
+                    )
+            return HttpResponseRedirect('/%s/'
+                % ('work/membershipthanks'))
+    return render_to_response("work/membership_request.html", {
+        "help": get_help("work_membership_request"),
+        "membership_form": membership_form,
+    }, context_instance=RequestContext(request))
+
+
+    

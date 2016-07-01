@@ -7,7 +7,7 @@ from django.test import Client
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.views import *
 from valuenetwork.valueaccounting.utils import *
-from django.utils import simplejson
+import json as simplejson
 from valuenetwork.valueaccounting.tests.value_equation_test_objects import *
 from valuenetwork.valueaccounting.tests.objects_for_testing import Facets
 
@@ -355,7 +355,9 @@ class ValueEquationTest(TestCase):
     def test_faircoin_distribution(self):
         ve = self.recipe.value_equation
         context_agent = ve.context_agent
+        testing = False
         if context_agent.name == "test context agent":
+            testing = True
             print "### test_faircoin_distribution will create fake faircoin addresses and coins"
         order = self.order
         orders = [order,]
@@ -393,7 +395,10 @@ class ValueEquationTest(TestCase):
             is_owner=True,
             )
         owner_role.save()
-        address = context_agent.create_faircoin_address()
+        if testing:
+            address = context_agent.create_fake_faircoin_address()
+        else:
+            address = context_agent.request_faircoin_address()
         money_resource = context_agent.faircoin_resource()
         self.assertIsNotNone(money_resource)
         distribution = Distribution(                
@@ -405,7 +410,7 @@ class ValueEquationTest(TestCase):
             created_by=self.user,
         )
         #import pdb; pdb.set_trace()
-
+        
         distribution = ve.run_value_equation_and_save(
             #events_to_distribute=etd, <-CashReceipts, optional
             distribution=distribution, 

@@ -26,7 +26,7 @@ h1, h2 {
         <br /><br />
         <p><b>To start using the OCP:</b></p>
         <ul>
-        <li>First, you need an account on the system. Talk to a Freedom Coop administrator if you don't have one.</li>
+        <li>First, you need an account on the system. <a href="{% url membership_request %}">{% trans "Request Membership here" %}</a></li>
         <li>You should go to the My Profile page and update your information and register your skills.</li>  
         <li>You can also add yourself to the Map page.</li>
         <li>After you are set up, you can log your work in either the Non-process Logging or the Process Logging page, depending on the type of work or project you are involved with.</li>
@@ -37,7 +37,7 @@ h1, h2 {
 {% endblock %}
 
 {% block extra_script %}
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
     <script src="{% static 'js/jquery.maphilight.min.js' %}"></script>
 {% endblock %}
 

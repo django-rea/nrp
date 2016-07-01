@@ -1,0 +1,32 @@
+{% extends "work_base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Request membership in Freedom Coop" %}{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block body_class %}membership{% endblock %}
+
+{% block body_base %}
+<div class="container">
+        {% include "_messages.html" %}
+
+        <legend>
+            {% trans "Request membership in Freedom Coop" %}
+        </legend>
+
+        <div class="row-fluid">
+        
+            <div class="span12">
+                <form id="membershipForm" class="validateMe" action="." method="POST" >
+                    {% csrf_token %}
+                    {{ membership_form|as_bootstrap }}
+                    <input type="submit" name="submit" value="{% trans 'Submit' %}" class="btn btn-primary" /> 
+                </form>
+            </div>
+        </div>
+</div>
+{% endblock %}

@@ -9,7 +9,7 @@
 {% block extra_head %}
 
 
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
@@ -175,20 +175,20 @@ th, td {
 		<legend>
 		    {% trans "My Work" %} 
 		    {% if agent %}
-		        &nbsp;&nbsp;&nbsp;<a href="{% url contribution_history agent_id=agent.id %}">{% trans "My contributions" %}</a>
-		        &nbsp;&nbsp;&nbsp;<a href="{% url agent_stats agent_id=agent.id %}">{% trans "Comparative stats" %}</a>
+		        &nbsp;&nbsp;&nbsp;<a href="{% url "contribution_history" agent_id=agent.id %}">{% trans "My contributions" %}</a>
+		        &nbsp;&nbsp;&nbsp;<a href="{% url "agent_stats" agent_id=agent.id %}">{% trans "Comparative stats" %}</a>
 	        {% endif %}
 	    </legend>
 
 			<p class="top-buttons">
 				{% if agent %}
 {% comment %}
-				    <a href="{% url process_selections %}" role="button" class="btn btn-primary" 
+				    <a href="{% url "process_selections" %}" role="button" class="btn btn-primary" 
 				        title="Log time and create resources." >
 				        {% trans "Create a production process" %}
 			        </a>
 {% endcomment %}
-					<a href="{% url unscheduled_time %}" role="button" class="btn btn-primary" 
+					<a href="{% url "unscheduled_time" %}" role="button" class="btn btn-primary" 
 					    title="When you are not creating resources." >
 					    {% trans "Log non-production work" %}
 				    </a>
@@ -223,14 +223,14 @@ th, td {
                                     {% trans "Process" %}: {{ item.process }}
                                     {% if item.process.started %} <b>{% trans "Started" %} {{ item.process.started }}</b> {% endif %} </br>
                                     {% if work_now %}
-                                        <a href="{% url work_now process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
+                                        <a href="{% url "work_now" process_id=item.process.id commitment_id=item.id %}" role="button" class="btn btn-info btn-mini" >{% trans "Work Now" %}</a>
                                     {% endif %}
                                     <a href="{{ item.process.get_absolute_url }}" role="button" class="btn btn-info btn-mini">Log work on process</a>
                                     <form
                                         style="display: inline;" 
                                         class="finish-form" 
                                         id="finishForm{{ item.id }}" 
-                                        action="{% url commitment_finished commitment_id=item.id %}" 
+                                        action="{% url "commitment_finished" commitment_id=item.id %}" 
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" id="next" name="next" value="start" />
@@ -240,7 +240,7 @@ th, td {
                                         style="display: inline;" 
                                         class="uncommit-form" 
                                         id="uncommitForm{{ item.id }}" 
-                                        action="{% url uncommit commitment_id=item.id %}" 
+                                        action="{% url "uncommit" commitment_id=item.id %}" 
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" id="next" name="next" value="start" />
@@ -282,10 +282,10 @@ th, td {
 
                                                 <div class="row-fluid">
                                                     <div class="span12">
-                                                        <form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+                                                        <form class="commitmentForm" enctype="multipart/form-data" action="{% url "commit_to_task" commitment_id=item.id %}" method="POST" >
                                                             {% csrf_token %}
                                                             {{ item.commitment_form|as_bootstrap }}
-                                                            <input type="hidden" name="next" value="{% url start %}" />
+                                                            <input type="hidden" name="next" value="{% url "start" %}" />
                                                           <div class="modal-footer">
                                                             <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
                                                             <input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
@@ -401,10 +401,10 @@ th, td {
 
 												<div class="row-fluid">
 													<div class="span12">
-														<form class="commitmentForm" enctype="multipart/form-data" action="{% url commit_to_task commitment_id=item.id %}" method="POST" >
+														<form class="commitmentForm" enctype="multipart/form-data" action="{% url "commit_to_task" commitment_id=item.id %}" method="POST" >
 															{% csrf_token %}
 															{{ item.commitment_form|as_bootstrap }}
-															<input type="hidden" name="next" value="{% url start %}" />
+															<input type="hidden" name="next" value="{% url "start" %}" />
 														  <div class="modal-footer">
 															<input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
 															<input type="submit" class="btn btn-primary" name="commit" value='{% trans "Commit to this task" %}' />
@@ -521,10 +521,10 @@ th, td {
                             </div>
                             <div class="modal-body">
 
-                                <form class="todoForm" id="todoForm" action="{% url add_todo %}" method="POST" >
+                                <form class="todoForm" id="todoForm" action="{% url "add_todo" %}" method="POST" >
                                     {% csrf_token %}
                                     {{ todo_form|as_bootstrap }}
-                                    <input type="hidden" name="next" value="{% url start %}" />
+                                    <input type="hidden" name="next" value="{% url "start" %}" />
                                   <div class="modal-footer">
                                     <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
                                     <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Add" %}' />
@@ -591,9 +591,9 @@ th, td {
                                                 <i class="icon-edit"></i>
                                             </a>
                                             {% if todo.is_deletable %}
-                                                <form style="display: inline;" class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url todo_delete todo_id=todo.id %}" method="POST" >
+                                                <form style="display: inline;" class="deleteForm" id="deleteForm-{{ todo.id }}" action="{% url "todo_delete" todo_id=todo.id %}" method="POST" >
                                                     {% csrf_token %}
-                                                    <input type="hidden" name="next" value="{% url start %}" />
+                                                    <input type="hidden" name="next" value="{% url "start" %}" />
                                                     <button style="display: inline;" class="btn btn-warning btn-mini del-button" title="Delete" >X</button>
                                                 </form>
                                             {% endif %}
@@ -606,10 +606,10 @@ th, td {
                                             </div>
                                             <div class="modal-body">
 
-                                                <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url todo_change todo_id=todo.id %}" method="POST" >
+                                                <form class="changeForm" id="changeForm-{{ todo.id }}" action="{% url "todo_change" todo_id=todo.id %}" method="POST" >
                                                     {% csrf_token %}
                                                     {{ todo.todo_change_form|as_bootstrap }}
-                                                    <input type="hidden" name="next" value="{% url start %}" />
+                                                    <input type="hidden" name="next" value="{% url "start" %}" />
                                                   <div class="modal-footer">
                                                     <input type="cancel" class="btn cancel" data-dismiss="modal" aria-hidden="true" value='{% trans "Cancel" %}'/>
                                                     <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Change" %}' />
@@ -621,9 +621,9 @@ th, td {
                                     {% else %}
                                         {% if todo.is_deletable %}
                                             <div class="entry-buttons">
-                                                <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url todo_decline todo_id=todo.id %}" method="POST" >
+                                                <form class="declineForm" id="declineForm-{{ todo.id }}" action="{% url "todo_decline" todo_id=todo.id %}" method="POST" >
                                                     {% csrf_token %}
-                                                    <input type="hidden" name="next" value="{% url start %}" />
+                                                    <input type="hidden" name="next" value="{% url "start" %}" />
                                                     <input type="submit" name="submit" class="btn btn-warning btn-mini"  title="Decline" value="{% trans 'Decline' %}" />
                                                 </form>
                                             </div>
@@ -645,7 +645,7 @@ th, td {
                                         {% trans "Hours" %}:
                                     </th>
                                     <td class="todo-input" >
-                                        <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url todo_time %}" method="POST" >
+                                        <form class="timeForm"id="timeForm-{{ todo.id }}" action="{% url "todo_time" %}" method="POST" >
                                             {% csrf_token %}
                                             <input class="input-mini optional-quantity" id="{{ todo.id }}-timeId" name="{{ todo.id }}-time" type="text" size="6" 
                                                 {% if event %} value="{{ event.quantity }}" {% else %} value="0" {% endif %}
@@ -653,9 +653,9 @@ th, td {
                                         </form>
                                     </td>
                                     <td>
-                                        <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url todo_done todo_id=todo.id %}" method="POST" >
+                                        <form class="doneForm" id="timeForm-{{ todo.id }}" action="{% url "todo_done" todo_id=todo.id %}" method="POST" >
                                             {% csrf_token %}
-                                            <input type="hidden" name="next" value="{% url start %}" />
+                                            <input type="hidden" name="next" value="{% url "start" %}" />
                                             <input type="submit" name="submit" class="btn btn-info btn-mini"  title="Done" value="{% trans 'Done' %}" />
                                         </form>
                                     </td>
@@ -681,8 +681,8 @@ th, td {
     </div>
 {% endblock %}
 {% block extra_script %}
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 
@@ -792,7 +792,7 @@ th, td {
         {
             var hours = timeInput.value;
             notifySaving();
-		    var jqxhr = $.post("{% url todo_time  %}",  { todoId: id, hours: hours },
+		    var jqxhr = $.post("{% url "todo_time"  %}",  { todoId: id, hours: hours },
 			    function( data ) 
 			    {
 				    notifySaved();
@@ -811,7 +811,7 @@ th, td {
         var id = didInput.id.split('-')[0];;
         var did = didInput.value;
         notifySaving();
-	    var jqxhr = $.post("{% url todo_description  %}",  { todoId: id, did: did },
+	    var jqxhr = $.post("{% url "todo_description"  %}",  { todoId: id, did: did },
 		    function( data ) 
 		    {
 			    notifySaved();

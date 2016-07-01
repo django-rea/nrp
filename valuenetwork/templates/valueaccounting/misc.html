@@ -20,7 +20,7 @@
     <div>
         <h3>Miscellaneous pages</h3>
         
-        <p><a href="{% url cleanup %}">Cleanup functions</a></p>
+        <p><a href="{% url "cleanup" %}">Cleanup functions</a></p>
         
         <h3>Pagelets</h3>
         <p>These pagelets display information about a context agent (e.g. a Project) without any site decorations.</p>
@@ -28,26 +28,26 @@
         <p>They require the context agent Page name, for example, {{ context_agent.slug }}, which can be found in Admin.</p>
         
         {% if context_agent %}
-            <p><a href="{% url schedule context_agent_slug=context_agent.slug %}">Project schedule</a></p>
-            <p><a href="{% url project_roles context_agent_slug=context_agent.slug %}">Project roles</a></p>
-            <p><a href="{% url project_stats context_agent_slug=context_agent.slug %}">All-time project stats</a></p>
-            <p><a href="{% url recent_stats context_agent_slug=context_agent.slug %}">Last 2 months project stats</a></p>
+            <p><a href="{% url "schedule" context_agent_slug=context_agent.slug %}">Project schedule</a></p>
+            <p><a href="{% url "project_roles" context_agent_slug=context_agent.slug %}">Project roles</a></p>
+            <p><a href="{% url "project_stats" context_agent_slug=context_agent.slug %}">All-time project stats</a></p>
+            <p><a href="{% url "recent_stats" context_agent_slug=context_agent.slug %}">Last 2 months project stats</a></p>
         {% else %}
             <p>Pagelets require a context agent.</p>
         {% endif %}
-
+{% comment %}
         <h3>Distribution without value equation</h3>
         <form id="distForm" method="POST" action="">
             {% csrf_token %}
             {{ ca_form }}
             <input type="submit" name="save" value="{% trans 'Go to distribution' %}" class="btn btn-primary" /> 
         </form>
-
+{% endcomment %}
     </div>
     </div>
 {% endblock %}
 {% block extra_script %}
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 {% endblock %}
 
 {% block extra_body %}

@@ -7,7 +7,7 @@
 {% block head_title %}{% trans "Incoming value flows for " %} {{ resource }}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <style>
 
 .ve {
@@ -57,7 +57,7 @@
     <div class="container">
         {% include "_messages.html" %}
 	  <div>
-		<legend>{% trans "Incoming Value Flows for " %} <a href="{% url resource resource_id=resource.id %}">{{ resource }}</a></legend>
+		<legend>{% trans "Incoming Value Flows for " %} <a href="{% url "resource" resource_id=resource.id %}">{{ resource }}</a></legend>
 		<div class="ves" >
             <span class="ve">{% trans "Using Value Equation" %}: {{ value_equation }} </span>
             {% if ve_selection_form %}
@@ -118,7 +118,7 @@
 {% endblock %}
 
 {% block extra_script %}
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 

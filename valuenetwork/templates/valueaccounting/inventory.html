@@ -5,7 +5,7 @@
 {% load thumbnail %}
 
 {% block head_title %}{% trans "Inventory" %}{% endblock %}
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 {% block extra_head %}
 
 <style>
@@ -45,14 +45,14 @@ img {
 		<div class="span9">
 		    <legend>
 			    {% trans "Inventory" %}
-			    &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url resource_types %}">{% trans "Resource Types" %}</a>
-			    &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url locations %}">{% trans "Locations" %}</a>
+			    &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url "resource_types" %}">{% trans "Resource Types" %}</a>
+			    &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url "locations" %}">{% trans "Locations" %}</a>
 		    </legend>
             {% for rt in resource_types %}
-                <div class="rtype"> <a href="{% url resource_type resource_type_id=rt.id %}">{{ rt.name }}</a> ( {{ rt.facet_list }} )</div>
+                <div class="rtype"> <a href="{% url "resource_type" resource_type_id=rt.id %}">{{ rt.name }}</a> ( {{ rt.facet_list }} )</div>
                 {% for resource in rt.onhand %}
                     <div class="res">
-                     <a href="{% url resource resource_id=resource.id %}" title="
+                     <a href="{% url "resource" resource_id=resource.id %}" title="
                         {{ resource.notes }}
                         {{ resource.access_rules }}
                         ">{{ resource.label }}
@@ -91,8 +91,8 @@ img {
     </div>
 {% endblock %}
 {% block extra_script %}
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 {% endblock %}
 {% block extra_body %}
 	{{ block.super }}

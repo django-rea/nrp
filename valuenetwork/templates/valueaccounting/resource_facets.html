@@ -30,7 +30,7 @@
 {% endblock %}
 
 {% block extra_script %}
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 
 	<script src="{% static 'js/jquery.handsontable.full.js' %}"></script>
 {% endblock %}
@@ -115,7 +115,7 @@
                 var newVal = changeArray[3];
                 var facet = headings[prop];
                 var rt = this.getDataAtCell(row, 0);
-                var jqxhr = $.post("{% url change_resource_facet_value  %}",  { facet: facet, resourceType: rt, facetValue: newVal },
+                var jqxhr = $.post("{% url "change_resource_facet_value"  %}",  { facet: facet, resourceType: rt, facetValue: newVal },
 			        function( data ) 
 			        {
 				        //notifySaved();

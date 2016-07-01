@@ -13,8 +13,9 @@ if "notification" in settings.INSTALLED_APPS:
         notification.create_notice_type("valnet_deleted_todo", _("Deleted Todo"), _("a todo that was assigned to you has been deleted"), default=2)
         notification.create_notice_type("valnet_distribution", _("New Distribution"), _("you have received a new income distribution"), default=2)
         notification.create_notice_type("valnet_payout_request", _("Payout Request"), _("you have received a new payout request"), default=2)
-        print "created notice types"
+        notification.create_notice_type("work_membership_request", _("Freedom Coop Membership Request"), _("we have received a new membership request"), default=2)
+        print "created valueaccounting notice types"
     signals.post_syncdb.connect(create_notice_types, sender=notification)
 else:
-    print "Skipping creation of NoticeTypes as notification app not found"
+    print "Skipping creation of valueaccounting NoticeTypes as notification app not found"
 

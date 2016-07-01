@@ -5,7 +5,7 @@
 {% block head_title %}{% trans "Distributions" %}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 
 <style>
 .totals {
@@ -41,7 +41,7 @@
             {% if agent %} 
                 for {{ agent.agent_type }} {{ agent.name }}
                 {% if user_agent %}
-                    <a class="btn btn-primary indent" href="{% url distribution_logging %}">{% trans "Create Distribution Manually" %}</a>
+                    <a class="btn btn-primary indent" href="{% url "distribution_logging" %}">{% trans "Create Distribution Manually" %}</a>
                 {% endif %}
             {% endif %}
         </legend>
@@ -56,16 +56,16 @@
 		    <ul>
 		      {% for dist in distributions %}
                 <li>
-                    <a href="{% url distribution_logging distribution_id=dist.id %}">{{ dist }}
+                    <a href="{% url "distribution_logging" distribution_id=dist.id %}">{{ dist }}
                     </a>  {% trans "created by" %} {{ dist.created_by }}
                     {% if user = dist.created_by or user.is_superuser%}
-                        <a class="btn btn-info btn-mini" href="{% url distribution_logging distribution_id=dist.id %}">{% trans "Change" %}</a> 
+                        <a class="btn btn-info btn-mini" href="{% url "distribution_logging" distribution_id=dist.id %}">{% trans "Change" %}</a> 
                         	{% if dist.is_deletable %}
                                 <form
                                     style="display: inline;" 
                                     class="delete-form" 
                                     id="deleteForm{{ dist.id }}" 
-                                    action="{% url delete_distribution distribution_id=dist.id %}" 
+                                    action="{% url "delete_distribution" distribution_id=dist.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete item" >Delete</button>
@@ -87,7 +87,7 @@
         <div class="span3 filter">
           {% if distributions %}
             <div>
-                <a href=" {% url exchange_events_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
+                <a href=" {% url "exchange_events_csv" %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
             </div>
           {% endif %}
             <h3>{% trans "Filter the List" %}</h3>
@@ -117,7 +117,7 @@
 {% endblock %}
 
 {% block extra_script %}
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 {% endblock %}
 
 {% block extra_body %}

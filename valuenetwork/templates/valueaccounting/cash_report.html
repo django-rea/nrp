@@ -6,7 +6,7 @@
 
 {% block extra_head %}
 
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <style>
 
 tr.even td 
@@ -123,7 +123,7 @@ ul {
                     {% for event in events %}
                         <tr class="{% cycle 'odd' 'even' %}">
                             <td>{{ event.event_date }}</td>
-                            <td>{% if event.exchange %}<a href="{% url exchange_logging exchange_type_id=0 exchange_id=event.exchange.id %}">{{ event.account }}</a>
+                            <td>{% if event.exchange %}<a href="{% url "exchange_logging" exchange_type_id=0 exchange_id=event.exchange.id %}">{{ event.account }}</a>
                                 {% else %} {{ event.account }} {% endif %}
                             </td>
                             <td>{{ event.virtual_account }}</td>
@@ -190,7 +190,7 @@ ul {
         <div class="span3 filter">
             {% if events %}
                 <div>
-                    <a href=" {% url cash_events_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered detail list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
+                    <a href=" {% url "cash_events_csv" %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered detail list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
                 </div>
             {% endif %}
             <form id="filter-form" action="." method="POST">
@@ -242,7 +242,7 @@ ul {
 {% endblock %}
 
 {% block extra_script %}
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 {% endblock %}
 
 {% block extra_body %}

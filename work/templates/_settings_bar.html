@@ -1,3 +1,4 @@
+{% load firstof from future %}
 {% load account_tags %}
 <ul class="nav pull-right">
     {% if request.user.is_authenticated %}
@@ -8,24 +9,24 @@
             </a>
             <ul class="dropdown-menu">
                 {% if user.is_staff or user.is_superuser %}
-                    <li><a href="{% url start %}"><i class="icon-tasks"></i> Coop Node App</a></li>
+                    <li><a href="{% url "start" %}"><i class="icon-tasks"></i> Coop Node App</a></li>
                 {% endif %}
                 <li class="divider"></li>
-                <li><a href="{% url account_logout %}?next={% firstof request.path '/' %}"><i class="icon-off"></i> Log Out</a></li>
+                <li><a href="{% url "account_logout" %}?next={% firstof request.path '/' %}"><i class="icon-off"></i> Log Out</a></li>
             </ul>
         </li>
     {% else %}
         <li>
             {% if request.path = '/' %}
-                <a href="{% url account_login %}">
+                <a href="{% url "account_login" %}">
             {% else %}
-                <a href="{% url account_login %}?next={% firstof request.path '/' %}">
+                <a href="{% url "account_login" %}?next={% firstof request.path '/' %}">
             {% endif %}
             Log in</a>
         </li>
         {% if ACCOUNT_OPEN_SIGNUP %}
             <li class="navbar-text">or</li>
-            <li><a href="{% url account_signup %}">Sign up</a></li>
+            <li><a href="{% url "account_signup" %}">Sign up</a></li>
         {% endif %}
     {% endif %}
 </ul>

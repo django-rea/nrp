@@ -6,7 +6,7 @@
 {% block head_title %}{% trans "Supply" %}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 
 <style>
 
@@ -63,7 +63,7 @@ h3 {
 		                <h3 id="supplier-label">{% trans "Create a New Supplier" %}</h3>
 	                </div>
 	                <div class="modal-body">
-		                <form class="validateMe" id="supplierForm" enctype="multipart/form-data" action="{% url create_supplier %}" method="POST" >
+		                <form class="validateMe" id="supplierForm" enctype="multipart/form-data" action="{% url "create_supplier" %}" method="POST" >
 			                {% csrf_token %}
 			                {{ supplier_form|as_bootstrap }}
                             <div class="modal-footer">
@@ -75,7 +75,7 @@ h3 {
                 </div>
             {% endif %}
 {% endcomment %}
-            <a class="report" href="{% url exchanges %}">{% trans "Exchange List" %}</a>
+            <a class="report" href="{% url "exchanges" %}">{% trans "Exchange List" %}</a>
         </legend>
 
         {% if agent %}
@@ -184,8 +184,8 @@ h3 {
 {% endblock %}
 
 {% block extra_script %}
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 {% endblock %}
 
 {% block extra_body %}

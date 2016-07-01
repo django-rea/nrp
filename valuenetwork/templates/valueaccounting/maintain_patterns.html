@@ -9,7 +9,7 @@
 {% block extra_head %}
 
 
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
@@ -157,7 +157,7 @@ th, td {
         {% include "_messages.html" %}
 	    <div>
 		    <legend>
-		        {% trans "Maintain Process Patterns" %} &nbsp;&nbsp;&nbsp;<a href="{% url resource_facet_table %}">{% trans "Change Resource Type Facets" %}</a> 
+		        {% trans "Maintain Process Patterns" %} &nbsp;&nbsp;&nbsp;<a href="{% url "resource_facet_table" %}">{% trans "Change Resource Type Facets" %}</a> 
 	        </legend>
 
 	        <form id="useCaseForm" action="." method="POST" >
@@ -175,12 +175,12 @@ th, td {
 	            <ul>
 	            {% for pattern in patterns %}
 	                <li>
-	                    <a href="{% url change_pattern pattern_id=pattern.id use_case_id=use_case.id %}">{{ pattern }}</a>
+	                    <a href="{% url "change_pattern" pattern_id=pattern.id use_case_id=use_case.id %}">{{ pattern }}</a>
 	                    <form
 	                        style="display: inline;" 
                             class="remove-form" 
                             id="removeForm{{ pattern.id }}" 
-                            action="{% url remove_pattern_from_use_case use_case_id=use_case.id pattern_id=pattern.id %}" 
+                            action="{% url "remove_pattern_from_use_case" use_case_id=use_case.id pattern_id=pattern.id %}" 
                             method="POST" >
                             {% csrf_token %}
                             <button style="display: inline;"  class="btn btn-warning btn-mini" title="Remove pattern from use case" >X</button>
@@ -207,13 +207,13 @@ th, td {
 	        {% if use_case and use_case.allows_more_patterns %}
 	            <div class="span6">
 
-	                <form id="patternForm" action="{% url add_pattern_to_use_case use_case_id=use_case.id %}" method="POST" >
+	                <form id="patternForm" action="{% url "add_pattern_to_use_case" use_case_id=use_case.id %}" method="POST" >
                         {% csrf_token %}
                         <input type="text" name="pattern-name" value="name" onfocus="this.value=''" maxlength="32" />
                         <input type="submit" name="new-pattern" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Create a new Pattern for this Use Case' %}" />
 	                </form>
 
-	                <form id="patternForm" action="{% url add_pattern_to_use_case use_case_id=use_case.id %}" method="POST" >
+	                <form id="patternForm" action="{% url "add_pattern_to_use_case" use_case_id=use_case.id %}" method="POST" >
                         {% csrf_token %}
                         {{ pattern_form.pattern }}
                         <input type="submit" name="add-pattern" class="btn btn-info" style="display: inline; vertical-align: top;" value="{% trans 'Add an existing Pattern' %}" />
@@ -276,7 +276,7 @@ th, td {
     </div>
 {% endblock %}
 {% block extra_script %}
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 

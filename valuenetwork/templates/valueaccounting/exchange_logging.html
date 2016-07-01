@@ -8,7 +8,7 @@
 
 {% block extra_head %}
 
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 
 <style>
@@ -141,7 +141,7 @@ li {
             <form 
                 style="display: inline;" 
                 id="order" 
-                action="{% url order_schedule order_id=exchange.order.id %}" 
+                action="{% url "order_schedule" order_id=exchange.order.id %}" 
                 method="GET" >
                 <button style="display: inline;"  class="btn btn-info" title="Order for this sale" >Go to Order</button>
             </form>
@@ -197,7 +197,7 @@ li {
                                         <h3 id="xfer{{ slot.id }}">{% trans "Log a New " %}{{ slot.name }}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="validateMe" id="xferForm{{ slot.id }}" enctype="multipart/form-data" action="{% url add_transfer exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
+                                        <form class="validateMe" id="xferForm{{ slot.id }}" enctype="multipart/form-data" action="{% url "add_transfer" exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
                                             {% csrf_token %}
                                             {% with slot.add_xfer_form as ax_form %}
                                             Event date:<br />{{ ax_form.event_date }}<br />
@@ -263,7 +263,7 @@ li {
                                         <h3 id="commit">{% trans "Log a New Commitment" %}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer_commitment exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
+                                        <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url "add_transfer_commitment" exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
                                             {% csrf_token %}
                                             {% with slot.add_commit_form as ac_form %}
                                             Commitment date:<br />{{ ac_form.commitment_date }}<br />
@@ -302,7 +302,7 @@ li {
                                                     <h3 id="cmit-label">{% trans "Change Transfer Commitment" %}</h3>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_commitments transfer_id=xfer.id %}" method="POST" >
+                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_commitments" transfer_id=xfer.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         {% with xfer.change_commitments_form as cc_form %}
                                                         Commitment date:<br />{{ cc_form.commitment_date }}<br />
@@ -329,7 +329,7 @@ li {
                                                     style="display: inline;" 
                                                     class="delete-form" 
                                                     id="deleteForm{{ xfer.id }}" 
-                                                    action="{% url delete_transfer_commitments transfer_id=xfer.id %}" 
+                                                    action="{% url "delete_transfer_commitments" transfer_id=xfer.id %}" 
                                                     method="POST" >
                                                     {% csrf_token %}
                                                     <input type="hidden" id="next" name="next" value="exchange" />
@@ -342,7 +342,7 @@ li {
                                                         <h3 id="xfer-label">{% trans "Make Transfer from Commitment" %}</h3>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <form class="validateMe" enctype="multipart/form-data" action="{% url transfer_from_commitment transfer_id=xfer.id %}" method="POST" >
+                                                        <form class="validateMe" enctype="multipart/form-data" action="{% url "transfer_from_commitment" transfer_id=xfer.id %}" method="POST" >
                                                             {% csrf_token %}
                                                             {% with xfer.commit_transfer_form as ct_form %}
                                                             Event date:<br />{{ ct_form.event_date }}<br />
@@ -413,7 +413,7 @@ li {
                                                             <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_events transfer_id=xfer.id %}" method="POST" >
+                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events" transfer_id=xfer.id %}" method="POST" >
                                                                 {% csrf_token %}
                                                                 {% with xfer.change_events_form as ce_form %}
                                                                 Event date:<br />{{ ce_form.event_date }}<br />
@@ -446,7 +446,7 @@ li {
                                                         style="display: inline;" 
                                                         class="delete-form" 
                                                         id="deleteForm{{ event.id }}" 
-                                                        action="{% url delete_transfer_events transfer_id=xfer.id %}" 
+                                                        action="{% url "delete_transfer_events" transfer_id=xfer.id %}" 
                                                         method="POST" >
                                                         {% csrf_token %}
                                                         <input type="hidden" id="next" name="next" value="exchange" />
@@ -470,7 +470,7 @@ li {
                                                     <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_events transfer_id=xfer.id %}" method="POST" >
+                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events" transfer_id=xfer.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         {% with xfer.change_events_form as cev_form %}
                                                         Event date:<br />{{ cev_form.event_date }}<br />
@@ -504,7 +504,7 @@ li {
                                                 style="display: inline;" 
                                                 class="delete-form" 
                                                 id="deleteForm{{ xfer.id }}" 
-                                                action="{% url delete_transfer_events transfer_id=xfer.id %}" 
+                                                action="{% url "delete_transfer_events" transfer_id=xfer.id %}" 
                                                 method="POST" >
                                                 {% csrf_token %}
                                                 <input type="hidden" id="next" name="next" value="exchange" />
@@ -551,7 +551,7 @@ li {
                                         <h3 id="xfer{{ slot.id }}">{% trans "Log a New " %}{{ slot.name }}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="validateMe" id="xferForm{{ slot.id }}" enctype="multipart/form-data" action="{% url add_transfer exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
+                                        <form class="validateMe" id="xferForm{{ slot.id }}" enctype="multipart/form-data" action="{% url "add_transfer" exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
                                             {% csrf_token %}
                                             {% with slot.add_xfer_form as ax_form %}
                                             Event date:<br />{{ ax_form.event_date }}<br />
@@ -617,7 +617,7 @@ li {
                                         <h3 id="commit">{% trans "Log a New Commitment" %}</h3>
                                     </div>
                                     <div class="modal-body">
-                                        <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url add_transfer_commitment exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
+                                        <form class="validateMe" id="commitForm" enctype="multipart/form-data" action="{% url "add_transfer_commitment" exchange_id=exchange.id transfer_type_id=slot.id %}" method="POST" >
                                             {% csrf_token %}
                                             {% with slot.add_commit_form as ac_form %}
                                             Commitment date:<br />{{ ac_form.commitment_date }}<br />
@@ -656,7 +656,7 @@ li {
                                                     <h3 id="cmit-label">{% trans "Change Transfer Commitment" %}</h3>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_commitments transfer_id=xfer.id %}" method="POST" >
+                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_commitments" transfer_id=xfer.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         {% with xfer.change_commitments_form as cc_form %}
                                                         Commitment date:<br />{{ cc_form.commitment_date }}<br />
@@ -683,7 +683,7 @@ li {
                                                     style="display: inline;" 
                                                     class="delete-form" 
                                                     id="deleteForm{{ xfer.id }}" 
-                                                    action="{% url delete_transfer_commitments transfer_id=xfer.id %}" 
+                                                    action="{% url "delete_transfer_commitments" transfer_id=xfer.id %}" 
                                                     method="POST" >
                                                     {% csrf_token %}
                                                     <input type="hidden" id="next" name="next" value="exchange" />
@@ -696,7 +696,7 @@ li {
                                                         <h3 id="xfer-label">{% trans "Make Transfer from Commitment" %}</h3>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <form class="validateMe" enctype="multipart/form-data" action="{% url transfer_from_commitment transfer_id=xfer.id %}" method="POST" >
+                                                        <form class="validateMe" enctype="multipart/form-data" action="{% url "transfer_from_commitment" transfer_id=xfer.id %}" method="POST" >
                                                             {% csrf_token %}
                                                             {% with xfer.commit_transfer_form as ct_form %}
                                                             Event date:<br />{{ ct_form.event_date }}<br />
@@ -764,7 +764,7 @@ li {
                                                             <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_events transfer_id=xfer.id %}" method="POST" >
+                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events" transfer_id=xfer.id %}" method="POST" >
                                                                 {% csrf_token %}
                                                                 {% with xfer.change_events_form as ce_form %}
                                                                 Event date:<br />{{ ce_form.event_date }}<br />
@@ -798,7 +798,7 @@ li {
                                                         style="display: inline;" 
                                                         class="delete-form" 
                                                         id="deleteForm{{ event.id }}" 
-                                                        action="{% url delete_transfer_events transfer_id=xfer.id %}" 
+                                                        action="{% url "delete_transfer_events" transfer_id=xfer.id %}" 
                                                         method="POST" >
                                                         {% csrf_token %}
                                                         <input type="hidden" id="next" name="next" value="exchange" />
@@ -822,7 +822,7 @@ li {
                                                     <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url change_transfer_events transfer_id=xfer.id %}" method="POST" >
+                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events" transfer_id=xfer.id %}" method="POST" >
                                                         {% csrf_token %}
                                                         {% with xfer.change_events_form as cev_form %}
                                                         Event date:<br />{{ cev_form.event_date }}<br />
@@ -855,7 +855,7 @@ li {
                                                 style="display: inline;" 
                                                 class="delete-form" 
                                                 id="deleteForm{{ xfer.id }}" 
-                                                action="{% url delete_transfer_events transfer_id=xfer.id %}" 
+                                                action="{% url "delete_transfer_events" transfer_id=xfer.id %}" 
                                                 method="POST" >
                                                 {% csrf_token %}
                                                 <input type="hidden" id="next" name="next" value="exchange" />
@@ -896,7 +896,7 @@ li {
                             <h3 id="work-label">{% trans "Add Work Done for This Exchange" %}</h3>
                         </div>
                         <div class="modal-body">
-                            <form class="validateMe" id="workForm" enctype="multipart/form-data" action="{% url add_work_for_exchange exchange_id=exchange.id %}" method="POST" >
+                            <form class="validateMe" id="workForm" enctype="multipart/form-data" action="{% url "add_work_for_exchange" exchange_id=exchange.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ add_work_form }}
                             <div class="modal-footer">
@@ -923,7 +923,7 @@ li {
                                     <h3 id="event-label">{% trans "Change Time Contribution" %}</h3>
                                 </div>
                                 <div class="modal-body">
-                                    <form class="validateMe"  class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url change_exchange_work_event event_id=event.id %}" method="POST" >
+                                    <form class="validateMe"  class="eventForm{{ event.id }} validateMe" enctype="multipart/form-data" action="{% url "change_exchange_work_event" event_id=event.id %}" method="POST" >
                                         {% csrf_token %}
                                         {{ event.changeform|as_bootstrap }}
                                         <input type="hidden" id="next" name="next" value="exchange" />
@@ -939,7 +939,7 @@ li {
                                 style="display: inline;" 
                                 class="delete-form" 
                                 id="deleteForm{{ event.id }}" 
-                                action="{% url delete_event event_id=event.id %}" 
+                                action="{% url "delete_event" event_id=event.id %}" 
                                 method="POST" >
                                 {% csrf_token %}
                                 <input type="hidden" id="next" name="next" value="exchange" />
@@ -958,8 +958,8 @@ li {
 
 {% endblock %}
 {% block extra_script %}
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
 	<script src="{% static 'js/chosen.jquery.js' %}"></script>
 {% endblock %}
 

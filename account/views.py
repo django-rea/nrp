@@ -192,7 +192,7 @@ class SignupView(FormView):
         code = self.request.REQUEST.get("code")
         if code:
             try:
-                self.signup_code = SignupCode.check(code)
+                self.signup_code = SignupCode.check_in_signupcode(code)
             except SignupCode.InvalidCode:
                 if not settings.ACCOUNT_OPEN_SIGNUP:
                     return False

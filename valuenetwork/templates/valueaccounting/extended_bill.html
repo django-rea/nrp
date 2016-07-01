@@ -6,7 +6,7 @@
 {% block head_title %}{% trans "Recipe for " %} {{ resource_type }}{% endblock %}
 
 {% block extra_head %}
- <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+ <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 <style>
 h4 {
 	margin-top: 1em; 
@@ -108,7 +108,7 @@ ul {
 			    {% trans "Recipe for " %} {{ resource_type }}
 
 			    {% if user.is_authenticated %}
-			        <a href="{% url edit_extended_bill resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
+			        <a href="{% url "edit_extended_bill" resource_type_id=resource_type.id %}" role="button" class="btn btn-info" >
 				        {% trans "Change Recipe" %}
 			        </a>
 		        {% endif %}
@@ -222,7 +222,7 @@ ul {
     </div>
 {% endblock %}
 {% block extra_script %}
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 {% endblock %}
 {% block extra_body %}
 	{{ block.super }}

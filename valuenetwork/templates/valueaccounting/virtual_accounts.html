@@ -9,7 +9,7 @@
 {% block extra_head %}
 
 
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 
 <style>
 </style>
@@ -43,7 +43,7 @@
                                     <h3 id="payout-label">{% trans "Payout from " %}{{ acct.identifier }}</h3>
                                 </div>
                                 <div class="modal-body">
-                                    <form class="validateMe" id="payoutForm{{ acct.id }}" action="{% url payout_from_virtual_account account_id=acct.id %}" method="POST" >
+                                    <form class="validateMe" id="payoutForm{{ acct.id }}" action="{% url "payout_from_virtual_account" account_id=acct.id %}" method="POST" >
                                         {% csrf_token %}
                                         {{ acct.payout_form|as_bootstrap }}
                                         <input type="hidden" id="next" name="next" value="process" />
@@ -69,8 +69,8 @@
     
 {% endblock %}
 {% block extra_script %}
-    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 {% endblock %}
 
 {% block extra_body %}

@@ -9,7 +9,7 @@
 {% block extra_head %}
 
 
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 
 <style>
 
@@ -121,7 +121,7 @@
 								<b>{{ item.from_agent }}</b> {% trans "doing" %} {{ item.resource_type }}
 {% comment %}
                                 {% if item.has_labnotes %}
-									<a href="{% url labnote commitment_id=item.id %}" target="_blank" class="lablink">Work Now</a>
+									<a href="{% url 'labnote' commitment_id=item.id %}" target="_blank" class="lablink">Work Now</a>
 								{% endif %}
 {% endcomment %}
 							</li>
@@ -179,8 +179,8 @@
     </div>
 {% endblock %}
 {% block extra_script %}
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 {% endblock %}
 
 {% block extra_body %}
@@ -371,7 +371,7 @@
 
 		var formData = $form.serialize();
 
-		var url = "{%url save_work_now event_id=event.id %}";
+		var url = "{% url 'save_work_now' event_id=event.id %}";
 
 		notifySaving();
 
@@ -451,7 +451,7 @@
 	{
 	    var commitmentId = {{ commitment.id }};
 		notifySaving();
-		var jqxhr = $.post("{% url work_done  %}",  { commitmentId: commitmentId, done: done },
+		var jqxhr = $.post("{% url 'work_done'  %}",  { commitmentId: commitmentId, done: done },
 			function( data ) 
 			{
 				notifySaved();
@@ -471,7 +471,7 @@
 	    var processId = {{ process.id }};
 	    var commitmentId = {{ commitment.id }};
 		notifySaving();
-		var jqxhr = $.post("{% url process_done  %}",  { processId: processId, commitmentId: commitmentId, done: done },
+		var jqxhr = $.post("{% url 'process_done'  %}",  { processId: processId, commitmentId: commitmentId, done: done },
 			function( data ) 
 			{
 				notifySaved();
@@ -490,7 +490,7 @@
 	function saveTimeInput(id, resourceId, quantity)
 	{
 		notifySaving();
-		var jqxhr = $.post("{% url time_use_event_for_commitment  %}",  { id: id, resourceId: resourceId, quantity: quantity },
+		var jqxhr = $.post("{% url 'time_use_event_for_commitment'  %}",  { id: id, resourceId: resourceId, quantity: quantity },
 			function( data ) 
 			{
 				notifySaved();

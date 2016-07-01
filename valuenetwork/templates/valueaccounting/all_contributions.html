@@ -67,7 +67,7 @@
 						</td>
 						<td>
 						    {% for d in event.process.deliverables %}
-						        <a href="{% url resource resource_id=d.id %}">{{ d }}</a></br >
+						        <a href="{% url "resource" resource_id=d.id %}">{{ d }}</a></br >
 					        {% endfor %}
 					    </td>
 					</tr>

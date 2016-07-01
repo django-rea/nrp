@@ -78,7 +78,7 @@ label {
                             <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
                         </div>
                         <div class="modal-body">
-                            <form id="agentForm" class="validateMe" enctype="multipart/form-data" action="{% url change_personal_info agent_id=agent.id %}" method="POST" >
+                            <form id="agentForm" class="validateMe" enctype="multipart/form-data" action="{% url "change_personal_info" agent_id=agent.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ change_form|as_bootstrap }}
 
@@ -113,7 +113,7 @@ label {
                     {% if agent.faircoin_address %}
                         <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "FairCoin account" %}</th>
-                            <td><a href="{% url manage_faircoin_account resource_id=agent.faircoin_resource.id %}">Manage Account</a></td>
+                            <td><a href="{% url "manage_faircoin_account" resource_id=agent.faircoin_resource.id %}">Manage Account</a></td>
                         </tr>
                     {% endif %}
                     {% if agent.unit_of_claim_value %}
@@ -142,7 +142,7 @@ label {
                                 {% if agent.primary_location %}
                                     {{ agent.primary_location.address }}
                                 {% else %}
-                                    <a href="{% url map %}">{% trans "Add on map" %}</a>
+                                    <a href="{% url "map" %}">{% trans "Add on map" %}</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -177,7 +177,7 @@ label {
 	        </div>
 
             <div class="span4">
-                <form class="register" name="register" enctype="multipart/form-data" action="{% url update_skills agent_id=agent.id %}" method="POST" >
+                <form class="register" name="register" enctype="multipart/form-data" action="{% url "update_skills" agent_id=agent.id %}" method="POST" >
                     <h3>Registered Skills
                         {% if agent %}
                             <button class="btn btn-primary indent">{% trans "Save" %}</button>
@@ -206,7 +206,7 @@ label {
                             <h3 id="upload-label">{% trans "Upload Picture for " %} {{ agent.name }}</h3>
                         </div>
                         <div class="modal-body">
-                            <form enctype="multipart/form-data" action="{% url upload_picture agent_id=agent.id %}" method="POST" >
+                            <form enctype="multipart/form-data" action="{% url "upload_picture" agent_id=agent.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ upload_form|as_bootstrap }}
 
@@ -234,8 +234,8 @@ label {
 {% endblock %}
 
 {% block extra_script %}
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 

@@ -5,7 +5,7 @@
 {% block head_title %}{% trans "Internal Exchanges" %}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 
 <style>
 .totals {
@@ -49,15 +49,15 @@
             <ul>
                 {% for x in exchanges %}
                     <li>
-                        <a href="{% url exchange_logging exchange_type_id=0 exchange_id=x.id %}">{{ x }}</a>  {% trans "created by" %} {{ x.created_by }}
+                        <a href="{% url "exchange_logging" exchange_type_id=0 exchange_id=x.id %}">{{ x }}</a>  {% trans "created by" %} {{ x.created_by }}
                         {% if user = x.created_by or user.is_superuser%}
-                            <a class="btn btn-info btn-mini" href="{% url exchange_logging exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a> 
+                            <a class="btn btn-info btn-mini" href="{% url "exchange_logging" exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a> 
                             {% if x.is_deletable %}
                                 <form
                                     style="display: inline;" 
                                     class="delete-form" 
                                     id="deleteForm{{ exchange.id }}" 
-                                    action="{% url delete_exchange exchange_id=x.id %}" 
+                                    action="{% url "delete_exchange" exchange_id=x.id %}" 
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" id="next" name="next" value="exchanges" />
@@ -87,7 +87,7 @@
         <div class="span3 filter">
           {% if exchanges %}
             <div>
-                <a href=" {% url exchange_events_csv %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
+                <a href=" {% url "exchange_events_csv" %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
             </div>
           {% endif %}
             <h3>{% trans "Filter the List" %}</h3>
@@ -131,7 +131,7 @@
 {% endblock %}
 
 {% block extra_script %}
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 {% endblock %}
 
 {% block extra_body %}

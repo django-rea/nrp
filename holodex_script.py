@@ -14,7 +14,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "valuenetwork.settings")
 
 #from collections import OrderedDict
 
-#from django.utils import simplejson
+#import json as simplejson
 import csv
 
 from valuenetwork.valueaccounting.models import *
@@ -155,7 +155,7 @@ exception csv.Error
 def exchange_events_csv(request):
     #import pdb; pdb.set_trace()
     event_ids = request.GET.get("event-ids")
-    response = HttpResponse(mimetype='text/csv')
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=contributions.csv'
     writer = csv.writer(response)
     writer.writerow(["Date", "Event Type", "Resource Type", "Quantity", "Unit of Quantity", "Value", "Unit of Value", "From Agent", "To Agent", "Project", "Description", "URL", "Use Case", "Event ID", "Exchange ID"])

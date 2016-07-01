@@ -137,11 +137,8 @@ INSTALLED_APPS = [
     "django_forms_bootstrap",
     
     # external
-    #"account",
-    "metron",
     #'debug_toolbar',
     'django_extensions',
-    'south',
     'easy_thumbnails',
     #'report_builder',
     'notification',
@@ -260,3 +257,8 @@ try:
 except ImportError:
     pass
 
+# updating to django 1.5
+USE_TZ = True
+
+# updating to prep for django 1.8
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'

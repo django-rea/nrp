@@ -47,7 +47,7 @@
                     style="display: inline;" 
                     class="delete-agent-form" 
                     id="deleteAgentForm" 
-                    action="{% url delete_agent agent_id=agent.id %}" 
+                    action="{% url "delete_agent" agent_id=agent.id %}" 
                     method="POST" >
                     {% csrf_token %}
                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete Agent" >Delete</button>
@@ -64,7 +64,7 @@
 				    <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
 			    </div>
 			    <div class="modal-body">
-				    <form enctype="multipart/form-data" action="{% url change_agent agent_id=agent.id %}" method="POST" >
+				    <form enctype="multipart/form-data" action="{% url "change_agent" agent_id=agent.id %}" method="POST" >
 					    {% csrf_token %}
 					    {{ change_form|as_bootstrap }}
 
@@ -113,8 +113,8 @@
 
 {% comment %}
 {% block extra_script %}
-	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 {% endcomment %}

@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url
-from django.views.generic.simple import direct_to_template
+from django.views.generic import TemplateView
 
 urlpatterns = patterns("",
     url(r"^start/$", 'valuenetwork.valueaccounting.views.start', name="start"),
@@ -474,9 +474,7 @@ urlpatterns += patterns("",
         name="json_distribution_related_order"),
     url(r'^cash-events-csv/$', 'valuenetwork.valueaccounting.views.cash_events_csv', 
         name="cash_events_csv"),
-    url(r'^tutorials/$', direct_to_template, {
-        'template': 'valueaccounting/tutorials.html'
-    }, name="tutorials"),
+    url(r'^tutorials/$', TemplateView.as_view(template_name='valueaccounting/tutorials.html'), name='tutorials'),
     url(r'^virtual-accounts/$', 'valuenetwork.valueaccounting.views.virtual_accounts', 
         name="virtual_accounts"),
     url(r"^virtual-payout/(?P<account_id>\d+)/$", 'valuenetwork.valueaccounting.views.payout_from_virtual_account', 
@@ -525,10 +523,11 @@ urlpatterns += patterns("",
         name="change_transfer_type"), 
     url(r'^delete-transfer-type/(?P<transfer_type_id>\d+)/$', 'valuenetwork.valueaccounting.views.delete_transfer_type', 
         name="delete_transfer_type"), 
-    url(r"^create-faircoin-address/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.create_faircoin_address', name="create_faircoin_address"),
+    url(r"^request-faircoin-address/(?P<agent_id>\d+)/$", 'valuenetwork.valueaccounting.views.request_faircoin_address', name="request_faircoin_address"),
     url(r"^send-faircoins/(?P<resource_id>\d+)/$", 'valuenetwork.valueaccounting.views.send_faircoins', 
         name="send_faircoins"),
     url(r"^validate-faircoin-address/$", 'valuenetwork.valueaccounting.views.validate_faircoin_address', name="validate_faircoin_address"),
+    url(r'^membership-requests/$', 'work.views.membership_requests', name="membership_requests"),
     
 )
 

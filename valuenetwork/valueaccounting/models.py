@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.template.defaultfilters import slugify
-from django.utils import simplejson
+import json as simplejson
 
 from easy_thumbnails.fields import ThumbnailerImageField
 
@@ -448,9 +448,6 @@ class EconomicAgent(models.Model):
     
     def save(self, *args, **kwargs):
         unique_slugify(self, self.nick)
-        #todo faircoin
-        #faircoin_address = create_faircoin_address
-        #handle failure
         super(EconomicAgent, self).save(*args, **kwargs)
         
     def delete(self, *args, **kwargs):
@@ -467,14 +464,12 @@ class EconomicAgent(models.Model):
         return ('agent', (),
         { 'agent_id': str(self.id),})
         
-    def create_faircoin_address(self):
+        
+    def request_faircoin_address(self):
         #import pdb; pdb.set_trace()
         address = self.faircoin_address()
         if not address:
-            from valuenetwork.valueaccounting.faircoin_utils import create_address_for_agent
-            address = None
-            address = create_address_for_agent(self)
-            #address = "Test address"
+            address = "address_requested"
             resource = self.create_faircoin_resource(address)
         return address
         
@@ -1121,7 +1116,7 @@ class EconomicAgent(models.Model):
         #import pdb; pdb.set_trace()
         event_ids = []
         #et = EventType.objects.get(name="Cash Receipt")
-        events = EconomicEvent.objects.filter(context_agent=self).filter(is_to_distribute=True)
+        events = EconomicEvent.objects.filter(to_agent=self).filter(is_to_distribute=True)
         for event in events:
             if event.is_undistributed():
                 event_ids.append(event.id)
@@ -1241,11 +1236,12 @@ class AgentAssociationType(models.Model):
             if verbosity > 1:
                 print "Created %s AgentAssociationType" % name
 
-from south.signals import post_migrate
+from django.db.models.signals import post_migrate
         
-def create_agent_types(app, **kwargs):
-    if app != "valueaccounting":
-        return
+#def create_agent_types(app, **kwargs):
+#    if app != "valueaccounting":
+#        return
+def create_agent_types(**kwargs):
     AgentType.create('Individual', 'individual', False) 
     AgentType.create('Organization', 'org', False) 
     AgentType.create('Network', 'network', True) 
@@ -1253,9 +1249,10 @@ def create_agent_types(app, **kwargs):
     
 post_migrate.connect(create_agent_types) 
 
-def create_agent_association_types(app, **kwargs):
-    if app != "valueaccounting":
-        return
+#def create_agent_association_types(app, **kwargs):
+#    if app != "valueaccounting":
+#        return
+def create_agent_association_types(**kwargs):
     AgentAssociationType.create('child', 'Child', 'Children', 'child', 'is child of', 'has child') 
     AgentAssociationType.create('member', 'Member', 'Members', 'member', 'is member of', 'has member')  
     AgentAssociationType.create('supplier', 'Supplier', 'Suppliers', 'supplier', 'is supplier of', 'has supplier') 
@@ -2897,9 +2894,10 @@ class UseCase(models.Model):
         return allowed_ps
 
 
-def create_use_cases(app, **kwargs):
-    if app != "valueaccounting":
-        return
+#def create_use_cases(app, **kwargs):
+#    if app != "valueaccounting":
+#        return
+def create_use_cases(**kwargs):
     UseCase.create('cash_contr', _('Cash Contribution'), True) 
     UseCase.create('non_prod', _('Non-production Logging'), True)
     UseCase.create('rand', _('Manufacturing Recipes/Logging'))
@@ -2923,9 +2921,10 @@ def create_use_cases(app, **kwargs):
 
 post_migrate.connect(create_use_cases)
 
-def create_event_types(app, **kwargs):
-    if app != "valueaccounting":
-        return
+#def create_event_types(app, **kwargs):
+#    if app != "valueaccounting":
+#        return
+def create_event_types(**kwargs):
     #Keep the first column (name) as unique
     EventType.create('Citation', _('cites'), _('cited by'), 'cite', 'process', '=', '')
     EventType.create('Resource Consumption', _('consumes'), _('consumed by'), 'consume', 'process', '-', 'quantity') 
@@ -2990,9 +2989,10 @@ class UseCaseEventType(models.Model):
             #import pdb; pdb.set_trace()
             print "Created %s UseCaseEventType" % (use_case_identifier + " " + event_type_name)
 
-def create_usecase_eventtypes(app, **kwargs):
-    if app != "valueaccounting":
-        return
+#def create_usecase_eventtypes(app, **kwargs):
+#    if app != "valueaccounting":
+#        return
+def create_usecase_eventtypes(**kwargs):
     UseCaseEventType.create('cash_contr', 'Time Contribution') 
     UseCaseEventType.create('cash_contr', 'Cash Contribution')  
     UseCaseEventType.create('cash_contr', 'Donation') 
@@ -3878,12 +3878,12 @@ class ExchangeType(models.Model):
 
 
 class GoodResourceManager(models.Manager):
-    def get_query_set(self):
-        return super(GoodResourceManager, self).get_query_set().exclude(quality__lt=0)
+    def get_queryset(self):
+        return super(GoodResourceManager, self).get_queryset().exclude(quality__lt=0)
 
 class FailedResourceManager(models.Manager):
-    def get_query_set(self):
-        return super(FailedResourceManager, self).get_query_set().filter(quality__lt=0)
+    def get_queryset(self):
+        return super(FailedResourceManager, self).get_queryset().filter(quality__lt=0)
         
 class EconomicResourceManager(models.Manager):
     
@@ -4010,6 +4010,13 @@ class EconomicResource(models.Model):
             return True
         else:
             return False
+            
+    def address_is_activated(self):
+        address = self.digital_currency_address
+        if address:
+            if address != "address_requested":
+                return True
+        return False
             
     def digital_currency_history(self):
         history = []
@@ -5321,6 +5328,8 @@ class EconomicResource(models.Model):
             return None
         
     def owners(self):
+        #todo faircoin: possible problem with multiple owners of faircoin_resources?
+        #mitigated by requiring owner or superuser to change faircoin resource
         return [arr.agent for arr in self.agent_resource_roles.filter(role__is_owner=True)]
         
     def is_virtual_account_of(self, agent):
@@ -9566,6 +9575,8 @@ class ValueEquation(models.Model):
             to_agent = dist_event.to_agent
             if money_resource.is_digital_currency_resource():
                 if testing:
+                    #todo faircoin distribution: shd put this into models
+                    # no need to import from faircoin_utils
                     from valuenetwork.valueaccounting.faircoin_utils import send_fake_faircoins
                     #faircoins are the only digital currency we handle now
                 va = to_agent.faircoin_resource()
@@ -9580,7 +9591,7 @@ class ValueEquation(models.Model):
                     if testing:
                         address = to_agent.create_fake_faircoin_address()
                     else:
-                        address = to_agent.create_faircoin_address()
+                        address = to_agent.request_faircoin_address()
                     va = to_agent.faircoin_resource()
                 if va:
                     dist_event.resource = va
@@ -9702,11 +9713,12 @@ class ValueEquation(models.Model):
             dist_event.event_date = distribution.distribution_date
             #todo faircoin distribution
             #import pdb; pdb.set_trace()
-            #digital_currency_resources for to_agents created earlier in this method
+            #digital_currency_resources for to_agents were created earlier in this method
             if dist_event.resource.is_digital_currency_resource():
                 address_origin = self.context_agent.faircoin_address()
                 address_end = dist_event.resource.digital_currency_address
                 # what about network_fee?
+                #handle when tx is broadcast
                 quantity = dist_event.quantity
                 state = "new"
                 if testing:
@@ -9793,6 +9805,7 @@ class ValueEquation(models.Model):
                 context_agent = self.context_agent,
                 quantity = agent_amounts[agent_id].quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
                 is_contribution = False,
+                is_to_distribute = True,
             )
             agent_claim_events = [ce for ce in claim_events if ce.claim.has_agent.id == int(agent_id)]
             for ce in agent_claim_events:

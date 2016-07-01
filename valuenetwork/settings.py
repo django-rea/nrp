@@ -260,5 +260,5 @@ except ImportError:
 # updating to django 1.5
 USE_TZ = True
 
-# updating to django 1.6
-TEST_RUNNER = 'django.test.simple.DjangoTestSuiteRunner'
+# updating to prep for django 1.8
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'

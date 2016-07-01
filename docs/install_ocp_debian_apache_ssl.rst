@@ -26,7 +26,7 @@ This is a howto for installing ocp in a debian/ubuntu system.
     ./manage.py migrate
     ./manage.py loaddata ./fixtures/starters.json
     ./manage.py loaddata ./fixtures/help.json
-    ./manage.py test valueaccounting
+    ./manage.py test valuenetwork.valueaccounting.tests
     ./manage.py runserver
 
 - Check everything is ok in http://127.0.0.1:8000 with web browser.

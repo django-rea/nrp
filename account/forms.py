@@ -98,7 +98,7 @@ class LoginUsernameForm(LoginForm):
     
     def __init__(self, *args, **kwargs):
         super(LoginUsernameForm, self).__init__(*args, **kwargs)
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         self.fields.keyOrder = ["username", "password", "remember"]
 
 

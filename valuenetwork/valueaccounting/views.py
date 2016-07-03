@@ -8367,6 +8367,7 @@ def resource(request, resource_id, extra_context=None):
                     % ('accounting/resource', resource.id))
     if resource.is_digital_currency_resource():
         send_coins_form = None
+        is_owner=False
         limit = 0
         if agent:
             is_owner = agent.owns(resource)

@@ -60,6 +60,7 @@ class SignupForm(forms.Form):
 
 class LoginForm(forms.Form):
     
+    user = None
     password = forms.CharField(
         label=_("Password"),
         widget=forms.PasswordInput(render_value=False)
@@ -68,7 +69,6 @@ class LoginForm(forms.Form):
         label = _("Remember Me"),
         required = False
     )
-    user = None
     
     def clean(self):
         if self._errors:
@@ -98,6 +98,7 @@ class LoginUsernameForm(LoginForm):
     
     def __init__(self, *args, **kwargs):
         super(LoginUsernameForm, self).__init__(*args, **kwargs)
+        import pdb; pdb.set_trace()
         self.fields.keyOrder = ["username", "password", "remember"]
 
 
